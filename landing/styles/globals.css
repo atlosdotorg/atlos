@@ -1,3 +1,10 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
+@import url("https://api.mapbox.com/mapbox-gl-js/v2.7.0/mapbox-gl.css");
+
+:root {
+    font-family: "Inter", sans-serif;
+}
