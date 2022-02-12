@@ -16,7 +16,7 @@ export default function Home() {
     const map = new mapboxgl.Map({
       container: 'map', // container ID
       style: 'mapbox://styles/milesmcc/ckzj5rkva001c15p77j25ox5l', // style URL
-      center: [32.1456235, 48.518858], // starting position [lng, lat]
+      center: [36.1457427, 49.9947277], // starting position [lng, lat]
       zoom: 9, // starting zoom
       pitch: 60,
       interactive: false,
