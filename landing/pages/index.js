@@ -45,7 +45,7 @@ export default function Home() {
         <section className='z-10 fixed bottom-0 mx-auto p-6 pt-12 md:m-12 lg:m-36 md:max-w-md'>
           <p className="heading text-6xl md:text-8xl text-white">Atlos</p>
           <p className="text-lg md:text-2xl text-white mt-6">
-            We're building a non-profit collaborative mapping platform to help OSINT researchers analyze conflict. Coming soon.
+            We&lsquo;re building a non-profit collaborative mapping platform to help OSINT researchers analyze conflict. Coming soon.
           </p>
           <p className="text-gray-200 mt-6">
             <a href="mailto:contact@atlos.org">contact@atlos.org &rarr;</a>
