@@ -40,7 +40,7 @@ export default function Home() {
 
       <main>
         <div className="w-full h-full -z-1">
-          <div id="map" className="absolute w-full h-full top-0 left-0 bg-zinc-700 -z-1 max-h-screen overflow-hidden"></div>
+          <div id="map" className="absolute w-full h-full top-0 left-0 bg-stone-700 -z-1 max-h-screen overflow-hidden"></div>
         </div>
         <section className='z-10 fixed bottom-0 mx-auto p-6 pt-12 md:m-12 lg:m-36 md:max-w-md'>
           <p className="heading text-6xl md:text-8xl text-white">Atlos</p>
