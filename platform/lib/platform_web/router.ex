@@ -13,12 +13,20 @@ defmodule PlatformWeb.Router do
     plug :fetch_current_user
   end
 
+  pipeline :workspace do
+    plug :put_layout, {PlatformWeb.LayoutView, "workspace.html"}
+  end
+
+  pipeline :interstitial do
+    plug :put_layout, {PlatformWeb.LayoutView, "interstitial.html"}
+  end
+
   pipeline :api do
     plug :accepts, ["json"]
   end
 
   scope "/", PlatformWeb do
-    pipe_through :browser
+    pipe_through [:browser, :require_authenticated_user, :workspace]
 
     get "/", PageController, :index
   end
@@ -60,7 +68,7 @@ defmodule PlatformWeb.Router do
   ## Authentication routes
 
   scope "/", PlatformWeb do
-    pipe_through [:browser, :redirect_if_user_is_authenticated]
+    pipe_through [:browser, :redirect_if_user_is_authenticated, :interstitial]
 
     get "/users/register", UserRegistrationController, :new
     post "/users/register", UserRegistrationController, :create
@@ -73,7 +81,7 @@ defmodule PlatformWeb.Router do
   end
 
   scope "/", PlatformWeb do
-    pipe_through [:browser, :require_authenticated_user]
+    pipe_through [:browser, :require_authenticated_user, :workspace]
 
     get "/users/settings", UserSettingsController, :edit
     put "/users/settings", UserSettingsController, :update
@@ -81,7 +89,7 @@ defmodule PlatformWeb.Router do
   end
 
   scope "/", PlatformWeb do
-    pipe_through [:browser]
+    pipe_through [:browser, :workspace]
 
     delete "/users/log_out", UserSessionController, :delete
     get "/users/confirm", UserConfirmationController, :new

@@ -1,3 +1,21 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer components {
+    .phx-form input[type="email"], .phx-form input[type="password"], .phx-form input[type="text"] {
+        @apply field ~neutral mb-4;
+    }
+
+    .phx-form input[type="checkbox"] {
+        @apply h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded;
+    }
+
+    .phx-form button {
+        @apply button ~urge @high;
+    }
+
+    .phx-form label {
+        @apply text-sm font-medium text-gray-700;
+    }
+}
