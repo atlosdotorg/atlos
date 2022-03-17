@@ -16,7 +16,7 @@
     }
 
     .phx-form label {
-        @apply text-sm font-medium text-gray-700 block;
+        @apply text-sm font-medium text-gray-700 block mb-px;
     }
 
     .phx-form label:not(:first-of-type) {
