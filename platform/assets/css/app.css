@@ -4,7 +4,7 @@
 
 @layer components {
     .phx-form input[type="email"], .phx-form input[type="password"], .phx-form input[type="text"] {
-        @apply field ~neutral mb-4;
+        @apply field ~neutral;
     }
 
     .phx-form input[type="checkbox"] {
@@ -16,6 +16,14 @@
     }
 
     .phx-form label {
-        @apply text-sm font-medium text-gray-700;
+        @apply text-sm font-medium text-gray-700 block;
+    }
+
+    .phx-form label:not(:first-of-type) {
+        @apply mt-4;
+    }
+
+    .phx-form .invalid-feedback {
+        @apply text-sm text-critical-700 block;
     }
 }

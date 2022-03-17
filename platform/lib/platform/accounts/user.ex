@@ -4,6 +4,9 @@ defmodule Platform.Accounts.User do
 
   schema "users" do
     field :email, :string
+    field :username, :string
+    field :roles, {:array, Ecto.Enum}, values: [:coordinator, :trusted, :admin]
+
     field :password, :string, virtual: true, redact: true
     field :hashed_password, :string, redact: true
     field :confirmed_at, :naive_datetime
@@ -30,8 +33,9 @@ defmodule Platform.Accounts.User do
   """
   def registration_changeset(user, attrs, opts \\ []) do
     user
-    |> cast(attrs, [:email, :password])
+    |> cast(attrs, [:email, :password, :username])
     |> validate_email()
+    |> validate_username()
     |> validate_password(opts)
   end
 
@@ -42,6 +46,15 @@ defmodule Platform.Accounts.User do
     |> validate_length(:email, max: 160)
     |> unsafe_validate_unique(:email, Platform.Repo)
     |> unique_constraint(:email)
+  end
+
+  defp validate_username(changeset) do
+    changeset
+    |> validate_required([:username])
+    |> validate_format(:username, ~r/[A-Za-z0-9]+/, message: "must be alphaneumeric")
+    |> validate_length(:username, min: 3, max: 32)
+    |> unsafe_validate_unique(:username, Platform.Repo)
+    |> unique_constraint(:username)
   end
 
   defp validate_password(changeset, opts) do
