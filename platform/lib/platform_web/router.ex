@@ -25,17 +25,6 @@ defmodule PlatformWeb.Router do
     plug :accepts, ["json"]
   end
 
-  scope "/", PlatformWeb do
-    pipe_through [:browser, :require_authenticated_user, :workspace]
-
-    get "/", PageController, :index
-  end
-
-  # Other scopes may use custom stacks.
-  # scope "/api", PlatformWeb do
-  #   pipe_through :api
-  # end
-
   # Enables LiveDashboard only for development
   #
   # If you want to use the LiveDashboard in production, you should put
@@ -65,8 +54,6 @@ defmodule PlatformWeb.Router do
     end
   end
 
-  ## Authentication routes
-
   scope "/", PlatformWeb do
     pipe_through [:browser, :redirect_if_user_is_authenticated, :interstitial]
 
@@ -81,14 +68,6 @@ defmodule PlatformWeb.Router do
   end
 
   scope "/", PlatformWeb do
-    pipe_through [:browser, :require_authenticated_user, :workspace]
-
-    get "/users/settings", UserSettingsController, :edit
-    put "/users/settings", UserSettingsController, :update
-    get "/users/settings/confirm_email/:token", UserSettingsController, :confirm_email
-  end
-
-  scope "/", PlatformWeb do
     pipe_through [:browser, :workspace]
 
     delete "/users/log_out", UserSessionController, :delete
@@ -96,5 +75,21 @@ defmodule PlatformWeb.Router do
     post "/users/confirm", UserConfirmationController, :create
     get "/users/confirm/:token", UserConfirmationController, :edit
     post "/users/confirm/:token", UserConfirmationController, :update
+  end
+
+  live_session :default do
+    scope "/", PlatformWeb do
+      pipe_through [:browser, :require_authenticated_user, :workspace]
+
+      get "/", PageController, :index
+    end
+
+    scope "/", PlatformWeb do
+      pipe_through [:browser, :require_authenticated_user, :workspace]
+
+      get "/users/settings", UserSettingsController, :edit
+      put "/users/settings", UserSettingsController, :update
+      get "/users/settings/confirm_email/:token", UserSettingsController, :confirm_email
+    end
   end
 end
