@@ -26,7 +26,10 @@ defmodule PlatformWeb.UserResetPasswordController do
   end
 
   def edit(conn, _params) do
-    render(conn, "edit.html", changeset: Accounts.change_user_password(conn.assigns.user), title: "Change password")
+    render(conn, "edit.html",
+      changeset: Accounts.change_user_password(conn.assigns.user),
+      title: "Change password"
+    )
   end
 
   # Do not log in the user after reset password to avoid a
