@@ -13,8 +13,8 @@ defmodule PlatformWeb.Router do
     plug :fetch_current_user
   end
 
-  pipeline :workspace do
-    plug :put_layout, {PlatformWeb.LayoutView, "workspace.html"}
+  pipeline :app do
+    plug :put_layout, {PlatformWeb.LayoutView, "app.html"}
   end
 
   pipeline :interstitial do
@@ -68,7 +68,7 @@ defmodule PlatformWeb.Router do
   end
 
   scope "/", PlatformWeb do
-    pipe_through [:browser, :workspace]
+    pipe_through [:browser, :app]
 
     delete "/users/log_out", UserSessionController, :delete
     get "/users/confirm", UserConfirmationController, :new
@@ -79,13 +79,13 @@ defmodule PlatformWeb.Router do
 
   live_session :default do
     scope "/", PlatformWeb do
-      pipe_through [:browser, :require_authenticated_user, :workspace]
+      pipe_through [:browser, :require_authenticated_user, :app]
 
       get "/", PageController, :index
     end
 
     scope "/", PlatformWeb do
-      pipe_through [:browser, :require_authenticated_user, :workspace]
+      pipe_through [:browser, :require_authenticated_user, :app]
 
       get "/users/settings", UserSettingsController, :edit
       put "/users/settings", UserSettingsController, :update
