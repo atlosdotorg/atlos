@@ -66,6 +66,7 @@ defmodule PlatformWeb.Components do
             <% end %>
             <p class="text-sm text-gray-500"><%= render_slot(@inner_block) %></p>
           </div>
+          <%= render_slot(@right) %>
         </div>
       </div>
     </div>
