@@ -6,7 +6,7 @@
             <%= @inner_content %>
             <div aria-live="assertive" class="fixed inset-0 flex items-end px-4 py-6 pointer-events-none sm:p-6 sm:items-start">
                 <div class="w-full flex flex-col items-center space-y-4 sm:items-end">
-                    <% info = live_flash(@flash, :info) %>
+                    <% info = "This is a test message." %>
                     <%= if info do %>
                       <div phx-click="lv:clear-flash" phx-value-key="info">
                         <.notification type="info">

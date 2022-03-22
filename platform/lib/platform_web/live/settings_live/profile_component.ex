@@ -32,7 +32,11 @@ defmodule PlatformWeb.SettingsLive.ProfileComponent do
   def handle_event("save", %{"user" => user_params}, socket) do
     case Accounts.update_user_profile(socket.assigns.current_user, user_params) do
       {:ok, user} ->
-        {:noreply, socket |> put_flash(:info, "Your profile has been updated") |> assign(:current_user, user) |> assign(:changeset, Accounts.change_user_profile(user))}
+        {:noreply,
+         socket
+         |> put_flash(:info, "Your profile has been updated")
+         |> assign(:current_user, user)
+         |> assign(:changeset, Accounts.change_user_profile(user))}
 
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign(socket, :changeset, changeset)}
