@@ -9,3 +9,7 @@
 #
 # We recommend using the bang functions (`insert!`, `update!`
 # and so on) as they will fail if something goes wrong.
+
+alias Platform.Accounts
+
+Accounts.register_user(%{email: "dev@localhost", username: "dev", password: "localhost123"})

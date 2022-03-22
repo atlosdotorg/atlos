@@ -6,6 +6,8 @@ defmodule Platform.Accounts.User do
     field :email, :string
     field :username, :string
     field :roles, {:array, Ecto.Enum}, values: [:coordinator, :trusted, :admin]
+    field :bio, :string, nullable: true, default: ""
+    field :profile_photo_file, :string, nullable: true, default: ""
 
     field :password, :string, virtual: true, redact: true
     field :hashed_password, :string, redact: true
@@ -95,6 +97,16 @@ defmodule Platform.Accounts.User do
       %{changes: %{email: _}} = changeset -> changeset
       %{} = changeset -> add_error(changeset, :email, "did not change")
     end
+  end
+
+  @doc """
+  A user changeset for changing user-modifiable profile attributes,
+  like the profile photo and bio.
+  """
+  def profile_changeset(user, attrs) do
+    user
+    |> cast(attrs, [:bio, :profile_photo_file])
+    |> validate_length(:bio, less_than: 240)
   end
 
   @doc """

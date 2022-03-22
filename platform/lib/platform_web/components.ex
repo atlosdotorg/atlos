@@ -2,10 +2,10 @@ defmodule PlatformWeb.Components do
   use Phoenix.Component
   use Phoenix.HTML
 
-  def navlink(assigns) do
+  def navlink(%{request_path: path, to: to} = assigns) do
     # TODO(miles): check for active tab
     classes =
-      if false do
+      if String.starts_with?(path, to) and !String.equivalent?(path, "/") do
         "bg-neutral-800 text-white group w-full p-3 rounded-md flex flex-col items-center text-xs font-medium"
       else
         "text-neutral-100 hover:bg-neutral-800 hover:text-white group w-full p-3 rounded-md flex flex-col items-center text-xs font-medium"

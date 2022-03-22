@@ -2,6 +2,7 @@ defmodule PlatformWeb.Router do
   use PlatformWeb, :router
 
   import PlatformWeb.UserAuth
+  alias PlatformWeb.UserAuthLive
 
   pipeline :browser do
     plug :accepts, ["html"]
@@ -77,19 +78,16 @@ defmodule PlatformWeb.Router do
     post "/users/confirm/:token", UserConfirmationController, :update
   end
 
-  live_session :default do
-    scope "/", PlatformWeb do
-      pipe_through [:browser, :require_authenticated_user, :app]
+  scope "/", PlatformWeb do
+    pipe_through [:browser, :require_authenticated_user, :app]
 
-      get "/", PageController, :index
-    end
+    get "/", PageController, :index
+    get "/users/settings", UserSettingsController, :edit
+    put "/users/settings", UserSettingsController, :update
+    get "/users/settings/confirm_email/:token", UserSettingsController, :confirm_email
 
-    scope "/", PlatformWeb do
-      pipe_through [:browser, :require_authenticated_user, :app]
+    live_session :default, on_mount: UserAuthLive do
 
-      get "/users/settings", UserSettingsController, :edit
-      put "/users/settings", UserSettingsController, :update
-      get "/users/settings/confirm_email/:token", UserSettingsController, :confirm_email
     end
   end
 end

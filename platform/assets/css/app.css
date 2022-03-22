@@ -3,27 +3,158 @@
 @tailwind utilities;
 
 @layer components {
-    .phx-form input[type="email"], .phx-form input[type="password"], .phx-form input[type="text"] {
-        @apply field ~neutral;
-    }
+  .phx-form input[type="email"],
+  .phx-form input[type="password"],
+  .phx-form input[type="text"] {
+    @apply field ~neutral;
+  }
 
-    .phx-form input[type="checkbox"] {
-        @apply h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded;
-    }
+  .phx-form input[type="checkbox"] {
+    @apply h-4 w-4 text-urge-600 focus:ring-urge-500 border-gray-300 rounded;
+  }
 
-    .phx-form button {
-        @apply button ~urge @high;
-    }
+  .phx-form button {
+    @apply button ~urge @high;
+  }
 
-    .phx-form label {
-        @apply text-sm font-medium text-gray-700 block mb-px;
-    }
+  .phx-form label {
+    @apply text-base font-medium text-gray-900 block mb-px;
+  }
 
-    .phx-form label:not(:first-of-type) {
-        @apply mt-4;
-    }
+  .phx-form label:not(:first-of-type) {
+    @apply mt-4;
+  }
 
-    .phx-form .invalid-feedback {
-        @apply text-sm text-critical-700 block;
+  .phx-form .invalid-feedback {
+    @apply text-sm text-critical-700 block;
+  }
+
+  /* Alerts and form errors used by phx.new */
+  .alert {
+    @apply aside ~info;
+  }
+  .alert-info {
+    @apply aside ~info;
+  }
+  .alert-warning {
+    @apply aside ~warning;
+  }
+  .alert-danger {
+    @apply aside ~critical;
+  }
+  .alert p {
+    margin-bottom: 0;
+  }
+  .alert:empty {
+    display: none;
+  }
+  .invalid-feedback {
+    color: #a94442;
+    display: block;
+    margin: -1rem 0 2rem;
+  }
+
+  /* LiveView specific classes for your customization */
+  .phx-no-feedback.invalid-feedback,
+  .phx-no-feedback .invalid-feedback {
+    display: none;
+  }
+
+  .phx-click-loading {
+    opacity: 0.5;
+    transition: opacity 1s ease-out;
+  }
+
+  .phx-loading {
+    cursor: wait;
+  }
+
+  .phx-modal {
+    opacity: 1 !important;
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.4);
+  }
+
+  .phx-modal-content {
+    background-color: #fefefe;
+    margin: 15vh auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+  }
+
+  .phx-modal-close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+  }
+
+  .phx-modal-close:hover,
+  .phx-modal-close:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  .fade-in-scale {
+    animation: 0.2s ease-in 0s normal forwards 1 fade-in-scale-keys;
+  }
+
+  .fade-out-scale {
+    animation: 0.2s ease-out 0s normal forwards 1 fade-out-scale-keys;
+  }
+
+  .fade-in {
+    animation: 0.2s ease-out 0s normal forwards 1 fade-in-keys;
+  }
+  .fade-out {
+    animation: 0.2s ease-out 0s normal forwards 1 fade-out-keys;
+  }
+
+  @keyframes fade-in-scale-keys {
+    0% {
+      scale: 0.95;
+      opacity: 0;
     }
+    100% {
+      scale: 1;
+      opacity: 1;
+    }
+  }
+
+  @keyframes fade-out-scale-keys {
+    0% {
+      scale: 1;
+      opacity: 1;
+    }
+    100% {
+      scale: 0.95;
+      opacity: 0;
+    }
+  }
+
+  @keyframes fade-in-keys {
+    0% {
+      opacity: 0;
+    }
+    100% {
+      opacity: 1;
+    }
+  }
+
+  @keyframes fade-out-keys {
+    0% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+    }
+  }
 }

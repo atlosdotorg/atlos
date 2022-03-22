@@ -350,4 +350,13 @@ defmodule Platform.Accounts do
       {:error, :user, changeset, _} -> {:error, changeset}
     end
   end
+
+  def change_user_profile(user, attrs) do
+    User.profile_changeset(user, attrs)
+  end
+
+  def update_user_profile(user, attrs) do
+    change_user_profile(user, attrs)
+    |> Repo.insert()
+  end
 end
