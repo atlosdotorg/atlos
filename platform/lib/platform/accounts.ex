@@ -351,12 +351,20 @@ defmodule Platform.Accounts do
     end
   end
 
-  def change_user_profile(user, attrs) do
+  @spec change_user_profile(
+          {map, map}
+          | %{
+              :__struct__ => atom | %{:__changeset__ => map, optional(any) => any},
+              optional(atom) => any
+            },
+          :invalid | %{optional(:__struct__) => none, optional(atom | binary) => any}
+        ) :: Ecto.Changeset.t()
+  def change_user_profile(user, attrs \\ %{}) do
     User.profile_changeset(user, attrs)
   end
 
   def update_user_profile(user, attrs) do
     change_user_profile(user, attrs)
-    |> Repo.insert()
+    |> Repo.update()
   end
 end

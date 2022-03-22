@@ -106,7 +106,7 @@ defmodule Platform.Accounts.User do
   def profile_changeset(user, attrs) do
     user
     |> cast(attrs, [:bio, :profile_photo_file])
-    |> validate_length(:bio, less_than: 240)
+    |> validate_length(:bio, max: 240)
   end
 
   @doc """

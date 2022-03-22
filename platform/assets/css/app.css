@@ -14,6 +14,7 @@
 
   .phx-form input[type="email"],
   .phx-form input[type="password"],
+  .phx-form textarea,
   .phx-form input[type="text"] {
     @apply field ~neutral;
   }
@@ -35,7 +36,7 @@
   }
 
   .phx-form .invalid-feedback {
-    @apply text-sm text-critical-700 block;
+    @apply text-sm text-critical-700 block -mt-1;
   }
 
   /* Alerts and form errors used by phx.new */
@@ -60,7 +61,6 @@
   .invalid-feedback {
     color: #a94442;
     display: block;
-    margin: -1rem 0 2rem;
   }
 
   /* LiveView specific classes for your customization */
