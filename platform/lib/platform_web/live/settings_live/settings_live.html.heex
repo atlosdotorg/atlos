@@ -11,14 +11,6 @@
             </:header>
             <div class="space-y-6">
               <div>
-                <label for="about" class="block text-sm font-medium text-gray-700"> About </label>
-                <div class="mt-1">
-                  <textarea id="about" name="about" rows="3" class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 mt-1 block w-full sm:text-sm border border-gray-300 rounded-md" placeholder="Describe yourself..."></textarea>
-                </div>
-                <p class="mt-2 text-sm text-gray-500">Maximum 240 characters.</p>
-              </div>
-
-              <div>
                 <label class="block text-sm font-medium text-gray-700"> Photo </label>
                 <div class="mt-1 flex items-center">
                   <span class="inline-block h-12 w-12 rounded-full overflow-hidden bg-gray-100">
@@ -29,6 +21,15 @@
                   <button type="button" class="ml-5 bg-white py-2 px-3 border border-gray-300 rounded-md shadow-sm text-sm leading-4 font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Change</button>
                 </div>
               </div>
+
+              <div>
+                <label for="about" class="block text-sm font-medium text-gray-700"> About </label>
+                <div class="mt-1">
+                  <textarea id="about" name="about" rows="3" class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 mt-1 block w-full sm:text-sm border border-gray-300 rounded-md" placeholder="Describe yourself..."></textarea>
+                </div>
+                <p class="mt-2 text-sm text-gray-500">Maximum 240 characters.</p>
+              </div>
+
               <button type="submit" class="button ~urge @high">Save</button>
             </div>
           </.card>
