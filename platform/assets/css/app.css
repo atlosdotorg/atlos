@@ -23,10 +23,6 @@
     @apply h-4 w-4 text-urge-600 focus:ring-urge-500 border-gray-300 rounded;
   }
 
-  .phx-form button {
-    @apply button ~urge @high;
-  }
-
   .phx-form label {
     @apply block text-sm font-medium text-gray-700;
   }

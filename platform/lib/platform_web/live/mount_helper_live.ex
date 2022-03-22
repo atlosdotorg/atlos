@@ -7,7 +7,8 @@ defmodule PlatformWeb.MountHelperLive do
   end
 
   def on_mount(:authenticated, _params, %{"user_token" => user_token} = _session, socket) do
-    socket = socket
+    socket =
+      socket
       |> attach_path_hook()
       |> assign_new(:current_user, fn ->
         Accounts.get_user_by_session_token(user_token)
@@ -16,7 +17,8 @@ defmodule PlatformWeb.MountHelperLive do
     unless is_nil(socket.assigns.current_user) do
       {:cont, socket}
     else
-      {:halt, redirect(socket, to: "/users/log_in")} # TODO: use routes
+      # TODO: use routes
+      {:halt, redirect(socket, to: "/users/log_in")}
     end
   end
 
@@ -24,7 +26,6 @@ defmodule PlatformWeb.MountHelperLive do
     attach_hook(socket, :set_active_path, :handle_params, fn
       _params, url, socket ->
         {:cont, assign(socket, path: URI.parse(url).path)}
-      end
-    )
+    end)
   end
 end
