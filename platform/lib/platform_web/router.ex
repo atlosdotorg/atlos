@@ -2,7 +2,7 @@ defmodule PlatformWeb.Router do
   use PlatformWeb, :router
 
   import PlatformWeb.UserAuth
-  alias PlatformWeb.UserAuthLive
+  alias PlatformWeb.MountHelperLive
 
   pipeline :browser do
     plug :accepts, ["html"]
@@ -86,8 +86,8 @@ defmodule PlatformWeb.Router do
     put "/users/settings", UserSettingsController, :update
     get "/users/settings/confirm_email/:token", UserSettingsController, :confirm_email
 
-    live_session :default, on_mount: UserAuthLive do
-
+    live_session :default, on_mount: {MountHelperLive, :authenticated} do
+      live "/settings", SettingsLive
     end
   end
 end
