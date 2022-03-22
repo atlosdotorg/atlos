@@ -1,20 +1,37 @@
-<div>
-  <h1 class="heading border-b border-gray-200 pb-4 mb-8">Your Account</h1>
-  <div class="md:grid md:grid-cols-3 md:gap-6">
-    <div class="mt-5 md:mt-0 md:col-span-2">
-      <div class="px-4 sm:px-0 mb-4">
-        <.card>
-          <:header>
-            <h3 class="text-lg font-medium leading-6 text-gray-900">Profile</h3>
-            <p class="mt-1 text-sm text-gray-600">This information will be displayed publicly.</p>
-          </:header>
-          <.live_component
-            module={PlatformWeb.SettingsLive.ProfileComponent}
-            id="profile-settings"
-            current_user={@current_user}
-          />
-        </.card>
-      </div>
+<div class="space-y-8">
+  <h1 class="page-header">Your Account</h1>
+  <.card>
+    <:header>
+      <h3 class="sec-head">Profile</h3>
+      <p class="sec-subhead">This information will be displayed publicly.</p>
+    </:header>
+    <.live_component
+      module={PlatformWeb.SettingsLive.ProfileComponent}
+      id="profile-settings"
+      current_user={@current_user}
+    />
+  </.card>
+
+  <.card>
+    <:header>
+      <h3 class="sec-head">Sensitive Content &amp; Resiliency</h3>
+      <p class="sec-subhead">This information will be kept private. We want to make sure you only engage with material you are comfortable with.</p>
+    </:header>
+    <.live_component
+      module={PlatformWeb.SettingsLive.ResiliencyComponent}
+      id="resiliency-settings"
+      current_user={@current_user}
+    />
+  </.card>
+
+  <.card>
+    <:header>
+      <h3 class="sec-head">Password &amp; Security</h3>
+      <p class="sec-subhead">To change your email or username, please contact us. Two-factor authentication is coming soon.</p>
+    </:header>
+    <div class="grid md:grid-cols-2 gap-4">
+      <a href="/users/settings" class="button ~urge @high">Change your password &rarr;</a>
+      <a href="#" class="button ~urge @high" disabled>Two-factor auth &rarr;</a>
     </div>
-  </div>
+  </.card>
 </div>

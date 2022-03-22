@@ -1,4 +1,4 @@
-<h1 class="heading mb-8">Change Password</h1>
+<h1 class="page-header mb-8">Change Password</h1>
 
 <.card>
   <.form let={f} for={@password_changeset} action={Routes.user_settings_path(@conn, :update)} id="update_password" class="phx-form">
@@ -23,7 +23,7 @@
     <%= error_tag f, :current_password %>
 
     <div class="mt-4">
-      <%= submit "Change password" %>
+      <%= submit "Change password", class: "button ~urge @high" %>
     </div>
   </.form>
 </.card>

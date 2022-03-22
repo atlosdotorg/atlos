@@ -27,11 +27,11 @@ defmodule PlatformWeb.Components do
     ~H"""
     <div class="bg-white overflow-hidden shadow rounded-lg divide-y divide-gray-200 max-w-xl">
       <%= unless Enum.empty?(@header) do %>
-      <div class="px-4 py-5 sm:px-6">
+      <div class="py-4 px-5 sm:py-5">
         <%= render_slot(@header) %>
       </div>
       <% end %>
-      <div class="px-4 py-5 sm:p-6">
+      <div class="py-4 px-5 sm:py-5">
         <%= render_slot(@inner_block) %>
       </div>
     </div>
