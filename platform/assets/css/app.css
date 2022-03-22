@@ -3,6 +3,11 @@
 @tailwind utilities;
 
 @layer components {
+  div[data-phx-main="true"] {
+    /* Add h-full to the root Phoenix LiveView element */
+    @apply h-full;
+  }
+
   .button {
       @apply inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2;
   }
@@ -22,7 +27,7 @@
   }
 
   .phx-form label {
-    @apply text-base font-medium text-gray-900 block mb-px;
+    @apply block text-sm font-medium text-gray-700;
   }
 
   .phx-form label:not(:first-of-type) {

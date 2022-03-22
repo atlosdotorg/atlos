@@ -83,12 +83,11 @@ defmodule PlatformWeb.Components do
                 <span class="text-white uppercase font-bold">Atlos</span>
             <% end %>
             <div class="flex-1 mt-6 w-full px-2 space-y-1">
-            <a href="#" class="bg-neutral-800 text-white group w-full p-3 rounded-md flex flex-col items-center text-xs font-medium" aria-current="page">
+            <.navlink to="/new" label="New" request_path={@path}>
                 <svg class="text-white group-hover:text-white h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
                 </svg>
-                <span class="mt-2">New</span>
-            </a>
+            </.navlink>
 
             <a href="#" class="text-neutral-100 hover:bg-neutral-800 hover:text-white group w-full p-3 rounded-md flex flex-col items-center text-xs font-medium">
                 <svg class="text-neutral-300 group-hover:text-white h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
