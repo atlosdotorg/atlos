@@ -5,10 +5,12 @@ defmodule Platform.Material.MediaVersion do
   schema "media_versions" do
     field :file_location, :string
     field :file_size, :integer
-    field :perceptual_hash, :binary
+    field :perceptual_hash, :binary, nullable: true
     field :source_url, :string
     field :type, Ecto.Enum, values: [:image, :video]
-    field :media_id, :id
+    field :thumbnail_location, :string
+
+    belongs_to :media, Platform.Material.Media
 
     timestamps()
   end
@@ -17,6 +19,6 @@ defmodule Platform.Material.MediaVersion do
   def changeset(media_version, attrs) do
     media_version
     |> cast(attrs, [:type, :perceptual_hash, :source_url, :file_size, :file_location])
-    |> validate_required([:type, :perceptual_hash, :source_url, :file_size, :file_location])
+    |> validate_required([:type, :source_url, :file_size, :file_location])
   end
 end

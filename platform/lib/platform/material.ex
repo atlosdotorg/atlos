@@ -21,6 +21,10 @@ defmodule Platform.Material do
     Repo.all(Media)
   end
 
+  defp preload_media_versions(query) do
+    query |> preload([:media_versions])
+  end
+
   @doc """
   Gets a single media.
 
@@ -53,6 +57,10 @@ defmodule Platform.Material do
     %Media{}
     |> Media.changeset(attrs)
     |> Repo.insert()
+  end
+
+  def get_media_with_versions(id) do
+    Media |> preload_media_versions() |> Repo.get!(id)
   end
 
   @doc """

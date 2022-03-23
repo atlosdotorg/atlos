@@ -14,7 +14,7 @@ defmodule Platform.Material.Media do
 
     # Metadata
     timestamps()
-    has_many :versions, Media.MediaVersion
+    has_many :versions, Platform.Media.MediaVersion
   end
 
   @doc false
