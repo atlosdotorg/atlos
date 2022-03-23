@@ -86,6 +86,11 @@ defmodule PlatformWeb.SettingsLive.ProfileComponent do
       >
         <div class="space-y-6">
           <div>
+            <label>Username</label>
+            <input type="text" class="my-1" disabled value={@current_user.username} />
+            <p class="support">If you would like to change your username, please contact us.</p>
+          </div>
+          <div>
             <%= label f, :profile_photo_file, "Profile Photo" %>
             <div class="mt-1 flex items-center" phx-drop-target={@uploads.profile_photo_file.ref}>
               <div class="h-12 w-12 rounded-full overflow-hidden">
@@ -114,7 +119,7 @@ defmodule PlatformWeb.SettingsLive.ProfileComponent do
           <div>
             <%= label f, :bio %>
             <div class="mt-1">
-              <%= textarea f, :bio %>
+              <%= textarea f, :bio, rows: 4 %>
             </div>
             <%= error_tag f, :bio %>
           </div>
