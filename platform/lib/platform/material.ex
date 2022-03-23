@@ -7,6 +7,7 @@ defmodule Platform.Material do
   alias Platform.Repo
 
   alias Platform.Material.Media
+  alias Platform.Material.MediaVersion
 
   @doc """
   Returns the list of media.
@@ -109,8 +110,6 @@ defmodule Platform.Material do
   def change_media(%Media{} = media, attrs \\ %{}) do
     Media.changeset(media, attrs)
   end
-
-  alias Platform.Material.MediaVersion
 
   @doc """
   Returns the list of media_versions.

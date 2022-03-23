@@ -88,6 +88,8 @@ defmodule PlatformWeb.Router do
 
     live_session :default, on_mount: {MountHelperLive, :authenticated} do
       live "/settings", SettingsLive
+
+      live "/new", NewLive
     end
   end
 end

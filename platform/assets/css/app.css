@@ -44,7 +44,7 @@
   }
 
   .phx-form .invalid-feedback {
-    @apply text-sm text-critical-700 block -mt-1;
+    @apply support text-critical-700;
   }
 
   /* Alerts and form errors used by phx.new */

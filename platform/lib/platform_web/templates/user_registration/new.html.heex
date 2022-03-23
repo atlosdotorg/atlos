@@ -19,7 +19,7 @@
     <%= error_tag f, :password %>
 
     <div class="mt-8 flex gap-4 items-center text-neutral-500">
-      <%= submit "Register" %>
+      <%= submit "Register", class: "button ~urge @high" %>
       <%= link "Sign in to existing account", to: Routes.user_session_path(@conn, :new) %>
     </div>
   </.form>
