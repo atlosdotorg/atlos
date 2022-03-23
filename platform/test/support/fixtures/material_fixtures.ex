@@ -23,4 +23,22 @@ defmodule Platform.MaterialFixtures do
 
     media
   end
+
+  @doc """
+  Generate a media_version.
+  """
+  def media_version_fixture(attrs \\ %{}) do
+    {:ok, media_version} =
+      attrs
+      |> Enum.into(%{
+        file_location: "some file_location",
+        file_size: 42,
+        perceptual_hash: "some perceptual_hash",
+        source_url: "some source_url",
+        type: :image
+      })
+      |> Platform.Material.create_media_version()
+
+    media_version
+  end
 end

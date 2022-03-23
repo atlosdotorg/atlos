@@ -101,4 +101,100 @@ defmodule Platform.Material do
   def change_media(%Media{} = media, attrs \\ %{}) do
     Media.changeset(media, attrs)
   end
+
+  alias Platform.Material.MediaVersion
+
+  @doc """
+  Returns the list of media_versions.
+
+  ## Examples
+
+      iex> list_media_versions()
+      [%MediaVersion{}, ...]
+
+  """
+  def list_media_versions do
+    Repo.all(MediaVersion)
+  end
+
+  @doc """
+  Gets a single media_version.
+
+  Raises `Ecto.NoResultsError` if the Media version does not exist.
+
+  ## Examples
+
+      iex> get_media_version!(123)
+      %MediaVersion{}
+
+      iex> get_media_version!(456)
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_media_version!(id), do: Repo.get!(MediaVersion, id)
+
+  @doc """
+  Creates a media_version.
+
+  ## Examples
+
+      iex> create_media_version(%{field: value})
+      {:ok, %MediaVersion{}}
+
+      iex> create_media_version(%{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_media_version(attrs \\ %{}) do
+    %MediaVersion{}
+    |> MediaVersion.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Updates a media_version.
+
+  ## Examples
+
+      iex> update_media_version(media_version, %{field: new_value})
+      {:ok, %MediaVersion{}}
+
+      iex> update_media_version(media_version, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_media_version(%MediaVersion{} = media_version, attrs) do
+    media_version
+    |> MediaVersion.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Deletes a media_version.
+
+  ## Examples
+
+      iex> delete_media_version(media_version)
+      {:ok, %MediaVersion{}}
+
+      iex> delete_media_version(media_version)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def delete_media_version(%MediaVersion{} = media_version) do
+    Repo.delete(media_version)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking media_version changes.
+
+  ## Examples
+
+      iex> change_media_version(media_version)
+      %Ecto.Changeset{data: %MediaVersion{}}
+
+  """
+  def change_media_version(%MediaVersion{} = media_version, attrs \\ %{}) do
+    MediaVersion.changeset(media_version, attrs)
+  end
 end
