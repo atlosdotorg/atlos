@@ -13,10 +13,6 @@ defmodule Platform.Utils do
     slug
   end
 
-  def validate_media_slug(changeset) do
-    changeset |> validate_format(:slug, ~r/^AT[A-Z0-9]{5}$/, message: "slug is not a valid code")
-  end
-
   def upload_ugc_file(path, socket) do
     dest = Path.join("priv/static/images/ugc/", Path.basename(path))
     File.cp!(path, dest)
