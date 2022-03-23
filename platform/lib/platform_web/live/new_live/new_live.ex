@@ -32,7 +32,12 @@ defmodule PlatformWeb.NewLive do
           <h3 class="sec-head">Upload media for: <span class="text-gray-600"><%= @media.description %></span></h3>
           <p class="sec-subhead">This media will be assigned the Atlos identifier <%= @media.slug %>.</p>
         </:header>
-        Upload media...
+        <.live_component
+          module={PlatformWeb.MediaLive.UploadVersionLive}
+          id="upload-version"
+          current_user={@current_user}
+          media={@media}
+        />
       </.card>
       <% end %>
     </div>

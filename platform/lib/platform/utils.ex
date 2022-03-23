@@ -12,6 +12,10 @@ defmodule Platform.Utils do
     slug
   end
 
+  def generate_random_sequence(length) do
+    for _ <- 1..length, into: "", do: <<Enum.random('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ')>>
+  end
+
   def upload_ugc_file(path, socket) do
     dest = Path.join("priv/static/images/ugc/", Path.basename(path))
     File.cp!(path, dest)
