@@ -211,12 +211,14 @@ defmodule Platform.Material do
 
   Returns {:ok, file_path, thumbnail_path, duration}
   """
-  def process_uploaded_media(path, identifier) do
-    IO.puts("Path: #{path}, identifier: #{identifier}")
-
+  def process_uploaded_media(path, mime, identifier) do
     thumb_path = Temp.path!(%{prefix: "thumbnail", suffix: ".jpg"})
     :ok = Thumbnex.create_thumbnail(path, thumb_path)
-    media_path = Temp.path!(%{suffix: ".mp4"})
+
+    media_path = cond do
+      String.starts_with?(mime, "image/") -> Temp.path!(%{suffix: ".jpg"})
+      String.starts_with?(mime, "video/") -> Temp.path!(%{suffix: ".mp4"})
+    end
 
     process_command =
       FFmpex.new_command()
@@ -225,11 +227,11 @@ defmodule Platform.Material do
 
     {:ok, _} = FFmpex.execute(process_command)
 
-    {:ok, data} = FFprobe.format(media_path)
+    {:ok, out_data} = FFprobe.format(media_path)
 
-    {duration, _} = Integer.parse(data["duration"])
-    type = data["format_name"]
-    {size, _} = Integer.parse(data["size"])
+    {duration, _} = Integer.parse(out_data["duration"])
+    type = out_data["format_name"]
+    {size, _} = Integer.parse(out_data["size"])
 
     {:ok, new_thumb_path} = Utils.upload_ugc_file(thumb_path)
     {:ok, new_path} = Utils.upload_ugc_file(media_path)

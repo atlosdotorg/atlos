@@ -4,6 +4,8 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
   alias Platform.Utils
 
   def update(assigns, socket) do
+    Temp.track! # Track temporary files so they are properly cleaned up later
+
     {:ok,
      socket
      |> assign(assigns)
@@ -14,7 +16,7 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
      |> assign_changeset()
      |> assign(:form_id, Utils.generate_random_sequence(10))
      |> allow_upload(:media_upload,
-       accept: ~w(.png .jpg .jpeg .gif .avi .mp4),
+       accept: ~w(.png .jpg .jpeg .avi .mp4 .webm),
        max_entries: 1,
        max_file_size: 250_000_000,
        auto_upload: true,
@@ -90,7 +92,7 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
     path = consume_uploaded_entry(socket, entry, &handle_static_file(&1))
 
     with {:ok, path, thumb_path, duration, size} <-
-           Material.process_uploaded_media(path, socket.assigns.media.slug) do
+           Material.process_uploaded_media(path, entry.client_type, socket.assigns.media.slug) do
       socket
       |> update_internal_params("file_location", path)
       |> update_internal_params("duration_seconds", duration)
