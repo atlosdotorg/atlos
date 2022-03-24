@@ -49,7 +49,7 @@ defmodule PlatformWeb.NewLive.BasicInfoLive do
         <div class="space-y-6">
           <div>
             <%= label f, :description, "Short Description" %>
-            <%= textarea f, :description, class: "text-xl", rows: 2, disabled: @disabled %>
+            <%= textarea f, :description, class: "text-xl", rows: 2, disabled: @disabled, phx_debounce: "blur" %>
             <p class="support">Try to be as descriptive as possible. You'll be able to change this later.</p>
             <%= error_tag f, :description %>
           </div>

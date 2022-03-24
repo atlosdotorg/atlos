@@ -10,6 +10,11 @@ defmodule PlatformWeb.NewLive do
     {:noreply, socket |> assign(:media, media) |> assign(:stage, "Upload media")}
   end
 
+  def handle_info({:version_created, version}, socket) do
+    IO.inspect(version)
+    {:noreply, socket |> assign(:version, version) |> assign(:stage, "Additional details")}
+  end
+
   def render(assigns) do
     ~H"""
     <div class="space-y-8">
@@ -29,7 +34,7 @@ defmodule PlatformWeb.NewLive do
       <%= if @stage == "Upload media" do %>
       <.card>
         <:header>
-          <h3 class="sec-head">Upload media for: <span class="text-gray-600"><%= @media.description %></span></h3>
+          <h3 class="sec-head"><%= @media.description %></h3>
           <p class="sec-subhead">This media will be assigned the Atlos identifier <%= @media.slug %>.</p>
         </:header>
         <.live_component
@@ -38,6 +43,16 @@ defmodule PlatformWeb.NewLive do
           current_user={@current_user}
           media={@media}
         />
+      </.card>
+      <% end %>
+
+      <%= if @stage == "Additional details" do %>
+      <.card>
+        <:header>
+          <h3 class="sec-head"><%= @media.description %></h3>
+          <p class="sec-subhead">Finally, please fill out some brief additional details.</p>
+        </:header>
+        Something will go here eventually... or not...
       </.card>
       <% end %>
     </div>
