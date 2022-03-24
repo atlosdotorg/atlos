@@ -3,7 +3,8 @@ defmodule PlatformWeb.NewLive.BasicInfoLive do
   alias Platform.Material
 
   def update(assigns, socket) do
-    {:ok, socket |> assign(assigns) |> assign_media() |> assign_changeset() |> assign(:disabled, false) }
+    {:ok,
+     socket |> assign(assigns) |> assign_media() |> assign_changeset() |> assign(:disabled, false)}
   end
 
   defp assign_media(socket) do
@@ -15,7 +16,9 @@ defmodule PlatformWeb.NewLive.BasicInfoLive do
   end
 
   def handle_event("validate", %{"media" => media_params}, socket) do
-    changeset = socket.assigns.media |> Material.change_media(media_params) |> Map.put(:action, :validate)
+    changeset =
+      socket.assigns.media |> Material.change_media(media_params) |> Map.put(:action, :validate)
+
     {:noreply, assign(socket, :changeset, changeset)}
   end
 
@@ -24,8 +27,9 @@ defmodule PlatformWeb.NewLive.BasicInfoLive do
       {:ok, media} ->
         send(self(), {:media_created, media})
         {:noreply, socket |> assign(:disabled, true)}
+
       {:error, %Ecto.Changeset{} = changeset} ->
-        IO.inspect changeset
+        IO.inspect(changeset)
         {:noreply, assign(socket, :changeset, changeset)}
     end
   end

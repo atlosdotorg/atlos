@@ -64,7 +64,13 @@ defmodule Platform.MaterialTest do
 
     import Platform.MaterialFixtures
 
-    @invalid_attrs %{file_location: nil, file_size: nil, perceptual_hash: nil, source_url: nil, type: nil}
+    @invalid_attrs %{
+      file_location: nil,
+      file_size: nil,
+      perceptual_hash: nil,
+      source_url: nil,
+      type: nil
+    }
 
     test "list_media_versions/0 returns all media_versions" do
       media_version = media_version_fixture()
@@ -77,7 +83,13 @@ defmodule Platform.MaterialTest do
     end
 
     test "create_media_version/1 with valid data creates a media_version" do
-      valid_attrs = %{file_location: "some file_location", file_size: 42, perceptual_hash: "some perceptual_hash", source_url: "some source_url", type: :image}
+      valid_attrs = %{
+        file_location: "some file_location",
+        file_size: 42,
+        perceptual_hash: "some perceptual_hash",
+        source_url: "some source_url",
+        type: :image
+      }
 
       assert {:ok, %MediaVersion{} = media_version} = Material.create_media_version(valid_attrs)
       assert media_version.file_location == "some file_location"
@@ -93,9 +105,18 @@ defmodule Platform.MaterialTest do
 
     test "update_media_version/2 with valid data updates the media_version" do
       media_version = media_version_fixture()
-      update_attrs = %{file_location: "some updated file_location", file_size: 43, perceptual_hash: "some updated perceptual_hash", source_url: "some updated source_url", type: :video}
 
-      assert {:ok, %MediaVersion{} = media_version} = Material.update_media_version(media_version, update_attrs)
+      update_attrs = %{
+        file_location: "some updated file_location",
+        file_size: 43,
+        perceptual_hash: "some updated perceptual_hash",
+        source_url: "some updated source_url",
+        type: :video
+      }
+
+      assert {:ok, %MediaVersion{} = media_version} =
+               Material.update_media_version(media_version, update_attrs)
+
       assert media_version.file_location == "some updated file_location"
       assert media_version.file_size == 43
       assert media_version.perceptual_hash == "some updated perceptual_hash"
@@ -105,7 +126,10 @@ defmodule Platform.MaterialTest do
 
     test "update_media_version/2 with invalid data returns error changeset" do
       media_version = media_version_fixture()
-      assert {:error, %Ecto.Changeset{}} = Material.update_media_version(media_version, @invalid_attrs)
+
+      assert {:error, %Ecto.Changeset{}} =
+               Material.update_media_version(media_version, @invalid_attrs)
+
       assert media_version == Material.get_media_version!(media_version.id)
     end
 

@@ -33,6 +33,7 @@ defmodule PlatformWeb.SettingsLive.ProfileComponent do
     case Accounts.update_user_profile(socket.assigns.current_user, user_params) do
       {:ok, user} ->
         send(self(), :update_successful)
+
         {:noreply,
          socket
          |> assign(:current_user, user)

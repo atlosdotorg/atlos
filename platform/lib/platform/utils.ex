@@ -6,7 +6,8 @@ defmodule Platform.Utils do
 
   def generate_media_slug() do
     slug =
-      "AT-" <> for _ <- 1..5, into: "", do: <<Enum.random('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ')>>
+      "AT-" <>
+        for _ <- 1..5, into: "", do: <<Enum.random('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ')>>
 
     # TODO(miles): check for duplicates
     slug

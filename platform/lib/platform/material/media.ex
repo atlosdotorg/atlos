@@ -24,6 +24,7 @@ defmodule Platform.Material.Media do
     |> validate_required([:description])
     # |> validate_slug()
     |> validate_length(:description, min: 8, max: 240)
+
     # |> unique_constraint(:slug)
   end
 

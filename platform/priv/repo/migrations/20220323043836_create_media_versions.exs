@@ -3,13 +3,14 @@ defmodule Platform.Repo.Migrations.CreateMediaVersions do
 
   def change do
     create table(:media_versions) do
-      add :type, :string
+      add :file_location, :string
+      add :file_size, :integer
       add :perceptual_hash, :binary, nullable: true
       add :source_url, :string
-      add :file_size, :integer
-      add :file_location, :string
-      add :media_id, references(:media, on_delete: :nothing)
+      add :mime_type, :string
+      add :client_name, :string
       add :thumbnail_location, :string
+      add :media_id, references(:media, on_delete: :nothing)
 
       timestamps()
     end
