@@ -4,7 +4,8 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
   alias Platform.Utils
 
   def update(assigns, socket) do
-    Temp.track! # Track temporary files so they are properly cleaned up later
+    # Track temporary files so they are properly cleaned up later
+    Temp.track!()
 
     {:ok,
      socket
@@ -73,12 +74,10 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
 
       case Material.create_media_version(all_params(socket, params)) do
         {:ok, version} ->
-          IO.inspect(version)
           send(self(), {:version_created, version})
           {:noreply, socket |> assign(:disabled, true)}
 
         {:error, %Ecto.Changeset{} = changeset} ->
-          IO.inspect(changeset)
           {:noreply, assign(socket, :changeset, changeset)}
       end
     end
