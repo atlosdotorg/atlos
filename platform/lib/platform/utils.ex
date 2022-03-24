@@ -17,8 +17,8 @@ defmodule Platform.Utils do
   end
 
   def upload_ugc_file(path) do
-    dest = Path.join("priv/static/images/ugc/", Path.basename(path))
+    dest = Path.join("priv/static/ugc/", Path.basename(path))
     File.cp!(path, dest)
-    {:ok, "/images/ugc/#{Path.basename(dest)}"}
+    {:ok, "/ugc/#{Path.basename(dest)}"}
   end
 end

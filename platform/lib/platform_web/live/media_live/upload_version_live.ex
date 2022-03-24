@@ -52,13 +52,26 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
   end
 
   def handle_event("save", %{"media_version" => params}, socket) do
-    case Material.create_media_version(all_params(socket, params)) do
-      {:ok, version} ->
-        send(self(), {:version_created, version})
-        {:noreply, socket |> assign(:disabled, true)}
+    changeset =
+      socket.assigns.version |> Material.change_media_version(params) |> Map.put(:action, :validate)
 
-      {:error, %Ecto.Changeset{} = changeset} ->
-        {:noreply, assign(socket, :changeset, changeset)}
+    # This is a bit of a hack, but we only want to handle the uploaded media if everything else is OK.
+    # So we *manually* check to verify the source URL is correct before proceeding.
+    ugc_invalid = Enum.any?([:source_url], &(Keyword.has_key?(changeset.errors, &1)))
+
+    if ugc_invalid do
+      IO.inspect(changeset)
+      {:noreply, assign(socket, :changeset, changeset)}
+    else
+      socket = socket |> handle_uploaded_file(hd(socket.assigns.uploads.media_upload.entries))
+      case Material.create_media_version(all_params(socket, params)) do
+        {:ok, version} ->
+          send(self(), {:version_created, version})
+          {:noreply, socket |> assign(:disabled, true)}
+
+        {:error, %Ecto.Changeset{} = changeset} ->
+          {:noreply, assign(socket, :changeset, changeset)}
+      end
     end
   end
 
@@ -69,7 +82,7 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
   defp handle_uploaded_file(socket, entry) do
     path = consume_uploaded_entry(socket, entry, &handle_static_file(&1))
 
-    {:ok, path, thumb_path, duration, type} = Material.process_uploaded_media(path, socket.assigns.media.slug)
+    {:ok, path, thumb_path, duration} = Material.process_uploaded_media(path, socket.assigns.media.slug)
 
     socket
     |> update_internal_params("file_location", path)
@@ -79,10 +92,7 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
     |> update_internal_params("client_name", entry.client_name)
   end
 
-  def handle_progress(:media_upload, entry, socket) do
-    if entry.done? do
-      socket = socket |> handle_uploaded_file(hd(socket.assigns.uploads.media_upload.entries))
-    end
+  def handle_progress(:media_upload, _entry, socket) do
     {:noreply, socket}
   end
 
@@ -101,7 +111,10 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
     uploads = Enum.filter(assigns.uploads.media_upload.entries, &(!&1.cancelled?))
     is_uploading = length(uploads) > 0
     is_invalid = Enum.any?(assigns.uploads.media_upload.entries, &(!&1.valid?))
-    is_complete = Enum.any?(assigns.uploads.media_upload.entries, &(&1.done?))
+    is_complete = Enum.any?(uploads, &(&1.done?))
+    is_processing = true
+
+    IO.inspect(assigns)
 
     cancel_upload = if is_uploading do
       ~H"""
@@ -123,9 +136,22 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
         <div class="space-y-6">
           <div class="w-full flex justify-center items-center px-6 pt-5 pb-6 border-2 h-40 border-gray-300 border-dashed rounded-md" phx-drop-target={@uploads.media_upload.ref}>
             <%= live_file_input @uploads.media_upload, class: "sr-only" %>
+            <div class="phx-only-during-submit">
+              <div class="space-y-1 text-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="mx-auto h-12 w-12 text-urge-400 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                <div class="w-full text-sm text-gray-600">
+                  <div class="w-42 mt-4 text-center">
+                    <p>Processing your media (this might take a moment)...</p>
+                  </div>
+                </div>
+              </div>
+            </div>
             <%= cond do %>
             <% is_complete -> %>
-              <div class="space-y-1 text-center">
+              <div class="space-y-1 text-center phx-only-during-reg">
                 <svg xmlns="http://www.w3.org/2000/svg" class="mx-auto h-12 w-12 text-positive-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
@@ -141,7 +167,7 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
                 </div>
               </div>
             <% is_invalid -> %>
-              <div class="space-y-1 text-center">
+              <div class="space-y-1 text-center phx-only-during-reg">
                 <svg xmlns="http://www.w3.org/2000/svg" class="mx-auto h-12 w-12 text-critical-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                 </svg>
@@ -157,16 +183,15 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
                 </div>
               </div>
             <% is_uploading -> %>
-              <div class="space-y-1 text-center w-full">
-                <svg class="mx-auto h-9 w-9 text-gray-400 animate-spin text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
+              <div class="space-y-1 text-center w-full phx-only-during-reg">
+              <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" class="mx-auto h-12 w-12 text-gray-400 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+              </svg>
                 <div class="w-full text-sm text-gray-600">
                   <%= for entry <- @uploads.media_upload.entries do %>
                     <%= if entry.progress < 100 and entry.progress > 0 do %>
                     <div class="w-42 mt-4 text-center">
-                      <p>Uploading <%= truncate(entry.client_name) %> <span class="text-gray-500">(<%= entry.progress %>%)</span></p>
+                      <p>Uploading <%= truncate(entry.client_name) %></p>
                       <progress value={entry.progress} max="100" class="progress ~urge mt-2"> <%= entry.progress %>% </progress>
                     </div>
                     <% end %>
@@ -177,7 +202,7 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
                 </div>
               </div>
             <% true -> %>
-              <div class="space-y-1 text-center">
+              <div class="space-y-1 text-center phx-only-during-reg">
                 <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                 </svg>
@@ -197,7 +222,7 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
             <p class="support">This might be a Twitter post, a Telegram link, or something else. Where did the file come from?</p>
             <%= error_tag f, :source_url %>
           </div>
-          <%= submit "Save", phx_disable_with: "Uploading...", class: "button ~urge @high", disabled: @changeset.changes == %{} %>
+          <%= submit "Publish to Atlos", phx_disable_with: "Processing media...", class: "button ~urge @high" %>
         </div>
       </.form>
     </article>

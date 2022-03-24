@@ -32,6 +32,15 @@
     @apply field ~neutral;
   }
 
+  .phx-only-during-submit { display: none; }
+  .phx-only-during-reg { display: block; }
+  .phx-submit-loading .phx-only-during-submit {
+     display: block;
+  }
+  .phx-submit-loading .phx-only-during-reg {
+    display: none;
+ }
+
   .phx-form input[type="checkbox"] {
     @apply h-4 w-4 text-urge-600 focus:ring-urge-500 border-gray-300 rounded;
   }
