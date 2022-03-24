@@ -220,10 +220,13 @@ defmodule Platform.Material do
       String.starts_with?(mime, "video/") -> Temp.path!(%{suffix: ".mp4"})
     end
 
+    font_path = "priv/static/fonts/iosevka-bold.ttc"
+
     process_command =
       FFmpex.new_command()
       |> FFmpex.add_input_file(path)
       |> FFmpex.add_output_file(media_path)
+      |> FFmpex.add_file_option(FFmpex.Options.Video.option_vf("drawtext=text='#{identifier}':x=20:y=H-th-20:fontfile=#{font_path}:fontsize=24:fontcolor=white:box=1:boxcolor=black@0.25:boxborderw=5"))
 
     {:ok, _} = FFmpex.execute(process_command)
 
