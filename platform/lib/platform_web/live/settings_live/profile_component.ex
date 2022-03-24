@@ -63,7 +63,7 @@ defmodule PlatformWeb.SettingsLive.ProfileComponent do
   end
 
   defp upload_static_file(%{path: path}, socket) do
-    Utils.upload_ugc_file(path, socket)
+    Utils.upload_ugc_file(path)
   end
 
   defp has_changes(changeset) do

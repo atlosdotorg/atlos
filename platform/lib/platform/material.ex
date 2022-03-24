@@ -8,6 +8,7 @@ defmodule Platform.Material do
 
   alias Platform.Material.Media
   alias Platform.Material.MediaVersion
+  alias Platform.Utils
 
   @doc """
   Returns the list of media.
@@ -203,5 +204,28 @@ defmodule Platform.Material do
   """
   def change_media_version(%MediaVersion{} = media_version, attrs \\ %{}) do
     MediaVersion.changeset(media_version, attrs)
+  end
+
+  @doc """
+  Preprocesses the given media and uploads it to persistent storage.
+
+  Returns {:ok, file_path, thumbnail_path, duration, type}
+  """
+  def process_uploaded_media(path, identifier) do
+    IO.puts("Path: #{path}, identifier: #{identifier}")
+
+    {:ok, data} = FFprobe.format(path)
+    {duration, _} = Integer.parse(data["duration"])
+    type = data["format_name"]
+
+    thumb_path = Temp.path!(%{prefix: "thumbnail", suffix: ".jpg"})
+    :ok = Thumbnex.create_thumbnail(path, thumb_path)
+
+    {:ok, new_thumb_path} = Utils.upload_ugc_file(thumb_path)
+    {:ok, new_path} = Utils.upload_ugc_file(path)
+
+    :timer.sleep(5000) # Simulate processing...
+
+    IO.inspect({:ok, new_path, new_thumb_path, duration, type})
   end
 end

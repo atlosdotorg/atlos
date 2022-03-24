@@ -49,7 +49,11 @@ defmodule Platform.MixProject do
       {:telemetry_poller, "~> 1.0"},
       {:gettext, "~> 0.18"},
       {:jason, "~> 1.2"},
-      {:plug_cowboy, "~> 2.5"}
+      {:plug_cowboy, "~> 2.5"},
+      {:ffmpex, "~> 0.9.0"},
+      {:thumbnex, "~> 0.4.0"},
+      {:temp, "~> 0.4"},
+      {:rambo, "~> 0.3"}
     ]
   end
 

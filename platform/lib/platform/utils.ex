@@ -2,7 +2,6 @@ defmodule Platform.Utils do
   @moduledoc """
   Utilities for the platform.
   """
-  alias PlatformWeb.Router.Helpers, as: Routes
 
   def generate_media_slug() do
     slug =
@@ -17,9 +16,9 @@ defmodule Platform.Utils do
     for _ <- 1..length, into: "", do: <<Enum.random('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ')>>
   end
 
-  def upload_ugc_file(path, socket) do
+  def upload_ugc_file(path) do
     dest = Path.join("priv/static/images/ugc/", Path.basename(path))
     File.cp!(path, dest)
-    {:ok, Routes.static_path(socket, "/images/ugc/#{Path.basename(dest)}")}
+    {:ok, "/images/ugc/#{Path.basename(dest)}"}
   end
 end

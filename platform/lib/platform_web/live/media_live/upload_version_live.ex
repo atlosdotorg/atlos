@@ -37,8 +37,11 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
     Map.merge(params, socket.assigns.internal_params)
   end
 
-  defp upload_static_file(%{path: path}, socket) do
-    Utils.upload_ugc_file(path, socket)
+  defp handle_static_file(%{path: path}) do
+    # Just make a copy of the file; all the real processing is done later in handle_uploaded_file.
+    to_path = Temp.path!
+    File.cp!(path, to_path)
+    {:ok, to_path}
   end
 
   def handle_event("validate", %{"media_version" => params}, socket) do
@@ -49,7 +52,6 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
   end
 
   def handle_event("save", %{"media_version" => params}, socket) do
-    socket = socket |> handle_uploaded_file(hd(socket.assigns.uploads.media_upload.entries))
     case Material.create_media_version(all_params(socket, params)) do
       {:ok, version} ->
         send(self(), {:version_created, version})
@@ -65,16 +67,22 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
   end
 
   defp handle_uploaded_file(socket, entry) do
-    path = consume_uploaded_entry(socket, entry, &upload_static_file(&1, socket))
+    path = consume_uploaded_entry(socket, entry, &handle_static_file(&1))
+
+    {:ok, path, thumb_path, duration, type} = Material.process_uploaded_media(path, socket.assigns.media.slug)
 
     socket
     |> update_internal_params("file_location", path)
-    |> update_internal_params("file_size", entry.client_size)
+    |> update_internal_params("duration_seconds", duration)
     |> update_internal_params("mime_type", entry.client_type)
+    |> update_internal_params("thumbnail_location", thumb_path)
     |> update_internal_params("client_name", entry.client_name)
   end
 
-  def handle_progress(:media_upload, _entry, socket) do
+  def handle_progress(:media_upload, entry, socket) do
+    if entry.done? do
+      socket = socket |> handle_uploaded_file(hd(socket.assigns.uploads.media_upload.entries))
+    end
     {:noreply, socket}
   end
 
