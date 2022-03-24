@@ -53,7 +53,7 @@ defmodule Platform.MixProject do
       {:ffmpex, "~> 0.9.0"},
       {:thumbnex, "~> 0.4.0"},
       {:temp, "~> 0.4"},
-      {:rambo, "~> 0.3"},
+      {:rambo, "~> 0.3"}
     ]
   end
 

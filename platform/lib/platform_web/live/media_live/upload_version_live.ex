@@ -7,18 +7,19 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
     {:ok,
      socket
      |> assign(assigns)
+     |> assign(:media_processing_error, false)
      |> assign_version()
-     |> assign(:internal_params, %{}) # Internal params for uploaded data to keep in the form
+     # Internal params for uploaded data to keep in the form
+     |> assign(:internal_params, %{})
      |> assign_changeset()
      |> assign(:form_id, Utils.generate_random_sequence(10))
      |> allow_upload(:media_upload,
-      accept: ~w(.png .jpg .jpeg .gif .avi .mp4),
-      max_entries: 1,
-      max_file_size: 250_000_000,
-      auto_upload: true,
-      progress: &handle_progress/3
-    )
-  }
+       accept: ~w(.png .jpg .jpeg .gif .avi .mp4),
+       max_entries: 1,
+       max_file_size: 250_000_000,
+       auto_upload: true,
+       progress: &handle_progress/3
+     )}
   end
 
   defp assign_version(socket) do
@@ -39,37 +40,43 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
 
   defp handle_static_file(%{path: path}) do
     # Just make a copy of the file; all the real processing is done later in handle_uploaded_file.
-    to_path = Temp.path!
+    to_path = Temp.path!()
     File.cp!(path, to_path)
     {:ok, to_path}
   end
 
   def handle_event("validate", %{"media_version" => params}, socket) do
     changeset =
-      socket.assigns.version |> Material.change_media_version(params) |> Map.put(:action, :validate)
+      socket.assigns.version
+      |> Material.change_media_version(params)
+      |> Map.put(:action, :validate)
 
     {:noreply, socket |> assign(:changeset, changeset)}
   end
 
   def handle_event("save", %{"media_version" => params}, socket) do
     changeset =
-      socket.assigns.version |> Material.change_media_version(params) |> Map.put(:action, :validate)
+      socket.assigns.version
+      |> Material.change_media_version(params)
+      |> Map.put(:action, :validate)
 
     # This is a bit of a hack, but we only want to handle the uploaded media if everything else is OK.
     # So we *manually* check to verify the source URL is correct before proceeding.
-    ugc_invalid = Enum.any?([:source_url], &(Keyword.has_key?(changeset.errors, &1)))
+    ugc_invalid = Enum.any?([:source_url], &Keyword.has_key?(changeset.errors, &1))
 
     if ugc_invalid do
-      IO.inspect(changeset)
       {:noreply, assign(socket, :changeset, changeset)}
     else
       socket = socket |> handle_uploaded_file(hd(socket.assigns.uploads.media_upload.entries))
+
       case Material.create_media_version(all_params(socket, params)) do
         {:ok, version} ->
+          IO.inspect(version)
           send(self(), {:version_created, version})
           {:noreply, socket |> assign(:disabled, true)}
 
         {:error, %Ecto.Changeset{} = changeset} ->
+          IO.inspect(changeset)
           {:noreply, assign(socket, :changeset, changeset)}
       end
     end
@@ -82,14 +89,20 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
   defp handle_uploaded_file(socket, entry) do
     path = consume_uploaded_entry(socket, entry, &handle_static_file(&1))
 
-    {:ok, path, thumb_path, duration} = Material.process_uploaded_media(path, socket.assigns.media.slug)
-
-    socket
-    |> update_internal_params("file_location", path)
-    |> update_internal_params("duration_seconds", duration)
-    |> update_internal_params("mime_type", entry.client_type)
-    |> update_internal_params("thumbnail_location", thumb_path)
-    |> update_internal_params("client_name", entry.client_name)
+    with {:ok, path, thumb_path, duration, size} <-
+           Material.process_uploaded_media(path, socket.assigns.media.slug) do
+      socket
+      |> update_internal_params("file_location", path)
+      |> update_internal_params("duration_seconds", duration)
+      |> update_internal_params("mime_type", entry.client_type)
+      |> update_internal_params("thumbnail_location", thumb_path)
+      |> update_internal_params("client_name", entry.client_name)
+      |> update_internal_params("file_size", size)
+    else
+      {:error, _} ->
+        socket
+        |> assign(:media_processing_error, true)
+    end
   end
 
   def handle_progress(:media_upload, _entry, socket) do
@@ -98,29 +111,35 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
 
   defp truncate(str) do
     if String.length(str) > 30 do
-      "#{String.slice(str, 0, 27) |> String.trim() }..."
+      "#{String.slice(str, 0, 27) |> String.trim()}..."
     else
       str
     end
   end
 
-  defp friendly_error(:too_large), do: "This file is too large; the maximum size is 250 megabytes."
-  defp friendly_error(:not_accepted), do: "The file type you are uploading is not supported. Please contact us if you think this is an error."
+  defp friendly_error(:too_large),
+    do: "This file is too large; the maximum size is 250 megabytes."
+
+  defp friendly_error(:not_accepted),
+    do:
+      "The file type you are uploading is not supported. Please contact us if you think this is an error."
 
   def render(assigns) do
     uploads = Enum.filter(assigns.uploads.media_upload.entries, &(!&1.cancelled?))
     is_uploading = length(uploads) > 0
-    is_invalid = Enum.any?(assigns.uploads.media_upload.entries, &(!&1.valid?))
-    is_complete = Enum.any?(uploads, &(&1.done?))
-    is_processing = true
 
-    IO.inspect(assigns)
+    is_invalid =
+      Enum.any?(assigns.uploads.media_upload.entries, &(!&1.valid?)) or
+        assigns.media_processing_error
 
-    cancel_upload = if is_uploading do
-      ~H"""
-      <button phx-click="cancel_upload" phx-target={@myself} phx-value-ref={hd(uploads).ref} class="text-sm label ~neutral" type="button">Cancel Upload</button>
-      """
-    end
+    is_complete = Enum.any?(uploads, & &1.done?)
+
+    cancel_upload =
+      if is_uploading do
+        ~H"""
+        <button phx-click="cancel_upload" phx-target={@myself} phx-value-ref={hd(uploads).ref} class="text-sm label ~neutral" type="button">Cancel Upload</button>
+        """
+      end
 
     ~H"""
     <article>
@@ -172,6 +191,7 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
                   <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                 </svg>
                 <div class="w-full text-sm text-gray-600">
+                  <p>Something went wrong while processing your upload.</p>
                   <%= for entry <- @uploads.media_upload.entries do %>
                     <%= for err <- upload_errors(@uploads.media_upload, entry) do %>
                       <p class="my-2"><%= friendly_error(err) %></p>

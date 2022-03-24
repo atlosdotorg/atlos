@@ -11,7 +11,6 @@ defmodule PlatformWeb.NewLive do
   end
 
   def handle_info({:version_created, version}, socket) do
-    IO.inspect(version)
     {:noreply, socket |> assign(:version, version) |> assign(:stage, "Additional details")}
   end
 
@@ -19,7 +18,7 @@ defmodule PlatformWeb.NewLive do
     ~H"""
     <div class="space-y-8">
       <h1 class="page-header">Upload New Media</h1>
-      <.stepper options={["Basic info", "Upload media", "Additional details"]} active={@stage} />
+      <.stepper options={["Basic info", "Upload media"]} active={@stage} />
 
       <%= if @stage == "Basic info" do %>
       <.card>
@@ -43,16 +42,6 @@ defmodule PlatformWeb.NewLive do
           current_user={@current_user}
           media={@media}
         />
-      </.card>
-      <% end %>
-
-      <%= if @stage == "Additional details" do %>
-      <.card>
-        <:header>
-          <h3 class="sec-head"><%= @media.description %></h3>
-          <p class="sec-subhead">Finally, please fill out some brief additional details.</p>
-        </:header>
-        Something will go here eventually... or not...
       </.card>
       <% end %>
     </div>

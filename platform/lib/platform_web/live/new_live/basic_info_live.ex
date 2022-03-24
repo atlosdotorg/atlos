@@ -63,7 +63,7 @@ defmodule PlatformWeb.NewLive.BasicInfoLive do
                 </svg>
               </div>
               <div class="ml-3">
-                <p class="text-sm text-neutral-700">Some kind of language telling people about Atlos policies.</p>
+                <p class="text-sm text-neutral-700">Some kind of language telling people about Atlos policies. Lorem ipsum dolor sit amet.</p>
                 <div class="mt-2 text-sm text-neutral-700">
                   <ul role="list" class="list-disc pl-5 space-y-1">
                     <li>Policy language</li>

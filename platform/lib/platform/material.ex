@@ -214,27 +214,26 @@ defmodule Platform.Material do
   def process_uploaded_media(path, identifier) do
     IO.puts("Path: #{path}, identifier: #{identifier}")
 
-    {:ok, data} = FFprobe.format(path)
-    IO.inspect(data)
-    {duration, _} = Integer.parse(data["duration"])
-    type = data["format_name"]
-
     thumb_path = Temp.path!(%{prefix: "thumbnail", suffix: ".jpg"})
     :ok = Thumbnex.create_thumbnail(path, thumb_path)
     media_path = Temp.path!(%{suffix: ".mp4"})
 
-    process_command = FFmpex.new_command()
+    process_command =
+      FFmpex.new_command()
       |> FFmpex.add_input_file(path)
       |> FFmpex.add_output_file(media_path)
 
-    {:ok, output} = FFmpex.execute(process_command)
-    IO.inspect(output)
+    {:ok, _} = FFmpex.execute(process_command)
+
+    {:ok, data} = FFprobe.format(media_path)
+
+    {duration, _} = Integer.parse(data["duration"])
+    type = data["format_name"]
+    {size, _} = Integer.parse(data["size"])
 
     {:ok, new_thumb_path} = Utils.upload_ugc_file(thumb_path)
     {:ok, new_path} = Utils.upload_ugc_file(media_path)
 
-    :timer.sleep(5000) # Simulate processing...
-
-    IO.inspect({:ok, new_path, new_thumb_path, duration})
+    {:ok, new_path, new_thumb_path, duration, size}
   end
 end

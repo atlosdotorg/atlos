@@ -20,7 +20,22 @@ defmodule Platform.Material.MediaVersion do
   @doc false
   def changeset(media_version, attrs) do
     media_version
-    |> cast(attrs, [:file_location, :file_size, :duration_seconds, :perceptual_hash, :source_url, :mime_type, :client_name])
-    |> validate_required([:file_location, :file_size, :duration_seconds, :source_url, :mime_type, :client_name])
+    |> cast(attrs, [
+      :file_location,
+      :file_size,
+      :duration_seconds,
+      :perceptual_hash,
+      :source_url,
+      :mime_type,
+      :client_name
+    ])
+    |> validate_required([
+      :file_location,
+      :file_size,
+      :duration_seconds,
+      :source_url,
+      :mime_type,
+      :client_name
+    ])
   end
 end
