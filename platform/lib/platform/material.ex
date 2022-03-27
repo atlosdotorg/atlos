@@ -24,7 +24,7 @@ defmodule Platform.Material do
   end
 
   defp preload_media_versions(query) do
-    query |> preload([:media_versions])
+    query |> preload([:versions])
   end
 
   @doc """
@@ -61,8 +61,8 @@ defmodule Platform.Material do
     |> Repo.insert()
   end
 
-  def get_media_with_versions(id) do
-    Media |> preload_media_versions() |> Repo.get!(id)
+  def get_full_media_by_slug(slug) do
+    IO.inspect Media |> preload_media_versions() |> Repo.get_by(slug: slug)
   end
 
   @doc """
@@ -252,5 +252,10 @@ defmodule Platform.Material do
   """
   def attribute_options(attribute) do
     Media.attribute_options(attribute)
+  end
+
+  def media_version_location(version) do
+    # This may in the future create a signed URL at the CDN provider, for example
+    version.file_location
   end
 end

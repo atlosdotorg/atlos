@@ -25,7 +25,7 @@ defmodule PlatformWeb.Components do
       |> assign_new(:header, fn -> [] end)
 
     ~H"""
-    <div class="bg-white overflow-hidden shadow rounded-lg divide-y divide-gray-200 max-w-xl">
+    <div class="bg-white overflow-hidden shadow rounded-lg divide-y divide-gray-200">
       <%= unless Enum.empty?(@header) do %>
       <div class="py-4 px-5 sm:py-5">
         <%= render_slot(@header) %>
@@ -42,6 +42,7 @@ defmodule PlatformWeb.Components do
     assigns =
       assigns
       |> assign_new(:title, fn -> "" end)
+      |> assign_new(:right, fn -> [] end)
 
     icon =
       case assigns[:type] do
@@ -75,7 +76,8 @@ defmodule PlatformWeb.Components do
 
   def nav(assigns) do
     ~H"""
-    <div class="hidden w-28 bg-neutral-700 overflow-y-auto md:block">
+    <div class="w-28"></div>
+    <div class="hidden w-28 bg-neutral-700 overflow-y-auto md:block fixed h-screen">
         <div class="w-full py-6 flex flex-col items-center">
             <%= link to: "/", class: "flex flex-col items-center text-white" do %>
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">

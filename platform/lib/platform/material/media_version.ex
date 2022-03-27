@@ -27,7 +27,8 @@ defmodule Platform.Material.MediaVersion do
       :perceptual_hash,
       :source_url,
       :mime_type,
-      :client_name
+      :client_name,
+      :media_id
     ])
     |> validate_required([
       :file_location,
@@ -35,7 +36,8 @@ defmodule Platform.Material.MediaVersion do
       :duration_seconds,
       :source_url,
       :mime_type,
-      :client_name
+      :client_name,
+      :media_id
     ])
   end
 end

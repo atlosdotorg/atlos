@@ -1,5 +1,6 @@
 defmodule PlatformWeb.NewLive do
   use PlatformWeb, :live_view
+  alias PlatformWeb.MediaLive
 
   def mount(_params, _session, socket) do
     {:ok, socket |> assign(:stage, "Basic info")}
@@ -8,15 +9,16 @@ defmodule PlatformWeb.NewLive do
   def handle_info({:media_created, media}, socket) do
     IO.inspect(media)
     {:noreply, socket |> assign(:media, media) |> assign(:stage, "Upload media")}
+
   end
 
-  def handle_info({:version_created, version}, socket) do
-    {:noreply, socket |> assign(:version, version) |> assign(:stage, "Additional details")}
+  def handle_info({:version_created, _version}, socket) do
+    {:noreply, socket |> put_flash(:info, "Successfully uploaded media.") |> redirect(to: Routes.live_path(socket, MediaLive.Show, socket.assigns.media.slug))}
   end
 
   def render(assigns) do
     ~H"""
-    <div class="space-y-8">
+    <div class="space-y-8 max-w-xl">
       <h1 class="page-header">Upload New Media</h1>
       <.stepper options={["Basic info", "Upload media"]} active={@stage} />
 

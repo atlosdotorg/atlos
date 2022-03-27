@@ -90,6 +90,7 @@ defmodule PlatformWeb.Router do
       live "/settings", SettingsLive
 
       live "/new", NewLive
+      live "/media/:slug", MediaLive.Show
     end
   end
 end

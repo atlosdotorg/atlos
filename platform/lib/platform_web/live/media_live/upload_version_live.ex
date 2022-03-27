@@ -48,7 +48,13 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
     {:ok, to_path}
   end
 
+  defp set_parent_media_in_params(params, socket) do
+    IO.inspect(params)
+    Map.put(params, "media_id", socket.assigns.media.id)
+  end
+
   def handle_event("validate", %{"media_version" => params}, socket) do
+    params = params |> set_parent_media_in_params(socket)
     changeset =
       socket.assigns.version
       |> Material.change_media_version(params)
@@ -58,6 +64,7 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
   end
 
   def handle_event("save", %{"media_version" => params}, socket) do
+    params = params |> set_parent_media_in_params(socket)
     changeset =
       socket.assigns.version
       |> Material.change_media_version(params)
