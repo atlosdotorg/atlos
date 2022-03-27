@@ -3,6 +3,8 @@ defmodule Platform.Material.Media do
   import Ecto.Changeset
   alias Platform.Utils
 
+  @attr_sensitive ["Threatens Civilian Safety", "Graphic Violence"]
+
   schema "media" do
     # Core uneditable data
     field :slug, :string, autogenerate: {Utils, :generate_media_slug, []}
@@ -11,6 +13,7 @@ defmodule Platform.Material.Media do
     field :description, :string
 
     # Attributes
+    field :attr_sensitive, {:array, :string}
 
     # Metadata
     timestamps()
@@ -20,15 +23,19 @@ defmodule Platform.Material.Media do
   @doc false
   def changeset(media, attrs) do
     media
-    |> cast(attrs, [:description])
+    |> cast(attrs, [:description, :attr_sensitive])
     |> validate_required([:description])
-    # |> validate_slug()
     |> validate_length(:description, min: 8, max: 240)
-
-    # |> unique_constraint(:slug)
+    |> validate_subset(:attr_sensitive, @attr_sensitive)
   end
 
   defp validate_slug(changeset) do
     changeset |> validate_format(:slug, ~r/^AT-[A-Z0-9]{5}$/, message: "slug is not a valid code")
+  end
+
+  def attribute_options(attribute) do
+    case attribute do
+      :attr_sensitive -> @attr_sensitive
+    end
   end
 end

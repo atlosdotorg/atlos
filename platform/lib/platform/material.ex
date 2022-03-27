@@ -246,4 +246,11 @@ defmodule Platform.Material do
 
     {:ok, new_path, new_thumb_path, duration, size}
   end
+
+  @doc """
+  Returns the options available for the given attribute, if it is quantized.
+  """
+  def attribute_options(attribute) do
+    Media.attribute_options(attribute)
+  end
 end

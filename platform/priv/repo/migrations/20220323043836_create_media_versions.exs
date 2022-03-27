@@ -17,5 +17,6 @@ defmodule Platform.Repo.Migrations.CreateMediaVersions do
     end
 
     create index(:media_versions, [:media_id])
+    create index(:media_versions, [:source_url])
   end
 end

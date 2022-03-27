@@ -33,7 +33,12 @@ defmodule PlatformWeb.NewLive do
       <%= if @stage == "Upload media" do %>
       <.card>
         <:header>
-          <h3 class="sec-head"><%= @media.description %></h3>
+          <h3 class="sec-head">
+            <%= @media.description %>
+            <%= if @media.attr_sensitive do %>
+            <span class="text-neutral-500">(Sensitivity: <%= Enum.join(@media.attr_sensitive, ", ") %>)</span>
+            <% end %>
+          </h3>
           <p class="sec-subhead">This media will be assigned the Atlos identifier <%= @media.slug %>.</p>
         </:header>
         <.live_component

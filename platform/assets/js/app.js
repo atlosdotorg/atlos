@@ -17,6 +17,7 @@
 
 // Include phoenix_html to handle method=PUT/DELETE in forms and buttons.
 import "phoenix_html"
+import TomSelect from "../node_modules/tom-select/dist/js/tom-select.complete"
 // Establish Phoenix Socket and LiveView configuration.
 import {Socket} from "phoenix"
 import {LiveSocket} from "phoenix_live_view"
@@ -39,3 +40,18 @@ liveSocket.connect()
 // >> liveSocket.disableLatencySim()
 window.liveSocket = liveSocket
 
+function initializeMultiSelects() {
+    // Make multi-selects interactive
+    document.querySelectorAll("select[multiple]").forEach(s => {
+        if (!s.tomselect) {
+            let x = new TomSelect(`#${s.id}`, {
+                maxOptions: null,
+                placeholder: "Select all that apply..."
+            });
+            x.control_input.setAttribute("phx-debounce", "blur");
+        }
+    });
+}
+
+document.addEventListener("phx:update", initializeMultiSelects);
+document.addEventListener("load", initializeMultiSelects);
