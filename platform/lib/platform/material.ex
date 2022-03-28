@@ -212,13 +212,13 @@ defmodule Platform.Material do
   Returns {:ok, file_path, thumbnail_path, duration}
   """
   def process_uploaded_media(path, mime, identifier) do
-    thumb_path = Temp.path!(%{prefix: "thumbnail", suffix: ".jpg"})
+    thumb_path = Temp.path!(%{prefix: identifier, suffix: "thumbnail.jpg"})
     :ok = Thumbnex.create_thumbnail(path, thumb_path)
 
     media_path =
       cond do
-        String.starts_with?(mime, "image/") -> Temp.path!(%{suffix: ".jpg"})
-        String.starts_with?(mime, "video/") -> Temp.path!(%{suffix: ".mp4"})
+        String.starts_with?(mime, "image/") -> Temp.path!(%{suffix: ".jpg", prefix: identifier})
+        String.starts_with?(mime, "video/") -> Temp.path!(%{suffix: ".mp4", prefix: identifier})
       end
 
     font_path = "priv/static/fonts/iosevka-bold.ttc"
