@@ -120,7 +120,7 @@ defmodule PlatformWeb.SettingsLive.ProfileComponent do
           <div>
             <%= label f, :bio %>
             <div class="mt-1">
-              <%= textarea f, :bio, rows: 4 %>
+              <%= textarea f, :bio, rows: 4, phx_debounce: "blur" %>
             </div>
             <%= error_tag f, :bio %>
           </div>
