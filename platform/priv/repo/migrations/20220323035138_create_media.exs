@@ -10,6 +10,10 @@ defmodule Platform.Repo.Migrations.CreateMedia do
     end
 
     create unique_index(:media, [:slug])
-    create index(:media, ["(to_tsvector('english', description))"], name: "description_index", using: "GIN")
+
+    create index(:media, ["(to_tsvector('english', description))"],
+             name: "description_index",
+             using: "GIN"
+           )
   end
 end

@@ -8,11 +8,13 @@ defmodule PlatformWeb.NewLive do
 
   def handle_info({:media_created, media}, socket) do
     {:noreply, socket |> assign(:media, media) |> assign(:stage, "Upload media")}
-
   end
 
   def handle_info({:version_created, _version}, socket) do
-    {:noreply, socket |> put_flash(:info, "Successfully uploaded media.") |> redirect(to: Routes.live_path(socket, MediaLive.Show, socket.assigns.media.slug))}
+    {:noreply,
+     socket
+     |> put_flash(:info, "Successfully uploaded media.")
+     |> redirect(to: Routes.live_path(socket, MediaLive.Show, socket.assigns.media.slug))}
   end
 
   def render(assigns) do

@@ -25,7 +25,8 @@ defmodule Platform.Material.Media do
     |> cast(attrs, [:description, :attr_sensitive])
     |> validate_required([:description])
     |> validate_length(:description, min: 8, max: 240)
-    |> Attribute.validate_attribute(Attribute.get_attribute(:sensitive)) # This is a special attribute, since we define it at creation time. Eventually, it'd be nice to unify this logic with the attribute-specific editing logic.
+    # This is a special attribute, since we define it at creation time. Eventually, it'd be nice to unify this logic with the attribute-specific editing logic.
+    |> Attribute.validate_attribute(Attribute.get_attribute(:sensitive))
   end
 end
 

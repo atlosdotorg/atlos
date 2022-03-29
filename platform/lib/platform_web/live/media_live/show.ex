@@ -10,7 +10,10 @@ defmodule PlatformWeb.MediaLive.Show do
     with %Material.Media{} = media <- Material.get_full_media_by_slug(socket.assigns.slug) do
       socket |> assign(:media, media)
     else
-      nil -> socket |> put_flash(:error, "This media does not exist or is not publicly visible.") |> redirect(to: "/")
+      nil ->
+        socket
+        |> put_flash(:error, "This media does not exist or is not publicly visible.")
+        |> redirect(to: "/")
     end
   end
 end
