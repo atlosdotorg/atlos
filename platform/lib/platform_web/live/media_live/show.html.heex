@@ -1,4 +1,4 @@
-<article class="w-full px-8">
+<article class="w-full max-w-screen-xl px-8">
     <div class="lg:flex lg:items-center lg:justify-between">
         <div class="flex-1 min-w-0 max-w-full">
             <h2 class="text-xl font-semibold leading-7 text-gray-900 sm:text-3xl">
@@ -19,69 +19,22 @@
                 Added <%= @media.inserted_at %>
             </div>
             <div class="mt-2 flex items-center text-sm text-gray-500">
-                <svg class="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
+                <svg class="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z" />
                 </svg>
-                Unknown
+                3 contributors
             </div>
             </div>
         </div>
         <div class="mt-5 flex lg:mt-0 lg:ml-4">
             <span class="hidden sm:block">
-            <button type="button" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                <!-- Heroicon name: solid/pencil -->
-                <svg class="-ml-1 mr-2 h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-                </svg>
-                Edit
-            </button>
-            </span>
-
-            <span class="hidden sm:block ml-3">
-            <button type="button" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                <!-- Heroicon name: solid/link -->
-                <svg class="-ml-1 mr-2 h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                <path fill-rule="evenodd" d="M12.586 4.586a2 2 0 112.828 2.828l-3 3a2 2 0 01-2.828 0 1 1 0 00-1.414 1.414 4 4 0 005.656 0l3-3a4 4 0 00-5.656-5.656l-1.5 1.5a1 1 0 101.414 1.414l1.5-1.5zm-5 5a2 2 0 012.828 0 1 1 0 101.414-1.414 4 4 0 00-5.656 0l-3 3a4 4 0 105.656 5.656l1.5-1.5a1 1 0 10-1.414-1.414l-1.5 1.5a2 2 0 11-2.828-2.828l3-3z" clip-rule="evenodd" />
-                </svg>
-                View
-            </button>
-            </span>
-
-            <span class="sm:ml-3">
-            <button type="button" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                <!-- Heroicon name: solid/check -->
-                <svg class="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-                </svg>
-                Publish
-            </button>
-            </span>
-
-            <!-- Dropdown -->
-            <span class="ml-3 relative sm:hidden">
-            <button type="button" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" id="mobile-menu-button" aria-expanded="false" aria-haspopup="true">
-                More
-                <!-- Heroicon name: solid/chevron-down -->
-                <svg class="-mr-1 ml-2 h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-                </svg>
-            </button>
-
-            <!--
-                Dropdown menu, show/hide based on menu state.
-
-                Entering: "transition ease-out duration-200"
-                From: "transform opacity-0 scale-95"
-                To: "transform opacity-100 scale-100"
-                Leaving: "transition ease-in duration-75"
-                From: "transform opacity-100 scale-100"
-                To: "transform opacity-0 scale-95"
-            -->
-            <div class="origin-top-right absolute right-0 mt-2 -mr-1 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 focus:outline-none" role="menu" aria-orientation="vertical" aria-labelledby="mobile-menu-button" tabindex="-1">
-                <!-- Active: "bg-gray-100", Not Active: "" -->
-                <a href="#" class="block px-4 py-2 text-sm text-gray-700" role="menuitem" tabindex="-1" id="mobile-menu-item-0">Edit</a>
-                <a href="#" class="block px-4 py-2 text-sm text-gray-700" role="menuitem" tabindex="-1" id="mobile-menu-item-1">View</a>
-            </div>
+                <button type="button" class="base-button">
+                    <!-- Heroicon name: solid/pencil -->
+                    <svg class="-ml-1 mr-2 h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                    </svg>
+                    Edit
+                </button>
             </span>
         </div>
     </div>
@@ -93,89 +46,49 @@
                     <p class="sec-subhead">This information is gathered and organized by the Atlos community through consensus.</p>
                 </:header>
                 <div class="border-gray-200">
-                    <dl class="divide-y divide-dashed divide-gray-200 -mt-5">
-                        <div class="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4">
-                        <dt class="text-sm font-medium text-gray-500">Full name</dt>
-                        <dd class="mt-1 flex text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                            <span class="flex-grow">Margot Foster</span>
-                            <span class="ml-4 flex-shrink-0">
-                            <button type="button" class="bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Update</button>
-                            </span>
-                        </dd>
+                    <dl class="divide-y divide-dashed divide-gray-200 -mt-5 -mb-3">
+                        <div class="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 -mb-1">
+                            <dt class="text-sm font-medium text-gray-500 mt-1">Sensitivity</dt>
+                            <dd class="mt-1 flex text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                                <span class="flex-grow">
+                                <%= for item <- @media.attr_sensitive do %>
+                                    <span class="chip ~neutral mr-1 mb-1"><%= item %></span>
+                                <% end %>
+                                </span>
+                                <span class="ml-4 flex-shrink-0">
+                                <button type="button" class="text-button mt-1">Update</button>
+                                </span>
+                            </dd>
                         </div>
-                        <div class="py-4 sm:grid sm:py-5 sm:grid-cols-3 sm:gap-4">
-                        <dt class="text-sm font-medium text-gray-500">Application for</dt>
-                        <dd class="mt-1 flex text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                            <span class="flex-grow">Backend Developer</span>
-                            <span class="ml-4 flex-shrink-0">
-                            <button type="button" class="bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Update</button>
-                            </span>
-                        </dd>
+                        <div class="py-4 sm:grid sm:py-5 sm:grid-cols-3 sm:gap-4 -mb-1">
+                            <dt class="text-sm font-medium text-gray-500 mt-1">First Known Upload</dt>
+                            <dd class="mt-1 flex text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                                <span class="flex-grow">
+                                    <span class="chip ~neutral mb-1 mr-1">Jan 13, 2022</span>
+                                </span>
+                                <span class="ml-4 flex-shrink-0">
+                                    <button type="button" class="text-button mt-1">Update</button>
+                                </span>
+                            </dd>
                         </div>
-                        <div class="py-4 sm:grid sm:py-5 sm:grid-cols-3 sm:gap-4">
-                        <dt class="text-sm font-medium text-gray-500">Email address</dt>
-                        <dd class="mt-1 flex text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                            <span class="flex-grow">margotfoster@example.com</span>
-                            <span class="ml-4 flex-shrink-0">
-                            <button type="button" class="bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Update</button>
-                            </span>
-                        </dd>
-                        </div>
-                        <div class="py-4 sm:grid sm:py-5 sm:grid-cols-3 sm:gap-4">
-                        <dt class="text-sm font-medium text-gray-500">Salary expectation</dt>
-                        <dd class="mt-1 flex text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                            <span class="flex-grow"> $120,000</span>
-                            <span class="ml-4 flex-shrink-0">
-                            <button type="button" class="bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Update</button>
-                            </span>
-                        </dd>
-                        </div>
-                        <div class="py-4 sm:grid sm:py-5 sm:grid-cols-3 sm:gap-4">
-                        <dt class="text-sm font-medium text-gray-500">About</dt>
-                        <dd class="mt-1 flex text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                            <span class="flex-grow"> Fugiat ipsum ipsum deserunt culpa aute sint do nostrud anim incididunt cillum culpa consequat. Excepteur qui ipsum aliquip consequat sint. Sit id mollit nulla mollit nostrud in ea officia proident. Irure nostrud pariatur mollit ad adipisicing reprehenderit deserunt qui eu. </span>
-                            <span class="ml-4 flex-shrink-0">
-                            <button type="button" class="bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Update</button>
-                            </span>
-                        </dd>
-                        </div>
-                        <div class="py-4 sm:grid sm:py-5 sm:grid-cols-3 sm:gap-4">
-                        <dt class="text-sm font-medium text-gray-500">Attachments</dt>
-                        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                            <ul role="list" class="border border-gray-200 rounded-md divide-y divide-gray-200">
-                            <li class="pl-3 pr-4 py-3 flex items-center justify-between text-sm">
-                                <div class="w-0 flex-1 flex items-center">
-                                <!-- Heroicon name: solid/paper-clip -->
-                                <svg class="flex-shrink-0 h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                                    <path fill-rule="evenodd" d="M8 4a3 3 0 00-3 3v4a5 5 0 0010 0V7a1 1 0 112 0v4a7 7 0 11-14 0V7a5 5 0 0110 0v4a3 3 0 11-6 0V7a1 1 0 012 0v4a1 1 0 102 0V7a3 3 0 00-3-3z" clip-rule="evenodd" />
-                                </svg>
-                                <span class="ml-2 flex-1 w-0 truncate"> resume_back_end_developer.pdf </span>
-                                </div>
-                                <div class="ml-4 flex-shrink-0 flex space-x-4">
-                                <button type="button" class="bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Update</button>
-                                <span class="text-gray-300" aria-hidden="true">|</span>
-                                <button type="button" class="bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Remove</button>
-                                </div>
-                            </li>
-                            <li class="pl-3 pr-4 py-3 flex items-center justify-between text-sm">
-                                <div class="w-0 flex-1 flex items-center">
-                                <!-- Heroicon name: solid/paper-clip -->
-                                <svg class="flex-shrink-0 h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                                    <path fill-rule="evenodd" d="M8 4a3 3 0 00-3 3v4a5 5 0 0010 0V7a1 1 0 112 0v4a7 7 0 11-14 0V7a5 5 0 0110 0v4a3 3 0 11-6 0V7a1 1 0 012 0v4a1 1 0 102 0V7a3 3 0 00-3-3z" clip-rule="evenodd" />
-                                </svg>
-                                <span class="ml-2 flex-1 w-0 truncate"> coverletter_back_end_developer.pdf </span>
-                                </div>
-                                <div class="ml-4 flex-shrink-0 flex space-x-4">
-                                <button type="button" class="bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Update</button>
-                                <span class="text-gray-300" aria-hidden="true">|</span>
-                                <button type="button" class="bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Remove</button>
-                                </div>
-                            </li>
-                            </ul>
-                        </dd>
+                        <div class="py-4 sm:grid sm:py-5 sm:grid-cols-3 sm:gap-4 -mb-2">
+                            <dt class="text-sm font-medium text-gray-500 mt-1">Unset Attributes</dt>
+                            <dd class="mt-1 flex flex-wrap gap-2 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                                <button type="button" class="button original">+ Location</button>
+                                <button type="button" class="button original">+ Conflict</button>
+                                <button type="button" class="button original">+ Camera Direction</button>
+                                <button type="button" class="button original">+ Time of Day</button>
+                                <button type="button" class="button original">+ Setting</button>
+                                <button type="button" class="button original">+ Weather</button>
+                                <button type="button" class="button original">+ Camera Type</button>
+                                <button type="button" class="button original">+ Event</button>
+                                <button type="button" class="button original">+ Civilian Impact</button>
+                                <button type="button" class="button original">+ Equipment</button>
+                                <button type="button" class="button original">+ Camera Direction</button>
+                            </dd>
                         </div>
                     </dl>
-                    </div>
+                </div>
             </.card>
             <.card>
                 <:header>
@@ -187,8 +100,8 @@
         <div>
             <.card>
                 <:header>
-                    <h3 class="sec-head">Versions</h3>
-                    <p class="sec-subhead">Versions are different copies of the same source media.</p>
+                    <h3 class="sec-head">Media</h3>
+                    <p class="sec-subhead">There may be multiple versions circulating online.</p>
                 </:header>
                 <div class="space-y-8">
                 <%= for version <- @media.versions do %>
