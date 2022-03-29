@@ -2,8 +2,7 @@ defmodule Platform.Material.Media do
   use Ecto.Schema
   import Ecto.Changeset
   alias Platform.Utils
-
-  @attr_sensitive ["Threatens Civilian Safety", "Graphic Violence"]
+  alias Platform.Material.Media.Attribute
 
   schema "media" do
     # Core uneditable data
@@ -26,16 +25,46 @@ defmodule Platform.Material.Media do
     |> cast(attrs, [:description, :attr_sensitive])
     |> validate_required([:description])
     |> validate_length(:description, min: 8, max: 240)
-    |> validate_subset(:attr_sensitive, @attr_sensitive)
+    |> Attribute.validate_attribute(Attribute.get_attribute(:sensitive)) # This is a special attribute, since we define it at creation time. Eventually, it'd be nice to unify this logic with the attribute-specific editing logic.
+  end
+end
+
+defmodule Platform.Material.Media.Attribute do
+  use Ecto.Schema
+  import Ecto.Changeset
+  alias __MODULE__
+
+  defstruct [:schema_field, :type, :options, :label]
+
+  defp attributes() do
+    %{
+      sensitive: %Attribute{
+        schema_field: :attr_sensitive,
+        type: :multi_select,
+        options: ["Threatens Civilian Safety", "Graphic Violence"],
+        label: "Sensitivity"
+      }
+    }
   end
 
-  defp validate_slug(changeset) do
-    changeset |> validate_format(:slug, ~r/^ATL-[A-Z0-9]{5}$/, message: "slug is not a valid code")
+  def get_attribute(name) do
+    attributes()[name]
   end
 
-  def attribute_options(attribute) do
-    case attribute do
-      :attr_sensitive -> @attr_sensitive
+  def list_attributes() do
+    Map.keys(attributes())
+  end
+
+  def changeset(media, attrs, %Attribute{} = attribute) do
+    media
+    |> cast(attrs, [attribute.schema_field])
+    |> validate_attribute(attribute)
+  end
+
+  def validate_attribute(changeset, %Attribute{} = attribute) do
+    case attribute.type do
+      :multi_select ->
+        changeset |> validate_subset(attribute.schema_field, attribute.options)
     end
   end
 end

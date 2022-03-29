@@ -2,7 +2,7 @@
     <div class="lg:flex lg:items-center lg:justify-between">
         <div class="flex-1 min-w-0 max-w-full">
             <h2 class="text-xl font-semibold leading-7 text-gray-900 sm:text-3xl">
-                <%= @media.description %>
+                <%= @media.description %>   
             </h2>
             <div class="mt-1 flex flex-col sm:flex-row sm:flex-wrap sm:mt-0 sm:space-x-6">
             <div class="mt-2 flex items-center text-sm text-gray-500">
@@ -28,12 +28,8 @@
         </div>
         <div class="mt-5 flex lg:mt-0 lg:ml-4">
             <span class="hidden sm:block">
-                <button type="button" class="base-button">
-                    <!-- Heroicon name: solid/pencil -->
-                    <svg class="-ml-1 mr-2 h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                    <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-                    </svg>
-                    Edit
+                <button type="button" class="button ~critical @high">
+                    Restrict
                 </button>
             </span>
         </div>
@@ -47,12 +43,27 @@
                 </:header>
                 <div class="border-gray-200">
                     <dl class="divide-y divide-dashed divide-gray-200 -mt-5 -mb-3">
+                        <div class="py-4 sm:grid sm:py-5 sm:grid-cols-3 sm:gap-4">
+                            <dt class="text-sm font-medium text-gray-500 mt-1">Short Description</dt>
+                            <dd class="mt-1 flex text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                                <span class="flex-grow">
+                                    <div class="mr-1 my-1 inline-block"><%= @media.description %></div>
+                                </span>
+                                <span class="ml-4 flex-shrink-0">
+                                    <button type="button" class="text-button mt-1">Update</button>
+                                </span>
+                            </dd>
+                        </div>
                         <div class="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 -mb-1">
                             <dt class="text-sm font-medium text-gray-500 mt-1">Sensitivity</dt>
                             <dd class="mt-1 flex text-sm text-gray-900 sm:mt-0 sm:col-span-2">
                                 <span class="flex-grow">
-                                <%= for item <- @media.attr_sensitive do %>
-                                    <span class="chip ~neutral mr-1 mb-1"><%= item %></span>
+                                <%= if @media.attr_sensitive do %>
+                                    <%= for item <- @media.attr_sensitive do %>
+                                        <span class="chip ~neutral mr-1 mb-1"><%= item %></span>
+                                    <% end %>
+                                <% else %>
+                                    <span class="chip mb-1 border border-dashed">No Options Selected</span>
                                 <% end %>
                                 </span>
                                 <span class="ml-4 flex-shrink-0">
@@ -77,6 +88,7 @@
                                 <button type="button" class="button original">+ Location</button>
                                 <button type="button" class="button original">+ Conflict</button>
                                 <button type="button" class="button original">+ Camera Direction</button>
+                                <button type="button" class="button original">+ Date Recorded</button>
                                 <button type="button" class="button original">+ Time of Day</button>
                                 <button type="button" class="button original">+ Setting</button>
                                 <button type="button" class="button original">+ Weather</button>
@@ -97,7 +109,7 @@
                 This is where the updates and discussion will eventually go.
             </.card>
         </div>
-        <div>
+        <div class="space-y-8">
             <.card>
                 <:header>
                     <h3 class="sec-head">Media</h3>
@@ -132,6 +144,18 @@
                         </div>
                     </section>
                 <%= end %>
+                </div>
+            </.card>
+            <.card>
+                <:header>
+                    <h3 class="sec-head">Location</h3>
+                </:header>
+                <div class="relative block w-full border-2 border-gray-300 border-dashed rounded-lg p-12 text-center">
+                    <svg class="mx-auto h-12 w-12 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    <span class="mt-2 block text-sm font-medium text-gray-700">Not yet geolocated</span>
                 </div>
             </.card>
         </div>

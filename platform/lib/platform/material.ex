@@ -62,7 +62,7 @@ defmodule Platform.Material do
   end
 
   def get_full_media_by_slug(slug) do
-    IO.inspect Media |> preload_media_versions() |> Repo.get_by(slug: slug)
+    Media |> preload_media_versions() |> Repo.get_by(slug: slug)
   end
 
   @doc """
@@ -238,20 +238,12 @@ defmodule Platform.Material do
     {:ok, out_data} = FFprobe.format(media_path)
 
     {duration, _} = Integer.parse(out_data["duration"])
-    type = out_data["format_name"]
     {size, _} = Integer.parse(out_data["size"])
 
     {:ok, new_thumb_path} = Utils.upload_ugc_file(thumb_path)
     {:ok, new_path} = Utils.upload_ugc_file(media_path)
 
     {:ok, new_path, new_thumb_path, duration, size}
-  end
-
-  @doc """
-  Returns the options available for the given attribute, if it is quantized.
-  """
-  def attribute_options(attribute) do
-    Media.attribute_options(attribute)
   end
 
   def media_version_location(version) do

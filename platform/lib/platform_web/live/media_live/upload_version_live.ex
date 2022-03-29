@@ -49,7 +49,6 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
   end
 
   defp set_parent_media_in_params(params, socket) do
-    IO.inspect(params)
     Map.put(params, "media_id", socket.assigns.media.id)
   end
 

@@ -7,7 +7,6 @@ defmodule PlatformWeb.NewLive do
   end
 
   def handle_info({:media_created, media}, socket) do
-    IO.inspect(media)
     {:noreply, socket |> assign(:media, media) |> assign(:stage, "Upload media")}
 
   end

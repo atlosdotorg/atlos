@@ -1,6 +1,7 @@
 defmodule PlatformWeb.NewLive.BasicInfoLive do
   use PlatformWeb, :live_component
   alias Platform.Material
+  alias Platform.Material.Media.Attribute
 
   def update(assigns, socket) do
     {:ok,
@@ -29,7 +30,6 @@ defmodule PlatformWeb.NewLive.BasicInfoLive do
         {:noreply, socket |> assign(:disabled, true)}
 
       {:error, %Ecto.Changeset{} = changeset} ->
-        IO.inspect(changeset)
         {:noreply, assign(socket, :changeset, changeset)}
     end
   end
@@ -57,7 +57,7 @@ defmodule PlatformWeb.NewLive.BasicInfoLive do
           <div>
             <div phx-update="ignore">
             <%= label f, :attr_sensitive, "Media Sensitivity (select all that apply)" %>
-            <%= multiple_select f, :attr_sensitive, Material.attribute_options(:attr_sensitive) %>
+            <%= multiple_select f, :attr_sensitive, Attribute.get_attribute(:sensitive).options %>
             </div>
             <p class="support">Is this media sensitive? This information helps us keep our community safe.</p>
             <%= error_tag f, :attr_sensitive %>
