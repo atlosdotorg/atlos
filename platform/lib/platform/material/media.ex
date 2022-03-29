@@ -30,7 +30,7 @@ defmodule Platform.Material.Media do
   end
 
   defp validate_slug(changeset) do
-    changeset |> validate_format(:slug, ~r/^AT-[A-Z0-9]{5}$/, message: "slug is not a valid code")
+    changeset |> validate_format(:slug, ~r/^ATL-[A-Z0-9]{5}$/, message: "slug is not a valid code")
   end
 
   def attribute_options(attribute) do
