@@ -5,7 +5,12 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
 
   def update(assigns, socket) do
     attr = Attribute.get_attribute(String.to_atom(assigns.name))
-    {:ok, socket |> assign(assigns) |> assign(:attr, attr) |> assign(:changeset, Material.change_media_attribute(assigns.media, attr))}
+
+    {:ok,
+     socket
+     |> assign(assigns)
+     |> assign(:attr, attr)
+     |> assign(:changeset, Material.change_media_attribute(assigns.media, attr))}
   end
 
   def close(socket) do
@@ -22,24 +27,21 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
   end
 
   def handle_event("save", input, socket) do
-    params = Map.get(input, "media", %{socket.assigns.attr.schema_field => nil}) # To allow empty strings, lists, etc.
+    # To allow empty strings, lists, etc.
+    params = Map.get(input, "media", %{socket.assigns.attr.schema_field => nil})
 
-    if !has_changes(socket, params) do
-      IO.puts "No changes!"
-      {:noreply, socket |> put_flash(:error, "You have not made any changes.")}
-    else
-      case Material.update_media_attribute(socket.assigns.media, socket.assigns.attr, params) do
-        {:ok, media} ->
-          {:noreply, socket |> put_flash(:info, "Your update has been saved.") |> close()}
+    case Material.update_media_attribute(socket.assigns.media, socket.assigns.attr, params) do
+      {:ok, media} ->
+        {:noreply, socket |> put_flash(:info, "Your update has been saved.") |> close()}
 
-        {:error, %Ecto.Changeset{} = changeset} ->
-          {:noreply, assign(socket, :changeset, changeset)}
-      end
+      {:error, %Ecto.Changeset{} = changeset} ->
+        {:noreply, assign(socket, :changeset, changeset)}
     end
   end
 
   def handle_event("validate", input, socket) do
-    params = Map.get(input, "media", %{socket.assigns.attr.schema_field => nil}) # To allow empty strings, lists, etc.
+    # To allow empty strings, lists, etc.
+    params = Map.get(input, "media", %{socket.assigns.attr.schema_field => nil})
 
     changeset =
       socket.assigns.media
@@ -72,7 +74,7 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
               <%= label f, @attr.schema_field, @attr.label %>
               <%= case @attr.type do %>
                 <% :text -> %>
-                  <%= textarea f, @attr.schema_field, phx_debounce: "blur" %>
+                  <%= textarea f, @attr.schema_field %>
                 <% :multi_select -> %>
                   <div phx-update="ignore">
                     <%= multiple_select f, @attr.schema_field, @attr.options, phx_debounce: "blur" %>

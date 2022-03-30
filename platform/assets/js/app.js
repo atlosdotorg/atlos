@@ -43,16 +43,19 @@ window.liveSocket = liveSocket
 function initializeMultiSelects() {
     // Make multi-selects interactive
     document.querySelectorAll("select[multiple]").forEach(s => {
-        if (!s.tomselect) {
-            let x = new TomSelect(`#${s.id}`, {
-                maxOptions: null,
-                placeholder: "Select all that apply...",
-                onItemAdd(_a, _b) {
-                    setTimeout(() => x.control_input.value = "", 1);
-                }
-            });
-            x.control_input.setAttribute("phx-debounce", "blur");
+        if (document.activeElement == s.control_input) {
+            return; // Don't update if we're currently editing
         }
+
+        s.tomselect = undefined;
+        let x = new TomSelect(`#${s.id}`, {
+            maxOptions: null,
+            placeholder: "Select all that apply...",
+            onItemAdd(_a, _b) {
+                setTimeout(() => x.control_input.value = "", 1);
+            }
+        });
+        x.control_input.setAttribute("phx-debounce", "blur");
     });
 }
 

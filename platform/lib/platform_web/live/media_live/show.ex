@@ -8,13 +8,18 @@ defmodule PlatformWeb.MediaLive.Show do
   end
 
   def handle_params(%{"slug" => slug} = params, uri, socket) do
-    {:noreply, socket |> assign(:slug, slug) |> assign(:attribute, Map.get(params, "attribute")) |> assign_media()}
+    {:noreply,
+     socket
+     |> assign(:slug, slug)
+     |> assign(:attribute, Map.get(params, "attribute"))
+     |> assign_media()}
   end
 
   defp attr_entry(assigns) do
     attr = Attribute.get_attribute(assigns.name)
+
     ~H"""
-    <span class="flex-grow gap-1">
+    <span class="flex-grow gap-1 flex flex-wrap">
         <%= case attr.type do %>
         <% :text -> %>
         <div class="inline-block mt-1">
@@ -22,7 +27,7 @@ defmodule PlatformWeb.MediaLive.Show do
         </div>
         <% :multi_select -> %>
           <%= for item <- Map.get(@media, attr.schema_field) do %>
-              <span class="chip ~neutral"><%= item %></span>
+              <div class="chip ~neutral inline-block"><%= item %></div>
           <% end %>
         <% end %>
     </span>

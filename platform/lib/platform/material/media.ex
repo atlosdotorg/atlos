@@ -43,8 +43,9 @@ defmodule Platform.Material.Media.Attribute do
       sensitive: %Attribute{
         schema_field: :attr_sensitive,
         type: :multi_select,
-        options: ["Threatens Civilian Safety", "Graphic Violence"],
-        label: "Sensitivity"
+        options: ["Not Sensitive", "Threatens Civilian Safety", "Graphic Violence"],
+        label: "Sensitivity",
+        min_length: 1
       },
       description: %Attribute{
         schema_field: :description,
@@ -88,9 +89,21 @@ defmodule Platform.Material.Media.Attribute do
   def validate_attribute(changeset, %Attribute{} = attribute) do
     case attribute.type do
       :multi_select ->
-        changeset |> validate_subset(attribute.schema_field, attribute.options)
+        changeset
+        |> validate_subset(attribute.schema_field, attribute.options)
+        |> validate_required(attribute.schema_field)
+        |> validate_length(attribute.schema_field,
+          min: attribute.min_length,
+          max: attribute.max_length
+        )
+        |> IO.inspect
+
       :text ->
-        changeset |> validate_length(attribute.schema_field, min: attribute.min_length, max: attribute.max_length)
+        changeset
+        |> validate_length(attribute.schema_field,
+          min: attribute.min_length,
+          max: attribute.max_length
+        )
     end
   end
 end
