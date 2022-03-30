@@ -7,6 +7,7 @@ defmodule Platform.Material do
   alias Platform.Repo
 
   alias Platform.Material.Media
+  alias Platform.Material.Media.Attribute
   alias Platform.Material.MediaVersion
   alias Platform.Utils
 
@@ -249,5 +250,15 @@ defmodule Platform.Material do
   def media_version_location(version) do
     # This may in the future create a signed URL at the CDN provider, for example
     version.file_location
+  end
+
+  def change_media_attribute(media, %Attribute{} = attribute, attrs \\ %{}) do
+    Media.Attribute.changeset(media, attribute, attrs)
+  end
+
+  def update_media_attribute(media, %Attribute{} = attribute, attrs) do
+    media
+    |> Media.Attribute.changeset(attribute, attrs)
+    |> Repo.update()
   end
 end

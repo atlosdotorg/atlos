@@ -1,4 +1,12 @@
 <article class="w-full max-w-screen-xl px-8">
+    <%= if @live_action == :edit do %>
+         <.live_component
+            module={PlatformWeb.MediaLive.EditAttribute}
+            id="edit-attribute"
+            media={@media}
+            name={@attribute}
+        />
+    <% end %>
     <div class="lg:flex lg:items-center lg:justify-between">
         <div class="flex-1 min-w-0 max-w-full">
             <h2 class="text-xl font-semibold leading-7 text-gray-900 sm:text-3xl">
@@ -44,13 +52,21 @@
                 <div class="border-gray-200">
                     <dl class="divide-y divide-dashed divide-gray-200 -mt-5 -mb-3">
                         <%= for attr <- Attribute.set_for_media(@media) do %>
-                            <.attr_entry name={attr} media={@media} />
+                            <div class="py-4 sm:grid sm:py-5 sm:grid-cols-3 sm:gap-4">
+                                <dt class="text-sm font-medium text-gray-500 mt-1"><%= Attribute.get_attribute(attr).label %></dt>
+                                <dd class="mt-1 flex text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                                    <.attr_entry name={attr} media={@media} />
+                                    <span class="ml-4 flex-shrink-0">
+                                        <%= live_patch "Update", class: "text-button mt-1 inline-block", to: Routes.media_show_path(@socket, :edit, @media.slug, attr) %>
+                                    </span>
+                                </dd>
+                            </div>
                         <% end %>
                         <div class="py-4 sm:grid sm:py-5 sm:grid-cols-3 sm:gap-4 -mb-2">
                             <dt class="text-sm font-medium text-gray-500 mt-1">Unset Attributes</dt>
                             <dd class="mt-1 flex flex-wrap gap-2 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                                <% for attr <- Attribute.unset_for_media(@media) do %>
-                                    <button type="button" class="button original">+ <%= Attribute.get_attribute(attr).label %></button>
+                                <%= for attr <- Attribute.unset_for_media(@media) do %>
+                                    <%= live_patch "+ #{Attribute.get_attribute(attr).label}", class: "button original", to: Routes.media_show_path(@socket, :edit, @media.slug, attr) %>
                                 <% end %>
                                 <button type="button" class="button original">+ Conflict</button>
                                 <button type="button" class="button original">+ Camera Direction</button>

@@ -79,7 +79,7 @@ defmodule Platform.Material.Media.Attribute do
     Map.keys(attributes())
   end
 
-  def changeset(media, attrs, %Attribute{} = attribute) do
+  def changeset(media, %Attribute{} = attribute, attrs \\ %{}) do
     media
     |> cast(attrs, [attribute.schema_field])
     |> validate_attribute(attribute)
