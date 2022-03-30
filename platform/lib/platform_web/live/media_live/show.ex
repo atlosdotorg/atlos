@@ -14,15 +14,15 @@ defmodule PlatformWeb.MediaLive.Show do
   defp attr_entry(assigns) do
     attr = Attribute.get_attribute(assigns.name)
     ~H"""
-    <span class="flex-grow">
+    <span class="flex-grow gap-1">
         <%= case attr.type do %>
         <% :text -> %>
-        <div class="mr-1 my-1 inline-block">
+        <div class="inline-block mt-1">
           <%= Map.get(@media, attr.schema_field) %>
         </div>
         <% :multi_select -> %>
           <%= for item <- Map.get(@media, attr.schema_field) do %>
-              <span class="chip ~neutral mr-1 mb-1"><%= item %></span>
+              <span class="chip ~neutral"><%= item %></span>
           <% end %>
         <% end %>
     </span>
