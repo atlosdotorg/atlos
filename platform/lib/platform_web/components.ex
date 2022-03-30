@@ -28,9 +28,10 @@ defmodule PlatformWeb.Components do
         <!-- This element is to trick the browser into centering the modal contents. -->
         <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
 
+        <!-- add phx-click-away="close_modal" phx-window-keydown="close_modal" phx-key="Escape" phx-target={@target}, just need to get confirmation warning right -->
         <div class="relative inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-xl sm:w-full sm:p-6">
           <div class="hidden sm:block absolute top-0 right-0 pt-4 pr-4">
-            <button type="button" class="bg-white rounded-md text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" phx-click="close_modal" phx-target={@target}>
+            <button type="button" class="bg-white rounded-md text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" phx-click="close_modal" phx-target={@target} data-confirm={@close_confirmation}>
               <span class="sr-only">Close</span>
               <!-- Heroicon name: outline/x -->
               <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">

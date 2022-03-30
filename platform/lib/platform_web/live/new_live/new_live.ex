@@ -14,7 +14,7 @@ defmodule PlatformWeb.NewLive do
     {:noreply,
      socket
      |> put_flash(:info, "Successfully uploaded media.")
-     |> redirect(to: Routes.live_path(socket, MediaLive.Show, socket.assigns.media.slug))}
+     |> redirect(to: Routes.media_show_path(socket, :show, socket.assigns.media.slug))}
   end
 
   def render(assigns) do
