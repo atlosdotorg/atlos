@@ -43,49 +43,15 @@
                 </:header>
                 <div class="border-gray-200">
                     <dl class="divide-y divide-dashed divide-gray-200 -mt-5 -mb-3">
-                        <div class="py-4 sm:grid sm:py-5 sm:grid-cols-3 sm:gap-4">
-                            <dt class="text-sm font-medium text-gray-500 mt-1">Short Description</dt>
-                            <dd class="mt-1 flex text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                                <span class="flex-grow">
-                                    <div class="mr-1 my-1 inline-block"><%= @media.description %></div>
-                                </span>
-                                <span class="ml-4 flex-shrink-0">
-                                    <button type="button" class="text-button mt-1">Update</button>
-                                </span>
-                            </dd>
-                        </div>
-                        <div class="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 -mb-1">
-                            <dt class="text-sm font-medium text-gray-500 mt-1">Sensitivity</dt>
-                            <dd class="mt-1 flex text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                                <span class="flex-grow">
-                                <%= if @media.attr_sensitive do %>
-                                    <%= for item <- @media.attr_sensitive do %>
-                                        <span class="chip ~neutral mr-1 mb-1"><%= item %></span>
-                                    <% end %>
-                                <% else %>
-                                    <span class="chip mb-1 border border-dashed">No Options Selected</span>
-                                <% end %>
-                                </span>
-                                <span class="ml-4 flex-shrink-0">
-                                <button type="button" class="text-button mt-1">Update</button>
-                                </span>
-                            </dd>
-                        </div>
-                        <div class="py-4 sm:grid sm:py-5 sm:grid-cols-3 sm:gap-4 -mb-1">
-                            <dt class="text-sm font-medium text-gray-500 mt-1">First Known Upload</dt>
-                            <dd class="mt-1 flex text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                                <span class="flex-grow">
-                                    <span class="chip ~neutral mb-1 mr-1">Jan 13, 2022</span>
-                                </span>
-                                <span class="ml-4 flex-shrink-0">
-                                    <button type="button" class="text-button mt-1">Update</button>
-                                </span>
-                            </dd>
-                        </div>
+                        <%= for attr <- Attribute.set_for_media(@media) do %>
+                            <.attr_entry name={attr} media={@media} />
+                        <% end %>
                         <div class="py-4 sm:grid sm:py-5 sm:grid-cols-3 sm:gap-4 -mb-2">
                             <dt class="text-sm font-medium text-gray-500 mt-1">Unset Attributes</dt>
                             <dd class="mt-1 flex flex-wrap gap-2 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                                <button type="button" class="button original">+ Location</button>
+                                <% for attr <- Attribute.unset_for_media(@media) do %>
+                                    <button type="button" class="button original">+ <%= Attribute.get_attribute(attr).label %></button>
+                                <% end %>
                                 <button type="button" class="button original">+ Conflict</button>
                                 <button type="button" class="button original">+ Camera Direction</button>
                                 <button type="button" class="button original">+ Date Recorded</button>
