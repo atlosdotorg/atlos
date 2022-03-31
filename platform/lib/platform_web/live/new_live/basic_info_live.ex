@@ -55,9 +55,9 @@ defmodule PlatformWeb.NewLive.BasicInfoLive do
           </div>
 
           <div>
-            <div phx-update="ignore">
             <%= label f, :attr_sensitive, "Media Sensitivity (select all that apply)" %>
-            <%= multiple_select f, :attr_sensitive, Attribute.get_attribute(:sensitive).options, phx_debounce: "blur" %>
+            <div phx-update="ignore" id="sensitive_select">
+              <%= multiple_select f, :attr_sensitive, Attribute.get_attribute(:sensitive).options %>
             </div>
             <p class="support">Is this media sensitive? This information helps us keep our community safe.</p>
             <%= error_tag f, :attr_sensitive %>
