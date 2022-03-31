@@ -96,7 +96,7 @@ defmodule Platform.Material.Media.Attribute do
           min: attribute.min_length,
           max: attribute.max_length
         )
-        |> IO.inspect
+        |> IO.inspect()
 
       :text ->
         changeset

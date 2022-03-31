@@ -23,8 +23,7 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
        auto_upload: true,
        progress: &handle_progress/3
      )
-      |> clear_error()
-    }
+     |> clear_error()}
   end
 
   defp assign_version(socket) do
@@ -83,12 +82,20 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
 
     # This is a bit of a hack, but we only want to handle the uploaded media if everything else is OK.
     # So we *manually* check to verify the source URL is correct before proceeding.
-    ugc_invalid = Enum.any?([:source_url], &Keyword.has_key?(changeset.errors, &1)) || length(socket.assigns.uploads.media_upload.entries) == 0
+    ugc_invalid =
+      Enum.any?([:source_url], &Keyword.has_key?(changeset.errors, &1)) ||
+        length(socket.assigns.uploads.media_upload.entries) == 0
 
     if ugc_invalid do
-      {:noreply, socket |> assign(:changeset, changeset) |> assign(:error, "Please be sure to provide both a piece of media and a source link.")}
+      {:noreply,
+       socket
+       |> assign(:changeset, changeset)
+       |> assign(:error, "Please be sure to provide both a piece of media and a source link.")}
     else
-      socket = socket |> clear_error() |> handle_uploaded_file(hd(socket.assigns.uploads.media_upload.entries))
+      socket =
+        socket
+        |> clear_error()
+        |> handle_uploaded_file(hd(socket.assigns.uploads.media_upload.entries))
 
       case Material.create_media_version(all_params(socket, params)) do
         {:ok, version} ->
