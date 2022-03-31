@@ -43,8 +43,10 @@ window.liveSocket = liveSocket
 function initializeMultiSelects() {
     // Make multi-selects interactive
     document.querySelectorAll("select[multiple]").forEach(s => {
-        if (document.activeElement == s.control_input) {
-            return; // Don't update if we're currently editing
+        if (s.tomselect) {
+            if (document.activeElement == s.tomselect.control_input) {
+                return; // Don't update if we're currently editing
+            }
         }
 
         s.tomselect = undefined;

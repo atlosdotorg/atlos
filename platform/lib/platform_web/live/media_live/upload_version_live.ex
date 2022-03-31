@@ -22,7 +22,9 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
        max_file_size: 250_000_000,
        auto_upload: true,
        progress: &handle_progress/3
-     )}
+     )
+      |> clear_error()
+    }
   end
 
   defp assign_version(socket) do
@@ -48,6 +50,14 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
     {:ok, to_path}
   end
 
+  defp assign_error(socket, error) do
+    socket |> assign(:error, error)
+  end
+
+  defp clear_error(socket) do
+    socket |> assign(:error, nil)
+  end
+
   defp set_parent_media_in_params(params, socket) do
     Map.put(params, "media_id", socket.assigns.media.id)
   end
@@ -60,7 +70,7 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
       |> Material.change_media_version(params)
       |> Map.put(:action, :validate)
 
-    {:noreply, socket |> assign(:changeset, changeset)}
+    {:noreply, socket |> assign(:changeset, changeset) |> clear_error()}
   end
 
   def handle_event("save", %{"media_version" => params}, socket) do
@@ -73,12 +83,12 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
 
     # This is a bit of a hack, but we only want to handle the uploaded media if everything else is OK.
     # So we *manually* check to verify the source URL is correct before proceeding.
-    ugc_invalid = Enum.any?([:source_url], &Keyword.has_key?(changeset.errors, &1))
+    ugc_invalid = Enum.any?([:source_url], &Keyword.has_key?(changeset.errors, &1)) || length(socket.assigns.uploads.media_upload.entries) == 0
 
     if ugc_invalid do
-      {:noreply, assign(socket, :changeset, changeset)}
+      {:noreply, socket |> assign(:changeset, changeset) |> assign(:error, "Please be sure to provide both a piece of media and a source link.")}
     else
-      socket = socket |> handle_uploaded_file(hd(socket.assigns.uploads.media_upload.entries))
+      socket = socket |> clear_error() |> handle_uploaded_file(hd(socket.assigns.uploads.media_upload.entries))
 
       case Material.create_media_version(all_params(socket, params)) do
         {:ok, version} ->
@@ -152,6 +162,11 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
 
     ~H"""
     <article>
+      <%= if @error do %>
+        <aside class="aside ~critical mb-4">
+          <%= @error %>
+        </aside>
+      <% end %>
       <.form
         let={f}
         for={@changeset}
