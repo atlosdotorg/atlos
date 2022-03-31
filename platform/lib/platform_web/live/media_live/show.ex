@@ -22,9 +22,13 @@ defmodule PlatformWeb.MediaLive.Show do
     <span class="flex-grow gap-1 flex flex-wrap">
         <%= case attr.type do %>
         <% :text -> %>
-        <div class="inline-block mt-1">
-          <%= Map.get(@media, attr.schema_field) %>
-        </div>
+          <div class="inline-block mt-1">
+            <%= Map.get(@media, attr.schema_field) %>
+          </div>
+        <% :select -> %>
+          <div class="inline-block mt-1">
+            <div class="chip ~neutral inline-block"><%= Map.get(@media, attr.schema_field) %></div>
+          </div>
         <% :multi_select -> %>
           <%= for item <- Map.get(@media, attr.schema_field) do %>
               <div class="chip ~neutral inline-block"><%= item %></div>

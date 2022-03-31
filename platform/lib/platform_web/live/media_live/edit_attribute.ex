@@ -75,6 +75,8 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
               <%= case @attr.type do %>
                 <% :text -> %>
                   <%= textarea f, @attr.schema_field %>
+                <% :select -> %>
+                  <%= select f, @attr.schema_field, @attr.options %>
                 <% :multi_select -> %>
                   <div phx-update="ignore">
                     <%= multiple_select f, @attr.schema_field, @attr.options, phx_debounce: "blur" %>

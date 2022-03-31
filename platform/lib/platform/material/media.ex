@@ -11,8 +11,11 @@ defmodule Platform.Material.Media do
     # Core editable data
     field :description, :string
 
-    # Attributes
+    # Metadata Attributes
     field :attr_sensitive, {:array, :string}
+
+    # "Normal" Attributes
+    field :attr_time_of_day, :string
 
     # Metadata
     timestamps()
@@ -36,23 +39,32 @@ defmodule Platform.Material.Media.Attribute do
   import Ecto.Changeset
   alias __MODULE__
 
-  defstruct [:schema_field, :type, :label, :options, :max_length, :min_length]
+  defstruct [:schema_field, :type, :label, :options, :max_length, :min_length, :pane]
 
   defp attributes() do
     %{
       sensitive: %Attribute{
         schema_field: :attr_sensitive,
         type: :multi_select,
-        options: ["Not Sensitive", "Threatens Civilian Safety", "Graphic Violence"],
+        options: ["Not Sensitive", "Threatens Civilian Safety", "Graphic Violence", "Deleted by Original Poster"],
         label: "Sensitivity",
-        min_length: 1
+        min_length: 1,
+        pane: :metadata
       },
       description: %Attribute{
         schema_field: :description,
         type: :text,
-        max_length: 255,
+        max_length: 240,
         min_length: 8,
-        label: "Short Description"
+        label: "Short Description",
+        pane: :metadata
+      },
+      time_of_day: %Attribute{
+        schema_field: :attr_time_of_day,
+        type: :select,
+        options: ["Night", "Day"],
+        label: "Time of Day",
+        pane: :attributes
       }
     }
   end
@@ -96,8 +108,10 @@ defmodule Platform.Material.Media.Attribute do
           min: attribute.min_length,
           max: attribute.max_length
         )
-        |> IO.inspect()
-
+      :select ->
+          changeset
+          |> validate_inclusion(attribute.schema_field, attribute.options)
+          |> validate_required(attribute.schema_field)
       :text ->
         changeset
         |> validate_length(attribute.schema_field,

@@ -42,17 +42,22 @@ window.liveSocket = liveSocket
 
 function initializeMultiSelects() {
     // Make multi-selects interactive
-    document.querySelectorAll("select[multiple]").forEach(s => {
+    document.querySelectorAll("select").forEach(s => {
         if (s.tomselect) {
             if (document.activeElement == s.tomselect.control_input) {
                 return; // Don't update if we're currently editing
             }
         }
 
+        let prompt = "Select...";
+        if (s.hasAttribute("multiple")) {
+            prompt = "Select all that apply..."
+        }
+
         s.tomselect = undefined;
         let x = new TomSelect(`#${s.id}`, {
             maxOptions: null,
-            placeholder: "Select all that apply...",
+            placeholder: prompt,
             onItemAdd(_a, _b) {
                 setTimeout(() => x.control_input.value = "", 1);
             }

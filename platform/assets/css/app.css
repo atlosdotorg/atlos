@@ -216,7 +216,7 @@
  * governing permissions and limitations under the License.
  *
  */
- select[multiple] {
+ select {
    display: none;
  }
 
