@@ -43,7 +43,7 @@
                 </:header>
                 <div class="border-gray-200">
                     <dl class="divide-y divide-dashed divide-gray-200 -mt-5 -mb-3">
-                        <%= for attr <- Attribute.set_for_media(@media) do %>
+                        <%= for attr <- Attribute.set_for_media(@media, :attributes) do %>
                             <div class="py-4 sm:grid sm:py-5 sm:grid-cols-3 sm:gap-4">
                                 <dt class="text-sm font-medium text-gray-500 mt-1"><%= Attribute.get_attribute(attr).label %></dt>
                                 <dd class="mt-1 flex text-sm text-gray-900 sm:mt-0 sm:col-span-2">
@@ -57,13 +57,12 @@
                         <div class="py-4 sm:grid sm:py-5 sm:grid-cols-3 sm:gap-4 -mb-2">
                             <dt class="text-sm font-medium text-gray-500 mt-1">Unset Attributes</dt>
                             <dd class="mt-1 flex flex-wrap gap-2 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                                <%= for attr <- Attribute.unset_for_media(@media) do %>
+                                <%= for attr <- Attribute.unset_for_media(@media, :attributes) do %>
                                     <%= live_patch "+ #{Attribute.get_attribute(attr).label}", class: "button original", to: Routes.media_show_path(@socket, :edit, @media.slug, attr) %>
                                 <% end %>
                                 <button type="button" class="button original">+ Conflict</button>
                                 <button type="button" class="button original">+ Camera Direction</button>
                                 <button type="button" class="button original">+ Date Recorded</button>
-                                <button type="button" class="button original">+ Time of Day</button>
                                 <button type="button" class="button original">+ Setting</button>
                                 <button type="button" class="button original">+ Weather</button>
                                 <button type="button" class="button original">+ Camera Type</button>
@@ -118,6 +117,26 @@
                         </div>
                     </section>
                 <% end %>
+                </div>
+            </.card>
+            <.card>
+                <:header>
+                    <h3 class="sec-head">Metadata</h3>
+                </:header>
+                <div class="border-gray-200">
+                    <dl class="divide-y divide-dashed divide-gray-200 -mt-5 -mb-3">
+                        <%= for attr <- Attribute.set_for_media(@media, :metadata) do %>
+                            <div class="py-4 sm:grid sm:py-5 sm:grid-cols-3 sm:gap-4">
+                                <dt class="text-sm font-medium text-gray-500 mt-1"><%= Attribute.get_attribute(attr).label %></dt>
+                                <dd class="mt-1 flex text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                                    <.attr_entry name={attr} media={@media} />
+                                    <span class="ml-4 flex-shrink-0">
+                                        <%= live_patch "Update", class: "text-button mt-1 inline-block", to: Routes.media_show_path(@socket, :edit, @media.slug, attr) %>
+                                    </span>
+                                </dd>
+                            </div>
+                        <% end %>
+                    </dl>
                 </div>
             </.card>
             <.card>
