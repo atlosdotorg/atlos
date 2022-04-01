@@ -351,14 +351,6 @@ defmodule Platform.Accounts do
     end
   end
 
-  @spec change_user_profile(
-          {map, map}
-          | %{
-              :__struct__ => atom | %{:__changeset__ => map, optional(any) => any},
-              optional(atom) => any
-            },
-          :invalid | %{optional(:__struct__) => none, optional(atom | binary) => any}
-        ) :: Ecto.Changeset.t()
   def change_user_profile(user, attrs \\ %{}) do
     User.profile_changeset(user, attrs)
   end
@@ -366,5 +358,13 @@ defmodule Platform.Accounts do
   def update_user_profile(user, attrs) do
     change_user_profile(user, attrs)
     |> Repo.update()
+  end
+
+  def get_profile_photo_path(user) do
+    if byte_size(user.profile_photo_file) > 0 do
+      user.profile_photo_file
+    else
+      "/images/default_profile.jpg" # TODO: host elsewhere
+    end
   end
 end

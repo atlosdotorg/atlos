@@ -130,7 +130,7 @@ defmodule Platform.Updates do
   @doc """
   Get the updates associated with the given media.
   """
-  def get_update_for_media(media) do
-    Repo.all(from u in Update, where: u.media_id == ^media.id, preload: :user, order_by: u.created_at)
+  def get_updates_for_media(media) do
+    Repo.all(from u in Update, where: u.media_id == ^media.id, preload: :user, preload: :media, order_by: u.inserted_at) # TODO: remove n+1
   end
 end

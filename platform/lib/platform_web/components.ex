@@ -2,6 +2,9 @@ defmodule PlatformWeb.Components do
   use Phoenix.Component
   use Phoenix.HTML
 
+  alias Platform.Accounts
+  alias Platform.Material.Attribute
+
   def navlink(%{request_path: path, to: to} = assigns) do
     # TODO(miles): check for active tab
     classes =
@@ -215,6 +218,82 @@ defmodule PlatformWeb.Components do
             <% end %>
           </ol>
         </nav>
+    """
+  end
+
+  defp naive_pluralise(amt, word) when amt == 1, do: word
+  defp naive_pluralise(amt, word), do: word <> "s"
+  defp time_ago_in_words(seconds) when seconds < 60 do
+    "just now"
+  end
+  defp time_ago_in_words(seconds) when seconds < 3600 do
+    amt = round(seconds/60)
+    "#{amt} #{naive_pluralise(amt, "minute")} ago"
+  end
+  defp time_ago_in_words(seconds) when seconds < 86400 do
+    amt = round(seconds/3600)
+    "#{amt} #{naive_pluralise(amt, "hour")} ago"
+  end
+  defp time_ago_in_words(seconds) do
+    amt = round(seconds/86400)
+    "#{amt} #{naive_pluralise(amt, "day")} ago"
+  end
+  defp seconds_ago(datetime) do
+    {start, _} = DateTime.to_gregorian_seconds(DateTime.utc_now())
+    {now, _} = DateTime.to_gregorian_seconds(DateTime.from_naive!(datetime, "Etc/UTC"))
+    start - now
+  end
+  def rel_time(%{time: time} = assigns) do
+    ~H"""
+      <span title={@time}><%= time |> seconds_ago() |> time_ago_in_words() %></span>
+    """
+  end
+
+  def update_stream(%{updates: updates} = assigns) do
+    IO.inspect(updates)
+
+    ~H"""
+    <div class="flow-root">
+      <ul role="list" class="-mb-8">
+        <%= for {update, idx} <- Enum.with_index(@updates) do %>
+        <li>
+          <div class="relative pb-8">
+            <%= if idx != length(@updates) - 1 do %>
+            <span class="absolute top-5 left-5 -ml-px h-full w-0.5 bg-gray-200" aria-hidden="true"></span>
+            <% end %>
+            <div class="relative flex items-start space-x-3">
+              <div class="relative">
+                <img class="h-10 w-10 rounded-full bg-gray-400 flex items-center justify-center ring-8 ring-white shadow" src={Accounts.get_profile_photo_path(update.user)} alt={"Profile photo for #{update.user.username}"}>
+              </div>
+              <div class="min-w-0 flex-1">
+                <div>
+                  <div class="text-sm text-gray-600 mt-2">
+                    <a class="font-medium text-gray-900"><%= update.user.username %></a>
+                    <%= case update.type do %>
+                      <% :update_attribute -> %>
+                        updated <span class="font-medium text-gray-900"><%= Attribute.get_attribute(update.modified_attribute).label %></span>
+                      <% :create -> %>
+                        added <span class="font-medium text-gray-900"><%= update.media.slug %></span>
+                      <% :upload_version -> %>
+                        uploaded a version
+                      <% :comment -> %>
+                        commented
+                    <% end %>
+                    <.rel_time time={update.inserted_at} />
+                  </div>
+                </div>
+                <%= if update.explanation do %>
+                <div class="mt-2 text-sm text-gray-700 border p-2 rounded shadow">
+                  <p><%= update.explanation %></p>
+                </div>
+                <% end %>
+              </div>
+            </div>
+          </div>
+        </li>
+        <% end %>
+      </ul>
+    </div>
     """
   end
 end
