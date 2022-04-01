@@ -101,4 +101,11 @@ defmodule Platform.Updates do
   def change_update(%Update{} = update, attrs \\ %{}) do
     Update.changeset(update, attrs)
   end
+
+  @doc """
+  Get the updates associated with the given media.
+  """
+  def get_update_for_media(media) do
+    Repo.all(from u in Update, where: u.media_id == ^media.id, preload: :user, order_by: u.created_at)
+  end
 end

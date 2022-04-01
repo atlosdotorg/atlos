@@ -1,7 +1,7 @@
 defmodule PlatformWeb.MediaLive.EditAttribute do
   use PlatformWeb, :live_component
   alias Platform.Material
-  alias Material.Media.Attribute
+  alias Material.Attribute
 
   def update(assigns, socket) do
     attr = Attribute.get_attribute(String.to_atom(assigns.name))
@@ -76,13 +76,18 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
                 <% :text -> %>
                   <%= textarea f, @attr.schema_field %>
                 <% :select -> %>
-                  <%= select f, @attr.schema_field, @attr.options %>
+                  <div phx-update="ignore" id={"attr_multi_select_#{@media.slug}_#{@attr.schema_field}"}>
+                    <%= select f, @attr.schema_field, @attr.options %>
+                  </div>
                 <% :multi_select -> %>
                   <div phx-update="ignore" id={"attr_multi_select_#{@media.slug}_#{@attr.schema_field}"}>
                     <%= multiple_select f, @attr.schema_field, @attr.options %>
                   </div>
               <% end %>
               <%= error_tag f, @attr.schema_field %>
+            </div>
+            <div>
+
             </div>
             <div class="flex md:justify-between">
               <%= submit "Post update →", phx_disable_with: "Saving...", class: "button ~urge @high" %>

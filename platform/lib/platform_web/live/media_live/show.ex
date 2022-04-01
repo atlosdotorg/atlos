@@ -1,7 +1,7 @@
 defmodule PlatformWeb.MediaLive.Show do
   use PlatformWeb, :live_view
   alias Platform.Material
-  alias Material.Media.Attribute
+  alias Material.Attribute
 
   def mount(_params, _session, socket) do
     {:ok, socket}

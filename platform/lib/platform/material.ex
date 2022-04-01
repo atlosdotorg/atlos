@@ -7,9 +7,11 @@ defmodule Platform.Material do
   alias Platform.Repo
 
   alias Platform.Material.Media
-  alias Platform.Material.Media.Attribute
+  alias Platform.Material.Attribute
   alias Platform.Material.MediaVersion
   alias Platform.Utils
+  alias Platform.Updates
+  alias Platform.Updates.Update
 
   @doc """
   Returns the list of media.
@@ -253,12 +255,23 @@ defmodule Platform.Material do
   end
 
   def change_media_attribute(media, %Attribute{} = attribute, attrs \\ %{}) do
-    Media.Attribute.changeset(media, attribute, attrs)
+    Attribute.changeset(media, attribute, attrs)
   end
 
   def update_media_attribute(media, %Attribute{} = attribute, attrs) do
     media
-    |> Media.Attribute.changeset(attribute, attrs)
+    |> Attribute.changeset(attribute, attrs)
+    |> Repo.update()
+  end
+
+  def update_media_attribute_logged(media, %Attribute{} = attribute, attrs, user) do
+    # First, we generate the changeset for the *update*
+    {:ok, old_value} = Map.get(media, attribute.schema_field) |> JSON.encode()
+    {:ok, new_value} = Map.get(attrs, attribute.schema_field) |> JSON.encode()
+    update_changeset = Updates.change_update(%Update{}, %{explanation: "", old_value: old_value, new_value: new_value, media_id: media.id, user_id: user.id, modified_attribute: attribute.name})
+
+    media
+    |> Attribute.changeset(attribute, attrs)
     |> Repo.update()
   end
 end
