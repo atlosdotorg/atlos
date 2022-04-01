@@ -7,6 +7,9 @@ defmodule Platform.Updates do
   alias Platform.Repo
 
   alias Platform.Updates.Update
+  alias Platform.Material.Attribute
+  alias Platform.Material.Media
+  alias Platform.Accounts.User
 
   @doc """
   Returns the list of updates.
@@ -100,6 +103,28 @@ defmodule Platform.Updates do
   """
   def change_update(%Update{} = update, attrs \\ %{}) do
     Update.changeset(update, attrs)
+  end
+
+  def change_from_attribute_changeset(%Media{} = media, %Attribute{} = attribute, %User{} = user, attrs) do
+    old_value = Map.get(media, attribute.schema_field) |> Jason.encode!()
+    new_value = Map.get(attrs, Atom.to_string(attribute.schema_field)) |> Jason.encode!()
+
+    change_update(%Update{}, attrs
+      |> Map.put("old_value", old_value)
+      |> Map.put("new_value", new_value)
+      |> Map.put("media_id", media.id)
+      |> Map.put("user_id", user.id)
+      |> Map.put("modified_attribute", attribute.name)
+      |> Map.put("type", :update_attribute)
+    )
+  end
+
+  def change_from_media_creation(%Media{} = media, %User{} = user) do
+    change_update(%Update{}, %{
+      "user_id" => user.id,
+      "type" => :create,
+      "media_id" => media.id,
+    })
   end
 
   @doc """

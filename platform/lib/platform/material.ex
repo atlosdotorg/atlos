@@ -12,6 +12,7 @@ defmodule Platform.Material do
   alias Platform.Utils
   alias Platform.Updates
   alias Platform.Updates.Update
+  alias Platform.Accounts.User
 
   @doc """
   Returns the list of media.
@@ -62,6 +63,18 @@ defmodule Platform.Material do
     %Media{}
     |> Media.changeset(attrs)
     |> Repo.insert()
+  end
+
+  def create_media_logged(%User{} = user, attrs \\ %{}) do
+    Repo.transaction(fn ->
+      {:ok, media} = %Media{}
+        |> Media.changeset(attrs)
+        |> Repo.insert()
+
+      {:ok, _} = Updates.change_from_media_creation(media, user).params |> Updates.create_update()
+
+      media
+    end)
   end
 
   def get_full_media_by_slug(slug) do
@@ -264,14 +277,21 @@ defmodule Platform.Material do
     |> Repo.update()
   end
 
-  def update_media_attribute_logged(media, %Attribute{} = attribute, attrs, user) do
-    # First, we generate the changeset for the *update*
-    {:ok, old_value} = Map.get(media, attribute.schema_field) |> JSON.encode()
-    {:ok, new_value} = Map.get(attrs, attribute.schema_field) |> JSON.encode()
-    update_changeset = Updates.change_update(%Update{}, %{explanation: "", old_value: old_value, new_value: new_value, media_id: media.id, user_id: user.id, modified_attribute: attribute.name})
+  def update_media_attribute_logged(media, %Attribute{} = attribute, user, attrs) do
+    media_changeset = change_media_attribute(media, attribute, attrs)
+    update_changeset = Updates.change_from_attribute_changeset(media, attribute, user, attrs)
 
-    media
-    |> Attribute.changeset(attribute, attrs)
-    |> Repo.update()
+    # Make sure both changesets are valid before inserting
+    cond do
+      !(media_changeset.valid? && update_changeset.valid?) ->
+        IO.inspect(update_changeset)
+        IO.inspect(media_changeset)
+        media_changeset
+      true ->
+        Repo.transaction(fn ->
+          {:ok, _} = Updates.create_update(update_changeset.params) # TODO: it would be nice to do a direct Repo.create() somehow
+          update_media_attribute(media, attribute, attrs)
+        end)
+    end
   end
 end

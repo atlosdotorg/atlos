@@ -17,20 +17,20 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
     socket |> push_patch(to: Routes.media_show_path(socket, :show, socket.assigns.media.slug))
   end
 
-  def handle_event("close_modal", _, socket) do
-    {:noreply, close(socket)}
-  end
-
   defp has_changes(socket, params \\ %{}) do
     changeset = Material.change_media_attribute(socket.assigns.media, socket.assigns.attr, params)
     map_size(changeset.changes) > 0
+  end
+
+  def handle_event("close_modal", _, socket) do
+    {:noreply, close(socket)}
   end
 
   def handle_event("save", input, socket) do
     # To allow empty strings, lists, etc.
     params = Map.get(input, "media", %{socket.assigns.attr.schema_field => nil})
 
-    case Material.update_media_attribute(socket.assigns.media, socket.assigns.attr, params) do
+    case Material.update_media_attribute_logged(socket.assigns.media, socket.assigns.attr, socket.assigns.current_user, params) do
       {:ok, media} ->
         {:noreply, socket |> put_flash(:info, "Your update has been saved.") |> close()}
 
@@ -74,7 +74,7 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
               <%= label f, @attr.schema_field, @attr.label %>
               <%= case @attr.type do %>
                 <% :text -> %>
-                  <%= textarea f, @attr.schema_field %>
+                  <%= textarea f, @attr.schema_field, phx_debounce: "blur" %>
                 <% :select -> %>
                   <div phx-update="ignore" id={"attr_multi_select_#{@media.slug}_#{@attr.schema_field}"}>
                     <%= select f, @attr.schema_field, @attr.options %>
@@ -87,7 +87,9 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
               <%= error_tag f, @attr.schema_field %>
             </div>
             <div>
-
+              <%= label f, :explanation, "Explanation" %>
+              <%= textarea f, :explanation, phx_debounce: "blur" %>
+              <%= error_tag f, :explanation %>
             </div>
             <div class="flex md:justify-between">
               <%= submit "Post update →", phx_disable_with: "Saving...", class: "button ~urge @high" %>

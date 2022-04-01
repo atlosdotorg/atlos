@@ -3,6 +3,7 @@ defmodule Platform.Material.Media do
   import Ecto.Changeset
   alias Platform.Utils
   alias Platform.Material.Attribute
+  alias Platform.Updates.Update
 
   schema "media" do
     # Core uneditable data
@@ -16,6 +17,9 @@ defmodule Platform.Material.Media do
 
     # "Normal" Attributes
     field :attr_time_of_day, :string
+
+    # Virtual attributes
+    field :explanation, :string, virtual: true # Used for update explanations
 
     # Metadata
     timestamps()
