@@ -7,7 +7,7 @@ defmodule Platform.Updates.Update do
   schema "updates" do
     field :explanation, :string
     field :modified_attribute, Ecto.Enum, nullable: true, values: Attribute.attribute_names()
-    field :type, Ecto.Enum, values: [:update_attribute, :create, :update_version]
+    field :type, Ecto.Enum, values: [:update_attribute, :create, :update_version, :comment]
     field :new_value, :string, default: "null" # JSON-encoded data
     field :old_value, :string, default: "null" # JSON-encoded data
 
@@ -24,6 +24,7 @@ defmodule Platform.Updates.Update do
     |> validate_required([:old_value, :new_value, :type, :user_id, :media_id])
     |> validate_explanation()
     |> validate_inclusion(:modified_attribute, Attribute.attribute_names())
+    # TODO: also validate that if type == :comment, then explanation is not empty
   end
 
   def validate_explanation(update) do

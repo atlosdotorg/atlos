@@ -85,7 +85,6 @@ defmodule Platform.Material.Attribute do
   end
 
   def get_attribute(name) do
-    IO.inspect(name)
     hd(Enum.filter(attributes(), &(&1.name == name)))
   end
 

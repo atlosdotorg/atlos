@@ -88,7 +88,7 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
             </div>
             <div>
               <%= label f, :explanation, "Explanation" %>
-              <%= textarea f, :explanation, phx_debounce: "blur" %>
+              <%= textarea f, :explanation, phx_debounce: "blur", placeholder: "Recommended for all non-trivial changes.", class: "my-1" %>
               <%= error_tag f, :explanation %>
             </div>
             <div class="flex md:justify-between">
