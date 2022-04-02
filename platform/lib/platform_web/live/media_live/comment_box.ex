@@ -21,7 +21,7 @@ defmodule PlatformWeb.MediaLive.CommentBox do
   def handle_event("save", %{"update" => params} = input, socket) do
     changeset = Updates.change_from_comment(socket.assigns.media, socket.assigns.current_user, params)
 
-    case Updates.create_update(changeset.params) do
+    case Updates.create_update_from_changeset(changeset) do
       {:ok, update} ->
         {:noreply, socket |> put_flash(:info, "Your comment has been posted.") |> assign_changeset() |> push_patch(to: Routes.media_show_path(socket, :show, socket.assigns.media.slug))}
 

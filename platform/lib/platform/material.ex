@@ -71,7 +71,7 @@ defmodule Platform.Material do
         |> Media.changeset(attrs)
         |> Repo.insert()
 
-      {:ok, _} = Updates.change_from_media_creation(media, user).params |> Updates.create_update()
+      {:ok, _} = Updates.change_from_media_creation(media, user) |> Updates.create_update_from_changeset()
 
       media
     end)
@@ -287,7 +287,7 @@ defmodule Platform.Material do
         media_changeset
       true ->
         Repo.transaction(fn ->
-          {:ok, _} = Updates.create_update(update_changeset.params) # TODO: it would be nice to do a direct Repo.create() somehow
+          {:ok, _} = Updates.create_update_from_changeset(update_changeset)
           update_media_attribute(media, attribute, attrs)
         end)
     end

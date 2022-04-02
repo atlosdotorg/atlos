@@ -9,6 +9,7 @@ defmodule Platform.Updates do
   alias Platform.Updates.Update
   alias Platform.Material.Attribute
   alias Platform.Material.Media
+  alias Platform.Material.MediaVersion
   alias Platform.Accounts.User
 
   @doc """
@@ -59,6 +60,14 @@ defmodule Platform.Updates do
   end
 
   @doc """
+  Insert the given Update changeset. Helpful to use in conjunction with the dynamic changeset
+  generation functions (e.g., `change_from_attribute_changeset`).
+  """
+  def create_update_from_changeset(%Ecto.Changeset{data: %Update{} = _} = changeset) do
+    changeset |> Repo.insert()
+  end
+
+  @doc """
   Updates a update.
 
   ## Examples
@@ -105,6 +114,9 @@ defmodule Platform.Updates do
     Update.changeset(update, attrs)
   end
 
+  @doc """
+  Helper API function that takes attribute change information and uses it to create an Update changeset. Requires 'explanation' to be in attrs.
+  """
   def change_from_attribute_changeset(%Media{} = media, %Attribute{} = attribute, %User{} = user, attrs \\ %{}) do
     old_value = Map.get(media, attribute.schema_field) |> Jason.encode!()
     new_value = Map.get(attrs, Atom.to_string(attribute.schema_field)) |> Jason.encode!()
@@ -119,6 +131,9 @@ defmodule Platform.Updates do
     )
   end
 
+  @doc """
+  Helper API function that takes comment information and uses it to create an Update changeset. Requires 'explanation' to be in attrs.
+  """
   def change_from_comment(%Media{} = media, %User{} = user, attrs \\ %{}) do
     change_update(%Update{}, attrs
       |> Map.put("media_id", media.id)
@@ -127,11 +142,26 @@ defmodule Platform.Updates do
     )
   end
 
+  @doc """
+  Helper API function that takes attribute change information and uses it to create an Update changeset. Requires 'explanation' to be in attrs.
+  """
   def change_from_media_creation(%Media{} = media, %User{} = user) do
     change_update(%Update{}, %{
       "user_id" => user.id,
       "type" => :create,
       "media_id" => media.id,
+    })
+  end
+
+  @doc """
+  Helper API function that takes attribute change information and uses it to create an Update changeset. Requires 'explanation' to be in attrs.
+  """
+  def change_from_media_version_upload(%Media{} = media, %User{} = user, %MediaVersion{} = version) do
+    change_update(%Update{}, %{
+      "user_id" => user.id,
+      "type" => :upload_version,
+      "media_id" => media.id,
+      # TODO
     })
   end
 

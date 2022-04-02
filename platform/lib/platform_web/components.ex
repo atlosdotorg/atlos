@@ -276,7 +276,7 @@ defmodule PlatformWeb.Components do
     diff = String.myers_difference(old, new)
 
     ~H"""
-    <span class="text-sm p-2 rounded bg-gray-100">
+    <span class="text-sm">
       <%= for {action, elem} <- diff do %>
         <%= case action do %>
           <% :ins -> %>
@@ -310,13 +310,13 @@ defmodule PlatformWeb.Components do
         <%= case action do %>
           <% :ins -> %>
             <%= for item <- elem do %>
-              <span class="chip ~blue inline-block">
+              <span class="chip ~blue inline-block text-xs">
                 + <%= item %>
               </span>
             <% end %>
           <% :del -> %>
             <%= for item <- elem do %>
-              <span class="chip ~yellow inline-block">
+              <span class="chip ~yellow inline-block text-xs">
                 - <%= item %>
               </span>
             <% end %>
@@ -371,17 +371,21 @@ defmodule PlatformWeb.Components do
                   </div>
                 </div>
 
-                <!-- Update detail section -->
-                <%= if update.type == :update_attribute do %>
-                <div class="my-1">
-                    <.attr_diff name={update.modified_attribute} old={Jason.decode!(update.old_value)} new={Jason.decode!(update.new_value)} />
-                </div>
-                <% end %>
+                <%= if update.type == :update_attribute || update.explanation do %>
+                  <div class="mt-1 text-sm text-gray-700 border border-gray-300 rounded-lg shadow-sm overflow-hidden flex flex-col divide-y">
+                    <!-- Update detail section -->
+                    <%= if update.type == :update_attribute do %>
+                      <div class="bg-gray-50 p-2">
+                          <.attr_diff name={update.modified_attribute} old={Jason.decode!(update.old_value)} new={Jason.decode!(update.new_value)} />
+                      </div>
+                    <% end %>
 
-                <!-- Text comment section -->
-                <%= if update.explanation do %>
-                  <div class="mt-1 text-sm text-gray-700 border border-gray-300 rounded-lg shadow-sm overflow-hidden p-2">
-                    <p><%= update.explanation %></p>
+                    <!-- Text comment section -->
+                    <%= if update.explanation do %>
+                      <div class="p-2">
+                        <p><%= update.explanation %></p>
+                      </div>
+                    <% end %>
                   </div>
                 <% end %>
               </div>
