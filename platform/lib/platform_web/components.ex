@@ -307,7 +307,6 @@ defmodule PlatformWeb.Components do
     ~H"""
     <span>
       <%= for {action, elem} <- diff do %>
-        <% IO.inspect(elem) %>
         <%= case action do %>
           <% :ins -> %>
             <%= for item <- elem do %>
@@ -343,8 +342,6 @@ defmodule PlatformWeb.Components do
   end
 
   def update_stream(%{updates: updates} = assigns) do
-    IO.inspect(updates)
-
     ~H"""
     <div class="flow-root">
       <ul role="list" class="-mb-8">
