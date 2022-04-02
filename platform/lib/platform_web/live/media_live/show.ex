@@ -3,6 +3,7 @@ defmodule PlatformWeb.MediaLive.Show do
   alias Platform.Material
   alias Material.Attribute
   alias Platform.Updates
+  alias PlatformWeb.MediaLive.EditAttribute
 
   def mount(_params, _session, socket) do
     {:ok, socket}

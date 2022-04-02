@@ -317,7 +317,7 @@ defmodule PlatformWeb.Components do
           <% :del -> %>
             <%= for item <- elem do %>
               <span class="chip ~yellow inline-block">
-                - <%= elem %>
+                - <%= item %>
               </span>
             <% end %>
           <% :eq -> %>
@@ -372,15 +372,15 @@ defmodule PlatformWeb.Components do
                 </div>
 
                 <!-- Update detail section -->
-                <div class="mb-2 mt-1">
-                  <%= if update.type == :update_attribute do %>
+                <%= if update.type == :update_attribute do %>
+                <div class="my-1">
                     <.attr_diff name={update.modified_attribute} old={Jason.decode!(update.old_value)} new={Jason.decode!(update.new_value)} />
-                  <% end %>
                 </div>
+                <% end %>
 
                 <!-- Text comment section -->
                 <%= if update.explanation do %>
-                  <div class="text-sm text-gray-700 border border-gray-300 rounded-lg shadow-sm overflow-hidden p-2">
+                  <div class="mt-1 text-sm text-gray-700 border border-gray-300 rounded-lg shadow-sm overflow-hidden p-2">
                     <p><%= update.explanation %></p>
                   </div>
                 <% end %>
