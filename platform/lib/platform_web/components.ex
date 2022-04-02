@@ -249,6 +249,99 @@ defmodule PlatformWeb.Components do
     """
   end
 
+  def attr_entry(%{name: name, value: value} = assigns) do
+    attr = Attribute.get_attribute(assigns.name)
+
+    ~H"""
+    <span class="inline-flex flex-wrap gap-1">
+      <%= case attr.type do %>
+      <% :text -> %>
+        <div class="inline-block mt-1">
+          <%= value %>
+        </div>
+      <% :select -> %>
+        <div class="inline-block mt-1">
+          <div class="chip ~neutral inline-block"><%= value %></div>
+        </div>
+      <% :multi_select -> %>
+        <%= for item <- value do %>
+            <div class="chip ~neutral inline-block"><%= item %></div>
+        <% end %>
+      <% end %>
+    </span>
+    """
+  end
+
+  def text_diff(%{old: old, new: new} = assigns) do
+    diff = String.myers_difference(old, new)
+
+    ~H"""
+    <span class="text-sm p-2 rounded bg-gray-100">
+      <%= for {action, elem} <- diff do %>
+        <%= case action do %>
+          <% :ins -> %>
+            <span class="px-px text-blue-800 bg-blue-100 rounded-sm">
+              <%= elem %>
+            </span>
+          <% :del -> %>
+            <span class="px-px text-yellow-800 bg-yellow-100 rounded-sm line-through">
+              <%= elem %>
+            </span>
+          <% :eq -> %>
+            <span class="text-gray-700 px-0 text-sm">
+              <%= elem %>
+            </span>
+        <% end %>
+      <% end %>
+    </span>
+    """
+  end
+
+  def list_diff(%{old: old, new: new} = assigns) do
+    clean = fn x ->
+      if is_nil(x), do: [], else: x
+    end
+
+    diff = List.myers_difference(clean.(old), clean.(new))
+
+    ~H"""
+    <span>
+      <%= for {action, elem} <- diff do %>
+        <% IO.inspect(elem) %>
+        <%= case action do %>
+          <% :ins -> %>
+            <%= for item <- elem do %>
+              <span class="chip ~blue inline-block">
+                + <%= item %>
+              </span>
+            <% end %>
+          <% :del -> %>
+            <%= for item <- elem do %>
+              <span class="chip ~yellow inline-block">
+                - <%= elem %>
+              </span>
+            <% end %>
+          <% :eq -> %>
+        <% end %>
+      <% end %>
+    </span>
+    """
+  end
+
+  def attr_diff(%{name: name, old: old, new: new} = assigns) do
+    attr = Attribute.get_attribute(assigns.name)
+
+    ~H"""
+    <span>
+      <%= case attr.type do %>
+        <% :text -> %> <.text_diff old={@old} new={@new} />
+        <% :select -> %> <.list_diff old={[@old] |> Enum.filter(&(&1 != nil))} new={[@new] |> Enum.filter(&(&1 != nil))} />
+        <% :multi_select -> %> <.list_diff old={@old} new={@new} />
+      <% end %>
+    </span>
+    """
+  end
+
   def update_stream(%{updates: updates} = assigns) do
     IO.inspect(updates)
 
@@ -259,13 +352,13 @@ defmodule PlatformWeb.Components do
         <li>
           <div class="relative pb-8">
             <%= if idx != length(@updates) - 1 do %>
-            <span class="absolute top-5 left-5 -ml-px h-full w-0.5 bg-gray-200" aria-hidden="true"></span>
+              <span class="absolute top-5 left-5 -ml-px h-full w-0.5 bg-gray-200" aria-hidden="true"></span>
             <% end %>
             <div class="relative flex items-start space-x-3">
               <div class="relative">
                 <img class="h-10 w-10 rounded-full bg-gray-400 flex items-center justify-center ring-8 ring-white shadow" src={Accounts.get_profile_photo_path(update.user)} alt={"Profile photo for #{update.user.username}"}>
               </div>
-              <div class="min-w-0 flex-1">
+              <div class="min-w-0 flex-1 flex flex-col">
                 <div>
                   <div class="text-sm text-gray-600 mt-2">
                     <a class="font-medium text-gray-900"><%= update.user.username %></a>
@@ -282,10 +375,19 @@ defmodule PlatformWeb.Components do
                     <.rel_time time={update.inserted_at} />
                   </div>
                 </div>
-                <%= if update.explanation do %>
-                <div class="mt-2 text-sm text-gray-700 border p-2 rounded shadow">
-                  <p><%= update.explanation %></p>
+
+                <!-- Update detail section -->
+                <div class="mb-2 mt-1">
+                  <%= if update.type == :update_attribute do %>
+                    <.attr_diff name={update.modified_attribute} old={Jason.decode!(update.old_value)} new={Jason.decode!(update.new_value)} />
+                  <% end %>
                 </div>
+
+                <!-- Text comment section -->
+                <%= if update.explanation do %>
+                  <div class="text-sm text-gray-700 border p-2 rounded">
+                    <p><%= update.explanation %></p>
+                  </div>
                 <% end %>
               </div>
             </div>

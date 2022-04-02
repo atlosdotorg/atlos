@@ -16,7 +16,7 @@
                 <svg xmlns="http://www.w3.org/2000/svg" class="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
                     <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd" />
                 </svg>
-                Added <%= @media.inserted_at %>
+                Added &nbsp; <.rel_time time={@media.inserted_at} />
             </div>
             <div class="mt-2 flex items-center text-sm text-gray-500">
                 <svg class="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
@@ -47,7 +47,9 @@
                             <div class="py-4 sm:grid sm:py-5 sm:grid-cols-3 sm:gap-4">
                                 <dt class="text-sm font-medium text-gray-500 mt-1"><%= attr.label %></dt>
                                 <dd class="mt-1 flex text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                                    <.attr_entry name={attr.name} media={@media} />
+                                    <span class="flex-grow gap-1 flex flex-wrap">
+                                        <.attr_entry name={attr.name} value={Map.get(@media, attr.schema_field)} />
+                                    </span>
                                     <span class="ml-4 flex-shrink-0">
                                         <%= live_patch "Update", class: "text-button mt-1 inline-block", to: Routes.media_show_path(@socket, :edit, @media.slug, attr.name) %>
                                     </span>
@@ -129,7 +131,9 @@
                             <div class="py-4 sm:grid sm:py-5 sm:grid-cols-3 sm:gap-4">
                                 <dt class="text-sm font-medium text-gray-500 mt-1"><%= attr.label %></dt>
                                 <dd class="mt-1 flex text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                                    <.attr_entry name={attr.name} media={@media} />
+                                    <span class="flex-grow gap-1 flex flex-wrap">
+                                        <.attr_entry name={attr.name} value={Map.get(@media, attr.schema_field)} />
+                                    </span>
                                     <span class="ml-4 flex-shrink-0">
                                         <%= live_patch "Update", class: "text-button mt-1 inline-block", to: Routes.media_show_path(@socket, :edit, @media.slug, attr.name) %>
                                     </span>
