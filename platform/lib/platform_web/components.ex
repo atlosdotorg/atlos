@@ -345,12 +345,10 @@ defmodule PlatformWeb.Components do
     ~H"""
     <div class="flow-root">
       <ul role="list" class="-mb-8">
-        <%= for {update, idx} <- Enum.with_index(@updates) do %>
+        <%= for update <- @updates do %>
         <li>
           <div class="relative pb-8">
-            <%= if idx != length(@updates) - 1 do %>
-              <span class="absolute top-5 left-5 -ml-px h-full w-0.5 bg-gray-200" aria-hidden="true"></span>
-            <% end %>
+            <span class="absolute top-5 left-5 -ml-px h-full w-0.5 bg-gray-200" aria-hidden="true"></span>
             <div class="relative flex items-start space-x-3">
               <div class="relative">
                 <img class="h-10 w-10 rounded-full bg-gray-400 flex items-center justify-center ring-8 ring-white shadow" src={Accounts.get_profile_photo_path(update.user)} alt={"Profile photo for #{update.user.username}"}>
@@ -382,7 +380,7 @@ defmodule PlatformWeb.Components do
 
                 <!-- Text comment section -->
                 <%= if update.explanation do %>
-                  <div class="text-sm text-gray-700 border p-2 rounded">
+                  <div class="text-sm text-gray-700 border border-gray-300 rounded-lg shadow-sm overflow-hidden p-2">
                     <p><%= update.explanation %></p>
                   </div>
                 <% end %>

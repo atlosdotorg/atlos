@@ -105,7 +105,7 @@ defmodule Platform.Updates do
     Update.changeset(update, attrs)
   end
 
-  def change_from_attribute_changeset(%Media{} = media, %Attribute{} = attribute, %User{} = user, attrs) do
+  def change_from_attribute_changeset(%Media{} = media, %Attribute{} = attribute, %User{} = user, attrs \\ %{}) do
     old_value = Map.get(media, attribute.schema_field) |> Jason.encode!()
     new_value = Map.get(attrs, Atom.to_string(attribute.schema_field)) |> Jason.encode!()
 
@@ -116,6 +116,14 @@ defmodule Platform.Updates do
       |> Map.put("user_id", user.id)
       |> Map.put("modified_attribute", attribute.name)
       |> Map.put("type", :update_attribute)
+    )
+  end
+
+  def change_from_comment(%Media{} = media, %User{} = user, attrs \\ %{}) do
+    change_update(%Update{}, attrs
+      |> Map.put("media_id", media.id)
+      |> Map.put("user_id", user.id)
+      |> Map.put("type", :comment)
     )
   end
 

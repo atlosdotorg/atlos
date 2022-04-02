@@ -82,6 +82,13 @@
                     <h3 class="sec-head">Feed</h3>
                 </:header>
                 <.update_stream updates={@updates} />
+                <hr class="sep h-2">
+                <.live_component
+                    module={PlatformWeb.MediaLive.CommentBox}
+                    id="comment-box"
+                    media={@media}
+                    current_user={@current_user}
+                />
             </.card>
         </div>
         <div class="space-y-8">
