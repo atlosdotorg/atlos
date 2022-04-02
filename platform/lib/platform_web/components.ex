@@ -280,11 +280,11 @@ defmodule PlatformWeb.Components do
       <%= for {action, elem} <- diff do %>
         <%= case action do %>
           <% :ins -> %>
-            <span class="px-px text-blue-800 bg-blue-100 rounded-sm">
+            <span class="px-1 text-blue-800 bg-blue-200 rounded-sm">
               <%= elem %>
             </span>
           <% :del -> %>
-            <span class="px-px text-yellow-800 bg-yellow-100 rounded-sm line-through">
+            <span class="px-1 text-yellow-800 bg-yellow-200 rounded-sm line-through">
               <%= elem %>
             </span>
           <% :eq -> %>
