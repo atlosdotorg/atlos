@@ -6,13 +6,17 @@ defmodule Platform.Updates.Update do
 
   schema "updates" do
     field :explanation, :string
-    field :modified_attribute, Ecto.Enum, nullable: true, values: Attribute.attribute_names()
     field :type, Ecto.Enum, values: [:update_attribute, :create, :upload_version, :comment]
+
+    # Used for attribute updates
+    field :modified_attribute, Ecto.Enum, nullable: true, values: Attribute.attribute_names()
     field :new_value, :string, default: "null" # JSON-encoded data
     field :old_value, :string, default: "null" # JSON-encoded data
 
+    # General association metadata
     belongs_to :user, Platform.Accounts.User
     belongs_to :media, Platform.Material.Media
+    belongs_to :media_version, Platform.Material.MediaVersion
 
     timestamps()
   end
@@ -20,7 +24,7 @@ defmodule Platform.Updates.Update do
   @doc false
   def changeset(update, attrs) do
     update
-    |> cast(attrs, [:explanation, :old_value, :new_value, :modified_attribute, :type, :user_id, :media_id])
+    |> cast(attrs, [:explanation, :old_value, :new_value, :modified_attribute, :type, :user_id, :media_id, :media_version_id])
     |> validate_required([:old_value, :new_value, :type, :user_id, :media_id])
     |> validate_explanation()
     |> validate_inclusion(:modified_attribute, Attribute.attribute_names())

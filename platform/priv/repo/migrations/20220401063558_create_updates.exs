@@ -10,6 +10,7 @@ defmodule Platform.Repo.Migrations.CreateUpdates do
       add :modified_attribute, :string
       add :media_id, references(:media, on_delete: :nothing)
       add :user_id, references(:users, on_delete: :nothing)
+      add :media_version_id, references(:media_versions, on_delete: :nothing)
 
       timestamps()
     end

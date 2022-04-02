@@ -18,8 +18,8 @@ defmodule Platform.Material.Media do
     # "Normal" Attributes
     field :attr_time_of_day, :string
 
-    # Virtual attributes
-    field :explanation, :string, virtual: true # Used for update explanations
+    # Virtual attributes for updates
+    field :explanation, :string, virtual: true
 
     # Metadata
     timestamps()
