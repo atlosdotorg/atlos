@@ -10,8 +10,7 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
      socket
      |> assign(assigns)
      |> assign(:attr, attr)
-     |> assign(:changeset, Material.change_media_attribute(assigns.media, attr))
-    }
+     |> assign(:changeset, Material.change_media_attribute(assigns.media, attr))}
   end
 
   def close(socket) do
@@ -30,7 +29,12 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
     # To allow empty strings, lists, etc.
     params = Map.get(input, "media", %{socket.assigns.attr.schema_field => nil})
 
-    case Material.update_media_attribute_logged(socket.assigns.media, socket.assigns.attr, socket.assigns.current_user, params) do
+    case Material.update_media_attribute_logged(
+           socket.assigns.media,
+           socket.assigns.attr,
+           socket.assigns.current_user,
+           params
+         ) do
       {:ok, media} ->
         {:noreply, socket |> put_flash(:info, "Your update has been saved.") |> close()}
 

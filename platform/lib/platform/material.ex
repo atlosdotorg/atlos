@@ -67,11 +67,13 @@ defmodule Platform.Material do
 
   def create_media_logged(%User{} = user, attrs \\ %{}) do
     Repo.transaction(fn ->
-      {:ok, media} = %Media{}
+      {:ok, media} =
+        %Media{}
         |> Media.changeset(attrs)
         |> Repo.insert()
 
-      {:ok, _} = Updates.change_from_media_creation(media, user) |> Updates.create_update_from_changeset()
+      {:ok, _} =
+        Updates.change_from_media_creation(media, user) |> Updates.create_update_from_changeset()
 
       media
     end)
@@ -279,12 +281,15 @@ defmodule Platform.Material do
 
   def update_media_attribute_logged(media, %Attribute{} = attribute, user, attrs) do
     media_changeset = change_media_attribute(media, attribute, attrs)
-    update_changeset = Updates.change_from_attribute_changeset(media, attribute, user, media_changeset, attrs)
+
+    update_changeset =
+      Updates.change_from_attribute_changeset(media, attribute, user, media_changeset, attrs)
 
     # Make sure both changesets are valid before inserting
     cond do
       !(media_changeset.valid? && update_changeset.valid?) ->
         media_changeset
+
       true ->
         Repo.transaction(fn ->
           {:ok, _} = Updates.create_update_from_changeset(update_changeset)

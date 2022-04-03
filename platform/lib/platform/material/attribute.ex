@@ -78,8 +78,9 @@ defmodule Platform.Material.Attribute do
         pane: :attributes,
         required: false,
         name: :environment,
-        description: "What is primarily in view? Note that this does not refer to where the media was captured."
-      },
+        description:
+          "What is primarily in view? Note that this does not refer to where the media was captured."
+      }
     ]
   end
 
@@ -101,7 +102,7 @@ defmodule Platform.Material.Attribute do
   end
 
   def attribute_names() do
-    attributes() |> Enum.map(&(&1.name))
+    attributes() |> Enum.map(& &1.name)
   end
 
   def get_attribute(name) do
@@ -124,7 +125,9 @@ defmodule Platform.Material.Attribute do
         else
           _ -> media
         end
-      _ -> media
+
+      _ ->
+        media
     end
   end
 
@@ -133,8 +136,12 @@ defmodule Platform.Material.Attribute do
       :location ->
         lat = Map.get(changeset.changes, :latitude, changeset.data.latitude)
         lon = Map.get(changeset.changes, :longitude, changeset.data.longitude)
-        changeset |> put_change(attribute.schema_field, %Geo.Point{coordinates: {lon, lat}, srid: 4326})
-      _ -> changeset
+
+        changeset
+        |> put_change(attribute.schema_field, %Geo.Point{coordinates: {lon, lat}, srid: 4326})
+
+      _ ->
+        changeset
     end
   end
 

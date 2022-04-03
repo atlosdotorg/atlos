@@ -117,11 +117,19 @@ defmodule Platform.Updates do
   @doc """
   Helper API function that takes attribute change information and uses it to create an Update changeset. Requires 'explanation' to be in attrs.
   """
-  def change_from_attribute_changeset(%Media{} = media, %Attribute{} = attribute, %User{} = user, changeset, attrs \\ %{}) do
+  def change_from_attribute_changeset(
+        %Media{} = media,
+        %Attribute{} = attribute,
+        %User{} = user,
+        changeset,
+        attrs \\ %{}
+      ) do
     old_value = Map.get(media, attribute.schema_field) |> Jason.encode!()
     new_value = Map.get(changeset.changes, attribute.schema_field) |> Jason.encode!()
 
-    change_update(%Update{}, attrs
+    change_update(
+      %Update{},
+      attrs
       |> Map.put("old_value", old_value)
       |> Map.put("new_value", new_value)
       |> Map.put("media_id", media.id)
@@ -135,7 +143,9 @@ defmodule Platform.Updates do
   Helper API function that takes comment information and uses it to create an Update changeset. Requires 'explanation' to be in attrs.
   """
   def change_from_comment(%Media{} = media, %User{} = user, attrs \\ %{}) do
-    change_update(%Update{}, attrs
+    change_update(
+      %Update{},
+      attrs
       |> Map.put("media_id", media.id)
       |> Map.put("user_id", user.id)
       |> Map.put("type", :comment)
@@ -149,18 +159,22 @@ defmodule Platform.Updates do
     change_update(%Update{}, %{
       "user_id" => user.id,
       "type" => :create,
-      "media_id" => media.id,
+      "media_id" => media.id
     })
   end
 
   @doc """
   Helper API function that takes attribute change information and uses it to create an Update changeset. Requires 'explanation' to be in attrs.
   """
-  def change_from_media_version_upload(%Media{} = media, %User{} = user, %MediaVersion{} = version) do
+  def change_from_media_version_upload(
+        %Media{} = media,
+        %User{} = user,
+        %MediaVersion{} = version
+      ) do
     change_update(%Update{}, %{
       "user_id" => user.id,
       "type" => :upload_version,
-      "media_id" => media.id,
+      "media_id" => media.id
       # TODO
     })
   end
@@ -169,6 +183,13 @@ defmodule Platform.Updates do
   Get the updates associated with the given media.
   """
   def get_updates_for_media(media) do
-    Repo.all(from u in Update, where: u.media_id == ^media.id, preload: :user, preload: :media, order_by: [asc: u.inserted_at]) # TODO: remove n+1
+    # TODO: remove n+1
+    Repo.all(
+      from u in Update,
+        where: u.media_id == ^media.id,
+        preload: :user,
+        preload: :media,
+        order_by: [asc: u.inserted_at]
+    )
   end
 end

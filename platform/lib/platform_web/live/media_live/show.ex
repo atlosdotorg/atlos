@@ -14,8 +14,7 @@ defmodule PlatformWeb.MediaLive.Show do
      socket
      |> assign(:slug, slug)
      |> assign(:attribute, Map.get(params, "attribute"))
-     |> assign_media_and_updates()
-    }
+     |> assign_media_and_updates()}
   end
 
   defp assign_media_and_updates(socket) do

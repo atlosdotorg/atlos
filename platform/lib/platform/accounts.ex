@@ -364,7 +364,8 @@ defmodule Platform.Accounts do
     if byte_size(user.profile_photo_file) > 0 do
       user.profile_photo_file
     else
-      "/images/default_profile.jpg" # TODO: host elsewhere
+      # TODO: host elsewhere
+      "/images/default_profile.jpg"
     end
   end
 end

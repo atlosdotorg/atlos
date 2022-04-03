@@ -223,26 +223,32 @@ defmodule PlatformWeb.Components do
 
   defp naive_pluralise(amt, word) when amt == 1, do: word
   defp naive_pluralise(amt, word), do: word <> "s"
+
   defp time_ago_in_words(seconds) when seconds < 60 do
     "just now"
   end
+
   defp time_ago_in_words(seconds) when seconds < 3600 do
-    amt = round(seconds/60)
+    amt = round(seconds / 60)
     "#{amt} #{naive_pluralise(amt, "minute")} ago"
   end
+
   defp time_ago_in_words(seconds) when seconds < 86400 do
-    amt = round(seconds/3600)
+    amt = round(seconds / 3600)
     "#{amt} #{naive_pluralise(amt, "hour")} ago"
   end
+
   defp time_ago_in_words(seconds) do
-    amt = round(seconds/86400)
+    amt = round(seconds / 86400)
     "#{amt} #{naive_pluralise(amt, "day")} ago"
   end
+
   defp seconds_ago(datetime) do
     {start, _} = DateTime.to_gregorian_seconds(DateTime.utc_now())
     {now, _} = DateTime.to_gregorian_seconds(DateTime.from_naive!(datetime, "Etc/UTC"))
     start - now
   end
+
   def rel_time(%{time: time} = assigns) do
     ~H"""
       <span title={@time}><%= time |> seconds_ago() |> time_ago_in_words() %></span>
