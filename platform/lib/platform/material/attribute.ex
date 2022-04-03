@@ -138,6 +138,26 @@ defmodule Platform.Material.Attribute do
         required: false,
         name: :casualty,
       },
+      %Attribute{
+        schema_field: :attr_military_infrastructure,
+        type: :multi_select,
+        options: ["Land-Based Vehicle", "Ship", "Aircraft", "Aircraft/Fighter", "Aircraft/Bomber", "Aircraft/Helicopter", "Aircraft/Drone", "Convoy", "Encampment"],
+        label: "Military Infrastructure",
+        pane: :attributes,
+        required: false,
+        name: :military_infrastructure,
+        description: "What military infrastructure is visibile in the media?"
+      },
+      %Attribute{
+        schema_field: :attr_weapon,
+        type: :multi_select,
+        options: ["Small Arm", "Launch System", "Launch System/Artillery", "Launch System/Self-Propelled", "Launch System/Multiple Launch Rocket System (MLRS)", "Munition", "Munition/Cluster", "Munition/Chemical", "Munition/Thermobaric", "Munition/Incendiary"],
+        label: "Weapon",
+        pane: :attributes,
+        required: false,
+        name: :weapon,
+        description: "What weapons are visibile in the media?"
+      },
     ]
   end
 
