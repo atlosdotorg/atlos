@@ -2,6 +2,7 @@ defmodule Platform.Material.Attribute do
   use Ecto.Schema
   import Ecto.Changeset
   alias __MODULE__
+  alias Platform.Material.Media
 
   defstruct [
     :schema_field,
@@ -59,6 +60,14 @@ defmodule Platform.Material.Attribute do
         pane: :attributes,
         required: false,
         name: :time_of_day
+      },
+      %Attribute{
+        schema_field: :attr_geolocation,
+        type: :location,
+        label: "Geolocation",
+        pane: :attributes,
+        required: false,
+        name: :geolocation
       }
     ]
   end
@@ -90,11 +99,42 @@ defmodule Platform.Material.Attribute do
 
   def changeset(media, %Attribute{} = attribute, attrs \\ %{}) do
     media
-    |> cast(attrs, [attribute.schema_field])
+    |> populate_virtual_data(attribute)
+    |> cast_attribute(attribute, attrs)
     |> validate_attribute(attribute)
+    |> update_from_virtual_data(attribute)
   end
 
-  def validate_attribute(changeset, %Attribute{} = attribute) do
+  defp populate_virtual_data(%Media{} = media, %Attribute{} = attribute) do
+    case attribute.type do
+      :location ->
+        with %Geo.Point{coordinates: {lon, lat}} <- Map.get(media, attribute.schema_field) do
+          media |> Map.put(:latitude, lat) |> Map.put(:longitude, lon)
+        else
+          _ -> media
+        end
+      _ -> media
+    end
+  end
+
+  defp update_from_virtual_data(changeset, %Attribute{} = attribute) do
+    case attribute.type do
+      :location ->
+        lat = Map.get(changeset.changes, :latitude, changeset.data.latitude)
+        lon = Map.get(changeset.changes, :longitude, changeset.data.longitude)
+        changeset |> put_change(attribute.schema_field, %Geo.Point{coordinates: {lon, lat}, srid: 4326})
+      _ -> changeset
+    end
+  end
+
+  defp cast_attribute(media, %Attribute{} = attribute, attrs) do
+    case attribute.type do
+      :location -> media |> cast(attrs, [:latitude, :longitude])
+      _ -> media |> cast(attrs, [attribute.schema_field])
+    end
+  end
+
+  defp validate_attribute(changeset, %Attribute{} = attribute) do
     validations =
       case attribute.type do
         :multi_select ->
@@ -117,6 +157,10 @@ defmodule Platform.Material.Attribute do
             min: attribute.min_length,
             max: attribute.max_length
           )
+
+        :location ->
+          changeset
+          |> validate_required([:latitude, :longitude])
       end
 
     if attribute.custom_validation != nil do

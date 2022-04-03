@@ -39,6 +39,7 @@
   .phx-form input[type="email"],
   .phx-form input[type="password"],
   .phx-form input[type="url"],
+  .phx-form input[type="number"],
   .phx-form textarea,
   .phx-form input[type="text"] {
     @apply field ~neutral;

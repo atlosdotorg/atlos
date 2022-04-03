@@ -54,6 +54,7 @@ defmodule Platform.MixProject do
       {:thumbnex, "~> 0.4.0"},
       {:temp, "~> 0.4"},
       {:rambo, "~> 0.3"},
+      {:geo_postgis, "~> 3.4"}
     ]
   end
 

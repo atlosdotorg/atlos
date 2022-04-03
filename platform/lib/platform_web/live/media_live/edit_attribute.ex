@@ -10,15 +10,15 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
      socket
      |> assign(assigns)
      |> assign(:attr, attr)
-     |> assign(:changeset, Material.change_media_attribute(assigns.media, attr))}
+     |> assign(:changeset, Material.change_media_attribute(assigns.media, attr))
+    }
   end
 
   def close(socket) do
     socket |> push_patch(to: Routes.media_show_path(socket, :show, socket.assigns.media.slug))
   end
 
-  defp has_changes(socket, params \\ %{}) do
-    changeset = Material.change_media_attribute(socket.assigns.media, socket.assigns.attr, params)
+  defp has_changes(changeset) do
     map_size(changeset.changes) > 0
   end
 
@@ -53,6 +53,7 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
 
   def render(assigns) do
     confirm_prompt = "This will discard your changes without saving. Are you sure?"
+    disabled = !has_changes(assigns.changeset)
 
     ~H"""
     <article>
@@ -71,17 +72,30 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
         >
           <div class="space-y-6">
             <div>
-              <%= label f, @attr.schema_field, @attr.label %>
               <%= case @attr.type do %>
                 <% :text -> %>
-                  <%= textarea f, @attr.schema_field, phx_debounce: "blur" %>
+                  <%= label f, @attr.schema_field, @attr.label %>
+                  <%= textarea f, @attr.schema_field %>
                 <% :select -> %>
+                  <%= label f, @attr.schema_field, @attr.label %>
                   <div phx-update="ignore" id={"attr_multi_select_#{@media.slug}_#{@attr.schema_field}"}>
                     <%= select f, @attr.schema_field, @attr.options %>
                   </div>
                 <% :multi_select -> %>
+                  <%= label f, @attr.schema_field, @attr.label %>
                   <div phx-update="ignore" id={"attr_multi_select_#{@media.slug}_#{@attr.schema_field}"}>
                     <%= multiple_select f, @attr.schema_field, @attr.options %>
+                  </div>
+                <% :location -> %>
+                  <div class="space-y-4">
+                    <div>
+                      <%= label f, :longitude, "Longitude" %>
+                      <%= number_input f, :longitude %>
+                    </div>
+                    <div>
+                      <%= label f, :latitude, "Latitude" %>
+                      <%= number_input f, :latitude %>
+                    </div>
                   </div>
               <% end %>
               <%= error_tag f, @attr.schema_field %>
@@ -92,7 +106,7 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
               <%= error_tag f, :explanation %>
             </div>
             <div class="flex md:justify-between">
-              <%= submit "Post update →", phx_disable_with: "Saving...", class: "button ~urge @high" %>
+              <%= submit "Post update →", phx_disable_with: "Saving...", class: "button ~urge @high", disabled: disabled %>
               <button phx-click="close_modal" phx-target={@myself} data-confirm={confirm_prompt} class="base-button">Cancel</button>
             </div>
           </div>

@@ -14,24 +14,18 @@ defmodule PlatformWeb.MediaLive.Show do
      socket
      |> assign(:slug, slug)
      |> assign(:attribute, Map.get(params, "attribute"))
-     |> assign_media()
-     |> assign_updates()
+     |> assign_media_and_updates()
     }
   end
 
-  defp assign_media(socket) do
+  defp assign_media_and_updates(socket) do
     with %Material.Media{} = media <- Material.get_full_media_by_slug(socket.assigns.slug) do
-      socket |> assign(:media, media)
+      socket |> assign(:media, media) |> assign(:updates, Updates.get_updates_for_media(media))
     else
       nil ->
         socket
         |> put_flash(:error, "This media does not exist or is not publicly visible.")
         |> redirect(to: "/")
     end
-  end
-
-  def assign_updates(socket) do
-    socket
-    |> assign(:updates, Updates.get_updates_for_media(socket.assigns.media))
   end
 end
