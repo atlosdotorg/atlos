@@ -89,7 +89,18 @@ defmodule Platform.Material.Attribute do
         pane: :attributes,
         required: false,
         name: :weather,
-      }
+      },
+      %Attribute{
+        schema_field: :attr_recorded_by,
+        type: :select,
+        options: ["Person", "Satellite", "Surveillance Camera", "Drone", "Dashcam"],
+        label: "Recorded By",
+        pane: :attributes,
+        required: false,
+        name: :recorded_by,
+        description:
+          "How was this media created?"
+      },
     ]
   end
 
