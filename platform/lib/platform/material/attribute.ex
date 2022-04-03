@@ -134,7 +134,7 @@ defmodule Platform.Material.Attribute do
     end
   end
 
-  defp validate_attribute(changeset, %Attribute{} = attribute) do
+  def validate_attribute(changeset, %Attribute{} = attribute) do
     validations =
       case attribute.type do
         :multi_select ->

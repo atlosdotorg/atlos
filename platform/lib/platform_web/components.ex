@@ -342,7 +342,6 @@ defmodule PlatformWeb.Components do
   end
 
   def location_diff(%{old: old, new: new} = assigns) do
-    IO.inspect new
     ~H"""
     <span>
       <%= case old do %>

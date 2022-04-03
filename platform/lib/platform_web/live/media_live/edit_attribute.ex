@@ -89,21 +89,21 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
                 <% :location -> %>
                   <div class="space-y-4">
                     <div>
-                      <%= label f, :longitude, "Longitude" %>
-                      <%= number_input f, :longitude %>
-                      <%= error_tag f, :longitude %>
-                    </div>
-                    <div>
                       <%= label f, :latitude, "Latitude" %>
                       <%= number_input f, :latitude %>
                       <%= error_tag f, :latitude %>
+                    </div>
+                    <div>
+                      <%= label f, :longitude, "Longitude" %>
+                      <%= number_input f, :longitude %>
+                      <%= error_tag f, :longitude %>
                     </div>
                   </div>
               <% end %>
               <%= error_tag f, @attr.schema_field %>
 
               <% val = Map.get(@changeset.changes, @attr.schema_field, Map.get(@media, @attr.schema_field)) %>
-              <%= if val do %>
+              <%= if @attr.type == :location and val.coordinates |> Tuple.to_list |> Enum.all?(&(is_float(&1))) do %>
                 <% {lon, lat} = val.coordinates %>
                 <a class="support text-urge-700 underline mt-4" target="_blank" href={"https://maps.google.com/maps?q=#{lat},#{lon}"}>
                   Preview <span class="font-bold"><.location lat={lat} lon={lon} /></span> on Google Maps
