@@ -114,11 +114,20 @@ defmodule Platform.Material.Attribute do
       %Attribute{
         schema_field: :attr_civilian_impact,
         type: :multi_select,
-        options: ["Injured Civilian", "Killed Civilian", "Mass Grave", "Structure/Residential", "Structure/Residential/House", "Structure/Residential/Apartment", "Structure/Healthcare", "Structure/School or Childcare", "Structure/Park or Playground", "Structure/Cultural", "Structure/Religious", "Structure/Industrial", "Structure/Administrative", "Structure/Commercial", "Structure/Airport", "Structure/Transit Station", "Vehicle/Car", "Vehicle/Train", "Vehicle/Bus", "Vehicle/Aircraft", "Vehicle/Boat"],
+        options: ["Structure/Residential", "Structure/Residential/House", "Structure/Residential/Apartment", "Structure/Healthcare", "Structure/School or Childcare", "Structure/Park or Playground", "Structure/Cultural", "Structure/Religious", "Structure/Industrial", "Structure/Administrative", "Structure/Commercial", "Structure/Airport", "Structure/Transit Station", "Vehicle/Car", "Vehicle/Train", "Vehicle/Bus", "Vehicle/Aircraft", "Vehicle/Boat"],
         label: "Civilian Impact",
         pane: :attributes,
         required: false,
         name: :civilian_impact,
+      },
+      %Attribute{
+        schema_field: :attr_event,
+        type: :multi_select,
+        options: ["Explosion", "Debris", "Fire", "Fire Damage", "Smoke", "Projectile Launching", "Projectile Striking", "Execution", "Combat", "Protest", "Civilian-Military Interaction"],
+        label: "Event",
+        pane: :attributes,
+        required: false,
+        name: :event,
       },
     ]
   end
