@@ -62,16 +62,6 @@
                                 <%= for attr <- Attribute.unset_for_media(@media, :attributes) do %>
                                     <%= live_patch "+ #{attr.label}", class: "button original", to: Routes.media_show_path(@socket, :edit, @media.slug, attr.name) %>
                                 <% end %>
-                                <button type="button" class="button original">+ Conflict</button>
-                                <button type="button" class="button original">+ Camera Direction</button>
-                                <button type="button" class="button original">+ Date Recorded</button>
-                                <button type="button" class="button original">+ Setting</button>
-                                <button type="button" class="button original">+ Weather</button>
-                                <button type="button" class="button original">+ Camera Type</button>
-                                <button type="button" class="button original">+ Event</button>
-                                <button type="button" class="button original">+ Civilian Impact</button>
-                                <button type="button" class="button original">+ Equipment</button>
-                                <button type="button" class="button original">+ Camera Direction</button>
                             </dd>
                         </div>
                     </dl>

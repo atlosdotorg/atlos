@@ -326,7 +326,7 @@ defmodule PlatformWeb.Components do
     diff = List.myers_difference(clean.(old), clean.(new))
 
     ~H"""
-    <span>
+    <span class="flex flex-wrap gap-1">
       <%= for {action, elem} <- diff do %>
         <%= case action do %>
           <% :eq -> %>

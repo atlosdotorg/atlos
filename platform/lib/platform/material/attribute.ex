@@ -111,6 +111,15 @@ defmodule Platform.Material.Attribute do
         name: :more_info,
         description: "For example, information noted by the source."
       },
+      %Attribute{
+        schema_field: :attr_civilian_impact,
+        type: :multi_select,
+        options: ["Injured Civilian", "Killed Civilian", "Mass Grave", "Structure/Residential", "Structure/Residential/House", "Structure/Residential/Apartment", "Structure/Healthcare", "Structure/School or Childcare", "Structure/Park or Playground", "Structure/Cultural", "Structure/Religious", "Structure/Industrial", "Structure/Administrative", "Structure/Commercial", "Structure/Airport", "Structure/Transit Station", "Vehicle/Car", "Vehicle/Train", "Vehicle/Bus", "Vehicle/Aircraft", "Vehicle/Boat"],
+        label: "Civilian Impact",
+        pane: :attributes,
+        required: false,
+        name: :civilian_impact,
+      },
     ]
   end
 
