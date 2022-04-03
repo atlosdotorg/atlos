@@ -15,7 +15,8 @@ defmodule Platform.Material.Attribute do
     :required,
     :custom_validation,
     :name,
-    :description
+    :description,
+    :add_none
   ]
 
   defp attributes() do
@@ -24,7 +25,6 @@ defmodule Platform.Material.Attribute do
         schema_field: :attr_sensitive,
         type: :multi_select,
         options: [
-          "Not Sensitive",
           "Threatens Civilian Safety",
           "Graphic Violence",
           "Deleted by Source",
@@ -34,13 +34,7 @@ defmodule Platform.Material.Attribute do
         min_length: 1,
         pane: :metadata,
         required: true,
-        custom_validation: fn :attr_sensitive, vals ->
-          if Enum.member?(vals, "Not Sensitive") && length(vals) > 1 do
-            [attr_sensitive: "If the media is 'Not Sensitive,' no other options may be selected"]
-          else
-            []
-          end
-        end,
+        add_none: "Not Sensitive",
         name: :sensitive
       },
       %Attribute{
@@ -89,6 +83,7 @@ defmodule Platform.Material.Attribute do
         pane: :attributes,
         required: false,
         name: :weather,
+        add_none: "Indeterminable"
       },
       %Attribute{
         schema_field: :attr_recorded_by,
@@ -98,8 +93,7 @@ defmodule Platform.Material.Attribute do
         pane: :attributes,
         required: false,
         name: :recorded_by,
-        description:
-          "How was this media created?"
+        description: "How was this media created?",
       },
       %Attribute{
         schema_field: :attr_more_info,
@@ -119,6 +113,7 @@ defmodule Platform.Material.Attribute do
         pane: :attributes,
         required: false,
         name: :civilian_impact,
+        add_none: "None"
       },
       %Attribute{
         schema_field: :attr_event,
@@ -128,6 +123,7 @@ defmodule Platform.Material.Attribute do
         pane: :attributes,
         required: false,
         name: :event,
+        add_none: "None"
       },
       %Attribute{
         schema_field: :attr_casualty,
@@ -137,6 +133,7 @@ defmodule Platform.Material.Attribute do
         pane: :attributes,
         required: false,
         name: :casualty,
+        add_none: "None"
       },
       %Attribute{
         schema_field: :attr_military_infrastructure,
@@ -146,7 +143,8 @@ defmodule Platform.Material.Attribute do
         pane: :attributes,
         required: false,
         name: :military_infrastructure,
-        description: "What military infrastructure is visibile in the media?"
+        description: "What military infrastructure is visibile in the media?",
+        add_none: "None"
       },
       %Attribute{
         schema_field: :attr_weapon,
@@ -156,7 +154,8 @@ defmodule Platform.Material.Attribute do
         pane: :attributes,
         required: false,
         name: :weapon,
-        description: "What weapons are visibile in the media?"
+        description: "What weapons are visibile in the media?",
+        add_none: "None"
       },
     ]
   end
@@ -229,20 +228,35 @@ defmodule Platform.Material.Attribute do
     end
   end
 
+  def options(%Attribute{} = attribute) do
+    if attribute.add_none do
+      attribute.options ++ [attribute.add_none]
+    else
+      attribute.options
+    end
+  end
+
   def validate_attribute(changeset, %Attribute{} = attribute) do
     validations =
       case attribute.type do
         :multi_select ->
           changeset
-          |> validate_subset(attribute.schema_field, attribute.options)
-          |> validate_length(attribute.schema_field,
-            min: attribute.min_length,
-            max: attribute.max_length
-          )
+            |> validate_subset(attribute.schema_field, options(attribute))
+            |> validate_length(attribute.schema_field,
+              min: attribute.min_length,
+              max: attribute.max_length
+            )
+            |> validate_change(attribute.schema_field, fn _, vals ->
+              if attribute.add_none && Enum.member?(vals, attribute.add_none) && length(vals) > 1 do
+                [{attribute.schema_field, "If '#{attribute.add_none}' is selected, no other options are allowed"}]
+              else
+                []
+              end
+            end)
 
         :select ->
           changeset
-          |> validate_inclusion(attribute.schema_field, attribute.options)
+          |> validate_inclusion(attribute.schema_field, options(attribute))
 
         :text ->
           changeset

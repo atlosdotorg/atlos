@@ -51,8 +51,6 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
     # To allow empty strings, lists, etc.
     params = Map.get(input, "media", %{}) |> inject_attr_field_if_missing(socket.assigns.attr)
 
-    IO.inspect(params)
-
     changeset =
       socket.assigns.media
       |> Material.change_media_attribute(socket.assigns.attr, params)
@@ -89,12 +87,12 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
                 <% :select -> %>
                   <%= label f, @attr.schema_field, @attr.label %>
                   <div phx-update="ignore" id={"attr_multi_select_#{@media.slug}_#{@attr.schema_field}"}>
-                    <%= select f, @attr.schema_field, ["[Unset]": nil] ++ @attr.options %>
+                    <%= select f, @attr.schema_field, ["[Unset]": nil] ++ Attribute.options(@attr) %>
                   </div>
                 <% :multi_select -> %>
                   <%= label f, @attr.schema_field, @attr.label %>
                   <div phx-update="ignore" id={"attr_multi_select_#{@media.slug}_#{@attr.schema_field}"}>
-                    <%= multiple_select f, @attr.schema_field, @attr.options %>
+                    <%= multiple_select f, @attr.schema_field, Attribute.options(@attr) %>
                   </div>
                 <% :location -> %>
                   <div class="space-y-4">

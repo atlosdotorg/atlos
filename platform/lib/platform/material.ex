@@ -288,7 +288,7 @@ defmodule Platform.Material do
     # Make sure both changesets are valid before inserting
     cond do
       !(media_changeset.valid? && update_changeset.valid?) ->
-        media_changeset
+        {:error, media_changeset}
 
       true ->
         Repo.transaction(fn ->
