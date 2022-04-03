@@ -21,6 +21,7 @@ defmodule Platform.Material.Media do
     field :attr_environment, :string
     field :attr_weather, {:array, :string}
     field :attr_recorded_by, :string
+    field :attr_more_info, :string
 
     # Virtual attributes for updates + multi-part attributes
     field :explanation, :string, virtual: true

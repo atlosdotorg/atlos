@@ -293,7 +293,7 @@ defmodule PlatformWeb.Components do
   end
 
   def text_diff(%{old: old, new: new} = assigns) do
-    diff = String.myers_difference(old, new)
+    diff = String.myers_difference(old || "", new || "")
 
     ~H"""
     <span class="text-sm">

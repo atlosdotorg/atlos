@@ -18,7 +18,6 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
   end
 
   defp has_changes(changeset) do
-    IO.inspect(changeset)
     map_size(changeset.changes) > 0
   end
 
@@ -122,7 +121,7 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
               <% end %>
             </div>
             <div>
-              <%= label f, :explanation, "Explanation" %>
+              <%= label f, :explanation, "Explain Your Change" %>
               <%= textarea f, :explanation, phx_debounce: "blur", placeholder: "Recommended for all non-trivial changes.", class: "my-1" %>
               <%= error_tag f, :explanation %>
             </div>

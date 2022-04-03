@@ -101,6 +101,16 @@ defmodule Platform.Material.Attribute do
         description:
           "How was this media created?"
       },
+      %Attribute{
+        schema_field: :attr_more_info,
+        type: :text,
+        max_length: 3000,
+        label: "More Info",
+        pane: :attributes,
+        required: false,
+        name: :more_info,
+        description: "For example, information noted by the source."
+      },
     ]
   end
 
