@@ -276,7 +276,7 @@ defmodule PlatformWeb.Components do
       <% :location -> %>
         <div class="inline-block mt-1">
           <% {lon, lat} = value.coordinates %>
-          <a class="chip ~neutral inline-block flex gap-1" href={"https://maps.google.com/maps?q=#{lat},#{lon}"}>
+          <a class="chip ~neutral inline-block flex gap-1" target="_blank" href={"https://maps.google.com/maps?q=#{lat},#{lon}"}>
             <.location lat={lat} lon={lon} />
           </a>
         </div>
@@ -347,14 +347,14 @@ defmodule PlatformWeb.Components do
     <span>
       <%= case old do %>
         <% %{"coordinates" => [lon, lat]} -> %>
-          <a class="chip ~yellow inline-flex text-xs" href={"https://maps.google.com/maps?q=#{lat},#{lon}"}>
+          <a class="chip ~yellow inline-flex text-xs" target="_blank" href={"https://maps.google.com/maps?q=#{lat},#{lon}"}>
             - <.location lat={lat} lon={lon} />
           </a>
         <% x -> %>
       <% end %>
       <%= case new do %>
         <% %{"coordinates" => [lon, lat]} -> %>
-          <a class="chip ~blue inline-flex text-xs" href={"https://maps.google.com/maps?q=#{lat},#{lon}"}>
+          <a class="chip ~blue inline-flex text-xs" target="_blank" href={"https://maps.google.com/maps?q=#{lat},#{lon}"}>
             + <.location lat={lat} lon={lon} />
           </a>
         <% x -> %>

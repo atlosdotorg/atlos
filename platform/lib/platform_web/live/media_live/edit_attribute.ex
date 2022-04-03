@@ -102,7 +102,7 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
               <% end %>
               <%= error_tag f, @attr.schema_field %>
 
-              <% val = Map.get(@changeset.changes, @attr.schema_field) %>
+              <% val = Map.get(@changeset.changes, @attr.schema_field, Map.get(@media, @attr.schema_field)) %>
               <%= if val do %>
                 <% {lon, lat} = val.coordinates %>
                 <a class="support text-urge-700 underline mt-4" target="_blank" href={"https://maps.google.com/maps?q=#{lat},#{lon}"}>
