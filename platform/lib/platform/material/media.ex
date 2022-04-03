@@ -24,6 +24,7 @@ defmodule Platform.Material.Media do
     field :attr_more_info, :string
     field :attr_civilian_impact, {:array, :string}
     field :attr_event, {:array, :string}
+    field :attr_casualty, {:array, :string}
 
     # Virtual attributes for updates + multi-part attributes
     field :explanation, :string, virtual: true

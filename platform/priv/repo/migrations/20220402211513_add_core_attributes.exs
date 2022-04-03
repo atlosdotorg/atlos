@@ -10,6 +10,7 @@ defmodule Platform.Repo.Migrations.AddCoreAttributes do
       add :attr_more_info, :text
       add :attr_civilian_impact, {:array, :string}
       add :attr_event, {:array, :string}
+      add :attr_casualty, {:array, :string}
     end
   end
 end

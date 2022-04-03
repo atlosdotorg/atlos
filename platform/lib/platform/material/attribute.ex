@@ -129,6 +129,15 @@ defmodule Platform.Material.Attribute do
         required: false,
         name: :event,
       },
+      %Attribute{
+        schema_field: :attr_casualty,
+        type: :multi_select,
+        options: ["Injured Person", "Injured Person/Civilian", "Injured Person/Soldier", "Killed Person", "Killed Person/Civilian", "Killed Person/Soldier", "Mass Grave"],
+        label: "Casualty",
+        pane: :attributes,
+        required: false,
+        name: :casualty,
+      },
     ]
   end
 
