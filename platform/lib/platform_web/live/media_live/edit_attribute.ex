@@ -91,10 +91,12 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
                     <div>
                       <%= label f, :longitude, "Longitude" %>
                       <%= number_input f, :longitude %>
+                      <%= error_tag f, :longitude %>
                     </div>
                     <div>
                       <%= label f, :latitude, "Latitude" %>
                       <%= number_input f, :latitude %>
+                      <%= error_tag f, :latitude %>
                     </div>
                   </div>
               <% end %>
