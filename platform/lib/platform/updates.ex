@@ -117,9 +117,9 @@ defmodule Platform.Updates do
   @doc """
   Helper API function that takes attribute change information and uses it to create an Update changeset. Requires 'explanation' to be in attrs.
   """
-  def change_from_attribute_changeset(%Media{} = media, %Attribute{} = attribute, %User{} = user, attrs \\ %{}) do
+  def change_from_attribute_changeset(%Media{} = media, %Attribute{} = attribute, %User{} = user, changeset, attrs \\ %{}) do
     old_value = Map.get(media, attribute.schema_field) |> Jason.encode!()
-    new_value = Map.get(attrs, Atom.to_string(attribute.schema_field)) |> Jason.encode!()
+    new_value = Map.get(changeset.changes, attribute.schema_field) |> Jason.encode!()
 
     change_update(%Update{}, attrs
       |> Map.put("old_value", old_value)

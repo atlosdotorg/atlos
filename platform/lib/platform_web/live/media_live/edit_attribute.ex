@@ -101,6 +101,14 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
                   </div>
               <% end %>
               <%= error_tag f, @attr.schema_field %>
+
+              <% val = Map.get(@changeset.changes, @attr.schema_field) %>
+              <%= if val do %>
+                <% {lon, lat} = val.coordinates %>
+                <a class="support text-urge-700 underline mt-4" target="_blank" href={"https://maps.google.com/maps?q=#{lat},#{lon}"}>
+                  Preview <span class="font-bold"><.location lat={lat} lon={lon} /></span> on Google Maps
+                </a>
+              <% end %>
             </div>
             <div>
               <%= label f, :explanation, "Explanation" %>
@@ -109,7 +117,7 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
             </div>
             <div class="flex md:justify-between">
               <%= submit "Post update →", phx_disable_with: "Saving...", class: "button ~urge @high", disabled: disabled %>
-              <button phx-click="close_modal" phx-target={@myself} data-confirm={confirm_prompt} class="base-button">Cancel</button>
+              <button phx-click="close_modal" phx-target={@myself} data-confirm={confirm_prompt} type="button" class="base-button">Cancel</button>
             </div>
           </div>
         </.form>

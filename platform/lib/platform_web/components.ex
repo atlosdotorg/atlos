@@ -249,6 +249,12 @@ defmodule PlatformWeb.Components do
     """
   end
 
+  def location(%{lat: lat, lon: lon} = assigns) do
+    ~H"""
+    <%= @lon %>, <%= @lat %> &nearr;
+    """
+  end
+
   def attr_entry(%{name: name, value: value} = assigns) do
     attr = Attribute.get_attribute(assigns.name)
 
@@ -271,10 +277,7 @@ defmodule PlatformWeb.Components do
         <div class="inline-block mt-1">
           <% {lon, lat} = value.coordinates %>
           <a class="chip ~neutral inline-block flex gap-1" href={"https://maps.google.com/maps?q=#{lat},#{lon}"}>
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500" viewBox="0 0 20 20" fill="currentColor">
-              <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
-            </svg>
-            <%= lon %>, <%= lat %> &nearr;
+            <.location lat={lat} lon={lon} />
           </a>
         </div>
       <% end %>
@@ -308,7 +311,6 @@ defmodule PlatformWeb.Components do
   end
 
   def list_diff(%{old: old, new: new} = assigns) do
-    IO.inspect(new)
     clean = fn x ->
       cleaned = if is_nil(x), do: [], else: x
       cleaned |> Enum.filter(&(!(is_nil(&1) || &1 == "")))
@@ -340,9 +342,23 @@ defmodule PlatformWeb.Components do
   end
 
   def location_diff(%{old: old, new: new} = assigns) do
+    IO.inspect new
     ~H"""
     <span>
-      (location diff)
+      <%= case old do %>
+        <% %{"coordinates" => [lon, lat]} -> %>
+          <a class="chip ~yellow inline-flex text-xs" href={"https://maps.google.com/maps?q=#{lat},#{lon}"}>
+            - <.location lat={lat} lon={lon} />
+          </a>
+        <% x -> %>
+      <% end %>
+      <%= case new do %>
+        <% %{"coordinates" => [lon, lat]} -> %>
+          <a class="chip ~blue inline-flex text-xs" href={"https://maps.google.com/maps?q=#{lat},#{lon}"}>
+            + <.location lat={lat} lon={lon} />
+          </a>
+        <% x -> %>
+      <% end %>
     </span>
     """
   end

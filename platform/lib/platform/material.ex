@@ -279,7 +279,7 @@ defmodule Platform.Material do
 
   def update_media_attribute_logged(media, %Attribute{} = attribute, user, attrs) do
     media_changeset = change_media_attribute(media, attribute, attrs)
-    update_changeset = Updates.change_from_attribute_changeset(media, attribute, user, attrs)
+    update_changeset = Updates.change_from_attribute_changeset(media, attribute, user, media_changeset, attrs)
 
     # Make sure both changesets are valid before inserting
     cond do
