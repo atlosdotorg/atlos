@@ -81,7 +81,7 @@
                 <:header>
                     <h3 class="sec-head">Feed</h3>
                 </:header>
-                <.update_stream updates={@updates} />
+                <.update_stream updates={@updates} socket={@socket} />
                 <hr class="sep h-2">
                 <.live_component
                     module={PlatformWeb.MediaLive.CommentBox}

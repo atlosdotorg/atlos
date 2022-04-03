@@ -2,6 +2,7 @@ defmodule PlatformWeb.Components do
   use Phoenix.Component
   use Phoenix.HTML
 
+  alias PlatformWeb.Router.Helpers, as: Routes
   alias Platform.Accounts
   alias Platform.Material.Attribute
 
@@ -319,7 +320,7 @@ defmodule PlatformWeb.Components do
   def list_diff(%{old: old, new: new} = assigns) do
     clean = fn x ->
       cleaned = if is_nil(x), do: [], else: x
-      cleaned |> Enum.filter(&(!(is_nil(&1) || &1 == "")))
+      cleaned |> Enum.filter(&(!(is_nil(&1) || &1 == ""))) |> Enum.sort()
     end
 
     diff = List.myers_difference(clean.(old), clean.(new))
@@ -328,6 +329,12 @@ defmodule PlatformWeb.Components do
     <span>
       <%= for {action, elem} <- diff do %>
         <%= case action do %>
+          <% :eq -> %>
+            <%= for item <- elem do %>
+              <span class="chip ~neutral inline-block text-xs">
+                <%= item %>
+              </span>
+            <% end %>
           <% :ins -> %>
             <%= for item <- elem do %>
               <span class="chip ~blue inline-block text-xs">
@@ -401,7 +408,10 @@ defmodule PlatformWeb.Components do
                     <a class="font-medium text-gray-900"><%= update.user.username %></a>
                     <%= case update.type do %>
                       <% :update_attribute -> %>
-                        updated <span class="font-medium text-gray-900"><%= Attribute.get_attribute(update.modified_attribute).label %></span>
+                        updated
+                        <%= live_patch class: "text-button text-gray-800 inline-block", to: Routes.media_show_path(@socket, :edit, update.media.slug, update.modified_attribute) do %>
+                          <%= Attribute.get_attribute(update.modified_attribute).label %>
+                        <% end %>
                       <% :create -> %>
                         added <span class="font-medium text-gray-900"><%= update.media.slug %></span>
                       <% :upload_version -> %>
@@ -417,8 +427,10 @@ defmodule PlatformWeb.Components do
                   <div class="mt-1 text-sm text-gray-700 border border-gray-300 rounded-lg shadow-sm overflow-hidden flex flex-col divide-y">
                     <!-- Update detail section -->
                     <%= if update.type == :update_attribute do %>
-                      <div class="bg-gray-50 p-2">
+                      <div class="bg-gray-50 p-2 flex">
+                        <div class="flex-grow">
                           <.attr_diff name={update.modified_attribute} old={Jason.decode!(update.old_value)} new={Jason.decode!(update.new_value)} />
+                        </div>
                       </div>
                     <% end %>
 
