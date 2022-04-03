@@ -14,7 +14,8 @@ defmodule Platform.Material.Attribute do
     :pane,
     :required,
     :custom_validation,
-    :name
+    :name,
+    :description
   ]
 
   defp attributes() do
@@ -68,7 +69,17 @@ defmodule Platform.Material.Attribute do
         pane: :attributes,
         required: false,
         name: :geolocation
-      }
+      },
+      %Attribute{
+        schema_field: :attr_environment,
+        type: :select,
+        options: ["Inside", "Outside"],
+        label: "Environment",
+        pane: :attributes,
+        required: false,
+        name: :environment,
+        description: "What is primarily in view? Note that this does not refer to where the media was captured."
+      },
     ]
   end
 

@@ -59,7 +59,7 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
     <article>
       <.modal target={@myself} close_confirmation={confirm_prompt}>
         <h3 class="sec-head"><%= @media.slug %>: <%= @attr.label %></h3>
-        <p class="sec-subhead">Additional language about the attribute will be provided here, if necessary (TODO).</p>
+        <p class="sec-subhead"><%= @attr.description %></p>
         <hr class="h-8 sep">
         <.form
           let={f}

@@ -18,6 +18,7 @@ defmodule Platform.Material.Media do
     # "Normal" Attributes
     field :attr_time_of_day, :string
     field :attr_geolocation, Geo.PostGIS.Geometry
+    field :attr_environment, :string
 
     # Virtual attributes for updates + multi-part attributes
     field :explanation, :string, virtual: true
