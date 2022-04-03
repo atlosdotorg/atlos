@@ -274,7 +274,7 @@ defmodule PlatformWeb.Components do
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500" viewBox="0 0 20 20" fill="currentColor">
               <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
             </svg>
-            <%= lat %>, <%= lon %> &nearr;
+            <%= lon %>, <%= lat %> &nearr;
           </a>
         </div>
       <% end %>
@@ -308,8 +308,10 @@ defmodule PlatformWeb.Components do
   end
 
   def list_diff(%{old: old, new: new} = assigns) do
+    IO.inspect(new)
     clean = fn x ->
-      if is_nil(x), do: [], else: x
+      cleaned = if is_nil(x), do: [], else: x
+      cleaned |> Enum.filter(&(!(is_nil(&1) || &1 == "")))
     end
 
     diff = List.myers_difference(clean.(old), clean.(new))

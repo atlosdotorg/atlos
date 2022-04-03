@@ -79,7 +79,7 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
                 <% :select -> %>
                   <%= label f, @attr.schema_field, @attr.label %>
                   <div phx-update="ignore" id={"attr_multi_select_#{@media.slug}_#{@attr.schema_field}"}>
-                    <%= select f, @attr.schema_field, @attr.options %>
+                    <%= select f, @attr.schema_field, ["[Unset]": nil] ++ @attr.options %>
                   </div>
                 <% :multi_select -> %>
                   <%= label f, @attr.schema_field, @attr.label %>

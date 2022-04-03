@@ -140,7 +140,6 @@ defmodule Platform.Material.Attribute do
         :multi_select ->
           changeset
           |> validate_subset(attribute.schema_field, attribute.options)
-          |> validate_required(attribute.schema_field)
           |> validate_length(attribute.schema_field,
             min: attribute.min_length,
             max: attribute.max_length
@@ -149,7 +148,6 @@ defmodule Platform.Material.Attribute do
         :select ->
           changeset
           |> validate_inclusion(attribute.schema_field, attribute.options)
-          |> validate_required(attribute.schema_field)
 
         :text ->
           changeset

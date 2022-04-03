@@ -55,6 +55,7 @@ function initializeMultiSelects() {
         let x = new TomSelect(`#${s.id}`, {
             maxOptions: null,
             placeholder: prompt,
+            allowEmptyOption: true,
             onItemAdd(_a, _b) {
                 setTimeout(() => x.control_input.value = "", 1);
             }
