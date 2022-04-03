@@ -80,6 +80,15 @@ defmodule Platform.Material.Attribute do
         name: :environment,
         description:
           "What is primarily in view? Note that this does not refer to where the media was captured."
+      },
+      %Attribute{
+        schema_field: :attr_weather,
+        type: :multi_select,
+        options: ["Sunny", "Partly Cloudly", "Overcast", "Raining", "Snowing"],
+        label: "Weather",
+        pane: :attributes,
+        required: false,
+        name: :weather,
       }
     ]
   end

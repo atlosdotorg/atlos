@@ -19,6 +19,7 @@ defmodule Platform.Material.Media do
     field :attr_time_of_day, :string
     field :attr_geolocation, Geo.PostGIS.Geometry
     field :attr_environment, :string
+    field :attr_weather, {:array, :string}
 
     # Virtual attributes for updates + multi-part attributes
     field :explanation, :string, virtual: true
