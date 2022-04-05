@@ -27,6 +27,8 @@ defmodule Platform.Material.Media do
     field :attr_casualty, {:array, :string}
     field :attr_military_infrastructure, {:array, :string}
     field :attr_weapon, {:array, :string}
+    field :attr_time_recorded, :time
+    field :attr_date_recorded, :date
 
     # Virtual attributes for updates + multi-part attributes
     field :explanation, :string, virtual: true

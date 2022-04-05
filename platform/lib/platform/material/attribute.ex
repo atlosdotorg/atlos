@@ -157,6 +157,24 @@ defmodule Platform.Material.Attribute do
         description: "What weapons are visibile in the media?",
         add_none: "None"
       },
+      %Attribute{
+        schema_field: :attr_time_recorded,
+        type: :time,
+        label: "Time Recorded",
+        pane: :attributes,
+        required: false,
+        name: :time_recorded,
+        description: "What time of day was the media recorded? Use the local timezone, if possible.",
+      },
+      %Attribute{
+        schema_field: :attr_date_recorded,
+        type: :date,
+        label: "Date Recorded",
+        pane: :attributes,
+        required: false,
+        name: :date_recorded,
+        description: "On what date was the media recorded?",
+      },
     ]
   end
 
@@ -268,6 +286,8 @@ defmodule Platform.Material.Attribute do
         :location ->
           changeset
           |> validate_required([:latitude, :longitude])
+
+        _ -> changeset
       end
 
     if attribute.custom_validation != nil do

@@ -13,6 +13,8 @@ defmodule Platform.Repo.Migrations.AddCoreAttributes do
       add :attr_casualty, {:array, :string}
       add :attr_military_infrastructure, {:array, :string}
       add :attr_weapon, {:array, :string}
+      add :attr_time_recorded, :time
+      add :attr_date_recorded, :date
     end
   end
 end

@@ -107,6 +107,16 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
                       <%= error_tag f, :longitude %>
                     </div>
                   </div>
+                <% :time -> %>
+                  <%= label f, @attr.schema_field, @attr.label %>
+                  <div class="flex items-center gap-2" phx-update="ignore" id={"attr_time_#{@media.slug}_#{@attr.schema_field}"}>
+                    <%= time_select f, @attr.schema_field %>
+                  </div>
+                <% :date -> %>
+                  <%= label f, @attr.schema_field, @attr.label %>
+                  <div class="flex items-center gap-2" phx-update="ignore" id={"attr_date_#{@media.slug}_#{@attr.schema_field}"}>
+                    <%= date_select f, @attr.schema_field %>
+                  </div>
               <% end %>
               <%= error_tag f, @attr.schema_field %>
 

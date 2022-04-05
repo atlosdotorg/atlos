@@ -287,6 +287,14 @@ defmodule PlatformWeb.Components do
             <.location lat={lat} lon={lon} />
           </a>
         </div>
+      <% :time -> %>
+        <div class="inline-block mt-1">
+          <div class="chip ~neutral inline-block"><%= value %></div>
+        </div>
+      <% :date -> %>
+        <div class="inline-block mt-1">
+          <div class="chip ~neutral inline-block"><%= value %></div>
+        </div>
       <% end %>
     </span>
     """
@@ -382,9 +390,11 @@ defmodule PlatformWeb.Components do
     <span>
       <%= case attr.type do %>
         <% :text -> %> <.text_diff old={@old} new={@new} />
-        <% :select -> %> <.list_diff old={[@old] |> Enum.filter(&(&1 != nil))} new={[@new] |> Enum.filter(&(&1 != nil))} />
+        <% :select -> %> <.list_diff old={[@old]} new={[@new]} />
         <% :multi_select -> %> <.list_diff old={@old} new={@new} />
         <% :location -> %> <.location_diff old={@old} new={@new} />
+        <% :time -> %> <.list_diff old={[@old]} new={[@new]} />
+        <% :date -> %> <.list_diff old={[@old]} new={[@new]} />
       <% end %>
     </span>
     """
