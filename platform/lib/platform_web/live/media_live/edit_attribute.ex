@@ -116,7 +116,7 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
                 <% :date -> %>
                   <%= label f, @attr.schema_field, @attr.label %>
                   <div class="flex items-center gap-2 ts-ignore">
-                    <%= date_select f, @attr.schema_field, year: [prompt: "[Unset]"], month: [prompt: "[Unset]"], day: [prompt: "[Unset]"] %>
+                    <%= date_select f, @attr.schema_field, year: [prompt: "[Unset]", options: DateTime.utc_now.year..1990], month: [prompt: "[Unset]"], day: [prompt: "[Unset]"] %>
                   </div>
                   <p class="support">To unset this attribute, set the day, month, and year fields to [Unset].</p>
               <% end %>
