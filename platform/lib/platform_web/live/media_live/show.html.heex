@@ -44,7 +44,7 @@
                 <div class="border-gray-200">
                     <dl class="divide-y divide-dashed divide-gray-200 -mt-5 -mb-3">
                         <%= for attr <- Attribute.set_for_media(@media, :attributes) do %>
-                            <div class="py-4 sm:grid sm:py-5 sm:grid-cols-3 sm:gap-4">
+                            <div class="py-2 sm:grid sm:grid-cols-3 sm:gap-4">
                                 <dt class="text-sm font-medium text-gray-500 mt-1"><%= attr.label %></dt>
                                 <dd class="mt-1 flex text-sm text-gray-900 sm:mt-0 sm:col-span-2">
                                     <span class="flex-grow gap-1 flex flex-wrap">
@@ -56,7 +56,7 @@
                                 </dd>
                             </div>
                         <% end %>
-                        <div class="py-4 sm:grid sm:py-5 sm:grid-cols-3 sm:gap-4 -mb-2">
+                        <div class="py-2 sm:grid sm:grid-cols-3 sm:gap-4 -mb-2">
                             <dt class="text-sm font-medium text-gray-500 mt-1">Unset Attributes</dt>
                             <dd class="mt-1 flex flex-wrap gap-2 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
                                 <%= for attr <- Attribute.unset_for_media(@media, :attributes) do %>

@@ -109,14 +109,16 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
                   </div>
                 <% :time -> %>
                   <%= label f, @attr.schema_field, @attr.label %>
-                  <div class="flex items-center gap-2" phx-update="ignore" id={"attr_time_#{@media.slug}_#{@attr.schema_field}"}>
-                    <%= time_select f, @attr.schema_field %>
+                  <div class="flex items-center gap-2 ts-ignore sm:w-64">
+                    <%= time_select f, @attr.schema_field, hour: [prompt: "[Unset]"], minute: [prompt: "[Unset]"] %>
                   </div>
+                  <p class="support">To unset this attribute, set both the hour and minute fields to [Unset].</p>
                 <% :date -> %>
                   <%= label f, @attr.schema_field, @attr.label %>
-                  <div class="flex items-center gap-2" phx-update="ignore" id={"attr_date_#{@media.slug}_#{@attr.schema_field}"}>
-                    <%= date_select f, @attr.schema_field %>
+                  <div class="flex items-center gap-2 ts-ignore">
+                    <%= date_select f, @attr.schema_field, year: [prompt: "[Unset]"], month: [prompt: "[Unset]"], day: [prompt: "[Unset]"] %>
                   </div>
+                  <p class="support">To unset this attribute, set the day, month, and year fields to [Unset].</p>
               <% end %>
               <%= error_tag f, @attr.schema_field %>
 

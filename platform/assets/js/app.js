@@ -42,7 +42,7 @@ window.liveSocket = liveSocket
 
 function initializeMultiSelects() {
     // Make multi-selects interactive
-    document.querySelectorAll("select").forEach(s => {
+    document.querySelectorAll("select:not(.ts-ignore *)").forEach(s => {
         if (s.tomselect) {
             return;
         }

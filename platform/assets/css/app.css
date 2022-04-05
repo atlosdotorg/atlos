@@ -36,6 +36,10 @@
     @apply heading border-b border-gray-200 pb-4;
   }
 
+  .ts-ignore select {
+    @apply field ~neutral;
+  }
+
   .phx-form input[type="email"],
   .phx-form input[type="password"],
   .phx-form input[type="url"],
@@ -217,7 +221,7 @@
  * governing permissions and limitations under the License.
  *
  */
- select {
+ select:not(.ts-ignore *) {
    display: none;
  }
 
