@@ -269,11 +269,11 @@ defmodule PlatformWeb.Components do
     <span class="inline-flex flex-wrap gap-1">
       <%= case attr.type do %>
       <% :text -> %>
-        <div class="inline-block mt-1">
+        <div class="inline-block">
           <%= value %>
         </div>
       <% :select -> %>
-        <div class="inline-block mt-1">
+        <div class="inline-block">
           <div class="chip ~neutral inline-block"><%= value %></div>
         </div>
       <% :multi_select -> %>
@@ -281,18 +281,18 @@ defmodule PlatformWeb.Components do
             <div class="chip ~neutral inline-block"><%= item %></div>
         <% end %>
       <% :location -> %>
-        <div class="inline-block mt-1">
+        <div class="inline-block">
           <% {lon, lat} = value.coordinates %>
           <a class="chip ~neutral inline-block flex gap-1" target="_blank" href={"https://maps.google.com/maps?q=#{lat},#{lon}"}>
             <.location lat={lat} lon={lon} />
           </a>
         </div>
       <% :time -> %>
-        <div class="inline-block mt-1">
+        <div class="inline-block">
           <div class="chip ~neutral inline-block"><%= value %></div>
         </div>
       <% :date -> %>
-        <div class="inline-block mt-1">
+        <div class="inline-block">
           <div class="chip ~neutral inline-block"><%= value %></div>
         </div>
       <% end %>
