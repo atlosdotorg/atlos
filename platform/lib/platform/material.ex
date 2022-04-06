@@ -66,17 +66,23 @@ defmodule Platform.Material do
   end
 
   def create_media_logged(%User{} = user, attrs \\ %{}) do
-    Repo.transaction(fn ->
-      {:ok, media} =
-        %Media{}
-        |> Media.changeset(attrs)
-        |> Repo.insert()
+    changeset = %Media{}
+    |> Media.changeset(attrs)
 
-      {:ok, _} =
-        Updates.change_from_media_creation(media, user) |> Updates.create_update_from_changeset()
+    cond do
+      !changeset.valid? -> {:error, changeset}
+      true -> Repo.transaction(fn ->
+        {:ok, media} =
+          %Media{}
+          |> Media.changeset(attrs)
+          |> Repo.insert()
 
-      media
-    end)
+        {:ok, _} =
+          Updates.change_from_media_creation(media, user) |> Updates.create_update_from_changeset()
+
+        media
+      end)
+    end
   end
 
   def get_full_media_by_slug(slug) do

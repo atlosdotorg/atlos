@@ -25,6 +25,7 @@ defmodule Platform.Material.Attribute do
         schema_field: :attr_sensitive,
         type: :multi_select,
         options: [
+          "Not Sensitive",
           "Threatens Civilian Safety",
           "Graphic Violence",
           "Deleted by Source",
@@ -34,7 +35,6 @@ defmodule Platform.Material.Attribute do
         min_length: 1,
         pane: :metadata,
         required: true,
-        add_none: "Not Sensitive",
         name: :sensitive
       },
       %Attribute{
