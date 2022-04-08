@@ -15,7 +15,7 @@ defmodule Platform.Material do
   alias Platform.Accounts.User
 
   @doc """
-  Returns the list of media.
+  Returns the list of media. Will preload the versions.
 
   ## Examples
 
@@ -24,7 +24,7 @@ defmodule Platform.Material do
 
   """
   def list_media do
-    Repo.all(Media)
+    Media |> preload_media_versions() |> Repo.all()
   end
 
   defp preload_media_versions(query) do
@@ -66,22 +66,27 @@ defmodule Platform.Material do
   end
 
   def create_media_logged(%User{} = user, attrs \\ %{}) do
-    changeset = %Media{}
-    |> Media.changeset(attrs)
+    changeset =
+      %Media{}
+      |> Media.changeset(attrs)
 
     cond do
-      !changeset.valid? -> {:error, changeset}
-      true -> Repo.transaction(fn ->
-        {:ok, media} =
-          %Media{}
-          |> Media.changeset(attrs)
-          |> Repo.insert()
+      !changeset.valid? ->
+        {:error, changeset}
 
-        {:ok, _} =
-          Updates.change_from_media_creation(media, user) |> Updates.create_update_from_changeset()
+      true ->
+        Repo.transaction(fn ->
+          {:ok, media} =
+            %Media{}
+            |> Media.changeset(attrs)
+            |> Repo.insert()
 
-        media
-      end)
+          {:ok, _} =
+            Updates.change_from_media_creation(media, user)
+            |> Updates.create_update_from_changeset()
+
+          media
+        end)
     end
   end
 
@@ -301,6 +306,13 @@ defmodule Platform.Material do
           {:ok, _} = Updates.create_update_from_changeset(update_changeset)
           update_media_attribute(media, attribute, attrs)
         end)
+    end
+  end
+
+  def media_thumbnail(%Media{} = media) do
+    case media.versions do
+      [head | _tail] -> head.thumbnail_location
+      [] -> nil
     end
   end
 end

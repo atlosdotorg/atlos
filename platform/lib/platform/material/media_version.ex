@@ -28,7 +28,8 @@ defmodule Platform.Material.MediaVersion do
       :source_url,
       :mime_type,
       :client_name,
-      :media_id
+      :media_id,
+      :thumbnail_location
     ])
     |> validate_required([
       :file_location,
@@ -37,7 +38,8 @@ defmodule Platform.Material.MediaVersion do
       :source_url,
       :mime_type,
       :client_name,
-      :media_id
+      :media_id,
+      :thumbnail_location
     ])
   end
 end

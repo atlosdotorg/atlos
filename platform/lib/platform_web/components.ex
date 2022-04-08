@@ -5,6 +5,8 @@ defmodule PlatformWeb.Components do
   alias PlatformWeb.Router.Helpers, as: Routes
   alias Platform.Accounts
   alias Platform.Material.Attribute
+  alias Platform.Material.Media
+  alias Platform.Material
 
   def navlink(%{request_path: path, to: to} = assigns) do
     # TODO(miles): check for active tab
@@ -130,12 +132,11 @@ defmodule PlatformWeb.Components do
                 <span class="mt-2">Queue</span>
             </a>
 
-            <a href="#" class="text-neutral-100 hover:bg-neutral-800 hover:text-white group w-full p-3 rounded-md flex flex-col items-center text-xs font-medium">
-                <svg class="text-neutral-300 group-hover:text-white h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+            <.navlink to="/media" label="All Media" request_path={@path}>
+              <svg class="text-neutral-300 group-hover:text-white h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-                <span class="mt-2">All Media</span>
-            </a>
+              </svg>
+            </.navlink>
 
             <a href="#" class="text-neutral-100 hover:bg-neutral-800 hover:text-white group w-full p-3 rounded-md flex flex-col items-center text-xs font-medium">
                 <svg class="text-neutral-300 group-hover:text-white h-6 w-6" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -459,6 +460,24 @@ defmodule PlatformWeb.Components do
         <% end %>
       </ul>
     </div>
+    """
+  end
+
+  def media_card(%{media: %Media{} = media} = assigns) do
+    # TODO: use live_redirect
+    ~H"""
+      <a class="flex flex-col items-center md:flex-row bg-white overflow-hidden shadow rounded-lg justify-between" href={"/media/#{media.slug}"}>
+        <div class="h-full p-2">
+          <p class="font-mono text-sm text-gray-500"><%= media.slug %></p>
+          <p class="font-medium font-md"><%= media.description %></p>
+        </div>
+
+        <% thumb = Material.media_thumbnail(media) %>
+        <% IO.inspect(thumb) %>
+        <%= if thumb do %>
+          <img class="sr-hide object-cover h-full rounded-t-lg md:w-32 md:rounded-none md:rounded-r-lg" src={thumb}>
+        <% end %>
+      </a>
     """
   end
 end

@@ -93,7 +93,7 @@ defmodule Platform.Material.Attribute do
         pane: :attributes,
         required: false,
         name: :recorded_by,
-        description: "How was this media created?",
+        description: "How was this media created?"
       },
       %Attribute{
         schema_field: :attr_more_info,
@@ -108,7 +108,26 @@ defmodule Platform.Material.Attribute do
       %Attribute{
         schema_field: :attr_civilian_impact,
         type: :multi_select,
-        options: ["Structure/Residential", "Structure/Residential/House", "Structure/Residential/Apartment", "Structure/Healthcare", "Structure/School or Childcare", "Structure/Park or Playground", "Structure/Cultural", "Structure/Religious", "Structure/Industrial", "Structure/Administrative", "Structure/Commercial", "Structure/Airport", "Structure/Transit Station", "Vehicle/Car", "Vehicle/Train", "Vehicle/Bus", "Vehicle/Aircraft", "Vehicle/Boat"],
+        options: [
+          "Structure/Residential",
+          "Structure/Residential/House",
+          "Structure/Residential/Apartment",
+          "Structure/Healthcare",
+          "Structure/School or Childcare",
+          "Structure/Park or Playground",
+          "Structure/Cultural",
+          "Structure/Religious",
+          "Structure/Industrial",
+          "Structure/Administrative",
+          "Structure/Commercial",
+          "Structure/Airport",
+          "Structure/Transit Station",
+          "Vehicle/Car",
+          "Vehicle/Train",
+          "Vehicle/Bus",
+          "Vehicle/Aircraft",
+          "Vehicle/Boat"
+        ],
         label: "Civilian Impact",
         pane: :attributes,
         required: false,
@@ -118,7 +137,19 @@ defmodule Platform.Material.Attribute do
       %Attribute{
         schema_field: :attr_event,
         type: :multi_select,
-        options: ["Explosion", "Debris", "Fire", "Fire Damage", "Smoke", "Projectile Launching", "Projectile Striking", "Execution", "Combat", "Protest", "Civilian-Military Interaction"],
+        options: [
+          "Explosion",
+          "Debris",
+          "Fire",
+          "Fire Damage",
+          "Smoke",
+          "Projectile Launching",
+          "Projectile Striking",
+          "Execution",
+          "Combat",
+          "Protest",
+          "Civilian-Military Interaction"
+        ],
         label: "Event",
         pane: :attributes,
         required: false,
@@ -128,7 +159,15 @@ defmodule Platform.Material.Attribute do
       %Attribute{
         schema_field: :attr_casualty,
         type: :multi_select,
-        options: ["Injured Person", "Injured Person/Civilian", "Injured Person/Soldier", "Killed Person", "Killed Person/Civilian", "Killed Person/Soldier", "Mass Grave"],
+        options: [
+          "Injured Person",
+          "Injured Person/Civilian",
+          "Injured Person/Soldier",
+          "Killed Person",
+          "Killed Person/Civilian",
+          "Killed Person/Soldier",
+          "Mass Grave"
+        ],
         label: "Casualty",
         pane: :attributes,
         required: false,
@@ -138,7 +177,17 @@ defmodule Platform.Material.Attribute do
       %Attribute{
         schema_field: :attr_military_infrastructure,
         type: :multi_select,
-        options: ["Land-Based Vehicle", "Ship", "Aircraft", "Aircraft/Fighter", "Aircraft/Bomber", "Aircraft/Helicopter", "Aircraft/Drone", "Convoy", "Encampment"],
+        options: [
+          "Land-Based Vehicle",
+          "Ship",
+          "Aircraft",
+          "Aircraft/Fighter",
+          "Aircraft/Bomber",
+          "Aircraft/Helicopter",
+          "Aircraft/Drone",
+          "Convoy",
+          "Encampment"
+        ],
         label: "Military Infrastructure",
         pane: :attributes,
         required: false,
@@ -149,7 +198,18 @@ defmodule Platform.Material.Attribute do
       %Attribute{
         schema_field: :attr_weapon,
         type: :multi_select,
-        options: ["Small Arm", "Launch System", "Launch System/Artillery", "Launch System/Self-Propelled", "Launch System/Multiple Launch Rocket System (MLRS)", "Munition", "Munition/Cluster", "Munition/Chemical", "Munition/Thermobaric", "Munition/Incendiary"],
+        options: [
+          "Small Arm",
+          "Launch System",
+          "Launch System/Artillery",
+          "Launch System/Self-Propelled",
+          "Launch System/Multiple Launch Rocket System (MLRS)",
+          "Munition",
+          "Munition/Cluster",
+          "Munition/Chemical",
+          "Munition/Thermobaric",
+          "Munition/Incendiary"
+        ],
         label: "Weapon",
         pane: :attributes,
         required: false,
@@ -164,7 +224,8 @@ defmodule Platform.Material.Attribute do
         pane: :attributes,
         required: false,
         name: :time_recorded,
-        description: "What time of day was the media recorded? Use the local timezone, if possible.",
+        description:
+          "What time of day was the media recorded? Use the local timezone, if possible."
       },
       %Attribute{
         schema_field: :attr_date_recorded,
@@ -173,8 +234,8 @@ defmodule Platform.Material.Attribute do
         pane: :attributes,
         required: false,
         name: :date_recorded,
-        description: "On what date was the media recorded?",
-      },
+        description: "On what date was the media recorded?"
+      }
     ]
   end
 
@@ -259,18 +320,21 @@ defmodule Platform.Material.Attribute do
       case attribute.type do
         :multi_select ->
           changeset
-            |> validate_subset(attribute.schema_field, options(attribute))
-            |> validate_length(attribute.schema_field,
-              min: attribute.min_length,
-              max: attribute.max_length
-            )
-            |> validate_change(attribute.schema_field, fn _, vals ->
-              if attribute.add_none && Enum.member?(vals, attribute.add_none) && length(vals) > 1 do
-                [{attribute.schema_field, "If '#{attribute.add_none}' is selected, no other options are allowed"}]
-              else
-                []
-              end
-            end)
+          |> validate_subset(attribute.schema_field, options(attribute))
+          |> validate_length(attribute.schema_field,
+            min: attribute.min_length,
+            max: attribute.max_length
+          )
+          |> validate_change(attribute.schema_field, fn _, vals ->
+            if attribute.add_none && Enum.member?(vals, attribute.add_none) && length(vals) > 1 do
+              [
+                {attribute.schema_field,
+                 "If '#{attribute.add_none}' is selected, no other options are allowed"}
+              ]
+            else
+              []
+            end
+          end)
 
         :select ->
           changeset
@@ -287,7 +351,8 @@ defmodule Platform.Material.Attribute do
           changeset
           |> validate_required([:latitude, :longitude])
 
-        _ -> changeset
+        _ ->
+          changeset
       end
 
     if attribute.custom_validation != nil do

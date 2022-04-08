@@ -26,7 +26,7 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
   end
 
   defp inject_attr_field_if_missing(params, %Attribute{} = attr) do
-    Map.put_new(params, attr.schema_field |> Atom.to_string, nil)
+    Map.put_new(params, attr.schema_field |> Atom.to_string(), nil)
   end
 
   def handle_event("save", input, socket) do
