@@ -3,6 +3,7 @@ defmodule Platform.Material.Attribute do
   import Ecto.Changeset
   alias __MODULE__
   alias Platform.Material.Media
+  alias Platform.Accounts.User
 
   defstruct [
     :schema_field,
@@ -16,7 +17,8 @@ defmodule Platform.Material.Attribute do
     :custom_validation,
     :name,
     :description,
-    :add_none
+    :add_none,
+    :required_roles
   ]
 
   defp attributes() do
@@ -235,6 +237,16 @@ defmodule Platform.Material.Attribute do
         required: false,
         name: :date_recorded,
         description: "On what date was the media recorded?"
+      },
+      %Attribute{
+        schema_field: :attr_restrictions,
+        type: :multi_select,
+        label: "Restrictions",
+        pane: :metadata,
+        required: false,
+        name: :restrictions,
+        options: ["No Edits", "Hidden"],
+        required_roles: [:admin]
       }
     ]
   end
@@ -359,6 +371,15 @@ defmodule Platform.Material.Attribute do
       validations |> validate_change(attribute.schema_field, attribute.custom_validation)
     else
       validations
+    end
+  end
+
+  def can_user_edit(%Attribute{} = attribute, %User{} = user) do
+    user_roles = user.roles || []
+
+    case attribute.required_roles do
+      nil -> true
+      roles -> Enum.any?(roles, &Enum.member?(user_roles, &1))
     end
   end
 end

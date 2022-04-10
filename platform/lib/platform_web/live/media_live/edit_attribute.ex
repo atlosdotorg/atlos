@@ -10,7 +10,10 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
      socket
      |> assign(assigns)
      |> assign(:attr, attr)
-     |> assign(:changeset, Material.change_media_attribute(assigns.media, attr))}
+     |> assign(
+       :changeset,
+       Material.change_media_attribute(assigns.media, attr, assigns.current_user)
+     )}
   end
 
   def close(socket) do
@@ -53,7 +56,7 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
 
     changeset =
       socket.assigns.media
-      |> Material.change_media_attribute(socket.assigns.attr, params)
+      |> Material.change_media_attribute(socket.assigns.attr, socket.assigns.current_user, params)
       |> Map.put(:action, :validate)
 
     {:noreply, socket |> assign(:changeset, changeset)}

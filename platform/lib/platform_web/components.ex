@@ -2,6 +2,8 @@ defmodule PlatformWeb.Components do
   use Phoenix.Component
   use Phoenix.HTML
 
+  alias Phoenix.LiveView.JS
+
   alias PlatformWeb.Router.Helpers, as: Routes
   alias Platform.Accounts
   alias Platform.Material.Attribute
@@ -36,7 +38,7 @@ defmodule PlatformWeb.Components do
         <!-- add phx-click-away="close_modal" phx-window-keydown="close_modal" phx-key="Escape" phx-target={@target}, just need to get confirmation warning right -->
         <div class="relative inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-xl sm:w-full sm:p-6">
           <div class="hidden sm:block absolute top-0 right-0 pt-4 pr-4">
-            <button type="button" class="bg-white rounded-md text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" phx-click="close_modal" phx-target={@target} data-confirm={@close_confirmation}>
+            <button type="button" class="bg-white rounded-md text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-urge-500" phx-click="close_modal" phx-target={@target} data-confirm={@close_confirmation}>
               <span class="sr-only">Close</span>
               <!-- Heroicon name: outline/x -->
               <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
@@ -582,6 +584,26 @@ defmodule PlatformWeb.Components do
         <img class="relative z-30 inline-block h-6 w-6 rounded-full ring-2 ring-white" src={Accounts.get_profile_photo_path(user)} alt={"Profile photo for #{user.username}"}>
       <% end %>
     </div>
+    """
+  end
+
+  def dropdown(assigns) do
+    ~H"""
+      <div class="relative inline-block text-left">
+        <div>
+          <button type="button" class="inline-flex justify-center w-full rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-urge-500" phx-click={JS.toggle(to: "##{@id}", in: {"transition ease-out duration-100", "transform opacity-0 scale-95", "transform opacity-100 scale-100"}, out: {"transition ease-in duration-75", "transform opacity-100 scale-100", "transform opacity-0 scale-95"})} id={"#{@id}-button"} aria-haspopup="true">
+            <%= @label %>
+
+            <svg class="-mr-1 ml-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+            </svg>
+          </button>
+        </div>
+
+        <div class="z-10 hidden origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 flex flex-col gap-4 focus:outline-none overflow-hidden" role="menu" aria-orientation="vertical" aria-labelledby={"##{@id}-button"} tabindex="-1" id={"#{@id}"}>
+          <%= render_slot(@inner_block) %>
+        </div>
+      </div>
     """
   end
 end

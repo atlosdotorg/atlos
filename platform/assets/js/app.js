@@ -74,13 +74,13 @@ function initializeMaps() {
         }
 
         let lon = parseFloat(s.getAttribute("lon"));
-        let lat = parseFloat(s.getAttribute("lat"))
+        let lat = parseFloat(s.getAttribute("lat"));
 
         let map = new mapboxgl.Map({
             container: s.id,
             style: 'mapbox://styles/mapbox/satellite-streets-v11',
             center: [lon, lat],
-            zoom: 13
+            zoom: 14
         });
 
         const marker = new mapboxgl.Marker()

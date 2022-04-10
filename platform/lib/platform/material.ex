@@ -285,8 +285,23 @@ defmodule Platform.Material do
     version.file_location
   end
 
-  def change_media_attribute(media, %Attribute{} = attribute, attrs \\ %{}) do
-    Attribute.changeset(media, attribute, attrs)
+  @doc """
+  Changeset for the media attribute. Also checks permissions.
+  """
+  def change_media_attribute(media, %Attribute{} = attribute, %User{} = user, attrs \\ %{}) do
+    changeset = Attribute.changeset(media, attribute, attrs)
+
+    case Attribute.can_user_edit(attribute, user) do
+      true ->
+        changeset
+
+      false ->
+        changeset
+        |> Ecto.Changeset.add_error(
+          attribute.schema_field,
+          "You do not have permission to edit this attribute."
+        )
+    end
   end
 
   def update_media_attribute(media, %Attribute{} = attribute, attrs) do
@@ -295,13 +310,13 @@ defmodule Platform.Material do
     |> Repo.update()
   end
 
-  def update_media_attribute_logged(media, %Attribute{} = attribute, user, attrs) do
-    media_changeset = change_media_attribute(media, attribute, attrs)
+  def update_media_attribute_logged(media, %Attribute{} = attribute, %User{} = user, attrs) do
+    media_changeset = change_media_attribute(media, attribute, user, attrs)
 
     update_changeset =
       Updates.change_from_attribute_changeset(media, attribute, user, media_changeset, attrs)
 
-    # Make sure both changesets are valid before inserting
+    # Make sure both changesets are valid
     cond do
       !(media_changeset.valid? && update_changeset.valid?) ->
         {:error, media_changeset}

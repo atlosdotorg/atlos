@@ -13,9 +13,6 @@ defmodule Platform.Material.Media do
     # Core editable data
     field :description, :string
 
-    # Metadata Attributes
-    field :attr_sensitive, {:array, :string}
-
     # "Normal" Attributes
     field :attr_time_of_day, :string
     field :attr_geolocation, Geo.PostGIS.Geometry
@@ -30,6 +27,10 @@ defmodule Platform.Material.Media do
     field :attr_weapon, {:array, :string}
     field :attr_time_recorded, :time
     field :attr_date_recorded, :date
+
+    # Safety & Access Control Attributes
+    field :attr_restrictions, {:array, :string}
+    field :attr_sensitive, {:array, :string}
 
     # Virtual attributes for updates + multi-part attributes
     field :explanation, :string, virtual: true
