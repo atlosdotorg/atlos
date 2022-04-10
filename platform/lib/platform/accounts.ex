@@ -360,7 +360,7 @@ defmodule Platform.Accounts do
     |> Repo.update()
   end
 
-  def get_profile_photo_path(user) do
+  def get_profile_photo_path(%User{} = user) do
     if byte_size(user.profile_photo_file) > 0 do
       user.profile_photo_file
     else

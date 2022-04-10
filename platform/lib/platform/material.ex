@@ -315,4 +315,9 @@ defmodule Platform.Material do
       [] -> nil
     end
   end
+
+  def contributors(%Media{} = media) do
+    updates = Updates.get_updates_for_media(media)
+    Enum.uniq(updates |> Enum.map(& &1.user))
+  end
 end

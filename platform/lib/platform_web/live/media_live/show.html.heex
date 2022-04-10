@@ -2,7 +2,7 @@
     <div class="lg:flex lg:items-center lg:justify-between">
         <div class="flex-1 min-w-0 max-w-full">
             <h2 class="text-xl font-semibold leading-7 text-gray-900 sm:text-3xl">
-                <%= @media.description %>   
+                <%= @media.description %>
             </h2>
             <div class="mt-1 flex flex-col sm:flex-row sm:flex-wrap sm:mt-0 sm:space-x-6">
             <div class="mt-2 flex items-center text-sm text-gray-500">
@@ -98,7 +98,7 @@
                                 <source src={loc} class="w-full" />
                             </video>
                         <% end %>
-                        
+
                         <div class="space-4 mt-2">
                             <a target="_blank" href={version.source_url} rel="nofollow" class="button original py-1 px-2">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-neutral-500 mr-1" viewBox="0 0 20 20" fill="currentColor">
@@ -140,17 +140,24 @@
                     </dl>
                 </div>
             </.card>
-            <.card>
+            <.card no_pad={true}>
                 <:header>
                     <h3 class="sec-head">Location</h3>
                 </:header>
-                <div class="relative block w-full border-2 border-gray-300 border-dashed rounded-lg p-12 text-center">
-                    <svg class="mx-auto h-12 w-12 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                    <span class="mt-2 block text-sm font-medium text-gray-700">Not yet geolocated</span>
-                </div>
+                <%= if @media.attr_geolocation do %>
+                    <% {lon, lat} = @media.attr_geolocation.coordinates %>
+                    <div phx-update="ignore" class="h-64" id={"#{@media.slug}-geolocation-#{lat}-#{lon}"}>
+                        <map-pin lat={lat} lon={lon} id={"#{@media.slug}-geolocation-map"} />
+                    </div>
+                <%= else %>
+                    <div class="relative block w-full border-2 border-gray-300 border-dashed rounded-lg p-12 text-center">
+                        <svg class="mx-auto h-12 w-12 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                        <span class="mt-2 block text-sm font-medium text-gray-700">Not yet geolocated</span>
+                    </div>
+                <% end %>
             </.card>
         </div>
     </div>

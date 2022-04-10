@@ -4,6 +4,7 @@ defmodule Platform.Material.Media do
   alias Platform.Utils
   alias Platform.Material.Attribute
   alias Platform.Updates.Update
+  alias __MODULE__
 
   schema "media" do
     # Core uneditable data
@@ -37,6 +38,8 @@ defmodule Platform.Material.Media do
 
     # Metadata
     timestamps()
+
+    # Associations
     has_many :versions, Platform.Material.MediaVersion
   end
 
@@ -49,5 +52,16 @@ defmodule Platform.Material.Media do
     # These are special attributes, since we define it at creation time. Eventually, it'd be nice to unify this logic with the attribute-specific editing logic.
     |> Attribute.validate_attribute(Attribute.get_attribute(:sensitive))
     |> Attribute.validate_attribute(Attribute.get_attribute(:description))
+  end
+
+  def attribute_ratio(%Media{} = media) do
+    length(Attribute.set_for_media(media)) / length(Attribute.attribute_names())
+  end
+
+  def is_sensitive(%Media{} = media) do
+    case media.attr_sensitive do
+      ["Not Sensitive"] -> false
+      _ -> true
+    end
   end
 end

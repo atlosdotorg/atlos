@@ -229,7 +229,7 @@
  .ts-wrapper.single .ts-control input {
    cursor: pointer;
  }
- 
+
  .ts-wrapper.plugin-drag_drop.multi > .ts-control > div.ui-sortable-placeholder {
    visibility: visible !important;
    background: #f2f2f2 !important;
@@ -244,11 +244,11 @@
  .ts-wrapper.plugin-drag_drop .ui-sortable-helper {
    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
  }
- 
+
  .plugin-checkbox_options .option input {
    margin-right: 0.5rem;
  }
- 
+
  .plugin-clear_button .ts-control {
    padding-right: calc(1em + (3 * 5px)) !important;
  }
@@ -269,7 +269,7 @@
  .plugin-clear_button:not(.disabled):hover.has-items .clear-button {
    opacity: 1;
  }
- 
+
  .ts-wrapper .dropdown-header {
    position: relative;
    padding: 6px 0.75rem;
@@ -290,7 +290,7 @@
  .ts-wrapper .dropdown-header-close:hover {
    color: black;
  }
- 
+
  .plugin-dropdown_input.focus.dropdown-active .ts-control {
    box-shadow: none;
    border: 1px solid #ced4da;
@@ -310,7 +310,7 @@
    outline: 0;
    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
  }
- 
+
  .ts-wrapper.plugin-input_autogrow.has-items .ts-control > input {
    min-width: 0;
  }
@@ -333,7 +333,7 @@
    > input::placeholder {
    color: transparent;
  }
- 
+
  .ts-dropdown.plugin-optgroup_columns .ts-dropdown-content {
    display: flex;
  }
@@ -353,7 +353,7 @@
  .ts-dropdown.plugin-optgroup_columns .optgroup-header {
    border-top: 0 none;
  }
- 
+
  .ts-wrapper.plugin-remove_button .item {
    display: inline-flex;
    align-items: center;
@@ -388,11 +388,11 @@
    top: 0;
    font-size: 23px;
  }
- 
+
  .ts-wrapper {
    position: relative;
  }
- 
+
  .ts-dropdown,
  .ts-control,
  .ts-control input {
@@ -402,13 +402,13 @@
    line-height: 1.5;
    font-smoothing: inherit;
  }
- 
+
  .ts-control,
  .ts-wrapper.single.input-active .ts-control {
    background: #fff;
    cursor: text;
  }
- 
+
  .ts-control {
    border: 1px solid #ced4da;
    padding: 0.375rem 0.75rem;
@@ -421,7 +421,7 @@
    border-radius: 0.25rem;
    display: flex;
    flex-wrap: wrap;
-  
+
    @apply my-1;
  }
  .ts-wrapper.multi.has-items .ts-control {
@@ -507,7 +507,7 @@
    position: absolute;
    left: -10000px;
  }
- 
+
  .ts-dropdown {
    position: absolute;
    top: 100%;
@@ -593,7 +593,7 @@
      transform: rotate(360deg);
    }
  }
- 
+
  .ts-dropdown-content {
    overflow-y: auto;
    overflow-x: hidden;
@@ -601,12 +601,12 @@
    overflow-scrolling: touch;
    scroll-behavior: smooth;
  }
- 
+
  .ts-wrapper.form-control,
  .ts-wrapper.form-select {
    padding: 0 !important;
  }
- 
+
  .ts-dropdown,
  .ts-dropdown.form-control,
  .ts-dropdown.form-select {
@@ -618,7 +618,7 @@
    border-radius: 0.25rem;
    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.175);
  }
- 
+
  .ts-dropdown .optgroup-header {
    font-size: 0.875rem;
    line-height: 1.5;
@@ -639,11 +639,11 @@
  .ts-dropdown .create {
    padding-left: 0.75rem;
  }
- 
+
  .ts-dropdown-content {
    padding: 5px 0;
  }
- 
+
  .ts-control {
    min-height: calc(1.5em + 0.75rem + 2px);
    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
@@ -667,7 +667,7 @@
    display: flex;
    align-items: center;
  }
- 
+
  .is-invalid .ts-control,
  .was-validated .invalid .ts-control {
    border-color: #dc3545;
@@ -677,7 +677,7 @@
    border-color: #bd2130;
    box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.25);
  }
- 
+
  .is-valid .ts-control {
    border-color: #198754;
  }
@@ -685,7 +685,7 @@
    border-color: #198754;
    box-shadow: 0 0 0 0.25rem rgba(25, 135, 84, 0.25);
  }
- 
+
  .input-group-sm > .ts-wrapper .ts-control,
  .ts-wrapper.form-select-sm .ts-control,
  .ts-wrapper.form-control-sm .ts-control {
@@ -722,7 +722,7 @@
    border-radius: 0.3rem;
    font-size: 1.25rem;
  }
- 
+
  .ts-wrapper:not(.form-select) {
    padding: 0;
    border: none;
@@ -737,7 +737,7 @@
    background-size: 16px 12px;
    padding-right: 2rem;
  }
- 
+
  .ts-wrapper.form-select {
    padding: 0;
    height: auto;
@@ -748,7 +748,7 @@
    border: none !important;
    background: transparent !important;
  }
- 
+
  .input-group > .ts-wrapper {
    flex-grow: 1;
  }
@@ -761,4 +761,3 @@
    border-bottom-right-radius: 0;
  }
  /*# sourceMappingURL=tom-select.bootstrap5.css.map */
- 

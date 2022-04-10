@@ -9,7 +9,6 @@ defmodule PlatformWeb.Components do
   alias Platform.Material
 
   def navlink(%{request_path: path, to: to} = assigns) do
-    # TODO(miles): check for active tab
     classes =
       if String.starts_with?(path, to) and !String.equivalent?(path, "/") do
         "bg-neutral-800 text-white group w-full p-3 rounded-md flex flex-col items-center text-xs font-medium"
@@ -56,6 +55,7 @@ defmodule PlatformWeb.Components do
     assigns =
       assigns
       |> assign_new(:header, fn -> [] end)
+      |> assign_new(:no_pad, fn -> false end)
 
     ~H"""
     <div class="bg-white overflow-hidden shadow rounded-lg divide-y divide-gray-200">
@@ -64,7 +64,7 @@ defmodule PlatformWeb.Components do
         <%= render_slot(@header) %>
       </div>
       <% end %>
-      <div class="py-4 px-5 sm:py-5">
+      <div class={if @no_pad, do: "", else: "py-4 px-5 sm:py-5"}>
         <%= render_slot(@inner_block) %>
       </div>
     </div>
@@ -224,7 +224,7 @@ defmodule PlatformWeb.Components do
   end
 
   defp naive_pluralise(amt, word) when amt == 1, do: word
-  defp naive_pluralise(amt, word), do: word <> "s"
+  defp naive_pluralise(_amt, word), do: word <> "s"
 
   defp time_ago_in_words(seconds) when seconds < 60 do
     "just now"
@@ -259,12 +259,12 @@ defmodule PlatformWeb.Components do
 
   def location(%{lat: lat, lon: lon} = assigns) do
     ~H"""
-    <%= @lon %>, <%= @lat %> &nearr;
+    <%= lon %>, <%= lat %> &nearr;
     """
   end
 
   def attr_entry(%{name: name, value: value} = assigns) do
-    attr = Attribute.get_attribute(assigns.name)
+    attr = Attribute.get_attribute(name)
 
     ~H"""
     <span class="inline-flex flex-wrap gap-1">
@@ -356,7 +356,6 @@ defmodule PlatformWeb.Components do
                 - <%= item %>
               </span>
             <% end %>
-          <% :eq -> %>
         <% end %>
       <% end %>
     </span>
@@ -371,31 +370,31 @@ defmodule PlatformWeb.Components do
           <a class="chip ~yellow inline-flex text-xs" target="_blank" href={"https://maps.google.com/maps?q=#{lat},#{lon}"}>
             - <.location lat={lat} lon={lon} />
           </a>
-        <% x -> %>
+        <% _x -> %>
       <% end %>
       <%= case new do %>
         <% %{"coordinates" => [lon, lat]} -> %>
           <a class="chip ~blue inline-flex text-xs" target="_blank" href={"https://maps.google.com/maps?q=#{lat},#{lon}"}>
             + <.location lat={lat} lon={lon} />
           </a>
-        <% x -> %>
+        <% _x -> %>
       <% end %>
     </span>
     """
   end
 
   def attr_diff(%{name: name, old: old, new: new} = assigns) do
-    attr = Attribute.get_attribute(assigns.name)
+    attr = Attribute.get_attribute(name)
 
     ~H"""
     <span>
       <%= case attr.type do %>
-        <% :text -> %> <.text_diff old={@old} new={@new} />
-        <% :select -> %> <.list_diff old={[@old]} new={[@new]} />
-        <% :multi_select -> %> <.list_diff old={@old} new={@new} />
-        <% :location -> %> <.location_diff old={@old} new={@new} />
-        <% :time -> %> <.list_diff old={[@old]} new={[@new]} />
-        <% :date -> %> <.list_diff old={[@old]} new={[@new]} />
+        <% :text -> %> <.text_diff old={old} new={new} />
+        <% :select -> %> <.list_diff old={[old]} new={[new]} />
+        <% :multi_select -> %> <.list_diff old={old} new={new} />
+        <% :location -> %> <.location_diff old={old} new={new} />
+        <% :time -> %> <.list_diff old={[old]} new={[new]} />
+        <% :date -> %> <.list_diff old={[old]} new={[new]} />
       <% end %>
     </span>
     """
@@ -405,7 +404,7 @@ defmodule PlatformWeb.Components do
     ~H"""
     <div class="flow-root">
       <ul role="list" class="-mb-8">
-        <%= for update <- @updates do %>
+        <%= for update <- updates do %>
         <li>
           <div class="relative pb-8">
             <span class="absolute top-5 left-5 -ml-px h-full w-0.5 bg-gray-200" aria-hidden="true"></span>
@@ -465,19 +464,101 @@ defmodule PlatformWeb.Components do
 
   def media_card(%{media: %Media{} = media} = assigns) do
     # TODO: use live_redirect
+    # TODO: preload
+    contributors = Material.contributors(media)
+    ratio = Media.attribute_ratio(media)
+    sensitive = Media.is_sensitive(media)
+
     ~H"""
-      <a class="flex flex-col items-center md:flex-row bg-white overflow-hidden shadow rounded-lg justify-between" href={"/media/#{media.slug}"}>
-        <div class="h-full p-2">
-          <p class="font-mono text-sm text-gray-500"><%= media.slug %></p>
-          <p class="font-medium font-md"><%= media.description %></p>
+      <a class="flex group flex-col items-center md:flex-row bg-white overflow-hidden shadow rounded-lg justify-between" href={"/media/#{media.slug}"}>
+        <div class="h-full p-2 flex flex-col w-full md:w-3/4 gap-2">
+          <section>
+            <p class="font-mono text-xs text-gray-500"><%= media.slug %></p>
+            <p class="font-medium text-gray-700 group-hover:text-gray-900"><%= media.description %></p>
+          </section>
+          <section class="flex flex-wrap gap-1 self-start align-top">
+            <%= if sensitive do %>
+              <%= for item <- media.attr_sensitive do %>
+                <span class="badge ~warning">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-px" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M20.618 5.984A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016zM12 9v2m0 4h.01" />
+                  </svg>
+
+                  <%= item %>
+                </span>
+              <% end %>
+            <% end %>
+
+            <%= if media.attr_geolocation do %>
+              <span class="badge ~info">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-px" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
+                </svg>
+
+                Geolocated
+              </span>
+            <% end %>
+
+            <%= if media.attr_date_recorded do %>
+              <span class="badge ~info">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-px" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" />
+                </svg>
+
+                Chronolocated
+              </span>
+            <% end %>
+
+            <span class="badge ~neutral">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-px" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+              </svg>
+
+              <%= cond do %>
+                <% ratio < 0.3 -> %> Low
+                <% ratio < 0.6 -> %> Medium
+                <% ratio < 1 -> %> High
+                <% true -> %> Complete
+              <% end %>
+
+              (<%= length(Attribute.set_for_media(media)) %>/<%= length(Attribute.attribute_names()) %>)
+            </span>
+          </section>
+          <section class="flex-grow" />
+          <section class="flex gap-2 justify-between items-center">
+            <.user_stack users={contributors} />
+            <p class="text-xs text-gray-500 flex items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-px text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" />
+              </svg>
+              <.rel_time time={media.updated_at} />
+            </p>
+          </section>
         </div>
 
         <% thumb = Material.media_thumbnail(media) %>
-        <% IO.inspect(thumb) %>
-        <%= if thumb do %>
-          <img class="sr-hide object-cover h-full rounded-t-lg md:w-32 md:rounded-none md:rounded-r-lg" src={thumb}>
-        <% end %>
+        <div class="hidden md:block h-full md:w-1/4">
+          <%= if thumb do %>
+            <img class="sr-hide object-cover h-full w-full rounded-t-lg md:rounded-none md:rounded-r-lg" src={thumb}>
+          <% else %>
+            <div class="bg-gray-200 flex items-center justify-around h-full w-full rounded-t-lg md:rounded-none md:rounded-r-lg text-gray-500">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+          <% end %>
+        </div>
       </a>
+    """
+  end
+
+  def user_stack(assigns) do
+    ~H"""
+    <div class="flex -space-x-1 relative z-0 overflow-hidden">
+      <%= for user <- @users do %>
+        <img class="relative z-30 inline-block h-6 w-6 rounded-full ring-2 ring-white" src={Accounts.get_profile_photo_path(user)} alt={"Profile photo for #{user.username}"}>
+      <% end %>
+    </div>
     """
   end
 end

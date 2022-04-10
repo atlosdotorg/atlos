@@ -22,6 +22,9 @@ import TomSelect from "../node_modules/tom-select/dist/js/tom-select.complete"
 import { Socket } from "phoenix"
 import { LiveSocket } from "phoenix_live_view"
 import topbar from "../vendor/topbar"
+import mapboxgl from 'mapbox-gl'
+
+mapboxgl.accessToken = 'pk.eyJ1IjoibWlsZXNtY2MiLCJhIjoiY2t6ZzdzZmY0MDRobjJvbXBydWVmaXBpNSJ9.-aHM8bjOOsSrGI0VvZenAQ';
 
 let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 let liveSocket = new LiveSocket("/live", Socket, { params: { _csrf_token: csrfToken } })
@@ -64,5 +67,32 @@ function initializeMultiSelects() {
     });
 }
 
+function initializeMaps() {
+    document.querySelectorAll("map-pin").forEach(s => {
+        if (s.classList.contains("mapboxgl-map")) {
+            return;
+        }
+
+        let lon = parseFloat(s.getAttribute("lon"));
+        let lat = parseFloat(s.getAttribute("lat"))
+
+        let map = new mapboxgl.Map({
+            container: s.id,
+            style: 'mapbox://styles/mapbox/satellite-streets-v11',
+            center: [lon, lat],
+            zoom: 13
+        });
+
+        const marker = new mapboxgl.Marker()
+            .setLngLat([lon, lat])
+            .addTo(map);
+
+        console.log(map);
+    })
+}
+
 document.addEventListener("phx:update", initializeMultiSelects);
 document.addEventListener("load", initializeMultiSelects);
+
+document.addEventListener("phx:update", initializeMaps);
+document.addEventListener("load", initializeMaps);
