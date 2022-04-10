@@ -223,8 +223,8 @@ defmodule PlatformWeb.Components do
     """
   end
 
-  defp naive_pluralise(amt, word) when amt == 1, do: word
-  defp naive_pluralise(_amt, word), do: word <> "s"
+  def naive_pluralise(amt, word) when amt == 1, do: word
+  def naive_pluralise(_amt, word), do: word <> "s"
 
   defp time_ago_in_words(seconds) when seconds < 60 do
     "just now"
@@ -293,7 +293,7 @@ defmodule PlatformWeb.Components do
     <span class="inline-flex flex-wrap gap-1">
       <%= case attr.type do %>
       <% :text -> %>
-        <div class="inline-block">
+        <div class="inline-block my-1">
           <%= value %>
         </div>
       <% :select -> %>

@@ -41,6 +41,7 @@ defmodule Platform.Material.Media do
 
     # Associations
     has_many :versions, Platform.Material.MediaVersion
+    has_many :updates, Platform.Updates.Update
   end
 
   @doc false

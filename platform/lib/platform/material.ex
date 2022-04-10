@@ -24,11 +24,16 @@ defmodule Platform.Material do
 
   """
   def list_media do
-    Media |> preload_media_versions() |> Repo.all()
+    Media |> preload_media_versions() |> preload_media_updates() |> Repo.all()
   end
 
   defp preload_media_versions(query) do
     query |> preload([:versions])
+  end
+
+  defp preload_media_updates(query) do
+    # TODO: should this be pulled into the Updates context somehow?
+    query |> preload(updates: [:user, :media])
   end
 
   @doc """
@@ -91,7 +96,7 @@ defmodule Platform.Material do
   end
 
   def get_full_media_by_slug(slug) do
-    Media |> preload_media_versions() |> Repo.get_by(slug: slug)
+    Media |> preload_media_versions() |> preload_media_updates() |> Repo.get_by(slug: slug)
   end
 
   @doc """
@@ -317,7 +322,6 @@ defmodule Platform.Material do
   end
 
   def contributors(%Media{} = media) do
-    updates = Updates.get_updates_for_media(media)
-    Enum.uniq(updates |> Enum.map(& &1.user))
+    Enum.uniq(media.updates |> Enum.map(& &1.user))
   end
 end

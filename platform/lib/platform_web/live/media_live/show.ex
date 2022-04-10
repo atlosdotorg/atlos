@@ -19,7 +19,7 @@ defmodule PlatformWeb.MediaLive.Show do
 
   defp assign_media_and_updates(socket) do
     with %Material.Media{} = media <- Material.get_full_media_by_slug(socket.assigns.slug) do
-      socket |> assign(:media, media) |> assign(:updates, Updates.get_updates_for_media(media))
+      socket |> assign(:media, media) |> assign(:updates, media.updates)
     else
       nil ->
         socket
