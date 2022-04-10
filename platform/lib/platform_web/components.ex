@@ -252,9 +252,32 @@ defmodule PlatformWeb.Components do
   end
 
   def rel_time(%{time: time} = assigns) do
-    ~H"""
-      <span title={@time}><%= time |> seconds_ago() |> time_ago_in_words() %></span>
-    """
+    ago = time |> seconds_ago()
+
+    months = %{
+      1 => "Jan",
+      2 => "Feb",
+      3 => "Mar",
+      4 => "Apr",
+      5 => "May",
+      6 => "Jun",
+      7 => "Jul",
+      8 => "Aug",
+      9 => "Sep",
+      10 => "Oct",
+      11 => "Nov",
+      12 => "Dec"
+    }
+
+    if ago > 7 * 24 * 60 * 60 do
+      ~H"""
+        <span title={@time}><%= months[@time.month] %> <%= @time.day %> <%= @time.year %></span>
+      """
+    else
+      ~H"""
+        <span title={@time}><%= ago |> time_ago_in_words() %></span>
+      """
+    end
   end
 
   def location(%{lat: lat, lon: lon} = assigns) do
