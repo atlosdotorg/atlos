@@ -203,6 +203,9 @@
   }
 }
 
+.mapboxgl-ctrl-bottom-left {
+  bottom: unset !important;
+}
 
 /**
  * Tom Select bootstrap 5
