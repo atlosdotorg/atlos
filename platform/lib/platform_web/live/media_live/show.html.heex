@@ -53,7 +53,7 @@
                                         <.attr_entry name={attr.name} value={Map.get(@media, attr.schema_field)} />
                                     </span>
                                     <span class="ml-4 flex-shrink-0">
-                                        <%= if Attribute.user_can_edit(attr, @current_user) do %>
+                                        <%= if Attribute.can_user_edit(attr, @current_user) do %>
                                             <%= live_patch "Update", class: "text-button mt-1 inline-block", to: Routes.media_show_path(@socket, :edit, @media.slug, attr.name) %>
                                         <% end %>
                                     </span>
@@ -78,7 +78,7 @@
                 <:header>
                     <h3 class="sec-head">Feed</h3>
                 </:header>
-                <.update_stream updates={@updates} socket={@socket} />
+                <.update_stream updates={@updates} socket={@socket} current_user={@current_user} />
                 <hr class="sep h-2">
                 <.live_component
                     module={PlatformWeb.MediaLive.CommentBox}

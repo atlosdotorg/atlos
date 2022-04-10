@@ -444,8 +444,14 @@ defmodule PlatformWeb.Components do
                     <%= case update.type do %>
                       <% :update_attribute -> %>
                         updated
-                        <%= live_patch class: "text-button text-gray-800 inline-block", to: Routes.media_show_path(@socket, :edit, update.media.slug, update.modified_attribute) do %>
-                          <%= Attribute.get_attribute(update.modified_attribute).label %>
+                        <%= if Attribute.can_user_edit(Attribute.get_attribute(update.modified_attribute), @current_user) do %>
+                          <%= live_patch class: "text-button text-gray-800 inline-block", to: Routes.media_show_path(@socket, :edit, update.media.slug, update.modified_attribute) do %>
+                            <%= Attribute.get_attribute(update.modified_attribute).label %>
+                          <% end %>
+                        <% else %>
+                          <p class="font-medium text-gray-800 inline-block">
+                            <%= Attribute.get_attribute(update.modified_attribute).label %>
+                          </p>
                         <% end %>
                       <% :create -> %>
                         added <span class="font-medium text-gray-900"><%= update.media.slug %></span>
