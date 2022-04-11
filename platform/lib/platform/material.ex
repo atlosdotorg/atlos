@@ -11,7 +11,6 @@ defmodule Platform.Material do
   alias Platform.Material.MediaVersion
   alias Platform.Utils
   alias Platform.Updates
-  alias Platform.Updates.Update
   alias Platform.Accounts.User
 
   @doc """
@@ -70,7 +69,7 @@ defmodule Platform.Material do
     |> Repo.insert()
   end
 
-  def create_media_logged(%User{} = user, attrs \\ %{}) do
+  def create_media_audited(%User{} = user, attrs \\ %{}) do
     changeset =
       %Media{}
       |> Media.changeset(attrs)
@@ -310,7 +309,7 @@ defmodule Platform.Material do
     |> Repo.update()
   end
 
-  def update_media_attribute_logged(media, %Attribute{} = attribute, %User{} = user, attrs) do
+  def update_media_attribute_audited(media, %Attribute{} = attribute, %User{} = user, attrs) do
     media_changeset = change_media_attribute(media, attribute, user, attrs)
 
     update_changeset =

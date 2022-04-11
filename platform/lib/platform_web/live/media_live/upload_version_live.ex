@@ -49,10 +49,6 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
     {:ok, to_path}
   end
 
-  defp assign_error(socket, error) do
-    socket |> assign(:error, error)
-  end
-
   defp clear_error(socket) do
     socket |> assign(:error, nil)
   end

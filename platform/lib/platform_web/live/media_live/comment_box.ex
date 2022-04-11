@@ -1,7 +1,5 @@
 defmodule PlatformWeb.MediaLive.CommentBox do
   use PlatformWeb, :live_component
-  alias Platform.Material
-  alias Material.Attribute
   alias Platform.Accounts
   alias Platform.Updates
 
@@ -20,12 +18,12 @@ defmodule PlatformWeb.MediaLive.CommentBox do
     )
   end
 
-  def handle_event("save", %{"update" => params} = input, socket) do
+  def handle_event("save", %{"update" => params} = _input, socket) do
     changeset =
       Updates.change_from_comment(socket.assigns.media, socket.assigns.current_user, params)
 
     case Updates.create_update_from_changeset(changeset) do
-      {:ok, update} ->
+      {:ok, _update} ->
         {:noreply,
          socket
          |> put_flash(:info, "Your comment has been posted.")
@@ -37,7 +35,7 @@ defmodule PlatformWeb.MediaLive.CommentBox do
     end
   end
 
-  def handle_event("validate", %{"update" => params} = input, socket) do
+  def handle_event("validate", %{"update" => params} = _input, socket) do
     changeset =
       Updates.change_from_comment(socket.assigns.media, socket.assigns.current_user, params)
       |> Map.put(:action, :validate)

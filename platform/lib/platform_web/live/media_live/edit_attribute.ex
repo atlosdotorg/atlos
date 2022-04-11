@@ -24,25 +24,25 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
     map_size(changeset.changes) > 0
   end
 
-  def handle_event("close_modal", _, socket) do
-    {:noreply, close(socket)}
-  end
-
   defp inject_attr_field_if_missing(params, %Attribute{} = attr) do
     Map.put_new(params, attr.schema_field |> Atom.to_string(), nil)
+  end
+
+  def handle_event("close_modal", _, socket) do
+    {:noreply, close(socket)}
   end
 
   def handle_event("save", input, socket) do
     # To allow empty strings, lists, etc.
     params = Map.get(input, "media", %{}) |> inject_attr_field_if_missing(socket.assigns.attr)
 
-    case Material.update_media_attribute_logged(
+    case Material.update_media_attribute_audited(
            socket.assigns.media,
            socket.assigns.attr,
            socket.assigns.current_user,
            params
          ) do
-      {:ok, media} ->
+      {:ok, _media} ->
         {:noreply, socket |> put_flash(:info, "Your update has been saved.") |> close()}
 
       {:error, %Ecto.Changeset{} = changeset} ->

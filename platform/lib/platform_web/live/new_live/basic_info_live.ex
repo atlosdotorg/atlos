@@ -24,7 +24,7 @@ defmodule PlatformWeb.NewLive.BasicInfoLive do
   end
 
   def handle_event("save", %{"media" => media_params}, socket) do
-    case Material.create_media_logged(socket.assigns.current_user, media_params) do
+    case Material.create_media_audited(socket.assigns.current_user, media_params) do
       {:ok, media} ->
         send(self(), {:media_created, media})
         {:noreply, socket |> assign(:disabled, true)}

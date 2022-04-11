@@ -1,6 +1,5 @@
 defmodule PlatformWeb.NewLive do
   use PlatformWeb, :live_view
-  alias PlatformWeb.MediaLive
 
   def mount(_params, _session, socket) do
     {:ok, socket |> assign(:stage, "Basic info")}

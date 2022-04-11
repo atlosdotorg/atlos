@@ -1,7 +1,6 @@
 defmodule Platform.Updates.Update do
   use Ecto.Schema
   import Ecto.Changeset
-  alias Platform.Material.Media
   alias Platform.Material.Attribute
 
   schema "updates" do

@@ -62,7 +62,7 @@ defmodule PlatformWeb.SettingsLive.ProfileComponent do
     end
   end
 
-  defp upload_static_file(%{path: path}, socket) do
+  defp upload_static_file(%{path: path}, _socket) do
     Utils.upload_ugc_file(path)
   end
 

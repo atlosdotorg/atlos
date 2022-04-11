@@ -169,7 +169,7 @@ defmodule Platform.Updates do
   def change_from_media_version_upload(
         %Media{} = media,
         %User{} = user,
-        %MediaVersion{} = version
+        %MediaVersion{} = _version
       ) do
     change_update(%Update{}, %{
       "user_id" => user.id,

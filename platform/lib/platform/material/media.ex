@@ -3,7 +3,6 @@ defmodule Platform.Material.Media do
   import Ecto.Changeset
   alias Platform.Utils
   alias Platform.Material.Attribute
-  alias Platform.Updates.Update
   alias __MODULE__
 
   schema "media" do
