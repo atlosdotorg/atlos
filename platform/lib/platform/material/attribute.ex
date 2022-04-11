@@ -368,10 +368,17 @@ defmodule Platform.Material.Attribute do
           changeset
       end
 
-    if attribute.custom_validation != nil do
-      validations |> validate_change(attribute.schema_field, attribute.custom_validation)
+    custom =
+      if attribute.custom_validation != nil do
+        validations |> validate_change(attribute.schema_field, attribute.custom_validation)
+      else
+        validations
+      end
+
+    if attribute.required do
+      custom |> validate_required([attribute.schema_field])
     else
-      validations
+      custom
     end
   end
 
