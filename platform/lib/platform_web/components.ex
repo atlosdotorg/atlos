@@ -444,7 +444,7 @@ defmodule PlatformWeb.Components do
                     <%= case update.type do %>
                       <% :update_attribute -> %>
                         updated
-                        <%= if Attribute.can_user_edit(Attribute.get_attribute(update.modified_attribute), @current_user) do %>
+                        <%= if Attribute.can_user_edit(Attribute.get_attribute(update.modified_attribute), @current_user, update.media) do %>
                           <%= live_patch class: "text-button text-gray-800 inline-block", to: Routes.media_show_path(@socket, :edit, update.media.slug, update.modified_attribute) do %>
                             <%= Attribute.get_attribute(update.modified_attribute).label %>
                           <% end %>
@@ -509,7 +509,7 @@ defmodule PlatformWeb.Components do
           </section>
           <section class="flex flex-wrap gap-1 self-start align-top">
             <%= if sensitive do %>
-              <%= for item <- media.attr_sensitive do %>
+              <%= for item <- media.attr_sensitive || [] do %>
                 <span class="badge ~warning">
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-px" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M20.618 5.984A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016zM12 9v2m0 4h.01" />
@@ -552,7 +552,7 @@ defmodule PlatformWeb.Components do
                 <% true -> %> Complete
               <% end %>
 
-              (<%= length(Attribute.set_for_media(media)) %>/<%= length(Attribute.attribute_names()) %>)
+              (<%= length(Attribute.set_for_media(media)) %>)
             </span>
           </section>
           <section class="flex-grow" />

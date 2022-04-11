@@ -38,6 +38,11 @@
     </div>
     <div class="grid lg:grid-cols-3 gap-8 mt-8">
         <div class="lg:col-span-2 space-y-8">
+            <%= if Media.has_restrictions(@media) do %>
+                <aside class="aside ~warning text-sm">
+                    <strong>This media has been restricted.</strong> As a result, you may not be able to edit or update it.
+                </aside>
+            <% end %>
             <.card>
                 <:header>
                     <h3 class="sec-head">Attributes</h3>
@@ -53,14 +58,14 @@
                                         <.attr_entry name={attr.name} value={Map.get(@media, attr.schema_field)} />
                                     </span>
                                     <span class="ml-4 flex-shrink-0">
-                                        <%= if Attribute.can_user_edit(attr, @current_user) do %>
+                                        <%= if Attribute.can_user_edit(attr, @current_user, @media) do %>
                                             <%= live_patch "Update", class: "text-button mt-1 inline-block", to: Routes.media_show_path(@socket, :edit, @media.slug, attr.name) %>
                                         <% end %>
                                     </span>
                                 </dd>
                             </div>
                         <% end %>
-                        <% unset = Attribute.unset_for_media(@media, :attributes) |> Enum.filter(&(Attribute.can_user_edit(&1, @current_user))) %>
+                        <% unset = Attribute.unset_for_media(@media, :attributes) |> filter_editable(@media, @current_user) %>
                         <%= if length(unset) > 0 do %>
                             <div class="py-2 sm:grid sm:grid-cols-3 sm:gap-4 -mb-2">
                                 <dt class="text-sm font-medium text-gray-500 mt-1">Unset Attributes</dt>
@@ -79,13 +84,15 @@
                     <h3 class="sec-head">Feed</h3>
                 </:header>
                 <.update_stream updates={@updates} socket={@socket} current_user={@current_user} />
-                <hr class="sep h-2">
-                <.live_component
-                    module={PlatformWeb.MediaLive.CommentBox}
-                    id="comment-box"
-                    media={@media}
-                    current_user={@current_user}
-                />
+                <%= if Media.can_user_edit(@media, @current_user) || true do %>
+                    <hr class="sep h-2">
+                    <.live_component
+                        module={PlatformWeb.MediaLive.CommentBox}
+                        id="comment-box"
+                        media={@media}
+                        current_user={@current_user}
+                    />
+                <% end %>
             </.card>
         </div>
         <div class="space-y-8">
@@ -139,14 +146,14 @@
                                         <.attr_entry name={attr.name} value={Map.get(@media, attr.schema_field)} />
                                     </span>
                                     <span class="ml-4 flex-shrink-0">
-                                        <%= if Attribute.can_user_edit(attr, @current_user) do %>
+                                        <%= if Attribute.can_user_edit(attr, @current_user, @media) do %>
                                             <%= live_patch "Update", class: "text-button mt-1 inline-block", to: Routes.media_show_path(@socket, :edit, @media.slug, attr.name) %>
                                         <% end %>
                                     </span>
                                 </dd>
                             </div>
                         <% end %>
-                        <% unset = Attribute.unset_for_media(@media, :metadata) |> Enum.filter(&(Attribute.can_user_edit(&1, @current_user))) %>
+                        <% unset = Attribute.unset_for_media(@media, :metadata) |> filter_editable(@media, @current_user) %>
                         <%= if length(unset) > 0 do %>
                             <div class="py-2 sm:grid sm:grid-cols-3 sm:gap-4 -mb-2">
                                 <dt class="text-sm font-medium text-gray-500 mt-1">Unset</dt>

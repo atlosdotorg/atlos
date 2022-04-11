@@ -110,8 +110,8 @@ defmodule Platform.Updates do
       %Ecto.Changeset{data: %Update{}}
 
   """
-  def change_update(%Update{} = update, attrs \\ %{}) do
-    Update.changeset(update, attrs)
+  def change_update(%Update{} = update, %Media{} = media, %User{} = user, attrs \\ %{}) do
+    Update.changeset(update, attrs, user, media)
   end
 
   @doc """
@@ -129,11 +129,11 @@ defmodule Platform.Updates do
 
     change_update(
       %Update{},
+      media,
+      user,
       attrs
       |> Map.put("old_value", old_value)
       |> Map.put("new_value", new_value)
-      |> Map.put("media_id", media.id)
-      |> Map.put("user_id", user.id)
       |> Map.put("modified_attribute", attribute.name)
       |> Map.put("type", :update_attribute)
     )
@@ -145,9 +145,9 @@ defmodule Platform.Updates do
   def change_from_comment(%Media{} = media, %User{} = user, attrs \\ %{}) do
     change_update(
       %Update{},
+      media,
+      user,
       attrs
-      |> Map.put("media_id", media.id)
-      |> Map.put("user_id", user.id)
       |> Map.put("type", :comment)
     )
   end
@@ -156,11 +156,14 @@ defmodule Platform.Updates do
   Helper API function that takes attribute change information and uses it to create an Update changeset. Requires 'explanation' to be in attrs.
   """
   def change_from_media_creation(%Media{} = media, %User{} = user) do
-    change_update(%Update{}, %{
-      "user_id" => user.id,
-      "type" => :create,
-      "media_id" => media.id
-    })
+    change_update(
+      %Update{},
+      media,
+      user,
+      %{
+        "type" => :create
+      }
+    )
   end
 
   @doc """
@@ -171,12 +174,15 @@ defmodule Platform.Updates do
         %User{} = user,
         %MediaVersion{} = _version
       ) do
-    change_update(%Update{}, %{
-      "user_id" => user.id,
-      "type" => :upload_version,
-      "media_id" => media.id
-      # TODO
-    })
+    change_update(
+      %Update{},
+      media,
+      user,
+      %{
+        "type" => :upload_version
+        # TODO
+      }
+    )
   end
 
   @doc """

@@ -368,4 +368,13 @@ defmodule Platform.Accounts do
       "/images/default_profile.jpg"
     end
   end
+
+  def change_user_access(user, attrs \\ %{}) do
+    User.access_changeset(user, attrs)
+  end
+
+  def update_user_access(user, attrs) do
+    change_user_access(user, attrs)
+    |> Repo.update()
+  end
 end

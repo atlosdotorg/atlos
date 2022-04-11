@@ -2,6 +2,8 @@ defmodule Platform.Updates.Update do
   use Ecto.Schema
   import Ecto.Changeset
   alias Platform.Material.Attribute
+  alias Platform.Material.Media
+  alias Platform.Accounts.User
 
   schema "updates" do
     field :explanation, :string
@@ -23,9 +25,14 @@ defmodule Platform.Updates.Update do
   end
 
   @doc false
-  def changeset(update, attrs) do
+  def changeset(update, attrs, %User{} = user, %Media{} = media) do
+    hydrated_attrs =
+      attrs
+      |> Map.put("user_id", user.id)
+      |> Map.put("media_id", media.id)
+
     update
-    |> cast(attrs, [
+    |> cast(hydrated_attrs, [
       :explanation,
       :old_value,
       :new_value,
@@ -38,13 +45,25 @@ defmodule Platform.Updates.Update do
     |> validate_required([:old_value, :new_value, :type, :user_id, :media_id])
     |> validate_explanation()
     |> validate_inclusion(:modified_attribute, Attribute.attribute_names())
+    |> validate_access(user, media)
 
     # TODO: also validate that if type == :comment, then explanation is not empty
   end
 
+  def validate_access(changeset, %User{} = user, %Media{} = media) do
+    if Media.can_user_edit(media, user) do
+      changeset
+    else
+      changeset
+      |> Ecto.Changeset.add_error(
+        :media_id,
+        "You do not have permission to update or comment on this media"
+      )
+    end
+  end
+
   def validate_explanation(update) do
     update
-    # Don't worry --- the longest comments will be truncated
-    |> validate_length(:explanation, min: 0, max: 5_000_000)
+    |> validate_length(:explanation, min: 0, max: 2500)
   end
 end

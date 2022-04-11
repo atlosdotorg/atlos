@@ -3,6 +3,7 @@ defmodule Platform.Material.Media do
   import Ecto.Changeset
   alias Platform.Utils
   alias Platform.Material.Attribute
+  alias Platform.Accounts.User
   alias __MODULE__
 
   schema "media" do
@@ -64,5 +65,45 @@ defmodule Platform.Material.Media do
       ["Not Sensitive"] -> false
       _ -> true
     end
+  end
+
+  @doc """
+  Can the user view the media? Currently this is true for all media *except* media for which the "Hidden" restriction is present and the user is not an admin.
+  """
+  def can_user_view(%Media{} = media, %User{} = user) do
+    case media.attr_restrictions do
+      nil ->
+        true
+
+      values ->
+        # Restrictions are present.
+        if Enum.member?(values, "Hidden") do
+          Enum.member?(user.roles || [], :admin)
+        else
+          true
+        end
+    end
+  end
+
+  @doc """
+  Can the given user edit the media? This includes uploading new media versions as well as editing attributes.
+  """
+  def can_user_edit(%Media{} = media, %User{} = user) do
+    case media.attr_restrictions do
+      nil ->
+        true
+
+      values ->
+        # Restrictions are present.
+        if Enum.member?(values, "Hidden") || Enum.member?(values, "No Edits") do
+          Enum.member?(user.roles || [], :admin)
+        else
+          true
+        end
+    end
+  end
+
+  def has_restrictions(%Media{} = media) do
+    length(media.attr_restrictions || []) > 0
   end
 end

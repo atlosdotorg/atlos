@@ -287,19 +287,22 @@ defmodule Platform.Material do
   @doc """
   Changeset for the media attribute. Also checks permissions.
   """
-  def change_media_attribute(media, %Attribute{} = attribute, %User{} = user, attrs \\ %{}) do
+  def change_media_attribute(
+        %Media{} = media,
+        %Attribute{} = attribute,
+        %User{} = user,
+        attrs \\ %{}
+      ) do
     changeset = Attribute.changeset(media, attribute, attrs)
 
-    case Attribute.can_user_edit(attribute, user) do
-      true ->
-        changeset
-
-      false ->
-        changeset
-        |> Ecto.Changeset.add_error(
-          attribute.schema_field,
-          "You do not have permission to edit this attribute."
-        )
+    if Attribute.can_user_edit(attribute, user, media) do
+      changeset
+    else
+      changeset
+      |> Ecto.Changeset.add_error(
+        attribute.schema_field,
+        "You do not have permission to edit this attribute."
+      )
     end
   end
 

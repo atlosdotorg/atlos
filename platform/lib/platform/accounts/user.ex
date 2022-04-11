@@ -6,6 +6,7 @@ defmodule Platform.Accounts.User do
     field :email, :string
     field :username, :string
     field :roles, {:array, Ecto.Enum}, values: [:coordinator, :trusted, :admin]
+    field :restrictions, {:array, Ecto.Enum}, values: [:banned, :muted]
     field :bio, :string, nullable: true, default: ""
     field :profile_photo_file, :string, nullable: true, default: ""
 
@@ -107,6 +108,15 @@ defmodule Platform.Accounts.User do
     user
     |> cast(attrs, [:bio, :profile_photo_file])
     |> validate_length(:bio, max: 240)
+  end
+
+  @doc """
+  A user changeset for modifying admin/safety attributes, such as
+  roles and restrictions.
+  """
+  def access_changeset(user, attrs) do
+    user
+    |> cast(attrs, [:roles, :restrictions])
   end
 
   @doc """

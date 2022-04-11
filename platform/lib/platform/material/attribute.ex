@@ -245,6 +245,7 @@ defmodule Platform.Material.Attribute do
         pane: :metadata,
         required: false,
         name: :restrictions,
+        # NOTE: Editing these values also requires editing the perm checks in `media.ex`
         options: ["No Edits", "Hidden"],
         required_roles: [:admin]
       }
@@ -374,12 +375,20 @@ defmodule Platform.Material.Attribute do
     end
   end
 
-  def can_user_edit(%Attribute{} = attribute, %User{} = user) do
+  @doc """
+  Can the given user edit the given attribute for the given media? This also checks
+  whether they are allowed to edit the given media.
+  """
+  def can_user_edit(%Attribute{} = attribute, %User{} = user, %Media{} = media) do
     user_roles = user.roles || []
 
-    case attribute.required_roles do
-      nil -> true
-      roles -> Enum.any?(roles, &Enum.member?(user_roles, &1))
+    with true <- Media.can_user_edit(media, user) do
+      case attribute.required_roles || [] do
+        [] -> true
+        [hd | tail] -> Enum.any?([hd] ++ tail, &Enum.member?(user_roles, &1))
+      end
+    else
+      _ -> false
     end
   end
 end

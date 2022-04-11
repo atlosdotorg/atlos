@@ -3,6 +3,7 @@ defmodule PlatformWeb.MediaLive.Show do
   alias Platform.Material
   alias Material.Attribute
   alias PlatformWeb.MediaLive.EditAttribute
+  alias Material.Media
 
   def mount(_params, _session, socket) do
     {:ok, socket}
@@ -16,13 +17,21 @@ defmodule PlatformWeb.MediaLive.Show do
      |> assign_media_and_updates()}
   end
 
+  def filter_editable(attributes, media, user) do
+    attributes
+    |> Enum.filter(fn attr ->
+      Attribute.can_user_edit(attr, user, media)
+    end)
+  end
+
   defp assign_media_and_updates(socket) do
-    with %Material.Media{} = media <- Material.get_full_media_by_slug(socket.assigns.slug) do
+    with %Material.Media{} = media <- Material.get_full_media_by_slug(socket.assigns.slug),
+         true <- Media.can_user_view(media, socket.assigns.current_user) do
       socket |> assign(:media, media) |> assign(:updates, media.updates)
     else
-      nil ->
+      _ ->
         socket
-        |> put_flash(:error, "This media does not exist or is not publicly visible.")
+        |> put_flash(:error, "This media does not exist or is not available.")
         |> redirect(to: "/")
     end
   end
