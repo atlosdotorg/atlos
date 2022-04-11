@@ -42,47 +42,11 @@ defmodule Platform.Updates do
   def get_update!(id), do: Repo.get!(Update, id)
 
   @doc """
-  Creates a update.
-
-  ## Examples
-
-      iex> create_update(%{field: value})
-      {:ok, %Update{}}
-
-      iex> create_update(%{field: bad_value})
-      {:error, %Ecto.Changeset{}}
-
-  """
-  def create_update(attrs \\ %{}) do
-    %Update{}
-    |> Update.changeset(attrs)
-    |> Repo.insert()
-  end
-
-  @doc """
   Insert the given Update changeset. Helpful to use in conjunction with the dynamic changeset
   generation functions (e.g., `change_from_attribute_changeset`).
   """
   def create_update_from_changeset(%Ecto.Changeset{data: %Update{} = _} = changeset) do
     changeset |> Repo.insert()
-  end
-
-  @doc """
-  Updates a update.
-
-  ## Examples
-
-      iex> update_update(update, %{field: new_value})
-      {:ok, %Update{}}
-
-      iex> update_update(update, %{field: bad_value})
-      {:error, %Ecto.Changeset{}}
-
-  """
-  def update_update(%Update{} = update, attrs) do
-    update
-    |> Update.changeset(attrs)
-    |> Repo.update()
   end
 
   @doc """
