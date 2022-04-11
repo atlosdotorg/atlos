@@ -35,4 +35,16 @@ defmodule PlatformWeb.MediaLive.Show do
         |> redirect(to: "/")
     end
   end
+
+  def handle_event("close_modal", _params, socket) do
+    {:noreply,
+     socket |> push_patch(to: Routes.media_show_path(socket, :show, socket.assigns.media.slug))}
+  end
+
+  def handle_info({:version_created, _version}, socket) do
+    {:noreply,
+     socket
+     |> put_flash(:info, "The media was uploaded successfully.")
+     |> push_patch(to: Routes.media_show_path(socket, :show, socket.assigns.media.slug))}
+  end
 end

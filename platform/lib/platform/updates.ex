@@ -136,15 +136,15 @@ defmodule Platform.Updates do
   def change_from_media_version_upload(
         %Media{} = media,
         %User{} = user,
-        %MediaVersion{} = _version
+        %MediaVersion{} = version
       ) do
     change_update(
       %Update{},
       media,
       user,
       %{
-        "type" => :upload_version
-        # TODO
+        "type" => :upload_version,
+        "media_version_id" => version.id
       }
     )
   end
@@ -157,8 +157,7 @@ defmodule Platform.Updates do
     Repo.all(
       from u in Update,
         where: u.media_id == ^media.id,
-        preload: :user,
-        preload: :media,
+        preload: [:user, :media, :media_version],
         order_by: [asc: u.inserted_at]
     )
   end

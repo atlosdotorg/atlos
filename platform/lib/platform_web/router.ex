@@ -90,9 +90,11 @@ defmodule PlatformWeb.Router do
       live("/settings", SettingsLive)
 
       live("/new", NewLive)
+
       live("/media", MediaLive.Index)
       live("/media/:slug", MediaLive.Show, :show)
       live("/media/:slug/update/:attribute", MediaLive.Show, :edit)
+      live("/media/:slug/upload", MediaLive.Show, :upload)
     end
   end
 end

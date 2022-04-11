@@ -101,9 +101,9 @@
                     <h3 class="sec-head">Media</h3>
                     <p class="sec-subhead">There may be multiple versions circulating online.</p>
                 </:header>
-                <div class="space-y-8">
+                <div class="divide-y divide-dashed divide-gray-200 -mt-6">
                 <%= for version <- @media.versions do %>
-                    <section>
+                    <section class="py-6">
                         <% loc = Material.media_version_location(version) %>
                         <%= if String.starts_with?(version.mime_type, "image/") do %>
                             <img src={loc} class="w-full" />
@@ -128,6 +128,11 @@
                                 Download
                             </a>
                         </div>
+                    </section>
+                <% end %>
+                <%= if Media.can_user_edit(@media, @current_user) do %>
+                    <section class="pt-3">
+                        <%= live_patch "+ Upload Another Version", class: "text-button mt-1 inline-block", to: Routes.media_show_path(@socket, :upload, @media.slug) %>
                     </section>
                 <% end %>
                 </div>
@@ -204,5 +209,23 @@
             name={@attribute}
             current_user={@current_user}
         />
+    <% end %>
+    <%= if @live_action == :upload do %>
+        <.modal target={} close_confirmation="Are you sure you want to exit the upload process? Your upload is not complete.">
+            <div class="mb-8">
+                <p class="sec-head">
+                    <%= @media.slug %>: Upload New Version
+                </p>
+                <p class="sec-subhead">
+                    Note that additional media should be different copies of the same underlying media (e.g., different resolutions).
+                </p>
+            </div>
+            <.live_component
+              module={PlatformWeb.MediaLive.UploadVersionLive}
+              id="upload-version"
+              current_user={@current_user}
+              media={@media}
+            />
+        </.modal>
     <% end %>
 </article>

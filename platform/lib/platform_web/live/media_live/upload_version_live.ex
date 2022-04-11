@@ -93,7 +93,11 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
         |> clear_error()
         |> handle_uploaded_file(hd(socket.assigns.uploads.media_upload.entries))
 
-      case Material.create_media_version(all_params(socket, params)) do
+      case Material.create_media_version_audited(
+             socket.assigns.media,
+             socket.assigns.current_user,
+             all_params(socket, params)
+           ) do
         {:ok, version} ->
           send(self(), {:version_created, version})
           {:noreply, socket |> assign(:disabled, true)}

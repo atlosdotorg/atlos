@@ -32,7 +32,7 @@ defmodule Platform.Material do
 
   defp preload_media_updates(query) do
     # TODO: should this be pulled into the Updates context somehow?
-    query |> preload(updates: [:user, :media])
+    query |> preload(updates: [:user, :media, :media_version])
   end
 
   @doc """
@@ -174,22 +174,32 @@ defmodule Platform.Material do
   """
   def get_media_version!(id), do: Repo.get!(MediaVersion, id)
 
-  @doc """
-  Creates a media_version.
-
-  ## Examples
-
-      iex> create_media_version(%{field: value})
-      {:ok, %MediaVersion{}}
-
-      iex> create_media_version(%{field: bad_value})
-      {:error, %Ecto.Changeset{}}
-
-  """
-  def create_media_version(attrs \\ %{}) do
+  def create_media_version(%Media{} = media, attrs \\ %{}) do
     %MediaVersion{}
-    |> MediaVersion.changeset(attrs)
+    |> MediaVersion.changeset(attrs |> Map.put("media_id", media.id))
     |> Repo.insert()
+  end
+
+  def create_media_version_audited(
+        %Media{} = media,
+        %User{} = user,
+        attrs \\ %{}
+      ) do
+    if Media.can_user_edit(media, user) do
+      Repo.transaction(fn ->
+        {:ok, version} = create_media_version(media, attrs)
+
+        update_changeset = Updates.change_from_media_version_upload(media, user, version)
+        {:ok, _} = Updates.create_update_from_changeset(update_changeset)
+
+        {:ok, version}
+      end)
+    else
+      # Note: Updates.create_update_from_changeset will also catch the permissions error, but it's good to have multiple layers.
+      {:error,
+       change_media_version(%MediaVersion{}, attrs)
+       |> Ecto.Changeset.add_error(:source_url, "This media has been locked.")}
+    end
   end
 
   @doc """

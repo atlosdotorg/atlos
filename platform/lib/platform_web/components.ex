@@ -456,7 +456,9 @@ defmodule PlatformWeb.Components do
                       <% :create -> %>
                         added <span class="font-medium text-gray-900"><%= update.media.slug %></span>
                       <% :upload_version -> %>
-                        uploaded a version
+                        <% IO.inspect(update) %>
+                        <% loc = Material.media_version_location(update.media_version) %>
+                        uploaded <a href={loc} target="_blank" class="text-button text-gray-800 underline">media &nearr;</a>
                       <% :comment -> %>
                         commented
                     <% end %>
