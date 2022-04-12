@@ -284,7 +284,7 @@ defmodule PlatformWeb.Components do
 
   def location(%{lat: lat, lon: lon} = assigns) do
     ~H"""
-    <%= lon %>, <%= lat %> &nearr;
+    <%= lat %>, <%= lon %> &nearr;
     """
   end
 
@@ -590,7 +590,7 @@ defmodule PlatformWeb.Components do
   def user_stack(assigns) do
     ~H"""
     <div class="flex -space-x-1 relative z-0 overflow-hidden">
-      <%= for user <- @users do %>
+      <%= for user <- @users |> Enum.take(5) do %>
         <img class="relative z-30 inline-block h-6 w-6 rounded-full ring-2 ring-white" src={Accounts.get_profile_photo_path(user)} alt={"Profile photo for #{user.username}"}>
       <% end %>
     </div>

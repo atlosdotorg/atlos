@@ -101,12 +101,12 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
                   <div class="space-y-4">
                     <div>
                       <%= label f, :latitude, "Latitude" %>
-                      <%= number_input f, :latitude, placeholder: "Lat, e.g., -122.1721319" %>
+                      <%= number_input f, :latitude, placeholder: "Lat, e.g., 37.4286969" %>
                       <%= error_tag f, :latitude %>
                     </div>
                     <div>
                       <%= label f, :longitude, "Longitude" %>
-                      <%= number_input f, :longitude, placeholder: "Lon, e.g., 37.4286969" %>
+                      <%= number_input f, :longitude, placeholder: "Lon, e.g., -122.1721319" %>
                       <%= error_tag f, :longitude %>
                     </div>
                   </div>
