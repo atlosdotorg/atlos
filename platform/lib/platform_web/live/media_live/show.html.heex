@@ -189,7 +189,7 @@
                     <div phx-update="ignore" class="h-64" id={"#{@media.slug}-geolocation-#{lat}-#{lon}"}>
                         <map-pin lat={lat} lon={lon} id={"#{@media.slug}-geolocation-map"} />
                     </div>
-                <%= else %>
+                <% else %>
                     <div class="relative block border-2 border-gray-300 border-dashed rounded-lg p-12 m-4 text-center">
                         <svg class="mx-auto h-12 w-12 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
