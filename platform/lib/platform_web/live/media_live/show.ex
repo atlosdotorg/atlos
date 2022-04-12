@@ -26,6 +26,10 @@ defmodule PlatformWeb.MediaLive.Show do
     end)
   end
 
+  defp sort_by_date(items) do
+    items |> Enum.sort_by(& &1.updated_at) |> Enum.reverse()
+  end
+
   defp filter_viewable_versions(versions, %User{} = user) do
     versions |> Enum.filter(&Material.MediaVersion.can_user_view(&1, user))
   end
