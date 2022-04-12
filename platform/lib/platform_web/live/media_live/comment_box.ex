@@ -7,6 +7,7 @@ defmodule PlatformWeb.MediaLive.CommentBox do
     {:ok,
      socket
      |> assign(assigns)
+     |> assign_new(:disabled, fn -> false end)
      |> assign_changeset()}
   end
 
@@ -62,7 +63,7 @@ defmodule PlatformWeb.MediaLive.CommentBox do
             <div class="relative">
               <div class="-ml-1 border border-gray-300 rounded-lg shadow-sm overflow-hidden focus-within:border-urge-500 focus-within:ring-1 focus-within:ring-urge-500">
                 <label for="comment" class="sr-only">Add a comment...</label>
-                <%= textarea f, :explanation, phx_debounce: 300, rows: 3, placeholder: "Add your comment...", class: "block w-full py-3 border-0 resize-none focus:ring-0 sm:text-sm", required: true %>
+              <%= textarea f, :explanation, phx_debounce: 300, rows: 3, placeholder: (if @disabled, do: "Commenting has been disabled", else: "Add your comment..."), class: "block w-full py-3 border-0 resize-none focus:ring-0 sm:text-sm", required: true, disabled: @disabled %>
                 <!-- Spacer element to match the height of the toolbar -->
                 <div class="py-2" aria-hidden="true">
                   <!-- Matches height of button in toolbar (1px border + 36px content height) -->
@@ -86,7 +87,7 @@ defmodule PlatformWeb.MediaLive.CommentBox do
                   </div>
                 </div>
                 <div class="flex-shrink-0">
-                  <%= submit "Post", phx_disable_with: "Posting...", class: "button ~urge @high" %>
+                  <%= submit "Post", phx_disable_with: "Posting...", class: "button ~urge @high", disabled: @disabled %>
                 </div>
               </div>
             </div>

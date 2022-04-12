@@ -2,7 +2,7 @@
     <h1 class="page-header mb-8">All Media</h1>
     <div class="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
         <%= for media <- @media do %>
-            <.media_card media={media} />
+            <.media_card media={media} current_user={@current_user} />
         <% end %>
     </div>
 </article>

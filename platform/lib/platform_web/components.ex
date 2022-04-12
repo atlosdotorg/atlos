@@ -327,8 +327,8 @@ defmodule PlatformWeb.Components do
   end
 
   def text_diff(%{old: old, new: new} = assigns) do
-    old_words = String.split(old || "") |> Enum.map(&String.strip(&1))
-    new_words = String.split(new || "") |> Enum.map(&String.strip(&1))
+    old_words = String.split(old || "") |> Enum.map(&String.trim(&1))
+    new_words = String.split(new || "") |> Enum.map(&String.trim(&1))
     diff = List.myers_difference(old_words, new_words)
 
     ~H"""
@@ -497,7 +497,7 @@ defmodule PlatformWeb.Components do
     """
   end
 
-  def media_card(%{media: %Media{} = media} = assigns) do
+  def media_card(%{media: %Media{} = media, current_user: %Accounts.User{} = user} = assigns) do
     # TODO: use live_redirect
     # TODO: preload
     contributors = Material.contributors(media)
@@ -506,83 +506,101 @@ defmodule PlatformWeb.Components do
 
     ~H"""
       <a class="flex group flex-col items-center md:flex-row bg-white overflow-hidden shadow rounded-lg justify-between" href={"/media/#{media.slug}"}>
-        <div class="h-full p-2 flex flex-col w-full md:w-3/4 gap-2">
-          <section>
-            <p class="font-mono text-xs text-gray-500"><%= media.slug %></p>
-            <p class="font-medium text-gray-700 group-hover:text-gray-900"><%= media.description %></p>
-          </section>
-          <section class="flex flex-wrap gap-1 self-start align-top">
-            <%= if sensitive do %>
-              <%= for item <- media.attr_sensitive || [] do %>
-                <span class="badge ~warning">
+        <%= if Media.can_user_view(media, user) do %>
+          <div class="h-full p-2 flex flex-col w-full md:w-3/4 gap-2">
+            <section>
+              <p class="font-mono text-xs text-gray-500"><%= media.slug %></p>
+              <p class="font-medium text-gray-700 group-hover:text-gray-900"><%= media.description %></p>
+            </section>
+            <section class="flex flex-wrap gap-1 self-start align-top">
+              <%= for item <- media.attr_restrictions || [] do %>
+                <span class="badge ~critical">
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-px" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M20.618 5.984A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016zM12 9v2m0 4h.01" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
                   </svg>
-
                   <%= item %>
                 </span>
               <% end %>
-            <% end %>
 
-            <%= if media.attr_geolocation do %>
-              <span class="badge ~info">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-px" viewBox="0 0 20 20" fill="currentColor">
-                  <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
-                </svg>
+              <%= if sensitive do %>
+                <%= for item <- media.attr_sensitive || [] do %>
+                  <span class="badge ~warning">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-px" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M20.618 5.984A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016zM12 9v2m0 4h.01" />
+                    </svg>
 
-                Geolocated
-              </span>
-            <% end %>
-
-            <%= if media.attr_date_recorded do %>
-              <span class="badge ~info">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-px" viewBox="0 0 20 20" fill="currentColor">
-                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" />
-                </svg>
-
-                Chronolocated
-              </span>
-            <% end %>
-
-            <span class="badge ~neutral">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-px" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
-              </svg>
-
-              <%= cond do %>
-                <% ratio < 0.3 -> %> Low
-                <% ratio < 0.6 -> %> Medium
-                <% ratio < 1 -> %> High
-                <% true -> %> Complete
+                    <%= item %>
+                  </span>
+                <% end %>
               <% end %>
 
-              (<%= length(Attribute.set_for_media(media)) %>)
-            </span>
-          </section>
-          <section class="flex-grow" />
-          <section class="flex gap-2 justify-between items-center">
-            <.user_stack users={contributors} />
-            <p class="text-xs text-gray-500 flex items-center">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-px text-gray-400" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" />
-              </svg>
-              <.rel_time time={media.updated_at} />
-            </p>
-          </section>
-        </div>
+              <%= if media.attr_geolocation do %>
+                <span class="badge ~info">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-px" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
+                  </svg>
 
-        <% thumb = Material.media_thumbnail(media) %>
-        <div class="hidden md:block h-full md:w-1/4">
-          <%= if thumb do %>
-            <img class="sr-hide object-cover h-full w-full rounded-t-lg md:rounded-none md:rounded-r-lg" src={thumb}>
-          <% else %>
-            <div class="bg-gray-200 flex items-center justify-around h-full w-full rounded-t-lg md:rounded-none md:rounded-r-lg text-gray-500">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  Geolocated
+                </span>
+              <% end %>
+
+              <%= if media.attr_date_recorded do %>
+                <span class="badge ~info">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-px" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" />
+                  </svg>
+
+                  Chronolocated
+                </span>
+              <% end %>
+
+              <span class="badge ~neutral">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-px" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                </svg>
+
+                <%= cond do %>
+                  <% ratio < 0.3 -> %> Low
+                  <% ratio < 0.6 -> %> Medium
+                  <% ratio < 1 -> %> High
+                  <% true -> %> Complete
+                <% end %>
+
+                (<%= length(Attribute.set_for_media(media)) %>)
+              </span>
+            </section>
+            <section class="flex-grow" />
+            <section class="flex gap-2 justify-between items-center">
+              <.user_stack users={contributors} />
+              <p class="text-xs text-gray-500 flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-px text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" />
+                </svg>
+                <.rel_time time={media.updated_at} />
+              </p>
+            </section>
+          </div>
+
+          <% thumb = Material.media_thumbnail(media) %>
+          <div class="hidden md:block h-full md:w-1/4">
+            <%= if thumb do %>
+              <img class="sr-hide object-cover h-full w-full rounded-t-lg md:rounded-none md:rounded-r-lg" src={thumb}>
+            <% else %>
+              <div class="bg-gray-200 flex items-center justify-around h-full w-full rounded-t-lg md:rounded-none md:rounded-r-lg text-gray-500">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+            <% end %>
+          </div>
+        <% else %>
+          <div class="relative block border-2 border-gray-300 border-dashed rounded-lg h-full w-full text-center flex flex-col justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
               </svg>
-            </div>
-          <% end %>
-        </div>
+              <span class="mt-2 block text-sm font-medium text-gray-700">Hidden or Unavailable</span>
+          </div>
+        <% end %>
       </a>
     """
   end
