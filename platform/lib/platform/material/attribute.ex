@@ -246,7 +246,7 @@ defmodule Platform.Material.Attribute do
         required: false,
         name: :restrictions,
         # NOTE: Editing these values also requires editing the perm checks in `media.ex`
-        options: ["No Edits", "Hidden"],
+        options: ["Frozen", "Hidden"],
         required_roles: [:admin]
       }
     ]
