@@ -446,7 +446,7 @@ defmodule PlatformWeb.Components do
                         updated
                         <%= if Attribute.can_user_edit(Attribute.get_attribute(update.modified_attribute), @current_user, update.media) do %>
                           <%= live_patch class: "text-button text-gray-800 inline-block", to: Routes.media_show_path(@socket, :edit, update.media.slug, update.modified_attribute) do %>
-                            <%= Attribute.get_attribute(update.modified_attribute).label %>
+                            <%= Attribute.get_attribute(update.modified_attribute).label %>  &nearr;
                           <% end %>
                         <% else %>
                           <p class="font-medium text-gray-800 inline-block">
@@ -456,9 +456,7 @@ defmodule PlatformWeb.Components do
                       <% :create -> %>
                         added <span class="font-medium text-gray-900"><%= update.media.slug %></span>
                       <% :upload_version -> %>
-                        <% IO.inspect(update) %>
-                        <% loc = Material.media_version_location(update.media_version) %>
-                        uploaded <a href={loc} target="_blank" class="text-button text-gray-800 underline">media &nearr;</a>
+                        uploaded <a href={"#version-#{update.media_version.id}"} class="text-button text-gray-800">media &nearr;</a>
                       <% :comment -> %>
                         commented
                     <% end %>

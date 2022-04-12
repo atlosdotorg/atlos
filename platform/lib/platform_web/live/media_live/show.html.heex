@@ -101,41 +101,64 @@
                     <h3 class="sec-head">Media</h3>
                     <p class="sec-subhead">There may be multiple versions circulating online.</p>
                 </:header>
-                <div class="divide-y divide-dashed divide-gray-200 -mt-6">
-                <%= for version <- @media.versions do %>
-                    <section class="py-6">
-                        <% loc = Material.media_version_location(version) %>
-                        <%= if String.starts_with?(version.mime_type, "image/") do %>
-                            <img src={loc} class="w-full" />
-                        <% else %>
-                            <video controls preload="metadata">
-                                <source src={loc} class="w-full" />
-                            </video>
+                <% versions = @media.versions |> filter_viewable_versions(@current_user) %>
+                <%= if length(versions) == 0 do %>
+                    <div class="relative block border-2 border-gray-300 border-dashed rounded-lg p-12 text-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M10 21h7a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v11m0 5l4.879-4.879m0 0a3 3 0 104.243-4.242 3 3 0 00-4.243 4.242z" />
+                        </svg>
+                        <span class="mt-2 block text-sm font-medium text-gray-700">No media uploaded</span>
+                        <%= if Media.can_user_edit(@media, @current_user) do %>
+                            <%= live_patch "+ Upload Version", class: "text-button text-sm", to: Routes.media_show_path(@socket, :upload, @media.slug) %>
                         <% end %>
+                    </div>
+                <% else %>
+                    <div class="divide-y divide-dashed divide-gray-200 -mt-6">
+                        <%= for version <- versions do %>
+                            <section class="py-6 focus-outline" id={"version-#{version.id}"}>
+                                <% loc = Material.media_version_location(version) %>
+                                <div class={if version.hidden, do: "opacity-25", else: ""}>
+                                    <%= if String.starts_with?(version.mime_type, "image/") do %>
+                                        <img src={loc} class="w-full" />
+                                    <% else %>
+                                        <video controls preload="metadata">
+                                            <source src={loc} class="w-full" />
+                                        </video>
+                                    <% end %>
+                                </div>
 
-                        <div class="space-4 mt-2">
-                            <a target="_blank" href={version.source_url} rel="nofollow" class="button original py-1 px-2">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-neutral-500 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                                    <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
-                                    <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
-                                </svg>
-                                Source
-                            </a>
-                            <a target="_blank" href={loc} rel="nofollow" class="button original py-1 px-2">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-neutral-500 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                                </svg>
-                                Download
-                            </a>
-                        </div>
-                    </section>
+                                <div class="space-4 mt-2">
+                                    <a target="_blank" href={version.source_url} rel="nofollow" class="button original py-1 px-2">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-neutral-500 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                                            <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
+                                            <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
+                                        </svg>
+                                        Source
+                                    </a>
+                                    <a target="_blank" href={loc} rel="nofollow" class="button original py-1 px-2">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-neutral-500 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                        </svg>
+                                        Download
+                                    </a>
+                                    <%= if Accounts.is_privileged(@current_user) do %>
+                                        <button type="button" data-confirm="Are you sure you want to change the visibility of this version?" class="button original py-1 px-2 text-critical-800 border-critical-200" phx-click={"toggle_media_visibility"} phx-value-version={version.id}>
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                              <path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                                            </svg>
+                                            <%= if version.hidden, do: "Unhide", else: "Hide" %>
+                                        </button>
+                                    <% end %>
+                                </div>
+                            </section>
+                        <% end %>
+                        <%= if Media.can_user_edit(@media, @current_user) do %>
+                            <section class="pt-4 text-sm">
+                                <%= live_patch "+ Upload Version", class: "text-button mt-1 inline-block", to: Routes.media_show_path(@socket, :upload, @media.slug) %>
+                            </section>
+                        <% end %>
+                    </div>
                 <% end %>
-                <%= if Media.can_user_edit(@media, @current_user) do %>
-                    <section class="pt-3">
-                        <%= live_patch "+ Upload Another Version", class: "text-button mt-1 inline-block", to: Routes.media_show_path(@socket, :upload, @media.slug) %>
-                    </section>
-                <% end %>
-                </div>
             </.card>
             <.card>
                 <:header>

@@ -377,4 +377,16 @@ defmodule Platform.Accounts do
     change_user_access(user, attrs)
     |> Repo.update()
   end
+
+  def is_admin(%User{} = user) do
+    Enum.member?(user.roles || [], :admin)
+  end
+
+  def is_trusted(%User{} = user) do
+    Enum.member?(user.roles || [], :trusted)
+  end
+
+  def is_privileged(%User{} = user) do
+    is_admin(user) || is_trusted(user)
+  end
 end
