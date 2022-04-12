@@ -342,9 +342,9 @@ defmodule Platform.Material do
   end
 
   def media_thumbnail(%Media{} = media) do
-    case media.versions do
-      [head | _tail] -> head.thumbnail_location
-      [] -> nil
+    case Enum.find(media.versions, &(!&1.hidden)) do
+      nil -> nil
+      val -> val.thumbnail_location
     end
   end
 

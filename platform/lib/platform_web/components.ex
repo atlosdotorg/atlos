@@ -327,24 +327,28 @@ defmodule PlatformWeb.Components do
   end
 
   def text_diff(%{old: old, new: new} = assigns) do
-    diff = String.myers_difference(old || "", new || "")
+    old_words = String.split(old || "") |> Enum.map(&String.strip(&1))
+    new_words = String.split(new || "") |> Enum.map(&String.strip(&1))
+    diff = List.myers_difference(old_words, new_words)
 
     ~H"""
     <span class="text-sm">
       <%= for {action, elem} <- diff do %>
+      <%= for val <- elem do %>
         <%= case action do %>
-          <% :ins -> %>
-            <span class="px-1 text-blue-800 bg-blue-200 rounded-sm">
-              <%= elem %>
-            </span>
-          <% :del -> %>
-            <span class="px-1 text-yellow-800 bg-yellow-200 rounded-sm line-through">
-              <%= elem %>
-            </span>
-          <% :eq -> %>
-            <span class="text-gray-700 px-0 text-sm">
-              <%= elem %>
-            </span>
+            <% :ins -> %>
+              <span class="px-1 text-blue-800 bg-blue-200 rounded-sm mx-px">
+                <%= val %>
+              </span>
+            <% :del -> %>
+              <span class="px-1 text-yellow-800 bg-yellow-200 rounded-sm line-through mx-px">
+                <%= val %>
+              </span>
+            <% :eq -> %>
+              <span class="text-gray-700 px-0 text-sm mx-px">
+                <%= val %>
+              </span>
+          <% end %>
         <% end %>
       <% end %>
     </span>
