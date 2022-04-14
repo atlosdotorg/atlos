@@ -91,6 +91,11 @@ function initializeMaps() {
     })
 }
 
+window.toggleClass = (id, classname) => {
+    let elem = document.getElementById(id);
+    elem.classList.toggle(classname);
+}
+
 document.addEventListener("phx:update", initializeMultiSelects);
 document.addEventListener("load", initializeMultiSelects);
 

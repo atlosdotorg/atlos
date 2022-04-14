@@ -45,7 +45,7 @@ defmodule Platform.Material.Attribute do
         max_length: 240,
         min_length: 8,
         label: "Description",
-        pane: :metadata,
+        pane: :attributes,
         required: true,
         name: :description
       },
@@ -248,6 +248,16 @@ defmodule Platform.Material.Attribute do
         # NOTE: Editing these values also requires editing the perm checks in `media.ex`
         options: ["Frozen", "Hidden"],
         required_roles: [:admin]
+      },
+      %Attribute{
+        schema_field: :attr_flag,
+        type: :select,
+        options: ["Help Needed", "Needs Confirmation", "Community Confirmed"],
+        label: "Flag",
+        pane: :metadata,
+        required: false,
+        name: :flag,
+        description: "Use flags to help coordinate work on Atlos."
       }
     ]
   end

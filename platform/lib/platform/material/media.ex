@@ -10,10 +10,8 @@ defmodule Platform.Material.Media do
     # Core uneditable data
     field :slug, :string, autogenerate: {Utils, :generate_media_slug, []}
 
-    # Core editable data
-    field :description, :string
-
     # "Normal" Attributes
+    field :description, :string
     field :attr_time_of_day, :string
     field :attr_geolocation, Geo.PostGIS.Geometry
     field :attr_environment, :string
@@ -28,9 +26,10 @@ defmodule Platform.Material.Media do
     field :attr_time_recorded, :time
     field :attr_date_recorded, :date
 
-    # Safety & Access Control Attributes
+    # Metadata Attributes
     field :attr_restrictions, {:array, :string}
     field :attr_sensitive, {:array, :string}
+    field :attr_flag, :string
 
     # Virtual attributes for updates + multi-part attributes
     field :explanation, :string, virtual: true
@@ -105,5 +104,9 @@ defmodule Platform.Material.Media do
 
   def has_restrictions(%Media{} = media) do
     length(media.attr_restrictions || []) > 0
+  end
+
+  def is_graphic(%Media{} = media) do
+    Enum.member?(media.attr_sensitive || [], "Graphic Violence")
   end
 end

@@ -582,9 +582,17 @@ defmodule PlatformWeb.Components do
           </div>
 
           <% thumb = Material.media_thumbnail(media) %>
-          <div class="hidden md:block h-full md:w-1/4">
+          <div class="hidden md:block h-full md:w-1/4 grayscale">
             <%= if thumb do %>
-              <img class="sr-hide object-cover h-full w-full rounded-t-lg md:rounded-none md:rounded-r-lg" src={thumb}>
+              <%= if Media.is_graphic(media) do %>
+                <div class="bg-gray-200 flex items-center justify-around h-full w-full rounded-t-lg md:rounded-none md:rounded-r-lg text-gray-500">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                  </svg>
+                </div>
+              <% else %>
+                <img class="sr-hide object-cover h-full w-full rounded-t-lg md:rounded-none md:rounded-r-lg" src={thumb}>
+              <% end %>
             <% else %>
               <div class="bg-gray-200 flex items-center justify-around h-full w-full rounded-t-lg md:rounded-none md:rounded-r-lg text-gray-500">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -632,6 +640,58 @@ defmodule PlatformWeb.Components do
           <%= render_slot(@inner_block) %>
         </div>
       </div>
+    """
+  end
+
+  def media_version_display(%{version: version, blur: blur, current_user: current_user} = assigns) do
+    # TODO: real blurring
+    ~H"""
+      <section id={"version-#{version.id}"}>
+          <% loc = Material.media_version_location(version) %>
+          <% media_id = "version-#{version.id}-media" %>
+          <div class="relative">
+            <div class={if version.hidden, do: "opacity-25 grayscale", else: "grayscale"} id={media_id}>
+                <%= if String.starts_with?(version.mime_type, "image/") do %>
+                    <img src={loc} class="w-full" />
+                <% else %>
+                    <video controls preload="metadata">
+                        <source src={loc} class="w-full" />
+                    </video>
+                <% end %>
+            </div>
+          </div>
+
+          <div class="flex gap-1 mt-2 text-xs max-w-full flex-wrap">
+              <a target="_blank" href={version.source_url} rel="nofollow" class="button original py-1 px-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-neutral-500 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                      <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
+                      <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
+                  </svg>
+                  Source
+              </a>
+              <a target="_blank" href={loc} rel="nofollow" class="button original py-1 px-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-neutral-500 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  </svg>
+                  Download
+              </a>
+              <button type="button" rel="nofollow" class="button original py-1 px-2" onclick={"toggleClass('#{media_id}', 'grayscale')"}>
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-neutral-500 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M3.707 2.293a1 1 0 00-1.414 1.414l14 14a1 1 0 001.414-1.414l-1.473-1.473A10.014 10.014 0 0019.542 10C18.268 5.943 14.478 3 10 3a9.958 9.958 0 00-4.512 1.074l-1.78-1.781zm4.261 4.26l1.514 1.515a2.003 2.003 0 012.45 2.45l1.514 1.514a4 4 0 00-5.478-5.478z" clip-rule="evenodd" />
+                    <path d="M12.454 16.697L9.75 13.992a4 4 0 01-3.742-3.741L2.335 6.578A9.98 9.98 0 00.458 10c1.274 4.057 5.065 7 9.542 7 .847 0 1.669-.105 2.454-.303z" />
+                  </svg>
+                  Toggle Color
+              </button>
+              <%= if Accounts.is_privileged(@current_user) do %>
+                  <button type="button" data-confirm="Are you sure you want to change the visibility of this version?" class="button original py-1 px-2 text-critical-800 border-critical-200" phx-click={"toggle_media_visibility"} phx-value-version={version.id}>
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                      </svg>
+                      <%= if version.hidden, do: "Unhide", else: "Hide" %>
+                  </button>
+              <% end %>
+          </div>
+      </section>
     """
   end
 end
