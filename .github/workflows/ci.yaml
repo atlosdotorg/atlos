@@ -17,6 +17,5 @@ jobs:
         with:
           otp-version: ${{matrix.otp}}
           elixir-version: ${{matrix.elixir}}
-      - run: cd platform
       - run: mix deps.get
       - run: mix test
