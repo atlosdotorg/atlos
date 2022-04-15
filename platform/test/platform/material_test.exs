@@ -12,7 +12,12 @@ defmodule Platform.MaterialTest do
 
     test "list_media/0 returns all media" do
       media = media_fixture()
-      assert Material.list_media() == [media]
+      listed = Material.list_media()
+      assert length(listed) == 1
+
+      id = media.id
+      desc = media.description
+      assert [%{id: ^id, description: ^desc}] = listed
     end
 
     test "get_media!/1 returns the media with given id" do
@@ -21,7 +26,11 @@ defmodule Platform.MaterialTest do
     end
 
     test "create_media/1 with valid data creates a media" do
-      valid_attrs = %{description: "some description", slug: "some slug"}
+      valid_attrs = %{
+        description: "some description",
+        slug: "some slug",
+        attr_sensitive: ["Not Sensitive"]
+      }
 
       assert {:ok, %Media{} = media} = Material.create_media(valid_attrs)
       assert media.description == "some description"
@@ -88,19 +97,27 @@ defmodule Platform.MaterialTest do
         file_size: 42,
         perceptual_hash: "some perceptual_hash",
         source_url: "some source_url",
-        type: :image
+        type: :image,
+        duration_seconds: 30,
+        mime_type: "image/png",
+        client_name: "upload.png",
+        thumbnail_location: "somewhere"
       }
 
-      assert {:ok, %MediaVersion{} = media_version} = Material.create_media_version(valid_attrs)
+      media = media_fixture()
+
+      assert {:ok, %MediaVersion{} = media_version} =
+               Material.create_media_version(media, valid_attrs)
+
       assert media_version.file_location == "some file_location"
       assert media_version.file_size == 42
       assert media_version.perceptual_hash == "some perceptual_hash"
       assert media_version.source_url == "some source_url"
-      assert media_version.type == :image
     end
 
     test "create_media_version/1 with invalid data returns error changeset" do
-      assert {:error, %Ecto.Changeset{}} = Material.create_media_version(@invalid_attrs)
+      assert {:error, %Ecto.Changeset{}} =
+               Material.create_media_version(media_fixture(), @invalid_attrs)
     end
 
     test "update_media_version/2 with valid data updates the media_version" do
@@ -111,7 +128,10 @@ defmodule Platform.MaterialTest do
         file_size: 43,
         perceptual_hash: "some updated perceptual_hash",
         source_url: "some updated source_url",
-        type: :video
+        duration_seconds: 30,
+        mime_type: "image/png",
+        client_name: "upload.png",
+        thumbnail_location: "somewhere"
       }
 
       assert {:ok, %MediaVersion{} = media_version} =
@@ -121,7 +141,6 @@ defmodule Platform.MaterialTest do
       assert media_version.file_size == 43
       assert media_version.perceptual_hash == "some updated perceptual_hash"
       assert media_version.source_url == "some updated source_url"
-      assert media_version.type == :video
     end
 
     test "update_media_version/2 with invalid data returns error changeset" do

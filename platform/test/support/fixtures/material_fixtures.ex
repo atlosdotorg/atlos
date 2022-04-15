@@ -17,6 +17,7 @@ defmodule Platform.MaterialFixtures do
       attrs
       |> Enum.into(%{
         description: "some description",
+        attr_sensitive: ["Graphic Violence"],
         slug: unique_media_slug()
       })
       |> Platform.Material.create_media()
@@ -29,15 +30,21 @@ defmodule Platform.MaterialFixtures do
   """
   def media_version_fixture(attrs \\ %{}) do
     {:ok, media_version} =
-      attrs
-      |> Enum.into(%{
-        file_location: "some file_location",
-        file_size: 42,
-        perceptual_hash: "some perceptual_hash",
-        source_url: "some source_url",
-        type: :image
-      })
-      |> Platform.Material.create_media_version()
+      media_fixture()
+      |> Platform.Material.create_media_version(
+        attrs
+        |> Enum.into(%{
+          file_location: "some file_location",
+          file_size: 42,
+          perceptual_hash: "some perceptual_hash",
+          source_url: "some source_url",
+          type: :image,
+          duration_seconds: 30,
+          mime_type: "image/png",
+          client_name: "upload.png",
+          thumbnail_location: "somewhere"
+        })
+      )
 
     media_version
   end

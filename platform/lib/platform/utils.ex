@@ -16,6 +16,13 @@ defmodule Platform.Utils do
     for _ <- 1..length, into: "", do: <<Enum.random('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ')>>
   end
 
+  def make_keys_strings(map) do
+    Enum.reduce(map, %{}, fn
+      {key, value}, acc when is_atom(key) -> Map.put(acc, Atom.to_string(key), value)
+      {key, value}, acc -> Map.put(acc, key, value)
+    end)
+  end
+
   def upload_ugc_file(path) do
     dest = Path.join("priv/static/ugc/", Path.basename(path))
     File.cp!(path, dest)

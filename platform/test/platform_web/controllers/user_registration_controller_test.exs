@@ -7,9 +7,9 @@ defmodule PlatformWeb.UserRegistrationControllerTest do
     test "renders registration page", %{conn: conn} do
       conn = get(conn, Routes.user_registration_path(conn, :new))
       response = html_response(conn, 200)
-      assert response =~ "<h1>Register</h1>"
-      assert response =~ "Log in</a>"
-      assert response =~ "Register</a>"
+      assert response =~ "Register</h2>"
+      assert response =~ "Sign in"
+      assert response =~ "Register"
     end
 
     test "redirects if already logged in", %{conn: conn} do
@@ -32,11 +32,9 @@ defmodule PlatformWeb.UserRegistrationControllerTest do
       assert redirected_to(conn) == "/"
 
       # Now do a logged in request and assert on the menu
-      conn = get(conn, "/")
+      conn = get(conn, "/users/settings")
       response = html_response(conn, 200)
-      assert response =~ email
-      assert response =~ "Settings</a>"
-      assert response =~ "Log out</a>"
+      assert response =~ "Change password"
     end
 
     test "render errors for invalid data", %{conn: conn} do
@@ -46,7 +44,7 @@ defmodule PlatformWeb.UserRegistrationControllerTest do
         })
 
       response = html_response(conn, 200)
-      assert response =~ "<h1>Register</h1>"
+      assert response =~ "Register</h2>"
       assert response =~ "must have the @ sign and no spaces"
       assert response =~ "should be at least 12 character"
     end

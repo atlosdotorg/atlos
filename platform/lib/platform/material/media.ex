@@ -47,8 +47,8 @@ defmodule Platform.Material.Media do
   @doc false
   def changeset(media, attrs) do
     media
-    |> cast(attrs, [:description, :attr_sensitive])
-    |> validate_required([:description])
+    |> cast(attrs, [:description, :attr_sensitive, :slug])
+    |> validate_required([:description, :slug])
 
     # These are special attributes, since we define it at creation time. Eventually, it'd be nice to unify this logic with the attribute-specific editing logic.
     |> Attribute.validate_attribute(Attribute.get_attribute(:sensitive))

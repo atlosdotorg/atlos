@@ -176,7 +176,7 @@ defmodule Platform.Material do
 
   def create_media_version(%Media{} = media, attrs \\ %{}) do
     %MediaVersion{}
-    |> MediaVersion.changeset(attrs |> Map.put("media_id", media.id))
+    |> MediaVersion.changeset(attrs |> Map.put("media_id", media.id) |> Utils.make_keys_strings())
     |> Repo.insert()
   end
 

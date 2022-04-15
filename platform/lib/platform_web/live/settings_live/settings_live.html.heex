@@ -26,11 +26,12 @@
 
   <.card>
     <:header>
-      <h3 class="sec-head">Password &amp; Security</h3>
+      <h3 class="sec-head">Account &amp; Security</h3>
       <p class="sec-subhead">To change your email or username, please contact us. Two-factor authentication is coming soon.</p>
     </:header>
-    <div class="grid md:grid-cols-2 gap-4">
-      <a href="/users/settings" class="button ~urge @high">Change your password &rarr;</a>
+    <div class="grid md:grid-cols-3 gap-4">
+      <%= link "Log out →", to: Routes.user_session_path(@socket, :delete), method: :delete, class: "button ~urge @high" %>
+      <a href="/users/settings" class="button ~urge @high">Change password &rarr;</a>
       <a href="#" class="button ~urge @high" disabled>Two-factor auth &rarr;</a>
     </div>
   </.card>
