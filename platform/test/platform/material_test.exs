@@ -30,13 +30,12 @@ defmodule Platform.MaterialTest do
     test "create_media/1 with valid data creates a media" do
       valid_attrs = %{
         description: "some description",
-        slug: "some slug",
         attr_sensitive: ["Not Sensitive"]
       }
 
       assert {:ok, %Media{} = media} = Material.create_media(valid_attrs)
       assert media.description == "some description"
-      assert media.slug == "some slug"
+      assert media.attr_sensitive == ["Not Sensitive"]
     end
 
     test "create_media/1 with invalid data returns error changeset" do
@@ -45,11 +44,10 @@ defmodule Platform.MaterialTest do
 
     test "update_media/2 with valid data updates the media" do
       media = media_fixture()
-      update_attrs = %{description: "some updated description", slug: "some updated slug"}
+      update_attrs = %{description: "some updated description"}
 
       assert {:ok, %Media{} = media} = Material.update_media(media, update_attrs)
       assert media.description == "some updated description"
-      assert media.slug == "some updated slug"
     end
 
     test "update_media/2 with invalid data returns error changeset" do

@@ -30,10 +30,12 @@ defmodule PlatformWeb.NewLive.BasicInfoLive do
   def handle_event("save", %{"media" => media_params}, socket) do
     case Material.create_media_audited(socket.assigns.current_user, media_params) do
       {:ok, media} ->
+        {:ok, _} = Material.watch_media(media, socket.assigns.current_user)
         send(self(), {:media_created, media})
         {:noreply, socket |> assign(:disabled, true)}
 
       {:error, %Ecto.Changeset{} = changeset} ->
+        IO.inspect(changeset)
         {:noreply, assign(socket, :changeset, changeset)}
     end
   end
