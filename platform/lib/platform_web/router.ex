@@ -95,6 +95,8 @@ defmodule PlatformWeb.Router do
       live("/media/:slug", MediaLive.Show, :show)
       live("/media/:slug/update/:attribute", MediaLive.Show, :edit)
       live("/media/:slug/upload", MediaLive.Show, :upload)
+
+      live("/watching", WatchingLive)
     end
   end
 end

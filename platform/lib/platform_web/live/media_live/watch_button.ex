@@ -10,7 +10,9 @@ defmodule PlatformWeb.MediaLive.WatchButton do
     {:ok,
      socket
      |> assign(assigns)
-     |> assign(:watching, Material.get_watching(media, user))}
+     |> assign(:watching, Material.get_watching(media, user))
+     |> assign(:count, Material.total_watching!(media))
+   }
   end
 
   def handle_event("watch", _input, socket) do
@@ -18,7 +20,7 @@ defmodule PlatformWeb.MediaLive.WatchButton do
       {:ok, watching} ->
         {:noreply,
          socket
-         |> assign(:watching, watching)}
+         |> assign(:watching, watching) |> assign(:count, Material.total_watching!(socket.assigns.media))}
 
       {:error, _} ->
         # TODO: throw some kind of error?
@@ -31,7 +33,7 @@ defmodule PlatformWeb.MediaLive.WatchButton do
       {:ok, _} ->
         {:noreply,
          socket
-         |> assign(:watching, nil)}
+         |> assign(:watching, nil) |> assign(:count, Material.total_watching!(socket.assigns.media))}
 
       {:error, _} ->
         # TODO: throw some kind of error?
@@ -49,6 +51,9 @@ defmodule PlatformWeb.MediaLive.WatchButton do
           </svg>
 
           Watching
+          <span class="ml-2 bg-urge-800 text-xs rounded-full px-2 py-px">
+            <%= @count %>
+          </span>
         </button>
       <% else %>
         <button type="button" class="base-button" phx-click="watch" phx-target={@myself}>
@@ -57,6 +62,9 @@ defmodule PlatformWeb.MediaLive.WatchButton do
             <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
           </svg>
           Watch
+          <span class="ml-2 bg-neutral-200 text-xs rounded-full px-2 py-px">
+            <%= @count %>
+          </span>
         </button>
       <% end %>
     </div>

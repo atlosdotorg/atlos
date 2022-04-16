@@ -268,5 +268,18 @@ defmodule Platform.MaterialTest do
       assert {:ok, _} = Material.unwatch_media(media, user1)
       assert 1 == Material.total_watching!(media)
     end
+
+    test "list_watched_media/1 returns watched media" do
+      user = user_fixture()
+      media1 = media_fixture()
+      media2 = media_fixture()
+
+      assert [] == Material.list_watched_media(user)
+      assert {:ok, _} = Material.watch_media(media1, user)
+      assert [m1] = Material.list_watched_media(user)
+      assert m1.id == media1.id
+      assert {:ok, _} = Material.watch_media(media2, user)
+      assert length(Material.list_watched_media(user)) == 2
+    end
   end
 end

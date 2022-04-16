@@ -14,6 +14,12 @@ defmodule Platform.Material do
   alias Platform.Updates
   alias Platform.Accounts.User
 
+  defp hydrate_media_query(query) do
+    query
+    |> preload_media_versions()
+    |> preload_media_updates()
+  end
+
   @doc """
   Returns the list of media. Will preload the versions.
 
@@ -24,7 +30,21 @@ defmodule Platform.Material do
 
   """
   def list_media do
-    Media |> preload_media_versions() |> preload_media_updates() |> Repo.all()
+    Media
+    |> hydrate_media_query()
+    |> order_by(desc: :updated_at)
+    |> Repo.all()
+  end
+
+  @doc """
+  Returns the list of media watched by the given user.
+  """
+  def list_watched_media(%User{} = user) do
+    user
+    |> Ecto.assoc(:watching_media)
+    |> order_by(desc: :updated_at)
+    |> hydrate_media_query()
+    |> Repo.all()
   end
 
   defp preload_media_versions(query) do
