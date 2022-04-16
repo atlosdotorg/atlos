@@ -2,7 +2,7 @@ defmodule PlatformWeb.SettingsLive do
   use PlatformWeb, :live_view
 
   def mount(_params, _session, socket) do
-    {:ok, socket}
+    {:ok, socket |> assign(:title, "Settings")}
   end
 
   def handle_info(:update_successful, socket) do

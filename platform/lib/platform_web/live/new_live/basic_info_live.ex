@@ -5,7 +5,11 @@ defmodule PlatformWeb.NewLive.BasicInfoLive do
 
   def update(assigns, socket) do
     {:ok,
-     socket |> assign(assigns) |> assign_media() |> assign_changeset() |> assign(:disabled, false)}
+     socket
+     |> assign(assigns)
+     |> assign_media()
+     |> assign_changeset()
+     |> assign(:disabled, false)}
   end
 
   defp assign_media(socket) do

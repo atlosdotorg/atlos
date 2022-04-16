@@ -3,7 +3,7 @@ defmodule PlatformWeb.MediaLive.Index do
   alias Platform.Material
 
   def mount(_params, _session, socket) do
-    {:ok, socket |> assign(:media, list_media(socket))}
+    {:ok, socket |> assign(:title, "Media") |> assign(:media, list_media(socket))}
   end
 
   def list_media(_socket) do

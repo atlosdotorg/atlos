@@ -2,7 +2,7 @@ defmodule PlatformWeb.NewLive do
   use PlatformWeb, :live_view
 
   def mount(_params, _session, socket) do
-    {:ok, socket |> assign(:stage, "Basic info")}
+    {:ok, socket |> assign(:stage, "Basic info") |> assign(:title, "Upload Media")}
   end
 
   def handle_info({:media_created, media}, socket) do
