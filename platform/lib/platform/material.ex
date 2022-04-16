@@ -336,7 +336,8 @@ defmodule Platform.Material do
       true ->
         Repo.transaction(fn ->
           {:ok, _} = Updates.create_update_from_changeset(update_changeset)
-          update_media_attribute(media, attribute, attrs)
+          {:ok, res} = update_media_attribute(media, attribute, attrs)
+          res
         end)
     end
   end

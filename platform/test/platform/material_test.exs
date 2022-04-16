@@ -2,11 +2,13 @@ defmodule Platform.MaterialTest do
   use Platform.DataCase
 
   alias Platform.Material
+  alias Platform.Updates
+
+  import Platform.MaterialFixtures
+  import Platform.AccountsFixtures
 
   describe "media" do
     alias Platform.Material.Media
-
-    import Platform.MaterialFixtures
 
     @invalid_attrs %{description: nil, slug: nil}
 
@@ -70,8 +72,6 @@ defmodule Platform.MaterialTest do
 
   describe "media_versions" do
     alias Platform.Material.MediaVersion
-
-    import Platform.MaterialFixtures
 
     @invalid_attrs %{
       file_location: nil,
@@ -161,6 +161,25 @@ defmodule Platform.MaterialTest do
     test "change_media_version/1 returns a media_version changeset" do
       media_version = media_version_fixture()
       assert %Ecto.Changeset{} = Material.change_media_version(media_version)
+    end
+
+    test "a user modifying an attribute (audited) creates an update" do
+      user = user_fixture()
+      media = media_fixture()
+      attribute = Material.Attribute.get_attribute(:sensitive)
+
+      {:ok, updated} =
+        Material.update_media_attribute_audited(media, attribute, user, %{
+          "explanation" => "Very important explanation",
+          "attr_sensitive" => ["Threatens Civilian Safety"]
+        })
+
+      assert updated.attr_sensitive == ["Threatens Civilian Safety"]
+      assert [update = %Updates.Update{}] = Updates.get_updates_for_media(media)
+      assert update.media_id == media.id
+      assert update.user_id == user.id
+      assert update.explanation == "Very important explanation"
+      assert false
     end
   end
 end
