@@ -179,7 +179,6 @@ defmodule Platform.MaterialTest do
       assert update.media_id == media.id
       assert update.user_id == user.id
       assert update.explanation == "Very important explanation"
-      assert false
     end
   end
 end
