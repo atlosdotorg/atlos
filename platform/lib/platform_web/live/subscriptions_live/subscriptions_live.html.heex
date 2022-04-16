@@ -1,6 +1,6 @@
 <article class="w-full max-w-screen-xl px-8">
     <%= if length(@media) > 0 do %>
-        <h1 class="page-header mb-8">Watching</h1>
+        <h1 class="page-header mb-8">Subscribed</h1>
         <div class="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
             <%= for media <- @media do %>
                 <.media_card media={media} current_user={@current_user} />
@@ -11,8 +11,8 @@
           <svg class="mx-auto h-16 w-16 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
             <path vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
           </svg>
-          <h3 class="mt-2 font-medium text-gray-900">No watched media</h3>
-          <p class="mt-1 text-gray-500">You are not watching any media</p>
+          <h3 class="mt-2 font-medium text-gray-900">No subscribed media</h3>
+          <p class="mt-1 text-gray-500">You are not subscribed to any media</p>
           <div class="mt-6">
             <a href="/media" class="button ~urge @high">
               View All Media &rarr;

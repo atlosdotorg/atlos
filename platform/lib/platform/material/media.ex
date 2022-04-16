@@ -3,7 +3,7 @@ defmodule Platform.Material.Media do
   import Ecto.Changeset
   alias Platform.Utils
   alias Platform.Material.Attribute
-  alias Platform.Material.MediaWatchingUser
+  alias Platform.Material.MediaSubscription
   alias Platform.Accounts.User
   alias __MODULE__
 
@@ -43,7 +43,7 @@ defmodule Platform.Material.Media do
     # Associations
     has_many :versions, Platform.Material.MediaVersion
     has_many :updates, Platform.Updates.Update
-    has_many :watching_users, MediaWatchingUser
+    has_many :subscriptions, MediaSubscription
   end
 
   @doc false

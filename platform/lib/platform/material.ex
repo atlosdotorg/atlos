@@ -9,7 +9,7 @@ defmodule Platform.Material do
   alias Platform.Material.Media
   alias Platform.Material.Attribute
   alias Platform.Material.MediaVersion
-  alias Platform.Material.MediaWatchingUser
+  alias Platform.Material.MediaSubscription
   alias Platform.Utils
   alias Platform.Updates
   alias Platform.Accounts.User
@@ -37,11 +37,11 @@ defmodule Platform.Material do
   end
 
   @doc """
-  Returns the list of media watched by the given user.
+  Returns the list of media subscribed to by the given user.
   """
-  def list_watched_media(%User{} = user) do
+  def list_subscribed_media(%User{} = user) do
     user
-    |> Ecto.assoc(:watching_media)
+    |> Ecto.assoc(:subscribed_media)
     |> order_by(desc: :updated_at)
     |> hydrate_media_query()
     |> Repo.all()
@@ -363,23 +363,32 @@ defmodule Platform.Material do
     end
   end
 
-  def get_watching(%Media{} = media, %User{} = user) do
-    Repo.get_by(MediaWatchingUser, media_id: media.id, user_id: user.id)
+  def get_subscription(%Media{} = media, %User{} = user) do
+    Repo.get_by(MediaSubscription, media_id: media.id, user_id: user.id)
   end
 
-  def watch_media(%Media{} = media, %User{} = user) do
-    MediaWatchingUser.changeset(%MediaWatchingUser{}, %{media_id: media.id, user_id: user.id})
+  def subscribe_user(%Media{} = media, %User{} = user) do
+    MediaSubscription.changeset(%MediaSubscription{}, %{media_id: media.id, user_id: user.id})
     |> Repo.insert()
   end
 
-  def unwatch_media(%Media{} = media, %User{} = user) do
-    get_watching(media, user) |> Repo.delete()
+  def unsubscribe_user(%Media{} = media, %User{} = user) do
+    with {1, _} <-
+           from(s in MediaSubscription,
+             where: s.media_id == ^media.id,
+             where: s.user_id == ^user.id
+           )
+           |> Repo.delete_all() do
+      :ok
+    else
+      _ -> :error
+    end
   end
 
-  def total_watching!(%Media{} = media) do
+  def total_subscribed!(%Media{} = media) do
     [count] =
       Repo.all(
-        from w in MediaWatchingUser,
+        from w in MediaSubscription,
           where: w.media_id == ^media.id,
           select: count()
       )

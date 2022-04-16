@@ -35,8 +35,7 @@ defmodule PlatformWeb.Components do
         <!-- This element is to trick the browser into centering the modal contents. -->
         <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
 
-        <!-- add phx-click-away="close_modal" phx-window-keydown="close_modal" phx-key="Escape" phx-target={@target}, just need to get confirmation warning right -->
-        <div class="relative inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-xl sm:w-full sm:p-6">
+        <div class="relative inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-xl sm:w-full sm:p-6" phx-click-away="close_modal" phx-window-keydown="close_modal" phx-key="Escape" phx-target={@target}>
           <div class="hidden sm:block absolute top-0 right-0 pt-4 pr-4">
             <button type="button" class="bg-white rounded-md text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-urge-500" phx-click="close_modal" phx-target={@target} data-confirm={@close_confirmation}>
               <span class="sr-only">Close</span>
@@ -140,10 +139,9 @@ defmodule PlatformWeb.Components do
               </svg>
             </.navlink>
 
-            <.navlink to="/watching" label="Watching" request_path={@path}>
+            <.navlink to="/subscriptions" label="Subscriptions" request_path={@path}>
                 <svg xmlns="http://www.w3.org/2000/svg" class="text-neutral-300 group-hover:text-white h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                 </svg>
             </.navlink>
 

@@ -15,7 +15,7 @@ defmodule Platform.Accounts.User do
     field :hashed_password, :string, redact: true
     field :confirmed_at, :naive_datetime
 
-    many_to_many :watching_media, Material.Media, join_through: "media_watching_users"
+    many_to_many :subscribed_media, Material.Media, join_through: "media_subscriptions"
 
     timestamps()
   end

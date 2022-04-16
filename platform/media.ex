@@ -42,7 +42,7 @@ defmodule Platform.Material.Media do
     # Associations
     has_many :versions, Platform.Material.MediaVersion
     has_many :updates, Platform.Updates.Update
-    many_to_many :watching_users, Accounts.User, join_through: "media_watching_users"
+    many_to_many :subscribed_users, Accounts.User, join_through: "media_subscriptions"
   end
 
   @doc false

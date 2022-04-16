@@ -1,10 +1,10 @@
-defmodule Platform.Material.MediaWatchingUser do
+defmodule Platform.Material.MediaSubscription do
   use Ecto.Schema
   import Ecto.Changeset
   alias Platform.Material.Media
   alias Platform.Accounts.User
 
-  schema "media_watching_users" do
+  schema "media_subscriptions" do
     belongs_to :user, User
     belongs_to :media, Media
 
