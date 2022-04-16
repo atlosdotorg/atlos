@@ -1,6 +1,7 @@
 defmodule Platform.Accounts.User do
   use Ecto.Schema
   import Ecto.Changeset
+  alias Platform.Material
 
   schema "users" do
     field :email, :string
@@ -13,6 +14,8 @@ defmodule Platform.Accounts.User do
     field :password, :string, virtual: true, redact: true
     field :hashed_password, :string, redact: true
     field :confirmed_at, :naive_datetime
+
+    has_many :watching_media, Material.MediaWatchingUser
 
     timestamps()
   end

@@ -9,6 +9,7 @@ defmodule Platform.Material do
   alias Platform.Material.Media
   alias Platform.Material.Attribute
   alias Platform.Material.MediaVersion
+  alias Platform.Material.MediaWatchingUser
   alias Platform.Utils
   alias Platform.Updates
   alias Platform.Accounts.User
@@ -340,6 +341,30 @@ defmodule Platform.Material do
           res
         end)
     end
+  end
+
+  def get_watching(%Media{} = media, %User{} = user) do
+    Repo.get_by(MediaWatchingUser, media_id: media.id, user_id: user.id)
+  end
+
+  def watch_media(%Media{} = media, %User{} = user) do
+    MediaWatchingUser.changeset(%MediaWatchingUser{}, %{media_id: media.id, user_id: user.id})
+    |> Repo.insert()
+  end
+
+  def unwatch_media(%Media{} = media, %User{} = user) do
+    get_watching(media, user) |> Repo.delete()
+  end
+
+  def total_watching!(%Media{} = media) do
+    [count] =
+      Repo.all(
+        from w in MediaWatchingUser,
+          where: w.media_id == ^media.id,
+          select: count()
+      )
+
+    count
   end
 
   def media_thumbnail(%Media{} = media) do

@@ -234,5 +234,39 @@ defmodule Platform.MaterialTest do
       assert !changeset.valid?
       assert String.contains?(hd(errors_on(changeset).attr_restrictions), "permission")
     end
+
+    test "a user can watch and unwatch media" do
+      user = user_fixture()
+      media = media_fixture()
+
+      # Watch the media
+      assert 0 == Material.total_watching!(media)
+      assert nil == Material.get_watching(media, user)
+      assert {:ok, v} = Material.watch_media(media, user)
+      assert v == Material.get_watching(media, user)
+      assert 1 == Material.total_watching!(media)
+
+      Material.unwatch_media(media, user)
+      assert 0 == Material.total_watching!(media)
+    end
+
+    test "multiple users can unwatch media" do
+      user1 = user_fixture()
+      user2 = user_fixture()
+      media = media_fixture()
+
+      assert 0 == Material.total_watching!(media)
+      assert nil == Material.get_watching(media, user1)
+      assert {:ok, w1} = Material.watch_media(media, user1)
+      assert w1 == Material.get_watching(media, user1)
+      assert 1 == Material.total_watching!(media)
+
+      assert {:ok, w2} = Material.watch_media(media, user2)
+      assert w2 == Material.get_watching(media, user2)
+      assert 2 == Material.total_watching!(media)
+
+      assert {:ok, _} = Material.unwatch_media(media, user1)
+      assert 1 == Material.total_watching!(media)
+    end
   end
 end
