@@ -180,5 +180,59 @@ defmodule Platform.MaterialTest do
       assert update.user_id == user.id
       assert update.explanation == "Very important explanation"
     end
+
+    test "a user modifying a protected attribute (audited) fails" do
+      user = user_fixture()
+      media = media_fixture()
+      attribute = Material.Attribute.get_attribute(:restrictions)
+
+      assert {:error, changeset} =
+               Material.update_media_attribute_audited(media, attribute, user, %{
+                 "explanation" => "Very important explanation",
+                 "attr_restrictions" => ["Frozen"]
+               })
+
+      assert !changeset.valid?
+      assert String.contains?(hd(errors_on(changeset).attr_restrictions), "permission")
+    end
+
+    test "an admin modifying a protected attribute (audited) works" do
+      user = admin_user_fixture()
+      media = media_fixture()
+      attribute = Material.Attribute.get_attribute(:restrictions)
+
+      assert {:ok, updated} =
+               Material.update_media_attribute_audited(media, attribute, user, %{
+                 "explanation" => "Very important explanation",
+                 "attr_restrictions" => ["Frozen"]
+               })
+
+      assert updated.attr_restrictions == ["Frozen"]
+    end
+
+    test "a user cannot edit frozen media" do
+      admin = admin_user_fixture()
+      media = media_fixture()
+      attribute = Material.Attribute.get_attribute(:restrictions)
+
+      assert {:ok, updated} =
+               Material.update_media_attribute_audited(media, attribute, admin, %{
+                 "explanation" => "Very important explanation",
+                 "attr_restrictions" => ["Frozen"]
+               })
+
+      assert updated.attr_restrictions == ["Frozen"]
+
+      user = user_fixture()
+
+      assert {:error, changeset} =
+               Material.update_media_attribute_audited(media, attribute, user, %{
+                 "explanation" => "Very important explanation",
+                 "attr_sensitive" => ["Graphic Violence"]
+               })
+
+      assert !changeset.valid?
+      assert String.contains?(hd(errors_on(changeset).attr_restrictions), "permission")
+    end
   end
 end
