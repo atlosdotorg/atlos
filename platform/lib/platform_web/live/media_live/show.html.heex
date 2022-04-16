@@ -32,9 +32,12 @@
         </div>
         <div class="mt-5 flex lg:mt-0 lg:ml-4">
             <span class="hidden sm:block">
-                <.dropdown label="Actions" id="action-dropdown">
-
-                </.dropdown>
+                <.live_component
+                  module={PlatformWeb.MediaLive.WatchButton}
+                  id="watch_button"
+                  current_user={@current_user}
+                  media={@media}
+                />
             </span>
         </div>
     </div>
