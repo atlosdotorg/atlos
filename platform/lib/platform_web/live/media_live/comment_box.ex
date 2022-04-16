@@ -50,7 +50,6 @@ defmodule PlatformWeb.MediaLive.CommentBox do
       <.form
         let={f}
         for={@changeset}
-        id={"comment-box-input-post"}
         phx-target={@myself}
         phx-change="validate"
         phx-submit="save"
