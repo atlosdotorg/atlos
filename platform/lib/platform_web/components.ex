@@ -504,7 +504,7 @@ defmodule PlatformWeb.Components do
     sensitive = Media.is_sensitive(media)
 
     ~H"""
-      <a class="flex group flex-col items-center md:flex-row bg-white overflow-hidden shadow rounded-lg justify-between h-44" href={"/media/#{media.slug}"}>
+      <a class="flex group flex-col items-center md:flex-row bg-white overflow-hidden shadow rounded-lg justify-between min-h-32" href={"/media/#{media.slug}"}>
         <%= if Media.can_user_view(media, user) do %>
           <div class="h-full p-2 flex flex-col w-full md:w-3/4 gap-2">
             <section>

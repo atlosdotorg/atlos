@@ -18,7 +18,7 @@ defmodule PlatformWeb.NewLive do
 
   def render(assigns) do
     ~H"""
-    <div class="space-y-8 max-w-xl">
+    <div class="space-y-8 max-w-xl mx-auto">
       <h1 class="page-header">Upload New Media</h1>
       <.stepper options={["Basic info", "Upload media"]} active={@stage} />
 

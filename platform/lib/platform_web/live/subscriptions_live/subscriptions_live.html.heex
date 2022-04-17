@@ -1,13 +1,13 @@
-<article class="w-full max-w-screen-xl px-8">
+<article class="w-full max-w-screen-xl px-8 mx-auto">
     <%= if length(@media) > 0 do %>
         <h1 class="page-header mb-8">Subscribed</h1>
-        <div class="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
+        <div class="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
             <%= for media <- @media do %>
                 <.media_card media={media} current_user={@current_user} />
             <% end %>
         </div>
     <% else %>
-        <div class="text-center lg:w-96 mt-12">
+        <div class="text-center mt-12">
           <svg class="mx-auto h-16 w-16 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
             <path vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
           </svg>
