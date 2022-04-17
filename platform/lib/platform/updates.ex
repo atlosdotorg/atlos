@@ -50,6 +50,13 @@ defmodule Platform.Updates do
   end
 
   @doc """
+  Update the given update using the changeset.
+  """
+  def update_update_from_changeset(%Ecto.Changeset{data: %Update{} = _} = changeset) do
+    changeset |> Repo.update()
+  end
+
+  @doc """
   Deletes a update.
 
   ## Examples
@@ -150,15 +157,32 @@ defmodule Platform.Updates do
   end
 
   @doc """
-  Get the updates associated with the given media.
+  Get the non-hidden updates associated with the given media.
   """
-  def get_updates_for_media(media) do
-    # TODO: remove n+1
-    Repo.all(
+  def get_updates_for_media(media, exclude_hidden \\ false) do
+    query =
       from u in Update,
         where: u.media_id == ^media.id,
         preload: [:user, :media, :media_version],
         order_by: [asc: u.inserted_at]
-    )
+
+    Repo.all(if exclude_hidden, do: query |> where([u], not u.hidden), else: query)
+  end
+
+  @doc """
+  Change the visibility (per the `hidden` field) of the given media.
+  """
+  def change_update_visibility(%Update{} = update, hidden) do
+    Update.raw_changeset(update, %{hidden: hidden})
+  end
+
+  @doc """
+  Is the given user able to view the given update?
+  """
+  def can_user_view(%Update{} = update, %User{} = user) do
+    case update.hidden do
+      true -> Platform.Accounts.is_admin(user)
+      false -> true
+    end
   end
 end

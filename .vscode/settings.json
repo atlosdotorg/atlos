@@ -1,4 +1,5 @@
 {
     "elixirLS.projectDir": "platform",
-    "elixirLS.enableTestLenses": true
+    "elixirLS.enableTestLenses": true,
+    "editor.formatOnSave": true
 }

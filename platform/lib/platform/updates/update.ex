@@ -16,6 +16,8 @@ defmodule Platform.Updates.Update do
     # JSON-encoded data
     field :old_value, :string, default: "null"
 
+    field :hidden, :boolean, default: false
+
     # General association metadata
     belongs_to :user, Platform.Accounts.User
     belongs_to :media, Platform.Material.Media
@@ -32,7 +34,15 @@ defmodule Platform.Updates.Update do
       |> Map.put("media_id", media.id)
 
     update
-    |> cast(hydrated_attrs, [
+    |> raw_changeset(hydrated_attrs)
+    |> validate_access(user, media)
+
+    # TODO: also validate that if type == :comment, then explanation is not empty
+  end
+
+  def raw_changeset(update, attrs) do
+    update
+    |> cast(attrs, [
       :explanation,
       :old_value,
       :new_value,
@@ -40,12 +50,13 @@ defmodule Platform.Updates.Update do
       :type,
       :user_id,
       :media_id,
-      :media_version_id
+      :media_version_id,
+      # TODO: does this being here allow anyone to sneak `:hidden` in when creating an update? Not a big deal, but worth investigating.
+      :hidden
     ])
     |> validate_required([:old_value, :new_value, :type, :user_id, :media_id])
     |> validate_explanation()
     |> validate_inclusion(:modified_attribute, Attribute.attribute_names())
-    |> validate_access(user, media)
 
     # TODO: also validate that if type == :comment, then explanation is not empty
   end
