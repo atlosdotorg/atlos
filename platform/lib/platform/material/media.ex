@@ -113,16 +113,20 @@ defmodule Platform.Material.Media do
     Enum.member?(media.attr_sensitive || [], "Graphic Violence")
   end
 
-  def search(search_terms, queryable \\ Media) do
+  def text_search(search_terms, queryable \\ Media) do
     queryable
     |> where(
       [q],
       fragment("? @@ websearch_to_tsquery('english', ?)", q.searchable, ^search_terms)
     )
-    |> order_by([q], [
-      asc: fragment(
-        "ts_rank_cd(?, websearch_to_tsquery('english', ?), 4)", q.searchable, ^search_terms),
+    |> order_by([q],
+      asc:
+        fragment(
+          "ts_rank_cd(?, websearch_to_tsquery('english', ?), 4)",
+          q.searchable,
+          ^search_terms
+        ),
       desc: q.updated_at
-    ])
+    )
   end
 end
