@@ -135,14 +135,6 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
     {:noreply, socket}
   end
 
-  defp truncate(str) do
-    if String.length(str) > 30 do
-      "#{String.slice(str, 0, 27) |> String.trim()}..."
-    else
-      str
-    end
-  end
-
   defp friendly_error(:too_large),
     do: "This file is too large; the maximum size is 250 megabytes."
 
@@ -208,7 +200,7 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
                 <div class="w-full text-sm text-gray-600">
                   <%= for entry <- @uploads.media_upload.entries do %>
                     <div class="w-42 mt-4 text-center">
-                      <p>Uploaded <%= truncate(entry.client_name) %>.</p>
+                      <p>Uploaded <%= Utils.truncate(entry.client_name) %>.</p>
                     </div>
                   <% end %>
                 </div>
@@ -242,7 +234,7 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
                   <%= for entry <- @uploads.media_upload.entries do %>
                     <%= if entry.progress < 100 and entry.progress > 0 do %>
                     <div class="w-42 mt-4 text-center">
-                      <p>Uploading <%= truncate(entry.client_name) %></p>
+                      <p>Uploading <%= Utils.truncate(entry.client_name) %></p>
                       <progress value={entry.progress} max="100" class="progress ~urge mt-2"> <%= entry.progress %>% </progress>
                     </div>
                     <% end %>

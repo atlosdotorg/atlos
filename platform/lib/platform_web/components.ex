@@ -9,6 +9,7 @@ defmodule PlatformWeb.Components do
   alias Platform.Material.Attribute
   alias Platform.Material.Media
   alias Platform.Material
+  alias Platform.Utils
 
   def navlink(%{request_path: path, to: to} = assigns) do
     classes =
@@ -503,12 +504,12 @@ defmodule PlatformWeb.Components do
     sensitive = Media.is_sensitive(media)
 
     ~H"""
-      <a class="flex group flex-col items-center md:flex-row bg-white overflow-hidden shadow rounded-lg justify-between" href={"/media/#{media.slug}"}>
+      <a class="flex group flex-col items-center md:flex-row bg-white overflow-hidden shadow rounded-lg justify-between h-44" href={"/media/#{media.slug}"}>
         <%= if Media.can_user_view(media, user) do %>
           <div class="h-full p-2 flex flex-col w-full md:w-3/4 gap-2">
             <section>
               <p class="font-mono text-xs text-gray-500"><%= media.slug %></p>
-              <p class="text-gray-900 group-hover:text-gray-900"><%= media.description %></p>
+              <p class="text-gray-900 group-hover:text-gray-900"><%= media.description |> Utils.truncate(100) %></p>
             </section>
             <section class="flex flex-wrap gap-1 self-start align-top">
               <%= if sensitive do %>

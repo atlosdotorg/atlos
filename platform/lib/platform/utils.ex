@@ -28,4 +28,12 @@ defmodule Platform.Utils do
     File.cp!(path, dest)
     {:ok, "/ugc/#{Path.basename(dest)}"}
   end
+
+  def truncate(str, length \\ 30) do
+    if String.length(str) > length do
+      "#{String.slice(str, 0, length - 3) |> String.trim()}..."
+    else
+      str
+    end
+  end
 end
