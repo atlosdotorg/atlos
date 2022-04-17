@@ -47,18 +47,18 @@ random_users =
         password: "localhost123"
       })
 
-    Accounts.update_user_profile(account, %{
-      bio: Faker.Lorem.characters(Enum.random(10..240)),
-      profile_photo_file: Faker.Internet.image_url()
+    {:ok, account_updated} = Accounts.update_user_profile(account, %{
+      profile_photo_file: Faker.Avatar.image_url()
     })
 
-    account
+    account_updated
   end)
 
 random_media =
   Enum.map(1..10000, fn _ ->
-    Material.create_media_audited(Enum.random(random_users), %{
-      description: Faker.StarWars.quote(),
+    creator = Enum.random(random_users)
+    {:ok, media} = Material.create_media_audited(creator, %{
+      description: Faker.StarWars.quote() |> String.slice(0..230),
       attr_sensitive:
         if(Enum.random(0..10) < 2,
           do: [
@@ -67,4 +67,18 @@ random_media =
           else: ["Not Sensitive"]
         )
     })
+
+    url = Faker.Internet.image_url()
+    Material.create_media_version_audited(media, creator, %{
+      file_location: url,
+      file_size: Enum.random(10000..10000000),
+      duration_seconds: 0,
+      source_url: Faker.Internet.url(),
+      mime_type: "image/jpg",
+      client_name: "image.jpg",
+      thumbnail_location: url
+    })
+
+    Material.subscribe_user(media, creator)
+
   end)
