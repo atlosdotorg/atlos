@@ -533,8 +533,17 @@ defmodule PlatformWeb.Components do
                 </span>
               <% end %>
 
+              <%= if media.attr_flag do %>
+                <span class="badge ~urge">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-px" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M3 6a3 3 0 013-3h10a1 1 0 01.8 1.6L14.25 8l2.55 3.4A1 1 0 0116 13H6a1 1 0 00-1 1v3a1 1 0 11-2 0V6z" clip-rule="evenodd" />
+                  </svg>
+                  <%= media.attr_flag %>
+                </span>
+              <% end %>
+
               <%= if media.attr_geolocation do %>
-                <span class="badge ~info">
+                <span class="badge ~neutral">
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-px" viewBox="0 0 20 20" fill="currentColor">
                     <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
                   </svg>
@@ -544,7 +553,7 @@ defmodule PlatformWeb.Components do
               <% end %>
 
               <%= if media.attr_date_recorded do %>
-                <span class="badge ~info">
+                <span class="badge ~neutral">
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-px" viewBox="0 0 20 20" fill="currentColor">
                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" />
                   </svg>

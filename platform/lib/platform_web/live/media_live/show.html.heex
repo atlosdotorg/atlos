@@ -4,7 +4,33 @@
             <h2 class="text-xl font-semibold leading-7 text-gray-900 sm:text-3xl">
                 <%= @media.description %>
             </h2>
-            <div class="mt-1 flex flex-col sm:flex-row sm:flex-wrap sm:mt-0 sm:space-x-6">
+            <div class="mt-1 flex flex-col sm:flex-row sm:flex-wrap sm:mt-0 sm:space-x-4">
+                <%= if Media.is_sensitive(@media) do %>
+                    <%= for item <- @media.attr_sensitive || [] do %>
+                        <div class="chip ~critical @high inline-block mt-2 flex gap-1">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 1.944A11.954 11.954 0 012.166 5C2.056 5.649 2 6.319 2 7c0 5.225 3.34 9.67 8 11.317C14.66 16.67 18 12.225 18 7c0-.682-.057-1.35-.166-2.001A11.954 11.954 0 0110 1.944zM11 14a1 1 0 11-2 0 1 1 0 012 0zm0-7a1 1 0 10-2 0v3a1 1 0 102 0V7z" clip-rule="evenodd" />
+                            </svg>
+                            <%= item %>
+                        </div>
+                    <% end %>
+                <% end %>
+                <%= for item <- @media.attr_restrictions || [] do %>
+                    <div class="chip ~warning @high inline-block mt-2 flex gap-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M13.477 14.89A6 6 0 015.11 6.524l8.367 8.368zm1.414-1.414L6.524 5.11a6 6 0 018.367 8.367zM18 10a8 8 0 11-16 0 8 8 0 0116 0z" clip-rule="evenodd" />
+                        </svg>
+                        <%= item %>
+                    </div>
+                <% end %>
+                <%= if @media.attr_flag do %>
+                    <div class="chip ~urge @high inline-block mt-2 flex gap-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M3 6a3 3 0 013-3h10a1 1 0 01.8 1.6L14.25 8l2.55 3.4A1 1 0 0116 13H6a1 1 0 00-1 1v3a1 1 0 11-2 0V6z" clip-rule="evenodd" />
+                        </svg>
+                        <%= @media.attr_flag %>
+                    </div>
+                <% end %>
                 <div class="mt-2 flex items-center text-sm text-gray-500">
                     <svg xmlns="http://www.w3.org/2000/svg" class="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
                         <path d="M7 9a2 2 0 012-2h6a2 2 0 012 2v6a2 2 0 01-2 2H9a2 2 0 01-2-2V9z" />
@@ -25,9 +51,6 @@
                     <% contributors = length(Material.contributors(@media)) %>
                     <%= contributors %> <%= naive_pluralise(contributors, "contributor") %>
                 </div>
-                <%= for item <- @media.attr_restrictions || [] do %>
-                    <div class="chip ~warning @high inline-block mt-2"><%= item %></div>
-                <% end %>
             </div>
         </div>
         <div class="mt-5 flex lg:mt-0 lg:ml-4">
