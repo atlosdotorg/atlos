@@ -36,5 +36,7 @@ defmodule Platform.Repo.Migrations.AddMediaIndices do
              name: :media_searchable_index,
              using: "GIN"
            )
+
+    create index(:media, [:created_at])
   end
 end
