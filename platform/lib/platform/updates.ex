@@ -26,7 +26,7 @@ defmodule Platform.Updates do
   end
 
   @doc """
-  Gets a single update.
+  Gets a single update. Preloads user, media, and media_version.
 
   Raises `Ecto.NoResultsError` if the Update does not exist.
 
@@ -39,7 +39,7 @@ defmodule Platform.Updates do
       ** (Ecto.NoResultsError)
 
   """
-  def get_update!(id), do: Repo.get!(Update, id)
+  def get_update!(id), do: Repo.get!(Update |> preload([:user, :media, :media_version]), id)
 
   @doc """
   Insert the given Update changeset. Helpful to use in conjunction with the dynamic changeset

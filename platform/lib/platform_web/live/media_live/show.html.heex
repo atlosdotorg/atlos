@@ -111,7 +111,12 @@
                 <:header>
                     <h3 class="sec-head">Feed</h3>
                 </:header>
-                <.update_stream updates={@updates} socket={@socket} current_user={@current_user} />
+                <.live_component
+                    module={PlatformWeb.UpdatesLive.UpdateFeed}
+                    id="update-feed"
+                    current_user={@current_user}
+                    updates={@updates}
+                />
                 <hr class="sep h-2">
                 <.live_component
                     module={PlatformWeb.MediaLive.CommentBox}

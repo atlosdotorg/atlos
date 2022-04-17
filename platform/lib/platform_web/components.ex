@@ -4,7 +4,6 @@ defmodule PlatformWeb.Components do
 
   alias Phoenix.LiveView.JS
 
-  alias PlatformWeb.Router.Helpers, as: Routes
   alias Platform.Accounts
   alias Platform.Material.Attribute
   alias Platform.Material.Media
@@ -425,74 +424,6 @@ defmodule PlatformWeb.Components do
         <% :date -> %> <.list_diff old={[old]} new={[new]} />
       <% end %>
     </span>
-    """
-  end
-
-  def update_stream(%{updates: updates} = assigns) do
-    ~H"""
-    <div class="flow-root">
-      <ul role="list" class="-mb-8">
-        <%= for update <- updates do %>
-        <li>
-          <div class="relative pb-8">
-            <span class="absolute top-5 left-5 -ml-px h-full w-0.5 bg-gray-200" aria-hidden="true"></span>
-            <div class="relative flex items-start space-x-3">
-              <div class="relative">
-                <img class="h-10 w-10 rounded-full bg-gray-400 flex items-center justify-center ring-8 ring-white shadow" src={Accounts.get_profile_photo_path(update.user)} alt={"Profile photo for #{update.user.username}"}>
-              </div>
-              <div class="min-w-0 flex-1 flex flex-col">
-                <div>
-                  <div class="text-sm text-gray-600 mt-2">
-                    <a class="font-medium text-gray-900"><%= update.user.username %></a>
-                    <%= case update.type do %>
-                      <% :update_attribute -> %>
-                        updated
-                        <%= if Attribute.can_user_edit(Attribute.get_attribute(update.modified_attribute), @current_user, update.media) do %>
-                          <%= live_patch class: "text-button text-gray-800 inline-block", to: Routes.media_show_path(@socket, :edit, update.media.slug, update.modified_attribute) do %>
-                            <%= Attribute.get_attribute(update.modified_attribute).label %>  &nearr;
-                          <% end %>
-                        <% else %>
-                          <p class="font-medium text-gray-800 inline-block">
-                            <%= Attribute.get_attribute(update.modified_attribute).label %>
-                          </p>
-                        <% end %>
-                      <% :create -> %>
-                        added <span class="font-medium text-gray-900"><%= update.media.slug %></span>
-                      <% :upload_version -> %>
-                        uploaded <a href={"#version-#{update.media_version.id}"} class="text-button text-gray-800">media &nearr;</a>
-                      <% :comment -> %>
-                        commented
-                    <% end %>
-                    <.rel_time time={update.inserted_at} />
-                  </div>
-                </div>
-
-                <%= if update.type == :update_attribute || update.explanation do %>
-                  <div class="mt-1 text-sm text-gray-700 border border-gray-300 rounded-lg shadow-sm overflow-hidden flex flex-col divide-y">
-                    <!-- Update detail section -->
-                    <%= if update.type == :update_attribute do %>
-                      <div class="bg-gray-50 p-2 flex">
-                        <div class="flex-grow">
-                          <.attr_diff name={update.modified_attribute} old={Jason.decode!(update.old_value)} new={Jason.decode!(update.new_value)} />
-                        </div>
-                      </div>
-                    <% end %>
-
-                    <!-- Text comment section -->
-                    <%= if update.explanation do %>
-                      <div class="p-2">
-                        <p><%= update.explanation %></p>
-                      </div>
-                    <% end %>
-                  </div>
-                <% end %>
-              </div>
-            </div>
-          </div>
-        </li>
-        <% end %>
-      </ul>
-    </div>
     """
   end
 
