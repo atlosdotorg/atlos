@@ -27,6 +27,13 @@ defmodule Platform.Accounts do
   end
 
   @doc """
+  Gets a user by username.
+  """
+  def get_user_by_username(username) do
+    Repo.get_by(User, username: username)
+  end
+
+  @doc """
   Gets a user by email and password.
 
   ## Examples
@@ -388,5 +395,9 @@ defmodule Platform.Accounts do
 
   def is_privileged(%User{} = user) do
     is_admin(user) || is_trusted(user)
+  end
+
+  def is_banned(%User{} = user) do
+    Enum.member?(user.restrictions || [], :banned)
   end
 end

@@ -170,6 +170,19 @@ defmodule Platform.Updates do
   end
 
   @doc """
+  Get the non-hidden updates associated with the given user.
+  """
+  def get_updates_for_user(user, exclude_hidden \\ false) do
+    query =
+      from u in Update,
+        where: u.user_id == ^user.id,
+        preload: [:user, :media, :media_version],
+        order_by: [asc: u.inserted_at]
+
+    Repo.all(if exclude_hidden, do: query |> where([u], not u.hidden), else: query)
+  end
+
+  @doc """
   Change the visibility (per the `hidden` field) of the given media.
   """
   def change_update_visibility(%Update{} = update, hidden) do

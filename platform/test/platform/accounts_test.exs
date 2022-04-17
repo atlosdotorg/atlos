@@ -498,6 +498,12 @@ defmodule Platform.AccountsTest do
       {:ok, _} = Accounts.reset_user_password(user, %{password: "new valid password"})
       refute Repo.get_by(UserToken, user_id: user.id)
     end
+
+    test "get_user_by_username/1 returns the correct user", %{user: user} do
+      found_user = Accounts.get_user_by_username(user.username)
+
+      assert user.id == found_user.id
+    end
   end
 
   describe "inspect/2" do
