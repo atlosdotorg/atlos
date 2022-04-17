@@ -73,7 +73,7 @@ random_media =
           )
       })
 
-    url = Faker.Internet.image_url()
+    url = "https://placekitten.com/#{Enum.random(300..2000)}/#{Enum.random(300..2000)}"
 
     Material.create_media_version_audited(media, creator, %{
       file_location: url,
