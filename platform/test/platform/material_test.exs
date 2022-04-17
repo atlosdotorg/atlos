@@ -385,5 +385,14 @@ defmodule Platform.MaterialTest do
                |> Material.query_media()
              ) == 60
     end
+
+    test "query_media_paginated/0 paginates" do
+      assert length(Material.query_media_paginated().entries) == 0
+
+      Enum.map(1..100, fn _ -> media_fixture() end)
+
+      assert length(Material.query_media_paginated().entries) == 30
+      assert length(Material.query_media_paginated(Material.Media, limit: 50).entries) == 50
+    end
   end
 end

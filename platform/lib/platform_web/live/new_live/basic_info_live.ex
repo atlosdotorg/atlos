@@ -35,7 +35,6 @@ defmodule PlatformWeb.NewLive.BasicInfoLive do
         {:noreply, socket |> assign(:disabled, true)}
 
       {:error, %Ecto.Changeset{} = changeset} ->
-        IO.inspect(changeset)
         {:noreply, assign(socket, :changeset, changeset)}
     end
   end

@@ -36,20 +36,29 @@ defmodule Platform.Material do
     |> Repo.all()
   end
 
-  @doc """
-  Query the list of media. Will preload the versions and updates.
-
-  ## Examples
-
-      iex> list_media()
-      [%Media{}, ...]
-
-  """
-  def query_media(query \\ Media) do
+  defp _query_media(query) do
+    # Helper function used to abstract behavior of the `query_media` functions.
     query
     |> hydrate_media_query()
     |> order_by(desc: :updated_at)
+  end
+
+  @doc """
+  Query the list of media. Will preload the versions and updates.
+  """
+  def query_media(query \\ Media) do
+    _query_media(query)
     |> Repo.all()
+  end
+
+  @doc """
+  Query the list of media, paginated. Will preload the versions and updates. Behavior otherwise the same as query_media/1.
+  """
+  def query_media_paginated(query \\ Media, opts \\ []) do
+    applied_options = Keyword.merge([cursor_fields: [{:updated_at, :desc}], limit: 30], opts)
+
+    _query_media(query)
+    |> Repo.paginate(applied_options)
   end
 
   @doc """

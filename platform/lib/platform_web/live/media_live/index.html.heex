@@ -44,4 +44,9 @@
         </div>
       </div>
     <% end %>
+    <div class="mx-auto mt-8 text-center text-xs">
+      <%= if !is_nil(@results.metadata.after) do %>
+        <button type="button" class="text-button" phx-click="load_more" phx-disable-with="Loading...">Load More</button>
+      <% end %>
+    </div>
 </article>

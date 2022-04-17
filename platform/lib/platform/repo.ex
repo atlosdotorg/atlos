@@ -3,6 +3,8 @@ defmodule Platform.Repo do
     otp_app: :platform,
     adapter: Ecto.Adapters.Postgres
 
+  use Paginator
+
   Postgrex.Types.define(
     Platform.Repo.PostgresTypes,
     [Geo.PostGIS.Extension] ++ Ecto.Adapters.Postgres.extensions(),

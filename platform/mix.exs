@@ -55,6 +55,7 @@ defmodule Platform.MixProject do
       {:temp, "~> 0.4"},
       {:rambo, "~> 0.3"},
       {:geo_postgis, "~> 3.4"},
+      {:paginator, "~> 1.1.0"},
       {:faker, "~> 0.17", only: :test}
     ]
   end
