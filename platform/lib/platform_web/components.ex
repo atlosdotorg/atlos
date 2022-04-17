@@ -251,6 +251,12 @@ defmodule PlatformWeb.Components do
     start - now
   end
 
+  def rel_time(%{time: time} = assigns) when is_nil(time) do
+    ~H"""
+    <span>Never</span>
+    """
+  end
+
   def rel_time(%{time: time} = assigns) do
     ago = time |> seconds_ago()
 

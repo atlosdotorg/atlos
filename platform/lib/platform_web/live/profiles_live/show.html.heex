@@ -1,3 +1,84 @@
-<article class="w-full max-w-screen-xl px-8">
-    <%= @username %>
+<article class="w-full max-w-screen-md mx-auto px-8 flex flex-col gap-8">
+    <section class="flex gap-4 items-center">
+        <img class="relative z-30 inline-block h-24 w-24 rounded-full ring-2 ring-white" src={Accounts.get_profile_photo_path(@user)} title={@user.username} alt={"Profile photo for #{@user.username}"}>
+        <div>
+            <div class="flex gap-4 flex-wrap items-center">
+                <span class="heading text-3xl">
+                    <%= @username %>
+                </span>
+                <%= if Accounts.is_admin(@user) do %>
+                    <p class="chip ~critical">Admin</p>
+                <% end %>
+            </div>
+            <p class="text-gray-700 mt-2">
+                <%= @user.bio %>
+            </p>
+        </div>
+    </section>
+    <%= if Accounts.is_admin(@current_user) do %>
+    <section>
+        <.card>
+            <:header>
+                <p class="sec-head">Administration</p>
+                <p class="sec-subhead">This information is only visible to administrators.</p>
+            </:header>
+            <dl class="grid grid-cols-1 gap-x-4 gap-y-8 sm:grid-cols-2">
+                <div class="sm:col-span-1">
+                    <dt class="text-sm font-medium text-gray-500">Email</dt>
+                    <dd class="mt-1 text-sm text-gray-900"><%= @user.email %></dd>
+                </div>
+                <div class="sm:col-span-1">
+                    <dt class="text-sm font-medium text-gray-500">Joined</dt>
+                    <dd class="mt-1 text-sm text-gray-900"><.rel_time time={@user.inserted_at} /></dd>
+                </div>
+                <div class="sm:col-span-1">
+                    <dt class="text-sm font-medium text-gray-500">Confirmed</dt>
+                    <dd class="mt-1 text-sm text-gray-900"><.rel_time time={@user.confirmed_at} /></dd>
+                </div>
+                <div class="sm:col-span-1">
+                    <dt class="text-sm font-medium text-gray-500">Restrictions</dt>
+                    <dd class="mt-1 text-sm text-gray-900">
+                        <%= if length(@user.restrictions || []) > 0 do %>
+                            <%= for r <- @user.restrictions do %>
+                                <p class="chip ~warning">
+                                    <%= r %>
+                                </p>
+                            <% end %>
+                        <% else %>
+                        None
+                        <% end %>
+                    </dd>
+                </div>
+                <div class="sm:col-span-1">
+                    <dt class="text-sm font-medium text-gray-500">Total Activity</dt>
+                    <dd class="mt-1 text-sm text-gray-900">
+                        <%= length(@updates) %>
+                    </dd>
+                </div>
+                <div class="sm:col-span-1">
+                    <dt class="text-sm font-medium text-gray-500">Last Activity</dt>
+                    <dd class="mt-1 text-sm text-gray-900">
+                        <.rel_time time={Enum.max(@updates |> Enum.map(&(&1.inserted_at)))} />
+                    </dd>
+                </div>
+            </dl>
+        </.card>
+    </section>
+    <% end %>
+    <section>
+        <.card>
+            <:header>
+                <p class="sec-head">Activity</p>
+            </:header>
+            <.live_component
+                module={PlatformWeb.UpdatesLive.UpdateFeed}
+                id="update-feed"
+                current_user={@current_user}
+                updates={@updates}
+                show_final_line={false}
+                show_media={true}
+                reverse={true}
+            />
+        </.card>
+    </section>
 </article>

@@ -193,9 +193,15 @@ defmodule Platform.Updates do
   Is the given user able to view the given update?
   """
   def can_user_view(%Update{} = update, %User{} = user) do
-    case update.hidden do
-      true -> Platform.Accounts.is_admin(user)
-      false -> true
+    case Platform.Accounts.is_admin(user) do
+      true ->
+        true
+
+      false ->
+        case update.hidden do
+          true -> false
+          false -> Media.can_user_view(update.media, user)
+        end
     end
   end
 end

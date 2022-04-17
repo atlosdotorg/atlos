@@ -10,7 +10,10 @@ defmodule PlatformWeb.UpdatesLive.UpdateFeed do
       ) do
     {:ok,
      socket
-     |> assign(assigns)}
+     |> assign(assigns)
+     |> assign_new(:show_final_line, fn -> true end)
+     |> assign_new(:reverse, fn -> false end)
+     |> assign_new(:show_media, fn -> false end)}
   end
 
   def can_user_change_visibility(user) do
@@ -43,14 +46,25 @@ defmodule PlatformWeb.UpdatesLive.UpdateFeed do
     end
   end
 
+  defp order(updates, reverse) do
+    o = Enum.sort_by(updates, & &1.inserted_at)
+    if reverse, do: o |> Enum.reverse(), else: o
+  end
+
   def render(assigns) do
     ~H"""
     <div class="flow-root">
       <ul role="list" class="-mb-8">
-        <%= for update <- @updates |> Enum.filter(&(Updates.can_user_view(&1, @current_user))) |> Enum.sort_by(&(&1.inserted_at)) do %>
+        <% to_show = @updates |> Enum.filter(&(Updates.can_user_view(&1, @current_user))) |> order(@reverse) |> Enum.with_index() %>
+        <%= if length(to_show) == 0 do %>
+          <p class="mb-8 text-gray-600">There are no updates to show.</p>
+        <% end %>
+        <%= for {update, idx} <- to_show do %>
         <li class={if update.hidden, do: "opacity-50", else: ""}>
           <div class="relative pb-8 group">
-            <span class="absolute top-5 left-5 -ml-px h-full w-0.5 bg-gray-200" aria-hidden="true"></span>
+            <%= if idx != length(@updates) - 1 || @show_final_line do %>
+              <span class="absolute top-5 left-5 -ml-px h-full w-0.5 bg-gray-200" aria-hidden="true"></span>
+            <% end %>
             <div class="relative flex items-start space-x-3">
               <div class="relative">
                 <img class="h-10 w-10 rounded-full bg-gray-400 flex items-center justify-center ring-8 ring-white shadow" src={Accounts.get_profile_photo_path(update.user)} alt={"Profile photo for #{update.user.username}"}>
@@ -58,6 +72,11 @@ defmodule PlatformWeb.UpdatesLive.UpdateFeed do
               <div class="min-w-0 flex-1 flex flex-col flex-grow">
                 <div>
                   <div class="text-sm text-gray-600 mt-2">
+                    <%= if @show_media do %>
+                      <%= live_patch class: "text-button text-gray-800 inline-block mr-2", to: Routes.media_show_path(@socket, :show, update.media.slug) do %>
+                        <%= update.media.slug %>  &nearr;
+                      <% end %>
+                    <% end %>
                     <a class="font-medium text-gray-900"><%= update.user.username %></a>
                     <%= case update.type do %>
                       <% :update_attribute -> %>
