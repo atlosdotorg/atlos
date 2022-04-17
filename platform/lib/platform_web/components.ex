@@ -625,7 +625,14 @@ defmodule PlatformWeb.Components do
     ~H"""
     <div class="flex -space-x-1 relative z-0 overflow-hidden">
       <%= for user <- @users |> Enum.take(5) do %>
-        <img class="relative z-30 inline-block h-6 w-6 rounded-full ring-2 ring-white" src={Accounts.get_profile_photo_path(user)} alt={"Profile photo for #{user.username}"}>
+        <img class="relative z-30 inline-block h-6 w-6 rounded-full ring-2 ring-white" src={Accounts.get_profile_photo_path(user)} title={user.username} alt={"Profile photo for #{user.username}"}>
+      <% end %>
+      <%= if length(@users) > 5 do %>
+        <div class="bg-gray-300 text-gray-700 text-xl rounded-full h-6 w-6 z-30 ring-2 ring-white flex items-center justify-center">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+          </svg>
+        </div>
       <% end %>
     </div>
     """
