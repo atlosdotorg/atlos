@@ -508,7 +508,7 @@ defmodule PlatformWeb.Components do
           <div class="h-full p-2 flex flex-col w-full md:w-3/4 gap-2">
             <section>
               <p class="font-mono text-xs text-gray-500"><%= media.slug %></p>
-              <p class="font-medium text-gray-700 group-hover:text-gray-900"><%= media.description %></p>
+              <p class="text-gray-900 group-hover:text-gray-900"><%= media.description %></p>
             </section>
             <section class="flex flex-wrap gap-1 self-start align-top">
               <%= if sensitive do %>

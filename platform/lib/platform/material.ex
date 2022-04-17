@@ -37,6 +37,22 @@ defmodule Platform.Material do
   end
 
   @doc """
+  Query the list of media. Will preload the versions.
+
+  ## Examples
+
+      iex> list_media()
+      [%Media{}, ...]
+
+  """
+  def query_media(query \\ Media) do
+    query
+    |> hydrate_media_query()
+    |> order_by(desc: :updated_at)
+    |> Repo.all()
+  end
+
+  @doc """
   Returns the list of media subscribed to by the given user.
   """
   def list_subscribed_media(%User{} = user) do

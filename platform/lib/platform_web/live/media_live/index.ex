@@ -6,7 +6,7 @@ defmodule PlatformWeb.MediaLive.Index do
     {:ok,
      socket
      |> assign(:title, "Media")
-     |> assign(:media, list_media(socket))
+     |> assign(:media, search_media(changeset()))
      |> assign(:changeset, changeset())}
   end
 
@@ -31,13 +31,24 @@ defmodule PlatformWeb.MediaLive.Index do
     c = changeset(params)
 
     if c.valid? do
-      {:noreply, socket |> assign(:changeset, c) |> assign(:media, list_media(c.changes))}
+      {:noreply,
+       socket
+       |> assign(:changeset, c)
+       |> assign(:media, search_media(c))}
     else
       {:noreply, socket |> assign(:changeset, c)}
     end
   end
 
-  def list_media(_socket, _query \\ %{}) do
-    Material.list_media()
+  defp search_media(c) do
+    IO.inspect(c)
+
+    query =
+      case map_size(c.changes) == 0 do
+        true -> Material.Media
+        false -> Material.Media.search(c.changes.query)
+      end
+
+    Material.query_media(query)
   end
 end
