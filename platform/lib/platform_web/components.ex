@@ -515,8 +515,8 @@ defmodule PlatformWeb.Components do
               <%= if sensitive do %>
                 <%= for item <- media.attr_sensitive || [] do %>
                   <span class="badge ~critical">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-px" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M20.618 5.984A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016zM12 9v2m0 4h.01" />
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-px" viewBox="0 0 20 20" fill="currentColor">
+                      <path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
                     </svg>
 
                     <%= item %>
@@ -563,8 +563,8 @@ defmodule PlatformWeb.Components do
               <% end %>
 
               <span class="badge ~neutral">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-px" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-px" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M18 13V5a2 2 0 00-2-2H4a2 2 0 00-2 2v8a2 2 0 002 2h3l3 3 3-3h3a2 2 0 002-2zM5 7a1 1 0 011-1h8a1 1 0 110 2H6a1 1 0 01-1-1zm1 3a1 1 0 100 2h3a1 1 0 100-2H6z" clip-rule="evenodd" />
                 </svg>
 
                 <%= cond do %>

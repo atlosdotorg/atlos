@@ -23,7 +23,8 @@ defmodule Platform.Repo.Migrations.AddMediaIndices do
                   coalesce(attr_weapon, '{}') || ARRAY[]::text[] ||
                   coalesce(attr_flag, '') || ARRAY[]::text[] ||
 
-                  coalesce(attr_sensitive, '{}'),
+                  coalesce(attr_sensitive, '{}') || ARRAY[]::text[] ||
+                  coalesce(attr_restrictions, '{}'),
                   ' ', ''
                 )
               )
