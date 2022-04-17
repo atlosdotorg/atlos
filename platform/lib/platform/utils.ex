@@ -8,8 +8,11 @@ defmodule Platform.Utils do
       "ATL-" <>
         for _ <- 1..6, into: "", do: <<Enum.random('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ')>>
 
-    # TODO(miles): check for duplicates
-    slug
+    if !is_nil(Platform.Material.get_full_media_by_slug(slug)) do
+      generate_media_slug()
+    else
+      slug
+    end
   end
 
   def generate_random_sequence(length) do
