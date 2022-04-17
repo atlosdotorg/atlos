@@ -62,7 +62,7 @@ defmodule PlatformWeb.UpdatesLive.UpdateFeed do
         <%= for {update, idx} <- to_show do %>
         <li class={if update.hidden, do: "opacity-50", else: ""}>
           <div class="relative pb-8 group">
-            <%= if idx != length(@updates) - 1 || @show_final_line do %>
+            <%= if idx != length(to_show) - 1 || @show_final_line do %>
               <span class="absolute top-5 left-5 -ml-px h-full w-0.5 bg-gray-200" aria-hidden="true"></span>
             <% end %>
             <div class="relative flex items-start space-x-3">
@@ -77,7 +77,7 @@ defmodule PlatformWeb.UpdatesLive.UpdateFeed do
                         <%= update.media.slug %>  &nearr;
                       <% end %>
                     <% end %>
-                    <a class="font-medium text-gray-900"><%= update.user.username %></a>
+                    <.user_text user={update.user} />
                     <%= case update.type do %>
                       <% :update_attribute -> %>
                         updated

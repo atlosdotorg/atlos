@@ -648,4 +648,15 @@ defmodule PlatformWeb.Components do
       </section>
     """
   end
+
+  def user_text(%{user: %Accounts.User{} = user} = assigns) do
+    ~H"""
+      <a class="font-medium text-gray-900 inline-flex gap-1 flex-wrap" href={"/user/#{user.username}"}>
+        <%= user.username %>
+        <%= if Accounts.is_admin(user) do %>
+        <span class="font-normal text-xs badge ~critical self-center">Admin</span>
+        <% end %>
+      </a>
+    """
+  end
 end
