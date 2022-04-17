@@ -21,7 +21,7 @@ defmodule Platform.Material do
   end
 
   @doc """
-  Returns the list of media. Will preload the versions.
+  Returns the list of media. Will preload the versions and updates.
 
   ## Examples
 
@@ -37,7 +37,7 @@ defmodule Platform.Material do
   end
 
   @doc """
-  Query the list of media. Will preload the versions.
+  Query the list of media. Will preload the versions and updates.
 
   ## Examples
 

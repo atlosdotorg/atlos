@@ -279,5 +279,111 @@ defmodule Platform.MaterialTest do
       assert {:ok, _} = Material.subscribe_user(media2, user)
       assert length(Material.list_subscribed_media(user)) == 2
     end
+
+    test "query_media/0 returns all media by default" do
+      assert length(Material.query_media()) == 0
+
+      Enum.map(1..100, fn _ -> media_fixture() end)
+      assert length(Material.query_media()) == 100
+
+      Enum.map(1..100, fn _ -> media_fixture() end)
+      assert length(Material.query_media()) == 200
+    end
+
+    test "query_media/1 works with basic text search" do
+      assert length(Material.query_media()) == 0
+
+      Enum.map(1..25, fn _ -> media_fixture() end)
+      Enum.map(1..25, fn _ -> media_fixture(%{description: "this is foobar"}) end)
+
+      changeset = Material.MediaSearch.changeset(%{query: "foobar"})
+      query = Material.MediaSearch.search_query(changeset)
+
+      assert length(Material.query_media()) == 50
+      assert length(Material.query_media(query)) == 25
+    end
+
+    test "query_media/1 works with longer text search" do
+      assert length(Material.query_media()) == 0
+
+      Enum.map(1..1000, fn _ ->
+        media_fixture(%{description: Faker.Lorem.Shakespeare.En.hamlet()})
+      end)
+
+      Enum.map(1..3, fn _ ->
+        media_fixture(%{
+          description:
+            (Faker.Lorem.Shakespeare.En.hamlet() |> String.slice(0..100)) <>
+              " internet " <> (Faker.Lorem.Shakespeare.En.hamlet() |> String.slice(0..100))
+        })
+      end)
+
+      changeset = Material.MediaSearch.changeset(%{query: "internet"})
+      query = Material.MediaSearch.search_query(changeset)
+
+      assert length(Material.query_media()) == 1003
+      assert length(Material.query_media(query)) == 3
+    end
+
+    test "MediaSearch.filter_viewable/2 excludes hidden media" do
+      user = user_fixture()
+      admin = admin_user_fixture()
+
+      Enum.map(1..50, fn _ ->
+        media_fixture()
+      end)
+
+      Enum.map(1..10, fn _ ->
+        media_fixture()
+      end)
+      |> Enum.map(
+        &Material.update_media_attribute(&1, Material.Attribute.get_attribute(:restrictions), %{
+          attr_restrictions: ["Hidden"]
+        })
+      )
+
+      assert length(Material.query_media()) == 60
+      assert length(Material.MediaSearch.filter_viewable(user) |> Material.query_media()) == 50
+      assert length(Material.MediaSearch.filter_viewable(admin) |> Material.query_media()) == 60
+    end
+
+    test "MediaSearch.filter_viewable/2 and text search compose properly" do
+      user = user_fixture()
+      admin = admin_user_fixture()
+
+      Enum.map(1..50, fn _ ->
+        media_fixture(%{description: "description is foo bar!"})
+      end)
+
+      Enum.map(1..50, fn _ ->
+        media_fixture(%{description: "description is bing bong!"})
+      end)
+
+      (Enum.map(1..10, fn _ ->
+         media_fixture(%{description: "description is foo bar!"})
+       end) ++
+         Enum.map(1..10, fn _ ->
+           media_fixture(%{description: "description is bing bong!"})
+         end))
+      |> Enum.map(
+        &Material.update_media_attribute(&1, Material.Attribute.get_attribute(:restrictions), %{
+          attr_restrictions: ["Hidden"]
+        })
+      )
+
+      assert length(Material.query_media()) == 120
+
+      query =
+        Material.MediaSearch.search_query(Material.MediaSearch.changeset(%{query: "bing bong"}))
+
+      assert length(query |> Material.MediaSearch.filter_viewable(user) |> Material.query_media()) ==
+               50
+
+      assert length(
+               query
+               |> Material.MediaSearch.filter_viewable(admin)
+               |> Material.query_media()
+             ) == 60
+    end
   end
 end
