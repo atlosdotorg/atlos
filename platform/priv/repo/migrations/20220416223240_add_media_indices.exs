@@ -37,6 +37,7 @@ defmodule Platform.Repo.Migrations.AddMediaIndices do
              using: "GIN"
            )
 
-    create index(:media, [:created_at])
+    create index(:media, [:inserted_at])
+    create index(:media, [:updated_at])
   end
 end

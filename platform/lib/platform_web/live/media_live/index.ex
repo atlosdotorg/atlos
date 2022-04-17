@@ -26,6 +26,7 @@ defmodule PlatformWeb.MediaLive.Index do
 
     if c.valid? do
       results = search_media(socket, c)
+
       {:noreply,
        socket
        |> assign(:changeset, c)
@@ -40,7 +41,8 @@ defmodule PlatformWeb.MediaLive.Index do
     cursor_after = socket.assigns.results.metadata.after
     results = search_media(socket, socket.assigns.changeset, after: cursor_after)
 
-    new_socket = socket
+    new_socket =
+      socket
       |> assign(:results, results)
       |> assign(:media, socket.assigns.media ++ results.entries)
 
