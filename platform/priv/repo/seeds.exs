@@ -47,9 +47,10 @@ random_users =
         password: "localhost123"
       })
 
-    {:ok, account_updated} = Accounts.update_user_profile(account, %{
-      profile_photo_file: Faker.Avatar.image_url()
-    })
+    {:ok, account_updated} =
+      Accounts.update_user_profile(account, %{
+        profile_photo_file: Faker.Avatar.image_url()
+      })
 
     account_updated
   end)
@@ -57,21 +58,26 @@ random_users =
 random_media =
   Enum.map(1..10000, fn _ ->
     creator = Enum.random(random_users)
-    {:ok, media} = Material.create_media_audited(creator, %{
-      description: Faker.StarWars.quote() |> String.slice(0..230),
-      attr_sensitive:
-        if(Enum.random(0..10) < 2,
-          do: [
-            Enum.random(Material.Attribute.options(Material.Attribute.get_attribute(:sensitive)))
-          ],
-          else: ["Not Sensitive"]
-        )
-    })
+
+    {:ok, media} =
+      Material.create_media_audited(creator, %{
+        description: Faker.StarWars.quote() |> String.slice(0..230),
+        attr_sensitive:
+          if(Enum.random(0..10) < 2,
+            do: [
+              Enum.random(
+                Material.Attribute.options(Material.Attribute.get_attribute(:sensitive))
+              )
+            ],
+            else: ["Not Sensitive"]
+          )
+      })
 
     url = Faker.Internet.image_url()
+
     Material.create_media_version_audited(media, creator, %{
       file_location: url,
-      file_size: Enum.random(10000..10000000),
+      file_size: Enum.random(10000..10_000_000),
       duration_seconds: 0,
       source_url: Faker.Internet.url(),
       mime_type: "image/jpg",
@@ -80,5 +86,4 @@ random_media =
     })
 
     Material.subscribe_user(media, creator)
-
   end)
