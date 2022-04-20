@@ -49,7 +49,8 @@ random_users =
 
     {:ok, account_updated} =
       Accounts.update_user_profile(account, %{
-        profile_photo_file: Faker.Avatar.image_url()
+        profile_photo_file:
+          "https://robohash.org/set_set1/bgset_bg1/#{Faker.Lorem.characters(1..20)}"
       })
 
     account_updated
@@ -86,4 +87,30 @@ random_media =
     })
 
     Material.subscribe_user(media, creator)
+
+    # Add flag to 10%
+    if Enum.random(0..10) < 1 do
+      attr = Material.Attribute.get_attribute(:flag)
+
+      {:ok, _} =
+        Material.update_media_attribute_audited(
+          media,
+          attr,
+          Enum.random(random_users),
+          %{"attr_flag" => Enum.random(attr.options)}
+        )
+    end
+
+    # Add geolocation to 10%
+    if Enum.random(0..10) < 1 do
+      attr = Material.Attribute.get_attribute(:geolocation)
+
+      {:ok, _} =
+        Material.update_media_attribute_audited(
+          media,
+          attr,
+          Enum.random(random_users),
+          %{"latitude" => 32, "longitude" => -122}
+        )
+    end
   end)
