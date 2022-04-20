@@ -6,6 +6,7 @@ defmodule Platform.Material.Media do
   alias Platform.Material.Attribute
   alias Platform.Material.MediaSubscription
   alias Platform.Accounts.User
+  alias Platform.Accounts
   alias __MODULE__
 
   schema "media" do
@@ -91,16 +92,22 @@ defmodule Platform.Material.Media do
   Can the given user edit the media? This includes uploading new media versions as well as editing attributes.
   """
   def can_user_edit(%Media{} = media, %User{} = user) do
-    case media.attr_restrictions do
-      nil ->
-        true
+    case Enum.member?(user.restrictions || [], :muted) do
+      true ->
+        false
 
-      values ->
-        # Restrictions are present.
-        if Enum.member?(values, "Hidden") || Enum.member?(values, "Frozen") do
-          Enum.member?(user.roles || [], :admin)
-        else
-          true
+      false ->
+        case media.attr_restrictions do
+          nil ->
+            true
+
+          values ->
+            # Restrictions are present.
+            if Enum.member?(values, "Hidden") || Enum.member?(values, "Frozen") do
+              Accounts.is_privileged(user)
+            else
+              true
+            end
         end
     end
   end

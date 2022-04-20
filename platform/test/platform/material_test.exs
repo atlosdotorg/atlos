@@ -3,6 +3,7 @@ defmodule Platform.MaterialTest do
 
   alias Platform.Material
   alias Platform.Updates
+  alias Platform.Accounts
 
   import Platform.MaterialFixtures
   import Platform.AccountsFixtures
@@ -224,13 +225,64 @@ defmodule Platform.MaterialTest do
       user = user_fixture()
 
       assert {:error, changeset} =
+               Material.update_media_attribute_audited(
+                 updated,
+                 Material.Attribute.get_attribute(:sensitive),
+                 user,
+                 %{
+                   "explanation" => "Very important explanation",
+                   "attr_sensitive" => ["Graphic Violence"]
+                 }
+               )
+
+      assert !changeset.valid?
+      assert String.contains?(hd(errors_on(changeset).attr_sensitive), "permission")
+    end
+
+    test "normal users cannot edit restricted attributes" do
+      admin = admin_user_fixture()
+      media = media_fixture()
+      user = user_fixture()
+      attribute = Material.Attribute.get_attribute(:restrictions)
+
+      assert {:error, changeset} =
+               Material.update_media_attribute_audited(media, attribute, user, %{
+                 "explanation" => "Very important explanation",
+                 "attr_restrictions" => ["Frozen"]
+               })
+
+      assert !changeset.valid?
+      assert String.contains?(hd(errors_on(changeset).attr_restrictions), "permission")
+
+      assert {:ok, updated} =
+               Material.update_media_attribute_audited(media, attribute, admin, %{
+                 "explanation" => "Very important explanation",
+                 "attr_restrictions" => ["Frozen"]
+               })
+
+      assert updated.attr_restrictions == ["Frozen"]
+    end
+
+    test "a muted user cannot edit media" do
+      media = media_fixture()
+      user = user_fixture()
+      attribute = Material.Attribute.get_attribute(:sensitive)
+
+      assert {:ok, _} =
                Material.update_media_attribute_audited(media, attribute, user, %{
                  "explanation" => "Very important explanation",
                  "attr_sensitive" => ["Graphic Violence"]
                })
 
-      assert !changeset.valid?
-      assert String.contains?(hd(errors_on(changeset).attr_restrictions), "permission")
+      assert {:ok, modded_user} = Accounts.update_user_access(user, %{restrictions: [:muted]})
+
+      assert {:error, changeset} =
+               Material.update_media_attribute_audited(media, attribute, modded_user, %{
+                 "explanation" => "Very important explanation!!!",
+                 "attr_sensitive" => ["Not Sensitive"]
+               })
+
+      assert String.contains?(hd(errors_on(changeset).attr_sensitive), "permission")
     end
 
     test "a user can subscribe and unsubscribe to media" do
