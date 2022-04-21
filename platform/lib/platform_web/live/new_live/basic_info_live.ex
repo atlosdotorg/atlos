@@ -53,31 +53,56 @@ defmodule PlatformWeb.NewLive.BasicInfoLive do
       >
         <div class="space-y-6">
           <div>
-            <%= label f, :description, "Short Description" %>
-            <%= textarea f, :description, class: "text-xl", rows: 2, disabled: @disabled, phx_debounce: "blur" %>
-            <p class="support">Try to be as descriptive as possible. You'll be able to change this later.</p>
-            <%= error_tag f, :description %>
+            <%= label(f, :description, "Short Description") %>
+            <%= textarea(f, :description,
+              class: "text-xl",
+              rows: 2,
+              disabled: @disabled,
+              phx_debounce: "blur"
+            ) %>
+            <p class="support">
+              Try to be as descriptive as possible. You'll be able to change this later.
+            </p>
+            <%= error_tag(f, :description) %>
           </div>
 
           <div>
-            <%= label f, :attr_sensitive, "Media Sensitivity (select all that apply)" %>
+            <%= label(f, :attr_sensitive, "Media Sensitivity (select all that apply)") %>
             <div phx-update="ignore" id="sensitive_select">
-              <%= multiple_select f, :attr_sensitive, Attribute.get_attribute(:sensitive) |> Attribute.options() %>
+              <%= multiple_select(
+                f,
+                :attr_sensitive,
+                Attribute.get_attribute(:sensitive) |> Attribute.options()
+              ) %>
             </div>
-            <p class="support">Is this media sensitive? This information helps us keep our community safe.</p>
-            <%= error_tag f, :attr_sensitive %>
+            <p class="support">
+              Is this media sensitive? This information helps us keep our community safe.
+            </p>
+            <%= error_tag(f, :attr_sensitive) %>
           </div>
 
           <div class="rounded-md bg-neutral-100 p-4">
             <div class="flex">
               <div class="flex-shrink-0">
                 <!-- Heroicon name: solid/information-circle -->
-                <svg class="h-5 w-5 text-neutral-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                  <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                <svg
+                  class="h-5 w-5 text-neutral-400"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                  aria-hidden="true"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                    clip-rule="evenodd"
+                  />
                 </svg>
               </div>
               <div class="ml-3">
-                <p class="text-sm text-neutral-700">Some kind of language telling people about Atlos policies. Lorem ipsum dolor sit amet.</p>
+                <p class="text-sm text-neutral-700">
+                  Some kind of language telling people about Atlos policies. Lorem ipsum dolor sit amet.
+                </p>
                 <div class="mt-2 text-sm text-neutral-700">
                   <ul role="list" class="list-disc pl-5 space-y-1">
                     <li>Policy language</li>
@@ -88,7 +113,11 @@ defmodule PlatformWeb.NewLive.BasicInfoLive do
             </div>
           </div>
 
-          <%= submit "Upload media →", phx_disable_with: "Saving...", class: "button ~urge @high", disabled: @disabled %>
+          <%= submit("Upload media →",
+            phx_disable_with: "Saving...",
+            class: "button ~urge @high",
+            disabled: @disabled
+          ) %>
         </div>
       </.form>
     </div>

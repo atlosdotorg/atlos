@@ -23,33 +23,37 @@ defmodule PlatformWeb.NewLive do
       <.stepper options={["Basic info", "Upload media"]} active={@stage} />
 
       <%= if @stage == "Basic info" do %>
-      <.card>
-        <.live_component
-          module={PlatformWeb.NewLive.BasicInfoLive}
-          id="basic-info"
-          current_user={@current_user}
-        />
-      </.card>
+        <.card>
+          <.live_component
+            module={PlatformWeb.NewLive.BasicInfoLive}
+            id="basic-info"
+            current_user={@current_user}
+          />
+        </.card>
       <% end %>
 
       <%= if @stage == "Upload media" do %>
-      <.card>
-        <:header>
-          <h3 class="sec-head">
-            <%= @media.description %>
-            <%= if @media.attr_sensitive do %>
-            <span class="text-neutral-500">(Sensitivity: <%= Enum.join(@media.attr_sensitive, ", ") %>)</span>
-            <% end %>
-          </h3>
-          <p class="sec-subhead">This media will be assigned the Atlos identifier <%= @media.slug %>.</p>
-        </:header>
-        <.live_component
-          module={PlatformWeb.MediaLive.UploadVersionLive}
-          id="upload-version"
-          current_user={@current_user}
-          media={@media}
-        />
-      </.card>
+        <.card>
+          <:header>
+            <h3 class="sec-head">
+              <%= @media.description %>
+              <%= if @media.attr_sensitive do %>
+                <span class="text-neutral-500">
+                  (Sensitivity: <%= Enum.join(@media.attr_sensitive, ", ") %>)
+                </span>
+              <% end %>
+            </h3>
+            <p class="sec-subhead">
+              This media will be assigned the Atlos identifier <%= @media.slug %>.
+            </p>
+          </:header>
+          <.live_component
+            module={PlatformWeb.MediaLive.UploadVersionLive}
+            id="upload-version"
+            current_user={@current_user}
+            media={@media}
+          />
+        </.card>
       <% end %>
     </div>
     """

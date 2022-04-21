@@ -72,7 +72,7 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
         <p class="support font-mono"><%= @media.slug %></p>
         <h3 class="sec-head"><%= @attr.label %></h3>
         <p class="sec-subhead"><%= @attr.description %></p>
-        <hr class="h-8 sep">
+        <hr class="h-8 sep" />
         <.form
           let={f}
           for={@changeset}
@@ -86,62 +86,103 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
             <div>
               <%= case @attr.type do %>
                 <% :text -> %>
-                  <%= label f, @attr.schema_field, @attr.label %>
-                  <%= textarea f, @attr.schema_field %>
+                  <%= label(f, @attr.schema_field, @attr.label) %>
+                  <%= textarea(f, @attr.schema_field) %>
                 <% :select -> %>
-                  <%= label f, @attr.schema_field, @attr.label %>
-                  <div phx-update="ignore" id={"attr_multi_select_#{@media.slug}_#{@attr.schema_field}"}>
-                    <%= select f, @attr.schema_field, ["[Unset]": nil] ++ Attribute.options(@attr) %>
+                  <%= label(f, @attr.schema_field, @attr.label) %>
+                  <div
+                    phx-update="ignore"
+                    id={"attr_multi_select_#{@media.slug}_#{@attr.schema_field}"}
+                  >
+                    <%= select(f, @attr.schema_field, ["[Unset]": nil] ++ Attribute.options(@attr)) %>
                   </div>
                 <% :multi_select -> %>
-                  <%= label f, @attr.schema_field, @attr.label %>
-                  <div phx-update="ignore" id={"attr_multi_select_#{@media.slug}_#{@attr.schema_field}"}>
-                    <%= multiple_select f, @attr.schema_field, Attribute.options(@attr) %>
+                  <%= label(f, @attr.schema_field, @attr.label) %>
+                  <div
+                    phx-update="ignore"
+                    id={"attr_multi_select_#{@media.slug}_#{@attr.schema_field}"}
+                  >
+                    <%= multiple_select(f, @attr.schema_field, Attribute.options(@attr)) %>
                   </div>
                 <% :location -> %>
                   <div class="space-y-4">
                     <div>
-                      <%= label f, :latitude, "Latitude" %>
-                      <%= number_input f, :latitude, placeholder: "Lat, e.g., 37.4286969" %>
-                      <%= error_tag f, :latitude %>
+                      <%= label(f, :latitude, "Latitude") %>
+                      <%= number_input(f, :latitude, placeholder: "Lat, e.g., 37.4286969") %>
+                      <%= error_tag(f, :latitude) %>
                     </div>
                     <div>
-                      <%= label f, :longitude, "Longitude" %>
-                      <%= number_input f, :longitude, placeholder: "Lon, e.g., -122.1721319" %>
-                      <%= error_tag f, :longitude %>
+                      <%= label(f, :longitude, "Longitude") %>
+                      <%= number_input(f, :longitude, placeholder: "Lon, e.g., -122.1721319") %>
+                      <%= error_tag(f, :longitude) %>
                     </div>
                   </div>
                 <% :time -> %>
-                  <%= label f, @attr.schema_field, @attr.label %>
+                  <%= label(f, @attr.schema_field, @attr.label) %>
                   <div class="flex items-center gap-2 ts-ignore sm:w-64">
-                    <%= time_select f, @attr.schema_field, hour: [prompt: "[Unset]"], minute: [prompt: "[Unset]"] %>
+                    <%= time_select(f, @attr.schema_field,
+                      hour: [prompt: "[Unset]"],
+                      minute: [prompt: "[Unset]"]
+                    ) %>
                   </div>
-                  <p class="support">To unset this attribute, set both the hour and minute fields to [Unset].</p>
+                  <p class="support">
+                    To unset this attribute, set both the hour and minute fields to [Unset].
+                  </p>
                 <% :date -> %>
-                  <%= label f, @attr.schema_field, @attr.label %>
+                  <%= label(f, @attr.schema_field, @attr.label) %>
                   <div class="flex items-center gap-2 ts-ignore">
-                    <%= date_select f, @attr.schema_field, year: [prompt: "[Unset]", options: DateTime.utc_now.year..1990], month: [prompt: "[Unset]"], day: [prompt: "[Unset]"] %>
+                    <%= date_select(f, @attr.schema_field,
+                      year: [prompt: "[Unset]", options: DateTime.utc_now().year..1990],
+                      month: [prompt: "[Unset]"],
+                      day: [prompt: "[Unset]"]
+                    ) %>
                   </div>
-                  <p class="support">To unset this attribute, set the day, month, and year fields to [Unset].</p>
+                  <p class="support">
+                    To unset this attribute, set the day, month, and year fields to [Unset].
+                  </p>
               <% end %>
-              <%= error_tag f, @attr.schema_field %>
+              <%= error_tag(f, @attr.schema_field) %>
 
-              <% val = Map.get(@changeset.changes, @attr.schema_field, Map.get(@media, @attr.schema_field)) %>
+              <% val =
+                Map.get(@changeset.changes, @attr.schema_field, Map.get(@media, @attr.schema_field)) %>
               <%= if @attr.type == :location and val.coordinates |> Tuple.to_list |> Enum.all?(&(is_float(&1))) do %>
                 <% {lon, lat} = val.coordinates %>
-                <a class="support text-urge-700 underline mt-4" target="_blank" href={"https://maps.google.com/maps?q=#{lat},#{lon}"}>
-                  Preview <span class="font-bold"><.location lat={lat} lon={lon} /></span> on Google Maps
+                <a
+                  class="support text-urge-700 underline mt-4"
+                  target="_blank"
+                  href={"https://maps.google.com/maps?q=#{lat},#{lon}"}
+                >
+                  Preview
+                  <span class="font-bold">
+                    <.location lat={lat} lon={lon} />
+                  </span> on Google Maps
                 </a>
               <% end %>
             </div>
             <div>
-              <%= label f, :explanation, "Explain Your Change" %>
-              <%= textarea f, :explanation, phx_debounce: "blur", placeholder: "Recommended for all non-trivial changes.", class: "my-1" %>
-              <%= error_tag f, :explanation %>
+              <%= label(f, :explanation, "Explain Your Change") %>
+              <%= textarea(f, :explanation,
+                phx_debounce: "blur",
+                placeholder: "Recommended for all non-trivial changes.",
+                class: "my-1"
+              ) %>
+              <%= error_tag(f, :explanation) %>
             </div>
             <div class="flex md:justify-between">
-              <%= submit "Post update →", phx_disable_with: "Saving...", class: "button ~urge @high", disabled: disabled %>
-              <button phx-click="close_modal" phx-target={@myself} data-confirm={confirm_prompt} type="button" class="base-button">Cancel</button>
+              <%= submit("Post update →",
+                phx_disable_with: "Saving...",
+                class: "button ~urge @high",
+                disabled: disabled
+              ) %>
+              <button
+                phx-click="close_modal"
+                phx-target={@myself}
+                data-confirm={confirm_prompt}
+                type="button"
+                class="base-button"
+              >
+                Cancel
+              </button>
             </div>
           </div>
         </.form>

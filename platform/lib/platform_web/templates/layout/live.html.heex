@@ -1,42 +1,73 @@
 <main class="h-full flex">
-    <.nav path={@path} />
+  <.nav path={@path} />
 
-    <div class="flex-1 flex flex-col overflow-hidden">
-        <div class="my-8 mx-auto">
-            <div class="mx-auto w-full 2xl:w-[1280px]">
-              <%= @inner_content %>
-            </div>
-            <div aria-live="assertive" class="fixed inset-0 flex items-end px-4 py-6 pointer-events-none sm:p-6 sm:items-start z-100">
-                <div class="w-full flex flex-col items-center space-y-4 sm:items-end">
-                    <% info = live_flash(@flash, :info) %>
-                    <%= if info do %>
-                      <.notification type="info">
-                        <%= info %>
-                        <:right>
-                        <button class="text-neutral-500 mt-1" phx-click="lv:clear-flash" phx-value-key="info" type="button">
-                          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
-                          </svg>
-                        </button>
-                        </:right>
-                      </.notification>
-                    <% end %>
+  <div class="flex-1 flex flex-col overflow-hidden">
+    <div class="my-8 mx-auto">
+      <div class="mx-auto w-full 2xl:w-[1280px]">
+        <%= @inner_content %>
+      </div>
+      <div
+        aria-live="assertive"
+        class="fixed inset-0 flex items-end px-4 py-6 pointer-events-none sm:p-6 sm:items-start z-100"
+      >
+        <div class="w-full flex flex-col items-center space-y-4 sm:items-end">
+          <% info = live_flash(@flash, :info) %>
+          <%= if info do %>
+            <.notification type="info">
+              <%= info %>
+              <:right>
+                <button
+                  class="text-neutral-500 mt-1"
+                  phx-click="lv:clear-flash"
+                  phx-value-key="info"
+                  type="button"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-4 w-4"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fill-rule="evenodd"
+                      d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                      clip-rule="evenodd"
+                    />
+                  </svg>
+                </button>
+              </:right>
+            </.notification>
+          <% end %>
 
-                    <% error = live_flash(@flash, :error) %>
-                    <%= if error do %>
-                      <.notification type="error">
-                        <%= error %>
-                        <:right>
-                        <button class="text-neutral-500 mt-1" phx-click="lv:clear-flash" phx-value-key="error" type="button">
-                          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
-                          </svg>
-                        </button>
-                        </:right>
-                      </.notification>
-                    <% end %>
-                </div>
-            </div>
+          <% error = live_flash(@flash, :error) %>
+          <%= if error do %>
+            <.notification type="error">
+              <%= error %>
+              <:right>
+                <button
+                  class="text-neutral-500 mt-1"
+                  phx-click="lv:clear-flash"
+                  phx-value-key="error"
+                  type="button"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-4 w-4"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fill-rule="evenodd"
+                      d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                      clip-rule="evenodd"
+                    />
+                  </svg>
+                </button>
+              </:right>
+            </.notification>
+          <% end %>
         </div>
+      </div>
     </div>
+  </div>
 </main>

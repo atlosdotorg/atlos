@@ -1,12 +1,12 @@
 <div class="phx-form">
   <.form let={f} for={:user} action={Routes.user_reset_password_path(@conn, :create)}>
-    <%= label f, :email %>
-    <%= email_input f, :email, required: true %>
+    <%= label(f, :email) %>
+    <%= email_input(f, :email, required: true) %>
 
     <div class="mt-2 flex gap-4 items-center text-neutral-500">
-      <%= submit "Send instructions" %>
-      <%= link "Register", to: Routes.user_registration_path(@conn, :new) %>
-      <%= link "Log in", to: Routes.user_session_path(@conn, :new) %>
+      <%= submit("Send instructions") %>
+      <%= link("Register", to: Routes.user_registration_path(@conn, :new)) %>
+      <%= link("Log in", to: Routes.user_session_path(@conn, :new)) %>
     </div>
   </.form>
 </div>

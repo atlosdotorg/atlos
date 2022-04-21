@@ -92,40 +92,55 @@ defmodule PlatformWeb.SettingsLive.ProfileComponent do
             <p class="support">If you would like to change your username, please contact us.</p>
           </div>
           <div>
-            <%= label f, :profile_photo_file, "Profile Photo" %>
+            <%= label(f, :profile_photo_file, "Profile Photo") %>
             <div class="mt-1 flex items-center" phx-drop-target={@uploads.profile_photo_file.ref}>
               <div class="h-12 w-12 rounded-full overflow-hidden">
-                <% photo = if byte_size(@profile_photo_display) > 0, do: @profile_photo_display, else: Routes.static_path(@socket, "/images/default_profile.jpg") %>
+                <% photo =
+                  if byte_size(@profile_photo_display) > 0,
+                    do: @profile_photo_display,
+                    else: Routes.static_path(@socket, "/images/default_profile.jpg") %>
                 <img class="w-full h-full" src={photo} />
               </div>
               <div>
-              <label for="profile_photo_file">
-                <button class="button ~neutral ml-4" type="button" onclick="document.querySelector('input[name=\'profile_photo_file\']').click()">Change</button>
-                <%= live_file_input @uploads.profile_photo_file, class: "sr-only" %>
-              </label>
-              <%= hidden_input f, :profile_photo_file %>
+                <label for="profile_photo_file">
+                  <button
+                    class="button ~neutral ml-4"
+                    type="button"
+                    onclick="document.querySelector('input[name=\'profile_photo_file\']').click()"
+                  >
+                    Change
+                  </button>
+                  <%= live_file_input(@uploads.profile_photo_file, class: "sr-only") %>
+                </label>
+                <%= hidden_input(f, :profile_photo_file) %>
               </div>
             </div>
             <%= for entry <- @uploads.profile_photo_file.entries do %>
               <%= if entry.progress < 100 and entry.progress > 0 do %>
-                <progress value={entry.progress} max="100" class="progress mt-2"> <%= entry.progress %>% </progress>
+                <progress value={entry.progress} max="100" class="progress mt-2">
+                  <%= entry.progress %>%
+                </progress>
               <% end %>
               <%= for err <- upload_errors(@uploads.profile_photo_file, entry) do %>
                 <p class="invalid-feedback mt-2"><%= friendly_error(err) %></p>
               <% end %>
             <% end %>
-            <%= error_tag f, :profile_photo_file %>
+            <%= error_tag(f, :profile_photo_file) %>
           </div>
 
           <div>
-            <%= label f, :bio %>
+            <%= label(f, :bio) %>
             <div class="mt-1">
-              <%= textarea f, :bio, rows: 4, phx_debounce: "blur" %>
+              <%= textarea(f, :bio, rows: 4, phx_debounce: "blur") %>
             </div>
-            <%= error_tag f, :bio %>
+            <%= error_tag(f, :bio) %>
           </div>
 
-          <%= submit "Save", phx_disable_with: "Saving...", class: "button ~urge @high", disabled: !has_changes(@changeset) %>
+          <%= submit("Save",
+            phx_disable_with: "Saving...",
+            class: "button ~urge @high",
+            disabled: !has_changes(@changeset)
+          ) %>
         </div>
       </.form>
     </article>

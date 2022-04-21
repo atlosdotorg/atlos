@@ -6,22 +6,20 @@
       </div>
     <% end %>
 
-    <%= label f, :email %>
-    <%= email_input f, :email, required: true %>
+    <%= label(f, :email) %>
+    <%= email_input(f, :email, required: true) %>
 
-    <%= label f, :password %>
-    <%= password_input f, :password, required: true %>
+    <%= label(f, :password) %>
+    <%= password_input(f, :password, required: true) %>
 
-    <%= checkbox f, :remember_me %>
-    <%= label f, :remember_me, "Remember me", class: "!inline" %>
+    <%= checkbox(f, :remember_me) %>
+    <%= label(f, :remember_me, "Remember me", class: "!inline") %>
 
     <div class="mt-8 flex gap-4 items-center text-neutral-500">
-      <%= submit "Log in", class: "button ~urge @high" %>
-      <%= link "Forgot your password?", to: Routes.user_reset_password_path(@conn, :new) %>
+      <%= submit("Log in", class: "button ~urge @high") %>
+      <%= link("Forgot your password?", to: Routes.user_reset_password_path(@conn, :new)) %>
     </div>
   </.form>
 </div>
 
-<p>
-  
-</p>
+<p></p>

@@ -1,251 +1,363 @@
 <article class="w-full max-w-screen-xl px-8">
-    <div class="lg:flex lg:items-center lg:justify-between">
-        <div class="flex-1 min-w-0 max-w-full">
-            <h2 class="text-xl font-semibold leading-7 text-gray-900 sm:text-3xl">
-                <%= @media.description %>
-            </h2>
-            <div class="mt-1 flex flex-col sm:flex-row sm:flex-wrap sm:mt-0 sm:space-x-4">
-                <%= if Media.is_sensitive(@media) do %>
-                    <%= for item <- @media.attr_sensitive || [] do %>
-                        <div class="chip ~critical @high inline-block mt-2 flex gap-1">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M10 1.944A11.954 11.954 0 012.166 5C2.056 5.649 2 6.319 2 7c0 5.225 3.34 9.67 8 11.317C14.66 16.67 18 12.225 18 7c0-.682-.057-1.35-.166-2.001A11.954 11.954 0 0110 1.944zM11 14a1 1 0 11-2 0 1 1 0 012 0zm0-7a1 1 0 10-2 0v3a1 1 0 102 0V7z" clip-rule="evenodd" />
-                            </svg>
-                            <%= item %>
-                        </div>
-                    <% end %>
-                <% end %>
-                <%= for item <- @media.attr_restrictions || [] do %>
-                    <div class="chip ~warning @high inline-block mt-2 flex gap-1">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M13.477 14.89A6 6 0 015.11 6.524l8.367 8.368zm1.414-1.414L6.524 5.11a6 6 0 018.367 8.367zM18 10a8 8 0 11-16 0 8 8 0 0116 0z" clip-rule="evenodd" />
-                        </svg>
-                        <%= item %>
-                    </div>
-                <% end %>
-                <%= if @media.attr_flag do %>
-                    <div class="chip ~urge @high inline-block mt-2 flex gap-1">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M3 6a3 3 0 013-3h10a1 1 0 01.8 1.6L14.25 8l2.55 3.4A1 1 0 0116 13H6a1 1 0 00-1 1v3a1 1 0 11-2 0V6z" clip-rule="evenodd" />
-                        </svg>
-                        <%= @media.attr_flag %>
-                    </div>
-                <% end %>
-                <div class="mt-2 flex items-center text-sm text-gray-500">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
-                        <path d="M7 9a2 2 0 012-2h6a2 2 0 012 2v6a2 2 0 01-2 2H9a2 2 0 01-2-2V9z" />
-                        <path d="M5 3a2 2 0 00-2 2v6a2 2 0 002 2V5h8a2 2 0 00-2-2H5z" />
-                    </svg>
-                    <%= @media.slug %>
-                </div>
-                <div class="mt-2 flex items-center text-sm text-gray-500">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd" />
-                    </svg>
-                    Added&nbsp;<.rel_time time={@media.inserted_at} />
-                </div>
-                <div class="mt-2 flex items-center text-sm text-gray-500">
-                    <svg class="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                        <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z" />
-                    </svg>
-                    <% contributors = length(Material.contributors(@media)) %>
-                    <%= contributors %> <%= naive_pluralise(contributors, "contributor") %>
-                </div>
+  <div class="lg:flex lg:items-center lg:justify-between">
+    <div class="flex-1 min-w-0 max-w-full">
+      <h2 class="text-xl font-semibold leading-7 text-gray-900 sm:text-3xl">
+        <%= @media.description %>
+      </h2>
+      <div class="mt-1 flex flex-col sm:flex-row sm:flex-wrap sm:mt-0 sm:space-x-4">
+        <%= if Media.is_sensitive(@media) do %>
+          <%= for item <- @media.attr_sensitive || [] do %>
+            <div class="chip ~critical @high inline-block mt-2 flex gap-1">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-4 w-4"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M10 1.944A11.954 11.954 0 012.166 5C2.056 5.649 2 6.319 2 7c0 5.225 3.34 9.67 8 11.317C14.66 16.67 18 12.225 18 7c0-.682-.057-1.35-.166-2.001A11.954 11.954 0 0110 1.944zM11 14a1 1 0 11-2 0 1 1 0 012 0zm0-7a1 1 0 10-2 0v3a1 1 0 102 0V7z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+              <%= item %>
             </div>
+          <% end %>
+        <% end %>
+        <%= for item <- @media.attr_restrictions || [] do %>
+          <div class="chip ~warning @high inline-block mt-2 flex gap-1">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-4 w-4"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fill-rule="evenodd"
+                d="M13.477 14.89A6 6 0 015.11 6.524l8.367 8.368zm1.414-1.414L6.524 5.11a6 6 0 018.367 8.367zM18 10a8 8 0 11-16 0 8 8 0 0116 0z"
+                clip-rule="evenodd"
+              />
+            </svg>
+            <%= item %>
+          </div>
+        <% end %>
+        <%= if @media.attr_flag do %>
+          <div class="chip ~urge @high inline-block mt-2 flex gap-1">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-4 w-4"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fill-rule="evenodd"
+                d="M3 6a3 3 0 013-3h10a1 1 0 01.8 1.6L14.25 8l2.55 3.4A1 1 0 0116 13H6a1 1 0 00-1 1v3a1 1 0 11-2 0V6z"
+                clip-rule="evenodd"
+              />
+            </svg>
+            <%= @media.attr_flag %>
+          </div>
+        <% end %>
+        <div class="mt-2 flex items-center text-sm text-gray-500">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
+            <path d="M7 9a2 2 0 012-2h6a2 2 0 012 2v6a2 2 0 01-2 2H9a2 2 0 01-2-2V9z" />
+            <path d="M5 3a2 2 0 00-2 2v6a2 2 0 002 2V5h8a2 2 0 00-2-2H5z" />
+          </svg>
+          <%= @media.slug %>
         </div>
-        <div class="mt-5 flex lg:mt-0 lg:ml-4">
-            <span class="hidden sm:block">
-                <.live_component
-                  module={PlatformWeb.MediaLive.SubscribeButton}
-                  id="subscribe_button"
-                  current_user={@current_user}
-                  media={@media}
-                />
-            </span>
-        </div>
-    </div>
-    <div class="grid lg:grid-cols-3 gap-8 mt-8">
-        <div class="lg:col-span-2 space-y-8">
-            <%= if Media.has_restrictions(@media) do %>
-                <aside class="aside ~warning text-sm">
-                    <strong>This media has been restricted.</strong> As a result, you may not be able to edit or update it.
-                </aside>
-            <% end %>
-            <.card>
-                <:header>
-                    <h3 class="sec-head">Attributes</h3>
-                    <p class="sec-subhead">This information is gathered and organized by the Atlos community through consensus.</p>
-                </:header>
-                <div class="border-gray-200">
-                    <dl class="divide-y divide-dashed divide-gray-200 -mt-5 -mb-3">
-                        <%= for attr <- Attribute.set_for_media(@media, :attributes) do %>
-                            <div class="py-2 sm:grid sm:grid-cols-3 sm:gap-4">
-                                <dt class="text-sm font-medium text-gray-500 mt-1"><%= attr.label %></dt>
-                                <dd class="mt-1 flex text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                                    <span class="flex-grow gap-1 flex flex-wrap">
-                                        <.attr_entry name={attr.name} value={Map.get(@media, attr.schema_field)} />
-                                    </span>
-                                    <span class="ml-4 flex-shrink-0">
-                                        <%= if Attribute.can_user_edit(attr, @current_user, @media) do %>
-                                            <%= live_patch "Update", class: "text-button mt-1 inline-block", to: Routes.media_show_path(@socket, :edit, @media.slug, attr.name) %>
-                                        <% end %>
-                                    </span>
-                                </dd>
-                            </div>
-                        <% end %>
-                        <% unset = Attribute.unset_for_media(@media, :attributes) |> filter_editable(@media, @current_user) %>
-                        <%= if length(unset) > 0 do %>
-                            <div class="py-2 sm:grid sm:grid-cols-3 sm:gap-4 -mb-2">
-                                <dt class="text-sm font-medium text-gray-500 mt-1">Unset Attributes</dt>
-                                <dd class="mt-1 flex flex-wrap gap-2 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                                    <%= for attr <- unset do %>
-                                        <%= live_patch "+ #{attr.label}", class: "button original", to: Routes.media_show_path(@socket, :edit, @media.slug, attr.name) %>
-                                    <% end %>
-                                </dd>
-                            </div>
-                        <% end %>
-                    </dl>
-                </div>
-            </.card>
-            <.card>
-                <:header>
-                    <h3 class="sec-head">Feed</h3>
-                </:header>
-                <.live_component
-                    module={PlatformWeb.UpdatesLive.UpdateFeed}
-                    id="update-feed"
-                    current_user={@current_user}
-                    updates={@updates}
-                />
-                <hr class="sep h-2">
-                <.live_component
-                    module={PlatformWeb.MediaLive.CommentBox}
-                    id="comment-box"
-                    media={@media}
-                    current_user={@current_user}
-                    disabled={!Media.can_user_edit(@media, @current_user)}
-                />
-            </.card>
-        </div>
-        <div class="space-y-8">
-            <.card>
-                <:header>
-                    <h3 class="sec-head">Media</h3>
-                    <p class="sec-subhead">There may be multiple versions circulating online.</p>
-                </:header>
-                <% versions = @media.versions |> filter_viewable_versions(@current_user) |> sort_by_date() %>
-                <%= if length(versions) == 0 do %>
-                    <div class="relative block border-2 border-gray-300 border-dashed rounded-lg p-12 text-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                          <path stroke-linecap="round" stroke-linejoin="round" d="M10 21h7a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v11m0 5l4.879-4.879m0 0a3 3 0 104.243-4.242 3 3 0 00-4.243 4.242z" />
-                        </svg>
-                        <span class="mt-2 block text-sm font-medium text-gray-700">No media uploaded</span>
-                        <%= if Media.can_user_edit(@media, @current_user) do %>
-                            <%= live_patch "+ Upload Version", class: "text-button text-sm", to: Routes.media_show_path(@socket, :upload, @media.slug) %>
-                        <% end %>
-                    </div>
-                <% else %>
-                    <div class="divide-gray-200 flex flex-col gap-8">
-                        <%= for version <- versions do %>
-                            <.media_version_display version={version} blur={Media.is_graphic(@media)} current_user={@current_user} />
-                        <% end %>
-                        <%= if Media.can_user_edit(@media, @current_user) do %>
-                            <section class="pt-4 text-sm border-t border-dashed">
-                                <%= live_patch "+ Upload Version", class: "text-button mt-1 inline-block", to: Routes.media_show_path(@socket, :upload, @media.slug) %>
-                            </section>
-                        <% end %>
-                    </div>
-                <% end %>
-            </.card>
-            <.card>
-                <:header>
-                    <h3 class="sec-head">Metadata</h3>
-                </:header>
-                <div class="border-gray-200">
-                    <dl class="divide-y divide-dashed divide-gray-200 -mt-5 -mb-3">
-                        <%= for attr <- Attribute.set_for_media(@media, :metadata) do %>
-                            <div class="py-2 sm:grid sm:grid-cols-3 sm:gap-4">
-                                <dt class="text-sm font-medium text-gray-500 mt-1"><%= attr.label %></dt>
-                                <dd class="mt-1 flex text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                                    <span class="flex-grow gap-1 flex flex-wrap">
-                                        <.attr_entry name={attr.name} value={Map.get(@media, attr.schema_field)} />
-                                    </span>
-                                    <span class="ml-4 flex-shrink-0">
-                                        <%= if Attribute.can_user_edit(attr, @current_user, @media) do %>
-                                            <%= live_patch "Update", class: "text-button mt-1 inline-block", to: Routes.media_show_path(@socket, :edit, @media.slug, attr.name) %>
-                                        <% end %>
-                                    </span>
-                                </dd>
-                            </div>
-                        <% end %>
-                        <% unset = Attribute.unset_for_media(@media, :metadata) |> filter_editable(@media, @current_user) %>
-                        <%= if length(unset) > 0 do %>
-                            <div class="py-2 sm:grid sm:grid-cols-3 sm:gap-4 -mb-2">
-                                <dt class="text-sm font-medium text-gray-500 mt-1">Unset</dt>
-                                <dd class="mt-1 flex flex-wrap gap-2 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                                    <%= for attr <- unset do %>
-                                        <%= live_patch "+ #{attr.label}", class: "button original", to: Routes.media_show_path(@socket, :edit, @media.slug, attr.name) %>
-                                    <% end %>
-                                </dd>
-                            </div>
-                        <% end %>
-                    </dl>
-                </div>
-            </.card>
-            <.card no_pad={true}>
-                <:header>
-                    <h3 class="sec-head">Location</h3>
-                    <%= if @media.attr_geolocation do %>
-                        <p class="sec-subhead">
-                            <% {lon, lat} = @media.attr_geolocation.coordinates %>
-                            <a class="mt-4" target="_blank" href={"https://maps.google.com/maps?q=#{lat},#{lon}"}>
-                              View <span class="font-medium underline"><.location lat={lat} lon={lon} /></span> on Google Maps
-                            </a>
-                        </p>
-                    <% end %>
-                </:header>
-                <%= if @media.attr_geolocation do %>
-                    <% {lon, lat} = @media.attr_geolocation.coordinates %>
-                    <div phx-update="ignore" class="h-64" id={"#{@media.slug}-geolocation-#{lat}-#{lon}"}>
-                        <map-pin lat={lat} lon={lon} id={"#{@media.slug}-geolocation-map"} />
-                    </div>
-                <% else %>
-                    <div class="relative block border-2 border-gray-300 border-dashed rounded-lg p-12 m-4 text-center">
-                        <svg class="mx-auto h-12 w-12 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                        </svg>
-                        <span class="mt-2 block text-sm font-medium text-gray-700">Not yet geolocated</span>
-                    </div>
-                <% end %>
-            </.card>
-        </div>
-    </div>
-    <%= if @live_action == :edit do %>
-         <.live_component
-            module={EditAttribute}
-            id="edit-attribute"
-            media={@media}
-            name={@attribute}
-            current_user={@current_user}
-        />
-    <% end %>
-    <%= if @live_action == :upload do %>
-        <.modal target={} close_confirmation="Are you sure you want to exit the upload process? Your upload is not complete.">
-            <div class="mb-8">
-                <p class="sec-head">
-                    <%= @media.slug %>: Upload New Version
-                </p>
-                <p class="sec-subhead">
-                    Note that additional media should be different copies of the same underlying media (e.g., different resolutions).
-                </p>
-            </div>
-            <.live_component
-              module={PlatformWeb.MediaLive.UploadVersionLive}
-              id="upload-version"
-              current_user={@current_user}
-              media={@media}
+        <div class="mt-2 flex items-center text-sm text-gray-500">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"
+              clip-rule="evenodd"
             />
-        </.modal>
-    <% end %>
+          </svg>
+          Added&nbsp;
+          <.rel_time time={@media.inserted_at} />
+        </div>
+        <div class="mt-2 flex items-center text-sm text-gray-500">
+          <svg
+            class="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
+            <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z" />
+          </svg>
+          <% contributors = length(Material.contributors(@media)) %>
+          <%= contributors %> <%= naive_pluralise(contributors, "contributor") %>
+        </div>
+      </div>
+    </div>
+    <div class="mt-5 flex lg:mt-0 lg:ml-4">
+      <span class="hidden sm:block">
+        <.live_component
+          module={PlatformWeb.MediaLive.SubscribeButton}
+          id="subscribe_button"
+          current_user={@current_user}
+          media={@media}
+        />
+      </span>
+    </div>
+  </div>
+  <div class="grid lg:grid-cols-3 gap-8 mt-8">
+    <div class="lg:col-span-2 space-y-8">
+      <%= if Media.has_restrictions(@media) do %>
+        <aside class="aside ~warning text-sm">
+          <strong>This media has been restricted.</strong>
+          As a result, you may not be able to edit or update it.
+        </aside>
+      <% end %>
+      <.card>
+        <:header>
+          <h3 class="sec-head">Attributes</h3>
+          <p class="sec-subhead">
+            This information is gathered and organized by the Atlos community through consensus.
+          </p>
+        </:header>
+        <div class="border-gray-200">
+          <dl class="divide-y divide-dashed divide-gray-200 -mt-5 -mb-3">
+            <%= for attr <- Attribute.set_for_media(@media, :attributes) do %>
+              <div class="py-2 sm:grid sm:grid-cols-3 sm:gap-4">
+                <dt class="text-sm font-medium text-gray-500 mt-1"><%= attr.label %></dt>
+                <dd class="mt-1 flex text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                  <span class="flex-grow gap-1 flex flex-wrap">
+                    <.attr_entry name={attr.name} value={Map.get(@media, attr.schema_field)} />
+                  </span>
+                  <span class="ml-4 flex-shrink-0">
+                    <%= if Attribute.can_user_edit(attr, @current_user, @media) do %>
+                      <%= live_patch("Update",
+                        class: "text-button mt-1 inline-block",
+                        to: Routes.media_show_path(@socket, :edit, @media.slug, attr.name)
+                      ) %>
+                    <% end %>
+                  </span>
+                </dd>
+              </div>
+            <% end %>
+            <% unset =
+              Attribute.unset_for_media(@media, :attributes)
+              |> filter_editable(@media, @current_user) %>
+            <%= if length(unset) > 0 do %>
+              <div class="py-2 sm:grid sm:grid-cols-3 sm:gap-4 -mb-2">
+                <dt class="text-sm font-medium text-gray-500 mt-1">Unset Attributes</dt>
+                <dd class="mt-1 flex flex-wrap gap-2 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                  <%= for attr <- unset do %>
+                    <%= live_patch("+ #{attr.label}",
+                      class: "button original",
+                      to: Routes.media_show_path(@socket, :edit, @media.slug, attr.name)
+                    ) %>
+                  <% end %>
+                </dd>
+              </div>
+            <% end %>
+          </dl>
+        </div>
+      </.card>
+      <.card>
+        <:header>
+          <h3 class="sec-head">Feed</h3>
+        </:header>
+        <.live_component
+          module={PlatformWeb.UpdatesLive.UpdateFeed}
+          id="update-feed"
+          current_user={@current_user}
+          updates={@updates}
+        />
+        <hr class="sep h-2" />
+        <.live_component
+          module={PlatformWeb.MediaLive.CommentBox}
+          id="comment-box"
+          media={@media}
+          current_user={@current_user}
+          disabled={!Media.can_user_edit(@media, @current_user)}
+        />
+      </.card>
+    </div>
+    <div class="space-y-8">
+      <.card>
+        <:header>
+          <h3 class="sec-head">Media</h3>
+          <p class="sec-subhead">There may be multiple versions circulating online.</p>
+        </:header>
+        <% versions = @media.versions |> filter_viewable_versions(@current_user) |> sort_by_date() %>
+        <%= if length(versions) == 0 do %>
+          <div class="relative block border-2 border-gray-300 border-dashed rounded-lg p-12 text-center">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="mx-auto h-12 w-12 text-gray-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M10 21h7a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v11m0 5l4.879-4.879m0 0a3 3 0 104.243-4.242 3 3 0 00-4.243 4.242z"
+              />
+            </svg>
+            <span class="mt-2 block text-sm font-medium text-gray-700">No media uploaded</span>
+            <%= if Media.can_user_edit(@media, @current_user) do %>
+              <%= live_patch("+ Upload Version",
+                class: "text-button text-sm",
+                to: Routes.media_show_path(@socket, :upload, @media.slug)
+              ) %>
+            <% end %>
+          </div>
+        <% else %>
+          <div class="divide-gray-200 flex flex-col gap-8">
+            <%= for version <- versions do %>
+              <.media_version_display
+                version={version}
+                blur={Media.is_graphic(@media)}
+                current_user={@current_user}
+              />
+            <% end %>
+            <%= if Media.can_user_edit(@media, @current_user) do %>
+              <section class="pt-4 text-sm border-t border-dashed">
+                <%= live_patch("+ Upload Version",
+                  class: "text-button mt-1 inline-block",
+                  to: Routes.media_show_path(@socket, :upload, @media.slug)
+                ) %>
+              </section>
+            <% end %>
+          </div>
+        <% end %>
+      </.card>
+      <.card>
+        <:header>
+          <h3 class="sec-head">Metadata</h3>
+        </:header>
+        <div class="border-gray-200">
+          <dl class="divide-y divide-dashed divide-gray-200 -mt-5 -mb-3">
+            <%= for attr <- Attribute.set_for_media(@media, :metadata) do %>
+              <div class="py-2 sm:grid sm:grid-cols-3 sm:gap-4">
+                <dt class="text-sm font-medium text-gray-500 mt-1"><%= attr.label %></dt>
+                <dd class="mt-1 flex text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                  <span class="flex-grow gap-1 flex flex-wrap">
+                    <.attr_entry name={attr.name} value={Map.get(@media, attr.schema_field)} />
+                  </span>
+                  <span class="ml-4 flex-shrink-0">
+                    <%= if Attribute.can_user_edit(attr, @current_user, @media) do %>
+                      <%= live_patch("Update",
+                        class: "text-button mt-1 inline-block",
+                        to: Routes.media_show_path(@socket, :edit, @media.slug, attr.name)
+                      ) %>
+                    <% end %>
+                  </span>
+                </dd>
+              </div>
+            <% end %>
+            <% unset =
+              Attribute.unset_for_media(@media, :metadata)
+              |> filter_editable(@media, @current_user) %>
+            <%= if length(unset) > 0 do %>
+              <div class="py-2 sm:grid sm:grid-cols-3 sm:gap-4 -mb-2">
+                <dt class="text-sm font-medium text-gray-500 mt-1">Unset</dt>
+                <dd class="mt-1 flex flex-wrap gap-2 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                  <%= for attr <- unset do %>
+                    <%= live_patch("+ #{attr.label}",
+                      class: "button original",
+                      to: Routes.media_show_path(@socket, :edit, @media.slug, attr.name)
+                    ) %>
+                  <% end %>
+                </dd>
+              </div>
+            <% end %>
+          </dl>
+        </div>
+      </.card>
+      <.card no_pad={true}>
+        <:header>
+          <h3 class="sec-head">Location</h3>
+          <%= if @media.attr_geolocation do %>
+            <p class="sec-subhead">
+              <% {lon, lat} = @media.attr_geolocation.coordinates %>
+              <a
+                class="mt-4"
+                target="_blank"
+                href={"https://maps.google.com/maps?q=#{lat},#{lon}"}
+              >
+                View
+                <span class="font-medium underline">
+                  <.location lat={lat} lon={lon} />
+                </span> on Google Maps
+              </a>
+            </p>
+          <% end %>
+        </:header>
+        <%= if @media.attr_geolocation do %>
+          <% {lon, lat} = @media.attr_geolocation.coordinates %>
+          <div phx-update="ignore" class="h-64" id={"#{@media.slug}-geolocation-#{lat}-#{lon}"}>
+            <map-pin lat={lat} lon={lon} id={"#{@media.slug}-geolocation-map"} />
+          </div>
+        <% else %>
+          <div class="relative block border-2 border-gray-300 border-dashed rounded-lg p-12 m-4 text-center">
+            <svg
+              class="mx-auto h-12 w-12 text-gray-400"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+              />
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+              />
+            </svg>
+            <span class="mt-2 block text-sm font-medium text-gray-700">Not yet geolocated</span>
+          </div>
+        <% end %>
+      </.card>
+    </div>
+  </div>
+  <%= if @live_action == :edit do %>
+    <.live_component
+      module={EditAttribute}
+      id="edit-attribute"
+      media={@media}
+      name={@attribute}
+      current_user={@current_user}
+    />
+  <% end %>
+  <%= if @live_action == :upload do %>
+    <.modal
+      target={}
+      close_confirmation="Are you sure you want to exit the upload process? Your upload is not complete."
+    >
+      <div class="mb-8">
+        <p class="sec-head">
+          <%= @media.slug %>: Upload New Version
+        </p>
+        <p class="sec-subhead">
+          Note that additional media should be different copies of the same underlying media (e.g., different resolutions).
+        </p>
+      </div>
+      <.live_component
+        module={PlatformWeb.MediaLive.UploadVersionLive}
+        id="upload-version"
+        current_user={@current_user}
+        media={@media}
+      />
+    </.modal>
+  <% end %>
 </article>

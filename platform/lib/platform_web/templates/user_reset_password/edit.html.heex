@@ -6,16 +6,16 @@
       </div>
     <% end %>
 
-    <%= label f, :password, "New password" %>
-    <%= password_input f, :password, required: true %>
-    <%= error_tag f, :password %>
+    <%= label(f, :password, "New password") %>
+    <%= password_input(f, :password, required: true) %>
+    <%= error_tag(f, :password) %>
 
-    <%= label f, :password_confirmation, "Confirm new password" %>
-    <%= password_input f, :password_confirmation, required: true %>
-    <%= error_tag f, :password_confirmation %>
+    <%= label(f, :password_confirmation, "Confirm new password") %>
+    <%= password_input(f, :password_confirmation, required: true) %>
+    <%= error_tag(f, :password_confirmation) %>
 
     <div>
-      <%= submit "Reset password" %>
+      <%= submit("Reset password") %>
     </div>
   </.form>
 </div>

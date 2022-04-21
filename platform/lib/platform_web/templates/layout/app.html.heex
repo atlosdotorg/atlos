@@ -1,28 +1,31 @@
 <main class="h-full flex">
-    <.nav path={@conn.request_path} />
+  <.nav path={@conn.request_path} />
 
-    <div class="flex-1 flex flex-col overflow-hidden">
-        <div class="my-8 w-full">
-            <div class="mx-auto w-full xl:w-[1280px]">
-                <%= @inner_content %>
-            </div>
-            <div aria-live="assertive" class="fixed inset-0 flex items-end px-4 py-6 pointer-events-none sm:p-6 sm:items-start">
-                <div class="w-full flex flex-col items-center space-y-4 sm:items-end">
-                    <% info = get_flash(@conn, :info) %>
-                    <%= if info do %>
-                        <.notification type="info">
-                            <%= info %>
-                        </.notification>
-                    <% end %>
+  <div class="flex-1 flex flex-col overflow-hidden">
+    <div class="my-8 w-full">
+      <div class="mx-auto w-full xl:w-[1280px]">
+        <%= @inner_content %>
+      </div>
+      <div
+        aria-live="assertive"
+        class="fixed inset-0 flex items-end px-4 py-6 pointer-events-none sm:p-6 sm:items-start"
+      >
+        <div class="w-full flex flex-col items-center space-y-4 sm:items-end">
+          <% info = get_flash(@conn, :info) %>
+          <%= if info do %>
+            <.notification type="info">
+              <%= info %>
+            </.notification>
+          <% end %>
 
-                    <% error = get_flash(@conn, :error) %>
-                    <%= if error do %>
-                        <.notification type="error">
-                            <%= error %>
-                        </.notification>
-                    <% end %>
-                </div>
-            </div>
+          <% error = get_flash(@conn, :error) %>
+          <%= if error do %>
+            <.notification type="error">
+              <%= error %>
+            </.notification>
+          <% end %>
         </div>
+      </div>
     </div>
+  </div>
 </main>
