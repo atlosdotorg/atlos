@@ -31,7 +31,7 @@ defmodule Platform.AccountsFixtures do
       |> valid_user_attributes()
       |> Platform.Accounts.register_user()
 
-    {:ok, admin} = Platform.Accounts.update_user_access(user, %{roles: [:admin]})
+    {:ok, admin} = Platform.Accounts.update_user_admin(user, %{roles: [:admin]})
 
     admin
   end

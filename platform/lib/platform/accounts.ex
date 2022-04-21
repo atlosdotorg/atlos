@@ -376,12 +376,12 @@ defmodule Platform.Accounts do
     end
   end
 
-  def change_user_access(user, attrs \\ %{}) do
-    User.access_changeset(user, attrs)
+  def change_user_admin(user, attrs \\ %{}) do
+    User.admin_changeset(user, attrs)
   end
 
-  def update_user_access(user, attrs) do
-    change_user_access(user, attrs)
+  def update_user_admin(user, attrs) do
+    change_user_admin(user, attrs)
     |> Repo.update()
   end
 
@@ -399,5 +399,9 @@ defmodule Platform.Accounts do
 
   def is_banned(%User{} = user) do
     Enum.member?(user.restrictions || [], :banned)
+  end
+
+  def is_muted(%User{} = user) do
+    Enum.member?(user.restrictions || [], :muted)
   end
 end

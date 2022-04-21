@@ -29,7 +29,7 @@ defmodule PlatformWeb.Components do
   def modal(assigns) do
     ~H"""
     <div
-      class="fixed z-10 inset-0 overflow-y-auto"
+      class="fixed z-100 inset-0 overflow-y-auto"
       aria-labelledby="modal-title"
       role="dialog"
       aria-modal="true"
@@ -1024,13 +1024,47 @@ defmodule PlatformWeb.Components do
     ~H"""
     <a
       class="font-medium text-gray-900 hover:text-urge-600 inline-flex gap-1 flex-wrap"
-      href={"/user/#{user.username}"}
+      href={"/profile/#{user.username}"}
     >
       <%= user.username %>
       <%= if Accounts.is_admin(user) do %>
         <span class="font-normal text-xs badge ~critical self-center">Admin</span>
       <% end %>
     </a>
+    """
+  end
+
+  def floating_warning(assigns) do
+    ~H"""
+    <section class="fixed bottom-0 inset-x-0 pb-2 sm:pb-5">
+      <div class="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
+        <div class="p-2 rounded-lg bg-critical-600 shadow-lg sm:p-3">
+          <div class="flex items-center justify-between flex-wrap">
+            <div class="w-0 flex-1 flex items-center">
+              <span class="flex p-2 rounded-lg bg-critical-800">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-6 w-6 text-white"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                  />
+                </svg>
+              </span>
+              <p class="ml-3 font-medium text-white">
+                <%= render_slot(@inner_block) %>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
     """
   end
 end

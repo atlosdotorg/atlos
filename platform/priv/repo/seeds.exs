@@ -34,9 +34,9 @@ alias Platform.Material
     roles: [:admin]
   })
 
-{:ok, _} = Accounts.update_user_access(admin, %{roles: [:admin]})
-{:ok, _} = Accounts.update_user_access(muted, %{restrictions: [:muted]})
-{:ok, _} = Accounts.update_user_access(muted, %{restrictions: [:banned]})
+{:ok, _} = Accounts.update_user_admin(admin, %{roles: [:admin]})
+{:ok, _} = Accounts.update_user_admin(muted, %{restrictions: [:muted]})
+{:ok, _} = Accounts.update_user_admin(muted, %{restrictions: [:banned]})
 
 random_users =
   Enum.map(1..50, fn _ ->

@@ -360,4 +360,9 @@
       />
     </.modal>
   <% end %>
+  <%= if Platform.Accounts.is_muted(@current_user) do %>
+    <.floating_warning>
+      Your account has been muted. As a result, you cannot edit or comment on this media.
+    </.floating_warning>
+  <% end %>
 </article>

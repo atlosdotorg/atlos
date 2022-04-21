@@ -1,7 +1,8 @@
-defmodule PlatformWeb.UsersLive.Show do
+defmodule PlatformWeb.ProfilesLive.Show do
   use PlatformWeb, :live_view
   alias Platform.Accounts
   alias Platform.Updates
+  alias PlatformWeb.ProfilesLive.EditComponent
 
   def mount(_params, _session, socket) do
     {:ok, socket}

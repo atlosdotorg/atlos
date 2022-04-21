@@ -117,9 +117,9 @@ defmodule Platform.Accounts.User do
   A user changeset for modifying admin/safety attributes, such as
   roles and restrictions.
   """
-  def access_changeset(user, attrs) do
+  def admin_changeset(user, attrs) do
     user
-    |> cast(attrs, [:roles, :restrictions])
+    |> cast(attrs, [:roles, :restrictions, :bio])
   end
 
   @doc """

@@ -1,7 +1,7 @@
 <article class="w-full max-w-screen-md mx-auto px-8 flex flex-col gap-8">
   <section class="flex gap-4 items-center">
     <img
-      class="relative z-30 inline-block h-24 w-24 rounded-full ring-2 ring-white"
+      class="inline-block h-24 w-24 rounded-full ring-2 ring-white"
       src={Accounts.get_profile_photo_path(@user)}
       title={@user.username}
       alt={"Profile photo for #{@user.username}"}
@@ -24,8 +24,18 @@
     <section>
       <.card>
         <:header>
-          <p class="sec-head">Administration</p>
-          <p class="sec-subhead">This information is only visible to administrators.</p>
+          <div class="md:flex items-center justify-between">
+            <div>
+              <p class="sec-head">Administration</p>
+              <p class="sec-subhead">This information is only visible to administrators.</p>
+            </div>
+            <div>
+              <%= live_redirect("Edit",
+                class: "button ~urge @high",
+                to: Routes.profiles_show_path(@socket, :edit, @username)
+              ) %>
+            </div>
+          </div>
         </:header>
         <dl class="grid grid-cols-1 gap-x-4 gap-y-8 sm:grid-cols-2">
           <div class="sm:col-span-1">
@@ -59,15 +69,23 @@
             </dd>
           </div>
           <div class="sm:col-span-1">
-            <dt class="text-sm font-medium text-gray-500">Total Activity</dt>
+            <dt class="text-sm font-medium text-gray-500">Roles</dt>
             <dd class="mt-1 text-sm text-gray-900">
-              <%= length(@updates) %>
+              <%= if length(@user.roles || []) > 0 do %>
+                <%= for r <- @user.roles do %>
+                  <p class="chip ~neutral">
+                    <%= r %>
+                  </p>
+                <% end %>
+              <% else %>
+                None
+              <% end %>
             </dd>
           </div>
           <div class="sm:col-span-1">
-            <dt class="text-sm font-medium text-gray-500">Last Activity</dt>
+            <dt class="text-sm font-medium text-gray-500">Total Activity</dt>
             <dd class="mt-1 text-sm text-gray-900">
-              <.rel_time time={Enum.max(@updates |> Enum.map(& &1.inserted_at))} />
+              <%= length(@updates) %>
             </dd>
           </div>
         </dl>
@@ -90,4 +108,12 @@
       />
     </.card>
   </section>
+  <%= if @live_action == :edit do %>
+    <.live_component
+      module={EditComponent}
+      id="edit-user"
+      current_user={@current_user}
+      username={@username}
+    />
+  <% end %>
 </article>
