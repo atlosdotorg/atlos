@@ -3,7 +3,7 @@ defmodule Platform.Repo.Migrations.AddProfileInfoToUsers do
 
   def change do
     alter table(:users) do
-      add :bio, :string
+      add :bio, :string, default: ""
       add :profile_photo_file, :string, default: ""
     end
   end

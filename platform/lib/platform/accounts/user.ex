@@ -8,8 +8,9 @@ defmodule Platform.Accounts.User do
     field :username, :string
     field :roles, {:array, Ecto.Enum}, values: [:coordinator, :trusted, :admin]
     field :restrictions, {:array, Ecto.Enum}, values: [:banned, :muted]
-    field :bio, :string, nullable: true, default: ""
-    field :profile_photo_file, :string, nullable: true, default: ""
+    field :bio, :string, default: ""
+    field :profile_photo_file, :string, default: ""
+    field :flair, :string, default: ""
 
     field :password, :string, virtual: true, redact: true
     field :hashed_password, :string, redact: true
@@ -119,7 +120,7 @@ defmodule Platform.Accounts.User do
   """
   def admin_changeset(user, attrs) do
     user
-    |> cast(attrs, [:roles, :restrictions, :bio])
+    |> cast(attrs, [:roles, :restrictions, :bio, :flair])
   end
 
   @doc """

@@ -32,16 +32,16 @@ defmodule PlatformWeb.ProfilesLive.EditComponent do
     socket |> push_patch(to: Routes.profiles_show_path(socket, :show, socket.assigns.username))
   end
 
-  def handle_event("close_modal", _, socket) do
-    {:noreply, close(socket)}
-  end
-
   defp hydrate_params(params) do
     # TODO: Is there a Phoenix utility that will do this for us?
     params
     |> Map.put_new("restrictions", [])
     |> Map.put_new("roles", [])
     |> Map.put_new("bio", "")
+  end
+
+  def handle_event("close_modal", _, socket) do
+    {:noreply, close(socket)}
   end
 
   def handle_event("save", %{"user" => params} = _input, socket) do
@@ -111,6 +111,11 @@ defmodule PlatformWeb.ProfilesLive.EditComponent do
               <%= label(f, :bio, "Bio") %>
               <%= textarea(f, :bio) %>
               <%= error_tag(f, :bio) %>
+            </div>
+            <div>
+              <%= label(f, :flair, "Flair") %>
+              <%= text_input(f, :flair) %>
+              <%= error_tag(f, :flair) %>
             </div>
             <div class="flex md:justify-between">
               <%= submit("Save",

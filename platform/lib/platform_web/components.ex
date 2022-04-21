@@ -1030,6 +1030,9 @@ defmodule PlatformWeb.Components do
       <%= if Accounts.is_admin(user) do %>
         <span class="font-normal text-xs badge ~critical self-center">Admin</span>
       <% end %>
+      <%= if String.length(user.flair) > 0 do %>
+        <span class="font-normal text-xs badge ~urge self-center"><%= user.flair %></span>
+      <% end %>
     </a>
     """
   end

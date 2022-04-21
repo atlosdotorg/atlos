@@ -14,6 +14,9 @@
         <%= if Accounts.is_admin(@user) do %>
           <p class="chip ~critical">Admin</p>
         <% end %>
+        <%= if @user.flair do %>
+          <p class="chip ~urge"><%= @user.flair %></p>
+        <% end %>
       </div>
       <p class="text-gray-700 mt-2">
         <%= @user.bio %>
