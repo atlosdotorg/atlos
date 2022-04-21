@@ -7,7 +7,7 @@ defmodule Platform.Accounts.User do
     field :email, :string
     field :username, :string
     field :roles, {:array, Ecto.Enum}, values: [:coordinator, :trusted, :admin]
-    field :restrictions, {:array, Ecto.Enum}, values: [:banned, :muted]
+    field :restrictions, {:array, Ecto.Enum}, values: [:suspended, :muted]
     field :bio, :string, default: ""
     field :profile_photo_file, :string, default: ""
     field :flair, :string, default: ""

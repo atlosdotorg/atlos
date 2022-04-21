@@ -19,10 +19,10 @@ alias Platform.Material
 {:ok, muted} =
   Accounts.register_user(%{email: "muted@localhost", username: "muted", password: "localhost123"})
 
-{:ok, banned} =
+{:ok, suspended} =
   Accounts.register_user(%{
-    email: "banned@localhost",
-    username: "banned",
+    email: "suspended@localhost",
+    username: "suspended",
     password: "localhost123"
   })
 
@@ -36,7 +36,7 @@ alias Platform.Material
 
 {:ok, _} = Accounts.update_user_admin(admin, %{roles: [:admin]})
 {:ok, _} = Accounts.update_user_admin(muted, %{restrictions: [:muted]})
-{:ok, _} = Accounts.update_user_admin(muted, %{restrictions: [:banned]})
+{:ok, _} = Accounts.update_user_admin(muted, %{restrictions: [:suspended]})
 
 random_users =
   Enum.map(1..50, fn _ ->

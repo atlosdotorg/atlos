@@ -397,8 +397,8 @@ defmodule Platform.Accounts do
     is_admin(user) || is_trusted(user)
   end
 
-  def is_banned(%User{} = user) do
-    Enum.member?(user.restrictions || [], :banned)
+  def is_suspended(%User{} = user) do
+    Enum.member?(user.restrictions || [], :suspended)
   end
 
   def is_muted(%User{} = user) do

@@ -103,7 +103,9 @@ defmodule PlatformWeb.ProfilesLive.EditComponent do
             <div>
               <%= label(f, :restrictions, "Restrictions") %>
               <div phx-update="ignore" id="ignore-user-restrictions">
-                <%= multiple_select(f, :restrictions, [:banned, :muted], id: "user-restrictions-input") %>
+                <%= multiple_select(f, :restrictions, [:suspended, :muted],
+                  id: "user-restrictions-input"
+                ) %>
               </div>
               <%= error_tag(f, :restrictions) %>
             </div>
