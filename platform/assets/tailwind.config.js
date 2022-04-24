@@ -16,6 +16,10 @@ module.exports = {
         critical: colors.red,
       },
     },
+    fontFamily: {
+      'sans': ['Inter', 'system-ui', 'sans-serif'],
+      'mono': ['Iosevka', 'monospace'],
+    }
   },
   variants: {},
   plugins: [

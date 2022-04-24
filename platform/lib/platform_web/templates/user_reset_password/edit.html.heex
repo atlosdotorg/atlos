@@ -1,21 +1,25 @@
 <div class="phx-form">
-  <.form let={f} for={@changeset} action={Routes.user_reset_password_path(@conn, :update, @token)}>
+  <.form let={f} for={@changeset} action={Routes.user_reset_password_path(@conn, :update, @token)} class="flex flex-col gap-y-4">
     <%= if @changeset.action do %>
       <div class="alert alert-danger">
         <p>Oops, something went wrong! Please check the errors below.</p>
       </div>
     <% end %>
 
+    <div>
     <%= label(f, :password, "New password") %>
     <%= password_input(f, :password, required: true) %>
     <%= error_tag(f, :password) %>
+    </div>
 
+    <div>
     <%= label(f, :password_confirmation, "Confirm new password") %>
     <%= password_input(f, :password_confirmation, required: true) %>
     <%= error_tag(f, :password_confirmation) %>
+    </div>
 
     <div>
-      <%= submit("Reset password") %>
+      <%= submit("Reset password", class: "button ~urge @high") %>
     </div>
   </.form>
 </div>
