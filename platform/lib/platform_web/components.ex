@@ -156,21 +156,7 @@ defmodule PlatformWeb.Components do
     <div class="hidden w-28 bg-neutral-700 overflow-y-auto md:block fixed h-screen">
       <div class="w-full py-6 flex flex-col items-center">
         <%= link to: "/", class: "flex flex-col items-center text-white" do %>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-6 w-6"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            stroke-width="2"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
-          <span class="text-white uppercase font-bold">Atlos</span>
+          <span class="text-white text-xl py-px px-1 rounded-sm bg-white text-neutral-700 uppercase font-extrabold font-mono">Atlos</span>
         <% end %>
         <div class="flex-1 mt-6 w-full px-2 space-y-1">
           <.navlink to="/new" label="New" request_path={@path}>
