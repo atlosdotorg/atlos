@@ -13,12 +13,8 @@ defmodule PlatformWeb.MediaLive.Index do
      |> assign(:changeset, Material.MediaSearch.changeset())}
   end
 
-  def handle_event("validate", %{"search" => params}, socket) do
-    c =
-      Material.MediaSearch.changeset(params)
-      |> Map.put(:action, :validate)
-
-    {:noreply, socket |> assign(:changeset, c)}
+  def handle_event("validate", params, socket) do
+    handle_event("save", params, socket)
   end
 
   def handle_event("save", %{"search" => params}, socket) do

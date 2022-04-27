@@ -14,7 +14,7 @@
         <%= if Accounts.is_admin(@user) do %>
           <p class="chip ~critical">Admin</p>
         <% end %>
-        <%= if @user.flair do %>
+        <%= if String.length(@user.flair || "") > 0 do %>
           <p class="chip ~urge"><%= @user.flair %></p>
         <% end %>
       </div>
