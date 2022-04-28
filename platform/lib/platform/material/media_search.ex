@@ -3,7 +3,12 @@ defmodule Platform.Material.MediaSearch do
   import Ecto.Query
   alias Platform.Material.Media
 
-  @types %{query: :string}
+  # Search components:
+  #   - Query (string)
+  #   - Date
+  #   - Flag
+  #   - Sort by
+  @types %{query: :string, sort: :string}
 
   def changeset(params \\ %{}) do
     data = %{}
@@ -11,19 +16,27 @@ defmodule Platform.Material.MediaSearch do
     {data, @types}
     |> Ecto.Changeset.cast(params, Map.keys(@types))
     |> Ecto.Changeset.validate_length(:query, max: 256)
+    |> Ecto.Changeset.validate_inclusion(:sort, [
+      :date_desc,
+      :date_asc,
+      :modified_desc,
+      :modified_asc
+    ])
+  end
+
+  defp apply_query_component(queryable, changeset, :query) do
+    case Map.get(changeset.changes, :query) do
+      nil -> queryable
+      query -> Media.text_search(query, queryable)
+    end
   end
 
   @doc """
   Builds a composeable query given the search changeset.
   """
   def search_query(queryable \\ Media, %Ecto.Changeset{} = cs) do
-    query =
-      case map_size(cs.changes) == 0 do
-        true -> queryable
-        false -> Media.text_search(cs.changes.query, queryable)
-      end
-
-    query
+    queryable
+    |> apply_query_component(cs, :query)
   end
 
   @doc """
