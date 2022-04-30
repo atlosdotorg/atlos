@@ -132,8 +132,7 @@ defmodule Platform.Material.Media do
           "ts_rank_cd(?, websearch_to_tsquery('english', ?), 4)",
           q.searchable,
           ^search_terms
-        ),
-      desc: q.updated_at
+        )
     )
   end
 end

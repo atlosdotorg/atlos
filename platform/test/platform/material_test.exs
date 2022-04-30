@@ -342,6 +342,21 @@ defmodule Platform.MaterialTest do
       assert length(Material.query_media()) == 200
     end
 
+    test "query_media/1 works with uploaded sorting" do
+      assert length(Material.query_media()) == 0
+
+      Enum.map(1..25, fn _ -> media_fixture(%{description: "this is earlier"}) end)
+      Enum.map(1..25, fn _ -> media_fixture(%{description: "this is later"}) end)
+
+      changeset_desc = Material.MediaSearch.changeset(%{sort: "uploaded_desc"})
+      query_desc = Material.MediaSearch.search_query(changeset_desc)
+      assert hd(Material.query_media(query_desc)).description == "this is later"
+
+      changeset_asc = Material.MediaSearch.changeset(%{sort: "uploaded_asc"})
+      query_asc = Material.MediaSearch.search_query(changeset_asc)
+      assert hd(Material.query_media(query_asc)).description == "this is earlier"
+    end
+
     test "query_media/1 works with basic text search" do
       assert length(Material.query_media()) == 0
 

@@ -9,18 +9,29 @@
   >
     <section class="flex w-full flex-wrap md:flex-nowrap gap-4 mb-8 items-center mb-8 border-b pb-4">
       <h1 class="header text-3xl flex-grow font-semibold md:mr-8">All Media</h1>
-      <div class="md:w-96">
-        <div class="border border-gray-300 bg-white rounded-md px-3 py-2 shadow-sm focus-within:ring-1 focus-within:ring-urge-600 focus-within:border-urge-600">
-          <%# <label for="name" class="block text-xs font-medium text-gray-900">Name</label> %>
-          <%= label f, :query, "Search", class: "block text-xs font-medium text-gray-900" %>
-          <%= text_input(f, :query,
-            placeholder: "Enter a query...",
-            phx_debounce: "1000",
-            class:
-              "block w-full border-0 p-0 text-gray-900 placeholder-gray-500 focus:ring-0 sm:text-sm"
-          ) %>
+      <div class="md:w-[40em] md:flex gap-2">
+        <div class="flex-grow">
+          <div class="border border-gray-300 bg-white rounded-md px-3 py-2 shadow-sm focus-within:ring-1 focus-within:ring-urge-600 focus-within:border-urge-600">
+            <%= label f, :query, "Search", class: "block text-xs font-medium text-gray-900" %>
+            <%= text_input(f, :query,
+              placeholder: "Enter a query...",
+              phx_debounce: "1000",
+              class:
+                "block w-full border-0 p-0 text-gray-900 placeholder-gray-500 focus:ring-0 sm:text-sm"
+            ) %>
+          </div>
+          <%= error_tag(f, :query) %>
         </div>
-        <%= error_tag(f, :query) %>
+        <div>
+          <div class="ts-ignore border border-gray-300 bg-white rounded-md pl-3 py-2 shadow-sm focus-within:ring-1 focus-within:ring-urge-600 focus-within:border-urge-600">
+            <%= label f, :sort, "Sort", class: "block text-xs font-medium text-gray-900" %>
+            <%= select(f, :sort, ["Recently Modified": :modified_desc, "Least Recently Modified": :modified_asc, "Newest Uploads": :uploaded_desc, "Oldest Uploads": :uploaded_asc],
+              class:
+                "block w-full border-0 py-0 pl-0 pr-7 text-gray-900 placeholder-gray-500 focus:ring-0 sm:text-sm"
+            ) %>
+          </div>
+          <%= error_tag(f, :sort) %>
+        </div>
       </div>
     </section>
   </.form>

@@ -17,10 +17,10 @@ defmodule Platform.Material.MediaSearch do
     |> Ecto.Changeset.cast(params, Map.keys(@types))
     |> Ecto.Changeset.validate_length(:query, max: 256)
     |> Ecto.Changeset.validate_inclusion(:sort, [
-      :date_desc,
-      :date_asc,
-      :modified_desc,
-      :modified_asc
+      "uploaded_desc",
+      "uploaded_asc",
+      "modified_desc",
+      "modified_asc"
     ])
   end
 
@@ -31,12 +31,28 @@ defmodule Platform.Material.MediaSearch do
     end
   end
 
+  defp apply_query_component(queryable, changeset, :sort) do
+    case Map.get(changeset.changes, :sort) do
+      nil ->
+        queryable
+
+      query ->
+        case query do
+          "uploaded_desc" -> queryable |> Ecto.Query.order_by([i], desc: i.inserted_at)
+          "uploaded_asc" -> queryable |> Ecto.Query.order_by([i], asc: i.inserted_at)
+          "modified_desc" -> queryable |> Ecto.Query.order_by([i], desc: i.updated_at)
+          "modified_asc" -> queryable |> Ecto.Query.order_by([i], asc: i.updated_at)
+        end
+    end
+  end
+
   @doc """
   Builds a composeable query given the search changeset.
   """
   def search_query(queryable \\ Media, %Ecto.Changeset{} = cs) do
     queryable
     |> apply_query_component(cs, :query)
+    |> apply_query_component(cs, :sort)
   end
 
   @doc """
