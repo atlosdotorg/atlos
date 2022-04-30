@@ -57,6 +57,8 @@ defmodule Platform.Material do
   def query_media_paginated(query \\ Media, opts \\ []) do
     applied_options = Keyword.merge([cursor_fields: [{:updated_at, :desc}], limit: 30], opts)
 
+    IO.inspect(applied_options)
+
     _query_media(query)
     |> Repo.paginate(applied_options)
   end

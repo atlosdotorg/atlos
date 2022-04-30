@@ -46,8 +46,10 @@ defmodule PlatformWeb.MediaLive.Index do
   end
 
   defp search_media(socket, c, pagination_opts \\ []) do
-    Material.MediaSearch.search_query(c)
+    {query, pagination_options} = Material.MediaSearch.search_query(c)
+
+    query
     |> Material.MediaSearch.filter_viewable(socket.assigns.current_user)
-    |> Material.query_media_paginated(pagination_opts)
+    |> Material.query_media_paginated(Keyword.merge(pagination_options, pagination_opts))
   end
 end
