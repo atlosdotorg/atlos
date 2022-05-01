@@ -1,10 +1,10 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
 @import url("https://api.mapbox.com/mapbox-gl-js/v2.7.0/mapbox-gl.css");
 @import url("https://cdn.jsdelivr.net/npm/@typopro/web-iosevka@3.7.5/TypoPRO-Iosevka.css");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 :root {
     font-family: "Inter", sans-serif;

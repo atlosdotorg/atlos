@@ -7,7 +7,7 @@ module.exports = {
     extend: {},
     fontFamily: {
       'sans': ['Inter', 'system-ui', 'sans-serif'],
-      'mono': ['Iosevka', 'monospace'],
+      'mono': ['TypoPRO Iosevka Term', 'monospace'],
     }
   },
   plugins: [

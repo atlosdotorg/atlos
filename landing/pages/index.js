@@ -40,9 +40,9 @@ export default function Home() {
 
       <main>
         <div className="w-full h-full -z-1">
-          <div id="map" className="absolute w-full h-full top-0 left-0 bg-stone-700 -z-1 max-h-screen overflow-hidden"></div>
+          <div id="map" className="fixed w-full h-full top-0 left-0 bg-stone-700 -z-1 max-h-screen overflow-hidden"></div>
         </div>
-        <section className='z-10 fixed flex flex-col space-y-6 top-0 mx-auto p-6 md:m-12 lg:m-36 md:max-w-lg'>
+        <section className='relative z-10 flex flex-col space-y-6 top-0 mx-auto p-6 md:m-12 lg:m-36 md:max-w-lg'>
           <p className='text-5xl'>
             <span className="bg-white rounded-sm font-mono text-slate-900 py-1 px-2 font-bold">ATLOS</span>
           </p>
