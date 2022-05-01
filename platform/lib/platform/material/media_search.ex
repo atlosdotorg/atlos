@@ -36,7 +36,7 @@ defmodule Platform.Material.MediaSearch do
 
     case Map.get(changeset.changes, :sort) do
       nil ->
-        queryable
+        {queryable, []}
 
       query ->
         case query do
@@ -60,7 +60,7 @@ defmodule Platform.Material.MediaSearch do
   end
 
   @doc """
-  Builds a composeable query given the search changeset.
+  Builds a composeable query given the search changeset. Returns a {queryable, pagination_opts} tuple.
   """
   def search_query(queryable \\ Media, %Ecto.Changeset{} = cs) do
     queryable
