@@ -369,7 +369,7 @@ defmodule Platform.MaterialTest do
       Enum.map(1..25, fn _ -> media_fixture(%{description: "this is foobar"}) end)
 
       changeset = Material.MediaSearch.changeset(%{query: "foobar"})
-      query = Material.MediaSearch.search_query(changeset)
+      {query, _} = Material.MediaSearch.search_query(changeset)
 
       assert length(Material.query_media()) == 50
       assert length(Material.query_media(query)) == 25
@@ -391,7 +391,7 @@ defmodule Platform.MaterialTest do
       end)
 
       changeset = Material.MediaSearch.changeset(%{query: "internet"})
-      query = Material.MediaSearch.search_query(changeset)
+      {query, _} = Material.MediaSearch.search_query(changeset)
 
       assert length(Material.query_media()) == 1003
       assert length(Material.query_media(query)) == 3
@@ -445,7 +445,7 @@ defmodule Platform.MaterialTest do
 
       assert length(Material.query_media()) == 120
 
-      query =
+      {query, _} =
         Material.MediaSearch.search_query(Material.MediaSearch.changeset(%{query: "bing bong"}))
 
       assert length(query |> Material.MediaSearch.filter_viewable(user) |> Material.query_media()) ==
