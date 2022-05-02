@@ -67,9 +67,14 @@ defmodule PlatformWeb.MediaLive.CommentBox do
 
   def handle_event("save", %{"update" => params} = _input, socket) do
     attachments =
-      consume_uploaded_entries(socket, :attachments, fn %{path: path}, _entry ->
+      consume_uploaded_entries(socket, :attachments, fn %{path: path}, entry ->
         # Copying it to _another_ temporary path helps ensure we remove the user's provided filename
-        to_path = Temp.path!(prefix: socket.assigns.current_user.username)
+        to_path =
+          Temp.path!(
+            prefix: socket.assigns.current_user.username,
+            suffix: "." <> hd(MIME.extensions(entry.client_type))
+          )
+
         File.cp!(path, to_path)
         Uploads.UpdateAttachment.store({to_path, socket.assigns.media})
       end)

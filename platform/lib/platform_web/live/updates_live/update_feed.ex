@@ -3,6 +3,7 @@ defmodule PlatformWeb.UpdatesLive.UpdateFeed do
   alias Platform.Accounts
   alias Platform.Updates
   alias Platform.Material.Attribute
+  alias Platform.Uploads
 
   def update(
         assigns,
@@ -165,6 +166,20 @@ defmodule PlatformWeb.UpdatesLive.UpdateFeed do
                       <%= if update.explanation do %>
                         <div class="p-2">
                           <p><%= update.explanation %></p>
+                        </div>
+                      <% end %>
+
+                      <%= if not Enum.empty?(update.attachments) do %>
+                        <div class="p-2 grid grid-cols-2 md:grid-cols-3 gap-2">
+                          <%= for attachment <- update.attachments do %>
+                            <% url =
+                              Uploads.UpdateAttachment.url({attachment, update.media}, :original,
+                                signed: true
+                              ) %>
+                            <a class="rounded max-h-64 cursor-zoom-in" href={url} target="_blank">
+                              <img src={url} />
+                            </a>
+                          <% end %>
                         </div>
                       <% end %>
                     </div>

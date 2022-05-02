@@ -19,6 +19,10 @@ defmodule Platform.Uploads.Avatar do
   def storage_dir(version, {file, scope}) do
     "avatars/#{scope.id}"
   end
+
+  def s3_object_headers(version, {file, scope}) do
+    [content_type: MIME.from_path(file.file_name)]
+  end
 end
 
 defmodule Platform.Uploads.WatermarkedMediaVersion do
@@ -47,6 +51,10 @@ defmodule Platform.Uploads.WatermarkedMediaVersion do
   def storage_dir(version, {file, scope}) do
     "media/#{scope.slug}/watermarked/"
   end
+
+  def s3_object_headers(version, {file, scope}) do
+    [content_type: MIME.from_path(file.file_name)]
+  end
 end
 
 defmodule Platform.Uploads.OriginalMediaVersion do
@@ -61,6 +69,10 @@ defmodule Platform.Uploads.OriginalMediaVersion do
   def storage_dir(version, {file, scope}) do
     "media/#{scope.slug}/original/"
   end
+
+  def s3_object_headers(version, {file, scope}) do
+    [content_type: MIME.from_path(file.file_name)]
+  end
 end
 
 defmodule Platform.Uploads.UpdateAttachment do
@@ -74,5 +86,9 @@ defmodule Platform.Uploads.UpdateAttachment do
 
   def storage_dir(version, {file, scope}) do
     "attachments/#{scope.slug}/"
+  end
+
+  def s3_object_headers(version, {file, scope}) do
+    [content_type: MIME.from_path(file.file_name)]
   end
 end
