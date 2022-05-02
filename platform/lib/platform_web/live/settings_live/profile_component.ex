@@ -2,6 +2,7 @@ defmodule PlatformWeb.SettingsLive.ProfileComponent do
   use PlatformWeb, :live_component
   alias Platform.Accounts
   alias Platform.Utils
+  alias Platform.Uploads.Avatar
 
   def update(%{current_user: current_user} = assigns, socket) do
     changeset = Accounts.change_user_profile(current_user)
@@ -10,7 +11,7 @@ defmodule PlatformWeb.SettingsLive.ProfileComponent do
      socket
      |> assign(assigns)
      |> assign(:changeset, changeset)
-     |> assign(:profile_photo_display, current_user.profile_photo_file)
+     |> assign(:profile_photo_display, Accounts.get_profile_photo_path(current_user))
      |> allow_upload(:profile_photo_file,
        accept: ~w(.jpg .jpeg .png),
        max_entries: 1,
@@ -51,19 +52,22 @@ defmodule PlatformWeb.SettingsLive.ProfileComponent do
   defp handle_progress(:profile_photo_file, entry, socket) do
     if entry.done? do
       # TODO: add a context function to upload to persistent storage
-      path = consume_uploaded_entry(socket, entry, &upload_static_file(&1, socket))
+      path = consume_uploaded_entry(socket, entry, &upload_avatar(&1, socket))
 
       {:noreply,
        socket
        |> update_changeset(:profile_photo_file, path)
-       |> assign(:profile_photo_display, path)}
+       |> assign(
+         :profile_photo_display,
+         Avatar.url({path, socket.assigns.current_user}, :thumb, signed: true)
+       )}
     else
       {:noreply, socket}
     end
   end
 
-  defp upload_static_file(%{path: path}, _socket) do
-    Utils.upload_ugc_file(path)
+  defp upload_avatar(%{path: path}, socket) do
+    Avatar.store({path, socket.assigns.current_user})
   end
 
   defp has_changes(changeset) do

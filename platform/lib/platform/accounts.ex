@@ -368,12 +368,7 @@ defmodule Platform.Accounts do
   end
 
   def get_profile_photo_path(%User{} = user) do
-    if byte_size(user.profile_photo_file) > 0 do
-      user.profile_photo_file
-    else
-      # TODO: host elsewhere
-      "/images/default_profile.jpg"
-    end
+    Platform.Uploads.Avatar.url({user.profile_photo_file, user}, :thumb, signed: true)
   end
 
   def change_user_admin(user, attrs \\ %{}) do

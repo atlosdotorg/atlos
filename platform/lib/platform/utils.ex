@@ -26,10 +26,26 @@ defmodule Platform.Utils do
     end)
   end
 
-  def upload_ugc_file(path) do
-    dest = Path.join("priv/static/ugc/", Path.basename(path))
-    File.cp!(path, dest)
-    {:ok, "/ugc/#{Path.basename(dest)}"}
+  def slugify(string) do
+    string
+    |> String.downcase()
+    |> String.replace(~r/[^a-zA-Z0-9 &]/, "")
+    |> String.replace("&", "and")
+    |> String.split()
+    |> Enum.join("-")
+  end
+
+  def upload_ugc_file(path, folder, name) do
+    {:ok, :done} =
+      path
+      |> S3.Upload.stream_file()
+      |> S3.upload(
+        System.get_env("S3_BUCKET"),
+        "#{folder}/#{slugify(name)}-#{generate_random_sequence(6)}"
+      )
+      |> ExAws.request()
+
+    {:ok, ""}
   end
 
   def truncate(str, length \\ 30) do

@@ -56,7 +56,11 @@ defmodule Platform.MixProject do
       {:rambo, "~> 0.3"},
       {:geo_postgis, "~> 3.4"},
       {:paginator, "~> 1.1.0"},
-      {:faker, "~> 0.17", only: [:dev, :test]}
+      {:faker, "~> 0.17", only: [:dev, :test]},
+      {:ex_aws, "~> 2.3"},
+      {:ex_aws_s3, "~> 2.3"},
+      {:arc, "~> 0.11.0"},
+      {:sweet_xml, "~> 0.7.3"}
     ]
   end
 

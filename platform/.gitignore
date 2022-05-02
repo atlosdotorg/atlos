@@ -32,5 +32,5 @@ platform-*.tar
 npm-debug.log
 /assets/node_modules/
 
+*.secret.exs
 .DS_Store
-
