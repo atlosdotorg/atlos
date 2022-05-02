@@ -8,7 +8,6 @@ defmodule Platform.Material.MediaVersion do
     field :file_location, :string
     field :file_size, :integer
     field :duration_seconds, :integer
-    field :perceptual_hash, :binary, nullable: true
     field :source_url, :string
     field :mime_type, :string
     field :client_name, :string
@@ -26,7 +25,6 @@ defmodule Platform.Material.MediaVersion do
       :file_location,
       :file_size,
       :duration_seconds,
-      :perceptual_hash,
       :source_url,
       :mime_type,
       :client_name,

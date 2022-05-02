@@ -94,7 +94,6 @@ defmodule Platform.MaterialTest do
       valid_attrs = %{
         file_location: "some file_location",
         file_size: 42,
-        perceptual_hash: "some perceptual_hash",
         source_url: "some source_url",
         type: :image,
         duration_seconds: 30,
@@ -109,7 +108,6 @@ defmodule Platform.MaterialTest do
 
       assert media_version.file_location == "some file_location"
       assert media_version.file_size == 42
-      assert media_version.perceptual_hash == "some perceptual_hash"
       assert media_version.source_url == "some source_url"
     end
 
@@ -124,7 +122,6 @@ defmodule Platform.MaterialTest do
       update_attrs = %{
         file_location: "some updated file_location",
         file_size: 43,
-        perceptual_hash: "some updated perceptual_hash",
         source_url: "some updated source_url",
         duration_seconds: 30,
         mime_type: "image/png",
@@ -136,7 +133,6 @@ defmodule Platform.MaterialTest do
 
       assert media_version.file_location == "some updated file_location"
       assert media_version.file_size == 43
-      assert media_version.perceptual_hash == "some updated perceptual_hash"
       assert media_version.source_url == "some updated source_url"
     end
 

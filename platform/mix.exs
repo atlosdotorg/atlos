@@ -51,9 +51,7 @@ defmodule Platform.MixProject do
       {:jason, "~> 1.2"},
       {:plug_cowboy, "~> 2.5"},
       {:ffmpex, "~> 0.9.0"},
-      {:thumbnex, "~> 0.4.0"},
       {:temp, "~> 0.4"},
-      {:rambo, "~> 0.3"},
       {:geo_postgis, "~> 3.4"},
       {:paginator, "~> 1.1.0"},
       {:faker, "~> 0.17", only: [:dev, :test]},
@@ -79,6 +77,7 @@ defmodule Platform.MixProject do
       "assets.deploy": [
         "cmd --cd assets npm install",
         "esbuild default --minify",
+        "cmd --cd assets npx tailwindcss --input=css/app.css --output=../priv/static/assets/app.css --postcss",
         "phx.digest"
       ]
     ]

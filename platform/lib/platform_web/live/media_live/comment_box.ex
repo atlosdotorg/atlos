@@ -3,7 +3,6 @@ defmodule PlatformWeb.MediaLive.CommentBox do
   alias Platform.Accounts
   alias Platform.Updates
   alias Platform.Uploads
-  alias Platform.Utils
   alias Phoenix.LiveView.Upload
 
   def update(assigns, socket) do
@@ -28,21 +27,6 @@ defmodule PlatformWeb.MediaLive.CommentBox do
 
   def handle_progress(:attachments, _entry, socket) do
     {:noreply, socket}
-  end
-
-  defp handle_static_file(%{path: path}) do
-    # Just make a copy of the file; all the real processing is done later in handle_uploaded_file.
-    to_path = Temp.path!(prefix: Utils.generate_random_sequence(10))
-    File.cp!(path, to_path)
-    {:ok, to_path}
-  end
-
-  defp handle_uploaded_file(socket, entry) do
-    path = consume_uploaded_entry(socket, entry, &handle_static_file(&1))
-
-    {:ok, location} = Uploads.UpdateAttachment.store({path, socket.assigns.media})
-
-    location
   end
 
   defp assign_changeset(socket) do
