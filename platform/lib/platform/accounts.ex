@@ -368,10 +368,15 @@ defmodule Platform.Accounts do
   end
 
   def get_profile_photo_path(%User{} = user) do
-    if String.starts_with?(user.profile_photo_file, "https://") do
-      user.profile_photo_file
-    else
-      Platform.Uploads.Avatar.url({user.profile_photo_file, user}, :thumb, signed: true)
+    cond do
+      String.starts_with?(user.profile_photo_file, "https://") ->
+        user.profile_photo_file
+
+      String.length(user.profile_photo_file) == 0 ->
+        "/images/default_profile.jpg"
+
+      true ->
+        Platform.Uploads.Avatar.url({user.profile_photo_file, user}, :thumb, signed: true)
     end
   end
 

@@ -13,7 +13,7 @@ defmodule Platform.Uploads.Avatar do
   end
 
   def default_url(version) do
-    Platform.Endpoint.url() <> "/images/default_profile.jpg"
+    "/images/default_profile.jpg"
   end
 
   def storage_dir(version, {file, scope}) do

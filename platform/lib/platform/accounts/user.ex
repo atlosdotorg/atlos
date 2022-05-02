@@ -12,6 +12,7 @@ defmodule Platform.Accounts.User do
     field :profile_photo_file, :string, default: ""
     field :flair, :string, default: ""
 
+    field :invite_code, :string, virtual: true
     field :password, :string, virtual: true, redact: true
     field :hashed_password, :string, redact: true
     field :confirmed_at, :naive_datetime
@@ -40,10 +41,17 @@ defmodule Platform.Accounts.User do
   """
   def registration_changeset(user, attrs, opts \\ []) do
     user
-    |> cast(attrs, [:email, :password, :username])
+    |> cast(attrs, [:email, :password, :username, :invite_code])
+    |> validate_invite_code()
     |> validate_email()
     |> validate_username()
     |> validate_password(opts)
+  end
+
+  defp validate_invite_code(changeset) do
+    changeset
+    |> validate_required([:invite_code])
+    |> validate_format(:invite_code, ~r/^betatest$/, message: "invalid invite code")
   end
 
   defp validate_email(changeset) do
