@@ -9,7 +9,18 @@ defmodule PlatformWeb.MediaLive.CommentBox do
      |> assign(assigns)
      |> assign_new(:disabled, fn -> false end)
      |> assign_new(:id, fn -> Platform.Utils.generate_random_sequence(10) end)
+     |> allow_upload(:attachments,
+       accept: ~w(.png .jpg .jpeg .avi .mp4 .webm),
+       max_entries: 8,
+       max_file_size: 50_000_000,
+       auto_upload: true,
+       progress: &handle_progress/3
+     )
      |> assign_changeset()}
+  end
+
+  def handle_progress(:media_upload, _entry, socket) do
+    {:noreply, socket}
   end
 
   defp assign_changeset(socket) do

@@ -7,6 +7,7 @@ defmodule Platform.Updates.Update do
 
   schema "updates" do
     field :explanation, :string
+    field :attachments, {:array, :string}
     field :type, Ecto.Enum, values: [:update_attribute, :create, :upload_version, :comment]
 
     # Used for attribute updates
@@ -48,6 +49,7 @@ defmodule Platform.Updates.Update do
       :new_value,
       :modified_attribute,
       :type,
+      :attachments,
       :user_id,
       :media_id,
       :media_version_id,
