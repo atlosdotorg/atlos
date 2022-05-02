@@ -8,6 +8,7 @@ defmodule PlatformWeb.MediaLive.CommentBox do
      socket
      |> assign(assigns)
      |> assign_new(:disabled, fn -> false end)
+     |> assign_new(:id, fn -> Platform.Utils.generate_random_sequence(10) end)
      |> assign_changeset()}
   end
 
@@ -67,7 +68,8 @@ defmodule PlatformWeb.MediaLive.CommentBox do
                     if(@disabled, do: "Commenting has been disabled", else: "Add your comment..."),
                   class: "block w-full py-3 border-0 resize-none focus:ring-0 sm:text-sm",
                   required: true,
-                  disabled: @disabled
+                  disabled: @disabled,
+                  id: "input-#{@id}"
                 ) %>
                 <!-- Spacer element to match the height of the toolbar -->
                 <div class="py-2" aria-hidden="true">

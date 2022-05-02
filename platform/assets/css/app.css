@@ -39,7 +39,7 @@
   }
 
   .page-header {
-    @apply heading border-b border-gray-200 pb-4;
+    @apply heading font-medium border-b border-gray-200 pb-4;
   }
 
   .phx-form input[type="email"],
