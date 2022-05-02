@@ -1,5 +1,11 @@
 <div class="phx-form">
-  <.form let={f} for={@conn} action={Routes.user_session_path(@conn, :create)} as={:user} class="flex flex-col gap-y-4">
+  <.form
+    let={f}
+    for={@conn}
+    action={Routes.user_session_path(@conn, :create)}
+    as={:user}
+    class="flex flex-col gap-y-4"
+  >
     <%= if @error_message do %>
       <div class="aside ~critical">
         <p><%= @error_message %></p>
@@ -7,18 +13,18 @@
     <% end %>
 
     <div>
-    <%= label(f, :email) %>
-    <%= email_input(f, :email, required: true) %>
+      <%= label(f, :email) %>
+      <%= email_input(f, :email, required: true) %>
     </div>
 
     <div>
-    <%= label(f, :password) %>
-    <%= password_input(f, :password, required: true) %>
+      <%= label(f, :password) %>
+      <%= password_input(f, :password, required: true) %>
     </div>
 
     <div>
-    <%= checkbox(f, :remember_me) %>
-    <%= label(f, :remember_me, "Remember me", class: "!inline") %>
+      <%= checkbox(f, :remember_me) %>
+      <%= label(f, :remember_me, "Remember me", class: "!inline") %>
     </div>
 
     <div class="flex gap-4 items-center text-neutral-500">

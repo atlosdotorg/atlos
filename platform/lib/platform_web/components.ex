@@ -156,7 +156,9 @@ defmodule PlatformWeb.Components do
     <div class="hidden w-28 bg-neutral-700 overflow-y-auto md:block fixed h-screen">
       <div class="w-full py-6 flex flex-col items-center">
         <%= link to: "/", class: "flex flex-col items-center text-white" do %>
-          <span class="text-white text-xl py-px px-1 rounded-sm bg-white text-neutral-700 uppercase font-extrabold font-mono">Atlos</span>
+          <span class="text-white text-xl py-px px-1 rounded-sm bg-white text-neutral-700 uppercase font-extrabold font-mono">
+            Atlos
+          </span>
         <% end %>
         <div class="flex-1 mt-6 w-full px-2 space-y-1">
           <.navlink to="/new" label="New" request_path={@path}>
