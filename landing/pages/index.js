@@ -60,7 +60,10 @@ export default function Home() {
               OSINT research can be taxing; Atlos puts researchers&apos; safety and mental health first. <a href="https://atlos.notion.site/Our-Approach-to-Safety-3c1b9842128a4149b3c60c32773c8e5a" className='link'>Learn about our approach to safety.</a>
             </p>
             <p>
-              If you or your organization is interested in working with us, please <a href="mailto:contact@atlos.org" className='link'>reach out</a> or join our mailing list. <a href="https://mailchi.mp/a1de52cd4614/atlos" className='link'>Sign up to receive updates.</a>
+              If you or your organization is interested in working with us, please <a href="mailto:contact@atlos.org" className='link'>reach out</a> or <a href="https://mailchi.mp/a1de52cd4614/atlos" className='link'>sign up to receive updates</a>.
+            </p>
+            <p>
+              Atlos is an open source initiative; <a href="https://mailchi.mp/a1de52cd4614/atlos" className='link'>view the code on GitHub</a>.
             </p>
           </div>
         </section>
