@@ -6,6 +6,7 @@ defmodule PlatformWeb.MediaLive.Show do
   alias Material.Media
   alias Platform.Accounts
   alias Accounts.User
+  alias Platform.Utils
 
   def mount(_params, _session, socket) do
     {:ok, socket}
@@ -17,6 +18,8 @@ defmodule PlatformWeb.MediaLive.Show do
      |> assign(:slug, slug)
      |> assign(:attribute, Map.get(params, "attribute"))
      |> assign(:title, "Media #{slug}")
+     # This forces the comment box to be fully rerendered on submit
+     |> assign(:comment_box_id, Utils.generate_random_sequence(10))
      |> assign_media_and_updates()}
   end
 

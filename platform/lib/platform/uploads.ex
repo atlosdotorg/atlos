@@ -62,3 +62,17 @@ defmodule Platform.Uploads.OriginalMediaVersion do
     "media/#{scope.slug}/original/"
   end
 end
+
+defmodule Platform.Uploads.UpdateAttachment do
+  use Arc.Definition
+
+  @versions [:original]
+
+  def filename(version, {file, scope}) do
+    "#{file.file_name}-#{version}"
+  end
+
+  def storage_dir(version, {file, scope}) do
+    "attachments/#{scope.slug}/"
+  end
+end

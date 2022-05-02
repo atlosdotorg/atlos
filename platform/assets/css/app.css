@@ -42,6 +42,10 @@
     @apply heading font-medium border-b border-gray-200 pb-4;
   }
 
+  .phx-submit-loading.pulse-form-on-submit {
+    @apply animate-pulse;
+  }
+
   .phx-form input[type="email"],
   .phx-form input[type="password"],
   .phx-form input[type="url"],
