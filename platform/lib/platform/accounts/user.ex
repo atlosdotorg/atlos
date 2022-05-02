@@ -51,7 +51,7 @@ defmodule Platform.Accounts.User do
   defp validate_invite_code(changeset) do
     changeset
     |> validate_required([:invite_code])
-    |> validate_format(:invite_code, ~r/^betatest$/, message: "invalid invite code")
+    |> validate_format(:invite_code, ~r/^test$/, message: "invalid invite code")
   end
 
   defp validate_email(changeset) do

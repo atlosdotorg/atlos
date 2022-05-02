@@ -12,7 +12,8 @@ defmodule Platform.AccountsFixtures do
     Enum.into(attrs, %{
       email: unique_user_email(),
       password: valid_user_password(),
-      username: unique_user_username()
+      username: unique_user_username(),
+      invite_code: "test"
     })
   end
 
