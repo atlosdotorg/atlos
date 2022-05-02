@@ -115,13 +115,12 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
   defp handle_uploaded_file(socket, entry) do
     path = consume_uploaded_entry(socket, entry, &handle_static_file(&1))
 
-    with {:ok, path, thumb_path, duration, size} <-
-           Material.process_uploaded_media(path, entry.client_type, socket.assigns.media.slug) do
+    with {:ok, path, duration, size} <-
+           Material.process_uploaded_media(path, entry.client_type, socket.assigns.media) do
       socket
       |> update_internal_params("file_location", path)
       |> update_internal_params("duration_seconds", duration)
       |> update_internal_params("mime_type", entry.client_type)
-      |> update_internal_params("thumbnail_location", thumb_path)
       |> update_internal_params("client_name", entry.client_name)
       |> update_internal_params("file_size", size)
     else

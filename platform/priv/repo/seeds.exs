@@ -74,16 +74,13 @@ random_media =
           )
       })
 
-    url = "https://placekitten.com/#{Enum.random(300..2000)}/#{Enum.random(300..2000)}"
-
     Material.create_media_version_audited(media, creator, %{
       file_location: url,
       file_size: Enum.random(10000..10_000_000),
       duration_seconds: 0,
       source_url: Faker.Internet.url(),
       mime_type: "image/jpg",
-      client_name: "image.jpg",
-      thumbnail_location: url
+      client_name: "image.jpg"
     })
 
     Material.subscribe_user(media, creator)

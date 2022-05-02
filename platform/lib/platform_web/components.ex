@@ -888,12 +888,12 @@ defmodule PlatformWeb.Components do
   end
 
   def media_version_display(
-        %{version: version, blur: _blur, current_user: current_user} = assigns
+        %{version: version, blur: _blur, current_user: current_user, media: media} = assigns
       ) do
     # TODO: real blurring
     ~H"""
     <section id={"version-#{version.id}"}>
-      <% loc = Material.media_version_location(version) %>
+      <% loc = Material.media_version_location(version, media) %>
       <% media_id = "version-#{version.id}-media" %>
       <div class="relative">
         <div class={if version.hidden, do: "opacity-25 grayscale", else: "grayscale"} id={media_id}>

@@ -12,7 +12,6 @@ defmodule Platform.Material.MediaVersion do
     field :source_url, :string
     field :mime_type, :string
     field :client_name, :string
-    field :thumbnail_location, :string
     field :hidden, :boolean, default: false
 
     belongs_to :media, Platform.Material.Media
@@ -32,7 +31,6 @@ defmodule Platform.Material.MediaVersion do
       :mime_type,
       :client_name,
       :media_id,
-      :thumbnail_location,
       :hidden
     ])
     |> validate_required([
@@ -42,8 +40,7 @@ defmodule Platform.Material.MediaVersion do
       :source_url,
       :mime_type,
       :client_name,
-      :media_id,
-      :thumbnail_location
+      :media_id
     ])
   end
 

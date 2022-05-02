@@ -221,6 +221,7 @@
             <%= for version <- versions do %>
               <.media_version_display
                 version={version}
+                media={@media}
                 blur={Media.is_graphic(@media)}
                 current_user={@current_user}
               />

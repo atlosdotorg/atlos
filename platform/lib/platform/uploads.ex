@@ -20,3 +20,45 @@ defmodule Platform.Uploads.Avatar do
     "avatars/#{scope.id}"
   end
 end
+
+defmodule Platform.Uploads.WatermarkedMediaVersion do
+  use Arc.Definition
+
+  alias Platform.Utils
+
+  @versions [:original, :thumb]
+
+  def transform(:thumb, _) do
+    {:ffmpeg,
+     fn input, output ->
+       if String.ends_with?(input, ".png") || String.ends_with?(input, ".jpg") ||
+            String.ends_with?(input, ".jpeg") do
+         "-i #{input} -f apng #{output}"
+       else
+         "-i #{input} -ss 00:00:01.000 -vframes 1 -f apng #{output}"
+       end
+     end, :png}
+  end
+
+  def filename(version, {file, scope}) do
+    "#{file.file_name}-#{version}"
+  end
+
+  def storage_dir(version, {file, scope}) do
+    "media/#{scope.slug}/watermarked/"
+  end
+end
+
+defmodule Platform.Uploads.OriginalMediaVersion do
+  use Arc.Definition
+
+  @versions [:original]
+
+  def filename(version, {file, scope}) do
+    "#{file.file_name}-#{version}"
+  end
+
+  def storage_dir(version, {file, scope}) do
+    "media/#{scope.slug}/original/"
+  end
+end

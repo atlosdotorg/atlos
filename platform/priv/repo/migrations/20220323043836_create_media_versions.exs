@@ -10,7 +10,6 @@ defmodule Platform.Repo.Migrations.CreateMediaVersions do
       add :source_url, :string
       add :mime_type, :string
       add :client_name, :string
-      add :thumbnail_location, :string
       add :media_id, references(:media, on_delete: :nothing)
 
       timestamps()

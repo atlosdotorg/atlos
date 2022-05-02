@@ -41,8 +41,7 @@ defmodule Platform.MaterialFixtures do
           type: :image,
           duration_seconds: 30,
           mime_type: "image/png",
-          client_name: "upload.png",
-          thumbnail_location: "somewhere"
+          client_name: "upload.png"
         })
       )
 

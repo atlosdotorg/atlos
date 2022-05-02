@@ -13,6 +13,7 @@ defmodule Platform.Material do
   alias Platform.Utils
   alias Platform.Updates
   alias Platform.Accounts.User
+  alias Platform.Uploads
 
   defp hydrate_media_query(query) do
     query
@@ -300,9 +301,8 @@ defmodule Platform.Material do
 
   Returns {:ok, file_path, thumbnail_path, duration}
   """
-  def process_uploaded_media(path, mime, identifier) do
-    thumb_path = Temp.path!(%{prefix: identifier, suffix: "thumbnail.jpg"})
-    :ok = Thumbnex.create_thumbnail(path, thumb_path)
+  def process_uploaded_media(path, mime, media) do
+    identifier = media.slug
 
     media_path =
       cond do
@@ -329,15 +329,15 @@ defmodule Platform.Material do
     {duration, _} = Integer.parse(out_data["duration"])
     {size, _} = Integer.parse(out_data["size"])
 
-    {:ok, new_thumb_path} = Utils.upload_ugc_file(thumb_path)
-    {:ok, new_path} = Utils.upload_ugc_file(media_path)
+    # Upload to cloud storage
+    {:ok, new_path} = Uploads.WatermarkedMediaVersion.store({media_path, media})
+    {:ok, _original_path} = Uploads.OriginalMediaVersion.store({path, media})
 
-    {:ok, new_path, new_thumb_path, duration, size}
+    {:ok, new_path, duration, size}
   end
 
-  def media_version_location(version) do
-    # This may in the future create a signed URL at the CDN provider, for example
-    version.file_location
+  def media_version_location(version, media) do
+    Uploads.WatermarkedMediaVersion.url({version.file_location, media}, :original, signed: true)
   end
 
   @doc """
@@ -423,8 +423,15 @@ defmodule Platform.Material do
 
   def media_thumbnail(%Media{} = media) do
     case Enum.find(media.versions, &(!&1.hidden)) do
-      nil -> nil
-      val -> val.thumbnail_location
+      nil ->
+        nil
+
+      val ->
+        if String.starts_with?(val.file_location, "https://"),
+          # This allows us to have easy demo data — just give a raw HTTPS URL
+          do: val.file_location,
+          else:
+            Uploads.WatermarkedMediaVersion.url({val.file_location, media}, :thumb, signed: true)
     end
   end
 

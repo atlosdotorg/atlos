@@ -35,19 +35,6 @@ defmodule Platform.Utils do
     |> Enum.join("-")
   end
 
-  def upload_ugc_file(path, folder, name) do
-    {:ok, :done} =
-      path
-      |> S3.Upload.stream_file()
-      |> S3.upload(
-        System.get_env("S3_BUCKET"),
-        "#{folder}/#{slugify(name)}-#{generate_random_sequence(6)}"
-      )
-      |> ExAws.request()
-
-    {:ok, ""}
-  end
-
   def truncate(str, length \\ 30) do
     if String.length(str) > length do
       "#{String.slice(str, 0, length - 3) |> String.trim()}..."

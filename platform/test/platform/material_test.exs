@@ -99,8 +99,7 @@ defmodule Platform.MaterialTest do
         type: :image,
         duration_seconds: 30,
         mime_type: "image/png",
-        client_name: "upload.png",
-        thumbnail_location: "somewhere"
+        client_name: "upload.png"
       }
 
       media = media_fixture()
@@ -129,8 +128,7 @@ defmodule Platform.MaterialTest do
         source_url: "some updated source_url",
         duration_seconds: 30,
         mime_type: "image/png",
-        client_name: "upload.png",
-        thumbnail_location: "somewhere"
+        client_name: "upload.png"
       }
 
       assert {:ok, %MediaVersion{} = media_version} =
