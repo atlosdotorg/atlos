@@ -153,7 +153,7 @@ defmodule PlatformWeb.Components do
   def nav(assigns) do
     ~H"""
     <div class="w-28"></div>
-    <div class="hidden w-28 bg-neutral-700 overflow-y-auto md:block fixed h-screen">
+    <div class="w-28 bg-neutral-700 overflow-y-auto fixed h-screen">
       <div class="w-full py-6 flex flex-col items-center">
         <%= link to: "/", class: "flex flex-col items-center text-white" do %>
           <span class="text-white text-xl py-px px-1 rounded-sm bg-white text-neutral-700 uppercase font-extrabold font-mono">
