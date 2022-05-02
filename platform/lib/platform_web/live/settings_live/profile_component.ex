@@ -1,7 +1,6 @@
 defmodule PlatformWeb.SettingsLive.ProfileComponent do
   use PlatformWeb, :live_component
   alias Platform.Accounts
-  alias Platform.Utils
   alias Platform.Uploads.Avatar
 
   def update(%{current_user: current_user} = assigns, socket) do
