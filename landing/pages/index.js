@@ -63,7 +63,7 @@ export default function Home() {
               If you or your organization is interested in working with us, please <a href="mailto:contact@atlos.org" className='link'>reach out</a> or <a href="https://mailchi.mp/a1de52cd4614/atlos" className='link'>sign up to receive updates</a>.
             </p>
             <p>
-              Atlos is an open source initiative; <a href="https://mailchi.mp/a1de52cd4614/atlos" className='link'>view the code on GitHub</a>.
+              Atlos is an open source initiative; <a href="https://github.com/milesmcc/atlos" className='link'>view the code on GitHub</a>.
             </p>
           </div>
         </section>
