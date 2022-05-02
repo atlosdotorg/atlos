@@ -21,7 +21,8 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
        max_entries: 1,
        max_file_size: 250_000_000,
        auto_upload: true,
-       progress: &handle_progress/3
+       progress: &handle_progress/3,
+       chunk_size: 512_000
      )
      |> clear_error()}
   end
