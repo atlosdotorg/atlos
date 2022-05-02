@@ -176,7 +176,11 @@ defmodule PlatformWeb.UpdatesLive.UpdateFeed do
                               Uploads.UpdateAttachment.url({attachment, update.media}, :original,
                                 signed: true
                               ) %>
-                            <a class="rounded max-h-64 cursor-zoom-in" href={url} target="_blank">
+                            <a
+                              class="rounded overflow-hidden max-h-64 cursor-zoom-in"
+                              href={url}
+                              target="_blank"
+                            >
                               <img src={url} />
                             </a>
                           <% end %>
