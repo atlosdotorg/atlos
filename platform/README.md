@@ -16,6 +16,7 @@ Ready to run in production? Please [check our deployment guides](https://hexdocs
 - `AWS_REGION` — the AWS region
 - `AWS_ACCESS_KEY_ID` — the AWS access key id
 - `AWS_SECRET_ACCESS_KEY` — the AWS access secret
+- `APPSIGNAL_PUSH_KEY` — the AppSignal push key
 
 ## Learn more
 

@@ -60,7 +60,9 @@ defmodule Platform.MixProject do
       {:arc, "~> 0.11.0"},
       {:sweet_xml, "~> 0.7.3"},
       {:gen_smtp, "~> 1.1"},
-      {:hackney, "~> 1.18.0"}
+      {:hackney, "~> 1.18.0"},
+      {:appsignal, "~> 2.0"},
+      {:appsignal_phoenix, "~> 2.0"}
     ]
   end
 
