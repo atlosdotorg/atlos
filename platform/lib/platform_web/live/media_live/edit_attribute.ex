@@ -89,11 +89,8 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
                   <%= label(f, @attr.schema_field, @attr.label) %>
                   <%= textarea(f, @attr.schema_field) %>
                 <% :select -> %>
-                  <%= label(f, @attr.schema_field, @attr.label) %>
-                  <div
-                    phx-update="ignore"
-                    id={"attr_multi_select_#{@media.slug}_#{@attr.schema_field}"}
-                  >
+                  <div phx-update="ignore" id={"attr_select_#{@media.slug}_#{@attr.schema_field}"}>
+                    <%= label(f, @attr.schema_field, @attr.label) %>
                     <%= select(f, @attr.schema_field, ["[Unset]": nil] ++ Attribute.options(@attr)) %>
                   </div>
                 <% :multi_select -> %>
@@ -169,7 +166,7 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
               <% end %>
             </div>
             <div>
-              <%= label(f, :explanation, "Explain Your Change") %>
+              <%= label(f, :explanation, "Briefly Explain Your Change") %>
               <%= textarea(f, :explanation,
                 phx_debounce: "blur",
                 placeholder: "Recommended for all non-trivial changes.",

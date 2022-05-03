@@ -59,6 +59,7 @@ function initializeMultiSelects() {
             maxOptions: null,
             placeholder: prompt,
             allowEmptyOption: true,
+            closeAfterSelect: !s.hasAttribute("multiple"),
             onItemAdd(_a, _b) {
                 setTimeout(() => x.control_input.value = "", 1);
             }
