@@ -23,7 +23,7 @@ defmodule Platform.Auditor do
     slack_webhook = System.get_env("SLACK_AUDITING_WEBHOOK")
     environment = System.get_env("ENVIRONMENT", "dev")
 
-    if not is_nil(slack_webhook) do
+    if not is_nil(slack_webhook) and environment != "dev" do
       Task.start(fn ->
         :hackney.post(
           slack_webhook,
