@@ -116,7 +116,7 @@ function initializeMaps() {
 
         let data = JSON.parse(s.getAttribute("data"));
         for (let media of data) {
-            let popup = new mapboxgl.Popup({ offset: 0 }).setHTML(`<iframe src='/media/${media.slug}/card' width="100%" height="100%"></iframe>`).setMaxWidth("600px");
+            let popup = new mapboxgl.Popup({ offset: 0 }).setHTML(`<div class="fixed w-full h-full flex items-center justify-around -z-50"><div class="rounded shadow-sm bg-white font-medium text-md p-4"><span class="animate-pulse">Loading...</span></div></div><iframe src='/media/${media.slug}/card' width="100%" height="100%"></iframe>`).setMaxWidth("600px");
             new mapboxgl.Marker()
                 .setLngLat([media.lon, media.lat])
                 .setPopup(popup)

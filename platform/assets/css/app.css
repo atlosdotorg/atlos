@@ -230,6 +230,10 @@
   overflow: hidden;
 }
 
+.mapboxgl-popup-close-button {
+  outline: none;
+}
+
 .mapboxgl-popup-tip {
   display: none;
 }
