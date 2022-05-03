@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="bg-gray-50">
+<html lang="en" class={if assigns[:_no_background] == true, do: "", else: "bg-gray-50"}>
   <head>
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
@@ -15,6 +15,9 @@
     >
     </script>
     <link href="https://api.mapbox.com/mapbox-gl-js/v2.8.0/mapbox-gl.css" rel="stylesheet" />
+    <%= if assigns[:_base_parent] do %>
+      <base target="_parent">
+    <% end %>
   </head>
   <body>
     <%= @inner_content %>

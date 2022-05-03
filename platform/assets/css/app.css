@@ -223,6 +223,17 @@
   bottom: unset !important;
 }
 
+.mapboxgl-popup-content {
+  background: unset !important;
+  box-shadow: unset !important;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.mapboxgl-popup-tip {
+  display: none;
+}
+
 /**
  * Tom Select bootstrap 5
  */

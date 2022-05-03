@@ -113,6 +113,15 @@ function initializeMaps() {
         window.addEventListener("resize", () => {
             map.resize();
         });
+
+        let data = JSON.parse(s.getAttribute("data"));
+        for (let media of data) {
+            let popup = new mapboxgl.Popup({ offset: 0 }).setHTML(`<iframe src='/media/${media.slug}/card' width="100%" height="100%"></iframe>`).setMaxWidth("600px");
+            new mapboxgl.Marker()
+                .setLngLat([media.lon, media.lat])
+                .setPopup(popup)
+                .addTo(map);
+        }
     });
 }
 

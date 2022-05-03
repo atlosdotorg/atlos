@@ -11,6 +11,22 @@ defmodule PlatformWeb.MapLive.Index do
      socket
      |> assign(:title, "Map")
      |> assign(:media, results)
-     |> assign(:changeset, Material.MediaSearch.changeset())}
+     |> assign_map_data()}
+  end
+
+  def assign_map_data(%{assigns: %{media: media}} = socket) do
+    data =
+      Enum.map(media, fn item ->
+        {lon, lat} = item.attr_geolocation.coordinates
+
+        %{
+          slug: item.slug,
+          lat: lat,
+          lon: lon
+        }
+      end)
+
+    socket
+    |> assign(:map_data, data)
   end
 end
