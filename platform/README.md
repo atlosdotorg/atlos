@@ -14,6 +14,8 @@ Ready to run in production? Please [check our deployment guides](https://hexdocs
 
 - `S3_BUCKET` — the primary S3 bucket to use for content
 - `AWS_REGION` — the AWS region
+- `AWS_ACCESS_KEY_ID` — the AWS access key id
+- `AWS_SECRET_ACCESS_KEY` — the AWS access secret
 
 ## Learn more
 
