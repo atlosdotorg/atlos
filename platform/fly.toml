@@ -12,6 +12,7 @@ processes = []
   PORT = "8080"
   S3_BUCKET = "atlos-content-dev"
   AWS_REGION = "us-east-1"
+  ENVIRONMENT = "staging"
 
 [experimental]
   allowed_public_ports = []
