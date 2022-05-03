@@ -8,4 +8,8 @@ The Atlos platform is in the [`platform/`](platform) subdirectory. The landing p
 
 ## License
 
-Atlos is still under active development, and is not yet ready to be used by any other organizations. Once it is, we will release it under the GPLv3.
+Atlos is open source, licensed under the GPLv3. We take the license very seriously.
+
+## Special Thanks
+
+- We are grateful to [AppSignal](https://appsignal.com) for sponsoring our application performance monitoring.
