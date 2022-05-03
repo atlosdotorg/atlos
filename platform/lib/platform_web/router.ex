@@ -90,6 +90,7 @@ defmodule PlatformWeb.Router do
       live("/settings", SettingsLive)
 
       live("/new", NewLive)
+      live("/map", MapLive.Index)
 
       live("/media", MediaLive.Index)
       live("/media/:slug", MediaLive.Show, :show)

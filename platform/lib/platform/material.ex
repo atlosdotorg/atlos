@@ -73,6 +73,16 @@ defmodule Platform.Material do
     |> Repo.all()
   end
 
+  @doc """
+  Returns the list of geolocated media.
+  """
+  def list_geolocated_media() do
+    Media
+    |> where([i], not is_nil(i.attr_geolocation))
+    |> hydrate_media_query()
+    |> Repo.all()
+  end
+
   defp preload_media_versions(query) do
     query |> preload([:versions])
   end

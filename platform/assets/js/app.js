@@ -89,7 +89,31 @@ function initializeMaps() {
             .addTo(map);
 
         console.log(map);
-    })
+    });
+
+    document.querySelectorAll("map-events").forEach(s => {
+        if (s.classList.contains("mapboxgl-map")) {
+            return;
+        }
+
+        let lon = parseFloat(s.getAttribute("lon"));
+        let lat = parseFloat(s.getAttribute("lat"));
+
+        let map = new mapboxgl.Map({
+            container: s.id,
+            style: 'mapbox://styles/mapbox/light-v10',
+            center: [lon, lat],
+            zoom: 6
+        });
+
+        map.on('load', function () {
+            map.resize();
+        });
+
+        window.addEventListener("resize", () => {
+            map.resize();
+        });
+    });
 }
 
 window.toggleClass = (id, classname) => {
