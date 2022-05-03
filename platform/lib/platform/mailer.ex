@@ -5,7 +5,7 @@ defmodule Platform.Mailer do
   alias __MODULE__
 
   # Delivers the email using the application mailer.
-  def deliver(recipient, subject, body) do
+  def construct_and_send(recipient, subject, body) do
     email =
       new()
       |> to(recipient)

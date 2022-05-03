@@ -5,7 +5,7 @@ defmodule Platform.Accounts.UserNotifier do
   Deliver instructions to confirm account.
   """
   def deliver_confirmation_instructions(user, url) do
-    Mailer.deliver(user.email, "Confirmation instructions", """
+    Mailer.construct_and_send(user.email, "Confirmation instructions", """
 
     ==============================
 
@@ -25,7 +25,7 @@ defmodule Platform.Accounts.UserNotifier do
   Deliver instructions to reset a user password.
   """
   def deliver_reset_password_instructions(user, url) do
-    Mailer.deliver(user.email, "Reset password instructions", """
+    Mailer.construct_and_send(user.email, "Reset password instructions", """
 
     ==============================
 
@@ -45,7 +45,7 @@ defmodule Platform.Accounts.UserNotifier do
   Deliver instructions to update a user email.
   """
   def deliver_update_email_instructions(user, url) do
-    Mailer.deliver(user.email, "Update email instructions", """
+    Mailer.construct_and_send(user.email, "Update email instructions", """
 
     ==============================
 

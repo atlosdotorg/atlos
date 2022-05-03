@@ -59,7 +59,8 @@ defmodule Platform.MixProject do
       {:ex_aws_s3, "~> 2.3"},
       {:arc, "~> 0.11.0"},
       {:sweet_xml, "~> 0.7.3"},
-      {:gen_smtp, "~> 1.0"}
+      {:gen_smtp, "~> 1.1"},
+      {:hackney, "~> 1.18.0"}
     ]
   end
 
