@@ -1,6 +1,7 @@
 defmodule PlatformWeb.ProfilesLive.EditComponent do
   use PlatformWeb, :live_component
   alias Platform.Accounts
+  alias Platform.Auditor
 
   def update(assigns, socket) do
     if Accounts.is_admin(assigns.current_user) do
@@ -56,6 +57,12 @@ defmodule PlatformWeb.ProfilesLive.EditComponent do
            params |> hydrate_params()
          ) do
       {:ok, _media} ->
+        Auditor.log(
+          :user_info_updated_manually,
+          Map.merge(params, %{affected_user: socket.assigns.user.username}),
+          socket
+        )
+
         {:noreply, socket |> put_flash(:info, "The access changes have been saved.") |> close()}
 
       {:error, %Ecto.Changeset{} = changeset} ->

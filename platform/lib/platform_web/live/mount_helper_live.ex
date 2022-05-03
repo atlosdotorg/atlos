@@ -3,13 +3,14 @@ defmodule PlatformWeb.MountHelperLive do
   alias Platform.Accounts
 
   def on_mount(:default, _params, _session, socket) do
-    {:cont, socket |> attach_path_hook()}
+    {:cont, socket |> attach_path_hook() |> attach_metadata()}
   end
 
   def on_mount(:authenticated, _params, %{"user_token" => user_token} = _session, socket) do
     socket =
       socket
       |> attach_path_hook()
+      |> attach_metadata()
       |> assign_new(:current_user, fn ->
         Accounts.get_user_by_session_token(user_token)
       end)
@@ -27,5 +28,11 @@ defmodule PlatformWeb.MountHelperLive do
       _params, url, socket ->
         {:cont, assign(socket, path: URI.parse(url).path)}
     end)
+  end
+
+  defp attach_metadata(socket) do
+    headers = get_connect_info(socket, :x_headers)
+    remote_ip = RemoteIp.from(headers)
+    socket |> assign(:remote_ip, remote_ip)
   end
 end

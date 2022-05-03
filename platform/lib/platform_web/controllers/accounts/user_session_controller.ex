@@ -3,6 +3,7 @@ defmodule PlatformWeb.UserSessionController do
 
   alias Platform.Accounts
   alias PlatformWeb.UserAuth
+  alias Platform.Auditor
 
   def new(conn, _params) do
     render(conn, "new.html", error_message: nil, title: "Sign in")
@@ -12,6 +13,7 @@ defmodule PlatformWeb.UserSessionController do
     %{"email" => email, "password" => password} = user_params
 
     if user = Accounts.get_user_by_email_and_password(email, password) do
+      Auditor.log(:login, %{username: user.username}, conn)
       UserAuth.log_in_user(conn, user, user_params)
     else
       # In order to prevent user enumeration attacks, don't disclose whether the email is registered.
@@ -20,6 +22,8 @@ defmodule PlatformWeb.UserSessionController do
   end
 
   def delete(conn, _params) do
+    Auditor.log(:log_out, %{}, conn)
+
     conn
     |> put_flash(:info, "Logged out successfully.")
     |> UserAuth.log_out_user()

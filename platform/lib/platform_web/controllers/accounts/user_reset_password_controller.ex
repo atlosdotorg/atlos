@@ -2,6 +2,7 @@ defmodule PlatformWeb.UserResetPasswordController do
   use PlatformWeb, :controller
 
   alias Platform.Accounts
+  alias Platform.Auditor
 
   plug :get_user_by_reset_password_token when action in [:edit, :update]
 
@@ -37,6 +38,8 @@ defmodule PlatformWeb.UserResetPasswordController do
   def update(conn, %{"user" => user_params}) do
     case Accounts.reset_user_password(conn.assigns.user, user_params) do
       {:ok, _} ->
+        Auditor.log(:password_recovered, %{username: conn.assigns.user.username}, conn)
+
         conn
         |> put_flash(:info, "Password reset successfully.")
         |> redirect(to: Routes.user_session_path(conn, :new))

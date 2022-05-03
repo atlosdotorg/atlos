@@ -18,6 +18,7 @@ Ready to run in production? Please [check our deployment guides](https://hexdocs
 - `AWS_SECRET_ACCESS_KEY` — the AWS access secret
 - `APPSIGNAL_PUSH_KEY` — the AppSignal push key
 - `APPSIGNAL_APP_ENV` — `dev`, `staging`, or `prod` (how we disambiguate environments in AppSignal)
+- `SLACK_AUDITING_WEBHOOK` — Slack webhook for audit events
 
 ## Learn more
 

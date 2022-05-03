@@ -11,7 +11,8 @@ defmodule PlatformWeb.Endpoint do
     signing_salt: "tSHgf2ta"
   ]
 
-  socket "/live", Phoenix.LiveView.Socket, websocket: [connect_info: [session: @session_options]]
+  socket "/live", Phoenix.LiveView.Socket,
+    websocket: [connect_info: [:x_headers, session: @session_options]]
 
   # Serve at "/" the static files from "priv/static" directory.
   #
@@ -46,6 +47,7 @@ defmodule PlatformWeb.Endpoint do
 
   plug Plug.MethodOverride
   plug Plug.Head
+  plug RemoteIp
   plug Plug.Session, @session_options
   plug PlatformWeb.Router
 end

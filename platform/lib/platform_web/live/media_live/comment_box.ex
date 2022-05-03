@@ -4,6 +4,7 @@ defmodule PlatformWeb.MediaLive.CommentBox do
   alias Platform.Updates
   alias Platform.Uploads
   alias Phoenix.LiveView.Upload
+  alias Platform.Auditor
 
   def update(assigns, socket) do
     Temp.track!()
@@ -76,6 +77,12 @@ defmodule PlatformWeb.MediaLive.CommentBox do
 
     case Updates.create_update_from_changeset(changeset) do
       {:ok, _update} ->
+        Auditor.log(
+          :comment_created,
+          Map.merge(changeset.changes, %{media_slug: socket.assigns.media.slug}),
+          socket
+        )
+
         {:noreply,
          socket
          |> put_flash(:info, "Your comment has been posted.")

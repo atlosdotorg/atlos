@@ -2,6 +2,7 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
   use PlatformWeb, :live_component
   alias Platform.Material
   alias Platform.Utils
+  alias Platform.Auditor
 
   def update(assigns, socket) do
     # Track temporary files so they are properly cleaned up later
@@ -100,6 +101,12 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
              all_params(socket, params)
            ) do
         {:ok, version} ->
+          Auditor.log(
+            :media_version_uploaded,
+            Map.merge(params, %{media_slug: socket.assigns.media.slug}),
+            socket
+          )
+
           send(self(), {:version_created, version})
           {:noreply, socket |> assign(:disabled, true)}
 

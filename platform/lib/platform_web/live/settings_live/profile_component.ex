@@ -2,6 +2,7 @@ defmodule PlatformWeb.SettingsLive.ProfileComponent do
   use PlatformWeb, :live_component
   alias Platform.Accounts
   alias Platform.Uploads.Avatar
+  alias Platform.Auditor
 
   def update(%{current_user: current_user} = assigns, socket) do
     changeset = Accounts.change_user_profile(current_user)
@@ -32,6 +33,7 @@ defmodule PlatformWeb.SettingsLive.ProfileComponent do
   def handle_event("save", %{"user" => user_params}, socket) do
     case Accounts.update_user_profile(socket.assigns.current_user, user_params) do
       {:ok, user} ->
+        Auditor.log(:profile_updated, user_params, socket)
         send(self(), :update_successful)
 
         {:noreply,

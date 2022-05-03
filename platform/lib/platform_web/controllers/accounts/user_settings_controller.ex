@@ -3,6 +3,7 @@ defmodule PlatformWeb.UserSettingsController do
 
   alias Platform.Accounts
   alias PlatformWeb.UserAuth
+  alias Platform.Auditor
 
   plug :assign_email_and_password_changesets
 
@@ -40,6 +41,8 @@ defmodule PlatformWeb.UserSettingsController do
 
     case Accounts.update_user_password(user, password, user_params) do
       {:ok, user} ->
+        Auditor.log(:password_reset, %{}, conn)
+
         conn
         |> put_flash(:info, "Password updated successfully.")
         |> put_session(:user_return_to, Routes.user_settings_path(conn, :edit))

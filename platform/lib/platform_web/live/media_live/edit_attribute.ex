@@ -2,6 +2,7 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
   use PlatformWeb, :live_component
   alias Platform.Material
   alias Material.Attribute
+  alias Platform.Auditor
 
   def update(assigns, socket) do
     attr = Attribute.get_attribute(String.to_atom(assigns.name))
@@ -42,7 +43,13 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
            socket.assigns.current_user,
            params
          ) do
-      {:ok, _media} ->
+      {:ok, media} ->
+        Auditor.log(
+          :attribute_updated,
+          Map.merge(params, %{media_slug: media.slug}),
+          socket
+        )
+
         {:noreply, socket |> put_flash(:info, "Your update has been saved.") |> close()}
 
       {:error, %Ecto.Changeset{} = changeset} ->

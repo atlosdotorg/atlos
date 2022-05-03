@@ -62,7 +62,8 @@ defmodule Platform.MixProject do
       {:gen_smtp, "~> 1.1"},
       {:hackney, "~> 1.18.0"},
       {:appsignal, "~> 2.0"},
-      {:appsignal_phoenix, "~> 2.0"}
+      {:appsignal_phoenix, "~> 2.0"},
+      {:remote_ip, "~> 1.0"}
     ]
   end
 

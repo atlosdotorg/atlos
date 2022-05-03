@@ -2,6 +2,7 @@ defmodule PlatformWeb.NewLive.BasicInfoLive do
   use PlatformWeb, :live_component
   alias Platform.Material
   alias Platform.Material.Attribute
+  alias Platform.Auditor
 
   def update(assigns, socket) do
     {:ok,
@@ -31,6 +32,7 @@ defmodule PlatformWeb.NewLive.BasicInfoLive do
     case Material.create_media_audited(socket.assigns.current_user, media_params) do
       {:ok, media} ->
         {:ok, _} = Material.subscribe_user(media, socket.assigns.current_user)
+        Auditor.log(:media_created, Map.merge(media_params, %{media_slug: media.slug}), socket)
         send(self(), {:media_created, media})
         {:noreply, socket |> assign(:disabled, true)}
 
