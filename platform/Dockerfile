@@ -22,7 +22,7 @@ ARG RUNNER_IMAGE="debian:${DEBIAN_VERSION}"
 FROM ${BUILDER_IMAGE} as builder
 
 # install build dependencies
-RUN apt-get update -y && apt-get install -y build-essential git npm ffmpeg \
+RUN apt-get update -y && apt-get install -y build-essential git npm \
   && apt-get clean && rm -f /var/lib/apt/lists/*_*
 
 # prepare build dir
@@ -43,7 +43,7 @@ RUN mkdir config
 # copy compile-time config files before we compile dependencies
 # to ensure any relevant config change will trigger the dependencies
 # to be re-compiled.
-COPY config/config.exs config/${MIX_ENV}.exs config/
+COPY config/config.exs config/${MIX_ENV}.exs config/appsignal.exs config/
 RUN mix deps.compile
 
 COPY priv priv
