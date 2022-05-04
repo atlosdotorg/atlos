@@ -98,10 +98,12 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
                 <% :select -> %>
                   <div phx-update="ignore" id={"attr_select_#{@media.slug}_#{@attr.schema_field}"}>
                     <%= label(f, @attr.schema_field, @attr.label) %>
+                    <%= error_tag(f, @attr.schema_field) %>
                     <%= select(f, @attr.schema_field, ["[Unset]": nil] ++ Attribute.options(@attr)) %>
                   </div>
                 <% :multi_select -> %>
                   <%= label(f, @attr.schema_field, @attr.label) %>
+                  <%= error_tag(f, @attr.schema_field) %>
                   <div
                     phx-update="ignore"
                     id={"attr_multi_select_#{@media.slug}_#{@attr.schema_field}"}
@@ -126,6 +128,7 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
                       ) %>
                       <%= error_tag(f, :longitude) %>
                     </div>
+                    <%= error_tag(f, @attr.schema_field) %>
                   </div>
                 <% :time -> %>
                   <%= label(f, @attr.schema_field, @attr.label) %>
@@ -139,6 +142,7 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
                   <p class="support">
                     To unset this attribute, set both the hour and minute fields to [Unset].
                   </p>
+                  <%= error_tag(f, @attr.schema_field) %>
                 <% :date -> %>
                   <%= label(f, @attr.schema_field, @attr.label) %>
                   <div class="flex items-center gap-2 ts-ignore">
@@ -152,9 +156,8 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
                   <p class="support">
                     To unset this attribute, set the day, month, and year fields to [Unset].
                   </p>
+                  <%= error_tag(f, @attr.schema_field) %>
               <% end %>
-              <%= error_tag(f, @attr.schema_field) %>
-
               <% val =
                 Map.get(@changeset.changes, @attr.schema_field, Map.get(@media, @attr.schema_field)) %>
               <%= if @attr.type == :location and val.coordinates |> Tuple.to_list |> Enum.all?(&(is_float(&1))) do %>
