@@ -132,7 +132,7 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
                   </div>
                 <% :time -> %>
                   <%= label(f, @attr.schema_field, @attr.label) %>
-                  <div class="flex items-center gap-2 ts-ignore sm:w-64">
+                  <div class="flex items-center gap-2 ts-ignore sm:w-64 apply-a17t-fields">
                     <%= time_select(f, @attr.schema_field,
                       hour: [prompt: "[Unset]"],
                       minute: [prompt: "[Unset]"],
@@ -145,7 +145,7 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
                   <%= error_tag(f, @attr.schema_field) %>
                 <% :date -> %>
                   <%= label(f, @attr.schema_field, @attr.label) %>
-                  <div class="flex items-center gap-2 ts-ignore">
+                  <div class="flex items-center gap-2 ts-ignore apply-a17t-fields">
                     <%= date_select(f, @attr.schema_field,
                       year: [prompt: "[Unset]", options: DateTime.utc_now().year..1990],
                       month: [prompt: "[Unset]"],

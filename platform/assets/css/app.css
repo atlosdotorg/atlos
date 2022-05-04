@@ -20,6 +20,10 @@
     @apply h-full;
   }
 
+  .apply-a17t-fields select {
+    @apply select input ~neutral;
+  }
+
   .original {
     @apply ~neutral bg-white;
   }
