@@ -109,7 +109,7 @@ defmodule PlatformWeb.UpdatesLive.UpdateFeed do
                             href={"#version-#{update.media_version.id}"}
                             class="text-button text-gray-800"
                           >
-                            media &nearr;
+                            Media &nearr;
                           </a>
                         <% :comment -> %>
                           commented
