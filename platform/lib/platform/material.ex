@@ -323,7 +323,17 @@ defmodule Platform.Material do
 
       # Download the media
       {_, 0} =
-        System.cmd("youtube-dl", [version.source_url, "-o", Path.join(temp_dir, "out.%(ext)s")])
+        System.cmd(
+          "youtube-dl",
+          [
+            version.source_url,
+            "-o",
+            Path.join(temp_dir, "out.%(ext)s"),
+            "--max-filesize",
+            "500m"
+          ],
+          into: IO.stream()
+        )
 
       # Figure out what we downloaded
       [file_name] = File.ls!(temp_dir)

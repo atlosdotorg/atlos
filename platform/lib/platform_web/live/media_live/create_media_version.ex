@@ -32,7 +32,7 @@ defmodule PlatformWeb.MediaLive.CreateMediaVersion do
         >
           <span>Link to Media</span>
           <%= if @tab == :direct do %>
-            <span aria-hidden="true" class="bg-indigo-500 absolute inset-x-0 bottom-0 h-0.5"></span>
+            <span aria-hidden="true" class="bg-urge-500 absolute inset-x-0 bottom-0 h-0.5"></span>
           <% else %>
             <span aria-hidden="true" class="bg-transparent absolute inset-x-0 bottom-0 h-0.5"></span>
           <% end %>
@@ -47,7 +47,7 @@ defmodule PlatformWeb.MediaLive.CreateMediaVersion do
         >
           <span>Manual Upload</span>
           <%= if @tab == :upload do %>
-            <span aria-hidden="true" class="bg-indigo-500 absolute inset-x-0 bottom-0 h-0.5"></span>
+            <span aria-hidden="true" class="bg-urge-500 absolute inset-x-0 bottom-0 h-0.5"></span>
           <% else %>
             <span aria-hidden="true" class="bg-transparent absolute inset-x-0 bottom-0 h-0.5"></span>
           <% end %>
