@@ -88,7 +88,7 @@ defmodule PlatformWeb.NewLive.BasicInfoLive do
               <div class="flex-shrink-0">
                 <!-- Heroicon name: solid/information-circle -->
                 <svg
-                  class="h-5 w-5 text-neutral-400"
+                  class="h-5 w-5 text-neutral-500"
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 20 20"
                   fill="currentColor"
@@ -103,12 +103,12 @@ defmodule PlatformWeb.NewLive.BasicInfoLive do
               </div>
               <div class="ml-3">
                 <p class="text-sm text-neutral-700">
-                  Some kind of language telling people about Atlos policies. Lorem ipsum dolor sit amet.
+                  Atlos hosts media depicting notable events relevant to the war in Ukraine. If you're not sure how to classify media, reference the Atlos Rules.
                 </p>
                 <div class="mt-2 text-sm text-neutral-700">
                   <ul role="list" class="list-disc pl-5 space-y-1">
-                    <li>Policy language</li>
-                    <li>Even more policy language</li>
+                    <li><strong>Do:</strong> Upload imagery documenting civilian harm, air strikes, etc. Tag graphic media as 'Graphic Violence.' Tag media that permits the identification or location of civilians as 'Threatens Civilian Safety.'</li>
+                    <li><strong>Don't:</strong> Upload media that depicts nudity, that is not available elsewhere online, or that violates the Atlos Rules.</li>
                   </ul>
                 </div>
               </div>
