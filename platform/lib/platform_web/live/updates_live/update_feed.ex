@@ -106,7 +106,7 @@ defmodule PlatformWeb.UpdatesLive.UpdateFeed do
                         <% :upload_version -> %>
                           added
                           <a
-                            href={"#version-#{update.media_version.id}"}
+                            href={Routes.media_show_path(@socket, :show, update.media.slug) <> "#version-#{update.media_version.id}"}
                             class="text-button text-gray-800"
                           >
                             Media &nearr;
