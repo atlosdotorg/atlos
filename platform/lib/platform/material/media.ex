@@ -53,6 +53,10 @@ defmodule Platform.Material.Media do
     media
     |> cast(attrs, [:description, :attr_sensitive])
     |> validate_required([:description])
+    |> validate_required([:attr_sensitive],
+      message:
+        "Media sensitivity must be set. If this media isn't sensitive, choose 'Not Sensitive.'"
+    )
 
     # These are special attributes, since we define it at creation time. Eventually, it'd be nice to unify this logic with the attribute-specific editing logic.
     |> Attribute.validate_attribute(Attribute.get_attribute(:sensitive))
