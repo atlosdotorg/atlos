@@ -16,7 +16,7 @@ defmodule Platform.Accounts.UserNotifier do
 
     If you didn't create an account with us, please ignore this message.
 
-    Thanks,
+    Best,
     The Atlos Team
     """)
   end
