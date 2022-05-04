@@ -701,7 +701,7 @@ defmodule PlatformWeb.Components do
                     clip-rule="evenodd"
                   />
                 </svg>
-                Chronolocated
+                <%= media.attr_date_recorded %>
               </span>
             <% end %>
 
