@@ -1,7 +1,6 @@
 defmodule PlatformWeb.MediaLive.LinkVersionLive do
   use PlatformWeb, :live_component
   alias Platform.Material
-  alias Platform.Utils
   alias Platform.Auditor
 
   def update(assigns, socket) do
@@ -98,10 +97,10 @@ defmodule PlatformWeb.MediaLive.LinkVersionLive do
       >
         <div class="space-y-6">
           <div>
-            <%= label(f, :source_url, "What is the link to the video you would like to upload?") %>
+            <%= label(f, :source_url, "What is the link to the media you would like to upload?") %>
             <%= url_input(f, :source_url, placeholder: "https://example.com/...") %>
             <p class="support">
-              We support automatic archiving from YouTube and Twitter. To upload media from other platforms, use 'manual upload.'
+              We support automatic archiving from YouTube and Twitter. To upload media from other platforms, use manual uploading.
             </p>
             <%= error_tag(f, :source_url) %>
           </div>
