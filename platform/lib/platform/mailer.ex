@@ -9,7 +9,7 @@ defmodule Platform.Mailer do
     email =
       new()
       |> to(recipient)
-      |> from({"Atlos Notification", "noreply@mail.atlos.org"})
+      |> from({"Atlos Notifications", "noreply@mail.atlos.org"})
       |> subject(subject)
       |> text_body(body)
 
