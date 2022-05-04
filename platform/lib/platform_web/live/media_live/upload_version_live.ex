@@ -88,7 +88,7 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
       {:noreply,
        socket
        |> assign(:changeset, changeset)
-       |> assign(:error, "Please be sure to provide both a piece of media and a source link.")}
+       |> assign(:error, "Please be sure to provide a photo or video and its source link.")}
     else
       socket =
         socket
