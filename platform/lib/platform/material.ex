@@ -5,6 +5,7 @@ defmodule Platform.Material do
 
   import Ecto.Query, warn: false
   alias Platform.Repo
+  require Logger
 
   alias Platform.Material.Media
   alias Platform.Material.Attribute
@@ -14,6 +15,7 @@ defmodule Platform.Material do
   alias Platform.Updates
   alias Platform.Accounts.User
   alias Platform.Uploads
+  alias Platform.Auditor
 
   defp hydrate_media_query(query) do
     query
@@ -247,7 +249,7 @@ defmodule Platform.Material do
         with {:ok, version} <- create_media_version(media, attrs),
              update_changeset <- Updates.change_from_media_version_upload(media, user, version),
              {:ok, _} <- Updates.create_update_from_changeset(update_changeset) do
-          {:ok, version}
+          version
         else
           _ -> {:error, change_media_version(%MediaVersion{}, attrs)}
         end
@@ -305,6 +307,62 @@ defmodule Platform.Material do
   """
   def change_media_version(%MediaVersion{} = media_version, attrs \\ %{}) do
     MediaVersion.changeset(media_version, attrs)
+  end
+
+  @doc """
+  Performs an archive of the given media version. Status must be pending.
+  """
+  def archive_media_version(%MediaVersion{status: :pending, media_id: media_id} = version) do
+    try do
+      # Setup tempfiles for media download
+      Temp.track!()
+      temp_dir = Temp.mkdir!()
+
+      # Get the associated media
+      media = get_media!(media_id)
+
+      # Download the media
+      {_, 0} =
+        System.cmd("youtube-dl", [version.source_url, "-o", Path.join(temp_dir, "out.%(ext)s")])
+
+      # Figure out what we downloaded
+      [file_name] = File.ls!(temp_dir)
+      file_path = Path.join(temp_dir, file_name)
+      mime = MIME.from_path(file_path)
+
+      # Process + upload it
+      {:ok, identifier, duration, size} = process_uploaded_media(file_path, mime, media)
+
+      # Update the media version to reflect the change
+      {:ok, new_version} =
+        update_media_version(version, %{
+          file_location: identifier,
+          file_size: size,
+          status: :complete,
+          duration_seconds: duration,
+          mime_type: mime
+        })
+
+      # Track event
+      Auditor.log(:archive_success, %{version: new_version})
+
+      new_version
+    rescue
+      val ->
+        # Some error happened! Log it and update the media version appropriately.
+        IO.inspect(val)
+        Logger.error("Unable to automatically archive media!")
+        Auditor.log(:archive_failed, %{error: val, version: version})
+
+        # TODO: create some kind of update on the page?
+
+        {:ok, new_version} =
+          update_media_version(version, %{
+            status: :error
+          })
+
+        new_version
+    end
   end
 
   @doc """
@@ -446,7 +504,7 @@ defmodule Platform.Material do
   def media_thumbnail(%Media{} = media) do
     case Enum.find(
            media.versions |> Enum.sort_by(& &1.updated_at) |> Enum.reverse(),
-           &(!&1.hidden)
+           &(!(&1.hidden or is_nil(&1.file_location)))
          ) do
       nil ->
         nil

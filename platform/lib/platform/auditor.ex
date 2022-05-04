@@ -5,7 +5,7 @@ defmodule Platform.Auditor do
 
   require Logger
 
-  def log(event, metadata, socket_or_conn \\ nil) do
+  def log(event, metadata, socket_or_conn \\ %{}) do
     now = DateTime.utc_now() |> DateTime.to_iso8601()
 
     user =

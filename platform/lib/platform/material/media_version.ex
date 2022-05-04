@@ -40,6 +40,7 @@ defmodule Platform.Material.MediaVersion do
     |> validate_required([
       :status,
       :upload_type,
+      :source_url,
       :media_id
     ])
     |> validate_required([:source_url],
