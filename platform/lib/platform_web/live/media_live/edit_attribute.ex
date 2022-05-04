@@ -178,7 +178,7 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
             <div>
               <%= label(f, :explanation, "Briefly Explain Your Change") %>
               <%= textarea(f, :explanation,
-                phx_debounce: "blur",
+                phx_debounce: "200",
                 placeholder: "Recommended for all non-trivial changes.",
                 class: "my-1"
               ) %>

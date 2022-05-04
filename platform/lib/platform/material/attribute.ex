@@ -292,6 +292,7 @@ defmodule Platform.Material.Attribute do
     |> populate_virtual_data(attribute)
     |> cast_attribute(attribute, attrs)
     |> validate_attribute(attribute)
+    |> cast_and_validate_virtual_explanation(attrs)
     |> update_from_virtual_data(attribute)
   end
 
@@ -325,8 +326,9 @@ defmodule Platform.Material.Attribute do
 
   defp cast_attribute(media, %Attribute{} = attribute, attrs) do
     case attribute.type do
-      :location -> media |> cast(attrs, [:latitude, :longitude])
-      _ -> media |> cast(attrs, [attribute.schema_field])
+      # Explanation is a virtual field! We cast here so we can validate.
+      :location -> media |> cast(attrs, [:latitude, :longitude, :explanation])
+      _ -> media |> cast(attrs, [attribute.schema_field, :explanation])
     end
   end
 
@@ -390,6 +392,15 @@ defmodule Platform.Material.Attribute do
     else
       custom
     end
+  end
+
+  defp cast_and_validate_virtual_explanation(changeset, params) do
+    changeset
+    |> cast(params, [:explanation])
+    |> validate_length(:explanation,
+      max: 2500,
+      message: "Explanations cannot exceed 2500 characters."
+    )
   end
 
   @doc """

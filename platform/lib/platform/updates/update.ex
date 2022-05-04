@@ -77,6 +77,7 @@ defmodule Platform.Updates.Update do
 
   def validate_explanation(update) do
     update
+    # Also validated in attribute.ex
     |> validate_length(:explanation, min: 0, max: 2500)
   end
 end
