@@ -591,7 +591,6 @@ defmodule PlatformWeb.Components do
   end
 
   def media_card(%{media: %Media{} = media, current_user: %Accounts.User{} = user} = assigns) do
-    # TODO: use live_redirect
     # TODO: preload
     contributors = Material.contributors(media)
     ratio = Media.attribute_ratio(media)
@@ -599,11 +598,11 @@ defmodule PlatformWeb.Components do
 
     ~H"""
     <a
-      class="flex group flex-col items-center md:flex-row bg-white overflow-hidden shadow rounded-lg justify-between min-h-32 max-h-48"
+      class="flex group items-center flex-row bg-white overflow-hidden shadow rounded-lg justify-between min-h-32 max-h-48"
       href={"/media/#{media.slug}"}
     >
       <%= if Media.can_user_view(media, user) do %>
-        <div class="h-full p-2 flex flex-col w-full md:w-3/4 gap-2">
+        <div class="h-full p-2 flex flex-col w-3/4 gap-2">
           <section>
             <p class="font-mono text-xs text-gray-500"><%= media.slug %></p>
             <p class="text-gray-900 group-hover:text-gray-900">
@@ -755,10 +754,10 @@ defmodule PlatformWeb.Components do
         </div>
 
         <% thumb = Material.media_thumbnail(media) %>
-        <div class="hidden md:block h-full md:w-1/4 grayscale">
+        <div class="block h-full w-1/4 grayscale">
           <%= if thumb do %>
             <%= if Media.is_graphic(media) do %>
-              <div class="bg-gray-200 flex items-center justify-around h-full w-full rounded-t-lg md:rounded-none md:rounded-r-lg text-gray-500">
+              <div class="bg-gray-200 flex items-center justify-around h-full w-full text-gray-500">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   class="h-8 w-8"
@@ -776,12 +775,12 @@ defmodule PlatformWeb.Components do
               </div>
             <% else %>
               <img
-                class="sr-hide object-cover h-full w-full rounded-t-lg md:rounded-none md:rounded-r-lg"
+                class="sr-hide object-cover h-full w-full"
                 src={thumb}
               />
             <% end %>
           <% else %>
-            <div class="bg-gray-200 flex items-center justify-around h-full w-full rounded-t-lg md:rounded-none md:rounded-r-lg text-gray-500">
+            <div class="bg-gray-200 flex items-center justify-around h-full w-full text-gray-500">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 class="h-8 w-8"
