@@ -244,12 +244,13 @@ defmodule Platform.Material do
       ) do
     if Media.can_user_edit(media, user) do
       Repo.transaction(fn ->
-        {:ok, version} = create_media_version(media, attrs)
-
-        update_changeset = Updates.change_from_media_version_upload(media, user, version)
-        {:ok, _} = Updates.create_update_from_changeset(update_changeset)
-
-        {:ok, version}
+        with {:ok, version} <- create_media_version(media, attrs),
+             update_changeset <- Updates.change_from_media_version_upload(media, user, version),
+             {:ok, _} <- Updates.create_update_from_changeset(update_changeset) do
+          {:ok, version}
+        else
+          _ -> {:error, change_media_version(%MediaVersion{}, attrs)}
+        end
       end)
     else
       # Note: Updates.create_update_from_changeset will also catch the permissions error, but it's good to have multiple layers.
@@ -347,10 +348,17 @@ defmodule Platform.Material do
   end
 
   def media_version_location(version, media) do
-    if String.starts_with?(version.file_location, "https://") do
-      version.file_location
-    else
-      Uploads.WatermarkedMediaVersion.url({version.file_location, media}, :original, signed: true)
+    cond do
+      is_nil(version.file_location) ->
+        nil
+
+      String.starts_with?(version.file_location, "https://") ->
+        version.file_location
+
+      true ->
+        Uploads.WatermarkedMediaVersion.url({version.file_location, media}, :original,
+          signed: true
+        )
     end
   end
 

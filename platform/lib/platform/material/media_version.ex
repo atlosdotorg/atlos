@@ -28,6 +28,8 @@ defmodule Platform.Material.MediaVersion do
     |> cast(attrs, [
       :file_location,
       :file_size,
+      :upload_type,
+      :status,
       :duration_seconds,
       :source_url,
       :mime_type,
@@ -36,11 +38,8 @@ defmodule Platform.Material.MediaVersion do
       :hidden
     ])
     |> validate_required([
-      :file_location,
-      :file_size,
-      :duration_seconds,
-      :mime_type,
-      :client_name,
+      :status,
+      :upload_type,
       :media_id
     ])
     |> validate_required([:source_url],

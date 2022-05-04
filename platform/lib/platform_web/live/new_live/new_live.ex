@@ -48,7 +48,7 @@ defmodule PlatformWeb.NewLive do
             </p>
           </:header>
           <.live_component
-            module={PlatformWeb.MediaLive.UploadVersionLive}
+            module={PlatformWeb.MediaLive.CreateMediaVersion}
             id="upload-version"
             current_user={@current_user}
             media={@media}

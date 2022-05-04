@@ -55,12 +55,15 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
     socket |> assign(:error, nil)
   end
 
-  defp set_parent_media_in_params(params, socket) do
-    Map.put(params, "media_id", socket.assigns.media.id)
+  defp set_fixed_params(params, socket) do
+    params
+    |> Map.put("media_id", socket.assigns.media.id)
+    |> Map.put("status", "complete")
+    |> Map.put("upload_type", "user_provided")
   end
 
   def handle_event("validate", %{"media_version" => params}, socket) do
-    params = params |> set_parent_media_in_params(socket)
+    params = params |> set_fixed_params(socket)
 
     changeset =
       socket.assigns.version
@@ -71,7 +74,7 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
   end
 
   def handle_event("save", %{"media_version" => params}, socket) do
-    params = params |> set_parent_media_in_params(socket)
+    params = params |> set_fixed_params(socket)
 
     changeset =
       socket.assigns.version

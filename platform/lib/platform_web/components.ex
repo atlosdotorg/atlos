@@ -911,73 +911,165 @@ defmodule PlatformWeb.Components do
         %{version: version, blur: _blur, current_user: current_user, media: media} = assigns
       ) do
     # TODO: real blurring
+
+    media_to_show = version.status == :complete
+
     ~H"""
     <section id={"version-#{version.id}"}>
       <% loc = Material.media_version_location(version, media) %>
       <% media_id = "version-#{version.id}-media" %>
       <div class="relative">
-        <div class={if version.hidden, do: "opacity-25 grayscale", else: "grayscale"} id={media_id}>
-          <%= if String.starts_with?(version.mime_type, "image/") do %>
-            <img src={loc} class="w-full" />
-          <% else %>
-            <video controls preload="metadata" muted>
-              <source src={loc} class="w-full" />
-            </video>
-          <% end %>
-        </div>
+        <%= if media_to_show do %>
+          <div class={if version.hidden, do: "opacity-25 grayscale", else: "grayscale"} id={media_id}>
+            <%= if String.starts_with?(version.mime_type, "image/") do %>
+              <img src={loc} class="w-full" />
+            <% else %>
+              <video controls preload="metadata" muted>
+                <source src={loc} class="w-full" />
+              </video>
+            <% end %>
+          </div>
+        <% else %>
+          <div class="w-full h-40 bg-neutral-50 border rounded-lg flex items-center justify-around">
+            <%= if version.status == :pending do %>
+              <div class="text-center w-48">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="mx-auto h-8 w-8 text-gray-400 animate-pulse"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"
+                  />
+                </svg>
+                <h3 class="mt-2 font-medium text-gray-900 text-sm">Processing</h3>
+                <p class="mt-1 text-gray-500 text-sm">
+                  Archival in progress. Check back soon.
+                </p>
+                <a
+                  target="_blank"
+                  href={version.source_url}
+                  rel="nofollow"
+                  class="button mt-1 original py-1 px-2 text-xs"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-4 w-4 text-neutral-500 mr-1"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
+                    <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
+                  </svg>
+                  View Directly
+                </a>
+              </div>
+            <% else %>
+              <div class="text-center w-48">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="mx-auto h-8 w-8 text-critical-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                  />
+                </svg>
+                <h3 class="mt-2 font-medium text-gray-900 text-sm">Unable to Archive</h3>
+                <p class="mt-1 text-gray-500 text-sm">
+                  Automatic archival failed. Please upload manually.
+                </p>
+                <a
+                  target="_blank"
+                  href={version.source_url}
+                  rel="nofollow"
+                  class="button mt-1 original py-1 px-2 text-xs"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-4 w-4 text-neutral-500 mr-1"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
+                    <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
+                  </svg>
+                  View Directly
+                </a>
+              </div>
+            <% end %>
+          </div>
+        <% end %>
       </div>
 
       <div class="flex gap-1 mt-2 text-xs max-w-full flex-wrap">
-        <a target="_blank" href={version.source_url} rel="nofollow" class="button original py-1 px-2">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-5 w-5 text-neutral-500 mr-1"
-            viewBox="0 0 20 20"
-            fill="currentColor"
+        <%= if media_to_show do %>
+          <a
+            target="_blank"
+            href={version.source_url}
+            rel="nofollow"
+            class="button original py-1 px-2"
           >
-            <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
-            <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
-          </svg>
-          Source
-        </a>
-        <a target="_blank" href={loc} rel="nofollow" class="button original py-1 px-2">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-5 w-5 text-neutral-500 mr-1"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            stroke-width="2"
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-5 w-5 text-neutral-500 mr-1"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
+              <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
+            </svg>
+            Source
+          </a>
+          <a target="_blank" href={loc} rel="nofollow" class="button original py-1 px-2">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-5 w-5 text-neutral-500 mr-1"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+              />
+            </svg>
+            Download
+          </a>
+          <button
+            type="button"
+            rel="nofollow"
+            class="button original py-1 px-2"
+            onclick={"toggleClass('#{media_id}', 'grayscale')"}
           >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-            />
-          </svg>
-          Download
-        </a>
-        <button
-          type="button"
-          rel="nofollow"
-          class="button original py-1 px-2"
-          onclick={"toggleClass('#{media_id}', 'grayscale')"}
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-5 w-5 text-neutral-500 mr-1"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path
-              fill-rule="evenodd"
-              d="M3.707 2.293a1 1 0 00-1.414 1.414l14 14a1 1 0 001.414-1.414l-1.473-1.473A10.014 10.014 0 0019.542 10C18.268 5.943 14.478 3 10 3a9.958 9.958 0 00-4.512 1.074l-1.78-1.781zm4.261 4.26l1.514 1.515a2.003 2.003 0 012.45 2.45l1.514 1.514a4 4 0 00-5.478-5.478z"
-              clip-rule="evenodd"
-            />
-            <path d="M12.454 16.697L9.75 13.992a4 4 0 01-3.742-3.741L2.335 6.578A9.98 9.98 0 00.458 10c1.274 4.057 5.065 7 9.542 7 .847 0 1.669-.105 2.454-.303z" />
-          </svg>
-          Toggle Color
-        </button>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-5 w-5 text-neutral-500 mr-1"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fill-rule="evenodd"
+                d="M3.707 2.293a1 1 0 00-1.414 1.414l14 14a1 1 0 001.414-1.414l-1.473-1.473A10.014 10.014 0 0019.542 10C18.268 5.943 14.478 3 10 3a9.958 9.958 0 00-4.512 1.074l-1.78-1.781zm4.261 4.26l1.514 1.515a2.003 2.003 0 012.45 2.45l1.514 1.514a4 4 0 00-5.478-5.478z"
+                clip-rule="evenodd"
+              />
+              <path d="M12.454 16.697L9.75 13.992a4 4 0 01-3.742-3.741L2.335 6.578A9.98 9.98 0 00.458 10c1.274 4.057 5.065 7 9.542 7 .847 0 1.669-.105 2.454-.303z" />
+            </svg>
+            Toggle Color
+          </button>
+        <% end %>
         <%= if Accounts.is_privileged(current_user) do %>
           <button
             type="button"
