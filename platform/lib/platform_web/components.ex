@@ -108,7 +108,8 @@ defmodule PlatformWeb.Components do
       assigns
       |> assign_new(:title, fn -> "" end)
       |> assign_new(:right, fn -> [] end)
-      |> assign_new(:id, fn -> Utils.generate_random_sequence(5) end) # Forces reflow for new notifications; resets animation
+      # Forces reflow for new notifications; resets animation
+      |> assign_new(:id, fn -> Utils.generate_random_sequence(5) end)
 
     icon =
       case assigns[:type] do
@@ -132,7 +133,10 @@ defmodule PlatformWeb.Components do
       end
 
     ~H"""
-    <div class="fade-out-over-time max-w-sm w-full bg-white shadow-lg rounded-lg pointer-events-auto ring-1 ring-black ring-opacity-5 overflow-hidden" id={@id}>
+    <div
+      class="fade-out-over-time max-w-sm w-full bg-white shadow-lg rounded-lg pointer-events-auto ring-1 ring-black ring-opacity-5 overflow-hidden"
+      id={@id}
+    >
       <div class="p-4">
         <div class="flex items-start">
           <div class="flex-shrink-0">
