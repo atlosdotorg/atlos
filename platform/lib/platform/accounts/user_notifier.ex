@@ -6,18 +6,18 @@ defmodule Platform.Accounts.UserNotifier do
   """
   def deliver_confirmation_instructions(user, url) do
     Mailer.construct_and_send(user.email, "Confirmation instructions", """
-
-    ==============================
-
     Hi #{user.email},
+
+    Thanks for joining the Atlos researcher community!
 
     You can confirm your account by visiting the URL below:
 
     #{url}
 
-    If you didn't create an account with us, please ignore this.
+    If you didn't create an account with us, please ignore this message.
 
-    ==============================
+    Thanks,
+    The Atlos Team
     """)
   end
 
@@ -26,18 +26,13 @@ defmodule Platform.Accounts.UserNotifier do
   """
   def deliver_reset_password_instructions(user, url) do
     Mailer.construct_and_send(user.email, "Reset password instructions", """
-
-    ==============================
-
     Hi #{user.email},
 
     You can reset your password by visiting the URL below:
 
     #{url}
 
-    If you didn't request this change, please ignore this.
-
-    ==============================
+    If you didn't request this change, please ignore this message.
     """)
   end
 
@@ -46,18 +41,13 @@ defmodule Platform.Accounts.UserNotifier do
   """
   def deliver_update_email_instructions(user, url) do
     Mailer.construct_and_send(user.email, "Update email instructions", """
-
-    ==============================
-
     Hi #{user.email},
 
     You can change your email by visiting the URL below:
 
     #{url}
 
-    If you didn't request this change, please ignore this.
-
-    ==============================
+    If you didn't request this change, please ignore this message.
     """)
   end
 end
