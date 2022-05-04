@@ -350,7 +350,7 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
             <%= label(f, :source_url, "Where did this media come from?") %>
             <%= url_input(f, :source_url, placeholder: "https://example.com/...", phx_debounce: "blur") %>
             <p class="support">
-              This might be a Twitter post, a Telegram link, or something else. Where did the file come from?
+              This might be a tweet, a Telegram message, or something else. Where did the media come from?
             </p>
             <%= error_tag(f, :source_url) %>
           </div>
