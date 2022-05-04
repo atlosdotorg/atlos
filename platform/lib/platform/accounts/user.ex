@@ -119,7 +119,7 @@ defmodule Platform.Accounts.User do
   def profile_changeset(user, attrs) do
     user
     |> cast(attrs, [:bio, :profile_photo_file])
-    |> validate_length(:bio, max: 240)
+    |> validate_length(:bio, max: 240, message: "Your bio may not exceed 240 characters.")
   end
 
   @doc """
