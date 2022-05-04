@@ -5,8 +5,32 @@ defmodule Platform.Accounts do
 
   import Ecto.Query, warn: false
   alias Platform.Repo
+  alias Platform.Utils
 
   alias Platform.Accounts.{User, UserToken, UserNotifier}
+
+  def get_valid_invite_code() do
+    "test"
+  end
+
+  def get_auto_account() do
+    case get_user_by_username("atlos") do
+      nil ->
+        # No admin! Create the user
+        {:ok, user} =
+          register_user(%{
+            username: "Atlos",
+            email: "admin@atlos.org",
+            invite_code: get_valid_invite_code(),
+            password: Utils.generate_random_sequence(64)
+          })
+
+        user
+
+      val ->
+        val
+    end
+  end
 
   ## Database getters
 

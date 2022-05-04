@@ -16,6 +16,7 @@ defmodule Platform.Material do
   alias Platform.Accounts.User
   alias Platform.Uploads
   alias Platform.Auditor
+  alias Platform.Accounts
 
   defp hydrate_media_query(query) do
     query
@@ -313,13 +314,13 @@ defmodule Platform.Material do
   Performs an archive of the given media version. Status must be pending.
   """
   def archive_media_version(%MediaVersion{status: :pending, media_id: media_id} = version) do
+    # Get the associated media
+    media = get_media!(media_id)
+
     try do
       # Setup tempfiles for media download
       Temp.track!()
       temp_dir = Temp.mkdir!()
-
-      # Get the associated media
-      media = get_media!(media_id)
 
       # Download the media
       {_, 0} =
@@ -356,22 +357,30 @@ defmodule Platform.Material do
       # Track event
       Auditor.log(:archive_success, %{version: new_version})
 
+      Updates.change_from_comment(media, Accounts.get_auto_account(), %{
+        "explanation" => "✅ Successfully archived the media at <#{version.source_url}>."
+      })
+      |> Updates.create_update_from_changeset()
+
       new_version
     rescue
       val ->
         # Some error happened! Log it and update the media version appropriately.
-        IO.inspect(val)
         Logger.error("Unable to automatically archive media!")
         Auditor.log(:archive_failed, %{error: val, version: version})
 
-        # TODO: create some kind of update on the page?
+        Updates.change_from_comment(media, Accounts.get_auto_account(), %{
+          "explanation" =>
+            "🛑 Unable to automatically download the media from <#{version.source_url}>. Either no video is available, there are multiple possible videos, or the archival system is temporarily broken. Please consider uploading the media manually."
+        })
+        |> Updates.create_update_from_changeset()
 
         {:ok, new_version} =
           update_media_version(version, %{
             status: :error
           })
 
-        new_version
+        reraise val, __STACKTRACE__
     end
   end
 

@@ -104,7 +104,7 @@ defmodule PlatformWeb.UpdatesLive.UpdateFeed do
                           added
                           <span class="font-medium text-gray-900"><%= update.media.slug %></span>
                         <% :upload_version -> %>
-                          uploaded
+                          added
                           <a
                             href={"#version-#{update.media_version.id}"}
                             class="text-button text-gray-800"

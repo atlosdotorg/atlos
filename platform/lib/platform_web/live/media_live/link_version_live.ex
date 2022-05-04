@@ -29,7 +29,12 @@ defmodule PlatformWeb.MediaLive.LinkVersionLive do
 
   defp apply_changeset(version, params) do
     Material.change_media_version(version, params)
-    |> Ecto.Changeset.validate_format(:source_url, ~r/(https:\/\/)(www.)?(youtube.com|twitter.com|youtu.be|t.co)/iu, message: "Only Twitter and YouTube links are currently supported. Should start with 'https://...'")
+    |> Ecto.Changeset.validate_format(
+      :source_url,
+      ~r/(https:\/\/)(www.)?(youtube.com|twitter.com|youtu.be|t.co)/iu,
+      message:
+        "Only Twitter and YouTube links are currently supported. Should start with 'https://...'"
+    )
   end
 
   def handle_event("validate", %{"media_version" => params}, socket) do
@@ -51,12 +56,12 @@ defmodule PlatformWeb.MediaLive.LinkVersionLive do
       |> apply_changeset(params)
       |> Map.put(:action, :validate)
 
-      if changeset.valid? do
+    if changeset.valid? do
       case Material.create_media_version_audited(
-            socket.assigns.media,
-            socket.assigns.current_user,
-            params
-          ) do
+             socket.assigns.media,
+             socket.assigns.current_user,
+             params
+           ) do
         {:ok, version} ->
           Auditor.log(
             :media_version_uploaded,
