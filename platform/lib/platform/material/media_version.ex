@@ -35,11 +35,13 @@ defmodule Platform.Material.MediaVersion do
       :file_location,
       :file_size,
       :duration_seconds,
-      :source_url,
       :mime_type,
       :client_name,
       :media_id
     ])
+    |> validate_required([:source_url],
+      message: "Please provide a source link to demonstrate the media's authenticity."
+    )
   end
 
   @doc """
