@@ -7,10 +7,14 @@ defmodule Platform.Material.MediaVersion do
   schema "media_versions" do
     field :file_location, :string
     field :file_size, :integer
-    field :duration_seconds, :integer
-    field :source_url, :string
     field :mime_type, :string
     field :client_name, :string
+    field :duration_seconds, :integer
+
+    field :upload_type, Ecto.Enum, values: [:user_provided, :direct], default: :user_provided
+    field :status, Ecto.Enum, values: [:pending, :complete, :error], default: :complete
+    field :source_url, :string
+
     field :hidden, :boolean, default: false
 
     belongs_to :media, Platform.Material.Media
