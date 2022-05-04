@@ -49,10 +49,10 @@ defmodule PlatformWeb.Components do
           phx-key="Escape"
           phx-target={@target}
         >
-          <div class="hidden sm:block absolute top-0 right-0 pt-4 pr-4">
+          <div class="hidden sm:block absolute z-50 top-0 right-0 pt-4 pr-4">
             <button
               type="button"
-              class="bg-white rounded-md text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-urge-500"
+              class="text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-urge-500 p-1"
               phx-click="close_modal"
               phx-target={@target}
               data-confirm={@close_confirmation}
