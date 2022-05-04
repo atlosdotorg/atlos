@@ -21,8 +21,9 @@ defmodule PlatformWeb.MapLive.Index do
 
         %{
           slug: item.slug,
-          lat: lat,
-          lon: lon
+          # Stringify to avoid floating point issues
+          lat: "#{lat}",
+          lon: "#{lon}"
         }
       end)
 

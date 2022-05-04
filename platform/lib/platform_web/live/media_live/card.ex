@@ -4,17 +4,12 @@ defmodule PlatformWeb.MediaLive.Card do
 
   import PlatformWeb.Components
   alias Platform.Material
-  alias PlatformWeb.MediaLive.EditAttribute
-  alias Material.Media
-  alias Platform.Accounts
-  alias Accounts.User
-  alias Platform.Utils
 
   def mount(_params, _session, socket) do
     {:ok, socket}
   end
 
-  def handle_params(%{"slug" => slug} = params, _uri, socket) do
+  def handle_params(%{"slug" => slug} = _params, _uri, socket) do
     {:noreply,
      socket
      |> assign(:slug, slug)

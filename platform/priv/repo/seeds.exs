@@ -14,16 +14,27 @@ alias Platform.Accounts
 alias Platform.Material
 
 {:ok, regular} =
-  Accounts.register_user(%{email: "user@localhost", username: "user", password: "localhost123"})
+  Accounts.register_user(%{
+    email: "user@localhost",
+    invite_code: "test",
+    username: "user",
+    password: "localhost123"
+  })
 
 {:ok, muted} =
-  Accounts.register_user(%{email: "muted@localhost", username: "muted", password: "localhost123"})
+  Accounts.register_user(%{
+    email: "muted@localhost",
+    invite_code: "test",
+    username: "muted",
+    password: "localhost123"
+  })
 
 {:ok, suspended} =
   Accounts.register_user(%{
     email: "suspended@localhost",
     username: "suspended",
-    password: "localhost123"
+    password: "localhost123",
+    invite_code: "test"
   })
 
 {:ok, admin} =
@@ -31,7 +42,8 @@ alias Platform.Material
     email: "admin@localhost",
     username: "admin",
     password: "localhost123",
-    roles: [:admin]
+    roles: [:admin],
+    invite_code: "test"
   })
 
 {:ok, _} = Accounts.update_user_admin(admin, %{roles: [:admin]})
@@ -44,7 +56,8 @@ random_users =
       Accounts.register_user(%{
         email: Faker.Internet.email(),
         username: Faker.Internet.user_name(),
-        password: "localhost123"
+        password: "localhost123",
+        invite_code: "test"
       })
 
     {:ok, account_updated} =
@@ -75,7 +88,7 @@ random_media =
       })
 
     Material.create_media_version_audited(media, creator, %{
-      file_location: url,
+      file_location: "https://placekitten.com/#{Enum.random(50..1000)}/#{Enum.random(50..1000)}",
       file_size: Enum.random(10000..10_000_000),
       duration_seconds: 0,
       source_url: Faker.Internet.url(),
@@ -107,7 +120,10 @@ random_media =
           media,
           attr,
           Enum.random(random_users),
-          %{"latitude" => 32, "longitude" => -122}
+          %{
+            "latitude" => 49 + :rand.uniform() * 30 - 15,
+            "longitude" => 30 + :rand.uniform() * 16 - 8
+          }
         )
     end
   end)

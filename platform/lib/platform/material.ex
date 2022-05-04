@@ -347,7 +347,11 @@ defmodule Platform.Material do
   end
 
   def media_version_location(version, media) do
-    Uploads.WatermarkedMediaVersion.url({version.file_location, media}, :original, signed: true)
+    if String.starts_with?(version.file_location, "https://") do
+      version.file_location
+    else
+      Uploads.WatermarkedMediaVersion.url({version.file_location, media}, :original, signed: true)
+    end
   end
 
   @doc """

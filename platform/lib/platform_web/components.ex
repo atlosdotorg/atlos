@@ -598,7 +598,7 @@ defmodule PlatformWeb.Components do
 
     ~H"""
     <a
-      class="flex group items-center flex-row bg-white overflow-hidden shadow rounded-lg justify-between min-h-32 max-h-48"
+      class="flex items-stretch group flex-row bg-white overflow-hidden shadow rounded-lg justify-between min-h-32 max-h-48"
       href={"/media/#{media.slug}"}
     >
       <%= if Media.can_user_view(media, user) do %>
@@ -754,7 +754,7 @@ defmodule PlatformWeb.Components do
         </div>
 
         <% thumb = Material.media_thumbnail(media) %>
-        <div class="block h-full w-1/4 grayscale">
+        <div class="block h-full w-1/4 grayscale self-stretch">
           <%= if thumb do %>
             <%= if Media.is_graphic(media) do %>
               <div class="bg-gray-200 flex items-center justify-around h-full w-full text-gray-500">
