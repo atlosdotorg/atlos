@@ -126,6 +126,12 @@ defmodule PlatformWeb.ProfilesLive.EditComponent do
               <%= text_input(f, :flair) %>
               <%= error_tag(f, :flair) %>
             </div>
+            <div>
+              <%= label(f, :admin_notes, "Admin Notes") %>
+              <%= textarea(f, :admin_notes) %>
+              <p class="support">These notes are available to all admins.</p>
+              <%= error_tag(f, :admin_notes) %>
+            </div>
             <div class="flex md:justify-between">
               <%= submit("Save",
                 phx_disable_with: "Saving...",

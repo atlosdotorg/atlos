@@ -1,8 +1,8 @@
 defmodule PlatformWeb.MediaLive.Card do
   use Phoenix.LiveView,
-        layout: {PlatformWeb.LayoutView, "live_iframe.html"}
+    layout: {PlatformWeb.LayoutView, "live_iframe.html"}
 
-        import PlatformWeb.Components
+  import PlatformWeb.Components
   alias Platform.Material
   alias PlatformWeb.MediaLive.EditAttribute
   alias Material.Media

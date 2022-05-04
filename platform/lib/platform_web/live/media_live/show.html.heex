@@ -305,7 +305,11 @@
         </:header>
         <%= if @media.attr_geolocation do %>
           <% {lon, lat} = @media.attr_geolocation.coordinates %>
-          <div phx-update="ignore" class="h-64 overflow-hidden" id={"#{@media.slug}-geolocation-#{lat}-#{lon}"}>
+          <div
+            phx-update="ignore"
+            class="h-64 overflow-hidden"
+            id={"#{@media.slug}-geolocation-#{lat}-#{lon}"}
+          >
             <map-pin lat={lat} lon={lon} id={"#{@media.slug}-geolocation-map"} />
           </div>
         <% else %>

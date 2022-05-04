@@ -91,6 +91,16 @@
               <%= length(@updates) %>
             </dd>
           </div>
+          <div class="sm:col-span-2">
+            <dt class="text-sm font-medium text-gray-500">Admin Notes</dt>
+            <dd class="mt-1 text-sm text-gray-900">
+              <%= if String.length(@user.admin_notes) > 0 do %>
+                <p><%= @user.admin_notes %></p>
+              <% else %>
+                <p>None</p>
+              <% end %>
+            </dd>
+          </div>
         </dl>
       </.card>
     </section>

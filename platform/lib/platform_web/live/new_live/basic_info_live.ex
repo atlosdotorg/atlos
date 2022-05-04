@@ -107,8 +107,14 @@ defmodule PlatformWeb.NewLive.BasicInfoLive do
                 </p>
                 <div class="mt-2 text-sm text-neutral-700">
                   <ul role="list" class="list-disc pl-5 space-y-1">
-                    <li><strong>Do:</strong> Upload imagery documenting civilian harm, air strikes, etc. Tag graphic media as 'Graphic Violence.' Tag media that permits the identification or location of civilians as 'Threatens Civilian Safety.'</li>
-                    <li><strong>Don't:</strong> Upload media that depicts nudity, that is not available elsewhere online, or that violates the Atlos Rules.</li>
+                    <li>
+                      <strong>Do:</strong>
+                      Upload imagery documenting civilian harm, air strikes, etc. Tag graphic media as 'Graphic Violence.' Tag media that permits the identification or location of civilians as 'Threatens Civilian Safety.'
+                    </li>
+                    <li>
+                      <strong>Don't:</strong>
+                      Upload media that depicts nudity, that is not available elsewhere online, or that violates the Atlos Rules.
+                    </li>
                   </ul>
                 </div>
               </div>

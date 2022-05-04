@@ -774,10 +774,7 @@ defmodule PlatformWeb.Components do
                 </svg>
               </div>
             <% else %>
-              <img
-                class="sr-hide object-cover h-full w-full"
-                src={thumb}
-              />
+              <img class="sr-hide object-cover h-full w-full" src={thumb} />
             <% end %>
           <% else %>
             <div class="bg-gray-200 flex items-center justify-around h-full w-full text-gray-500">

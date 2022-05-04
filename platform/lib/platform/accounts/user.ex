@@ -11,6 +11,7 @@ defmodule Platform.Accounts.User do
     field :bio, :string, default: ""
     field :profile_photo_file, :string, default: ""
     field :flair, :string, default: ""
+    field :admin_notes, :string, default: ""
 
     field :invite_code, :string, virtual: true
     field :password, :string, virtual: true, redact: true
@@ -128,7 +129,7 @@ defmodule Platform.Accounts.User do
   """
   def admin_changeset(user, attrs) do
     user
-    |> cast(attrs, [:roles, :restrictions, :bio, :flair])
+    |> cast(attrs, [:roles, :restrictions, :bio, :flair, :admin_notes])
   end
 
   @doc """
