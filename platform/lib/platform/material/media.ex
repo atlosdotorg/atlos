@@ -52,7 +52,10 @@ defmodule Platform.Material.Media do
   def changeset(media, attrs) do
     media
     |> cast(attrs, [:description, :attr_sensitive])
-    |> validate_required([:description])
+    |> validate_required([:description],
+      message:
+        "Media descriptions can't be blank. Describe what the media depicts. Why is it relevant?"
+    )
     |> validate_required([:attr_sensitive],
       message:
         "Media sensitivity must be set. If this media isn't sensitive, choose 'Not Sensitive.'"
