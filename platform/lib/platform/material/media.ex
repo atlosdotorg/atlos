@@ -56,6 +56,12 @@ defmodule Platform.Material.Media do
       message:
         "Media descriptions can't be blank. Describe what the media depicts. Why is it relevant?"
     )
+    |> validate_length(:description,
+      min: 8,
+      max: 240,
+      message:
+        "Media descriptions should be between 8 and 240 characters. Describe what the media depicts. Why is it relevant?"
+    )
     |> validate_required([:attr_sensitive],
       message:
         "Media sensitivity must be set. If this media isn't sensitive, choose 'Not Sensitive.'"
@@ -63,7 +69,6 @@ defmodule Platform.Material.Media do
 
     # These are special attributes, since we define it at creation time. Eventually, it'd be nice to unify this logic with the attribute-specific editing logic.
     |> Attribute.validate_attribute(Attribute.get_attribute(:sensitive))
-    |> Attribute.validate_attribute(Attribute.get_attribute(:description))
   end
 
   def attribute_ratio(%Media{} = media) do
