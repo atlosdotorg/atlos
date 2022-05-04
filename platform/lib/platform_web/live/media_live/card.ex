@@ -22,7 +22,7 @@ defmodule PlatformWeb.MediaLive.Card do
   def render(assigns) do
     ~H"""
     <div class="h-full w-full">
-      <.media_card media={@media} current_user={@current_user} />
+      <.media_card class="border" media={@media} current_user={@current_user} />
     </div>
     """
   end

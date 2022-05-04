@@ -436,7 +436,10 @@ defmodule Platform.Material do
   end
 
   def media_thumbnail(%Media{} = media) do
-    case Enum.find(media.versions, &(!&1.hidden)) do
+    case Enum.find(
+           media.versions |> Enum.sort_by(& &1.updated_at) |> Enum.reverse(),
+           &(!&1.hidden)
+         ) do
       nil ->
         nil
 

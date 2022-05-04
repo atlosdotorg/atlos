@@ -228,14 +228,13 @@
   box-shadow: unset !important;
   border-radius: 4px;
   overflow: hidden;
+  padding: 0 !important;
+  display: flex;
+  align-items: baseline;
 }
 
 .mapboxgl-popup-close-button {
   outline: none;
-}
-
-.mapboxgl-popup-tip {
-  display: none;
 }
 
 /**

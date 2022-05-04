@@ -606,7 +606,7 @@ defmodule PlatformWeb.Components do
           <section>
             <p class="font-mono text-xs text-gray-500"><%= media.slug %></p>
             <p class="text-gray-900 group-hover:text-gray-900">
-              <%= media.description |> Utils.truncate(100) %>
+              <%= media.description |> Utils.truncate(80) %>
             </p>
           </section>
           <section class="flex flex-wrap gap-1 self-start align-top">
@@ -754,7 +754,7 @@ defmodule PlatformWeb.Components do
         </div>
 
         <% thumb = Material.media_thumbnail(media) %>
-        <div class="block h-full w-1/4 grayscale self-stretch">
+        <div class="block h-full w-1/4 grayscale self-stretch overflow-hidden">
           <%= if thumb do %>
             <%= if Media.is_graphic(media) do %>
               <div class="bg-gray-200 flex items-center justify-around h-full w-full text-gray-500">
@@ -774,7 +774,7 @@ defmodule PlatformWeb.Components do
                 </svg>
               </div>
             <% else %>
-              <img class="sr-hide object-cover h-full w-full" src={thumb} />
+              <img class="sr-hide object-cover h-48 overflow-hidden w-full" src={thumb} />
             <% end %>
           <% else %>
             <div class="bg-gray-200 flex items-center justify-around h-full w-full text-gray-500">
