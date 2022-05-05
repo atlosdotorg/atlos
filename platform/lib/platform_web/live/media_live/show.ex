@@ -75,7 +75,7 @@ defmodule PlatformWeb.MediaLive.Show do
   def handle_info({:version_created, _version}, socket) do
     {:noreply,
      socket
-     |> put_flash(:info, "The media was uploaded successfully.")
+     |> put_flash(:info, "Added media successfully.")
      |> push_patch(to: Routes.media_show_path(socket, :show, socket.assigns.media.slug))}
   end
 end

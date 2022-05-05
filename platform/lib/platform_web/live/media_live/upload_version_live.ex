@@ -16,6 +16,8 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
      # Internal params for uploaded data to keep in the form
      |> assign(:internal_params, %{})
      |> assign_changeset()
+     |> assign(:disabled, false)
+     |> assign(:processing, false)
      |> assign(:form_id, Utils.generate_random_sequence(10))
      |> allow_upload(:media_upload,
        accept: ~w(.png .jpg .jpeg .avi .mp4 .webm),
@@ -62,6 +64,11 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
     |> Map.put("upload_type", "user_provided")
   end
 
+  def handle_info(task_info, socket) do
+    IO.inspect(task_info)
+    {:noreply, socket}
+  end
+
   def handle_event("validate", %{"media_version" => params}, socket) do
     params = params |> set_fixed_params(socket)
 
@@ -95,27 +102,46 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
     else
       socket =
         socket
+        |> assign(:processing, true)
+        |> assign(:disabled, true)
         |> clear_error()
-        |> handle_uploaded_file(hd(socket.assigns.uploads.media_upload.entries))
 
-      case Material.create_media_version_audited(
-             socket.assigns.media,
-             socket.assigns.current_user,
-             all_params(socket, params)
-           ) do
-        {:ok, version} ->
-          Auditor.log(
-            :media_version_uploaded,
-            Map.merge(params, %{media_slug: socket.assigns.media.slug}),
-            socket
-          )
+      # Run the actual processing in a subtask
+      component_pid = self()
 
-          send(self(), {:version_created, version})
-          {:noreply, socket |> assign(:disabled, true)}
+      {:ok, pid} =
+        Task.start(fn ->
+          socket = socket |> handle_uploaded_file(hd(socket.assigns.uploads.media_upload.entries))
 
-        {:error, %Ecto.Changeset{} = changeset} ->
-          {:noreply, assign(socket, :changeset, changeset)}
-      end
+          res =
+            case Material.create_media_version_audited(
+                   socket.assigns.media,
+                   socket.assigns.current_user,
+                   all_params(socket, params)
+                 ) do
+              {:ok, version} ->
+                Auditor.log(
+                  :media_version_uploaded,
+                  Map.merge(params, %{media_slug: socket.assigns.media.slug}),
+                  socket
+                )
+
+                send(component_pid, {:version_created, version})
+                IO.inspect(component_pid)
+                IO.inspect(self())
+
+              {:error, %Ecto.Changeset{} = changeset} ->
+                Auditor.log(
+                  :media_version_processing_failure,
+                  Map.merge(params, %{media_slug: socket.assigns.media.slug}),
+                  socket
+                )
+
+                {:processing_error, changeset}
+            end
+        end)
+
+      {:noreply, socket}
     end
   end
 
@@ -188,6 +214,7 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
         let={f}
         for={@changeset}
         id={"media-upload-#{@form_id}"}
+        disabled={@disabled}
         phx-target={@myself}
         phx-change="validate"
         phx-submit="save"
@@ -199,159 +226,169 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
             phx-drop-target={@uploads.media_upload.ref}
           >
             <%= live_file_input(@uploads.media_upload, class: "sr-only") %>
-            <div class="phx-only-during-submit">
-              <div class="space-y-1 text-center">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="mx-auto h-12 w-12 text-urge-400 animate-spin"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  stroke-width="2"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
-                  />
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                  />
-                </svg>
-                <div class="w-full text-sm text-gray-600">
-                  <div class="w-42 mt-4 text-center">
-                    <p>Processing your media (this might take a moment)...</p>
+            <%= if @processing do %>
+              <div>
+                <div class="space-y-1 text-center">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="mx-auto h-12 w-12 text-urge-400 animate-spin"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+                    />
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                    />
+                  </svg>
+                  <div class="w-full text-sm text-gray-600">
+                    <div class="w-42 mt-2 text-center">
+                      <p class="font-medium text-neutral-800 mb-1">Processing your media...</p>
+                      <p>
+                        This might take a moment. You can safety close this window. You will be redirected to the media once the upload is complete.
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-            <%= cond do %>
-              <% is_complete -> %>
-                <div class="space-y-1 text-center phx-only-during-reg">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="mx-auto h-12 w-12 text-positive-600"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    stroke-width="2"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
-                  <div class="w-full text-sm text-gray-600">
-                    <%= for entry <- @uploads.media_upload.entries do %>
-                      <div class="w-42 mt-4 text-center">
-                        <p>Uploaded <%= Utils.truncate(entry.client_name) %>.</p>
-                      </div>
-                    <% end %>
-                  </div>
-                  <div>
-                    <%= cancel_upload %>
-                  </div>
-                </div>
-              <% is_invalid -> %>
-                <div class="space-y-1 text-center phx-only-during-reg">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="mx-auto h-12 w-12 text-critical-600"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    stroke-width="2"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                    />
-                  </svg>
-                  <div class="w-full text-sm text-gray-600">
-                    <p>Something went wrong while processing your upload.</p>
-                    <%= for entry <- @uploads.media_upload.entries do %>
-                      <%= for err <- upload_errors(@uploads.media_upload, entry) do %>
-                        <p class="my-2"><%= friendly_error(err) %></p>
-                      <% end %>
-                    <% end %>
-                    <label
-                      for={@uploads.media_upload.ref}
-                      class="relative cursor-pointer bg-white rounded-md font-medium !text-urge-600 hover:text-urge-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-urge-500"
+            <% else %>
+              <%= cond do %>
+                <% is_complete -> %>
+                  <div class="space-y-1 text-center phx-only-during-reg">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="mx-auto h-12 w-12 text-positive-600"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      stroke-width="2"
                     >
-                      <span>Upload another file</span>
-                    </label>
-                  </div>
-                </div>
-              <% is_uploading -> %>
-                <div class="space-y-1 text-center w-full phx-only-during-reg">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    aria-hidden="true"
-                    class="mx-auto h-12 w-12 text-gray-400 animate-pulse"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    stroke-width="2"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
-                    />
-                  </svg>
-                  <div class="w-full text-sm text-gray-600">
-                    <%= for entry <- @uploads.media_upload.entries do %>
-                      <%= if entry.progress < 100 and entry.progress > 0 do %>
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                    <div class="w-full text-sm text-gray-600">
+                      <%= for entry <- @uploads.media_upload.entries do %>
                         <div class="w-42 mt-4 text-center">
-                          <p>Uploading <%= Utils.truncate(entry.client_name) %></p>
-                          <progress value={entry.progress} max="100" class="progress ~urge mt-2">
-                            <%= entry.progress %>%
-                          </progress>
+                          <p>Uploaded <%= Utils.truncate(entry.client_name) %>.</p>
                         </div>
                       <% end %>
-                    <% end %>
+                    </div>
+                    <div>
+                      <%= cancel_upload %>
+                    </div>
                   </div>
-                  <div>
-                    <%= cancel_upload %>
-                  </div>
-                </div>
-              <% true -> %>
-                <div class="space-y-1 text-center phx-only-during-reg">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    aria-hidden="true"
-                    class="mx-auto h-12 w-12 text-gray-400"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    stroke-width="2"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
-                    />
-                  </svg>
-                  <div class="flex text-sm text-gray-600 justify-center">
-                    <label
-                      for={@uploads.media_upload.ref}
-                      class="relative cursor-pointer bg-white rounded-md font-medium !text-urge-600 hover:text-urge-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-urge-500"
+                <% is_invalid -> %>
+                  <div class="space-y-1 text-center phx-only-during-reg">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="mx-auto h-12 w-12 text-critical-600"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      stroke-width="2"
                     >
-                      <span>Upload a file</span>
-                    </label>
-                    <p class="pl-1 text-center">or drag and drop</p>
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                      />
+                    </svg>
+                    <div class="w-full text-sm text-gray-600">
+                      <p>Something went wrong while processing your upload.</p>
+                      <%= for entry <- @uploads.media_upload.entries do %>
+                        <%= for err <- upload_errors(@uploads.media_upload, entry) do %>
+                          <p class="my-2"><%= friendly_error(err) %></p>
+                        <% end %>
+                      <% end %>
+                      <label
+                        for={@uploads.media_upload.ref}
+                        class="relative cursor-pointer bg-white rounded-md font-medium !text-urge-600 hover:text-urge-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-urge-500"
+                      >
+                        <span>Upload another file</span>
+                      </label>
+                    </div>
                   </div>
-                  <p class="text-xs text-gray-500">PNG, JPG, GIF, MP4, or AVI up to 250MB</p>
-                </div>
+                <% is_uploading -> %>
+                  <div class="space-y-1 text-center w-full phx-only-during-reg">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      aria-hidden="true"
+                      class="mx-auto h-12 w-12 text-gray-400 animate-pulse"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
+                      />
+                    </svg>
+                    <div class="w-full text-sm text-gray-600">
+                      <%= for entry <- @uploads.media_upload.entries do %>
+                        <%= if entry.progress < 100 and entry.progress > 0 do %>
+                          <div class="w-42 mt-4 text-center">
+                            <p>Uploading <%= Utils.truncate(entry.client_name) %></p>
+                            <progress value={entry.progress} max="100" class="progress ~urge mt-2">
+                              <%= entry.progress %>%
+                            </progress>
+                          </div>
+                        <% end %>
+                      <% end %>
+                    </div>
+                    <div>
+                      <%= cancel_upload %>
+                    </div>
+                  </div>
+                <% true -> %>
+                  <div class="space-y-1 text-center phx-only-during-reg">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      aria-hidden="true"
+                      class="mx-auto h-12 w-12 text-gray-400"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
+                      />
+                    </svg>
+                    <div class="flex text-sm text-gray-600 justify-center">
+                      <label
+                        for={@uploads.media_upload.ref}
+                        class="relative cursor-pointer bg-white rounded-md font-medium !text-urge-600 hover:text-urge-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-urge-500"
+                      >
+                        <span>Upload a file</span>
+                      </label>
+                      <p class="pl-1 text-center">or drag and drop</p>
+                    </div>
+                    <p class="text-xs text-gray-500">PNG, JPG, GIF, MP4, or AVI up to 250MB</p>
+                  </div>
+              <% end %>
             <% end %>
           </div>
           <div>
             <%= label(f, :source_url, "Where did this media come from?") %>
-            <%= url_input(f, :source_url, placeholder: "https://example.com/...", phx_debounce: "blur") %>
+            <%= url_input(f, :source_url,
+              placeholder: "https://example.com/...",
+              phx_debounce: "blur",
+              disabled: @disabled
+            ) %>
             <p class="support">
               This might be a tweet, a Telegram message, or something else. Where did the media come from?
             </p>
@@ -359,7 +396,8 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
           </div>
           <%= submit("Publish to Atlos",
             phx_disable_with: "Processing media...",
-            class: "button ~urge @high"
+            class: "button ~urge @high",
+            disabled: @disabled
           ) %>
         </div>
       </.form>
