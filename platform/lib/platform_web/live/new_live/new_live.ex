@@ -12,7 +12,7 @@ defmodule PlatformWeb.NewLive do
   def handle_info({:version_created, _version}, socket) do
     {:noreply,
      socket
-     |> put_flash(:info, "Successfully uploaded media.")
+     |> put_flash(:info, "Successfully added media.")
      |> redirect(to: Routes.media_show_path(socket, :show, socket.assigns.media.slug))}
   end
 

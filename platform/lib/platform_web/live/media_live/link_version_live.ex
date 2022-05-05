@@ -32,7 +32,7 @@ defmodule PlatformWeb.MediaLive.LinkVersionLive do
       :source_url,
       ~r/(https:\/\/)(www.)?(youtube.com|twitter.com|youtu.be|t.co)/iu,
       message:
-        "Only Twitter and YouTube links are currently supported. Should start with 'https://...'"
+        "Only videos on Twitter and YouTube are currently supported. Should start with 'https://...'"
     )
   end
 

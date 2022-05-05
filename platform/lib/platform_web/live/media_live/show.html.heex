@@ -232,7 +232,7 @@
                 />
               <% end %>
               <%= if Media.can_user_edit(@media, @current_user) do %>
-                <section class="pt-4 text-sm border-t border-dashed">
+                <section class="pt-2 pb-4 text-sm border-t border-dashed">
                   <%= live_patch("+ Upload Version",
                     class: "text-button mt-1 inline-block",
                     to: Routes.media_show_path(@socket, :upload, @media.slug)

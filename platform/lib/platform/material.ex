@@ -371,7 +371,7 @@ defmodule Platform.Material do
 
         Updates.change_from_comment(media, Accounts.get_auto_account(), %{
           "explanation" =>
-            "🛑 Unable to automatically download the media from <#{version.source_url}>. Either no video is available, there are multiple possible videos, or the archival system is temporarily broken. Please consider uploading the media manually."
+            "🛑 Unable to automatically download the media from <#{version.source_url}>. Either no video is available, there are multiple possible videos, or the archival system is temporarily broken. (Note that we cannot automatically archive images.) Please consider uploading the media manually."
         })
         |> Updates.create_update_from_changeset()
 
