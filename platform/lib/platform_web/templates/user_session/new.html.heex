@@ -34,7 +34,8 @@
 
     <div class="flex gap-4 items-center text-neutral-500">
       <%= submit("Log in", class: "button ~urge @high") %>
-      <%= link("Forgot your password?", to: Routes.user_reset_password_path(@conn, :new)) %>
+      <%= link("Reset password", to: Routes.user_reset_password_path(@conn, :new)) %>
+      <%= link("Register", to: Routes.user_registration_path(@conn, :new)) %>
     </div>
   </.form>
 </div>
