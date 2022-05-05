@@ -88,7 +88,7 @@ ENV MIX_ENV="prod"
 COPY --from=builder --chown=nobody:root /app/_build/${MIX_ENV}/rel/platform ./
 
 # Install packages needed for runtime environment
-RUN apt-get update -y && apt-get install -y ffmpeg imagemagick \
+RUN apt-get update -y && apt-get install -y ffmpeg imagemagick youtube-dl \
   && apt-get clean && rm -f /var/lib/apt/lists/*_*
 
 USER nobody
