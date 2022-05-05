@@ -84,7 +84,7 @@ function initializeMaps() {
             zoom: 14
         });
 
-        const marker = new mapboxgl.Marker({ color: "#60a5fa" })
+        new mapboxgl.Marker({ color: "#60a5fa" })
             .setLngLat([lon, lat])
             .addTo(map);
 
