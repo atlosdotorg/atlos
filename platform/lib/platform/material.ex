@@ -398,7 +398,7 @@ defmodule Platform.Material do
         String.starts_with?(mime, "video/") -> Temp.path!(%{suffix: ".mp4", prefix: identifier})
       end
 
-    font_path = "priv/static/fonts/iosevka-bold.ttc"
+    font_path = System.get_env("WATERMARK_FONT_PATH", "priv/static/fonts/iosevka-bold.ttc")
 
     process_command =
       FFmpex.new_command()

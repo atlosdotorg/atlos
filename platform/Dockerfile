@@ -87,6 +87,9 @@ ENV MIX_ENV="prod"
 # Only copy the final release from the build stage
 COPY --from=builder --chown=nobody:root /app/_build/${MIX_ENV}/rel/platform ./
 
+# Setup proper path to the font
+ENV WATERMARK_FONT_PATH="/priv/static/fonts/iosevka-bold.ttc"
+
 # Install packages needed for runtime environment
 RUN apt-get update -y && apt-get install -y ffmpeg imagemagick youtube-dl \
   && apt-get clean && rm -f /var/lib/apt/lists/*_*

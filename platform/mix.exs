@@ -83,8 +83,8 @@ defmodule Platform.MixProject do
         "cmd --cd assets npm install",
         "esbuild default --minify",
         "cmd --cd assets npx tailwindcss --input=css/app.css --output=../priv/static/assets/app.css --postcss",
-        "cmd cp assets/fonts/iosevka-bold.ttc ../priv/static/fonts/iosevka-bold.ttc",
-        "phx.digest"
+        "phx.digest",
+        "cmd cp assets/fonts/iosevka-bold.ttc priv/static/fonts/iosevka-bold.ttc"
       ]
     ]
   end

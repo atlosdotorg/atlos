@@ -21,6 +21,7 @@ Ready to run in production? Please [check our deployment guides](https://hexdocs
 - `SLACK_AUDITING_WEBHOOK` — Slack webhook for audit events
 - `HCAPTCHA_SITE_KEY` — hCaptcha site key
 - `HCAPTCHA_SECRET` — hCaptcha secret
+- `WATERMARK_FONT_PATH` — path to the font to use in watermarks
 
 ## Learn more
 
