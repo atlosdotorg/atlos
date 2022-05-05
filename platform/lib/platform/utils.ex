@@ -46,7 +46,7 @@ defmodule Platform.Utils do
   def check_captcha(params) do
     token = Map.get(params, "h-captcha-response")
 
-    if Mix.env() == :test do
+    if System.get_env("ENABLE_CAPTCHAS", "false") == "false" do
       true
     else
       if is_nil(token) or String.length(token) == 0 do

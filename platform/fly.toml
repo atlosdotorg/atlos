@@ -15,6 +15,7 @@ processes = []
   APPSIGNAL_APP_ENV = "staging"
   ENVIRONMENT = "staging"
   APP_REVISION = "v0.1.0"
+  ENABLE_CAPTCHAS = "true"
 
 [experimental]
   allowed_public_ports = []
