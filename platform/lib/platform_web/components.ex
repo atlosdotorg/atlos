@@ -1157,4 +1157,23 @@ defmodule PlatformWeb.Components do
     </section>
     """
   end
+
+  def hcaptcha(assigns) do
+    site_key = System.get_env("HCAPTCHA_SITE_KEY")
+
+    ~H"""
+    <article>
+      <div
+        id="hcaptcha-demo"
+        class="h-captcha"
+        data-sitekey="26792b14-159e-4fa3-9a7c-b1de2df6cfe8"
+        data-callback="onSuccess"
+        data-expired-callback="onExpire"
+      >
+      </div>
+      <script src="https://js.hcaptcha.com/1/api.js?hl=en" async defer>
+      </script>
+    </article>
+    """
+  end
 end

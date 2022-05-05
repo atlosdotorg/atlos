@@ -10,6 +10,11 @@
       <%= email_input(f, :email, required: true) %>
     </div>
 
+    <div>
+      <.hcaptcha />
+      <%= error_tag(f, :captcha) %>
+    </div>
+
     <div class="flex gap-4 items-center text-neutral-500">
       <%= submit("Send instructions", class: "button ~urge @high") %>
       <%= link("Register", to: Routes.user_registration_path(@conn, :new)) %>

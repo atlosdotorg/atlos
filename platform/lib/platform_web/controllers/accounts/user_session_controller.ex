@@ -4,20 +4,27 @@ defmodule PlatformWeb.UserSessionController do
   alias Platform.Accounts
   alias PlatformWeb.UserAuth
   alias Platform.Auditor
+  alias Platform.Utils
 
   def new(conn, _params) do
     render(conn, "new.html", error_message: nil, title: "Sign in")
   end
 
-  def create(conn, %{"user" => user_params}) do
+  def create(conn, %{"user" => user_params} = params) do
     %{"email" => email, "password" => password} = user_params
 
-    if user = Accounts.get_user_by_email_and_password(email, password) do
+    with true <- Utils.check_captcha(params),
+         user <- Accounts.get_user_by_email_and_password(email, password),
+         false <- is_nil(user) do
       Auditor.log(:login, %{username: user.username}, conn)
       UserAuth.log_in_user(conn, user, user_params)
     else
       # In order to prevent user enumeration attacks, don't disclose whether the email is registered.
-      render(conn, "new.html", error_message: "Invalid email or password", title: "Sign in")
+      _ ->
+        render(conn, "new.html",
+          error_message: "Invalid email, password, or captcha.",
+          title: "Sign in"
+        )
     end
   end
 

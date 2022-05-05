@@ -19,6 +19,8 @@ Ready to run in production? Please [check our deployment guides](https://hexdocs
 - `APPSIGNAL_PUSH_KEY` — the AppSignal push key
 - `APPSIGNAL_APP_ENV` — `dev`, `staging`, or `prod` (how we disambiguate environments in AppSignal)
 - `SLACK_AUDITING_WEBHOOK` — Slack webhook for audit events
+- `HCAPTCHA_SITE_KEY` — hCaptcha site key
+- `HCAPTCHA_SECRET` — hCaptcha secret
 
 ## Learn more
 

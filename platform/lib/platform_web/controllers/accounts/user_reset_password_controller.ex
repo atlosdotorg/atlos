@@ -10,8 +10,10 @@ defmodule PlatformWeb.UserResetPasswordController do
     render(conn, "new.html", title: "Reset password")
   end
 
-  def create(conn, %{"user" => %{"email" => email}}) do
-    if user = Accounts.get_user_by_email(email) do
+  def create(conn, %{"user" => %{"email" => email}} = params) do
+    with true <- Platform.Utils.check_captcha(params),
+         user <- Accounts.get_user_by_email(email),
+         false <- is_nil(user) do
       Accounts.deliver_user_reset_password_instructions(
         user,
         &Routes.user_reset_password_url(conn, :edit, &1)
@@ -23,7 +25,7 @@ defmodule PlatformWeb.UserResetPasswordController do
       :info,
       "If your email is in our system, you will receive instructions to reset your password shortly."
     )
-    |> redirect(to: "/")
+    |> redirect(to: "/users/log_in")
   end
 
   def edit(conn, _params) do

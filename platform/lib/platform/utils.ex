@@ -42,4 +42,27 @@ defmodule Platform.Utils do
       str
     end
   end
+
+  def check_captcha(params) do
+    token = Map.get(params, "h-captcha-response")
+
+    if Mix.env() == :test do
+      true
+    else
+      if is_nil(token) or String.length(token) == 0 do
+        false
+      else
+        {:ok, status, headers, body} =
+          :hackney.post(
+            "https://hcaptcha.com/siteverify",
+            [{"Content-Type", "application/x-www-form-urlencoded"}],
+            # Is this interpolation secure?
+            "response=#{token}&secret=#{System.get_env("HCAPTCHA_SECRET")}",
+            [:with_body]
+          )
+
+        body |> Jason.decode!() |> Map.get("success")
+      end
+    end
+  end
 end

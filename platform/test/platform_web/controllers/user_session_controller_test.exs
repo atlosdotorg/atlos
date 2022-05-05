@@ -72,8 +72,8 @@ defmodule PlatformWeb.UserSessionControllerTest do
         })
 
       response = html_response(conn, 200)
-      assert response =~ "Log in"
-      assert response =~ "Invalid email or password"
+      assert response =~ "Sign in"
+      assert response =~ "Invalid"
     end
   end
 
