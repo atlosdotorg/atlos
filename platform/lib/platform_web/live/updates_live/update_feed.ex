@@ -167,9 +167,9 @@ defmodule PlatformWeb.UpdatesLive.UpdateFeed do
                       <% end %>
                       <!-- Text comment section -->
                       <%= if update.explanation do %>
-                        <div class="p-2">
-                          <p><%= update.explanation %></p>
-                        </div>
+                        <article class="prose text-sm p-2">
+                          <%= raw(update.explanation |> Platform.Utils.render_markdown()) %>
+                        </article>
                       <% end %>
 
                       <%= if not Enum.empty?(update.attachments) do %>

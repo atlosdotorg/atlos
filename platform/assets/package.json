@@ -7,6 +7,7 @@
   "deploy": "NODE_ENV=production tailwindcss --postcss --minify --input=css/app.css --output=../priv/static/assets/app.css",
   "dependencies": {
     "@tailwindcss/forms": "^0.5.0",
+    "@tailwindcss/typography": "^0.5.2",
     "a17t": "^0.10.1",
     "mapbox-gl": "^2.8.0",
     "tom-select": "^2.0.1"

@@ -63,7 +63,8 @@ defmodule Platform.MixProject do
       {:hackney, "~> 1.18.0"},
       {:appsignal, "~> 2.0"},
       {:appsignal_phoenix, "~> 2.0"},
-      {:remote_ip, "~> 1.0"}
+      {:remote_ip, "~> 1.0"},
+      {:earmark, "~> 1.4"}
     ]
   end
 
