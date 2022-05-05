@@ -84,7 +84,7 @@ function initializeMaps() {
             zoom: 14
         });
 
-        const marker = new mapboxgl.Marker()
+        const marker = new mapboxgl.Marker({ color: "#60a5fa" })
             .setLngLat([lon, lat])
             .addTo(map);
 
@@ -128,7 +128,7 @@ function initializeMaps() {
                     height="190px"
                 />
             `).setMaxWidth("600px");
-            new mapboxgl.Marker()
+            new mapboxgl.Marker({ color: "#60a5fa90" })
                 .setLngLat([media.lon, media.lat])
                 .setPopup(popup)
                 .addTo(map);
