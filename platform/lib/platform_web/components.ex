@@ -442,8 +442,8 @@ defmodule PlatformWeb.Components do
     <span class="inline-flex flex-wrap gap-1">
       <%= case attr.type do %>
         <% :text -> %>
-          <div class="inline-block my-1">
-            <%= value %>
+          <div class="inline-block prose prose-sm">
+            <%= raw(value |> Utils.render_markdown()) %>
           </div>
         <% :select -> %>
           <div class="inline-block">
