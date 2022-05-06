@@ -154,7 +154,7 @@
               |> filter_editable(@media, @current_user) %>
             <%= if length(unset) > 0 do %>
               <div class="py-2 sm:grid sm:grid-cols-3 sm:gap-4 -mb-2">
-                <dt class="text-sm font-medium text-gray-500 mt-1">Unset Attributes</dt>
+                <dt class="text-sm font-medium text-gray-500 mt-1">Add Attributes</dt>
                 <dd class="mt-1 flex flex-wrap gap-2 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
                   <%= for attr <- unset do %>
                     <%= live_patch("+ #{attr.label}",
