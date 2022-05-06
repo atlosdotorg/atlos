@@ -234,6 +234,8 @@ defmodule Platform.Material do
   """
   def get_media_version!(id), do: Repo.get!(MediaVersion, id)
 
+  def get_media_version_by_source_url(url), do: Repo.get_by(MediaVersion, source_url: url)
+
   def create_media_version(%Media{} = media, attrs \\ %{}) do
     %MediaVersion{}
     |> MediaVersion.changeset(attrs |> Map.put("media_id", media.id) |> Utils.make_keys_strings())
