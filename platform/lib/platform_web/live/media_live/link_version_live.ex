@@ -8,6 +8,7 @@ defmodule PlatformWeb.MediaLive.LinkVersionLive do
      socket
      |> assign(assigns)
      |> assign_version()
+     |> assign_source_url_duplicate(%{})
      |> assign_changeset()}
   end
 
@@ -17,6 +18,16 @@ defmodule PlatformWeb.MediaLive.LinkVersionLive do
 
   defp assign_changeset(socket) do
     socket |> assign(:changeset, Material.change_media_version(socket.assigns.version))
+  end
+
+  defp assign_source_url_duplicate(socket, params) do
+    source_url = Map.get(params, "source_url", "")
+
+    if String.length(source_url) > 0 do
+      socket |> assign(:url_duplicate_of, Material.get_media_versions_by_source_url(source_url))
+    else
+      socket |> assign(:url_duplicate_of, [])
+    end
   end
 
   defp set_fixed_params(params, socket) do
@@ -44,7 +55,7 @@ defmodule PlatformWeb.MediaLive.LinkVersionLive do
       |> apply_changeset(params)
       |> Map.put(:action, :validate)
 
-    {:noreply, socket |> assign(:changeset, changeset)}
+    {:noreply, socket |> assign(:changeset, changeset) |> assign_source_url_duplicate(params)}
   end
 
   def handle_event("save", %{"media_version" => params}, socket) do
@@ -98,11 +109,14 @@ defmodule PlatformWeb.MediaLive.LinkVersionLive do
         <div class="space-y-6">
           <div>
             <%= label(f, :source_url, "What is the link to the media you would like to upload?") %>
-            <%= url_input(f, :source_url, placeholder: "https://example.com/...") %>
+            <%= url_input(f, :source_url, placeholder: "https://example.com/...", phx_debounce: "250") %>
             <p class="support">
               We support automatic archiving from YouTube and Twitter. To upload media from other platforms, use manual uploading.
             </p>
             <%= error_tag(f, :source_url) %>
+            <%= if length(@url_duplicate_of) > 0 do %>
+              <.deconfliction_warning duplicates={@url_duplicate_of} current_user={@current_user} />
+            <% end %>
           </div>
           <%= submit("Publish to Atlos",
             phx_disable_with: "Publishing...",

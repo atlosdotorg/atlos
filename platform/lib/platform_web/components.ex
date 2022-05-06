@@ -596,6 +596,21 @@ defmodule PlatformWeb.Components do
     """
   end
 
+  def deconfliction_warning(%{duplicates: duplicates, current_user: current_user} = assigns) do
+    ~H"""
+    <div class="p-4 mt-4 rounded bg-gray-100 transition-all">
+      <p class="text-sm">
+        Note that media at this URL has already been uploaded. While you can still upload the media, take care to ensure it is not a duplicate.
+      </p>
+      <div class="grid grid-cols-1 gap-4 mt-4">
+        <%= for dupe <- duplicates do %>
+          <.media_card media={dupe.media} current_user={current_user} />
+        <% end %>
+      </div>
+    </div>
+    """
+  end
+
   def media_card(%{media: %Media{} = media, current_user: %Accounts.User{} = user} = assigns) do
     # TODO: preload
     contributors = Material.contributors(media)

@@ -67,6 +67,7 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
 
   defp assign_source_url_duplicate(socket, params) do
     source_url = Map.get(params, "source_url", "")
+
     if String.length(source_url) > 0 do
       socket |> assign(:url_duplicate_of, Material.get_media_versions_by_source_url(source_url))
     else
@@ -82,7 +83,11 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
       |> Material.change_media_version(params)
       |> Map.put(:action, :validate)
 
-    {:noreply, socket |> assign(:changeset, changeset) |> assign_source_url_duplicate(params) |> clear_error()}
+    {:noreply,
+     socket
+     |> assign(:changeset, changeset)
+     |> assign_source_url_duplicate(params)
+     |> clear_error()}
   end
 
   def handle_event("save", %{"media_version" => params}, socket) do
@@ -229,7 +234,7 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
             <%= label(f, :source_url, "Where did this media come from?") %>
             <%= url_input(f, :source_url,
               placeholder: "https://example.com/...",
-              phx_debounce: "blur",
+              phx_debounce: "250",
               disabled: @disabled
             ) %>
             <p class="support">
@@ -238,14 +243,7 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
             <%= error_tag(f, :source_url) %>
 
             <%= if length(@url_duplicate_of) > 0 do %>
-              <div class="p-4 mt-4 rounded bg-gray-100">
-                <p class="text-sm">Note that media at this URL has already been uploaded. While you can still upload the media, take care to ensure it is not a duplicate.</p>
-                <div class="grid grid-cols-1 gap-4 mt-4">
-                  <%= for dupe <- @url_duplicate_of do %>
-                    <.media_card media={dupe.media} current_user={@current_user} />
-                  <% end %>
-                </div>
-                </div>
+              <.deconfliction_warning duplicates={@url_duplicate_of} current_user={@current_user} />
             <% end %>
           </div>
           <div

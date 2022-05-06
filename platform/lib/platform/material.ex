@@ -240,6 +240,8 @@ defmodule Platform.Material do
         where: v.source_url == ^url,
         preload: [media: [[updates: :user], :versions]]
     )
+    |> Enum.sort_by(& &1.media.id)
+    |> Enum.dedup_by(& &1.media.id)
   end
 
   def create_media_version(%Media{} = media, attrs \\ %{}) do
