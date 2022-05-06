@@ -27,7 +27,6 @@ defmodule Platform.Material.Attribute do
         schema_field: :attr_sensitive,
         type: :multi_select,
         options: [
-          "Not Sensitive",
           "Threatens Civilian Safety",
           "Graphic Violence",
           "Deleted by Source",
@@ -37,7 +36,8 @@ defmodule Platform.Material.Attribute do
         min_length: 1,
         pane: :metadata,
         required: true,
-        name: :sensitive
+        name: :sensitive,
+        add_none: "Not Sensitive"
       },
       %Attribute{
         schema_field: :description,
@@ -334,7 +334,7 @@ defmodule Platform.Material.Attribute do
 
   def options(%Attribute{} = attribute) do
     if attribute.add_none do
-      attribute.options ++ [attribute.add_none]
+      [attribute.add_none] ++ attribute.options
     else
       attribute.options
     end
@@ -354,7 +354,7 @@ defmodule Platform.Material.Attribute do
             if attribute.add_none && Enum.member?(vals, attribute.add_none) && length(vals) > 1 do
               [
                 {attribute.schema_field,
-                 "If '#{attribute.add_none}' is selected, no other options are allowed"}
+                 "If '#{attribute.add_none}' is selected, no other options are allowed."}
               ]
             else
               []
