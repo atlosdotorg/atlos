@@ -19,6 +19,7 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
      |> assign(:disabled, false)
      |> assign(:processing, false)
      |> assign(:form_id, Utils.generate_random_sequence(10))
+     |> assign_source_url_duplicate(%{})
      |> allow_upload(:media_upload,
        accept: ~w(.png .jpg .jpeg .avi .mp4 .webm),
        max_entries: 1,
@@ -64,9 +65,13 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
     |> Map.put("upload_type", "user_provided")
   end
 
-  def handle_info(task_info, socket) do
-    IO.inspect(task_info)
-    {:noreply, socket}
+  defp assign_source_url_duplicate(socket, params) do
+    source_url = Map.get(params, "source_url", "")
+    if String.length(source_url) > 0 do
+      socket |> assign(:url_duplicate_of, Material.get_media_versions_by_source_url(source_url))
+    else
+      socket |> assign(:url_duplicate_of, [])
+    end
   end
 
   def handle_event("validate", %{"media_version" => params}, socket) do
@@ -77,7 +82,7 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
       |> Material.change_media_version(params)
       |> Map.put(:action, :validate)
 
-    {:noreply, socket |> assign(:changeset, changeset) |> clear_error()}
+    {:noreply, socket |> assign(:changeset, changeset) |> assign_source_url_duplicate(params) |> clear_error()}
   end
 
   def handle_event("save", %{"media_version" => params}, socket) do
@@ -220,6 +225,29 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
         class="phx-form"
       >
         <div class="space-y-6">
+          <div>
+            <%= label(f, :source_url, "Where did this media come from?") %>
+            <%= url_input(f, :source_url,
+              placeholder: "https://example.com/...",
+              phx_debounce: "blur",
+              disabled: @disabled
+            ) %>
+            <p class="support">
+              This might be a tweet, a Telegram message, or something else. Where did the media come from?
+            </p>
+            <%= error_tag(f, :source_url) %>
+
+            <%= if length(@url_duplicate_of) > 0 do %>
+              <div class="p-4 mt-4 rounded bg-gray-100">
+                <p class="text-sm">Note that media at this URL has already been uploaded. While you can still upload the media, take care to ensure it is not a duplicate.</p>
+                <div class="grid grid-cols-1 gap-4 mt-4">
+                  <%= for dupe <- @url_duplicate_of do %>
+                    <.media_card media={dupe.media} current_user={@current_user} />
+                  <% end %>
+                </div>
+                </div>
+            <% end %>
+          </div>
           <div
             class="w-full flex justify-center items-center px-6 pt-5 pb-6 border-2 h-40 border-gray-300 border-dashed rounded-md"
             phx-drop-target={@uploads.media_upload.ref}
@@ -380,18 +408,6 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
                   </div>
               <% end %>
             <% end %>
-          </div>
-          <div>
-            <%= label(f, :source_url, "Where did this media come from?") %>
-            <%= url_input(f, :source_url,
-              placeholder: "https://example.com/...",
-              phx_debounce: "blur",
-              disabled: @disabled
-            ) %>
-            <p class="support">
-              This might be a tweet, a Telegram message, or something else. Where did the media come from?
-            </p>
-            <%= error_tag(f, :source_url) %>
           </div>
           <%= submit("Publish to Atlos",
             phx_disable_with: "Processing media...",

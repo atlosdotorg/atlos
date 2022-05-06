@@ -234,7 +234,13 @@ defmodule Platform.Material do
   """
   def get_media_version!(id), do: Repo.get!(MediaVersion, id)
 
-  def get_media_version_by_source_url(url), do: Repo.get_by(MediaVersion, source_url: url)
+  def get_media_versions_by_source_url(url) do
+    Repo.all(
+      from v in MediaVersion,
+        where: v.source_url == ^url,
+        preload: [media: [[updates: :user], :versions]]
+    )
+  end
 
   def create_media_version(%Media{} = media, attrs \\ %{}) do
     %MediaVersion{}

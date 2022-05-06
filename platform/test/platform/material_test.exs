@@ -92,9 +92,11 @@ defmodule Platform.MaterialTest do
 
     test "get_media_version_by_source_url/1 returns the media_version with right source URL" do
       media_version = media_version_fixture(%{source_url: "https://atlos.org"})
-      assert Material.get_media_version_by_source_url("https://atlos.org") == media_version
+      results = Material.get_media_versions_by_source_url("https://atlos.org")
+      assert length(results) == 1
+      assert hd(results).id == media_version.id
 
-      assert is_nil(Material.get_media_version_by_source_url("https://atlos.org/invalid"))
+      assert length(Material.get_media_versions_by_source_url("https://atlos.org/invalid")) == 0
     end
 
     test "create_media_version/1 with valid data creates a media_version" do
