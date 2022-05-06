@@ -379,8 +379,6 @@ defmodule Platform.Material do
           update_media_version(version, %{
             status: :error
           })
-
-        reraise val, __STACKTRACE__
     end
   end
 
