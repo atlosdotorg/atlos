@@ -379,6 +379,8 @@ defmodule Platform.Material do
           update_media_version(version, %{
             status: :error
           })
+
+        new_version
     end
   end
 

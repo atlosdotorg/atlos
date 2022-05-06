@@ -7,28 +7,25 @@ defmodule Platform.Uploads.Avatar do
     {:convert, "-strip -thumbnail 100x100^ -gravity center -extent 100x100"}
   end
 
-  def filename(version, {file, scope}) do
-    file_name = Path.basename(file.file_name, Path.extname(file.file_name))
+  def filename(version, {_file, scope}) do
     "#{scope.id}_#{version}"
   end
 
-  def default_url(version) do
+  def default_url(_version) do
     "/images/default_profile.jpg"
   end
 
-  def storage_dir(version, {file, scope}) do
+  def storage_dir(_version, {_file, scope}) do
     "avatars/#{scope.id}"
   end
 
-  def s3_object_headers(version, {file, scope}) do
+  def s3_object_headers(_version, {file, _scope}) do
     [content_type: MIME.from_path(file.file_name)]
   end
 end
 
 defmodule Platform.Uploads.WatermarkedMediaVersion do
   use Arc.Definition
-
-  alias Platform.Utils
 
   @versions [:original, :thumb]
 
@@ -44,15 +41,15 @@ defmodule Platform.Uploads.WatermarkedMediaVersion do
      end, :png}
   end
 
-  def filename(version, {file, scope}) do
+  def filename(version, {file, _scope}) do
     "#{file.file_name}-#{version}"
   end
 
-  def storage_dir(version, {file, scope}) do
+  def storage_dir(_version, {_file, scope}) do
     "media/#{scope.slug}/watermarked/"
   end
 
-  def s3_object_headers(version, {file, scope}) do
+  def s3_object_headers(_version, {file, _scope}) do
     [content_type: MIME.from_path(file.file_name)]
   end
 end
@@ -62,15 +59,15 @@ defmodule Platform.Uploads.OriginalMediaVersion do
 
   @versions [:original]
 
-  def filename(version, {file, scope}) do
+  def filename(version, {file, _scope}) do
     "#{file.file_name}-#{version}"
   end
 
-  def storage_dir(version, {file, scope}) do
+  def storage_dir(_version, {_file, scope}) do
     "media/#{scope.slug}/original/"
   end
 
-  def s3_object_headers(version, {file, scope}) do
+  def s3_object_headers(_version, {file, _scope}) do
     [content_type: MIME.from_path(file.file_name)]
   end
 end
@@ -80,15 +77,15 @@ defmodule Platform.Uploads.UpdateAttachment do
 
   @versions [:original]
 
-  def filename(version, {file, scope}) do
+  def filename(version, {file, _scope}) do
     "#{file.file_name}-#{version}"
   end
 
-  def storage_dir(version, {file, scope}) do
+  def storage_dir(_version, {_file, scope}) do
     "attachments/#{scope.slug}/"
   end
 
-  def s3_object_headers(version, {file, scope}) do
+  def s3_object_headers(_version, {file, _scope}) do
     [content_type: MIME.from_path(file.file_name)]
   end
 end

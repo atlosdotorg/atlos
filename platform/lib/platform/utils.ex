@@ -52,7 +52,7 @@ defmodule Platform.Utils do
       if is_nil(token) or String.length(token) == 0 do
         false
       else
-        {:ok, status, headers, body} =
+        {:ok, _status, _headers, body} =
           :hackney.post(
             "https://hcaptcha.com/siteverify",
             [{"Content-Type", "application/x-www-form-urlencoded"}],

@@ -1167,7 +1167,7 @@ defmodule PlatformWeb.Components do
       <div
         id="hcaptcha-demo"
         class="h-captcha"
-        data-sitekey="26792b14-159e-4fa3-9a7c-b1de2df6cfe8"
+        data-sitekey={site_key}
         data-callback="onSuccess"
         data-expired-callback="onExpire"
       >
