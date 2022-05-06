@@ -7,6 +7,8 @@ defmodule Platform.Material do
   alias Platform.Repo
   require Logger
 
+  alias Phoenix.PubSub
+
   alias Platform.Material.Media
   alias Platform.Material.Attribute
   alias Platform.Material.MediaVersion
@@ -233,6 +235,17 @@ defmodule Platform.Material do
 
   """
   def get_media_version!(id), do: Repo.get!(MediaVersion, id)
+
+  def pubsub_topic_for_media(slug) do
+    "media_updates:#{slug}"
+  end
+
+  @doc """
+  Broadcast that the media was updated on its PubSub channel.
+  """
+  def broadcast_media_updated(%Media{} = media) do
+    PubSub.broadcast(Platform.PubSub, pubsub_topic_for_media(media.slug), {:media_updated})
+  end
 
   def get_media_versions_by_source_url(url) do
     Repo.all(
@@ -477,6 +490,9 @@ defmodule Platform.Material do
     |> Repo.update()
   end
 
+  @doc """
+  Do an audited update of the given attribute. Will broadcast change via PubSub.
+  """
   def update_media_attribute_audited(media, %Attribute{} = attribute, %User{} = user, attrs) do
     media_changeset = change_media_attribute(media, attribute, user, attrs)
 
@@ -484,17 +500,21 @@ defmodule Platform.Material do
       Updates.change_from_attribute_changeset(media, attribute, user, media_changeset, attrs)
 
     # Make sure both changesets are valid
-    cond do
-      !(media_changeset.valid? && update_changeset.valid?) ->
-        {:error, media_changeset}
+    res =
+      cond do
+        !(media_changeset.valid? && update_changeset.valid?) ->
+          {:error, media_changeset}
 
-      true ->
-        Repo.transaction(fn ->
-          {:ok, _} = Updates.create_update_from_changeset(update_changeset)
-          {:ok, res} = update_media_attribute(media, attribute, attrs)
-          res
-        end)
-    end
+        true ->
+          Repo.transaction(fn ->
+            {:ok, _} = Updates.create_update_from_changeset(update_changeset)
+            {:ok, res} = update_media_attribute(media, attribute, attrs)
+            res
+          end)
+      end
+
+    broadcast_media_updated(media)
+    res
   end
 
   def get_subscription(%Media{} = media, %User{} = user) do

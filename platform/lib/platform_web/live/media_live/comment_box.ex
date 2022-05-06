@@ -5,6 +5,7 @@ defmodule PlatformWeb.MediaLive.CommentBox do
   alias Platform.Uploads
   alias Phoenix.LiveView.Upload
   alias Platform.Auditor
+  alias Platform.Material
 
   def update(assigns, socket) do
     Temp.track!()
@@ -82,6 +83,10 @@ defmodule PlatformWeb.MediaLive.CommentBox do
           Map.merge(changeset.changes, %{media_slug: socket.assigns.media.slug}),
           socket
         )
+
+        # Announce that the media was updated. Ideally we would do this in the context,
+        # but for a variety of reasons, that's difficult for comments.
+        Material.broadcast_media_updated(socket.assigns.media)
 
         {:noreply,
          socket

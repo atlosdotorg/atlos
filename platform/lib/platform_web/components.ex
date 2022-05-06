@@ -614,7 +614,6 @@ defmodule PlatformWeb.Components do
   def media_card(%{media: %Media{} = media, current_user: %Accounts.User{} = user} = assigns) do
     # TODO: preload
     contributors = Material.contributors(media)
-    ratio = Media.attribute_ratio(media)
     sensitive = Media.is_sensitive(media)
 
     ~H"""

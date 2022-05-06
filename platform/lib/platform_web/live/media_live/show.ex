@@ -1,5 +1,8 @@
 defmodule PlatformWeb.MediaLive.Show do
   use PlatformWeb, :live_view
+
+  alias Phoenix.PubSub
+
   alias Platform.Material
   alias Material.Attribute
   alias PlatformWeb.MediaLive.EditAttribute
@@ -13,6 +16,8 @@ defmodule PlatformWeb.MediaLive.Show do
   end
 
   def handle_params(%{"slug" => slug} = params, _uri, socket) do
+    PubSub.subscribe(Platform.PubSub, Material.pubsub_topic_for_media(slug))
+
     {:noreply,
      socket
      |> assign(:slug, slug)
@@ -77,5 +82,11 @@ defmodule PlatformWeb.MediaLive.Show do
      socket
      |> put_flash(:info, "Added media successfully.")
      |> push_patch(to: Routes.media_show_path(socket, :show, socket.assigns.media.slug))}
+  end
+
+  def handle_info({:media_updated}, socket) do
+    {:noreply,
+     socket
+     |> assign_media_and_updates()}
   end
 end
