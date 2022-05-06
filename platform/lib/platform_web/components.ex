@@ -733,24 +733,24 @@ defmodule PlatformWeb.Components do
                 viewBox="0 0 20 20"
                 fill="currentColor"
               >
-                <path
-                  fill-rule="evenodd"
-                  d="M18 13V5a2 2 0 00-2-2H4a2 2 0 00-2 2v8a2 2 0 002 2h3l3 3 3-3h3a2 2 0 002-2zM5 7a1 1 0 011-1h8a1 1 0 110 2H6a1 1 0 01-1-1zm1 3a1 1 0 100 2h3a1 1 0 100-2H6z"
-                  clip-rule="evenodd"
-                />
+                <path d="M3 12v3c0 1.657 3.134 3 7 3s7-1.343 7-3v-3c0 1.657-3.134 3-7 3s-7-1.343-7-3z" />
+                <path d="M3 7v3c0 1.657 3.134 3 7 3s7-1.343 7-3V7c0 1.657-3.134 3-7 3S3 8.657 3 7z" />
+                <path d="M17 5c0 1.657-3.134 3-7 3S3 6.657 3 5s3.134-3 7-3 7 1.343 7 3z" />
               </svg>
+              <%= length(Attribute.set_for_media(media)) %> Attrs
+            </span>
 
-              <%= cond do %>
-                <% ratio < 0.3 -> %>
-                  Low
-                <% ratio < 0.6 -> %>
-                  Medium
-                <% ratio < 1 -> %>
-                  High
-                <% true -> %>
-                  Complete
-              <% end %>
-              (<%= length(Attribute.set_for_media(media)) %>)
+            <span class="badge ~neutral">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-3 w-3 mr-px"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path d="M2 5a2 2 0 012-2h7a2 2 0 012 2v4a2 2 0 01-2 2H9l-3 3v-3H4a2 2 0 01-2-2V5z" />
+                <path d="M15 7v2a4 4 0 01-4 4H9.828l-1.766 1.767c.28.149.599.233.938.233h2l3 3v-3h2a2 2 0 002-2V9a2 2 0 00-2-2h-1z" />
+              </svg>
+              <%= length(media.updates) %> Updates
             </span>
           </section>
           <section class="flex-grow" />
