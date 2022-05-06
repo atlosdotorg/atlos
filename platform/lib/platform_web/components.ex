@@ -1012,16 +1012,8 @@ defmodule PlatformWeb.Components do
           </div>
         <% end %>
       </div>
-
-      <div class="flex gap-1 mt-2 text-xs max-w-full flex-wrap">
+      <div class="flex gap-1 mt-1 text-xs max-w-full flex-wrap">
         <%= if media_to_show do %>
-          <div class="chip ~neutral">
-            <%= if version.upload_type == :user_provided do %>
-              User Provided
-            <% else %>
-              Direct from Source
-            <% end %>
-          </div>
           <a
             target="_blank"
             href={version.source_url}
