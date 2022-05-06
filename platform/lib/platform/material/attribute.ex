@@ -252,7 +252,7 @@ defmodule Platform.Material.Attribute do
       %Attribute{
         schema_field: :attr_flag,
         type: :select,
-        options: ["Help Needed", "Needs Confirmation", "Community Confirmed"],
+        options: ["Help Needed", "Needs Confirmation", "Community Confirmed", "Closed"],
         label: "Flag",
         pane: :metadata,
         required: false,
