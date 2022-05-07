@@ -7,6 +7,8 @@
     <%= csrf_meta_tag() %>
     <%= live_title_tag(assigns[:title] || "Collaborative OSINT", suffix: " | Atlos") %>
     <link phx-track-static rel="stylesheet" href={Routes.static_path(@conn, "/assets/app.css")} />
+    <link phx-track-static rel="stylesheet" href={Routes.static_path(@conn, "/fonts/iosevka/iosevka.css")} />
+    <link phx-track-static rel="stylesheet" href={Routes.static_path(@conn, "/fonts/inter/inter.css")} />
     <script
       defer
       phx-track-static

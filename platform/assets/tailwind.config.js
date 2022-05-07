@@ -18,7 +18,7 @@ module.exports = {
     },
     fontFamily: {
       'sans': ['Inter', 'system-ui', 'sans-serif'],
-      'mono': ['Iosevka', 'monospace'],
+      'mono': ['Iosevka Web', 'monospace'],
     }
   },
   variants: {},
