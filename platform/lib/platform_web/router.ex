@@ -92,6 +92,8 @@ defmodule PlatformWeb.Router do
       live("/new", NewLive)
       live("/map", MapLive.Index)
 
+      live("/queue/:which", MediaLive.Queue)
+
       live("/media", MediaLive.Index)
       live("/media/:slug", MediaLive.Show, :show)
       live("/media/:slug/card", MediaLive.Card)
