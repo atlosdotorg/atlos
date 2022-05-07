@@ -337,6 +337,10 @@
               />
             </svg>
             <span class="mt-2 block text-sm font-medium text-gray-700">Not yet geolocated</span>
+            <%= live_patch("+ Geolocation",
+                class: "text-button mt-1 text-sm inline-block",
+                to: Routes.media_show_path(@socket, :edit, @media.slug, :geolocation)
+              ) %>
           </div>
         <% end %>
       </.card>
