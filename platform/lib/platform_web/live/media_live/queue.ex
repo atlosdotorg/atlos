@@ -8,9 +8,10 @@ defmodule PlatformWeb.MediaLive.Queue do
 
   def handle_params(%{"which" => which} = params, _uri, socket) do
     {:noreply,
-      socket
-      |> assign(:title, "Queue")
-      |> assign(:query, query_for_which(which))}
+     socket
+     |> assign(:title, "Queue")
+     |> assign(:tab, which)
+     |> assign(:query, query_for_which(which))}
   end
 
   defp query_for_which(which) do
@@ -22,12 +23,33 @@ defmodule PlatformWeb.MediaLive.Queue do
   def render(assigns) do
     ~H"""
     <article class="w-full max-w-screen-xl px-8">
-      <section class="flex w-full flex-wrap md:flex-nowrap gap-4 mb-8 items-center mb-8 border-b pb-4">
-        <h1 class="header text-3xl flex-grow font-medium md:mr-8">Queue</h1>
-        <div class="lg:w-[40em] flex flex-col md:flex-row gap-2">
-          ...
+      <div>
+        <div class="border-b border-gray-200 flex flex-col md:flex-row mb-8 items-baseline">
+          <h1 class="text-3xl flex-grow font-medium md:mr-8">Queue</h1>
+          <nav class="-mb-px flex space-x-8" aria-label="Tabs">
+            <% active_classes =
+              "border-urge-500 text-urge-600 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" %>
+            <% inactive_classes =
+              "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" %>
+            <%= live_patch("Help Needed",
+              class: if(@tab == "help_needed", do: active_classes, else: inactive_classes),
+              to: "/queue/help_needed"
+            ) %>
+            <a
+              href="#"
+              class="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm"
+            >
+              Needs Confirmation
+            </a>
+            <a
+              href="#"
+              class="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm"
+            >
+              Community Confirmed
+            </a>
+          </nav>
         </div>
-      </section>
+      </div>
       <.live_component
         module={PlatformWeb.MediaLive.PaginatedMediaList}
         id="media-list"

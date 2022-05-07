@@ -197,10 +197,7 @@ defmodule PlatformWeb.Components do
             </svg>
           </.navlink>
 
-          <a
-            href="#"
-            class="text-neutral-100 hover:bg-neutral-800 hover:text-white group w-full p-3 rounded-md flex flex-col items-center text-xs font-medium"
-          >
+          <.navlink to="/queue/help_needed" label="Queue" request_path={@path}>
             <svg
               class="text-neutral-300 group-hover:text-white h-6 w-6"
               xmlns="http://www.w3.org/2000/svg"
@@ -216,8 +213,7 @@ defmodule PlatformWeb.Components do
                 d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"
               />
             </svg>
-            <span class="mt-2">Queue</span>
-          </a>
+          </.navlink>
 
           <.navlink to="/media" label="All Media" request_path={@path}>
             <svg
