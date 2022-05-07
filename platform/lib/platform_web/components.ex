@@ -197,7 +197,7 @@ defmodule PlatformWeb.Components do
             </svg>
           </.navlink>
 
-          <.navlink to="/queue/help_needed" label="Queue" request_path={@path}>
+          <.navlink to="/queue" label="Queue" request_path={@path}>
             <svg
               class="text-neutral-300 group-hover:text-white h-6 w-6"
               xmlns="http://www.w3.org/2000/svg"

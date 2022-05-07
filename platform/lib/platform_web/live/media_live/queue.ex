@@ -6,7 +6,9 @@ defmodule PlatformWeb.MediaLive.Queue do
     {:ok, socket}
   end
 
-  def handle_params(%{"which" => which} = params, _uri, socket) do
+  def handle_params(params, _uri, socket) do
+    which = Map.get(params, "which", "help_needed")
+
     {:noreply,
      socket
      |> assign(:title, "Queue")
