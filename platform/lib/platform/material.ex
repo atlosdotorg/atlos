@@ -382,7 +382,7 @@ defmodule Platform.Material do
         })
 
       # Track event
-      Auditor.log(:archive_success, %{version: new_version})
+      Auditor.log(:archive_success, %{media_id: media_id, source_url: new_version.source_url})
 
       Updates.change_from_comment(media, Accounts.get_auto_account(), %{
         "explanation" => "✅ Successfully archived the media at <#{version.source_url}>."
