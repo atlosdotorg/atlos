@@ -23,6 +23,7 @@ import { Socket } from "phoenix"
 import { LiveSocket } from "phoenix_live_view"
 import topbar from "../vendor/topbar"
 import mapboxgl from 'mapbox-gl'
+import Alpine from 'alpinejs'
 
 mapboxgl.accessToken = 'pk.eyJ1IjoibWlsZXNtY2MiLCJhIjoiY2t6ZzdzZmY0MDRobjJvbXBydWVmaXBpNSJ9.-aHM8bjOOsSrGI0VvZenAQ';
 
@@ -33,6 +34,10 @@ let liveSocket = new LiveSocket("/live", Socket, { params: { _csrf_token: csrfTo
 topbar.config({ barColors: { 0: "#29d" }, shadowColor: "rgba(0, 0, 0, .3)" })
 window.addEventListener("phx:page-loading-start", info => topbar.show())
 window.addEventListener("phx:page-loading-stop", info => topbar.hide())
+
+// Setup Alpine
+window.Alpine = Alpine
+Alpine.start()
 
 // connect if there are any LiveViews on the page
 liveSocket.connect()

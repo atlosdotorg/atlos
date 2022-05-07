@@ -225,32 +225,6 @@
 }
 
 /**
-Animations used for hiding flashes/notifications after some time
-*/
-
-@keyframes animated-disappear {
-  from {
-    opacity: 1;
-  }
-
-  90% {
-    opacity: 1;
-  }
-
-  to {
-    opacity: 0;
-    z-index: -50;
-    visibility: hidden;
-  }
-}
-
-.fade-out-over-time {
-  animation-name: animated-disappear;
-  animation-duration: 7s;
-  animation-fill-mode: both;
-}
-
-/**
   Important CSS for our custom full-page map styling.,
 */
 .mapboxgl-ctrl-bottom-left {

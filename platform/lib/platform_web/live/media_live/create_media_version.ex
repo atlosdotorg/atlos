@@ -17,58 +17,49 @@ defmodule PlatformWeb.MediaLive.CreateMediaVersion do
 
   def render(assigns) do
     ~H"""
-    <div>
+    <div x-data="{tab: 'link'}">
       <nav
         class="relative border rounded overflow-hidden z-0 rounded-lg shadow flex divide-x divide-gray-200"
         aria-label="Tabs"
       >
         <button
           type="button"
-          phx-click="set_tab"
-          phx-value-tab="direct"
-          phx-target={@myself}
+          @click="tab = 'link'"
           class="group relative min-w-0 flex-1 overflow-hidden bg-white py-4 px-4 text-sm font-medium text-center hover:bg-gray-50 focus:z-10"
           aria-current="page"
         >
           <span>Link to Media</span>
-          <%= if @tab == :direct do %>
-            <span aria-hidden="true" class="bg-urge-500 absolute inset-x-0 bottom-0 h-0.5"></span>
-          <% else %>
-            <span aria-hidden="true" class="bg-transparent absolute inset-x-0 bottom-0 h-0.5"></span>
-          <% end %>
+          <span x-transition x-show="tab === 'link'" aria-hidden="true" class="bg-urge-500 absolute inset-x-0 bottom-0 h-0.5"></span>
+          <span x-transition x-show="tab !== 'link'" aria-hidden="true" class="bg-transparent absolute inset-x-0 bottom-0 h-0.5"></span>
         </button>
 
         <button
           type="button"
-          phx-click="set_tab"
-          phx-value-tab="upload"
-          phx-target={@myself}
+          @click="tab = 'upload'"
           class="group relative min-w-0 flex-1 overflow-hidden bg-white py-4 px-4 text-sm font-medium text-center hover:bg-gray-50 focus:z-10"
         >
           <span>Manual Upload</span>
-          <%= if @tab == :upload do %>
-            <span aria-hidden="true" class="bg-urge-500 absolute inset-x-0 bottom-0 h-0.5"></span>
-          <% else %>
-            <span aria-hidden="true" class="bg-transparent absolute inset-x-0 bottom-0 h-0.5"></span>
-          <% end %>
+            <span x-transition x-show="tab === 'upload'" aria-hidden="true" class="bg-urge-500 absolute inset-x-0 bottom-0 h-0.5"></span>
+            <span x-transition x-show="tab !== 'upload'" aria-hidden="true" class="bg-transparent absolute inset-x-0 bottom-0 h-0.5"></span>
         </button>
       </nav>
       <section class="mt-8">
-        <%= if @tab == :direct do %>
+        <div x-show="tab === 'link'">
           <.live_component
             module={PlatformWeb.MediaLive.LinkVersionLive}
             id="link-version"
             current_user={@current_user}
             media={@media}
           />
-        <% else %>
+        </div>
+        <div x-show="tab === 'upload'">
           <.live_component
             module={PlatformWeb.MediaLive.UploadVersionLive}
             id="upload-version"
             current_user={@current_user}
             media={@media}
           />
-        <% end %>
+        </div>
       </section>
     </div>
     """

@@ -135,7 +135,7 @@ defmodule PlatformWeb.Components do
 
     ~H"""
     <div
-      class="fade-out-over-time max-w-sm w-full bg-white shadow-lg rounded-lg pointer-events-auto ring-1 ring-black ring-opacity-5 overflow-hidden"
+      class="max-w-sm w-full bg-white shadow-lg rounded-lg pointer-events-auto ring-1 ring-black ring-opacity-5 overflow-hidden"
       id={@id}
     >
       <div class="p-4">
@@ -438,7 +438,7 @@ defmodule PlatformWeb.Components do
     <span class="inline-flex flex-wrap gap-1">
       <%= case attr.type do %>
         <% :text -> %>
-          <div class="inline-block prose prose-sm">
+          <div class="inline-block prose prose-sm my-px">
             <%= raw(value |> Utils.render_markdown()) %>
           </div>
         <% :select -> %>
