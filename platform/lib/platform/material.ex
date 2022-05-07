@@ -428,10 +428,8 @@ defmodule Platform.Material do
     font_path =
       System.get_env(
         "WATERMARK_FONT_PATH",
-        Path.join(Application.app_dir(:platform), "priv/static/fonts/iosevka-bold.ttc")
+        Path.join(:code.priv_dir(:platform), "static/fonts/iosevka-bold.ttc")
       )
-
-    IO.puts("Loading font from #{font_path}; file exists? #{File.exists?(font_path)}")
 
     process_command =
       FFmpex.new_command()
