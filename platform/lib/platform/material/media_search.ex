@@ -34,7 +34,7 @@ defmodule Platform.Material.MediaSearch do
   defp apply_query_component(queryable, changeset, :attr_flag) do
     case Map.get(changeset.changes, :attr_flag) do
       nil -> queryable
-      query -> where(queryable, [m], m.attr_flag == ^changeset.changes[:attr_flag])
+      query -> where(queryable, [m], m.attr_flag == ^query)
     end
   end
 

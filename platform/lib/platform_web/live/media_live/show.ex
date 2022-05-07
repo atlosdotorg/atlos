@@ -16,8 +16,6 @@ defmodule PlatformWeb.MediaLive.Show do
   end
 
   def handle_params(%{"slug" => slug} = params, _uri, socket) do
-    PubSub.subscribe(Platform.PubSub, Material.pubsub_topic_for_media(slug))
-
     {:noreply,
      socket
      |> assign(:slug, slug)
@@ -46,6 +44,7 @@ defmodule PlatformWeb.MediaLive.Show do
   defp assign_media_and_updates(socket) do
     with %Material.Media{} = media <- Material.get_full_media_by_slug(socket.assigns.slug),
          true <- Media.can_user_view(media, socket.assigns.current_user) do
+      PubSub.subscribe(Platform.PubSub, Material.pubsub_topic_for_media(media.id))
       socket |> assign(:media, media) |> assign(:updates, media.updates)
     else
       _ ->

@@ -11,6 +11,7 @@ defmodule Platform.Updates do
   alias Platform.Material.Media
   alias Platform.Material.MediaVersion
   alias Platform.Accounts.User
+  alias Platform.Material
 
   @doc """
   Returns the list of updates.
@@ -46,7 +47,14 @@ defmodule Platform.Updates do
   generation functions (e.g., `change_from_attribute_changeset`).
   """
   def create_update_from_changeset(%Ecto.Changeset{data: %Update{} = _} = changeset) do
-    changeset |> Repo.insert()
+    res = changeset |> Repo.insert()
+
+    case res do
+      {:ok, update} -> Material.broadcast_media_updated(update.media_id)
+      _ -> nil
+    end
+
+    res
   end
 
   @doc """

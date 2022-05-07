@@ -236,15 +236,19 @@ defmodule Platform.Material do
   """
   def get_media_version!(id), do: Repo.get!(MediaVersion, id)
 
-  def pubsub_topic_for_media(slug) do
-    "media_updates:#{slug}"
+  def pubsub_topic_for_media(id) do
+    "media_updates:#{id}"
   end
 
   @doc """
   Broadcast that the media was updated on its PubSub channel.
   """
-  def broadcast_media_updated(%Media{} = media) do
-    PubSub.broadcast(Platform.PubSub, pubsub_topic_for_media(media.slug), {:media_updated})
+  def broadcast_media_updated(media_id) do
+    Task.start(fn ->
+      # Add a delay to let everything settle. There's probably a way to do this more robustly.
+      :timer.sleep(500)
+      PubSub.broadcast(Platform.PubSub, pubsub_topic_for_media(media_id), {:media_updated})
+    end)
   end
 
   def get_media_versions_by_source_url(url) do
@@ -421,7 +425,11 @@ defmodule Platform.Material do
         String.starts_with?(mime, "video/") -> Temp.path!(%{suffix: ".mp4", prefix: identifier})
       end
 
-    font_path = System.get_env("WATERMARK_FONT_PATH", "priv/static/fonts/iosevka-bold.ttc")
+    font_path =
+      System.get_env(
+        "WATERMARK_FONT_PATH",
+        Path.join(Application.app_dir(:platform), "priv/static/fonts/iosevka-bold.ttc")
+      )
 
     process_command =
       FFmpex.new_command()
@@ -500,21 +508,17 @@ defmodule Platform.Material do
       Updates.change_from_attribute_changeset(media, attribute, user, media_changeset, attrs)
 
     # Make sure both changesets are valid
-    res =
-      cond do
-        !(media_changeset.valid? && update_changeset.valid?) ->
-          {:error, media_changeset}
+    cond do
+      !(media_changeset.valid? && update_changeset.valid?) ->
+        {:error, media_changeset}
 
-        true ->
-          Repo.transaction(fn ->
-            {:ok, _} = Updates.create_update_from_changeset(update_changeset)
-            {:ok, res} = update_media_attribute(media, attribute, attrs)
-            res
-          end)
-      end
-
-    broadcast_media_updated(media)
-    res
+      true ->
+        Repo.transaction(fn ->
+          {:ok, _} = Updates.create_update_from_changeset(update_changeset)
+          {:ok, res} = update_media_attribute(media, attribute, attrs)
+          res
+        end)
+    end
   end
 
   def get_subscription(%Media{} = media, %User{} = user) do

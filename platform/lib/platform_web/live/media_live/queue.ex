@@ -1,6 +1,5 @@
 defmodule PlatformWeb.MediaLive.Queue do
   use PlatformWeb, :live_view
-  alias Platform.Material
 
   def mount(_params, _session, socket) do
     {:ok, socket}
