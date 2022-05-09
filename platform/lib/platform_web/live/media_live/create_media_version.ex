@@ -29,8 +29,20 @@ defmodule PlatformWeb.MediaLive.CreateMediaVersion do
           aria-current="page"
         >
           <span>Link to Media</span>
-          <span x-transition x-show="tab === 'link'" aria-hidden="true" class="bg-urge-500 absolute inset-x-0 bottom-0 h-0.5"></span>
-          <span x-transition x-show="tab !== 'link'" aria-hidden="true" class="bg-transparent absolute inset-x-0 bottom-0 h-0.5"></span>
+          <span
+            x-transition
+            x-show="tab === 'link'"
+            aria-hidden="true"
+            class="bg-urge-500 absolute inset-x-0 bottom-0 h-0.5"
+          >
+          </span>
+          <span
+            x-transition
+            x-show="tab !== 'link'"
+            aria-hidden="true"
+            class="bg-transparent absolute inset-x-0 bottom-0 h-0.5"
+          >
+          </span>
         </button>
 
         <button
@@ -39,8 +51,20 @@ defmodule PlatformWeb.MediaLive.CreateMediaVersion do
           class="group relative min-w-0 flex-1 overflow-hidden bg-white py-4 px-4 text-sm font-medium text-center hover:bg-gray-50 focus:z-10"
         >
           <span>Manual Upload</span>
-            <span x-transition x-show="tab === 'upload'" aria-hidden="true" class="bg-urge-500 absolute inset-x-0 bottom-0 h-0.5"></span>
-            <span x-transition x-show="tab !== 'upload'" aria-hidden="true" class="bg-transparent absolute inset-x-0 bottom-0 h-0.5"></span>
+          <span
+            x-transition
+            x-show="tab === 'upload'"
+            aria-hidden="true"
+            class="bg-urge-500 absolute inset-x-0 bottom-0 h-0.5"
+          >
+          </span>
+          <span
+            x-transition
+            x-show="tab !== 'upload'"
+            aria-hidden="true"
+            class="bg-transparent absolute inset-x-0 bottom-0 h-0.5"
+          >
+          </span>
         </button>
       </nav>
       <section class="mt-8">
