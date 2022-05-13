@@ -1,5 +1,5 @@
 <main class="h-full flex flex-col md:flex-row">
-  <.nav path={@conn.request_path} />
+  <.nav path={@conn.request_path} current_user={@current_user} />
 
   <div class="flex-1 flex flex-col overflow-hidden">
     <div class="my-8 w-full">

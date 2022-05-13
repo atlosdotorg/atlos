@@ -164,7 +164,7 @@ defmodule PlatformWeb.Components do
       x-data="{ open: window.innerWidth >= 768 }"
       x-transition
     >
-      <div class="w-full pt-6 flex flex-col items-center">
+      <div class="w-full pt-6 flex flex-col items-center md:h-full">
         <div class="flex w-full px-4 md:px-0 border-b pb-6 md:pb-0 md:border-0 border-neutral-600 justify-between md:justify-center items-center">
           <%= link to: "/", class: "flex flex-col items-center text-white" do %>
             <span class="text-white text-xl py-px px-1 rounded-sm bg-white text-neutral-700 uppercase font-extrabold font-mono">
@@ -200,7 +200,7 @@ defmodule PlatformWeb.Components do
           </div>
         </div>
         <div
-          class="grid md:flex-1 grid-cols-3 gap-1 md:grid-cols-1 mt-6 w-full px-2 md:h-screen pb-6"
+          class="grid md:flex md:flex-col md:justify-start grid-cols-3 gap-1 md:grid-cols-1 mt-6 w-full px-2 md:h-screen pb-6"
           x-show="open"
           x-cloak
         >
@@ -286,29 +286,14 @@ defmodule PlatformWeb.Components do
               />
             </svg>
           </.navlink>
-
-          <.navlink to="/settings" label="Settings" request_path={@path}>
-            <svg
-              class="text-neutral-300 group-hover:text-white h-6 w-6"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              aria-hidden="true"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
-              />
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-              />
-            </svg>
+          <div class="hidden md:block flex-grow"></div>
+          <.navlink to="/settings" label="Account" request_path={@path}>
+            <img
+              class="relative z-30 inline-block h-6 w-6 rounded-full ring-2 ring-neutral-300"
+              src={Accounts.get_profile_photo_path(@current_user)}
+              title="Your profile photo"
+              alt={"Profile photo for #{@current_user.username} (you)"}
+            />
           </.navlink>
         </div>
       </div>
