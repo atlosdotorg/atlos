@@ -200,7 +200,7 @@ defmodule PlatformWeb.Components do
           </div>
         </div>
         <div
-          class="grid md:flex md:flex-col md:justify-start grid-cols-3 gap-1 md:grid-cols-1 mt-6 w-full px-2 md:h-screen pb-6"
+          class="grid md:flex md:flex-col md:justify-start grid-cols-3 gap-1 md:grid-cols-1 mt-6 w-full px-2 md:h-screen md:pb-2 pb-6"
           x-show="open"
           x-cloak
         >
