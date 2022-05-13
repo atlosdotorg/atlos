@@ -165,7 +165,7 @@ defmodule PlatformWeb.Components do
       x-transition
     >
       <div class="w-full pt-6 flex flex-col items-center">
-        <div class="flex w-full px-4 md:px-0 border-b-2 pb-6 md:pb-0 md:border-0 border-neutral-600 justify-between md:justify-center items-center">
+        <div class="flex w-full px-4 md:px-0 border-b pb-6 md:pb-0 md:border-0 border-neutral-600 justify-between md:justify-center items-center">
           <%= link to: "/", class: "flex flex-col items-center text-white" do %>
             <span class="text-white text-xl py-px px-1 rounded-sm bg-white text-neutral-700 uppercase font-extrabold font-mono">
               Atlos
@@ -199,7 +199,7 @@ defmodule PlatformWeb.Components do
             </button>
           </div>
         </div>
-        <div class="flex-1 mt-6 w-full px-2 space-y-1 md:h-screen pb-6" x-show="open" x-cloak>
+        <div class="grid md:flex-1 grid-cols-3 gap-1 md:grid-cols-1 mt-6 w-full px-2 md:h-screen pb-6" x-show="open" x-cloak>
           <.navlink to="/new" label="New" request_path={@path}>
             <svg
               class="text-white group-hover:text-white h-6 w-6"

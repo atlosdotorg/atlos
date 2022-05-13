@@ -33,11 +33,11 @@ defmodule PlatformWeb.MediaLive.Queue do
 
   def render(assigns) do
     ~H"""
-    <article class="w-full max-w-screen-xl px-8">
+    <article class="w-full max-w-screen-xl px-4 md:px-8">
       <div>
         <div class="border-b border-gray-200 flex flex-col md:flex-row mb-8 items-baseline">
           <h1 class="text-3xl flex-grow font-medium md:mr-8">Queue</h1>
-          <nav class="-mb-px flex space-x-8" aria-label="Tabs">
+          <nav class="-mb-px flex space-x-8 overflow-x-auto max-w-full" aria-label="Tabs">
             <% active_classes =
               "border-urge-500 text-urge-600 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" %>
             <% inactive_classes =
