@@ -1,6 +1,21 @@
-# Atlos
+<p align="center">
+  <img align="center" src="platform/priv/static/images/wordmark.svg" height="50" alt="Atlos wordmark">
+  <br>
 
-Atlos is the open source platform for visual investigations. You can learn more about Atlos at [https://atlos.org].
+  <p align="center">
+    The open source platform for visual investigations
+    <br>
+  </p>
+  <p align="center"><a href="https://atlos.notion.site/Platform-Overview-46d4723f22ef420fb5ad0e07feba8d79">Platform Overview</a> &bull; <a href="platform">Code</a></p>
+</p>
+
+<br>
+
+## Motivation
+
+Atlos helps open-source conflict researchers collaborate to preserve the historical record. Today, researchers locate, verify, and catalog media in private databases, on Twitter, and in several different Discord servers. This means that the same arduous geolocation process might happen many times for the same video. Atlos puts everything in one place.
+
+You can learn more about Atlos at https://atlos.org.
 
 ## Subprojects
 
