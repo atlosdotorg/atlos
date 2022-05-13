@@ -1,12 +1,14 @@
-<h1>Confirm account</h1>
-
-<.form let={_f} for={:user} action={Routes.user_confirmation_path(@conn, :update, @token)}>
-  <div>
-    <%= submit("Confirm my account") %>
+<.card>
+  <:header>
+    <h1 class="sec-head">Confirm account</h1>
+  </:header>
+  <div class="phx-form">
+    <.form let={_f} for={:user} action={Routes.user_confirmation_path(@conn, :update, @token)}>
+      <div class="md:flex gap-2 items-center text-neutral-600">
+        <%= submit("Confirm my account", class: "button ~urge @high mr-2") %>
+        <%= link("Register", to: Routes.user_registration_path(@conn, :new)) %>
+        <%= link("Log in", to: Routes.user_session_path(@conn, :new)) %>
+      </div>
+    </.form>
   </div>
-</.form>
-
-<p>
-  <%= link("Register", to: Routes.user_registration_path(@conn, :new)) %> |
-  <%= link("Log in", to: Routes.user_session_path(@conn, :new)) %>
-</p>
+</.card>

@@ -1,13 +1,15 @@
 <h1>Resend confirmation instructions</h1>
 
-<.form let={f} for={:user} action={Routes.user_confirmation_path(@conn, :create)}>
-  <%= label(f, :email) %>
-  <%= email_input(f, :email, required: true) %>
+<div class="phx-form">
+  <.form let={f} for={:user} action={Routes.user_confirmation_path(@conn, :create)}>
+    <%= label(f, :email) %>
+    <%= email_input(f, :email, required: true) %>
 
-  <div>
-    <%= submit("Resend confirmation instructions") %>
-  </div>
-</.form>
+    <div>
+      <%= submit("Resend confirmation instructions", class: "button ~urge @high") %>
+    </div>
+  </.form>
+</div>
 
 <p>
   <%= link("Register", to: Routes.user_registration_path(@conn, :new)) %> |

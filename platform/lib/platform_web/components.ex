@@ -287,14 +287,16 @@ defmodule PlatformWeb.Components do
             </svg>
           </.navlink>
           <div class="hidden md:block flex-grow"></div>
-          <.navlink to="/settings" label="Account" request_path={@path}>
-            <img
-              class="relative z-30 inline-block h-6 w-6 rounded-full ring-2 ring-neutral-300"
-              src={Accounts.get_profile_photo_path(@current_user)}
-              title="Your profile photo"
-              alt={"Profile photo for #{@current_user.username} (you)"}
-            />
-          </.navlink>
+          <%= if not is_nil(@current_user) do %>
+            <.navlink to="/settings" label="Account" request_path={@path}>
+              <img
+                class="relative z-30 inline-block h-6 w-6 rounded-full ring-2 ring-neutral-300"
+                src={Accounts.get_profile_photo_path(@current_user)}
+                title="Your profile photo"
+                alt={"Profile photo for #{@current_user.username} (you)"}
+              />
+            </.navlink>
+          <% end %>
         </div>
       </div>
     </div>
