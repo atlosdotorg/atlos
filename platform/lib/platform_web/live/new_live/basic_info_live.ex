@@ -37,7 +37,7 @@ defmodule PlatformWeb.NewLive.BasicInfoLive do
         {:noreply, socket |> assign(:disabled, true)}
 
       {:error, %Ecto.Changeset{} = changeset} ->
-        {:noreply, assign(socket, :changeset, changeset)}
+        {:noreply, assign(socket, :changeset, changeset |> Map.put(:action, :validate))}
     end
   end
 
