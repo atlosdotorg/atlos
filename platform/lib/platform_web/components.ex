@@ -199,7 +199,11 @@ defmodule PlatformWeb.Components do
             </button>
           </div>
         </div>
-        <div class="grid md:flex-1 grid-cols-3 gap-1 md:grid-cols-1 mt-6 w-full px-2 md:h-screen pb-6" x-show="open" x-cloak>
+        <div
+          class="grid md:flex-1 grid-cols-3 gap-1 md:grid-cols-1 mt-6 w-full px-2 md:h-screen pb-6"
+          x-show="open"
+          x-cloak
+        >
           <.navlink to="/new" label="New" request_path={@path}>
             <svg
               class="text-white group-hover:text-white h-6 w-6"

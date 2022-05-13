@@ -4,7 +4,10 @@ defmodule PlatformWeb.SettingsLive.InvitesComponent do
   alias Platform.Invites
 
   def update(%{current_user: current_user} = assigns, socket) do
-    changeset = Accounts.change_user_profile(current_user)
+    # Double check permissions
+    if not Accounts.is_privileged(current_user) do
+      raise "no permission"
+    end
 
     {:ok,
      socket
@@ -23,8 +26,8 @@ defmodule PlatformWeb.SettingsLive.InvitesComponent do
     )
   end
 
-  def handle_event("generate_invite", params, socket) do
-    # Double check permissions
+  def handle_event("generate_invite", _params, socket) do
+    # Triple check permissions
     if not Accounts.is_privileged(socket.assigns.current_user) do
       raise "no permission"
     end
@@ -34,7 +37,7 @@ defmodule PlatformWeb.SettingsLive.InvitesComponent do
       Invites.update_invite(invite, %{active: false})
     end
 
-    new = Invites.create_invite(%{owner_id: socket.assigns.current_user.id})
+    Invites.create_invite(%{owner_id: socket.assigns.current_user.id})
     {:noreply, socket |> assign_invites()}
   end
 
