@@ -24,6 +24,11 @@ defmodule PlatformWeb.SettingsLive.InvitesComponent do
   end
 
   def handle_event("generate_invite", params, socket) do
+    # Double check permissions
+    if not Accounts.is_privileged(socket.assigns.current_user) do
+      raise "no permission"
+    end
+
     # First, invalidate all existing invite codes
     for invite <- Invites.get_invites_by_user(socket.assigns.current_user) do
       Invites.update_invite(invite, %{active: false})
