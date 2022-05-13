@@ -19,6 +19,7 @@ defmodule Platform.Accounts.User do
     field :confirmed_at, :naive_datetime
 
     many_to_many :subscribed_media, Material.Media, join_through: "media_subscriptions"
+    belongs_to :invite, Material.Invite
 
     timestamps()
   end

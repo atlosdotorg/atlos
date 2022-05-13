@@ -20,12 +20,16 @@ defmodule Platform.InvitesTest do
       assert Invites.get_invite!(invite.id) == invite
     end
 
+    test "get_invite_by_code/1 returns the invite with given code" do
+      invite = invite_fixture()
+      assert Invites.get_invite_by_code(invite.code) == invite
+    end
+
     test "create_invite/1 with valid data creates a invite" do
-      valid_attrs = %{active: true, code: "some code"}
+      valid_attrs = %{active: true}
 
       assert {:ok, %Invite{} = invite} = Invites.create_invite(valid_attrs)
       assert invite.active == true
-      assert invite.code == "some code"
     end
 
     test "create_invite/1 with invalid data returns error changeset" do
@@ -34,11 +38,10 @@ defmodule Platform.InvitesTest do
 
     test "update_invite/2 with valid data updates the invite" do
       invite = invite_fixture()
-      update_attrs = %{active: false, code: "some updated code"}
+      update_attrs = %{active: false}
 
       assert {:ok, %Invite{} = invite} = Invites.update_invite(invite, update_attrs)
       assert invite.active == false
-      assert invite.code == "some updated code"
     end
 
     test "update_invite/2 with invalid data returns error changeset" do

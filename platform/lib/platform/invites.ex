@@ -38,6 +38,11 @@ defmodule Platform.Invites do
   def get_invite!(id), do: Repo.get!(Invite, id)
 
   @doc """
+  Gets an invite by its code.
+  """
+  def get_invite_by_code(code), do: Repo.get_by(Invite, code: code)
+
+  @doc """
   Creates a invite.
 
   ## Examples

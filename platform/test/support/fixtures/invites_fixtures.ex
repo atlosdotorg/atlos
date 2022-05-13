@@ -5,19 +5,13 @@ defmodule Platform.InvitesFixtures do
   """
 
   @doc """
-  Generate a unique invite code.
-  """
-  def unique_invite_code, do: "some code#{System.unique_integer([:positive])}"
-
-  @doc """
   Generate a invite.
   """
   def invite_fixture(attrs \\ %{}) do
     {:ok, invite} =
       attrs
       |> Enum.into(%{
-        active: true,
-        code: unique_invite_code()
+        active: true
       })
       |> Platform.Invites.create_invite()
 
