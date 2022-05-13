@@ -73,11 +73,13 @@ defmodule PlatformWeb.UpdatesLive.UpdateFeed do
               <% end %>
               <div class="relative flex items-start space-x-3">
                 <div class="relative">
-                  <img
-                    class="h-10 w-10 rounded-full bg-gray-400 flex items-center justify-center ring-8 ring-white shadow"
-                    src={Accounts.get_profile_photo_path(update.user)}
-                    alt={"Profile photo for #{update.user.username}"}
-                  />
+                  <a href={"/profile/#{update.user.username}"}>
+                    <img
+                      class="h-10 w-10 rounded-full bg-gray-400 flex items-center justify-center ring-8 ring-white shadow"
+                      src={Accounts.get_profile_photo_path(update.user)}
+                      alt={"Profile photo for #{update.user.username}"}
+                    />
+                  </a>
                 </div>
                 <div class="min-w-0 flex-1 flex flex-col flex-grow">
                   <div>
