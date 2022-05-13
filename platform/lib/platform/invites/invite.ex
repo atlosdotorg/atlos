@@ -23,7 +23,7 @@ defmodule Platform.Invites.Invite do
   @doc false
   def changeset(invite, attrs) do
     invite
-    |> cast(attrs, [:active])
+    |> cast(attrs, [:active, :owner_id])
     |> validate_required([:active])
   end
 end

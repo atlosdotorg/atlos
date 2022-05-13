@@ -43,6 +43,15 @@ defmodule Platform.Invites do
   def get_invite_by_code(code), do: Repo.get_by(Invite, code: code)
 
   @doc """
+  Gets an invite by its user.
+  """
+  def get_invites_by_user(user) when is_nil(user),
+    do: from(i in Invite, where: is_nil(i.owner_id)) |> Repo.all()
+
+  def get_invites_by_user(user),
+    do: from(i in Invite, where: i.owner_id == ^user.id) |> Repo.all()
+
+  @doc """
   Creates a invite.
 
   ## Examples

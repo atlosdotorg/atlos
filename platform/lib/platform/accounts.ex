@@ -8,9 +8,21 @@ defmodule Platform.Accounts do
   alias Platform.Utils
 
   alias Platform.Accounts.{User, UserToken, UserNotifier}
+  alias Platform.Invites
 
   def get_valid_invite_code() do
-    "test"
+    # Find invites created by the system (nil user)
+    invites = Invites.get_invites_by_user(nil)
+
+    case length(invites) do
+      0 ->
+        # No root invites; create a system invite (i.e., root `owner_id`)
+        {:ok, invite} = Invites.create_invite()
+        invite.code
+
+      _ ->
+        hd(invites).code
+    end
   end
 
   def get_auto_account() do
@@ -108,6 +120,8 @@ defmodule Platform.Accounts do
   def register_user(attrs) do
     %User{}
     |> User.registration_changeset(attrs)
+    # We only validate the invite code when they actually submit, to prevent enumeration (at this point, they must have completed the captcha)
+    |> User.validate_invite_code()
     |> Repo.insert()
   end
 

@@ -2,6 +2,7 @@ defmodule Platform.Accounts.User do
   use Ecto.Schema
   import Ecto.Changeset
   alias Platform.Material
+  alias Platform.Invites
 
   schema "users" do
     field :email, :string
@@ -44,16 +45,40 @@ defmodule Platform.Accounts.User do
   def registration_changeset(user, attrs, opts \\ []) do
     user
     |> cast(attrs, [:email, :password, :username, :invite_code])
-    |> validate_invite_code()
     |> validate_email()
     |> validate_username()
     |> validate_password(opts)
   end
 
-  defp validate_invite_code(changeset) do
+  def validate_invite_code(changeset) do
     changeset
     |> validate_required([:invite_code])
-    |> validate_format(:invite_code, ~r/^test$/, message: "invalid invite code")
+    |> validate_change(:invite_code, fn _, code ->
+      case Invites.get_invite_by_code(code) do
+        nil ->
+          [invite_code: "not a valid invite code"]
+
+        code ->
+          case code.active do
+            true -> []
+            false -> [invite_code: "this invite code has expired"]
+          end
+      end
+    end)
+    # Actually insert the invite code into the changeset so that it persists
+    |> put_change(
+      :invite_id,
+      case Map.get(changeset.changes, :invite_code) do
+        nil ->
+          nil
+
+        code ->
+          case Invites.get_invite_by_code(code) do
+            nil -> nil
+            invite -> invite.id
+          end
+      end
+    )
   end
 
   defp validate_email(changeset) do

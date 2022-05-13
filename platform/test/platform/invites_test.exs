@@ -7,6 +7,7 @@ defmodule Platform.InvitesTest do
     alias Platform.Invites.Invite
 
     import Platform.InvitesFixtures
+    import Platform.AccountsFixtures
 
     @invalid_attrs %{active: nil, code: nil}
 
@@ -23,6 +24,17 @@ defmodule Platform.InvitesTest do
     test "get_invite_by_code/1 returns the invite with given code" do
       invite = invite_fixture()
       assert Invites.get_invite_by_code(invite.code) == invite
+    end
+
+    test "get_invites_by_user/1 returns the invites with given user" do
+      owner = user_fixture()
+      assert length(Invites.get_invites_by_user(owner)) == 0
+
+      invite_fixture(%{owner_id: owner.id})
+      invite_fixture(%{owner_id: owner.id})
+      invite_fixture(%{owner_id: owner.id})
+
+      assert length(Invites.get_invites_by_user(owner)) == 3
     end
 
     test "create_invite/1 with valid data creates a invite" do

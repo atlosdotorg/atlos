@@ -13,7 +13,7 @@ defmodule Platform.AccountsFixtures do
       email: unique_user_email(),
       password: valid_user_password(),
       username: unique_user_username(),
-      invite_code: "test"
+      invite_code: Platform.Accounts.get_valid_invite_code()
     })
   end
 

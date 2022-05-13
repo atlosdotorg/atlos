@@ -6,8 +6,9 @@ defmodule PlatformWeb.UserRegistrationController do
   alias PlatformWeb.UserAuth
   alias Platform.Auditor
 
-  def new(conn, _params) do
-    changeset = Accounts.change_user_registration(%User{})
+  def new(conn, params) do
+    invite_code = Map.get(params, "invite_code", "")
+    changeset = Accounts.change_user_registration(%User{invite_code: invite_code})
     render(conn, "new.html", changeset: changeset, title: "Register")
   end
 
