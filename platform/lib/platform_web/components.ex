@@ -158,15 +158,48 @@ defmodule PlatformWeb.Components do
 
   def nav(assigns) do
     ~H"""
-    <div class="w-28"></div>
-    <div class="w-28 bg-neutral-700 overflow-y-auto fixed h-screen">
-      <div class="w-full py-6 flex flex-col items-center">
-        <%= link to: "/", class: "flex flex-col items-center text-white" do %>
-          <span class="text-white text-xl py-px px-1 rounded-sm bg-white text-neutral-700 uppercase font-extrabold font-mono">
-            Atlos
-          </span>
-        <% end %>
-        <div class="flex-1 mt-6 w-full px-2 space-y-1">
+    <div class="md:w-28 h-20"></div>
+    <div
+      class="w-full md:w-28 bg-neutral-700 overflow-y-auto fixed z-50 md:h-screen self-start"
+      x-data="{ open: window.innerWidth >= 768 }"
+      x-transition
+    >
+      <div class="w-full pt-6 flex flex-col items-center">
+        <div class="flex w-full px-4 md:px-0 border-b-2 pb-6 md:pb-0 md:border-0 border-neutral-600 justify-between md:justify-center items-center">
+          <%= link to: "/", class: "flex flex-col items-center text-white" do %>
+            <span class="text-white text-xl py-px px-1 rounded-sm bg-white text-neutral-700 uppercase font-extrabold font-mono">
+              Atlos
+            </span>
+          <% end %>
+          <div>
+            <button type="button" class="md:hidden pt-1" x-on:click="open = true" x-show="!open">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-6 w-6 text-white"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+
+            <button type="button" class="md:hidden pt-1" x-on:click="open = false" x-show="open">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-6 w-6 text-white"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div class="flex-1 mt-6 w-full px-2 space-y-1 md:h-screen pb-6" x-show="open" x-cloak>
           <.navlink to="/new" label="New" request_path={@path}>
             <svg
               class="text-white group-hover:text-white h-6 w-6"
