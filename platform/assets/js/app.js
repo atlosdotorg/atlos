@@ -130,7 +130,7 @@ function initializeMaps() {
 
         let data = JSON.parse(s.getAttribute("data"));
         for (let media of data) {
-            let popup = new mapboxgl.Popup({ offset: 30 }).setHTML(`
+            let popup = new mapboxgl.Popup({ offset: 30, closeButton: false }).setHTML(`
                 <div class="fixed w-[350px] h-[190px] flex rounded-lg shadow-lg items-center bg-white justify-around -z-50">
                     <div class="font-medium text-lg text-md p-4">
                         <span class="animate-pulse">Loading...</span>

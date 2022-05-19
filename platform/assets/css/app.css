@@ -238,10 +238,6 @@
   align-items: baseline;
 }
 
-.mapboxgl-popup-close-button {
-  outline: none;
-}
-
 /**
  * Tom Select bootstrap 5
  */
