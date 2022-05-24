@@ -13,9 +13,9 @@ defmodule PlatformWeb.Components do
   def navlink(%{request_path: path, to: to} = assigns) do
     classes =
       if String.starts_with?(path, to) and !String.equivalent?(path, "/") do
-        "bg-neutral-800 text-white group w-full p-3 rounded-md flex flex-col items-center text-xs font-medium"
+        "self-start bg-neutral-800 text-white group w-full p-3 rounded-md flex flex-col items-center text-xs font-medium"
       else
-        "text-neutral-100 hover:bg-neutral-800 hover:text-white group w-full p-3 rounded-md flex flex-col items-center text-xs font-medium"
+        "self-start text-neutral-100 hover:bg-neutral-800 hover:text-white group w-full p-3 rounded-md flex flex-col items-center text-xs font-medium"
       end
 
     ~H"""
@@ -200,7 +200,7 @@ defmodule PlatformWeb.Components do
           </div>
         </div>
         <div
-          class="grid md:flex md:flex-col md:justify-start grid-cols-3 gap-1 md:grid-cols-1 mt-6 w-full px-2 md:h-full md:pb-2 pb-6 max-h-full"
+          class="grid md:flex md:flex-col md:justify-start grid-cols-3 gap-1 md:grid-cols-1 mt-6 w-full px-2 md:h-full md:pb-2 pb-6 md:max-h-full"
           x-show="open"
           x-cloak
         >
