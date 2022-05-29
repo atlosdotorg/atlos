@@ -56,6 +56,11 @@ defmodule PlatformWeb.Router do
   end
 
   scope "/", PlatformWeb do
+    pipe_through([:browser, :interstitial])
+    get("/users/suspended", UserRegistrationController, :suspended)
+  end
+
+  scope "/", PlatformWeb do
     pipe_through([:browser, :redirect_if_user_is_authenticated, :interstitial])
 
     get("/users/register", UserRegistrationController, :new)

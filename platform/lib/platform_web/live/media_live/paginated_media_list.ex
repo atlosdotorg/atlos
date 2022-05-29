@@ -42,7 +42,7 @@ defmodule PlatformWeb.MediaLive.PaginatedMediaList do
   def render(assigns) do
     ~H"""
     <section>
-      <div class="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+      <div class="grid gap-4 grid-cols-1 lg:grid-cols-2 xl:grid-cols-3">
         <%= for media <- @media do %>
           <.media_card media={media} current_user={@current_user} />
         <% end %>

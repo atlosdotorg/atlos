@@ -6,6 +6,15 @@ defmodule PlatformWeb.UserRegistrationController do
   alias PlatformWeb.UserAuth
   alias Platform.Auditor
 
+  def suspended(conn, params) do
+    if Map.get(conn.assigns, :current_user) != nil and
+         !Accounts.is_suspended(Map.get(conn.assigns, :current_user)) do
+      conn |> redirect(to: "/")
+    else
+      render(conn, "suspended.html", title: "Account Suspended")
+    end
+  end
+
   def new(conn, params) do
     invite_code = Map.get(params, "invite_code", "")
     changeset = Accounts.change_user_registration(%User{invite_code: invite_code})

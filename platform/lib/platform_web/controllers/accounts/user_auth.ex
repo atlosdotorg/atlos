@@ -131,9 +131,8 @@ defmodule PlatformWeb.UserAuth do
     if conn.assigns[:current_user] do
       if Accounts.is_suspended(conn.assigns[:current_user]) do
         conn
-        |> put_flash(:error, "Your account has been suspended.")
         |> clear_session()
-        |> redirect(to: Routes.user_session_path(conn, :new))
+        |> redirect(to: Routes.user_registration_path(conn, :suspended))
         |> halt()
       else
         conn
