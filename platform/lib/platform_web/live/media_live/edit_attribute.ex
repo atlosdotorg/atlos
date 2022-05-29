@@ -94,7 +94,7 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
               <%= case @attr.type do %>
                 <% :text -> %>
                   <%= label(f, @attr.schema_field, @attr.label) %>
-                  <%= textarea(f, @attr.schema_field) %>
+                  <%= textarea(f, @attr.schema_field, rows: 5) %>
                 <% :select -> %>
                   <div phx-update="ignore" id={"attr_select_#{@media.slug}_#{@attr.schema_field}"}>
                     <%= label(f, @attr.schema_field, @attr.label) %>
@@ -180,6 +180,7 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
               <%= textarea(f, :explanation,
                 phx_debounce: "200",
                 placeholder: "Recommended for all non-trivial changes.",
+                rows: "5",
                 class: "my-1"
               ) %>
               <%= error_tag(f, :explanation) %>

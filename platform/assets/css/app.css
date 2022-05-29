@@ -57,12 +57,15 @@
   .phx-submit-loading.pulse-form-on-submit {
     @apply animate-pulse;
   }
+  
+  .phx-form textarea {
+    @apply shadow-sm focus:ring-urge-500 focus:border-urge-500 block w-full sm:text-sm border-gray-300 rounded-md;
+  }
 
   .phx-form input[type="email"],
   .phx-form input[type="password"],
   .phx-form input[type="url"],
   .phx-form input[type="number"],
-  .phx-form textarea,
   .phx-form input[type="text"] {
     @apply field ~neutral;
   }
