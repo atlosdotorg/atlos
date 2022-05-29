@@ -21,6 +21,12 @@ defmodule Platform.Material.Attribute do
     :required_roles
   ]
 
+  defp renamed_attributes() do
+    %{
+      recorded_by: :camera_system
+    }
+  end
+
   defp attributes() do
     [
       %Attribute{
@@ -88,13 +94,13 @@ defmodule Platform.Material.Attribute do
         add_none: "Indeterminable"
       },
       %Attribute{
-        schema_field: :attr_recorded_by,
+        schema_field: :attr_camera_system,
         type: :select,
-        options: ["Person", "Satellite", "Surveillance Camera", "Drone", "Dashcam"],
-        label: "Recorded By",
+        options: ["Handheld", "Satellite", "Surveillance Camera", "Drone", "Dashcam"],
+        label: "Camera System",
         pane: :attributes,
         required: false,
-        name: :recorded_by,
+        name: :camera_system,
         description: "How was this media created?"
       },
       %Attribute{
@@ -280,11 +286,19 @@ defmodule Platform.Material.Attribute do
   end
 
   def attribute_names() do
-    attributes() |> Enum.map(& &1.name)
+    (attributes() |> Enum.map(& &1.name)) ++ Map.keys(renamed_attributes())
   end
 
   def get_attribute(name) do
-    hd(Enum.filter(attributes(), &(&1.name == name)))
+    # Some attributes have been renamed; this allows us to keep updates
+    # that reference the old name working.
+    real_name =
+      case renamed_attributes() do
+        %{^name => new_name} -> new_name
+        _ -> name
+      end
+
+    hd(Enum.filter(attributes(), &(&1.name == real_name)))
   end
 
   def changeset(media, %Attribute{} = attribute, attrs \\ %{}) do
