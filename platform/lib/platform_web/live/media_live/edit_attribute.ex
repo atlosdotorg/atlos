@@ -53,7 +53,7 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
         {:noreply, socket |> put_flash(:info, "Your update has been saved.") |> close()}
 
       {:error, %Ecto.Changeset{} = changeset} ->
-        {:noreply, assign(socket, :changeset, changeset)}
+        {:noreply, assign(socket, :changeset, changeset |> Map.put(:action, :validate))}
     end
   end
 

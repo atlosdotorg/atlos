@@ -18,7 +18,8 @@ defmodule Platform.Material.Attribute do
     :name,
     :description,
     :add_none,
-    :required_roles
+    :required_roles,
+    :explanation_required
   ]
 
   defp renamed_attributes() do
@@ -258,8 +259,9 @@ defmodule Platform.Material.Attribute do
       %Attribute{
         schema_field: :attr_flag,
         type: :select,
-        options: ["Help Needed", "Needs Confirmation", "Community Confirmed", "Closed"],
+        options: ["Claimed", "Help Needed", "Second Opinion Needed", "Closed"],
         label: "Flag",
+        explanation_required: true,
         pane: :metadata,
         required: false,
         name: :flag,
@@ -306,7 +308,7 @@ defmodule Platform.Material.Attribute do
     |> populate_virtual_data(attribute)
     |> cast_attribute(attribute, attrs)
     |> validate_attribute(attribute)
-    |> cast_and_validate_virtual_explanation(attrs)
+    |> cast_and_validate_virtual_explanation(attrs, attribute)
     |> update_from_virtual_data(attribute)
   end
 
@@ -408,13 +410,27 @@ defmodule Platform.Material.Attribute do
     end
   end
 
-  defp cast_and_validate_virtual_explanation(changeset, params) do
-    changeset
-    |> cast(params, [:explanation])
-    |> validate_length(:explanation,
-      max: 2500,
-      message: "Explanations cannot exceed 2500 characters."
-    )
+  defp cast_and_validate_virtual_explanation(changeset, params, attribute) do
+    change =
+      changeset
+      |> cast(params, [:explanation])
+      |> validate_length(:explanation,
+        max: 2500,
+        message: "Explanations cannot exceed 2500 characters."
+      )
+
+    if attribute.explanation_required do
+      change
+      |> validate_required(:explanation,
+        message: "An explanation is required to update this attribute."
+      )
+      |> validate_length(:explanation,
+        min: 10,
+        message: "An explanation of at least 10 characters is required to update this attribute."
+      )
+    else
+      change
+    end
   end
 
   @doc """
