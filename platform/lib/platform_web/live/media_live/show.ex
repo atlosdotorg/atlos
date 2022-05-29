@@ -69,30 +69,32 @@ defmodule PlatformWeb.MediaLive.Show do
       ) do
     version = Material.get_media_version!(version)
 
-    if !Accounts.is_privileged(socket.assigns.current_user) && version.visibility == :removed do
-      raise "no permission"
-    end
-
-    {:ok, _} =
-      case value do
-        "visible" ->
-          Material.update_media_version(version, %{visibility: value})
-
-        "hidden" ->
-          Material.update_media_version(version, %{visibility: value})
-
-        "removed" ->
-          if Accounts.is_privileged(socket.assigns.current_user) do
+    if (!Accounts.is_privileged(socket.assigns.current_user) && version.visibility == :removed) or
+         !Media.can_user_edit(socket.assigns.media, socket.assigns.current_user) do
+      {:noreply,
+       socket |> put_flash(:error, "You cannot change this media version's visibility.")}
+    else
+      {:ok, _} =
+        case value do
+          "visible" ->
             Material.update_media_version(version, %{visibility: value})
-          else
-            raise "no permission"
-          end
-      end
 
-    {:noreply,
-     socket
-     |> assign_media_and_updates()
-     |> put_flash(:info, "Media visibility changed successfully.")}
+          "hidden" ->
+            Material.update_media_version(version, %{visibility: value})
+
+          "removed" ->
+            if Accounts.is_privileged(socket.assigns.current_user) do
+              Material.update_media_version(version, %{visibility: value})
+            else
+              raise "no permission"
+            end
+        end
+
+      {:noreply,
+       socket
+       |> assign_media_and_updates()
+       |> put_flash(:info, "Media visibility changed successfully.")}
+    end
   end
 
   def handle_info({:version_created, _version}, socket) do
