@@ -642,7 +642,7 @@ defmodule PlatformWeb.Components do
       href={"/media/#{media.slug}"}
     >
       <%= if Media.can_user_view(media, user) do %>
-        <div class="h-full p-2 flex flex-col w-3/4 gap-2">
+        <div class="p-2 flex flex-col w-3/4 gap-2 relative">
           <section>
             <p class="font-mono text-xs text-gray-500"><%= media.slug %></p>
             <p class="text-gray-900 group-hover:text-gray-900">
@@ -772,8 +772,7 @@ defmodule PlatformWeb.Components do
               <%= length(media.updates) %> Updates
             </span>
           </section>
-          <section class="flex-grow" />
-          <section class="flex gap-2 justify-between items-center">
+          <section class="bottom-0 mb-2 pr-4 w-full absolute flex gap-2 justify-between items-center">
             <.user_stack users={contributors} />
             <p class="text-xs text-gray-500 flex items-center">
               <svg
