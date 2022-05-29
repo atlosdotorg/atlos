@@ -19,7 +19,6 @@ defmodule PlatformWeb.MediaLive.Queue do
     case which do
       "help_needed" -> "Help Needed"
       "needs_confirmation" -> "Needs Confirmation"
-      "community_confirmed" -> "Community Confirmed"
     end
   end
 
@@ -27,7 +26,6 @@ defmodule PlatformWeb.MediaLive.Queue do
     case which do
       "help_needed" -> %{"attr_flag" => "Help Needed"}
       "needs_confirmation" -> %{"attr_flag" => "Needs Confirmation"}
-      "community_confirmed" -> %{"attr_flag" => "Community Confirmed"}
     end
   end
 
@@ -49,10 +47,6 @@ defmodule PlatformWeb.MediaLive.Queue do
             <%= live_patch("Needs Confirmation",
               class: if(@tab == "needs_confirmation", do: active_classes, else: inactive_classes),
               to: "/queue/needs_confirmation"
-            ) %>
-            <%= live_patch("Community Confirmed",
-              class: if(@tab == "community_confirmed", do: active_classes, else: inactive_classes),
-              to: "/queue/community_confirmed"
             ) %>
           </nav>
         </div>
