@@ -96,7 +96,7 @@ defmodule Platform.Material.Attribute do
       %Attribute{
         schema_field: :attr_camera_system,
         type: :select,
-        options: ["Handheld", "Satellite", "Surveillance Camera", "Drone", "Dashcam"],
+        options: ["Handheld", "Satellite", "Surveillance Camera", "Drone", "Dashcam", "Other"],
         label: "Camera System",
         pane: :attributes,
         required: false,
