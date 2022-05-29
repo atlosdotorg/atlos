@@ -352,7 +352,7 @@
             <details class="mb-4">
               <summary class="cursor-pointer text-button text-sm">View removed media</summary>
               <div class="divide-gray-200 grid grid-cols-1 divide-y divide-dashed">
-                <%= for version <- hidden_versions do %>
+                <%= for version <- removed_versions do %>
                   <.media_version_display
                     version={version}
                     media={@media}
