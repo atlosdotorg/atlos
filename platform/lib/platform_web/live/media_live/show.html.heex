@@ -126,14 +126,27 @@
         <:header>
           <h3 class="sec-head">Attributes</h3>
           <p class="sec-subhead">
-            This information is gathered and organized by the Atlos community through consensus.
+            This information is gathered and organized through consensus.
           </p>
         </:header>
         <div class="border-gray-200">
           <dl class="divide-y divide-dashed divide-gray-200 -mt-5 -mb-3">
             <%= for attr <- Attribute.set_for_media(@media, :attributes) do %>
-              <div class="py-2 sm:grid sm:grid-cols-3 sm:gap-4">
-                <dt class="text-sm font-medium text-gray-500 mt-1"><%= attr.label %></dt>
+              <div class="py-2 sm:grid sm:grid-cols-3 sm:gap-2">
+                <dt class="text-sm font-medium text-gray-500 mt-1 flex justify-between">
+                  <%= attr.label %>
+                  <%= live_patch(class: "text-button inline-block",
+                      to: Routes.media_show_path(@socket, :history, @media.slug, attr.name)
+                    ) do %>
+                    <.user_stack users={
+                      @updates
+                      |> Enum.filter(&(&1.modified_attribute == attr.name))
+                      |> Enum.map(& &1.user)
+                      |> Enum.reverse()
+                      |> Enum.take(1)
+                    } />
+                  <% end %>
+                </dt>
                 <dd class="mt-1 flex text-sm text-gray-900 sm:mt-0 sm:col-span-2">
                   <span class="flex-grow gap-1 flex flex-wrap">
                     <.attr_entry name={attr.name} value={Map.get(@media, attr.schema_field)} />
@@ -175,8 +188,17 @@
             <%= if length(@updates) > 5 do %>
               <a class="text-button flex text-sm items-center" href="#feed-bottom">
                 Jump to Latest
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" viewBox="0 0 20 20" fill="currentColor">
-                  <path fill-rule="evenodd" d="M15.707 4.293a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-5-5a1 1 0 011.414-1.414L10 8.586l4.293-4.293a1 1 0 011.414 0zm0 6a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-5-5a1 1 0 111.414-1.414L10 14.586l4.293-4.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-4 w-4 ml-1"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M15.707 4.293a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-5-5a1 1 0 011.414-1.414L10 8.586l4.293-4.293a1 1 0 011.414 0zm0 6a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-5-5a1 1 0 111.414-1.414L10 14.586l4.293-4.293a1 1 0 011.414 0z"
+                    clip-rule="evenodd"
+                  />
                 </svg>
               </a>
             <% end %>
@@ -202,12 +224,26 @@
       <.card>
         <:header>
           <h3 class="sec-head">Metadata</h3>
+          <p class="sec-subhead">This information is used to coordinate work.</p>
         </:header>
         <div class="border-gray-200">
           <dl class="divide-y divide-dashed divide-gray-200 -mt-5 -mb-3">
             <%= for attr <- Attribute.set_for_media(@media, :metadata) do %>
-              <div class="py-2 sm:grid sm:grid-cols-3 sm:gap-4">
-                <dt class="text-sm font-medium text-gray-500 mt-1"><%= attr.label %></dt>
+              <div class="py-2 sm:grid sm:grid-cols-3 sm:gap-2">
+                <dt class="text-sm font-medium text-gray-500 mt-1 flex justify-between">
+                  <%= attr.label %>
+                  <%= live_patch(class: "text-button inline-block",
+                      to: Routes.media_show_path(@socket, :history, @media.slug, attr.name)
+                    ) do %>
+                    <.user_stack users={
+                      @updates
+                      |> Enum.filter(&(&1.modified_attribute == attr.name))
+                      |> Enum.map(& &1.user)
+                      |> Enum.reverse()
+                      |> Enum.take(1)
+                    } />
+                  <% end %>
+                </dt>
                 <dd class="mt-1 flex text-sm text-gray-900 sm:mt-0 sm:col-span-2">
                   <span class="flex-grow gap-1 flex flex-wrap">
                     <.attr_entry name={attr.name} value={Map.get(@media, attr.schema_field)} />
@@ -383,6 +419,25 @@
         id="upload-version"
         current_user={@current_user}
         media={@media}
+      />
+    </.modal>
+  <% end %>
+  <%= if @live_action == :history do %>
+    <% attr = Attribute.get_attribute(@attribute) %>
+    <.modal target={} close_confirmation="">
+      <div class="mb-8">
+        <p class="support font-mono"><%= @media.slug %></p>
+        <p class="sec-head">
+          History: <%= attr.label %>
+        </p>
+        <p class="sec-subhead"><%= attr.description %></p>
+      </div>
+      <.live_component
+        module={PlatformWeb.UpdatesLive.UpdateFeed}
+        id="update-feed-history"
+        current_user={@current_user}
+        show_final_line={false}
+        updates={@updates |> Enum.filter(&(&1.modified_attribute == attr.name))}
       />
     </.modal>
   <% end %>

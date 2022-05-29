@@ -45,7 +45,10 @@ defmodule PlatformWeb.MediaLive.Show do
     with %Material.Media{} = media <- Material.get_full_media_by_slug(socket.assigns.slug),
          true <- Media.can_user_view(media, socket.assigns.current_user) do
       PubSub.subscribe(Platform.PubSub, Material.pubsub_topic_for_media(media.id))
-      socket |> assign(:media, media) |> assign(:updates, media.updates)
+
+      socket
+      |> assign(:media, media)
+      |> assign(:updates, media.updates |> Enum.sort_by(& &1.inserted_at))
     else
       _ ->
         socket

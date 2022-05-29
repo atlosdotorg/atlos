@@ -299,8 +299,9 @@ defmodule Platform.Material.Attribute do
         %{^name => new_name} -> new_name
         _ -> name
       end
+      |> to_string()
 
-    hd(Enum.filter(attributes(), &(&1.name == real_name)))
+    hd(Enum.filter(attributes(), &(&1.name |> to_string() == real_name)))
   end
 
   def changeset(media, %Attribute{} = attribute, attrs \\ %{}) do
