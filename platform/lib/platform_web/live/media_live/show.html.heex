@@ -171,7 +171,7 @@
       <.card>
         <:header>
           <div class="flex justify-between">
-          <h3 class="sec-head">Feed</h3>
+            <h3 class="sec-head">Feed</h3>
             <%= if length(@updates) > 5 do %>
               <a class="text-button flex text-sm items-center" href="#feed-bottom">
                 Jump to Now
@@ -199,6 +199,49 @@
       </.card>
     </div>
     <div class="space-y-8">
+      <.card>
+        <:header>
+          <h3 class="sec-head">Metadata</h3>
+        </:header>
+        <div class="border-gray-200">
+          <dl class="divide-y divide-dashed divide-gray-200 -mt-5 -mb-3">
+            <%= for attr <- Attribute.set_for_media(@media, :metadata) do %>
+              <div class="py-2 sm:grid sm:grid-cols-3 sm:gap-4">
+                <dt class="text-sm font-medium text-gray-500 mt-1"><%= attr.label %></dt>
+                <dd class="mt-1 flex text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                  <span class="flex-grow gap-1 flex flex-wrap">
+                    <.attr_entry name={attr.name} value={Map.get(@media, attr.schema_field)} />
+                  </span>
+                  <span class="ml-4 flex-shrink-0">
+                    <%= if Attribute.can_user_edit(attr, @current_user, @media) do %>
+                      <%= live_patch("Update",
+                        class: "text-button mt-1 inline-block",
+                        to: Routes.media_show_path(@socket, :edit, @media.slug, attr.name)
+                      ) %>
+                    <% end %>
+                  </span>
+                </dd>
+              </div>
+            <% end %>
+            <% unset =
+              Attribute.unset_for_media(@media, :metadata)
+              |> filter_editable(@media, @current_user) %>
+            <%= if length(unset) > 0 do %>
+              <div class="py-2 sm:grid sm:grid-cols-3 sm:gap-4 -mb-2">
+                <dt class="text-sm font-medium text-gray-500 mt-1">Unset</dt>
+                <dd class="mt-1 flex flex-wrap gap-2 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                  <%= for attr <- unset do %>
+                    <%= live_patch("+ #{attr.label}",
+                      class: "button original",
+                      to: Routes.media_show_path(@socket, :edit, @media.slug, attr.name)
+                    ) %>
+                  <% end %>
+                </dd>
+              </div>
+            <% end %>
+          </dl>
+        </div>
+      </.card>
       <.card>
         <:header>
           <h3 class="sec-head">Media</h3>
@@ -251,49 +294,6 @@
               <% end %>
             </div>
           <% end %>
-        </div>
-      </.card>
-      <.card>
-        <:header>
-          <h3 class="sec-head">Metadata</h3>
-        </:header>
-        <div class="border-gray-200">
-          <dl class="divide-y divide-dashed divide-gray-200 -mt-5 -mb-3">
-            <%= for attr <- Attribute.set_for_media(@media, :metadata) do %>
-              <div class="py-2 sm:grid sm:grid-cols-3 sm:gap-4">
-                <dt class="text-sm font-medium text-gray-500 mt-1"><%= attr.label %></dt>
-                <dd class="mt-1 flex text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                  <span class="flex-grow gap-1 flex flex-wrap">
-                    <.attr_entry name={attr.name} value={Map.get(@media, attr.schema_field)} />
-                  </span>
-                  <span class="ml-4 flex-shrink-0">
-                    <%= if Attribute.can_user_edit(attr, @current_user, @media) do %>
-                      <%= live_patch("Update",
-                        class: "text-button mt-1 inline-block",
-                        to: Routes.media_show_path(@socket, :edit, @media.slug, attr.name)
-                      ) %>
-                    <% end %>
-                  </span>
-                </dd>
-              </div>
-            <% end %>
-            <% unset =
-              Attribute.unset_for_media(@media, :metadata)
-              |> filter_editable(@media, @current_user) %>
-            <%= if length(unset) > 0 do %>
-              <div class="py-2 sm:grid sm:grid-cols-3 sm:gap-4 -mb-2">
-                <dt class="text-sm font-medium text-gray-500 mt-1">Unset</dt>
-                <dd class="mt-1 flex flex-wrap gap-2 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                  <%= for attr <- unset do %>
-                    <%= live_patch("+ #{attr.label}",
-                      class: "button original",
-                      to: Routes.media_show_path(@socket, :edit, @media.slug, attr.name)
-                    ) %>
-                  <% end %>
-                </dd>
-              </div>
-            <% end %>
-          </dl>
         </div>
       </.card>
       <.card no_pad={true}>
