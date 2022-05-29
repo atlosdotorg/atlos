@@ -76,9 +76,19 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
     ~H"""
     <article>
       <.modal target={@myself} close_confirmation={confirm_prompt}>
-        <p class="support font-mono"><%= @media.slug %></p>
-        <h3 class="sec-head"><%= @attr.label %></h3>
-        <p class="sec-subhead"><%= @attr.description %></p>
+        <div class="md:flex justify-between">
+          <div>
+            <p class="support font-mono"><%= @media.slug %></p>
+            <h3 class="sec-head">Edit: <%= @attr.label %></h3>
+            <p class="sec-subhead"><%= @attr.description %></p>
+          </div>
+          <div class="sm:mr-8">
+            <%= live_patch("History",
+              class: "base-button",
+              to: Routes.media_show_path(@socket, :history, @media.slug, @attr.name)
+            ) %>
+          </div>
+        </div>
         <hr class="h-8 sep" />
         <.form
           let={f}

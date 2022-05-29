@@ -426,11 +426,23 @@
     <% attr = Attribute.get_attribute(@attribute) %>
     <.modal target={} close_confirmation="">
       <div class="mb-8">
-        <p class="support font-mono"><%= @media.slug %></p>
-        <p class="sec-head">
-          History: <%= attr.label %>
-        </p>
-        <p class="sec-subhead"><%= attr.description %></p>
+        <div class="sm:flex justify-between">
+          <div>
+            <p class="support font-mono"><%= @media.slug %></p>
+            <p class="sec-head">
+              History: <%= attr.label %>
+            </p>
+            <p class="sec-subhead"><%= attr.description %></p>
+          </div>
+          <div class="sm:mr-8">
+            <%= if Attribute.can_user_edit(attr, @current_user, @media) do %>
+              <%= live_patch("Edit",
+                class: "base-button",
+                to: Routes.media_show_path(@socket, :edit, @media.slug, attr.name)
+              ) %>
+            <% end %>
+          </div>
+        </div>
       </div>
       <.live_component
         module={PlatformWeb.UpdatesLive.UpdateFeed}
