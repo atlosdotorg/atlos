@@ -129,7 +129,15 @@ defmodule PlatformWeb.UserAuth do
   """
   def require_authenticated_user(conn, _opts) do
     if conn.assigns[:current_user] do
-      conn
+      if Accounts.is_suspended(conn.assigns[:current_user]) do
+        conn
+        |> put_flash(:error, "Your account has been suspended.")
+        |> clear_session()
+        |> redirect(to: Routes.user_session_path(conn, :new))
+        |> halt()
+      else
+        conn
+      end
     else
       conn
       |> put_flash(:error, "You must log in to access this page.")

@@ -18,7 +18,8 @@ defmodule PlatformWeb.ProfilesLive.Show do
 
   defp assign_user(socket) do
     with %Accounts.User{} = user <- Accounts.get_user_by_username(socket.assigns.username),
-         false <- Accounts.is_suspended(user) do
+         false <-
+           Accounts.is_suspended(user) && !Accounts.is_privileged(socket.assigns.current_user) do
       socket |> assign(:user, user) |> assign(:updates, Updates.get_updates_for_user(user))
     else
       _ ->
