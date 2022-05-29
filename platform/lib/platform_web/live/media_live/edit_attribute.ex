@@ -105,6 +105,7 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
                 <% :text -> %>
                   <%= label(f, @attr.schema_field, @attr.label) %>
                   <%= textarea(f, @attr.schema_field, rows: 5) %>
+                  <%= error_tag(f, @attr.schema_field) %>
                 <% :select -> %>
                   <div phx-update="ignore" id={"attr_select_#{@media.slug}_#{@attr.schema_field}"}>
                     <%= label(f, @attr.schema_field, @attr.label) %>
