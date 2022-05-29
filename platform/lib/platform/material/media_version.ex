@@ -15,7 +15,7 @@ defmodule Platform.Material.MediaVersion do
     field :status, Ecto.Enum, values: [:pending, :complete, :error], default: :complete
     field :source_url, :string
 
-    field :hidden, :boolean, default: false
+    field :visibility, Ecto.Enum, default: :visible, values: [:visible, :hidden, :removed]
 
     belongs_to :media, Platform.Material.Media
 
@@ -35,7 +35,7 @@ defmodule Platform.Material.MediaVersion do
       :mime_type,
       :client_name,
       :media_id,
-      :hidden
+      :visibility
     ])
     |> validate_required([
       :status,
@@ -52,7 +52,7 @@ defmodule Platform.Material.MediaVersion do
   Can the given user view the media version?
   """
   def can_user_view(%MediaVersion{} = version, %Accounts.User{} = user) do
-    case version.hidden do
+    case version.visibility == :removed do
       true -> Accounts.is_privileged(user)
       false -> true
     end

@@ -62,21 +62,37 @@ defmodule PlatformWeb.MediaLive.Show do
      socket |> push_patch(to: Routes.media_show_path(socket, :show, socket.assigns.media.slug))}
   end
 
-  def handle_event("toggle_media_visibility", %{"version" => version} = _params, socket) do
-    # NB: This is the only place we check permission to perform the action, since
-    # changing media visibility is not an action that generates an update.
-    if Accounts.is_privileged(socket.assigns.current_user) do
-      version = Material.get_media_version!(version)
-      {:ok, _} = Material.update_media_version(version, %{hidden: !version.hidden})
+  def handle_event(
+        "set_media_visibility",
+        %{"version" => version, "state" => value} = _params,
+        socket
+      ) do
+    version = Material.get_media_version!(version)
 
-      {:noreply,
-       socket
-       |> assign_media_and_updates()
-       |> put_flash(:info, "Media visibility changed successfully.")}
-    else
-      {:noreply,
-       socket |> put_flash(:error, "You do not have permission to change media visibility.")}
+    if !Accounts.is_privileged(socket.assigns.current_user) && version.visibility == :removed do
+      raise "no permission"
     end
+
+    {:ok, _} =
+      case value do
+        "visible" ->
+          Material.update_media_version(version, %{visibility: value})
+
+        "hidden" ->
+          Material.update_media_version(version, %{visibility: value})
+
+        "removed" ->
+          if Accounts.is_privileged(socket.assigns.current_user) do
+            Material.update_media_version(version, %{visibility: value})
+          else
+            raise "no permission"
+          end
+      end
+
+    {:noreply,
+     socket
+     |> assign_media_and_updates()
+     |> put_flash(:info, "Media visibility changed successfully.")}
   end
 
   def handle_info({:version_created, _version}, socket) do

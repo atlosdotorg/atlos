@@ -559,7 +559,7 @@ defmodule Platform.Material do
   def media_thumbnail(%Media{} = media) do
     case Enum.find(
            media.versions |> Enum.sort_by(& &1.updated_at) |> Enum.reverse(),
-           &(!(&1.hidden or is_nil(&1.file_location)))
+           &(!(&1.visibility != :visible or is_nil(&1.file_location)))
          ) do
       nil ->
         nil
