@@ -283,7 +283,7 @@
           <h3 class="sec-head">Media</h3>
           <p class="sec-subhead">There may be multiple versions circulating online.</p>
         </:header>
-        <div class="max-h-[90vh] overflow-auto -mt-5 pt-5 -mb-5">
+        <div class="-mt-10 pt-5 -mb-5">
           <% versions =
             @media.versions |> filter_viewable_versions(@current_user) |> sort_by_date() %>
           <%= if length(versions) == 0 do %>
@@ -311,7 +311,7 @@
               <% end %>
             </div>
           <% else %>
-            <div class="divide-gray-200 flex flex-col gap-4 divide-y divide-dashed">
+            <div class="divide-gray-200 grid grid-cols-1 divide-y divide-dashed">
               <%= for version <- versions do %>
                 <.media_version_display
                   version={version}
@@ -322,7 +322,7 @@
               <% end %>
               <%= if Media.can_user_edit(@media, @current_user) do %>
                 <section class="pt-2 pb-4 text-sm overflow-visible">
-                  <%= live_patch("+ Upload Version",
+                  <%= live_patch("+ Upload Another Version",
                     class: "text-button mt-1 inline-block",
                     to: Routes.media_show_path(@socket, :upload, @media.slug)
                   ) %>

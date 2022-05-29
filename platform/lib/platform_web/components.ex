@@ -952,7 +952,7 @@ defmodule PlatformWeb.Components do
     media_to_show = version.status == :complete
 
     ~H"""
-    <section id={"version-#{version.id}"}>
+    <section id={"version-#{version.id}"} class="py-4">
       <% loc = Material.media_version_location(version, media) %>
       <% media_id = "version-#{version.id}-media" %>
       <div class="relative">
