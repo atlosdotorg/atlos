@@ -48,7 +48,7 @@ defmodule PlatformWeb.UpdatesLive.UpdateFeed do
   end
 
   defp order(updates, reverse) do
-    o = Enum.sort_by(updates, & &1.inserted_at)
+    o = Enum.sort_by(updates, & &1.inserted_at, NaiveDateTime)
     if reverse, do: o |> Enum.reverse(), else: o
   end
 
