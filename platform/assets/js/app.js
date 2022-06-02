@@ -73,10 +73,15 @@ function initializeMultiSelects() {
             maxOptions: null,
             placeholder: prompt,
             allowEmptyOption: true,
+            hideSelected: false,
+            hidePlaceholder: true,
             closeAfterSelect: !s.hasAttribute("multiple"),
             onItemAdd(_a, _b) {
                 setTimeout(() => x.control_input.value = "", 1);
-            }
+            },
+            plugins: s.hasAttribute("multiple") ? [
+                "remove_button", "checkbox_options"
+            ] : []
         });
         x.control_input.setAttribute("phx-debounce", "blur");
     });

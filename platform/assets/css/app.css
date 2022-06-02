@@ -400,6 +400,14 @@
    border-top: 0 none;
  }
 
+ .ts-dropdown .selected {
+   color: #3b82f6 !important;
+ }
+
+ .ts-dropdown input[type="checkbox"] {
+  padding-bottom: 2px;
+}
+
  .ts-wrapper.plugin-remove_button .item {
    display: inline-flex;
    align-items: center;
