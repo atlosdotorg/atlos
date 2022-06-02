@@ -60,7 +60,7 @@ defmodule Platform.Material.Attribute do
         schema_field: :attr_time_of_day,
         type: :select,
         options: ["Night", "Day"],
-        label: "Time of Day",
+        label: "Day/Night",
         pane: :attributes,
         required: false,
         name: :time_of_day
