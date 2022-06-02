@@ -118,7 +118,7 @@
     <div class="lg:col-span-2 space-y-8">
       <%= if Media.has_restrictions(@media) do %>
         <aside class="aside ~warning text-sm">
-          <strong>This media has been restricted.</strong>
+          <strong>This incident has been restricted.</strong>
           As a result, you may not be able to edit or update it.
         </aside>
       <% end %>
@@ -444,7 +444,7 @@
           <%= @media.slug %>: Upload New Version
         </p>
         <p class="sec-subhead">
-          Note that additional media should be different copies of the same underlying media (e.g., different resolutions).
+          Note that additional media should document the same event.
         </p>
       </div>
       <.live_component
@@ -488,7 +488,7 @@
   <% end %>
   <%= if Platform.Accounts.is_muted(@current_user) do %>
     <.floating_warning>
-      Your account has been muted. As a result, you cannot edit or comment on this media.
+      Your account has been muted. As a result, you cannot edit or comment on this incident.
     </.floating_warning>
   <% end %>
 </article>

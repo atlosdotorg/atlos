@@ -13,7 +13,7 @@ defmodule PlatformWeb.MediaLive.Card do
     {:noreply,
      socket
      |> assign(:slug, slug)
-     |> assign(:title, "Media #{slug}")
+     |> assign(:title, "Incident #{slug}")
      |> assign(:_base_parent, true)
      |> assign(:_no_background, true)
      |> assign(:media, Material.get_full_media_by_slug(slug))}

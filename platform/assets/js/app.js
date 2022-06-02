@@ -134,7 +134,7 @@ function initializeMaps() {
         });
 
         let data = JSON.parse(s.getAttribute("data"));
-        for (let media of data) {
+        for (let incident of data) {
             let popup = new mapboxgl.Popup({ offset: 30, closeButton: false }).setHTML(`
                 <div class="fixed w-[350px] h-[190px] flex rounded-lg shadow-lg items-center bg-white justify-around -z-50">
                     <div class="font-medium text-lg text-md p-4">
@@ -142,13 +142,13 @@ function initializeMaps() {
                     </div>
                 </div>
                 <iframe
-                    src='/media/${media.slug}/card'
+                    src='/incidents/${incident.slug}/card'
                     width="350px"
                     height="190px"
                 />
             `).setMaxWidth("600px");
             new mapboxgl.Marker({ color: "#60a5fa90" })
-                .setLngLat([media.lon, media.lat])
+                .setLngLat([incident.lon, incident.lat])
                 .setPopup(popup)
                 .addTo(map);
         }

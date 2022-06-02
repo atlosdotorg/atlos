@@ -252,20 +252,19 @@ defmodule PlatformWeb.Components do
             </svg>
           </.navlink>
 
-          <.navlink to="/media" label="All Media" request_path={@path}>
+          <.navlink to="/incidents" label="All Incidents" request_path={@path}>
             <svg
-              class="text-neutral-300 group-hover:text-white h-6 w-6"
               xmlns="http://www.w3.org/2000/svg"
+              class="text-neutral-300 group-hover:text-white h-6 w-6"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
-              aria-hidden="true"
+              stroke-width="2"
             >
               <path
                 stroke-linecap="round"
                 stroke-linejoin="round"
-                stroke-width="2"
-                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
               />
             </svg>
           </.navlink>
@@ -282,7 +281,7 @@ defmodule PlatformWeb.Components do
               <path
                 stroke-linecap="round"
                 stroke-linejoin="round"
-                d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
               />
             </svg>
           </.navlink>
@@ -639,7 +638,7 @@ defmodule PlatformWeb.Components do
     ~H"""
     <a
       class="flex items-stretch group flex-row bg-white overflow-hidden shadow rounded-lg justify-between min-h-32 max-h-48"
-      href={"/media/#{media.slug}"}
+      href={"/incidents/#{media.slug}"}
     >
       <%= if Media.can_user_view(media, user) do %>
         <div class="p-2 flex flex-col w-3/4 gap-2 relative">
@@ -1108,7 +1107,7 @@ defmodule PlatformWeb.Components do
         <%= if version.visibility == :visible do %>
           <button
             type="button"
-            data-confirm="Are you sure you want to change the visibility of this media version?"
+            data-confirm="Are you sure you want to change the visibility of this media?"
             class="button original py-1 px-2"
             phx-click="set_media_visibility"
             phx-value-version={version.id}

@@ -100,12 +100,12 @@ defmodule PlatformWeb.Router do
       live("/queue", MediaLive.Queue)
       live("/queue/:which", MediaLive.Queue)
 
-      live("/media", MediaLive.Index)
-      live("/media/:slug", MediaLive.Show, :show)
-      live("/media/:slug/card", MediaLive.Card)
-      live("/media/:slug/update/:attribute", MediaLive.Show, :edit)
-      live("/media/:slug/history/:attribute", MediaLive.Show, :history)
-      live("/media/:slug/upload", MediaLive.Show, :upload)
+      live("/incidents", MediaLive.Index)
+      live("/incidents/:slug", MediaLive.Show, :show)
+      live("/incidents/:slug/card", MediaLive.Card)
+      live("/incidents/:slug/update/:attribute", MediaLive.Show, :edit)
+      live("/incidents/:slug/history/:attribute", MediaLive.Show, :history)
+      live("/incidents/:slug/upload", MediaLive.Show, :upload)
 
       live("/profile/:username", ProfilesLive.Show, :show)
       live("/profile/:username/edit", ProfilesLive.Show, :edit)

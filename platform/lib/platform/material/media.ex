@@ -53,18 +53,16 @@ defmodule Platform.Material.Media do
     media
     |> cast(attrs, [:description, :attr_sensitive])
     |> validate_required([:description],
-      message:
-        "Media descriptions can't be blank. Describe what the media depicts. Why is it relevant?"
+      message: "Incident descriptions can't be blank. Please describe the incident."
     )
     |> validate_length(:description,
       min: 8,
       max: 240,
-      message:
-        "Media descriptions should be between 8 and 240 characters. Describe what the media depicts. Why is it relevant?"
+      message: "Incident descriptions should be between 8 and 240 characters."
     )
     |> validate_required([:attr_sensitive],
       message:
-        "Media sensitivity must be set. If this media isn't sensitive, choose 'Not Sensitive.'"
+        "Sensitivity must be set. If this incident doesn't include sensitive media, choose 'Not Sensitive.'"
     )
 
     # These are special attributes, since we define it at creation time. Eventually, it'd be nice to unify this logic with the attribute-specific editing logic.

@@ -223,7 +223,7 @@ defmodule Platform.Material.Attribute do
         pane: :attributes,
         required: false,
         name: :weapon,
-        description: "What weapons are visibile in the media?",
+        description: "What weapons are involved in the incident?",
         add_none: "None"
       },
       %Attribute{
@@ -233,8 +233,7 @@ defmodule Platform.Material.Attribute do
         pane: :attributes,
         required: false,
         name: :time_recorded,
-        description:
-          "What time of day was the media recorded? Use the local timezone, if possible."
+        description: "What time of day was the incident? Use the local timezone, if possible."
       },
       %Attribute{
         schema_field: :attr_date_recorded,
@@ -243,7 +242,7 @@ defmodule Platform.Material.Attribute do
         pane: :attributes,
         required: false,
         name: :date_recorded,
-        description: "On what date was the media recorded?"
+        description: "On what date did the incident take place?"
       },
       %Attribute{
         schema_field: :attr_restrictions,

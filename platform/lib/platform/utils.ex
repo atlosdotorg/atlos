@@ -73,7 +73,7 @@ defmodule Platform.Utils do
     stripped_images = Regex.replace(~r"!*\[", markdown, "[")
 
     # Second, link ATL identifiers.
-    preprocessed = Regex.replace(~r/(ATL-[A-Z0-9]{6})/, stripped_images, "[\\0](/media/\\0)")
+    preprocessed = Regex.replace(~r/(ATL-[A-Z0-9]{6})/, stripped_images, "[\\0](/incidents/\\0)")
 
     # Manually kill images!
     preprocessed |> Earmark.as_html!()

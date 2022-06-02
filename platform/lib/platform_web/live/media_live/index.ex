@@ -5,7 +5,7 @@ defmodule PlatformWeb.MediaLive.Index do
   def mount(_params, _session, socket) do
     {:ok,
      socket
-     |> assign(:title, "Media")
+     |> assign(:title, "Incidents")
      |> assign(:changeset, Material.MediaSearch.changeset())
      |> assign(:query_params, %{})}
   end

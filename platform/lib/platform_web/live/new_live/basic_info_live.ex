@@ -69,7 +69,7 @@ defmodule PlatformWeb.NewLive.BasicInfoLive do
           </div>
 
           <div>
-            <%= label(f, :attr_sensitive, "Media Sensitivity (select all that apply)") %>
+            <%= label(f, :attr_sensitive, "Sensitivity (select all that apply)") %>
             <div phx-update="ignore" id="sensitive_select">
               <%= multiple_select(
                 f,
@@ -78,7 +78,7 @@ defmodule PlatformWeb.NewLive.BasicInfoLive do
               ) %>
             </div>
             <p class="support">
-              Is this media sensitive? This information helps us keep our community safe.
+              Is this incident sensitive? This information helps us keep our community safe.
             </p>
             <%= error_tag(f, :attr_sensitive) %>
           </div>
@@ -103,13 +103,13 @@ defmodule PlatformWeb.NewLive.BasicInfoLive do
               </div>
               <div class="ml-3">
                 <p class="text-sm text-neutral-700">
-                  Atlos hosts media depicting notable events relevant to the war in Ukraine. If you're not sure how to classify media, reference the Atlos Rules.
+                  Atlos documents notable events relevant to the war in Ukraine. If you're not sure how to classify this incident, reference the Atlos Rules.
                 </p>
                 <div class="mt-2 text-sm text-neutral-700">
                   <ul role="list" class="list-disc pl-5 space-y-1">
                     <li>
                       <strong>Do:</strong>
-                      Upload imagery documenting civilian harm, air strikes, etc. Tag graphic media as 'Graphic Violence.' Tag media that permits the identification or location of civilians as 'Threatens Civilian Safety.'
+                      Upload imagery documenting civilian harm, air strikes, etc. Tag incidents that involve graphic media as 'Graphic Violence.' Tag incidents that permit the identification or location of civilians as 'Threatens Civilian Safety.'
                     </li>
                     <li>
                       <strong>Don't:</strong>
@@ -121,7 +121,7 @@ defmodule PlatformWeb.NewLive.BasicInfoLive do
             </div>
           </div>
 
-          <%= submit("Upload media →",
+          <%= submit("Next step →",
             phx_disable_with: "Saving...",
             class: "button ~urge @high",
             disabled: @disabled

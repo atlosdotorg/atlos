@@ -67,8 +67,8 @@ defmodule PlatformWeb.MediaLive.PaginatedMediaList do
           <h3 class="mt-2 font-medium text-gray-900">No results</h3>
           <p class="mt-1 text-gray-500">Check your spelling or try broadening your search</p>
           <div class="mt-6">
-            <a href="/media" class="button ~urge @high">
-              View All Media &rarr;
+            <a href="/incidents" class="button ~urge @high">
+              View All &rarr;
             </a>
           </div>
         </div>
