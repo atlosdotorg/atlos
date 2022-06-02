@@ -85,6 +85,7 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
           <div class="sm:mr-8">
             <%= live_patch("History",
               class: "base-button",
+              data_confirm: confirm_prompt,
               to: Routes.media_show_path(@socket, :history, @media.slug, @attr.name)
             ) %>
           </div>
