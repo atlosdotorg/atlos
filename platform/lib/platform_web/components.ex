@@ -950,12 +950,12 @@ defmodule PlatformWeb.Components do
     media_to_show = version.status == :complete
 
     ~H"""
-    <section id={"version-#{version.id}"} class="py-4">
+    <section id={"version-#{version.id}"} class="py-4" x-data="{grayscale: true}">
       <% loc = Material.media_version_location(version, media) %>
       <% media_id = "version-#{version.id}-media" %>
       <div class="relative">
         <%= if media_to_show do %>
-          <div id={media_id}>
+          <div id={media_id} x-bind:class="grayscale ? 'grayscale' : ''">
             <%= if String.starts_with?(version.mime_type, "image/") do %>
               <img src={loc} class="w-full" />
             <% else %>
@@ -1086,7 +1086,7 @@ defmodule PlatformWeb.Components do
             type="button"
             rel="nofollow"
             class="button original py-1 px-2"
-            onclick={"toggleClass('#{media_id}', 'grayscale')"}
+            @click="grayscale = !grayscale"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -1115,16 +1115,14 @@ defmodule PlatformWeb.Components do
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              class="h-5 w-5 mr-1"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              stroke-width="2"
+              class="h-5 w-5 text-neutral-500 mr-1"
+              viewBox="0 0 20 20"
+              fill="currentColor"
             >
               <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
+                fill-rule="evenodd"
+                d="M10 18a8 8 0 100-16 8 8 0 000 16zM7 9a1 1 0 000 2h6a1 1 0 100-2H7z"
+                clip-rule="evenodd"
               />
             </svg>
             Hide
@@ -1141,16 +1139,14 @@ defmodule PlatformWeb.Components do
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              class="h-5 w-5 mr-1"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              stroke-width="2"
+              class="h-5 w-5 text-neutral-500 mr-1"
+              viewBox="0 0 20 20"
+              fill="currentColor"
             >
               <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
+                fill-rule="evenodd"
+                d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z"
+                clip-rule="evenodd"
               />
             </svg>
             Unhide
@@ -1168,15 +1164,13 @@ defmodule PlatformWeb.Components do
             <svg
               xmlns="http://www.w3.org/2000/svg"
               class="h-5 w-5 mr-1"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              stroke-width="2"
+              viewBox="0 0 20 20"
+              fill="currentColor"
             >
               <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
+                fill-rule="evenodd"
+                d="M13.477 14.89A6 6 0 015.11 6.524l8.367 8.368zm1.414-1.414L6.524 5.11a6 6 0 018.367 8.367zM18 10a8 8 0 11-16 0 8 8 0 0116 0z"
+                clip-rule="evenodd"
               />
             </svg>
             <%= if version.visibility == :removed, do: "Undo Removal", else: "Remove" %>
