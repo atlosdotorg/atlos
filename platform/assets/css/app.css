@@ -227,8 +227,17 @@
 /**
   Important CSS for our custom full-page map styling.,
 */
+.mapboxgl-map {
+  display: block;
+  height: 100%;
+}
+
 .mapboxgl-ctrl-bottom-left {
-  bottom: unset !important; /* We still show attribution in bottom right! */
+  bottom: unset !important;
+}
+
+.mapboxgl-ctrl-attrib {
+  display: none !important;  /* We still show attribution! */
 }
 
 .mapboxgl-popup-content {
