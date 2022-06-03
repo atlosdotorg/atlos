@@ -1107,7 +1107,7 @@ defmodule PlatformWeb.Components do
         <%= if version.visibility == :visible do %>
           <button
             type="button"
-            data-confirm="Are you sure you want to change the visibility of this media?"
+            data-confirm="Are you sure you want to change the visibility of this media for all users on Atlos?"
             class="button original py-1 px-2"
             phx-click="set_media_visibility"
             phx-value-version={version.id}
