@@ -19,7 +19,7 @@ defmodule PlatformWeb.MediaLive.Queue do
     case which do
       "unclaimed" -> "Unclaimed"
       "help_needed" -> "Help Needed"
-      "needs_confirmation" -> "Needs Confirmation"
+      "needs_confirmation" -> "Second Opinion Needed"
     end
   end
 
@@ -27,7 +27,7 @@ defmodule PlatformWeb.MediaLive.Queue do
     case which do
       "unclaimed" -> %{"attr_flag" => "[Unset]"}
       "help_needed" -> %{"attr_flag" => "Help Needed"}
-      "needs_confirmation" -> %{"attr_flag" => "Needs Confirmation"}
+      "needs_confirmation" -> %{"attr_flag" => "Second Opinion Needed"}
     end
   end
 
@@ -50,7 +50,7 @@ defmodule PlatformWeb.MediaLive.Queue do
               class: if(@tab == "help_needed", do: active_classes, else: inactive_classes),
               to: "/queue/help_needed"
             ) %>
-            <%= live_patch("Needs Confirmation",
+            <%= live_patch("Second Opinion Needed",
               class: if(@tab == "needs_confirmation", do: active_classes, else: inactive_classes),
               to: "/queue/needs_confirmation"
             ) %>
