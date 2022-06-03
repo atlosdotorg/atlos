@@ -6,7 +6,7 @@ defmodule PlatformWeb.MediaLive.Queue do
   end
 
   def handle_params(params, _uri, socket) do
-    which = Map.get(params, "which", "help_needed")
+    which = Map.get(params, "which", "unclaimed")
 
     {:noreply,
      socket
@@ -17,6 +17,7 @@ defmodule PlatformWeb.MediaLive.Queue do
 
   def which_to_title(which) do
     case which do
+      "unclaimed" -> "Unclaimed"
       "help_needed" -> "Help Needed"
       "needs_confirmation" -> "Needs Confirmation"
     end
@@ -24,6 +25,7 @@ defmodule PlatformWeb.MediaLive.Queue do
 
   defp query_for_which(which) do
     case which do
+      "unclaimed" -> %{"attr_flag" => "[Unset]"}
       "help_needed" -> %{"attr_flag" => "Help Needed"}
       "needs_confirmation" -> %{"attr_flag" => "Needs Confirmation"}
     end
@@ -40,6 +42,10 @@ defmodule PlatformWeb.MediaLive.Queue do
               "border-urge-500 text-urge-600 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" %>
             <% inactive_classes =
               "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" %>
+            <%= live_patch("Unclaimed",
+              class: if(@tab == "unclaimed", do: active_classes, else: inactive_classes),
+              to: "/queue/unclaimed"
+            ) %>
             <%= live_patch("Help Needed",
               class: if(@tab == "help_needed", do: active_classes, else: inactive_classes),
               to: "/queue/help_needed"
