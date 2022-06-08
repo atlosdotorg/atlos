@@ -25,9 +25,10 @@ defmodule PlatformWeb.MediaLive.Queue do
 
   defp query_for_which(which) do
     case which do
-      "unclaimed" -> %{"attr_flag" => "[Unset]"}
-      "help_needed" -> %{"attr_flag" => "Help Needed"}
-      "needs_confirmation" -> %{"attr_flag" => "Second Opinion Needed"}
+      "unclaimed" -> %{"attr_status" => "Unclaimed"}
+      "claimed" -> %{"attr_status" => "Claimed"}
+      "help_needed" -> %{"attr_status" => "Help Needed"}
+      "needs_confirmation" -> %{"attr_status" => "Second Opinion Needed"}
     end
   end
 

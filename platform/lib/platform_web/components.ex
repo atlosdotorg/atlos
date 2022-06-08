@@ -690,7 +690,7 @@ defmodule PlatformWeb.Components do
               </span>
             <% end %>
 
-            <%= if media.attr_flag do %>
+            <%= if media.attr_status do %>
               <span class="badge ~urge">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -704,7 +704,7 @@ defmodule PlatformWeb.Components do
                     clip-rule="evenodd"
                   />
                 </svg>
-                <%= media.attr_flag %>
+                <%= media.attr_status %>
               </span>
             <% end %>
 
@@ -947,7 +947,7 @@ defmodule PlatformWeb.Components do
       ) do
     # TODO: real blurring
 
-    media_to_show = version.status == :complete
+    media_to_show = version.status == :complete && !is_nil(version.mime_type) # Verify it was archived successfully
 
     ~H"""
     <section id={"version-#{version.id}"} class="py-4" x-data="{grayscale: true}">

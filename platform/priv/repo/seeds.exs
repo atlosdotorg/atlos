@@ -98,16 +98,16 @@ random_media =
 
     Material.subscribe_user(media, creator)
 
-    # Add flag to 10%
+    # Add status to 10%
     if Enum.random(0..10) < 1 do
-      attr = Material.Attribute.get_attribute(:flag)
+      attr = Material.Attribute.get_attribute(:status)
 
       {:ok, _} =
         Material.update_media_attribute_audited(
           media,
           attr,
           Enum.random(random_users),
-          %{"attr_flag" => Enum.random(attr.options)}
+          %{"attr_status" => Enum.random(attr.options)}
         )
     end
 

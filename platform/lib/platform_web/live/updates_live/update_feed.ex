@@ -92,9 +92,10 @@ defmodule PlatformWeb.UpdatesLive.UpdateFeed do
                       <.user_text user={update.user} />
                       <%= case update.type do %>
                         <% :update_attribute -> %>
+                          <% attr = Attribute.get_attribute(update.modified_attribute) %>
                           updated
-                          <%= live_patch class: "text-button text-gray-800 inline-block", to: Routes.media_show_path(@socket, :history, update.media.slug, update.modified_attribute) do %>
-                            <%= Attribute.get_attribute(update.modified_attribute).label %> &nearr;
+                          <%= live_patch class: "text-button text-gray-800 inline-block", to: Routes.media_show_path(@socket, :history, update.media.slug, attr.name) do %>
+                            <%= attr.label %> &nearr;
                           <% end %>
                         <% :create -> %>
                           added

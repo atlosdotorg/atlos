@@ -32,7 +32,7 @@ defmodule Platform.Material.Media do
     # Metadata Attributes
     field :attr_restrictions, {:array, :string}
     field :attr_sensitive, {:array, :string}
-    field :attr_flag, :string
+    field :attr_status, :string
 
     # Virtual attributes for updates + multi-part attributes
     field :explanation, :string, virtual: true
@@ -51,7 +51,7 @@ defmodule Platform.Material.Media do
   @doc false
   def changeset(media, attrs) do
     media
-    |> cast(attrs, [:description, :attr_sensitive])
+    |> cast(attrs, [:description, :attr_sensitive, :attr_status])
     |> validate_required([:description],
       message: "Incident descriptions can't be blank. Please describe the incident."
     )

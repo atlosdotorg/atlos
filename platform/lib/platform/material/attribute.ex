@@ -24,7 +24,8 @@ defmodule Platform.Material.Attribute do
 
   defp renamed_attributes() do
     %{
-      recorded_by: :camera_system
+      recorded_by: :camera_system,
+      flag: :status
     }
   end
 
@@ -256,15 +257,15 @@ defmodule Platform.Material.Attribute do
         required_roles: [:admin]
       },
       %Attribute{
-        schema_field: :attr_flag,
+        schema_field: :attr_status,
         type: :select,
-        options: ["Claimed", "Help Needed", "Second Opinion Needed", "Closed"],
-        label: "Flag",
+        options: ["Unclaimed", "Claimed", "Help Needed", "Second Opinion Needed", "Closed"],
+        label: "Status",
         explanation_required: true,
         pane: :metadata,
         required: false,
-        name: :flag,
-        description: "Use flags to help coordinate work on Atlos."
+        name: :status,
+        description: "Use the status to help coordinate and track work on Atlos."
       }
     ]
   end

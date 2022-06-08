@@ -25,7 +25,7 @@ defmodule Platform.MaterialTest do
 
     test "get_media!/1 returns the media with given id" do
       media = media_fixture()
-      assert Material.get_media!(media.id) == media
+      assert Material.get_media!(media.id).id == media.id
     end
 
     test "create_media/1 with valid data creates a media" do
@@ -52,7 +52,8 @@ defmodule Platform.MaterialTest do
     end
 
     test "update_media/2 with invalid data returns error changeset" do
-      media = media_fixture()
+      media_id = media_fixture().id
+      media = Material.get_media!(media_id)
       assert {:error, %Ecto.Changeset{}} = Material.update_media(media, @invalid_attrs)
       assert media == Material.get_media!(media.id)
     end

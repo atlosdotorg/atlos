@@ -18,7 +18,8 @@ defmodule Platform.MaterialFixtures do
       |> Enum.into(%{
         description: "some description",
         attr_sensitive: ["Graphic Violence"],
-        slug: unique_media_slug()
+        slug: unique_media_slug(),
+        status: "Unclaimed"
       })
       |> Platform.Material.create_media()
 

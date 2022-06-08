@@ -6,9 +6,9 @@ defmodule Platform.Material.MediaSearch do
   # Search components:
   #   - Query (string)
   #   - Date
-  #   - Flag
+  #   - Status
   #   - Sort by
-  @types %{query: :string, sort: :string, attr_flag: :string}
+  @types %{query: :string, sort: :string, attr_status: :string}
 
   def changeset(params \\ %{}) do
     data = %{}
@@ -31,11 +31,11 @@ defmodule Platform.Material.MediaSearch do
     end
   end
 
-  defp apply_query_component(queryable, changeset, :attr_flag) do
-    case Map.get(changeset.changes, :attr_flag) do
+  defp apply_query_component(queryable, changeset, :attr_status) do
+    case Map.get(changeset.changes, :attr_status) do
       nil -> queryable
-      "[Unset]" -> where(queryable, [m], is_nil(m.attr_flag))
-      query -> where(queryable, [m], m.attr_flag == ^query)
+      "[Unset]" -> where(queryable, [m], is_nil(m.attr_status))
+      query -> where(queryable, [m], m.attr_status == ^query)
     end
   end
 
@@ -73,7 +73,7 @@ defmodule Platform.Material.MediaSearch do
   def search_query(queryable \\ Media, %Ecto.Changeset{} = cs) do
     queryable
     |> apply_query_component(cs, :query)
-    |> apply_query_component(cs, :attr_flag)
+    |> apply_query_component(cs, :attr_status)
     |> apply_sort(cs)
   end
 

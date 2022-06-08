@@ -84,9 +84,9 @@
             <%= item %>
           </div>
         <% end %>
-        <%= if @media.attr_flag do %>
+        <%= if @media.attr_status do %>
           <%= live_patch(class: "chip ~urge @high inline-block mt-2 flex gap-1",
-                      to: Routes.media_show_path(@socket, :history, @media.slug, :flag)
+                      to: Routes.media_show_path(@socket, :history, @media.slug, :status)
                     ) do %>
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -100,7 +100,7 @@
                 clip-rule="evenodd"
               />
             </svg>
-            <%= @media.attr_flag %>
+            <%= @media.attr_status %>
           <% end %>
         <% end %>
       </div>
