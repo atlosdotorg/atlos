@@ -261,7 +261,6 @@ defmodule Platform.Material.Attribute do
         type: :select,
         options: ["Unclaimed", "Claimed", "Help Needed", "Second Opinion Needed", "Closed"],
         label: "Status",
-        explanation_required: true,
         pane: :metadata,
         required: false,
         name: :status,
