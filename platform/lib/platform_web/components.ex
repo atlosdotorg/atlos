@@ -948,7 +948,8 @@ defmodule PlatformWeb.Components do
       ) do
     # TODO: real blurring
 
-    media_to_show = version.status == :complete && !is_nil(version.mime_type) # Verify it was archived successfully
+    # Verify it was archived successfully
+    media_to_show = version.status == :complete && !is_nil(version.mime_type)
 
     ~H"""
     <section id={"version-#{version.id}"} class="py-4" x-data="{grayscale: true}">

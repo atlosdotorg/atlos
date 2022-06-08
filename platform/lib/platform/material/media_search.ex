@@ -34,7 +34,7 @@ defmodule Platform.Material.MediaSearch do
   defp apply_query_component(queryable, changeset, :attr_status) do
     case Map.get(changeset.changes, :attr_status) do
       nil -> queryable
-      "[Unset]" -> where(queryable, [m], is_nil(m.attr_status))
+      "Any" -> queryable
       query -> where(queryable, [m], m.attr_status == ^query)
     end
   end

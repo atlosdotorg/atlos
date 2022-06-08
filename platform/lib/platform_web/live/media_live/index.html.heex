@@ -8,8 +8,8 @@
     phx-submit="save"
   >
     <section class="md:flex w-full flex-wrap md:flex-nowrap gap-4 mb-8 items-center mb-8 border-b pb-4">
-      <h1 class="header mb-4 md:mb-0 text-3xl flex-grow font-medium md:mr-8">All Incidents</h1>
-      <div class="lg:w-[40em] flex flex-col md:flex-row gap-2">
+      <h1 class="header mb-4 md:mb-0 text-3xl font-medium md:mr-8">All Incidents</h1>
+      <div class="flex flex-col flex-grow md:flex-row gap-2">
         <div class="flex-grow">
           <div class="border border-gray-300 bg-white rounded-md px-3 py-2 shadow-sm focus-within:ring-1 focus-within:ring-urge-600 focus-within:border-urge-600">
             <%= label(f, :query, "Search", class: "block text-xs font-medium text-gray-900") %>
@@ -24,6 +24,19 @@
         </div>
         <div>
           <div class="ts-ignore border border-gray-300 bg-white rounded-md pl-3 py-2 shadow-sm focus-within:ring-1 focus-within:ring-urge-600 focus-within:border-urge-600">
+            <%= label(f, :attr_status, "Status", class: "block text-xs font-medium text-gray-900") %>
+            <%= select(
+              f,
+              :attr_status,
+              ["Any"] ++ Attribute.options(Attribute.get_attribute(:status)),
+              class:
+                "block w-full border-0 py-0 pl-0 pr-7 text-gray-900 placeholder-gray-500 focus:ring-0 sm:text-sm"
+            ) %>
+          </div>
+          <%= error_tag(f, :status) %>
+        </div>
+        <div>
+          <div class="ts-ignore border border-gray-300 bg-white rounded-md pl-3 py-2 shadow-sm focus-within:ring-1 focus-within:ring-urge-600 focus-within:border-urge-600">
             <%= label(f, :sort, "Sort", class: "block text-xs font-medium text-gray-900") %>
             <%= select(
               f,
@@ -31,8 +44,8 @@
               [
                 "Recently Modified": :modified_desc,
                 "Least Recently Modified": :modified_asc,
-                "Newest Uploads": :uploaded_desc,
-                "Oldest Uploads": :uploaded_asc
+                "Newest Added": :uploaded_desc,
+                "Oldest Added": :uploaded_asc
               ],
               class:
                 "block w-full border-0 py-0 pl-0 pr-7 text-gray-900 placeholder-gray-500 focus:ring-0 sm:text-sm"
