@@ -88,7 +88,8 @@ ENV MIX_ENV="prod"
 COPY --from=builder --chown=nobody:root /app/_build/${MIX_ENV}/rel/platform ./
 
 # Install packages needed for runtime environment
-RUN apt-get update -y && apt-get install -y ffmpeg imagemagick youtube-dl \
+RUN curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /usr/local/bin/yt-dlp && chmod a+rx /usr/local/bin/yt-dlp
+RUN apt-get update -y && apt-get install -y ffmpeg imagemagick \
   && apt-get clean && rm -f /var/lib/apt/lists/*_*
 
 USER nobody

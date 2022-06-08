@@ -352,7 +352,7 @@ defmodule Platform.Material do
       # Download the media
       {_, 0} =
         System.cmd(
-          "youtube-dl",
+          "yt-dlp",
           [
             version.source_url,
             "-o",
