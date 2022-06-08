@@ -649,9 +649,27 @@ defmodule PlatformWeb.Components do
             </p>
           </section>
           <section class="flex flex-wrap gap-1 self-start align-top">
+            <%= if media.attr_status do %>
+              <span class={"badge " <> Attribute.attr_color(:status, @media.attr_status)}>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-3 w-3 mr-px"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M3 6a3 3 0 013-3h10a1 1 0 01.8 1.6L14.25 8l2.55 3.4A1 1 0 0116 13H6a1 1 0 00-1 1v3a1 1 0 11-2 0V6z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+                <%= media.attr_status %>
+              </span>
+            <% end %>
+
             <%= if sensitive do %>
               <%= for item <- media.attr_sensitive || [] do %>
-                <span class="badge ~critical">
+                <span class={"badge " <> Attribute.attr_color(:sensitive, @media.attr_sensitive)}>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     class="h-3 w-3 mr-px"
@@ -671,6 +689,7 @@ defmodule PlatformWeb.Components do
             <% end %>
 
             <%= for item <- media.attr_restrictions || [] do %>
+              <!-- TODO: make this use Attribute.attr_color/2 -->
               <span class="badge ~warning">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -687,24 +706,6 @@ defmodule PlatformWeb.Components do
                   />
                 </svg>
                 <%= item %>
-              </span>
-            <% end %>
-
-            <%= if media.attr_status do %>
-              <span class="badge ~urge">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="h-3 w-3 mr-px"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fill-rule="evenodd"
-                    d="M3 6a3 3 0 013-3h10a1 1 0 01.8 1.6L14.25 8l2.55 3.4A1 1 0 0116 13H6a1 1 0 00-1 1v3a1 1 0 11-2 0V6z"
-                    clip-rule="evenodd"
-                  />
-                </svg>
-                <%= media.attr_status %>
               </span>
             <% end %>
 

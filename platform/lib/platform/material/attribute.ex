@@ -259,7 +259,15 @@ defmodule Platform.Material.Attribute do
       %Attribute{
         schema_field: :attr_status,
         type: :select,
-        options: ["Unclaimed", "Claimed", "Help Needed", "Second Opinion Needed", "Closed"],
+        options: [
+          "Unclaimed",
+          "Claimed",
+          "Help Needed",
+          "Second Opinion Needed",
+          "Community Confirmed",
+          "Closed",
+          "Completed"
+        ],
         label: "Status",
         pane: :metadata,
         required: false,
@@ -447,6 +455,26 @@ defmodule Platform.Material.Attribute do
       end
     else
       _ -> false
+    end
+  end
+
+  def attr_color(name, value) do
+    case name do
+      :sensitive ->
+        "~critical"
+
+      :status ->
+        case value do
+          "Unclaimed" -> "~positive"
+          "Claimed" -> "~urge"
+          "Closed" -> "~neutral"
+          "Community Confirmed" -> "~cyan"
+          "Completed" -> "~purple"
+          _ -> "~warning"
+        end
+
+      _ ->
+        "~neutral"
     end
   end
 end

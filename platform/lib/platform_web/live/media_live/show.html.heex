@@ -48,9 +48,30 @@
           <% contributors = length(Material.contributors(@media)) %>
           <%= contributors %> <%= naive_pluralise(contributors, "contributor") %>
         </div>
+        <%= if @media.attr_status do %>
+          <%= live_patch(class: "chip @high inline-block mt-2 flex gap-1 " <> Attribute.attr_color(:status, @media.attr_status),
+                      to: Routes.media_show_path(@socket, :history, @media.slug, :status)
+                    ) do %>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-4 w-4"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fill-rule="evenodd"
+                d="M3 6a3 3 0 013-3h10a1 1 0 01.8 1.6L14.25 8l2.55 3.4A1 1 0 0116 13H6a1 1 0 00-1 1v3a1 1 0 11-2 0V6z"
+                clip-rule="evenodd"
+              />
+            </svg>
+            <%= @media.attr_status %>
+          <% end %>
+        <% end %>
         <%= if Media.is_sensitive(@media) do %>
           <%= for item <- @media.attr_sensitive || [] do %>
-            <div class="chip ~critical @high inline-block mt-2 flex gap-1">
+          <%= live_patch(class: "chip @high inline-block mt-2 flex gap-1 " <> Attribute.attr_color(:sensitive, @media.attr_sensitive),
+                      to: Routes.media_show_path(@socket, :history, @media.slug, :sensitive)
+                    ) do %>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 class="h-4 w-4"
@@ -64,7 +85,7 @@
                 />
               </svg>
               <%= item %>
-            </div>
+            <% end %>
           <% end %>
         <% end %>
         <%= for item <- @media.attr_restrictions || [] do %>
@@ -83,25 +104,6 @@
             </svg>
             <%= item %>
           </div>
-        <% end %>
-        <%= if @media.attr_status do %>
-          <%= live_patch(class: "chip ~urge @high inline-block mt-2 flex gap-1",
-                      to: Routes.media_show_path(@socket, :history, @media.slug, :status)
-                    ) do %>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="h-4 w-4"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <path
-                fill-rule="evenodd"
-                d="M3 6a3 3 0 013-3h10a1 1 0 01.8 1.6L14.25 8l2.55 3.4A1 1 0 0116 13H6a1 1 0 00-1 1v3a1 1 0 11-2 0V6z"
-                clip-rule="evenodd"
-              />
-            </svg>
-            <%= @media.attr_status %>
-          <% end %>
         <% end %>
       </div>
     </div>
@@ -309,7 +311,7 @@
               </svg>
               <span class="mt-2 block text-sm font-medium text-gray-700">No media uploaded</span>
               <%= if Media.can_user_edit(@media, @current_user) do %>
-                <%= live_patch("+ Upload Version",
+                <%= live_patch("+ Upload Media",
                   class: "text-button text-sm",
                   to: Routes.media_show_path(@socket, :upload, @media.slug)
                 ) %>
