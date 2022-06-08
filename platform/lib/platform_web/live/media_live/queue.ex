@@ -20,7 +20,6 @@ defmodule PlatformWeb.MediaLive.Queue do
       "unclaimed" -> "Unclaimed"
       "claimed" -> "Claimed"
       "help_needed" -> "Help Needed"
-      "needs_confirmation" -> "Second Opinion Needed"
     end
   end
 
@@ -29,7 +28,6 @@ defmodule PlatformWeb.MediaLive.Queue do
       "unclaimed" -> %{"attr_status" => "Unclaimed"}
       "claimed" -> %{"attr_status" => "Claimed"}
       "help_needed" -> %{"attr_status" => "Help Needed"}
-      "needs_confirmation" -> %{"attr_status" => "Second Opinion Needed"}
     end
   end
 
@@ -55,10 +53,6 @@ defmodule PlatformWeb.MediaLive.Queue do
             <%= live_patch("Help Needed",
               class: if(@tab == "help_needed", do: active_classes, else: inactive_classes),
               to: "/queue/help_needed"
-            ) %>
-            <%= live_patch("Second Opinion Needed",
-              class: if(@tab == "needs_confirmation", do: active_classes, else: inactive_classes),
-              to: "/queue/needs_confirmation"
             ) %>
           </nav>
         </div>

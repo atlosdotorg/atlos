@@ -263,7 +263,6 @@ defmodule Platform.Material.Attribute do
           "Unclaimed",
           "Claimed",
           "Help Needed",
-          "Second Opinion Needed",
           "Community Confirmed",
           "Closed",
           "Completed"
