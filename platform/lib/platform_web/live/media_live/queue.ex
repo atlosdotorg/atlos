@@ -18,6 +18,7 @@ defmodule PlatformWeb.MediaLive.Queue do
   def which_to_title(which) do
     case which do
       "unclaimed" -> "Unclaimed"
+      "claimed" -> "Claimed"
       "help_needed" -> "Help Needed"
       "needs_confirmation" -> "Second Opinion Needed"
     end
@@ -46,6 +47,10 @@ defmodule PlatformWeb.MediaLive.Queue do
             <%= live_patch("Unclaimed",
               class: if(@tab == "unclaimed", do: active_classes, else: inactive_classes),
               to: "/queue/unclaimed"
+            ) %>
+            <%= live_patch("Claimed",
+              class: if(@tab == "claimed", do: active_classes, else: inactive_classes),
+              to: "/queue/claimed"
             ) %>
             <%= live_patch("Help Needed",
               class: if(@tab == "help_needed", do: active_classes, else: inactive_classes),
