@@ -339,8 +339,13 @@ defmodule Platform.Material.Attribute do
         lat = Map.get(changeset.changes, :latitude, changeset.data.latitude)
         lon = Map.get(changeset.changes, :longitude, changeset.data.longitude)
 
-        changeset
-        |> put_change(attribute.schema_field, %Geo.Point{coordinates: {lon, lat}, srid: 4326})
+        if is_nil(lat) or is_nil(lon) do
+          changeset
+          |> put_change(attribute.schema_field, nil)
+        else
+          changeset
+          |> put_change(attribute.schema_field, %Geo.Point{coordinates: {lon, lat}, srid: 4326})
+        end
 
       _ ->
         changeset
@@ -396,8 +401,18 @@ defmodule Platform.Material.Attribute do
           )
 
         :location ->
-          changeset
-          |> validate_required([:latitude, :longitude])
+          lat = Map.get(changeset.changes, :latitude, changeset.data.latitude)
+          lon = Map.get(changeset.changes, :longitude, changeset.data.longitude)
+
+          if is_nil(lon) != is_nil(lat) do
+            changeset
+            |> add_error(
+              :longitude,
+              "Both latitude and longitude are required. To clear the geolocation, set both latitude and longitude to blank."
+            )
+          else
+            changeset
+          end
 
         _ ->
           changeset

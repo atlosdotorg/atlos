@@ -172,7 +172,7 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
               <% end %>
               <% val =
                 Map.get(@changeset.changes, @attr.schema_field, Map.get(@media, @attr.schema_field)) %>
-              <%= if @attr.type == :location and val.coordinates |> Tuple.to_list |> Enum.all?(&(is_float(&1))) do %>
+              <%= if @attr.type == :location and !is_nil(val) and val.coordinates |> Tuple.to_list |> Enum.all?(&(is_float(&1))) do %>
                 <% {lon, lat} = val.coordinates %>
                 <a
                   class="support text-urge-700 underline mt-4"
