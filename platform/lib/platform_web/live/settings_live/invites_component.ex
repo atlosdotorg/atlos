@@ -108,8 +108,7 @@ defmodule PlatformWeb.SettingsLive.InvitesComponent do
               </article>
               <article class="bg-gray-100 rounded p-4 mt-4 text-sm">
                 <% join_url =
-                  Routes.user_registration_url(@socket, :new) <> "?invite_code=#{invite.code}" %>
-                To apply this invite code automatically, users should join via this URL:
+                  Routes.user_registration_url(@socket, :new) <> "?invite_code=#{invite.code}" %> To apply this invite code automatically, users should join via this URL:
                 <a class="font-mono text-urge-600" href={join_url}><%= join_url %></a>
               </article>
             </div>
