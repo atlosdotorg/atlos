@@ -2,8 +2,6 @@ defmodule PlatformWeb.Components do
   use Phoenix.Component
   use Phoenix.HTML
 
-  alias Phoenix.LiveView.JS
-
   alias Platform.Accounts
   alias Platform.Material.Attribute
   alias Platform.Material.Media

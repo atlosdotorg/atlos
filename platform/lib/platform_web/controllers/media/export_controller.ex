@@ -5,6 +5,28 @@ defmodule PlatformWeb.ExportController do
   alias Material.Attribute
   alias Material.MediaSearch
 
+  defp format_media(%Material.Media{} = media, fields) do
+    {lon, lat} =
+      if is_nil(media.attr_geolocation) do
+        {nil, nil}
+      else
+        media.attr_geolocation.coordinates
+      end
+
+    media
+    |> Map.put(:attr_latitude, lat)
+    |> Map.put(:attr_longitude, lon)
+    |> Map.to_list()
+    |> Enum.filter(fn {k, _v} -> Enum.member?(fields, k) end)
+    |> Map.new(fn {k, v} ->
+      {k,
+       case v do
+         [_ | _] -> Enum.join(v, ", ")
+         _ -> v
+       end}
+    end)
+  end
+
   def create(conn, params) do
     c = MediaSearch.changeset(params)
     {full_query, _} = MediaSearch.search_query(c)
@@ -15,12 +37,13 @@ defmodule PlatformWeb.ExportController do
     path = Temp.path!(suffix: "atlos-export.csv")
     file = File.open!(path, [:write, :utf8])
 
+    fields =
+      [:slug, :inserted_at, :updated_at, :attr_latitude, :attr_longitude] ++
+        Attribute.attribute_schema_fields()
+
     results
-    |> CSV.encode(
-      headers:
-        [:slug, :inserted_at, :updated_at] ++
-          Attribute.attribute_schema_fields()
-    )
+    |> Enum.map(&format_media(&1, fields))
+    |> CSV.encode(headers: fields)
     |> Enum.each(&IO.write(file, &1))
 
     :ok = File.close(file)

@@ -6,7 +6,7 @@ defmodule PlatformWeb.UserRegistrationController do
   alias PlatformWeb.UserAuth
   alias Platform.Auditor
 
-  def suspended(conn, params) do
+  def suspended(conn, _params) do
     if Map.get(conn.assigns, :current_user) != nil and
          !Accounts.is_suspended(Map.get(conn.assigns, :current_user)) do
       conn |> redirect(to: "/")
