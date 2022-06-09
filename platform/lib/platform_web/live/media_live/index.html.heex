@@ -89,7 +89,7 @@
               tabindex="-1"
             >
               <div class="py-1" role="none">
-                <%= button to: Routes.export_path(@socket, :create, @query_params),
+                <%= button type: "button", to: Routes.export_path(@socket, :create, @query_params),
                   class: "text-gray-700 group w-full hover:bg-gray-100 flex items-center px-4 py-2 text-sm",
                   role: "menuitem",
                   method: :post
