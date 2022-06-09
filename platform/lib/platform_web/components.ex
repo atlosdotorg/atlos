@@ -890,59 +890,6 @@ defmodule PlatformWeb.Components do
     """
   end
 
-  def dropdown(assigns) do
-    ~H"""
-    <div class="relative inline-block text-left">
-      <div>
-        <button
-          type="button"
-          class="inline-flex justify-center w-full rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-urge-500"
-          phx-click={
-            JS.toggle(
-              to: "##{@id}",
-              in:
-                {"transition ease-out duration-100", "transform opacity-0 scale-95",
-                 "transform opacity-100 scale-100"},
-              out:
-                {"transition ease-in duration-75", "transform opacity-100 scale-100",
-                 "transform opacity-0 scale-95"}
-            )
-          }
-          id={"#{@id}-button"}
-          aria-haspopup="true"
-        >
-          <%= @label %>
-
-          <svg
-            class="-mr-1 ml-2 h-5 w-5"
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-            aria-hidden="true"
-          >
-            <path
-              fill-rule="evenodd"
-              d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-              clip-rule="evenodd"
-            />
-          </svg>
-        </button>
-      </div>
-
-      <div
-        class="z-10 hidden origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 flex flex-col gap-4 focus:outline-none overflow-hidden"
-        role="menu"
-        aria-orientation="vertical"
-        aria-labelledby={"##{@id}-button"}
-        tabindex="-1"
-        id={"#{@id}"}
-      >
-        <%= render_slot(@inner_block) %>
-      </div>
-    </div>
-    """
-  end
-
   def media_version_display(
         %{version: version, blur: _blur, current_user: current_user, media: media} = assigns
       ) do

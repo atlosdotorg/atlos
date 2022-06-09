@@ -91,6 +91,8 @@ defmodule PlatformWeb.Router do
     put("/users/settings", UserSettingsController, :update)
     get("/users/settings/confirm_email/:token", UserSettingsController, :confirm_email)
 
+    post("/export/incidents", ExportController, :create)
+
     live_session :default, on_mount: {MountHelperLive, :authenticated} do
       live("/settings", SettingsLive)
 

@@ -64,7 +64,8 @@ defmodule Platform.MixProject do
       {:appsignal, "~> 2.0"},
       {:appsignal_phoenix, "~> 2.0"},
       {:remote_ip, "~> 1.0"},
-      {:earmark, "~> 1.4"}
+      {:earmark, "~> 1.4"},
+      {:csv, "~> 2.4"}
     ]
   end
 

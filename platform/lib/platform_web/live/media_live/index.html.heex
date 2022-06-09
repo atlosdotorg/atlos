@@ -53,6 +53,65 @@
           </div>
           <%= error_tag(f, :sort) %>
         </div>
+        <div class="place-self-center" x-data="{open: false}">
+          <div class="relative text-left z-10">
+            <div class="h-full">
+              <button
+                @click="open = !open"
+                type="button"
+                class="rounded-full flex items-center align-center text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-urge-500"
+                id="menu-button"
+                aria-expanded="true"
+                aria-haspopup="true"
+              >
+                <span class="sr-only">Open options</span>
+                <!-- Heroicon name: solid/dots-vertical -->
+                <svg
+                  class="h-5 w-5"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                  aria-hidden="true"
+                >
+                  <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
+                </svg>
+              </button>
+            </div>
+
+            <div
+              x-show="open"
+              @click.outside="open = false"
+              x-transition
+              class="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none"
+              role="menu"
+              aria-orientation="vertical"
+              aria-labelledby="menu-button"
+              tabindex="-1"
+            >
+              <div class="py-1" role="none">
+                <%= button to: Routes.export_path(@socket, :create, @query_params),
+                  class: "text-gray-700 group w-full hover:bg-gray-100 flex items-center px-4 py-2 text-sm",
+                  role: "menuitem",
+                  method: :post
+                   do %>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="mr-3 h-5 w-5 text-gray-400 group-hover:text-gray-500"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fill-rule="evenodd"
+                      d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"
+                      clip-rule="evenodd"
+                    />
+                  </svg>
+                  Export Results
+                <% end %>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
   </.form>

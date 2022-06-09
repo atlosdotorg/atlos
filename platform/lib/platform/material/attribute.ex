@@ -297,6 +297,10 @@ defmodule Platform.Material.Attribute do
     (attributes() |> Enum.map(& &1.name)) ++ Map.keys(renamed_attributes())
   end
 
+  def attribute_schema_fields() do
+    attributes() |> Enum.map(& &1.schema_field)
+  end
+
   def get_attribute(name) do
     # Some attributes have been renamed; this allows us to keep updates
     # that reference the old name working.
