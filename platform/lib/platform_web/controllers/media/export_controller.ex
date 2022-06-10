@@ -13,10 +13,17 @@ defmodule PlatformWeb.ExportController do
         media.attr_geolocation.coordinates
       end
 
-    media
-    |> Map.put(:attr_latitude, lat)
-    |> Map.put(:attr_longitude, lon)
-    |> Map.to_list()
+    field_list =
+      (media
+       |> Map.put(:attr_latitude, lat)
+       |> Map.put(:attr_longitude, lon)
+       |> Map.to_list()) ++
+        (media.versions
+         |> Enum.filter(&(&1.visibility == :visible))
+         |> Enum.with_index(1)
+         |> Enum.map(fn {item, idx} -> {"source_" <> to_string(idx), item.source_url} end))
+
+    field_list
     |> Enum.filter(fn {k, _v} -> Enum.member?(fields, k) end)
     |> Map.new(fn {k, v} ->
       {k,
@@ -33,13 +40,22 @@ defmodule PlatformWeb.ExportController do
     final_query = MediaSearch.filter_viewable(full_query, conn.assigns.current_user)
     results = Material.query_media(final_query)
 
+    max_num_versions =
+      Enum.max(
+        results
+        |> Enum.map(fn media ->
+          length(media.versions |> Enum.filter(&(&1.visibility == :visible)))
+        end)
+      )
+
     Temp.track!()
     path = Temp.path!(suffix: "atlos-export.csv")
     file = File.open!(path, [:write, :utf8])
 
     fields =
       [:slug, :inserted_at, :updated_at, :attr_latitude, :attr_longitude] ++
-        Attribute.attribute_schema_fields()
+        Attribute.attribute_schema_fields() ++
+        Enum.map(1..max_num_versions, &("source_" <> to_string(&1)))
 
     results
     |> Enum.map(&format_media(&1, fields))
