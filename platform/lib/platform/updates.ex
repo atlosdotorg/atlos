@@ -6,6 +6,7 @@ defmodule Platform.Updates do
   import Ecto.Query, warn: false
   alias Platform.Repo
 
+  alias Platform.Utils
   alias Platform.Updates.Update
   alias Platform.Material.Attribute
   alias Platform.Material.Media
@@ -26,6 +27,30 @@ defmodule Platform.Updates do
     Repo.all(Update)
   end
 
+  defp preload_fields(queryable) do
+    queryable |> preload([:user, :media, :media_version])
+  end
+
+  @doc """
+  Create a text search query for updates, to be passed to query_updates_paginated/2.
+  """
+  def text_search(search_terms, queryable \\ Update) do
+    if !is_nil(search_terms) and String.length(search_terms) > 0 do
+      Utils.text_search(search_terms, queryable)
+    else
+      queryable
+    end
+  end
+
+  @doc """
+  Query the updates, paginated. Preloads user, media, and media_version.
+  """
+  def query_updates_paginated(query \\ Update, opts \\ []) do
+    applied_options = Keyword.merge([cursor_fields: [{:inserted_at, :desc}], limit: 50], opts)
+
+    query |> preload_fields() |> order_by(desc: :inserted_at) |> Repo.paginate(applied_options)
+  end
+
   @doc """
   Gets a single update. Preloads user, media, and media_version.
 
@@ -40,7 +65,7 @@ defmodule Platform.Updates do
       ** (Ecto.NoResultsError)
 
   """
-  def get_update!(id), do: Repo.get!(Update |> preload([:user, :media, :media_version]), id)
+  def get_update!(id), do: Repo.get!(Update |> preload_fields(), id)
 
   @doc """
   Insert the given Update changeset. Helpful to use in conjunction with the dynamic changeset

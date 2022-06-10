@@ -116,6 +116,7 @@ defmodule PlatformWeb.Router do
     end
 
     live_session :admin, on_mount: {MountHelperLive, :admin} do
+      live("/adminland/", AdminlandLive.Index, :activity)
       live("/adminland/users", AdminlandLive.Index, :users)
       live("/adminland/activity", AdminlandLive.Index, :activity)
     end

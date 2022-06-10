@@ -4,8 +4,11 @@ defmodule Platform.Updates.Update do
   alias Platform.Material.Attribute
   alias Platform.Material.Media
   alias Platform.Accounts.User
+  alias Platform.Accounts
+  alias Platform.Material
 
   schema "updates" do
+    field :search_metadata, :string, default: ""
     field :explanation, :string
     field :attachments, {:array, :string}
     field :type, Ecto.Enum, values: [:update_attribute, :create, :upload_version, :comment]
@@ -42,23 +45,31 @@ defmodule Platform.Updates.Update do
   end
 
   def raw_changeset(update, attrs) do
-    update
-    |> cast(attrs, [
-      :explanation,
-      :old_value,
-      :new_value,
-      :modified_attribute,
-      :type,
-      :attachments,
-      :user_id,
-      :media_id,
-      :media_version_id,
-      # TODO: does this being here allow anyone to sneak `:hidden` in when creating an update? Not a big deal, but worth investigating.
-      :hidden
-    ])
-    |> validate_required([:old_value, :new_value, :type, :user_id, :media_id])
-    |> validate_explanation()
-    |> validate_inclusion(:modified_attribute, Attribute.attribute_names())
+    changeset =
+      update
+      |> cast(attrs, [
+        :explanation,
+        :old_value,
+        :new_value,
+        :modified_attribute,
+        :type,
+        :attachments,
+        :user_id,
+        :media_id,
+        :media_version_id,
+        # TODO: does this being here allow anyone to sneak `:hidden` in when creating an update? Not a big deal, but worth investigating.
+        :hidden
+      ])
+      |> validate_required([:old_value, :new_value, :type, :user_id, :media_id])
+      |> validate_explanation()
+      |> validate_inclusion(:modified_attribute, Attribute.attribute_names())
+
+    changeset
+    |> put_change(
+      :search_metadata,
+      Accounts.get_user!(get_field(changeset, :user_id)).username <>
+        " " <> Material.get_media!(get_field(changeset, :media_id)).slug
+    )
 
     # TODO: also validate that if type == :comment, then explanation is not empty
   end

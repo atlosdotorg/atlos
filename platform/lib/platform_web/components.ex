@@ -284,7 +284,7 @@ defmodule PlatformWeb.Components do
             </svg>
           </.navlink>
           <%= if !is_nil(@current_user) and Accounts.is_admin(@current_user) do %>
-            <.navlink to="/adminland/users" label="Adminland" request_path={@path}>
+            <.navlink to="/adminland" label="Adminland" request_path={@path}>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 class="text-neutral-300 group-hover:text-white h-6 w-6"
@@ -585,7 +585,8 @@ defmodule PlatformWeb.Components do
             target="_blank"
             href={"https://maps.google.com/maps?q=#{lat},#{lon}"}
           >
-            - <.location lat={lat} lon={lon} />
+            -
+            <.location lat={lat} lon={lon} />
           </a>
         <% _x -> %>
       <% end %>
@@ -596,7 +597,8 @@ defmodule PlatformWeb.Components do
             target="_blank"
             href={"https://maps.google.com/maps?q=#{lat},#{lon}"}
           >
-            + <.location lat={lat} lon={lon} />
+            +
+            <.location lat={lat} lon={lon} />
           </a>
         <% _x -> %>
       <% end %>

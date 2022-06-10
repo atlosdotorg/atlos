@@ -10,20 +10,6 @@
         <% inactive_classes =
           "flex gap-1 items-center border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" %>
         <%= live_patch(
-              class: if(@live_action == :users, do: active_classes, else: inactive_classes),
-              to: "/adminland/users"
-            ) do %>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-4 w-4 opacity-75"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
-          </svg>
-          Users
-        <% end %>
-        <%= live_patch(
               class: if(@live_action == :activity, do: active_classes, else: inactive_classes),
               to: "/adminland/activity"
             ) do %>
@@ -41,6 +27,20 @@
           </svg>
           Activity
         <% end %>
+        <%= live_patch(
+              class: if(@live_action == :users, do: active_classes, else: inactive_classes),
+              to: "/adminland/users"
+            ) do %>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-4 w-4 opacity-75"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
+            <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
+          </svg>
+          Users
+        <% end %>
       </nav>
     </div>
   </div>
@@ -48,6 +48,8 @@
     <%= case @live_action do %>
       <% :users -> %>
         <.live_component module={PlatformWeb.AdminlandLive.UserListLive} id="user-list" />
+      <% :activity -> %>
+        <.live_component module={PlatformWeb.AdminlandLive.ActivityFeedLive} current_user={@current_user} id="activity-feed" />
     <% end %>
   </div>
 </article>

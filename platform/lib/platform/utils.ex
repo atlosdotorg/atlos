@@ -2,6 +2,7 @@ defmodule Platform.Utils do
   @moduledoc """
   Utilities for the platform.
   """
+  import Ecto.Query, warn: false
 
   def generate_media_slug() do
     slug =
@@ -77,5 +78,21 @@ defmodule Platform.Utils do
 
     # Manually kill images!
     preprocessed |> Earmark.as_html!()
+  end
+
+  def text_search(search_terms, queryable) do
+    queryable
+    |> where(
+      [q],
+      fragment("? @@ websearch_to_tsquery('english', ?)", q.searchable, ^search_terms)
+    )
+    |> order_by([q],
+      asc:
+        fragment(
+          "ts_rank_cd(?, websearch_to_tsquery('english', ?), 4)",
+          q.searchable,
+          ^search_terms
+        )
+    )
   end
 end
