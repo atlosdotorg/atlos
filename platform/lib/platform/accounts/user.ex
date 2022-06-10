@@ -20,7 +20,7 @@ defmodule Platform.Accounts.User do
     field :confirmed_at, :naive_datetime
 
     many_to_many :subscribed_media, Material.Media, join_through: "media_subscriptions"
-    belongs_to :invite, Material.Invite
+    belongs_to :invite, Platform.Invites.Invite
 
     timestamps()
   end
@@ -156,6 +156,7 @@ defmodule Platform.Accounts.User do
   def admin_changeset(user, attrs) do
     user
     |> cast(attrs, [:roles, :restrictions, :bio, :flair, :admin_notes])
+    |> validate_length(:bio, max: 240, message: "Bio may not exceed 240 characters.")
   end
 
   @doc """

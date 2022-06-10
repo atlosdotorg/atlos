@@ -103,6 +103,11 @@ defmodule Platform.Accounts do
   """
   def get_user!(id), do: Repo.get!(User, id)
 
+  @doc """
+  Gets all users, and preloads their invite code (and the owner of that invite code).
+  """
+  def get_all_users(), do: Repo.all(from u in User, preload: [invite: [:owner]])
+
   ## User registration
 
   @doc """

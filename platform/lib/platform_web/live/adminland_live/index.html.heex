@@ -44,4 +44,10 @@
       </nav>
     </div>
   </div>
+  <div>
+    <%= case @live_action do %>
+      <% :users -> %>
+        <.live_component module={PlatformWeb.AdminlandLive.UserListLive} id="user-list" />
+    <% end %>
+  </div>
 </article>
