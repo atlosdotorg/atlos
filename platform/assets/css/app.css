@@ -3,6 +3,10 @@
 @tailwind utilities;
 
 @layer components {
+  .badge {
+    @apply inline-flex items-center px-1 py-px rounded !font-medium;
+  }
+
   #map {
       position: absolute;
       top: 0;
