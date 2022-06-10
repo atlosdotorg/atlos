@@ -7,6 +7,10 @@
     @apply inline-flex items-center px-1 py-px rounded !font-medium;
   }
 
+  .chip {
+    @apply !font-medium;
+  }
+
   #map {
       position: absolute;
       top: 0;

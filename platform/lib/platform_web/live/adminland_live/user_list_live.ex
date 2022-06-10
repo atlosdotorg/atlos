@@ -78,6 +78,9 @@ defmodule PlatformWeb.AdminlandLive.UserListLive do
                         <%= for item <- user.roles || [] do %>
                           <span class="chip ~positive mb-1"><%= item %></span>
                         <% end %>
+                        <%= if length(user.restrictions || []) + length(user.roles || []) == 0 do %>
+                          <span class="chip ~neutral mb-1">regular</span>
+                        <% end %>
                       </td>
                       <td class="max-w-md px-3 py-4 text-sm text-gray-500">
                         <%= user.bio %>
