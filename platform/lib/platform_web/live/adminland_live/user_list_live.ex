@@ -3,7 +3,13 @@ defmodule PlatformWeb.AdminlandLive.UserListLive do
   alias Platform.Accounts
 
   def update(assigns, socket) do
-    {:ok, socket |> assign(assigns) |> assign(:results, Accounts.get_all_users())}
+    {:ok,
+     socket
+     |> assign(assigns)
+     |> assign(
+       :results,
+       Accounts.get_all_users() |> Enum.sort_by(& &1.inserted_at) |> Enum.reverse()
+     )}
   end
 
   def render(assigns) do
