@@ -74,7 +74,7 @@ defmodule PlatformWeb.Router do
   end
 
   scope "/", PlatformWeb do
-    pipe_through([:browser, :app])
+    pipe_through([:browser, :interstitial])
 
     delete("/users/log_out", UserSessionController, :delete)
     get("/users/confirm", UserConfirmationController, :new)

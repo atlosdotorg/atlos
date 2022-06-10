@@ -1,18 +1,12 @@
-<h1>Resend confirmation instructions</h1>
-
 <div class="phx-form">
   <.form let={f} for={:user} action={Routes.user_confirmation_path(@conn, :create)}>
     <%= label(f, :email) %>
     <%= email_input(f, :email, required: true) %>
 
-    <div>
-      <%= submit("Resend confirmation instructions", class: "button ~urge @high") %>
+    <div class="md:flex mt-4 gap-2 items-center text-neutral-600">
+      <%= submit("Send instructions", class: "button ~urge @high") %>
+      <%= link("Register", to: Routes.user_registration_path(@conn, :new)) %>
+      <%= link("Log in", to: Routes.user_session_path(@conn, :new)) %>
     </div>
   </.form>
 </div>
-
-<p>
-  <%= link("Register", to: Routes.user_registration_path(@conn, :new)) %> | <%= link("Log in",
-    to: Routes.user_session_path(@conn, :new)
-  ) %>
-</p>

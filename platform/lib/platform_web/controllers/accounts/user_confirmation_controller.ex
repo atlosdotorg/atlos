@@ -4,7 +4,7 @@ defmodule PlatformWeb.UserConfirmationController do
   alias Platform.Accounts
 
   def new(conn, _params) do
-    render(conn, "new.html")
+    render(conn, "new.html", title: "Confirm your email")
   end
 
   def create(conn, %{"user" => %{"email" => email}}) do
@@ -25,7 +25,7 @@ defmodule PlatformWeb.UserConfirmationController do
   end
 
   def edit(conn, %{"token" => token}) do
-    render(conn, "edit.html", token: token)
+    render(conn, "edit.html", token: token, title: "Confirm your email")
   end
 
   # Do not log in the user after confirmation to avoid a
