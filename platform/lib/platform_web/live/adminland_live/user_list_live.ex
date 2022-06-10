@@ -41,7 +41,7 @@ defmodule PlatformWeb.AdminlandLive.UserListLive do
                       Joined
                     </th>
                     <th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-6">
-                      <span class="sr-only">Edit</span>
+                      <span class="sr-only">More</span>
                     </th>
                   </tr>
                 </thead>
@@ -94,10 +94,11 @@ defmodule PlatformWeb.AdminlandLive.UserListLive do
                         <.rel_time time={user.inserted_at} />
                       </td>
                       <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                        <%= live_patch("Edit",
-                          to: "/profile/#{user.username}/edit",
+                        <%= live_patch(to: "/profile/#{user.username}",
                           class: "text-button"
-                        ) %>
+                        ) do %>
+                          Details
+                        <% end %>
                       </td>
                     </tr>
                   <% end %>
