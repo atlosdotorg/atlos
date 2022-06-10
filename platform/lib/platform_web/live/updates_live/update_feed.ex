@@ -163,7 +163,7 @@ defmodule PlatformWeb.UpdatesLive.UpdateFeed do
                       <% end %>
                       <!-- Text comment section -->
                       <%= if update.explanation do %>
-                        <article class="prose text-sm p-2">
+                        <article class="prose text-sm p-2 w-full max-w-full">
                           <%= raw(update.explanation |> Platform.Utils.render_markdown()) %>
                         </article>
                       <% end %>
