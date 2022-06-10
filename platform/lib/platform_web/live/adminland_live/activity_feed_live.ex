@@ -57,7 +57,7 @@ defmodule PlatformWeb.AdminlandLive.ActivityFeedLive do
       <div>
         <.card>
           <:header>
-            <div class="flex gap-8 justify-between">
+            <div class="flex flex-col md:flex-row gap-4 md:gap-8 justify-between">
               <div>
                 <p class="sec-head">Activity Feed</p>
                 <p class="sec-subhead">This is the latest activity on Atlos.</p>
