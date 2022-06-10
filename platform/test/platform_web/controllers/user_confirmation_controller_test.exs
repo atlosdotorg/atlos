@@ -13,7 +13,7 @@ defmodule PlatformWeb.UserConfirmationControllerTest do
     test "renders the resend confirmation page", %{conn: conn} do
       conn = get(conn, Routes.user_confirmation_path(conn, :new))
       response = html_response(conn, 200)
-      assert response =~ "<h1>Resend confirmation instructions</h1>"
+      assert response =~ "Send instructions"
     end
   end
 
@@ -59,7 +59,7 @@ defmodule PlatformWeb.UserConfirmationControllerTest do
     test "renders the confirmation page", %{conn: conn} do
       conn = get(conn, Routes.user_confirmation_path(conn, :edit, "some-token"))
       response = html_response(conn, 200)
-      assert response =~ "Confirm account</h1>"
+      assert response =~ "Confirm my account"
 
       form_action = Routes.user_confirmation_path(conn, :update, "some-token")
       assert response =~ "action=\"#{form_action}\""
