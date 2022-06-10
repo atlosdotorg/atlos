@@ -49,7 +49,11 @@
       <% :users -> %>
         <.live_component module={PlatformWeb.AdminlandLive.UserListLive} id="user-list" />
       <% :activity -> %>
-        <.live_component module={PlatformWeb.AdminlandLive.ActivityFeedLive} current_user={@current_user} id="activity-feed" />
+        <.live_component
+          module={PlatformWeb.AdminlandLive.ActivityFeedLive}
+          current_user={@current_user}
+          id="activity-feed"
+        />
     <% end %>
   </div>
 </article>

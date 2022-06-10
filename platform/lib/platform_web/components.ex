@@ -585,8 +585,7 @@ defmodule PlatformWeb.Components do
             target="_blank"
             href={"https://maps.google.com/maps?q=#{lat},#{lon}"}
           >
-            -
-            <.location lat={lat} lon={lon} />
+            - <.location lat={lat} lon={lon} />
           </a>
         <% _x -> %>
       <% end %>
@@ -597,8 +596,7 @@ defmodule PlatformWeb.Components do
             target="_blank"
             href={"https://maps.google.com/maps?q=#{lat},#{lon}"}
           >
-            +
-            <.location lat={lat} lon={lon} />
+            + <.location lat={lat} lon={lon} />
           </a>
         <% _x -> %>
       <% end %>
