@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg" href={Routes.static_path(@conn, "/images/icon.svg")} />
+    <%= live_title_tag(assigns[:title] || "Collaborative OSINT", suffix: " | Atlos") %>
+    <link phx-track-static rel="stylesheet" href={Routes.static_path(@conn, "/assets/app.css")} />
+    <link
+      phx-track-static
+      rel="stylesheet"
+      href={Routes.static_path(@conn, "/fonts/iosevka/iosevka.css")}
+    />
+    <link
+      phx-track-static
+      rel="stylesheet"
+      href={Routes.static_path(@conn, "/fonts/inter/inter.css")}
+    />
+  </head>
+  <body>
+    <div class="min-h-screen flex flex justify-center py-12 sm:px-6 lg:px-8 items-center bg-neutral-600">
+      <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-sm">
+        <p class="text-center">
+          <span class="px-1 py-px rounded-sm font-mono bg-neutral-200 text-neutral-600 font-bold text-3xl uppercase">
+            Atlos
+          </span>
+        </p>
+        <div class="inset-0 overflow-y-auto">
+          <div class="z-10 inset-0 overflow-y-auto">
+            <div class="flex items-end sm:items-center justify-center min-h-full p-4 text-center sm:p-0">
+              <div class="relative bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:max-w-sm sm:w-full sm:p-6">
+                <div>
+                  <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-critical-100">
+                    <svg
+                      class="h-6 w-6 text-critical-600"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke-width="2"
+                      stroke="currentColor"
+                      aria-hidden="true"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                      />
+                    </svg>
+                  </div>
+                  <div class="mt-3 text-center sm:mt-5">
+                    <h3 class="text-xl leading-6 font-medium text-gray-900" id="modal-title">
+                      <%= @message %>
+                    </h3>
+                    <div class="mt-2">
+                      <p class="text-sm text-gray-500">
+                        <%= @description %>
+                      </p>
+                    </div>
+                    <div class="mt-4">
+                      <p class="text-center font-medium text-sm uppercase font-mono text-gray-500">HTTP ERROR <%= @status %></p>
+                    </div>
+                  </div>
+                </div>
+                <div class="mt-2 sm:mt-6 md:flex justify-center gap-2 w-full">
+                  <a
+                    href="mailto:contact@atlos.org"
+                    class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-urge-500 sm:mt-0 sm:w-auto sm:text-sm"
+                  >
+                    Contact Us
+                  </a>
+                  <a
+                    href="/"
+                    class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-urge-500 sm:mt-0 sm:w-auto sm:text-sm"
+                  >
+                    Return Home
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
