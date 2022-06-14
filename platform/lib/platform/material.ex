@@ -481,7 +481,7 @@ defmodule Platform.Material do
         %User{} = user,
         attrs \\ %{}
       ) do
-    changeset = Attribute.changeset(media, attribute, attrs)
+    changeset = Attribute.changeset(media, attribute, attrs, user)
 
     if Attribute.can_user_edit(attribute, user, media) do
       changeset
@@ -494,9 +494,9 @@ defmodule Platform.Material do
     end
   end
 
-  def update_media_attribute(media, %Attribute{} = attribute, attrs) do
+  def update_media_attribute(media, %Attribute{} = attribute, attrs, user \\ nil) do
     media
-    |> Attribute.changeset(attribute, attrs)
+    |> Attribute.changeset(attribute, attrs, user)
     |> Repo.update()
   end
 
@@ -517,7 +517,7 @@ defmodule Platform.Material do
       true ->
         Repo.transaction(fn ->
           {:ok, _} = Updates.create_update_from_changeset(update_changeset)
-          {:ok, res} = update_media_attribute(media, attribute, attrs)
+          {:ok, res} = update_media_attribute(media, attribute, attrs, user)
           res
         end)
     end

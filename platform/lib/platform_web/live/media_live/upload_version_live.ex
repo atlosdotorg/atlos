@@ -136,8 +136,6 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
               )
 
               send(component_pid, {:version_created, version})
-              IO.inspect(component_pid)
-              IO.inspect(self())
 
             {:error, %Ecto.Changeset{} = changeset} ->
               Auditor.log(

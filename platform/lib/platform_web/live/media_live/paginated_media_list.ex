@@ -30,8 +30,6 @@ defmodule PlatformWeb.MediaLive.PaginatedMediaList do
   end
 
   defp search_media(socket, c, pagination_opts \\ []) do
-    IO.inspect(c)
-
     {query, pagination_options} = Material.MediaSearch.search_query(c)
 
     query

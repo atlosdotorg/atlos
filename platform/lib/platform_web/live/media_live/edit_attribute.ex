@@ -108,10 +108,14 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
                   <%= textarea(f, @attr.schema_field, rows: 5) %>
                   <%= error_tag(f, @attr.schema_field) %>
                 <% :select -> %>
+                  <%= label(f, @attr.schema_field, @attr.label) %>
+                  <%= error_tag(f, @attr.schema_field) %>
                   <div phx-update="ignore" id={"attr_select_#{@media.slug}_#{@attr.schema_field}"}>
-                    <%= label(f, @attr.schema_field, @attr.label) %>
-                    <%= error_tag(f, @attr.schema_field) %>
-                    <%= select(f, @attr.schema_field, ["[Unset]": nil] ++ Attribute.options(@attr)) %>
+                    <%= select(
+                      f,
+                      @attr.schema_field,
+                      if(@attr.required, do: [], else: ["[Unset]": nil]) ++ Attribute.options(@attr)
+                    ) %>
                   </div>
                 <% :multi_select -> %>
                   <%= label(f, @attr.schema_field, @attr.label) %>

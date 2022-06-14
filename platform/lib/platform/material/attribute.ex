@@ -4,6 +4,7 @@ defmodule Platform.Material.Attribute do
   alias __MODULE__
   alias Platform.Material.Media
   alias Platform.Accounts.User
+  alias Platform.Accounts
 
   defstruct [
     :schema_field,
@@ -19,7 +20,8 @@ defmodule Platform.Material.Attribute do
     :description,
     :add_none,
     :required_roles,
-    :explanation_required
+    :explanation_required,
+    :privileged_values
   ]
 
   defp renamed_attributes() do
@@ -271,7 +273,8 @@ defmodule Platform.Material.Attribute do
         pane: :metadata,
         required: true,
         name: :status,
-        description: "Use the status to help coordinate and track work on Atlos."
+        description: "Use the status to help coordinate and track work on Atlos.",
+        privileged_values: ["Completed", "Cancelled"]
       }
     ]
   end
@@ -314,11 +317,11 @@ defmodule Platform.Material.Attribute do
     hd(Enum.filter(attributes(), &(&1.name |> to_string() == real_name)))
   end
 
-  def changeset(media, %Attribute{} = attribute, attrs \\ %{}) do
+  def changeset(media, %Attribute{} = attribute, attrs \\ %{}, user \\ nil) do
     media
     |> populate_virtual_data(attribute)
     |> cast_attribute(attribute, attrs)
-    |> validate_attribute(attribute)
+    |> validate_attribute(attribute, user)
     |> cast_and_validate_virtual_explanation(attrs, attribute)
     |> update_from_virtual_data(attribute)
   end
@@ -372,7 +375,7 @@ defmodule Platform.Material.Attribute do
     end
   end
 
-  def validate_attribute(changeset, %Attribute{} = attribute) do
+  def validate_attribute(changeset, %Attribute{} = attribute, user \\ nil) do
     validations =
       case attribute.type do
         :multi_select ->
@@ -392,10 +395,12 @@ defmodule Platform.Material.Attribute do
               []
             end
           end)
+          |> validate_privileged_values(attribute, user)
 
         :select ->
           changeset
           |> validate_inclusion(attribute.schema_field, options(attribute))
+          |> validate_privileged_values(attribute, user)
 
         :text ->
           changeset
@@ -457,6 +462,48 @@ defmodule Platform.Material.Attribute do
     else
       change
     end
+  end
+
+  defp validate_privileged_values(changeset, %Attribute{} = attribute, %User{} = user)
+       when is_list(attribute.privileged_values) do
+    if Accounts.is_privileged(user) do
+      # Changes by a privileged user can do anything
+      changeset
+    else
+      values = attribute.privileged_values
+
+      case get_field(changeset, attribute.schema_field) do
+        v when is_list(v) ->
+          requires_privilege =
+            MapSet.intersection(Enum.into(v, MapSet.new()), Enum.into(values, MapSet.new()))
+
+          if length(requires_privilege) > 0 do
+            changeset
+            |> add_error(
+              attribute.schema_field,
+              "Only moderators can set the following values: " <>
+                Enum.join(requires_privilege, ", ")
+            )
+          else
+            changeset
+          end
+
+        v ->
+          if Enum.member?(values, v) do
+            changeset
+            |> add_error(
+              attribute.schema_field,
+              "Only moderators can set the value to '" <> v <> "'"
+            )
+          else
+            changeset
+          end
+      end
+    end
+  end
+
+  defp validate_privileged_values(changeset, _attribute, _user) do
+    changeset
   end
 
   @doc """
