@@ -1163,8 +1163,8 @@ defmodule PlatformWeb.Components do
 
   def floating_warning(assigns) do
     ~H"""
-    <section class="fixed bottom-0 inset-x-0 pb-2 sm:pb-5">
-      <div class="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
+    <section class="fixed bottom-0 inset-x-0 pb-2 sm:pb-5 z-50">
+      <div class="max-w-7xl mx-auto lg:pl-36 px-2 sm:px-6 lg:px-8">
         <div class="p-2 rounded-lg bg-critical-600 shadow-lg sm:p-3">
           <div class="flex items-center justify-between flex-wrap">
             <div class="w-0 flex-1 flex items-center">
@@ -1181,6 +1181,40 @@ defmodule PlatformWeb.Components do
                     stroke-linecap="round"
                     stroke-linejoin="round"
                     d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                  />
+                </svg>
+              </span>
+              <p class="ml-3 font-medium text-white">
+                <%= render_slot(@inner_block) %>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    """
+  end
+
+  def floating_info(assigns) do
+    ~H"""
+    <section class="fixed bottom-0 inset-x-0 pb-2 sm:pb-5 z-50">
+      <div class="max-w-7xl mx-auto lg:pl-36 px-2 sm:px-6 lg:px-8">
+        <div class="p-2 rounded-lg bg-neutral-600 shadow-lg sm:p-3">
+          <div class="flex items-center justify-between flex-wrap">
+            <div class="w-0 flex-1 flex items-center">
+              <span class="flex p-2 rounded-lg bg-neutral-800">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-6 w-6 text-white"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                   />
                 </svg>
               </span>

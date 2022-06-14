@@ -102,6 +102,28 @@ defmodule Platform.Material.Media do
   Can the given user edit the media? This includes uploading new media versions as well as editing attributes.
   """
   def can_user_edit(%Media{} = media, %User{} = user) do
+    # This logic would be nice to refactor into a `with` statement
+    IO.inspect(media.attr_status)
+
+    case Enum.member?(user.restrictions || [], :muted) do
+      true ->
+        false
+
+      false ->
+        if Accounts.is_privileged(user) do
+          true
+        else
+          not (Enum.member?(media.attr_restrictions || [], "Hidden") ||
+                 Enum.member?(media.attr_restrictions || [], "Frozen") ||
+                 media.attr_status == "Completed" || media.attr_status == "Cancelled")
+        end
+    end
+  end
+
+  @doc """
+  Can the user comment on the media?
+  """
+  def can_user_comment(%Media{} = media, %User{} = user) do
     case Enum.member?(user.restrictions || [], :muted) do
       true ->
         false

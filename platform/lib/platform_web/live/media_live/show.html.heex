@@ -119,12 +119,6 @@
   </div>
   <div class="grid lg:grid-cols-3 gap-8 mt-8">
     <div class="lg:col-span-2 space-y-8">
-      <%= if Media.has_restrictions(@media) do %>
-        <aside class="aside ~warning text-sm">
-          <strong>This incident has been restricted.</strong>
-          As a result, you may not be able to edit or update it.
-        </aside>
-      <% end %>
       <.card>
         <:header>
           <h3 class="sec-head">Attributes</h3>
@@ -494,4 +488,23 @@
       Your account has been muted. As a result, you cannot edit or comment on this incident.
     </.floating_warning>
   <% end %>
+  <%= if @media.attr_status == "Completed" do %>
+    <.floating_info>
+      <strong>This incident is marked as completed.</strong>
+      Only moderators can now edit its attributes or upload new versions.
+    </.floating_info>
+  <% end %>
+  <%= if @media.attr_status == "Cancelled" do %>
+    <.floating_info>
+      <strong>This incident is marked as cancelled.</strong>
+      Only moderators can now edit its attributes or upload new versions.
+    </.floating_info>
+  <% end %>
+  <%= if Media.has_restrictions(@media) do %>
+    <.floating_warning>
+      <strong>This incident has been restricted.</strong>
+      As a result, you may not be able to edit or update it.
+    </.floating_warning>
+  <% end %>
 </article>
+<div class="h-24" />
