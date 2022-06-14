@@ -44,7 +44,7 @@ defmodule PlatformWeb.NewLive do
               <% end %>
             </h3>
             <p class="sec-subhead">
-              This media will be assigned the Atlos identifier <%= @media.slug %>.
+              You can upload additional media later. This media will be assigned the Atlos identifier <%= @media.slug %>.
             </p>
           </:header>
           <.live_component

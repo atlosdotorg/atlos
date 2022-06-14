@@ -230,22 +230,6 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
         class="phx-form"
       >
         <div class="space-y-6">
-          <div>
-            <%= label(f, :source_url, "Where did this media come from?") %>
-            <%= url_input(f, :source_url,
-              placeholder: "https://example.com/...",
-              phx_debounce: "250",
-              disabled: @disabled
-            ) %>
-            <p class="support">
-              This might be a tweet, a Telegram message, or something else. Where did the media come from?
-            </p>
-            <%= error_tag(f, :source_url) %>
-
-            <%= if length(@url_duplicate_of) > 0 do %>
-              <.deconfliction_warning duplicates={@url_duplicate_of} current_user={@current_user} />
-            <% end %>
-          </div>
           <div
             class="w-full flex justify-center items-center px-6 pt-5 pb-6 border-2 h-40 border-gray-300 border-dashed rounded-md"
             phx-drop-target={@uploads.media_upload.ref}
@@ -407,11 +391,46 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
               <% end %>
             <% end %>
           </div>
-          <%= submit("Publish to Atlos",
-            phx_disable_with: "Processing media...",
-            class: "button ~urge @high",
-            disabled: @disabled
-          ) %>
+          <div>
+            <%= label(f, :source_url, "Where did this media come from?") %>
+            <%= url_input(f, :source_url,
+              placeholder: "https://example.com/...",
+              phx_debounce: "250",
+              disabled: @disabled
+            ) %>
+            <p class="support">
+              This might be a tweet, a Telegram message, or something else. Where did the media come from?
+            </p>
+            <%= error_tag(f, :source_url) %>
+
+            <%= if length(@url_duplicate_of) > 0 do %>
+              <.deconfliction_warning duplicates={@url_duplicate_of} current_user={@current_user} />
+            <% end %>
+          </div>
+          <div class="flex flex-col sm:flex-row gap-4 justify-between sm:items-center">
+            <%= submit(
+              if(@processing,
+                do: "Processing media...",
+                else: "Publish to Atlos"
+              ),
+              phx_disable_with: "Uploading...",
+              class: "button ~urge @high",
+              disabled: @disabled
+            ) %>
+            <a href={"/incidents/#{@media.slug}/"} class="text-button text-sm text-right">
+              <%= if @processing do %>
+                Continue to media &rarr;
+                <span class="text-gray-500 font-normal block text-xs">
+                  Upload will continue in the background
+                </span>
+              <% else %>
+                Or skip media upload
+                <span class="text-gray-500 font-normal block text-xs">
+                  You can upload media later
+                </span>
+              <% end %>
+            </a>
+          </div>
         </div>
       </.form>
     </article>

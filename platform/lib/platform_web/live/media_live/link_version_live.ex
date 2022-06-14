@@ -118,10 +118,19 @@ defmodule PlatformWeb.MediaLive.LinkVersionLive do
               <.deconfliction_warning duplicates={@url_duplicate_of} current_user={@current_user} />
             <% end %>
           </div>
-          <%= submit("Publish to Atlos",
-            phx_disable_with: "Publishing...",
-            class: "button ~urge @high"
-          ) %>
+          <div class="flex flex-col sm:flex-row gap-4 justify-between sm:items-center">
+            <%= submit(
+              "Publish to Atlos",
+              phx_disable_with: "Uploading...",
+              class: "button ~urge @high"
+            ) %>
+            <a href={"/incidents/#{@media.slug}/"} class="text-button text-sm text-right">
+              Or skip media upload
+              <span class="text-gray-500 font-normal block text-xs">
+                You can upload media later
+              </span>
+            </a>
+          </div>
         </div>
       </.form>
     </article>
