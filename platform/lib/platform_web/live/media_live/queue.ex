@@ -1,6 +1,8 @@
 defmodule PlatformWeb.MediaLive.Queue do
   use PlatformWeb, :live_view
 
+  alias Platform.Accounts
+
   def mount(_params, _session, socket) do
     {:ok, socket}
   end
@@ -20,6 +22,7 @@ defmodule PlatformWeb.MediaLive.Queue do
       "unclaimed" -> "Unclaimed"
       "claimed" -> "Claimed"
       "help_needed" -> "Help Needed"
+      "review" -> "Ready for Review"
     end
   end
 
@@ -28,6 +31,7 @@ defmodule PlatformWeb.MediaLive.Queue do
       "unclaimed" -> %{"attr_status" => "Unclaimed"}
       "claimed" -> %{"attr_status" => "Claimed"}
       "help_needed" -> %{"attr_status" => "Help Needed"}
+      "review" -> %{"attr_status" => "Ready for Review"}
     end
   end
 
@@ -77,6 +81,27 @@ defmodule PlatformWeb.MediaLive.Queue do
                 />
               </svg>
               Help Needed
+            <% end %>
+            <%= if Accounts.is_privileged(@current_user) do %>
+              <!-- Regular users can see this page; that's fine. We just don't want to confuse them by putting it in their navbar. -->
+              <%= live_patch(
+                class: if(@tab == "review", do: active_classes, else: inactive_classes),
+                to: "/queue/review"
+              ) do %>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-4 w-4 opacity-75"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+                Ready for Review
+              <% end %>
             <% end %>
           </nav>
         </div>
