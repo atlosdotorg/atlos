@@ -40,8 +40,6 @@ defmodule Platform.Updates.Update do
     update
     |> raw_changeset(hydrated_attrs)
     |> validate_access(user, media)
-
-    # TODO: also validate that if type == :comment, then explanation is not empty
   end
 
   def raw_changeset(update, attrs) do
@@ -75,7 +73,8 @@ defmodule Platform.Updates.Update do
   end
 
   def validate_access(changeset, %User{} = user, %Media{} = media) do
-    if Media.can_user_edit(media, user) do
+    if Media.can_user_edit(media, user) ||
+         (get_field(changeset, :type) == :comment and Media.can_user_comment(media, user)) do
       changeset
     else
       changeset

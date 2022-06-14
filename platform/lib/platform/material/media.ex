@@ -103,8 +103,6 @@ defmodule Platform.Material.Media do
   """
   def can_user_edit(%Media{} = media, %User{} = user) do
     # This logic would be nice to refactor into a `with` statement
-    IO.inspect(media.attr_status)
-
     case Enum.member?(user.restrictions || [], :muted) do
       true ->
         false

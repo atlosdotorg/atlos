@@ -213,7 +213,7 @@
           id={"comment-box-#{@comment_box_id}"}
           media={@media}
           current_user={@current_user}
-          disabled={!Media.can_user_edit(@media, @current_user)}
+          disabled={!Media.can_user_comment(@media, @current_user)}
         />
       </.card>
     </div>
