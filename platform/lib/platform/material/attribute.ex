@@ -263,13 +263,13 @@ defmodule Platform.Material.Attribute do
           "Unclaimed",
           "Claimed",
           "Help Needed",
-          "Community Confirmed",
-          "Closed",
-          "Completed"
+          "Ready for Review",
+          "Completed",
+          "Cancelled"
         ],
         label: "Status",
         pane: :metadata,
-        required: false,
+        required: true,
         name: :status,
         description: "Use the status to help coordinate and track work on Atlos."
       }
@@ -485,8 +485,8 @@ defmodule Platform.Material.Attribute do
         case value do
           "Unclaimed" -> "~positive"
           "Claimed" -> "~urge"
-          "Closed" -> "~neutral"
-          "Community Confirmed" -> "~cyan"
+          "Cancelled" -> "~neutral"
+          "Ready for Review" -> "~cyan"
           "Completed" -> "~purple"
           _ -> "~warning"
         end
