@@ -21,7 +21,10 @@ defmodule Platform.Material.Attribute do
     :add_none,
     :required_roles,
     :explanation_required,
-    :privileged_values
+    # for selects and multiple selects -- the values which require the user to have special privileges
+    :privileged_values,
+    # for selects and multiple selects
+    :option_descriptions
   ]
 
   defp renamed_attributes() do
@@ -275,7 +278,15 @@ defmodule Platform.Material.Attribute do
         required: true,
         name: :status,
         description: "Use the status to help coordinate and track work on Atlos.",
-        privileged_values: ["Completed", "Cancelled"]
+        privileged_values: ["Completed", "Cancelled"],
+        option_descriptions: %{
+          "Unclaimed" => "Not actively being worked on",
+          "Claimed" => "Actively being worked on",
+          "Help Needed" => "Stuck, or second opinion needed",
+          "Ready for Review" => "Ready for a moderator's verification",
+          "Completed" => "Investigation complete (only moderators can set)",
+          "Cancelled" => "Will not be completed (out of scope, etc.)"
+        }
       }
     ]
   end
@@ -542,5 +553,20 @@ defmodule Platform.Material.Attribute do
       _ ->
         "~neutral"
     end
+  end
+
+  @doc """
+  Creates k-v pairs to be passed to the `select` or `multiple_select` tags that contain the `data-desc` key for the interface.
+  """
+  def apply_select_option_descriptions(values, %Attribute{} = attr) do
+    descriptions = attr.option_descriptions || %{}
+
+    values
+    |> Enum.map(fn val ->
+      case val do
+        [k | v] -> [data_desc: Map.get(descriptions, k, ""), key: k, value: v]
+        v -> [data_desc: Map.get(descriptions, v, ""), key: v, value: v]
+      end
+    end)
   end
 end

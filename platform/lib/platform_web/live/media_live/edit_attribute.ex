@@ -114,7 +114,8 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
                     <%= select(
                       f,
                       @attr.schema_field,
-                      if(@attr.required, do: [], else: ["[Unset]": nil]) ++ Attribute.options(@attr)
+                      (if(@attr.required, do: [], else: ["[Unset]": nil]) ++ Attribute.options(@attr))
+                      |> Attribute.apply_select_option_descriptions(@attr)
                     ) %>
                   </div>
                 <% :multi_select -> %>
@@ -124,7 +125,11 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
                     phx-update="ignore"
                     id={"attr_multi_select_#{@media.slug}_#{@attr.schema_field}"}
                   >
-                    <%= multiple_select(f, @attr.schema_field, Attribute.options(@attr)) %>
+                    <%= multiple_select(
+                      f,
+                      @attr.schema_field,
+                      Attribute.options(@attr) |> Attribute.apply_select_option_descriptions(@attr)
+                    ) %>
                   </div>
                 <% :location -> %>
                   <div class="space-y-4">

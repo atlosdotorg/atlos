@@ -81,7 +81,15 @@ function initializeMultiSelects() {
             },
             plugins: s.hasAttribute("multiple") ? [
                 "remove_button", "checkbox_options"
-            ] : []
+            ] : [],
+            render: {
+                option: function (data, escape) {
+                    return '<div class="flex flex-col lg:flex-row justify-between lg:items-center"><span>' + escape(data.value) + '</span><span class="text-gray-400 text-sm">' + escape(data.desc) + '</span></div>';
+                },
+                item: function (data, escape) {
+                    return '<div>' + escape(data.value) + '</div>';
+                }
+            }
         });
         x.control_input.setAttribute("phx-debounce", "blur");
     });
