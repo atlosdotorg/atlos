@@ -19,7 +19,7 @@ defmodule Platform.Material.Media do
     field :attr_geolocation, Geo.PostGIS.Geometry
     field :attr_environment, :string
     field :attr_weather, {:array, :string}
-    field :attr_camera_system, :string
+    field :attr_camera_system, {:array, :string}
     field :attr_more_info, :string
     field :attr_civilian_impact, {:array, :string}
     field :attr_event, {:array, :string}

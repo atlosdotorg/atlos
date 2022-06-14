@@ -99,13 +99,14 @@ defmodule Platform.Material.Attribute do
       },
       %Attribute{
         schema_field: :attr_camera_system,
-        type: :select,
+        type: :multi_select,
         options: ["Handheld", "Satellite", "Surveillance Camera", "Drone", "Dashcam", "Other"],
         label: "Camera System",
         pane: :attributes,
         required: false,
         name: :camera_system,
-        description: "How was this media created?"
+        description:
+          "What kinds of camera systems does the media use? If there are multiple pieces of media, select all that apply."
       },
       %Attribute{
         schema_field: :attr_more_info,
