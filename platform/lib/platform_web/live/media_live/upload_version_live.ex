@@ -259,7 +259,7 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
                     <div class="w-42 mt-2 text-center">
                       <p class="font-medium text-neutral-800 mb-1">Processing your media...</p>
                       <p>
-                        This might take a moment. You can safety close this window. You will be redirected to the incident once the upload is complete.
+                        This might take a moment. You can safely close this window. You will be redirected to the incident once the upload is complete.
                       </p>
                     </div>
                   </div>
