@@ -46,9 +46,9 @@ alias Platform.Material
     invite_code: Accounts.get_valid_invite_code()
   })
 
-{:ok, _} = Accounts.update_user_admin(admin, %{roles: [:admin]})
-{:ok, _} = Accounts.update_user_admin(muted, %{restrictions: [:muted]})
-{:ok, _} = Accounts.update_user_admin(muted, %{restrictions: [:suspended]})
+{:ok, admin} = Accounts.update_user_admin(admin, %{roles: [:admin]})
+{:ok, muted} = Accounts.update_user_admin(muted, %{restrictions: [:muted]})
+{:ok, suspended} = Accounts.update_user_admin(suspended, %{restrictions: [:suspended]})
 
 random_users =
   Enum.map(1..50, fn _ ->
@@ -98,19 +98,6 @@ random_media =
 
     Material.subscribe_user(media, creator)
 
-    # Add status to 10%
-    if Enum.random(0..10) < 1 do
-      attr = Material.Attribute.get_attribute(:status)
-
-      {:ok, _} =
-        Material.update_media_attribute_audited(
-          media,
-          attr,
-          Enum.random(random_users),
-          %{"attr_status" => Enum.random(attr.options)}
-        )
-    end
-
     # Add geolocation to 10%
     if Enum.random(0..10) < 1 do
       attr = Material.Attribute.get_attribute(:geolocation)
@@ -124,6 +111,20 @@ random_media =
             "latitude" => 49 + :rand.uniform() * 30 - 15,
             "longitude" => 30 + :rand.uniform() * 16 - 8
           }
+        )
+    end
+
+    # Add status to 80%
+    if Enum.random(0..9) < 8 do
+      attr = Material.Attribute.get_attribute(:status)
+
+      {:ok, _} =
+        Material.update_media_attribute_audited(
+          media,
+          attr,
+          # Only admins can apply certain statuses
+          admin,
+          %{"attr_status" => Enum.random(attr.options)}
         )
     end
   end)
