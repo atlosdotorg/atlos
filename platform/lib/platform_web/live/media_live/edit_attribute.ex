@@ -114,8 +114,9 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
                     <%= select(
                       f,
                       @attr.schema_field,
-                      (if(@attr.required, do: [], else: ["[Unset]": nil]) ++ Attribute.options(@attr))
-                      |> Attribute.apply_select_option_descriptions(@attr)
+                      if(@attr.required, do: [], else: ["[Unset]": nil]) ++
+                        Attribute.options(@attr),
+                      data_descriptions: Jason.encode!(@attr.option_descriptions || %{})
                     ) %>
                   </div>
                 <% :multi_select -> %>
@@ -128,7 +129,8 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
                     <%= multiple_select(
                       f,
                       @attr.schema_field,
-                      Attribute.options(@attr) |> Attribute.apply_select_option_descriptions(@attr)
+                      Attribute.options(@attr),
+                      data_descriptions: Jason.encode!(@attr.option_descriptions || %{})
                     ) %>
                   </div>
                 <% :location -> %>

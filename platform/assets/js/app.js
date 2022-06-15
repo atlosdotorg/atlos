@@ -68,6 +68,7 @@ function initializeMultiSelects() {
         if (s.hasAttribute("multiple")) {
             prompt = "Select all that apply..."
         }
+        let descriptions = JSON.parse(s.getAttribute("data-descriptions")) || {};
 
         let x = new TomSelect(`#${s.id}`, {
             maxOptions: null,
@@ -84,10 +85,10 @@ function initializeMultiSelects() {
             ] : [],
             render: {
                 option: function (data, escape) {
-                    return '<div class="flex flex-col lg:flex-row justify-between lg:items-center"><span>' + escape(data.value) + '</span><span class="text-gray-400 text-sm">' + escape(data.desc) + '</span></div>';
+                    return '<div class="flex flex-col lg:flex-row lg:items-center"><span>' + escape(data.text) + '</span><span class="lg:flex-grow"></span><span class="text-gray-400 text-sm">' + escape(descriptions[data.value] || "") + '</span></div>';
                 },
                 item: function (data, escape) {
-                    return '<div>' + escape(data.value) + '</div>';
+                    return '<div>' + escape(data.text) + '</div>';
                 }
             }
         });

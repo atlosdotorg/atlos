@@ -554,19 +554,4 @@ defmodule Platform.Material.Attribute do
         "~neutral"
     end
   end
-
-  @doc """
-  Creates k-v pairs to be passed to the `select` or `multiple_select` tags that contain the `data-desc` key for the interface.
-  """
-  def apply_select_option_descriptions(values, %Attribute{} = attr) do
-    descriptions = attr.option_descriptions || %{}
-
-    values
-    |> Enum.map(fn val ->
-      case val do
-        [k | v] -> [data_desc: Map.get(descriptions, k, ""), key: k, value: v]
-        v -> [data_desc: Map.get(descriptions, v, ""), key: v, value: v]
-      end
-    end)
-  end
 end

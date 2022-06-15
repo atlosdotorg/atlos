@@ -615,7 +615,10 @@ defmodule PlatformWeb.Components do
         <% :select -> %>
           <.list_diff old={[old]} new={[new]} />
         <% :multi_select -> %>
-          <.list_diff old={old} new={new} />
+          <.list_diff
+            old={if is_list(old), do: old, else: [old]}
+            new={if is_list(new), do: new, else: [new]}
+          />
         <% :location -> %>
           <.location_diff old={old} new={new} />
         <% :time -> %>
@@ -1144,18 +1147,22 @@ defmodule PlatformWeb.Components do
     """
   end
 
-  def user_text(%{user: %Accounts.User{} = user} = assigns) do
+  def user_text(%{user: user} = assigns) do
     ~H"""
     <a
       class="font-medium text-gray-900 hover:text-urge-600 inline-flex gap-1 flex-wrap"
-      href={"/profile/#{user.username}"}
+      href={if is_nil(user), do: "#", else: "/profile/#{user.username}"}
     >
-      <%= user.username %>
-      <%= if Accounts.is_admin(user) do %>
-        <span class="font-normal text-xs badge ~critical self-center">Admin</span>
-      <% end %>
-      <%= if String.length(user.flair) > 0 do %>
-        <span class="font-normal text-xs badge ~urge self-center"><%= user.flair %></span>
+      <%= if is_nil(user) do %>
+        [System]
+      <% else %>
+        <%= user.username %>
+        <%= if Accounts.is_admin(user) do %>
+          <span class="font-normal text-xs badge ~critical self-center">Admin</span>
+        <% end %>
+        <%= if String.length(user.flair) > 0 do %>
+          <span class="font-normal text-xs badge ~urge self-center"><%= user.flair %></span>
+        <% end %>
       <% end %>
     </a>
     """
