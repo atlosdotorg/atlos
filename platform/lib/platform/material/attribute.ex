@@ -165,8 +165,7 @@ defmodule Platform.Material.Attribute do
           "Combat",
           "Protest",
           "Civilian-Military Interaction",
-          "Abandoned Military Equipment",
-          "Destroyed Military Equipment"
+          "Military Equipment"
         ],
         label: "Event",
         pane: :attributes,
