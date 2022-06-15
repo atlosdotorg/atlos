@@ -109,7 +109,7 @@ defmodule PlatformWeb.NewLive.BasicInfoLive do
                   <ul role="list" class="list-disc pl-5 space-y-1">
                     <li>
                       <strong>Do:</strong>
-                      Upload imagery documenting civilian harm, air strikes, etc. Tag incidents that involve graphic media as 'Graphic Violence.' Tag incidents that permit the identification or location of civilians as 'Threatens Civilian Safety.'
+                      Upload imagery documenting civilian harm, air strikes, etc. Tag incidents that involve graphic media as 'Graphic Violence.' Tag incidents that permit the identification or location of civilians as 'Personal Information Visible.'
                     </li>
                     <li>
                       <strong>Don't:</strong>

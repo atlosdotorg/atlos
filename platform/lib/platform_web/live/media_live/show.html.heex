@@ -49,7 +49,7 @@
         </div>
         <%= if @media.attr_status do %>
           <%= live_patch(class: "chip @high inline-block mt-2 flex gap-1 " <> Attribute.attr_color(:status, @media.attr_status),
-                      to: Routes.media_show_path(@socket, :history, @media.slug, :status)
+                      to: Routes.media_show_path(@socket, :edit, @media.slug, :status)
                     ) do %>
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -69,7 +69,7 @@
         <%= if Media.is_sensitive(@media) do %>
           <%= for item <- @media.attr_sensitive || [] do %>
             <%= live_patch(class: "chip @high inline-block mt-2 flex gap-1 " <> Attribute.attr_color(:sensitive, @media.attr_sensitive),
-                    to: Routes.media_show_path(@socket, :history, @media.slug, :sensitive)
+                    to: Routes.media_show_path(@socket, :edit, @media.slug, :sensitive)
                     ) do %>
               <svg
                 xmlns="http://www.w3.org/2000/svg"

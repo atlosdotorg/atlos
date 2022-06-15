@@ -174,10 +174,10 @@ defmodule Platform.MaterialTest do
       {:ok, updated} =
         Material.update_media_attribute_audited(media, attribute, user, %{
           "explanation" => "Very important explanation",
-          "attr_sensitive" => ["Threatens Civilian Safety"]
+          "attr_sensitive" => ["Personal Information Visible"]
         })
 
-      assert updated.attr_sensitive == ["Threatens Civilian Safety"]
+      assert updated.attr_sensitive == ["Personal Information Visible"]
       assert [update = %Updates.Update{}] = Updates.get_updates_for_media(media)
       assert update.media_id == media.id
       assert update.user_id == user.id

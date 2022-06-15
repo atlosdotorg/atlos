@@ -301,6 +301,7 @@
 
  .plugin-checkbox_options .option input {
    margin-right: 0.5rem;
+   margin-top: 0.2rem;
  }
 
  .plugin-clear_button .ts-control {

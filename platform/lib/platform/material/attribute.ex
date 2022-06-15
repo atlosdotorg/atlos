@@ -40,11 +40,19 @@ defmodule Platform.Material.Attribute do
         schema_field: :attr_sensitive,
         type: :multi_select,
         options: [
-          "Threatens Civilian Safety",
+          "Personal Information Visible",
           "Graphic Violence",
           "Deleted by Source",
           "Deceptive or Misleading"
         ],
+        option_descriptions: %{
+          "Personal Information Visible" => "Could identify individuals or their location",
+          "Graphic Violence" => "Media contains violence or other graphic imagery",
+          "Deleted by Source" => "The media has been deleted from its original location",
+          "Deceptive or Misleading" =>
+            "The media is a hoax, misinformation, or otherwise deceptive",
+          "Not Sensitive" => "The media is not sensitive"
+        },
         label: "Sensitivity",
         min_length: 1,
         pane: :metadata,
@@ -165,7 +173,9 @@ defmodule Platform.Material.Attribute do
           "Combat",
           "Protest",
           "Civilian-Military Interaction",
-          "Military Equipment"
+          "Abandoned Military Infrastructure",
+          "Destroyed Military Infrastructure",
+          "Traveling Military Infrastructure"
         ],
         label: "Event",
         pane: :attributes,

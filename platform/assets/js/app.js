@@ -85,7 +85,11 @@ function initializeMultiSelects() {
             ] : [],
             render: {
                 option: function (data, escape) {
-                    return '<div class="flex flex-col lg:flex-row lg:items-center"><span>' + escape(data.text) + '</span><span class="lg:flex-grow"></span><span class="text-gray-400 text-sm">' + escape(descriptions[data.value] || "") + '</span></div>';
+                    let desc = descriptions[data.value] || "";
+                    if (desc.length != 0) {
+                        desc = "— " + desc;
+                    }
+                    return '<div class="lg:flex"><div><span>' + escape(data.text) + '</span><span class="text-gray-400">&nbsp;' + escape(desc) + '</span></div></div>';
                 },
                 item: function (data, escape) {
                     return '<div>' + escape(data.text) + '</div>';
