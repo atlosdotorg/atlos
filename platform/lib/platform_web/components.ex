@@ -521,15 +521,15 @@ defmodule PlatformWeb.Components do
         <%= for val <- elem do %>
           <%= case action do %>
             <% :ins -> %>
-              <span class="px-1 text-blue-800 bg-blue-200 rounded-sm mx-px">
+              <span class="text-blue-800 bg-blue-200">
                 <%= val %>
               </span>
             <% :del -> %>
-              <span class="px-1 text-yellow-800 bg-yellow-200 rounded-sm line-through mx-px">
+              <span class="text-yellow-800 bg-yellow-200 line-through">
                 <%= val %>
               </span>
             <% :eq -> %>
-              <span class="text-gray-700 px-0 text-sm mx-px">
+              <span class="text-gray-700 px-0 text-sm">
                 <%= val %>
               </span>
           <% end %>
