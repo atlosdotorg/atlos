@@ -1,6 +1,6 @@
 app = "atlos-platform-staging"
 
-kill_signal = "SIGTERM"
+kill_signal = "SIGINT"
 kill_timeout = 5
 processes = []
 
