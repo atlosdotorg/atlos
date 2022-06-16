@@ -8,7 +8,7 @@ processes = []
   release_command = "/app/bin/migrate"
 
 [env]
-  PHX_HOST = "app.atlos.org"
+  PHX_HOST = "platform.atlos.org"
   PORT = "8080"
   S3_BUCKET = "atlos-content-main"
   AWS_REGION = "us-east-1"
@@ -27,7 +27,7 @@ processes = []
   processes = ["app"]
   protocol = "tcp"
   script_checks = []
-  
+
   [services.concurrency]
     hard_limit = 25
     soft_limit = 20
