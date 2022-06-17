@@ -24,7 +24,12 @@ defmodule PlatformWeb.MediaLive.LinkVersionLive do
     source_url = Map.get(params, "source_url", "")
 
     if String.length(source_url) > 0 do
-      socket |> assign(:url_duplicate_of, Material.get_media_versions_by_source_url(source_url))
+      socket
+      |> assign(
+        :url_duplicate_of,
+        Material.get_media_versions_by_source_url(source_url)
+        |> Enum.filter(&Material.Media.can_user_view(&1.media, socket.assigns.current_user))
+      )
     else
       socket |> assign(:url_duplicate_of, [])
     end

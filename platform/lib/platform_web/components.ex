@@ -638,7 +638,7 @@ defmodule PlatformWeb.Components do
       </p>
       <div class="grid grid-cols-1 gap-4 mt-4">
         <%= for dupe <- duplicates do %>
-          <.media_card media={dupe.media} current_user={current_user} />
+          <.media_card media={dupe.media} current_user={current_user} target="_blank" />
         <% end %>
       </div>
     </div>
@@ -649,11 +649,13 @@ defmodule PlatformWeb.Components do
     # TODO: preload
     contributors = Material.contributors(media)
     sensitive = Media.is_sensitive(media)
+    assigns = assigns |> Map.put_new(:target, nil)
 
     ~H"""
     <a
       class="flex items-stretch group flex-row bg-white overflow-hidden shadow rounded-lg justify-between min-h-32 max-h-48"
       href={"/incidents/#{media.slug}"}
+      target={@target}
     >
       <%= if Media.can_user_view(media, user) do %>
         <div class="p-2 flex flex-col w-3/4 gap-2 relative">
