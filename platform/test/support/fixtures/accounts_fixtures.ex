@@ -4,8 +4,8 @@ defmodule Platform.AccountsFixtures do
   entities via the `Platform.Accounts` context.
   """
 
-  def unique_user_email, do: "user#{System.unique_integer()}@example.com"
-  def unique_user_username, do: "user#{System.unique_integer()}"
+  def unique_user_email, do: "user#{System.unique_integer() |> abs()}@example.com"
+  def unique_user_username, do: "user#{System.unique_integer() |> abs()}"
   def valid_user_password, do: "hello world!"
 
   def valid_user_attributes(attrs \\ %{}) do

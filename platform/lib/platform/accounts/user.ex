@@ -100,7 +100,9 @@ defmodule Platform.Accounts.User do
   defp validate_username(changeset) do
     changeset
     |> validate_required([:username])
-    |> validate_format(:username, ~r/[A-Za-z0-9]+/, message: "must be alphaneumeric")
+    |> validate_format(:username, ~r/^[A-Za-z0-9]+$/,
+      message: "must be alphaneumeric with no spaces"
+    )
     |> validate_length(:username, min: 3, max: 32)
     |> unsafe_validate_unique(:username, Platform.Repo)
     |> unique_constraint(:username)
