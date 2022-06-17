@@ -358,7 +358,9 @@ defmodule Platform.Material do
             "-o",
             Path.join(temp_dir, "out.%(ext)s"),
             "--max-filesize",
-            "500m"
+            "500m",
+            "--merge-output-format",
+            "mp4"
           ],
           into: IO.stream()
         )
@@ -393,6 +395,7 @@ defmodule Platform.Material do
     rescue
       val ->
         # Some error happened! Log it and update the media version appropriately.
+        IO.inspect(val)
         Logger.error("Unable to automatically archive media!")
         Auditor.log(:archive_failed, %{error: val, version: version})
 
