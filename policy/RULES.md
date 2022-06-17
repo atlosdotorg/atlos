@@ -1,6 +1,6 @@
 # Atlos Rules
 
-This rules help us keep Atlos running smoothly. By using Atlos, you agree to follow these rules. Note that these rules exist in addition to our [Terms of Use](./TERMS_OF_USE.md).
+These rules help us keep Atlos running smoothly. By using Atlos, you agree to follow these rules. Note that these rules exist in addition to our [Terms of Use](./TERMS_OF_USE.md).
 
 ## Relevance
 
