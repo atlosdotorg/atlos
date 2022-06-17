@@ -1279,7 +1279,7 @@ defmodule PlatformWeb.Components do
 
   def footer(assigns) do
     ~H"""
-    <div class="grid grid-cols-3 gap-4 md:flex md:justify-between max-w-lg mx-auto mt-8 text-gray-500 text-xs">
+    <footer class="grid grid-cols-3 text-center gap-4 place-self-center md:flex md:justify-between max-w-lg mx-auto mt-8 text-gray-500 text-xs">
       <a href="https://github.com/milesmcc/atlos" class="hover:text-gray-600">Source Code</a>
       <a
         href="https://github.com/milesmcc/atlos/blob/main/policy/RULES.md"
@@ -1303,7 +1303,7 @@ defmodule PlatformWeb.Components do
         Feedback
       </a>
       <a href="mailto:contact@atlos.org" class="hover:text-gray-600 transition">Contact</a>
-    </div>
+    </footer>
     """
   end
 end
