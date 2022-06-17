@@ -27,7 +27,7 @@ defmodule PlatformWeb.Components do
   def modal(assigns) do
     ~H"""
     <div
-      class="fixed z-100 inset-0 overflow-y-auto"
+      class="fixed z-[100] inset-0 overflow-y-auto"
       aria-labelledby="modal-title"
       role="dialog"
       aria-modal="true"
@@ -1279,7 +1279,7 @@ defmodule PlatformWeb.Components do
 
   def footer(assigns) do
     ~H"""
-    <div class="flex justify-between max-w-lg mx-auto mt-8 text-gray-500 text-xs">
+    <div class="grid grid-cols-3 gap-4 md:flex md:justify-between max-w-lg mx-auto mt-8 text-gray-500 text-xs">
       <a href="https://github.com/milesmcc/atlos" class="hover:text-gray-600">Source Code</a>
       <a
         href="https://github.com/milesmcc/atlos/blob/main/policy/RULES.md"
