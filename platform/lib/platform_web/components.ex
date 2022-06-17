@@ -1254,4 +1254,56 @@ defmodule PlatformWeb.Components do
     </article>
     """
   end
+
+  def footer_legal_language(assigns) do
+    # Some of the code below might look like it's formatted strangely. And it is.
+    # It's to keep the spacing right, and to prevent the autoformatter from screwing it up.
+    ~H"""
+    <div class="text-center text-xs mt-4">
+      <p>
+        Atlos is <a href="https://github.com/milesmcc/atlos" class="underline">open source</a>.
+      </p>
+      <p>
+        By using Atlos, you agree to our <a
+          href="https://github.com/milesmcc/atlos/blob/main/policy/TERMS_OF_USE.md"
+          class="underline"
+        >
+          Terms of Use</a>&nbsp;and our <a
+          href="https://github.com/milesmcc/atlos/blob/main/policy/RULES.md"
+          class="underline"
+        >Rules</a>.
+      </p>
+    </div>
+    """
+  end
+
+  def footer(assigns) do
+    ~H"""
+    <div class="flex justify-between max-w-lg mx-auto mt-8 text-gray-500 text-xs">
+      <a href="https://github.com/milesmcc/atlos" class="hover:text-gray-600">Source Code</a>
+      <a
+        href="https://github.com/milesmcc/atlos/blob/main/policy/RULES.md"
+        class="hover:text-gray-600 transition"
+      >
+        Rules
+      </a>
+      <a
+        href="https://github.com/milesmcc/atlos/blob/main/policy/TERMS_OF_USE.md"
+        class="hover:text-gray-600 transition"
+      >
+        Terms of Use
+      </a>
+      <a
+        href="https://github.com/milesmcc/atlos/blob/main/policy/RESILIENCE.md"
+        class="hover:text-gray-600 transition"
+      >
+        Resilience
+      </a>
+      <a href="https://github.com/milesmcc/atlos/discussions" class="hover:text-gray-600 transition">
+        Feedback
+      </a>
+      <a href="mailto:contact@atlos.org" class="hover:text-gray-600 transition">Contact</a>
+    </div>
+    """
+  end
 end
