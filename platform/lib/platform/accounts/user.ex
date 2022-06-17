@@ -15,6 +15,7 @@ defmodule Platform.Accounts.User do
     field :admin_notes, :string, default: ""
 
     field :invite_code, :string, virtual: true
+    field :terms_agree, :boolean, virtual: true
     field :password, :string, virtual: true, redact: true
     field :hashed_password, :string, redact: true
     field :confirmed_at, :naive_datetime
@@ -44,9 +45,10 @@ defmodule Platform.Accounts.User do
   """
   def registration_changeset(user, attrs, opts \\ []) do
     user
-    |> cast(attrs, [:email, :password, :username, :invite_code])
+    |> cast(attrs, [:email, :password, :username, :invite_code, :terms_agree])
     |> validate_email()
     |> validate_username()
+    |> validate_terms_agreement()
     |> validate_password(opts)
   end
 
@@ -79,6 +81,11 @@ defmodule Platform.Accounts.User do
           end
       end
     )
+  end
+
+  defp validate_terms_agreement(changeset) do
+    changeset
+    |> validate_exclusion(:terms_agree, [false], message: "You must agree to the Atlos terms.")
   end
 
   defp validate_email(changeset) do

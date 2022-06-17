@@ -3,8 +3,11 @@
 
   <div class="flex-1 flex flex-col overflow-hidden">
     <div class="my-8 mx-auto w-full">
-      <div class="mx-auto w-full 2xl:w-[1280px]">
+      <div class="mx-auto w-full 2xl:w-[1280px] min-h-[85vh]">
         <%= @inner_content %>
+      </div>
+      <div class="mx-auto w-full">
+        <.footer />
       </div>
       <div
         aria-live="assertive"

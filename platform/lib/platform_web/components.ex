@@ -27,7 +27,7 @@ defmodule PlatformWeb.Components do
   def modal(assigns) do
     ~H"""
     <div
-      class="fixed z-100 inset-0 overflow-y-auto"
+      class="fixed z-[100] inset-0 overflow-y-auto"
       aria-labelledby="modal-title"
       role="dialog"
       aria-modal="true"
@@ -521,15 +521,15 @@ defmodule PlatformWeb.Components do
         <%= for val <- elem do %>
           <%= case action do %>
             <% :ins -> %>
-              <span class="px-1 text-blue-800 bg-blue-200 rounded-sm mx-px">
+              <span class="text-blue-800 bg-blue-200">
                 <%= val %>
               </span>
             <% :del -> %>
-              <span class="px-1 text-yellow-800 bg-yellow-200 rounded-sm line-through mx-px">
+              <span class="text-yellow-800 bg-yellow-200 line-through">
                 <%= val %>
               </span>
             <% :eq -> %>
-              <span class="text-gray-700 px-0 text-sm mx-px">
+              <span class="text-gray-700 px-0 text-sm">
                 <%= val %>
               </span>
           <% end %>
@@ -1252,6 +1252,58 @@ defmodule PlatformWeb.Components do
       <script src="https://js.hcaptcha.com/1/api.js?hl=en" async defer>
       </script>
     </article>
+    """
+  end
+
+  def footer_legal_language(assigns) do
+    # Some of the code below might look like it's formatted strangely. And it is.
+    # It's to keep the spacing right, and to prevent the autoformatter from screwing it up.
+    ~H"""
+    <div class="text-center text-xs mt-4">
+      <p>
+        Atlos is <a href="https://github.com/milesmcc/atlos" class="underline">open source</a>.
+      </p>
+      <p>
+        By using Atlos, you agree to our <a
+          href="https://github.com/milesmcc/atlos/blob/main/policy/TERMS_OF_USE.md"
+          class="underline"
+        >
+          Terms of Use</a>&nbsp;and our <a
+          href="https://github.com/milesmcc/atlos/blob/main/policy/RULES.md"
+          class="underline"
+        >Rules</a>.
+      </p>
+    </div>
+    """
+  end
+
+  def footer(assigns) do
+    ~H"""
+    <footer class="grid grid-cols-3 text-center gap-4 place-self-center md:flex md:justify-between max-w-lg mx-auto mt-8 text-gray-500 text-xs">
+      <a href="https://github.com/milesmcc/atlos" class="hover:text-gray-600">Source Code</a>
+      <a
+        href="https://github.com/milesmcc/atlos/blob/main/policy/RULES.md"
+        class="hover:text-gray-600 transition"
+      >
+        Rules
+      </a>
+      <a
+        href="https://github.com/milesmcc/atlos/blob/main/policy/TERMS_OF_USE.md"
+        class="hover:text-gray-600 transition"
+      >
+        Terms of Use
+      </a>
+      <a
+        href="https://github.com/milesmcc/atlos/blob/main/policy/RESILIENCE.md"
+        class="hover:text-gray-600 transition"
+      >
+        Resilience
+      </a>
+      <a href="https://github.com/milesmcc/atlos/discussions" class="hover:text-gray-600 transition">
+        Feedback
+      </a>
+      <a href="mailto:contact@atlos.org" class="hover:text-gray-600 transition">Contact</a>
+    </footer>
     """
   end
 end

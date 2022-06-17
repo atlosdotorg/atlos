@@ -24,6 +24,23 @@
     <%= text_input(f, :invite_code, required: true) %>
     <%= error_tag(f, :invite_code) %>
 
+    <div class="flex mt-4 items-center gap-2">
+      <%= checkbox(f, :terms_agree, required: true) %>
+      <%= label(f, :terms_agree) do %>
+        <span>
+          I agree to Atlos' <a
+            href="https://github.com/milesmcc/atlos/blob/main/policy/TERMS_OF_USE.md"
+            class="underline"
+          >
+            Terms</a>&nbsp;and
+          <a href="https://github.com/milesmcc/atlos/blob/main/policy/RULES.md" class="underline">
+            Rules
+          </a>
+        </span>
+      <% end %>
+    </div>
+    <%= error_tag(f, :terms_agree) %>
+
     <div class="mt-4">
       <.hcaptcha />
       <%= error_tag(f, :captcha) %>
