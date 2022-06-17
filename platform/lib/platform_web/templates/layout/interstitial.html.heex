@@ -1,5 +1,5 @@
 <div class="min-h-screen flex flex justify-center py-12 sm:px-6 lg:px-8 items-center bg-neutral-600">
-  <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-sm text-gray-300">
+  <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-sm">
     <p class="text-center mb-8">
       <span class="px-1 py-px rounded-sm font-mono bg-neutral-200 text-neutral-600 font-bold text-3xl uppercase">
         Atlos
@@ -17,6 +17,8 @@
       <% end %>
       <%= @inner_content %>
     </.card>
-    <.footer_legal_language />
+    <div class="text-gray-300">
+      <.footer_legal_language />
+    </div>
   </div>
 </div>
