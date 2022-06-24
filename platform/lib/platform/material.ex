@@ -179,6 +179,53 @@ defmodule Platform.Material do
   end
 
   @doc """
+  A changeset meant to be paired with bulk uploads.
+  """
+  def bulk_import_change(media \\ %Media{}, attrs) do
+    Media.import_changeset(media, attrs)
+  end
+
+  @doc """
+  Create the given media from the given attributes, which are assumed to be from
+  import data. The Atlos bot account will also leave a comment that links to the
+  provided source media URLs.
+  """
+  def bulk_import_create(media \\ %Media{}, attrs) do
+    Repo.transaction(fn ->
+      changeset = Media.import_changeset(media, attrs)
+
+      {:ok, media} =
+        changeset
+        |> Repo.insert()
+
+      {:ok, _} =
+        Updates.change_from_media_creation(media, Accounts.get_auto_account())
+        |> Updates.create_update_from_changeset()
+
+      sources =
+        attrs
+        |> Map.to_list()
+        |> Enum.filter(fn {k, _v} -> String.starts_with?(k, "source_") end)
+        |> Enum.map(fn {_k, v} -> v end)
+
+      {:ok, _} =
+        Updates.change_from_comment(media, Accounts.get_auto_account(), %{
+          "explanation" =>
+            "This incident was created via **bulk import**, so some attributes are pre-filled." <>
+              if(length(sources) > 0,
+                do:
+                  "\n\nSource media for this incident is available at the following URLs (if they are relevant, please consider adding these URLs to the incident in Atlos):\n\n" <>
+                    Enum.join(sources |> Enum.map(&("- <" <> &1 <> ">")), "\n"),
+                else: ""
+              )
+        })
+        |> Updates.create_update_from_changeset()
+
+      media
+    end)
+  end
+
+  @doc """
   Deletes a media.
 
   ## Examples

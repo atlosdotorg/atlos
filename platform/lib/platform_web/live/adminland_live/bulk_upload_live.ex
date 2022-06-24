@@ -2,6 +2,8 @@ defmodule PlatformWeb.AdminlandLive.BulkUploadLive do
   use PlatformWeb, :live_component
 
   alias Platform.Utils
+  alias Platform.Material
+  alias Material.Media
 
   def update(_assigns, socket) do
     Temp.track!()
@@ -11,6 +13,8 @@ defmodule PlatformWeb.AdminlandLive.BulkUploadLive do
      |> assign(:stage, "Upload incidents")
      |> assign(:processing, false)
      |> assign(:media_processing_error, false)
+     |> assign(:decoding_errors, [])
+     |> assign(:changesets, [])
      |> assign(:uploaded_files, [])
      |> allow_upload(:bulk_upload,
        accept: ~w(.csv),
@@ -46,7 +50,32 @@ defmodule PlatformWeb.AdminlandLive.BulkUploadLive do
   defp handle_uploaded_file(socket, entry) do
     path = consume_uploaded_entry(socket, entry, &handle_static_file(&1))
 
-    socket |> assign(:stage, "Confirm information") |> assign(:upload_path, path)
+    rows = CSV.decode(File.stream!(path), headers: true)
+
+    decoding_errors =
+      Enum.filter(rows, fn {k, _v} ->
+        k == :error
+      end)
+      |> Enum.map(fn {_k, v} -> v end)
+
+    if length(decoding_errors) > 0 do
+      socket
+      |> assign(
+        :decoding_errors,
+        decoding_errors
+      )
+    else
+      changesets =
+        rows
+        |> Enum.with_index(1)
+        |> Enum.map(fn {{:ok, item}, idx} -> {Material.bulk_import_change(item), idx} end)
+
+      socket
+      |> assign(:stage, "Confirm information")
+      |> assign(:upload_path, path)
+      |> assign(:changesets, changesets)
+      |> assign(:import_items, rows |> Enum.map(fn {:ok, item} -> item end))
+    end
   end
 
   def handle_event("validate", _params, socket) do
@@ -55,6 +84,25 @@ defmodule PlatformWeb.AdminlandLive.BulkUploadLive do
 
   def handle_event("save", _params, socket) do
     {:noreply, socket}
+  end
+
+  def handle_event("publish", _params, socket) do
+    Task.start(fn ->
+      socket.assigns.import_items
+      |> Enum.map(fn item ->
+        {:ok, _} = item |> Material.bulk_import_create()
+      end)
+    end)
+
+    {:noreply, socket |> assign(:stage, "Next steps")}
+  end
+
+  defp extract_errors(changeset) do
+    Ecto.Changeset.traverse_errors(changeset, fn {msg, opts} ->
+      Regex.replace(~r"%{(\w+)}", msg, fn _, key ->
+        opts |> Keyword.get(String.to_existing_atom(key), key) |> to_string()
+      end)
+    end)
   end
 
   def render(assigns) do
@@ -89,11 +137,24 @@ defmodule PlatformWeb.AdminlandLive.BulkUploadLive do
           <p class="sec-head">Bulk Upload</p>
           <p class="sec-subhead">Use this tool to upload new incidents in bulk.</p>
         </:header>
-        <.stepper options={["Upload incidents", "Confirm information", "Publish"]} active={@stage} />
+        <.stepper options={["Upload incidents", "Confirm information", "Next steps"]} active={@stage} />
         <hr class="sep" />
         <%= case @stage do %>
           <% "Upload incidents" -> %>
             <form phx-change="validate" phx-submit="save" phx-target={@myself} id="upload-form">
+              <%= if length(@decoding_errors) > 0 do %>
+                <aside class="aside ~critical mb-8">
+                  <p>
+                    <strong>We encountered errors while processing your upload.</strong>
+                    Please correct the errors below and re-upload your CSV.
+                  </p>
+                  <ol class="list-decimal mt-4 ml-8">
+                    <%= for error <- @decoding_errors do %>
+                      <li><%= error %></li>
+                    <% end %>
+                  </ol>
+                </aside>
+              <% end %>
               <div
                 class="w-full flex justify-center items-center px-6 pt-5 pb-6 border-2 h-40 border-gray-300 border-dashed rounded-md"
                 phx-drop-target={@uploads.bulk_upload.ref}
@@ -257,7 +318,91 @@ defmodule PlatformWeb.AdminlandLive.BulkUploadLive do
               </div>
             </form>
           <% "Confirm information" -> %>
-            TODO
+            <% invalid = Enum.filter(@changesets, fn {x, _idx} -> not x.valid? end) %>
+            <%= if length(invalid) > 0 do %>
+              <div class="aside ~critical text-sm">
+                <h3>
+                  There were errors processing your upload. Please review the errors and try again.
+                </h3>
+                <div class="mt-2">
+                  <ul role="list" class="list-disc pl-5 space-y-1">
+                    <%= for {changeset, idx} <- invalid do %>
+                      <article>
+                        <li>
+                          <strong class="font-semibold">Row <%= idx %></strong>
+                          <%= for {key, errors} <- extract_errors(changeset) |> Map.to_list() do %>
+                            <p>
+                              <%= key |> to_string() |> String.replace(~r/^attr_/, "") %>: <%= Enum.join(
+                                errors,
+                                ","
+                              ) %>
+                            </p>
+                          <% end %>
+                        </li>
+                      </article>
+                    <% end %>
+                  </ul>
+                </div>
+              </div>
+              <%= live_redirect("New Upload",
+                to: Routes.adminland_index_path(@socket, :upload),
+                class: "button ~urge mt-4 @high"
+              ) %>
+            <% else %>
+              <% valid = Enum.filter(@changesets, fn {x, _idx} -> x.valid? end) %>
+              <aside class="aside ~info">
+                <p>
+                  <strong>Found <%= length(@changesets) %> incidents.</strong>
+                  If everything below looks right, click "Publish" to publish these incidents to Atlos. Note that not all media will be automatically archived.
+                </p>
+              </aside>
+              <div class="grid gap-4 grid-cols-1 mt-4">
+                <%= for {changeset, idx} <- valid do %>
+                  <div class="rounded shadow">
+                    <p class="sec-head text-md p-4 bg-gray-100 text-sm">
+                      <span class="text-gray-500">Row <%= idx %>:</span> <%= Ecto.Changeset.get_field(
+                        changeset,
+                        :description
+                      ) %>
+                    </p>
+                    <div class="grid gap-2 grid-cols-1 md:grid-cols-3 text-sm p-4">
+                      <%= for {key, value} <- changeset.changes |> Map.to_list() do %>
+                        <% display = value |> to_string() %>
+                        <%= if String.length(display) > 0 and key != :description do %>
+                          <div class="overflow-hidden max-w-full">
+                            <p class="font-medium text-gray-500">
+                              <%= key |> to_string() |> String.replace(~r/^attr_/, "") %>
+                            </p>
+                            <p><%= display %></p>
+                          </div>
+                        <% end %>
+                      <% end %>
+                    </div>
+                  </div>
+                <% end %>
+              </div>
+              <button
+                type="button"
+                class="button ~urge @high mt-4"
+                phx-target={@myself}
+                phx-click="publish"
+              >
+                Publish to Atlos
+              </button>
+            <% end %>
+          <% "Next steps" -> %>
+            <aside class="aside ~positive">
+              <p>
+                <strong>Your import has begun!</strong>
+                It will continue in the background. You can safely close this tab.
+              </p>
+              <p class="mt-2">
+                You can perform a <%= live_redirect("new upload",
+                  to: Routes.adminland_index_path(@socket, :upload),
+                  class: "inline underline"
+                ) %> or <a href="/incidents" class="underline">view all incidents</a>.
+              </p>
+            </aside>
         <% end %>
       </.card>
     </section>

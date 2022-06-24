@@ -34,7 +34,7 @@ defmodule Platform.Material.Attribute do
     }
   end
 
-  defp attributes() do
+  def attributes() do
     [
       %Attribute{
         schema_field: :attr_sensitive,
@@ -303,11 +303,12 @@ defmodule Platform.Material.Attribute do
   end
 
   @doc """
-  Get the names of the attributes that are available for the given media.
+  Get the names of the attributes that are available for the given media. Both nil and the empty list count as unset.
   """
   def set_for_media(media, pane \\ nil) do
     Enum.filter(attributes(), fn attr ->
-      Map.get(media, attr.schema_field) != nil && (pane == nil || attr.pane == pane)
+      val = Map.get(media, attr.schema_field)
+      val != nil && val != [] && (pane == nil || attr.pane == pane)
     end)
   end
 
@@ -319,8 +320,9 @@ defmodule Platform.Material.Attribute do
     |> Enum.filter(&(pane == nil || &1.pane == pane))
   end
 
-  def attribute_names() do
-    (attributes() |> Enum.map(& &1.name)) ++ Map.keys(renamed_attributes())
+  def attribute_names(include_renamed_attributes \\ true) do
+    (attributes() |> Enum.map(& &1.name)) ++
+      if include_renamed_attributes, do: Map.keys(renamed_attributes()), else: []
   end
 
   def attribute_schema_fields() do
@@ -340,8 +342,8 @@ defmodule Platform.Material.Attribute do
     hd(Enum.filter(attributes(), &(&1.name |> to_string() == real_name)))
   end
 
-  def changeset(media, %Attribute{} = attribute, attrs \\ %{}, user \\ nil) do
-    media
+  def changeset(media_or_changeset, %Attribute{} = attribute, attrs \\ %{}, user \\ nil) do
+    media_or_changeset
     |> populate_virtual_data(attribute)
     |> cast_attribute(attribute, attrs)
     |> validate_attribute(attribute, user)
@@ -349,7 +351,7 @@ defmodule Platform.Material.Attribute do
     |> update_from_virtual_data(attribute)
   end
 
-  defp populate_virtual_data(%Media{} = media, %Attribute{} = attribute) do
+  defp populate_virtual_data(media, %Attribute{} = attribute) do
     case attribute.type do
       :location ->
         with %Geo.Point{coordinates: {lon, lat}} <- Map.get(media, attribute.schema_field) do
@@ -385,8 +387,11 @@ defmodule Platform.Material.Attribute do
   defp cast_attribute(media, %Attribute{} = attribute, attrs) do
     case attribute.type do
       # Explanation is a virtual field! We cast here so we can validate.
-      :location -> media |> cast(attrs, [:latitude, :longitude, :explanation])
-      _ -> media |> cast(attrs, [attribute.schema_field, :explanation])
+      :location ->
+        media |> cast(attrs, [:latitude, :longitude, :explanation], message: "casting failed")
+
+      _ ->
+        media |> cast(attrs, [attribute.schema_field, :explanation], message: "casting failed")
     end
   end
 
@@ -403,7 +408,13 @@ defmodule Platform.Material.Attribute do
       case attribute.type do
         :multi_select ->
           changeset
-          |> validate_subset(attribute.schema_field, options(attribute))
+          |> IO.inspect()
+          |> validate_subset(attribute.schema_field, options(attribute),
+            message:
+              "Includes an invalid value. Valid values are: " <>
+                Enum.join(options(attribute), ", ")
+          )
+          |> IO.inspect()
           |> validate_length(attribute.schema_field,
             min: attribute.min_length,
             max: attribute.max_length
@@ -422,7 +433,13 @@ defmodule Platform.Material.Attribute do
 
         :select ->
           changeset
-          |> validate_inclusion(attribute.schema_field, options(attribute))
+          |> IO.inspect()
+          |> validate_inclusion(attribute.schema_field, options(attribute),
+            message:
+              "Includes an invalid value. Valid values are: " <>
+                Enum.join(options(attribute), ", ")
+          )
+          |> IO.inspect()
           |> validate_privileged_values(attribute, user)
 
         :text ->

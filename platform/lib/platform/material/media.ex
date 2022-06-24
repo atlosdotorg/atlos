@@ -69,6 +69,47 @@ defmodule Platform.Material.Media do
     |> Attribute.validate_attribute(Attribute.get_attribute(:sensitive))
   end
 
+  @doc """
+  A changeset meant to be paired with bulk uploads.
+
+  The import changeset simply runs the media through *every* attribute's changeset.
+  In this way, it's possible to import any attribute.
+  """
+  def import_changeset(media, attrs) do
+    # First, we rename and parse fields to match their internal representation.
+    attr_names = Attribute.attribute_names(false) |> Enum.map(&(&1 |> to_string()))
+
+    attrs =
+      attrs
+      |> Map.to_list()
+      |> Enum.map(fn {k, v} ->
+        if Enum.member?(attr_names, k) do
+          attr = Attribute.get_attribute(k)
+
+          # Split lists (comma separated)
+          v =
+            case attr.type do
+              :multi_select -> v |> String.split(",") |> Enum.map(&String.trim(&1))
+              _ -> v
+            end
+
+          # Remove empty lists ([] != nil)
+          v = if is_list(v) and length(v) == 0, do: nil, else: v
+
+          {attr.schema_field |> to_string(), v}
+        else
+          {k, v}
+        end
+      end)
+      |> Enum.reduce(%{}, fn {k, v}, acc ->
+        Map.put(acc, k, v)
+      end)
+
+    Enum.reduce(Attribute.attributes(), media, fn attr, acc ->
+      Attribute.changeset(acc, attr, attrs)
+    end)
+  end
+
   def attribute_ratio(%Media{} = media) do
     length(Attribute.set_for_media(media)) / length(Attribute.attribute_names())
   end
