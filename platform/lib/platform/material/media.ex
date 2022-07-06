@@ -89,12 +89,17 @@ defmodule Platform.Material.Media do
           # Split lists (comma separated)
           v =
             case attr.type do
-              :multi_select -> v |> String.split(",") |> Enum.map(&String.trim(&1))
-              _ -> v
-            end
+              :multi_select ->
+                if is_list(v) do
+                  # Already split, or the uploader did something wrong (e.g., two columns of the same field)
+                  v
+                else
+                  v |> String.split(",") |> Enum.map(&String.trim(&1))
+                end
 
-          # Remove empty lists ([] != nil)
-          v = if is_list(v) and length(v) == 0, do: nil, else: v
+              _ ->
+                v
+            end
 
           {attr.schema_field |> to_string(), v}
         else
