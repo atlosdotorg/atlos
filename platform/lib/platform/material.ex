@@ -205,7 +205,11 @@ defmodule Platform.Material do
       sources =
         attrs
         |> Map.to_list()
-        |> Enum.filter(fn {k, _v} -> String.starts_with?(k, "source_") end)
+        |> Enum.filter(fn {k, v} ->
+          # Only include strings that aren't empty
+          String.starts_with?(k, "source_") && is_bitstring(v) &&
+            String.length(v |> String.trim()) > 0
+        end)
         |> Enum.map(fn {_k, v} -> v end)
 
       {:ok, _} =
