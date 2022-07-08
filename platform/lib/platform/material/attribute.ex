@@ -408,13 +408,11 @@ defmodule Platform.Material.Attribute do
       case attribute.type do
         :multi_select ->
           changeset
-          |> IO.inspect()
           |> validate_subset(attribute.schema_field, options(attribute),
             message:
               "Includes an invalid value. Valid values are: " <>
                 Enum.join(options(attribute), ", ")
           )
-          |> IO.inspect()
           |> validate_length(attribute.schema_field,
             min: attribute.min_length,
             max: attribute.max_length
@@ -433,13 +431,11 @@ defmodule Platform.Material.Attribute do
 
         :select ->
           changeset
-          |> IO.inspect()
           |> validate_inclusion(attribute.schema_field, options(attribute),
             message:
               "Includes an invalid value. Valid values are: " <>
                 Enum.join(options(attribute), ", ")
           )
-          |> IO.inspect()
           |> validate_privileged_values(attribute, user)
 
         :text ->
