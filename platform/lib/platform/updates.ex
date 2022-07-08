@@ -204,15 +204,24 @@ defmodule Platform.Updates do
 
   @doc """
   Get the non-hidden updates associated with the given user.
+
+  Options:
+  - limit: maximum number of updates to return
+  - exclude_hidden: whether to exclude updates marked as hidden
   """
-  def get_updates_for_user(user, exclude_hidden \\ false) do
+  def get_updates_for_user(user, opts) do
     query =
       from u in Update,
         where: u.user_id == ^user.id,
         preload: [:user, :media, :media_version],
-        order_by: [asc: u.inserted_at]
+        order_by: [asc: u.inserted_at],
+        limit: ^Keyword.get(opts, :limit, nil)
 
-    Repo.all(if exclude_hidden, do: query |> where([u], not u.hidden), else: query)
+    Repo.all(
+      if Keyword.get(opts, :exclude_hidden, false),
+        do: query |> where([u], not u.hidden),
+        else: query
+    )
   end
 
   @doc """
