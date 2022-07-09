@@ -402,125 +402,21 @@ defmodule Platform.Material do
 
   @doc """
   Performs an archive of the given media version. Status must be pending.
+
+  Options:
+  - priority: 0-3, the priority (default 1)
+  - hide_version_on_failure: true/false, whether to hide versions that failed
   """
-  def archive_media_version(%MediaVersion{status: :pending, media_id: media_id} = version) do
-    # Get the associated media
-    media = get_media!(media_id)
-
-    try do
-      # Setup tempfiles for media download
-      Temp.track!()
-      temp_dir = Temp.mkdir!()
-
-      # Download the media
-      {_, 0} =
-        System.cmd(
-          "yt-dlp",
-          [
-            version.source_url,
-            "-o",
-            Path.join(temp_dir, "out.%(ext)s"),
-            "--max-filesize",
-            "500m",
-            "--merge-output-format",
-            "mp4"
-          ],
-          into: IO.stream()
-        )
-
-      # Figure out what we downloaded
-      [file_name] = File.ls!(temp_dir)
-      file_path = Path.join(temp_dir, file_name)
-      mime = MIME.from_path(file_path)
-
-      # Process + upload it
-      {:ok, identifier, duration, size} = process_uploaded_media(file_path, mime, media)
-
-      # Update the media version to reflect the change
-      {:ok, new_version} =
-        update_media_version(version, %{
-          file_location: identifier,
-          file_size: size,
-          status: :complete,
-          duration_seconds: duration,
-          mime_type: mime
-        })
-
-      # Track event
-      Auditor.log(:archive_success, %{media_id: media_id, source_url: new_version.source_url})
-
-      Updates.change_from_comment(media, Accounts.get_auto_account(), %{
-        "explanation" => "✅ Successfully archived the media at <#{version.source_url}>."
-      })
-      |> Updates.create_update_from_changeset()
-
-      new_version
-    rescue
-      val ->
-        # Some error happened! Log it and update the media version appropriately.
-        IO.inspect(val)
-        Logger.error("Unable to automatically archive media!")
-        Auditor.log(:archive_failed, %{error: val, version: version})
-
-        Updates.change_from_comment(media, Accounts.get_auto_account(), %{
-          "explanation" =>
-            "🛑 Unable to automatically download the media from <#{version.source_url}>. Either no video is available, there are multiple possible videos, or the archival system is temporarily broken. (Note that we cannot automatically archive images.) Please consider uploading the media manually."
-        })
-        |> Updates.create_update_from_changeset()
-
-        {:ok, new_version} =
-          update_media_version(version, %{
-            status: :error
-          })
-
-        new_version
-    end
-  end
-
-  @doc """
-  Preprocesses the given media and uploads it to persistent storage.
-
-  Returns {:ok, file_path, thumbnail_path, duration}
-  """
-  def process_uploaded_media(path, mime, media) do
-    identifier = media.slug
-
-    media_path =
-      cond do
-        String.starts_with?(mime, "image/") -> Temp.path!(%{suffix: ".jpg", prefix: identifier})
-        String.starts_with?(mime, "video/") -> Temp.path!(%{suffix: ".mp4", prefix: identifier})
-      end
-
-    font_path =
-      System.get_env(
-        "WATERMARK_FONT_PATH",
-        Path.join(:code.priv_dir(:platform), "static/fonts/iosevka-bold.ttc")
-      )
-
-    IO.puts("Loading font from #{font_path}; file exists? #{File.exists?(font_path)}")
-
-    process_command =
-      FFmpex.new_command()
-      |> FFmpex.add_input_file(path)
-      |> FFmpex.add_output_file(media_path)
-      |> FFmpex.add_file_option(
-        FFmpex.Options.Video.option_vf(
-          "drawtext=text='#{identifier}':x=20:y=20:fontfile=#{font_path}:fontsize=24:fontcolor=white:box=1:boxcolor=black@0.25:boxborderw=5"
-        )
-      )
-
-    {:ok, _} = FFmpex.execute(process_command)
-
-    {:ok, out_data} = FFprobe.format(media_path)
-
-    {duration, _} = Integer.parse(out_data["duration"])
-    {size, _} = Integer.parse(out_data["size"])
-
-    # Upload to cloud storage
-    {:ok, new_path} = Uploads.WatermarkedMediaVersion.store({media_path, media})
-    {:ok, _original_path} = Uploads.OriginalMediaVersion.store({path, media})
-
-    {:ok, new_path, duration, size}
+  def archive_media_version(
+        %MediaVersion{status: :pending, media_id: media_id, id: id} = version,
+        opts \\ []
+      ) do
+    %{
+      "media_version_id" => id,
+      "hide_version_on_failure" => Keyword.get(opts, :hide_version_on_failure, false)
+    }
+    |> Platform.Workers.Archiver.new(priority: Keyword.get(opts, :priority, 1))
+    |> Oban.insert!()
   end
 
   def media_version_location(version, media) do
