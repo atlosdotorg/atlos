@@ -17,7 +17,6 @@ defmodule Platform.Material do
   alias Platform.Updates
   alias Platform.Accounts.User
   alias Platform.Uploads
-  alias Platform.Auditor
   alias Platform.Accounts
 
   defp hydrate_media_query(query) do
