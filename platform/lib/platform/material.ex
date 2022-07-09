@@ -88,6 +88,18 @@ defmodule Platform.Material do
     |> Repo.all()
   end
 
+  @doc """
+  Returns all the media that do not have any versions uploaded.
+  """
+  def list_unarchived_media() do
+    from(m in Media,
+      where:
+        fragment("NOT EXISTS (SELECT * FROM media_versions other WHERE other.media_id = ?)", m.id)
+    )
+    |> hydrate_media_query()
+    |> Repo.all()
+  end
+
   defp preload_media_versions(query) do
     query |> preload([:versions])
   end
