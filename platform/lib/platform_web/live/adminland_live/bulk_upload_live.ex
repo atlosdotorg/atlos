@@ -142,6 +142,50 @@ defmodule PlatformWeb.AdminlandLive.BulkUploadLive do
         <%= case @stage do %>
           <% "Upload incidents" -> %>
             <form phx-change="validate" phx-submit="save" phx-target={@myself} id="upload-form">
+              <div class="rounded-md bg-urge-50 p-4 mb-4">
+                <div class="flex">
+                  <div class="flex-shrink-0">
+                    <!-- Heroicon name: solid/information-circle -->
+                    <svg
+                      class="h-5 w-5 text-blue-400"
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                      aria-hidden="true"
+                    >
+                      <path
+                        fill-rule="evenodd"
+                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                        clip-rule="evenodd"
+                      />
+                    </svg>
+                  </div>
+                  <div class="ml-3 prose text-sm text-blue-700">
+                    <p>
+                      <strong class="text-blue-700">
+                        Atlos requires a very specific format for bulk uploads.
+                      </strong>
+                      You can learn more about the required format below.
+                    </p>
+                    <details class="-mt-2">
+                      <summary class="cursor-pointer font-medium">Required file format</summary>
+                      <p>Atlos can perform bulk imports from CSV files with the following columns:</p>
+                      <ul>
+                        <%= for attr <- Material.Attribute.attribute_names(false) do %>
+                          <li>
+                            <.attr_explanation name={attr} />
+                          </li>
+                        <% end %>
+                        <li>
+                          <span class="font-medium">sources</span>
+                          &mdash; include sources as URLs in columns named <span class="badge ~urge">source_1</span>, <span class="badge ~urge">source_2</span>, <span class="badge ~urge">source_3</span>, etc.
+                        </li>
+                      </ul>
+                      <p>Note that this format perfectly matches Atlos' bulk exports.</p>
+                    </details>
+                  </div>
+                </div>
+              </div>
               <%= if length(@decoding_errors) > 0 do %>
                 <aside class="aside ~critical mb-8">
                   <p>
@@ -332,7 +376,8 @@ defmodule PlatformWeb.AdminlandLive.BulkUploadLive do
                           <strong class="font-semibold">Row <%= idx %></strong>
                           <%= for {key, errors} <- extract_errors(changeset) |> Map.to_list() do %>
                             <p>
-                              <%= key |> to_string() |> String.replace(~r/^attr_/, "") %>: <%= Enum.join(
+                              <%= Material.Attribute.get_attribute_by_schema_field(key).name
+                              |> to_string() %>: <%= Enum.join(
                                 errors,
                                 ","
                               ) %>
@@ -367,11 +412,10 @@ defmodule PlatformWeb.AdminlandLive.BulkUploadLive do
                     </p>
                     <div class="grid gap-2 grid-cols-1 md:grid-cols-3 text-sm p-4">
                       <%= for {key, value} <- changeset.changes |> Map.to_list() do %>
-                        <% display = key |> to_string() |> String.replace(~r/^attr_/, "") %>
                         <%= if String.length(value |> to_string()) > 0 and key != :description do %>
                           <div class="overflow-hidden max-w-full">
                             <p class="font-medium text-gray-500">
-                              <%= display %>
+                              <%= key |> to_string() |> String.replace(~r/^attr_/, "") %>
                             </p>
                             <p class="flex">
                               <% attr = Material.Attribute.get_attribute_by_schema_field(key) %>

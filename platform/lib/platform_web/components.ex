@@ -510,6 +510,49 @@ defmodule PlatformWeb.Components do
     """
   end
 
+  def attr_explanation(%{name: name} = assigns) do
+    attr = Attribute.get_attribute(name)
+
+    ~H"""
+    <span class="inline-flex flex-wrap gap-1">
+      <span class="font-medium">
+        <%= attr.name |> to_string() %><%= if attr.required, do: "*", else: "" %>
+      </span>
+      &mdash;
+      <%= case attr.type do %>
+        <% :text -> %>
+          freeform text
+        <% :select -> %>
+          one of
+          <%= for item <- Attribute.options(attr) do %>
+            <div class="badge ~urge inline-block"><%= item %></div>
+          <% end %>
+        <% :multi_select -> %>
+          a combination of
+          <%= for item <- Attribute.options(attr) do %>
+            <div class="badge ~urge inline-block"><%= item %></div>
+          <% end %>
+          (comma separated)
+        <% :location -> %>
+          put latitude in a
+          <div class="badge ~urge inline-block">latitude</div>
+          column, and longitude in a
+          <div class="badge ~urge inline-block">longitude</div>
+          column
+        <% :time -> %>
+          time of day, in the format
+          <div class="badge ~urge inline-block">HH:MM:SS</div>
+        <% :date -> %>
+          date, in the format
+          <div class="badge ~urge inline-block">YYYY-MM-DD</div>
+      <% end %>
+      <%= if attr.required do %>
+        (required)
+      <% end %>
+    </span>
+    """
+  end
+
   def text_diff(%{old: old, new: new} = assigns) do
     old_words = String.split(old || "") |> Enum.map(&String.trim(&1))
     new_words = String.split(new || "") |> Enum.map(&String.trim(&1))
