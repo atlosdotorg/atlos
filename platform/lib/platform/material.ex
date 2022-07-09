@@ -203,6 +203,8 @@ defmodule Platform.Material do
   """
   def bulk_import_create(media \\ %Media{}, attrs) do
     Repo.transaction(fn ->
+      bot_account = Accounts.get_auto_account()
+
       changeset = Media.import_changeset(media, attrs)
 
       {:ok, media} =
@@ -210,7 +212,7 @@ defmodule Platform.Material do
         |> Repo.insert()
 
       {:ok, _} =
-        Updates.change_from_media_creation(media, Accounts.get_auto_account())
+        Updates.change_from_media_creation(media, bot_account)
         |> Updates.create_update_from_changeset()
 
       sources =
@@ -224,17 +226,30 @@ defmodule Platform.Material do
         |> Enum.map(fn {_k, v} -> v end)
 
       {:ok, _} =
-        Updates.change_from_comment(media, Accounts.get_auto_account(), %{
+        Updates.change_from_comment(media, bot_account, %{
           "explanation" =>
             "This incident was created via **bulk import**, so some attributes are pre-filled." <>
               if(length(sources) > 0,
                 do:
-                  "\n\nSource media for this incident is available at the following URLs (if they are relevant, please consider adding these URLs to the incident in Atlos):\n\n" <>
+                  "\n\nSource media for this incident is available at the following URLs, which Atlos will attempt to automatically archive:\n\n" <>
                     Enum.join(sources |> Enum.map(&("- <" <> &1 <> ">")), "\n"),
                 else: ""
               )
         })
         |> Updates.create_update_from_changeset()
+
+      # Attempt to archive all media versions
+      for source <- sources do
+        {:ok, version} =
+          create_media_version(media, %{
+            upload_type: :direct,
+            status: :pending,
+            source_url: source,
+            media_id: media.id
+          })
+
+        archive_media_version(version, priority: 3, hide_version_on_failure: true)
+      end
 
       media
     end)

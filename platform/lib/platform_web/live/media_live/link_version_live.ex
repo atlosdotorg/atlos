@@ -85,7 +85,7 @@ defmodule PlatformWeb.MediaLive.LinkVersionLive do
           )
 
           # Start archival
-          Task.start(fn -> Material.archive_media_version(version) end)
+          Material.archive_media_version(version)
 
           # Wrap up
           send(self(), {:version_created, version})
