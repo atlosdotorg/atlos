@@ -16,6 +16,7 @@ processes = []
   ENVIRONMENT = "prod-main"
   APP_REVISION = "v0.1.0"
   ENABLE_CAPTCHAS = "true"
+  RULES_LINK = "https://github.com/milesmcc/atlos/blob/main/policy/RULES.md"
 
 [experimental]
   allowed_public_ports = []
