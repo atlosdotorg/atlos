@@ -339,7 +339,12 @@ defmodule Platform.Material.Attribute do
       end
       |> to_string()
 
-    hd(Enum.filter(attributes(), &(&1.name |> to_string() == real_name)))
+    Enum.find(attributes(), &(&1.name |> to_string() == real_name))
+  end
+
+  def get_attribute_by_schema_field(name) do
+    name = name |> to_string()
+    Enum.find(attributes(), &(&1.schema_field |> to_string() == name))
   end
 
   def changeset(media_or_changeset, %Attribute{} = attribute, attrs \\ %{}, user \\ nil) do

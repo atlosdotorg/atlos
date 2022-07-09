@@ -358,8 +358,8 @@ defmodule PlatformWeb.AdminlandLive.BulkUploadLive do
               </aside>
               <div class="grid gap-4 grid-cols-1 mt-4">
                 <%= for {changeset, idx} <- valid do %>
-                  <div class="rounded shadow">
-                    <p class="sec-head text-md p-4 bg-gray-100 text-sm">
+                  <div class="rounded shadow border">
+                    <p class="sec-head text-md p-4 border-b text-sm">
                       <span class="text-gray-500">Row <%= idx %>:</span> <%= Ecto.Changeset.get_field(
                         changeset,
                         :description
@@ -367,13 +367,24 @@ defmodule PlatformWeb.AdminlandLive.BulkUploadLive do
                     </p>
                     <div class="grid gap-2 grid-cols-1 md:grid-cols-3 text-sm p-4">
                       <%= for {key, value} <- changeset.changes |> Map.to_list() do %>
-                        <% display = value |> to_string() %>
-                        <%= if String.length(display) > 0 and key != :description do %>
+                        <% display = key |> to_string() |> String.replace(~r/^attr_/, "") %>
+                        <%= if String.length(value |> to_string()) > 0 and key != :description do %>
                           <div class="overflow-hidden max-w-full">
                             <p class="font-medium text-gray-500">
-                              <%= key |> to_string() |> String.replace(~r/^attr_/, "") %>
+                              <%= display %>
                             </p>
-                            <p><%= display %></p>
+                            <p class="flex">
+                              <% attr = Material.Attribute.get_attribute_by_schema_field(key) %>
+                              <%= if not is_nil(attr) do %>
+                                <.attr_entry name={attr.name} value={value} />
+                              <% else %>
+                                <%= if is_list(value) do %>
+                                  <%= Enum.join(value, ", ") %>
+                                <% else %>
+                                  <%= value |> to_string() %>
+                                <% end %>
+                              <% end %>
+                            </p>
                           </div>
                         <% end %>
                       <% end %>
@@ -381,6 +392,10 @@ defmodule PlatformWeb.AdminlandLive.BulkUploadLive do
                   </div>
                 <% end %>
               </div>
+              <%= live_redirect("Back",
+                to: Routes.adminland_index_path(@socket, :upload),
+                class: "button ~neutral mt-4"
+              ) %>
               <button
                 type="button"
                 class="button ~urge @high mt-4"
