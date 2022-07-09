@@ -32,3 +32,6 @@ config :logger, level: :warn
 
 # Initialize plugs at runtime for faster test compilation
 config :phoenix, :plug_init_mode, :runtime
+
+# Prevent tasks from being run at test-time
+config :platform, Oban, testing: :inline

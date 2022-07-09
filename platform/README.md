@@ -23,6 +23,7 @@ Ready to run in production? Please [check our deployment guides](https://hexdocs
 - `HCAPTCHA_SECRET` — hCaptcha secret
 - `ENABLE_CAPTCHAS` — captchas are _checked_ if `true` (default false for development)
 - `WATERMARK_FONT_PATH` — path to the font to use in watermarks
+- `RULES_LINK` — link to use for the rules (note that the ToS are not configurable)
 
 ## Learn more
 

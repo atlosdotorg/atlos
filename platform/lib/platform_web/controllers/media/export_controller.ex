@@ -15,9 +15,18 @@ defmodule PlatformWeb.ExportController do
 
     field_list =
       (media
-       |> Map.put(:attr_latitude, lat)
-       |> Map.put(:attr_longitude, lon)
-       |> Map.to_list()) ++
+       |> Map.put(:latitude, lat)
+       |> Map.put(:longitude, lon)
+       |> Map.to_list()
+       |> Enum.map(fn {k, v} ->
+         name = k |> to_string()
+
+         if String.starts_with?(name, "attr_") do
+           {String.slice(name, 5..String.length(name)) |> String.to_atom(), v}
+         else
+           {k, v}
+         end
+       end)) ++
         (media.versions
          |> Enum.filter(&(&1.visibility == :visible))
          |> Enum.with_index(1)
@@ -53,8 +62,8 @@ defmodule PlatformWeb.ExportController do
     file = File.open!(path, [:write, :utf8])
 
     fields =
-      [:slug, :inserted_at, :updated_at, :attr_latitude, :attr_longitude] ++
-        Attribute.attribute_schema_fields() ++
+      [:slug, :inserted_at, :updated_at, :latitude, :longitude] ++
+        Attribute.attribute_names(false) ++
         Enum.map(1..max_num_versions, &("source_" <> to_string(&1)))
 
     results

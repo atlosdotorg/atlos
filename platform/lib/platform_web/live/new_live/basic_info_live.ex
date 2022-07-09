@@ -104,7 +104,12 @@ defmodule PlatformWeb.NewLive.BasicInfoLive do
               <div class="ml-3">
                 <p class="text-sm text-neutral-700">
                   Atlos documents notable incidents around the world. If you're not sure how to classify this incident, reference the <a
-                    href="https://github.com/milesmcc/atlos/blob/main/policy/RULES.md"
+                    href={
+                      System.get_env(
+                        "RULES_LINK",
+                        "https://github.com/milesmcc/atlos/blob/main/policy/RULES.md"
+                      )
+                    }
                     class="underline"
                   >Atlos Rules</a>.
                 </p>
@@ -117,9 +122,14 @@ defmodule PlatformWeb.NewLive.BasicInfoLive do
                     <li>
                       <strong>Don't:</strong>
                       Upload media that depicts nudity, that is not available elsewhere online, or that violates the <a
-                        href="https://github.com/milesmcc/atlos/blob/main/policy/RULES.md"
+                        href={
+                          System.get_env(
+                            "RULES_LINK",
+                            "https://github.com/milesmcc/atlos/blob/main/policy/RULES.md"
+                          )
+                        }
                         class="underline"
-                      >Atlos Rules</a>.
+                      >rules</a>.
                     </li>
                   </ul>
                 </div>

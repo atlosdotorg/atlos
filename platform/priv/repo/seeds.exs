@@ -55,7 +55,7 @@ random_users =
     {:ok, account} =
       Accounts.register_user(%{
         email: Faker.Internet.email(),
-        username: Faker.Internet.user_name(),
+        username: Faker.Internet.user_name() |> String.replace(~r/[_\.]/, ""),
         password: "localhost123",
         invite_code: Accounts.get_valid_invite_code()
       })

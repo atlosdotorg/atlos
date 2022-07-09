@@ -8,7 +8,7 @@ defmodule Platform.Material.MediaSearch do
   #   - Date
   #   - Status
   #   - Sort by
-  @types %{query: :string, sort: :string, attr_status: :string}
+  @types %{query: :string, sort: :string, attr_status: :string, no_media_versions: :boolean}
 
   def changeset(params \\ %{}) do
     data = %{}
@@ -36,6 +36,30 @@ defmodule Platform.Material.MediaSearch do
       nil -> queryable
       "Any" -> queryable
       query -> where(queryable, [m], m.attr_status == ^query)
+    end
+  end
+
+  defp apply_query_component(queryable, changeset, :no_media_versions) do
+    case Map.get(changeset.changes, :no_media_versions, nil) do
+      nil ->
+        queryable
+
+      false ->
+        where(
+          queryable,
+          [u],
+          fragment("EXISTS (SELECT * FROM media_versions other WHERE other.media_id = ?)", u.id)
+        )
+
+      true ->
+        where(
+          queryable,
+          [u],
+          fragment(
+            "NOT EXISTS (SELECT * FROM media_versions other WHERE other.media_id = ?)",
+            u.id
+          )
+        )
     end
   end
 
@@ -74,6 +98,7 @@ defmodule Platform.Material.MediaSearch do
     queryable
     |> apply_query_component(cs, :query)
     |> apply_query_component(cs, :attr_status)
+    |> apply_query_component(cs, :no_media_versions)
     |> apply_sort(cs)
   end
 

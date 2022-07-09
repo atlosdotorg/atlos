@@ -37,6 +37,8 @@ defmodule Platform.Accounts do
             password: Utils.generate_random_sequence(64)
           })
 
+        {:ok, user} = update_user_admin(user, %{roles: [:trusted, :coordinator], flair: "Bot"})
+
         user
 
       val ->

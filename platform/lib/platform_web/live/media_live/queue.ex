@@ -23,6 +23,7 @@ defmodule PlatformWeb.MediaLive.Queue do
       "claimed" -> "Claimed"
       "help_needed" -> "Help Needed"
       "review" -> "Ready for Review"
+      "needs_upload" -> "Needs Media Upload"
     end
   end
 
@@ -32,6 +33,7 @@ defmodule PlatformWeb.MediaLive.Queue do
       "claimed" -> %{"attr_status" => "Claimed"}
       "help_needed" -> %{"attr_status" => "Help Needed"}
       "review" -> %{"attr_status" => "Ready for Review"}
+      "needs_upload" -> %{"no_media_versions" => true}
     end
   end
 
@@ -81,6 +83,25 @@ defmodule PlatformWeb.MediaLive.Queue do
                 />
               </svg>
               Help Needed
+            <% end %>
+            <%= live_patch(
+              class: if(@tab == "needs_upload", do: active_classes, else: inactive_classes),
+              to: "/queue/needs_upload"
+            ) do %>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-4 w-4 opacity-75"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path d="M4 3a2 2 0 100 4h12a2 2 0 100-4H4z" />
+                <path
+                  fill-rule="evenodd"
+                  d="M3 8h14v7a2 2 0 01-2 2H5a2 2 0 01-2-2V8zm5 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+              Needs Media Upload
             <% end %>
             <%= if Accounts.is_privileged(@current_user) do %>
               <!-- Regular users can see this page; that's fine. We just don't want to confuse them by putting it in their navbar. -->

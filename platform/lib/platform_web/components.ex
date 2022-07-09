@@ -510,6 +510,49 @@ defmodule PlatformWeb.Components do
     """
   end
 
+  def attr_explanation(%{name: name} = assigns) do
+    attr = Attribute.get_attribute(name)
+
+    ~H"""
+    <span class="inline-flex flex-wrap gap-1">
+      <span class="font-medium">
+        <%= attr.name |> to_string() %><%= if attr.required, do: "*", else: "" %>
+      </span>
+      &mdash;
+      <%= case attr.type do %>
+        <% :text -> %>
+          freeform text
+        <% :select -> %>
+          one of
+          <%= for item <- Attribute.options(attr) do %>
+            <div class="badge ~urge inline-block"><%= item %></div>
+          <% end %>
+        <% :multi_select -> %>
+          a combination of
+          <%= for item <- Attribute.options(attr) do %>
+            <div class="badge ~urge inline-block"><%= item %></div>
+          <% end %>
+          (comma separated)
+        <% :location -> %>
+          put latitude in a
+          <div class="badge ~urge inline-block">latitude</div>
+          column, and longitude in a
+          <div class="badge ~urge inline-block">longitude</div>
+          column
+        <% :time -> %>
+          time of day, in the format
+          <div class="badge ~urge inline-block">HH:MM:SS</div>
+        <% :date -> %>
+          date, in the format
+          <div class="badge ~urge inline-block">YYYY-MM-DD</div>
+      <% end %>
+      <%= if attr.required do %>
+        (required)
+      <% end %>
+    </span>
+    """
+  end
+
   def text_diff(%{old: old, new: new} = assigns) do
     old_words = String.split(old || "") |> Enum.map(&String.trim(&1))
     new_words = String.split(new || "") |> Enum.map(&String.trim(&1))
@@ -915,20 +958,61 @@ defmodule PlatformWeb.Components do
     # Verify it was archived successfully
     media_to_show = version.status == :complete && !is_nil(version.mime_type)
 
+    should_blur_js_bool = if Media.is_graphic(media), do: "true", else: "false"
+
     ~H"""
-    <section id={"version-#{version.id}"} class="py-4" x-data="{grayscale: true}">
+    <section
+      id={"version-#{version.id}"}
+      class="py-4"
+      x-data={"{grayscale: true, hidden: #{should_blur_js_bool}}"}
+    >
       <% loc = Material.media_version_location(version, media) %>
       <% media_id = "version-#{version.id}-media" %>
       <div class="relative">
         <%= if media_to_show do %>
-          <div id={media_id} x-bind:class="grayscale ? 'grayscale' : ''">
-            <%= if String.starts_with?(version.mime_type, "image/") do %>
-              <img src={loc} class="w-full" />
-            <% else %>
-              <video controls preload="metadata" muted>
-                <source src={loc} class="w-full" />
-              </video>
-            <% end %>
+          <div id={media_id} x-if="!hidden" x-bind:class="hidden ? 'invisible' : ''">
+            <div x-bind:class="grayscale ? 'grayscale' : ''">
+              <%= if String.starts_with?(version.mime_type, "image/") do %>
+                <img src={loc} class="w-full" />
+              <% else %>
+                <video controls preload="metadata" muted>
+                  <source src={loc} class="w-full" />
+                </video>
+              <% end %>
+            </div>
+          </div>
+          <div
+            class="w-full h-full absolute bg-neutral-50 border rounded-lg flex items-center justify-around top-0"
+            x-show="hidden"
+          >
+            <!-- Overlay for potentially graphic content -->
+            <div class="text-center w-48">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="mx-auto h-8 w-8 text-critical-600"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
+                />
+              </svg>
+              <h3 class="mt-2 font-medium text-gray-900 text-sm">Potentially Graphic</h3>
+              <p class="mt-1 text-gray-500 text-sm">
+                This media may be graphic. Please proceed with caution.
+              </p>
+              <button
+                type="button"
+                x-on:click="hidden = false"
+                class="button mt-1 original py-1 px-2 text-xs"
+              >
+                View
+              </button>
+            </div>
           </div>
         <% else %>
           <div class="w-full h-40 bg-neutral-50 border rounded-lg flex items-center justify-around">
@@ -1271,7 +1355,12 @@ defmodule PlatformWeb.Components do
           class="underline"
         >
           Terms of Use</a>&nbsp;and our <a
-          href="https://github.com/milesmcc/atlos/blob/main/policy/RULES.md"
+          href={
+            System.get_env(
+              "RULES_LINK",
+              "https://github.com/milesmcc/atlos/blob/main/policy/RULES.md"
+            )
+          }
           class="underline"
         >Rules</a>.
       </p>
@@ -1284,7 +1373,9 @@ defmodule PlatformWeb.Components do
     <footer class="grid grid-cols-3 text-center gap-4 place-self-center md:flex md:justify-between max-w-lg mx-auto mt-8 text-gray-500 text-xs">
       <a href="https://github.com/milesmcc/atlos" class="hover:text-gray-600">Source Code</a>
       <a
-        href="https://github.com/milesmcc/atlos/blob/main/policy/RULES.md"
+        href={
+          System.get_env("RULES_LINK", "https://github.com/milesmcc/atlos/blob/main/policy/RULES.md")
+        }
         class="hover:text-gray-600 transition"
       >
         Rules

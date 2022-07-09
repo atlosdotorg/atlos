@@ -16,3 +16,4 @@ jobs:
       - uses: actions/checkout@v2
       - uses: superfly/flyctl-actions/setup-flyctl@master
       - run: flyctl deploy --config fly.prod.toml --remote-only
+      - run: flyctl deploy --config fly.bellingcat.toml --remote-only

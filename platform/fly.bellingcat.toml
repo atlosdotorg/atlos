@@ -1,4 +1,4 @@
-app = "atlos-platform-main"
+app = "atlos-platform-bellingcat"
 
 kill_signal = "SIGINT"
 kill_timeout = 5
@@ -8,15 +8,15 @@ processes = []
   release_command = "/app/bin/migrate"
 
 [env]
-  PHX_HOST = "platform.atlos.org"
+  PHX_HOST = "bellingcat.atlos.org"
   PORT = "8080"
-  S3_BUCKET = "atlos-content-main"
+  S3_BUCKET = "atlos-content-bellingcat"
   AWS_REGION = "us-east-1"
-  APPSIGNAL_APP_ENV = "prod-main"
-  ENVIRONMENT = "prod-main"
+  APPSIGNAL_APP_ENV = "prod-bellingcat"
+  ENVIRONMENT = "prod-bellingcat"
   APP_REVISION = "v0.1.0"
   ENABLE_CAPTCHAS = "true"
-  RULES_LINK = "https://github.com/milesmcc/atlos/blob/main/policy/RULES.md"
+  RULES_LINK = "https://bit.ly/3AKpytQ"
 
 [experimental]
   allowed_public_ports = []
