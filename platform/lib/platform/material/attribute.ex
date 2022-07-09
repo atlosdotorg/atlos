@@ -227,6 +227,7 @@ defmodule Platform.Material.Attribute do
         type: :multi_select,
         options: [
           "Small Arm",
+          "Land Mine",
           "Launch System",
           "Launch System/Artillery",
           "Launch System/Self-Propelled",
