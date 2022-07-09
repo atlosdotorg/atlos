@@ -1,0 +1,50 @@
+app = "atlos-platform-bellingcat"
+
+kill_signal = "SIGINT"
+kill_timeout = 5
+processes = []
+
+[deploy]
+  release_command = "/app/bin/migrate"
+
+[env]
+  PHX_HOST = "bellingcat.atlos.org"
+  PORT = "8080"
+  S3_BUCKET = "atlos-content-bellingcat"
+  AWS_REGION = "us-east-1"
+  APPSIGNAL_APP_ENV = "prod-bellingcat"
+  ENVIRONMENT = "prod-bellingcat"
+  APP_REVISION = "v0.1.0"
+  ENABLE_CAPTCHAS = "true"
+  RULES_LINK = "https://bit.ly/3AKpytQ"
+
+[experimental]
+  allowed_public_ports = []
+  auto_rollback = true
+
+[[services]]
+  http_checks = []
+  internal_port = 8080
+  processes = ["app"]
+  protocol = "tcp"
+  script_checks = []
+
+  [services.concurrency]
+    hard_limit = 25
+    soft_limit = 20
+    type = "connections"
+
+  [[services.ports]]
+    force_https = true
+    handlers = ["http"]
+    port = 80
+
+  [[services.ports]]
+    handlers = ["tls", "http"]
+    port = 443
+
+  [[services.tcp_checks]]
+    grace_period = "1s"
+    interval = "15s"
+    restart_limit = 0
+    timeout = "2s"
