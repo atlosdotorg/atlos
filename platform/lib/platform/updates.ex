@@ -203,13 +203,13 @@ defmodule Platform.Updates do
   end
 
   @doc """
-  Get the non-hidden updates associated with the given user.
+  Get the updates associated with the given user.
 
   Options:
   - limit: maximum number of updates to return
   - exclude_hidden: whether to exclude updates marked as hidden
   """
-  def get_updates_for_user(user, opts) do
+  def get_updates_by_user(user, opts) do
     query =
       from u in Update,
         where: u.user_id == ^user.id,
@@ -222,6 +222,41 @@ defmodule Platform.Updates do
         do: query |> where([u], not u.hidden),
         else: query
     )
+  end
+
+  @doc """
+  Generate a query for the updates that are relevant to the given user.
+  That is, they either @tag the user in the explanation, or they relate to
+  an incident that the user is subscribed to.
+
+  Options:
+  - exclude_hidden: whether to exclude updates marked as hidden
+  """
+  def query_updates_for_user(user, opts) do
+    # Get all the updates for the media that the user is subscriped to
+    subscriptions_query =
+      from u in Update,
+        join: media in assoc(u, :media),
+        join: subscription in assoc(media, :subscriptions),
+        where: subscription.user_id == ^user.id
+
+    # Get all the user's tags
+    tags_query = text_search("@" <> user.username)
+
+    # Combine them
+    union_query = union(subscriptions_query, ^tags_query)
+
+    # Filter hidden updates, if told to
+    filtered_query =
+      if Keyword.get(opts, :exclude_hidden, false),
+        do: union_query |> where([u], not u.hidden),
+        else: union_query
+
+    # Filter out own updates, preload, and order correctly
+    from u in subquery(filtered_query),
+      where: u.user_id != ^user.id,
+      preload: [:user, :media, :media_version],
+      order_by: [desc: u.inserted_at]
   end
 
   @doc """

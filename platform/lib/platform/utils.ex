@@ -74,10 +74,14 @@ defmodule Platform.Utils do
     stripped_images = Regex.replace(~r"!*\[", markdown, "[")
 
     # Second, link ATL identifiers.
-    preprocessed = Regex.replace(~r/(ATL-[A-Z0-9]{6})/, stripped_images, "[\\0](/incidents/\\0)")
+    identifiers_linked =
+      Regex.replace(~r/(ATL-[A-Z0-9]{6})/, stripped_images, "[\\0](/incidents/\\0)")
 
-    # Strip all tags
-    rendered = preprocessed |> HtmlSanitizeEx.strip_tags() |> Earmark.as_html!()
+    # Third, turn @'s into links.
+    tags_linked = Regex.replace(~r/@([A-Za-z0-9]+)/, identifiers_linked, "[\\0](/profile/\\1)")
+
+    # Strip all tags and render markdown
+    rendered = tags_linked |> HtmlSanitizeEx.strip_tags() |> Earmark.as_html!()
 
     # Perform another round of cleaning (images will be stripped here too)
     sanitized = rendered |> HtmlSanitizeEx.Scrubber.scrub(Platform.Security.UgcSanitizer)
