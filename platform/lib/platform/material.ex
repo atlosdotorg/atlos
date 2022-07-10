@@ -232,7 +232,7 @@ defmodule Platform.Material do
               if(length(sources) > 0,
                 do:
                   "\n\nSource media for this incident is available at the following URLs, which Atlos will attempt to automatically archive:\n\n" <>
-                    Enum.join(sources |> Enum.map(&("- <" <> &1 <> ">")), "\n"),
+                    Enum.join(sources |> Enum.map(&("- " <> &1)), "\n"),
                 else: ""
               )
         })

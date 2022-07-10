@@ -66,7 +66,8 @@ defmodule Platform.MixProject do
       {:remote_ip, "~> 1.0"},
       {:earmark, "~> 1.4"},
       {:csv, "~> 2.4"},
-      {:oban, "~> 2.12"}
+      {:oban, "~> 2.12"},
+      {:html_sanitize_ex, "~> 1.4"}
     ]
   end
 
