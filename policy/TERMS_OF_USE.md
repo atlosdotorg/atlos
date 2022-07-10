@@ -94,13 +94,13 @@ Engaging in Disruptive and Illegal Misuse of Facilities
 
 - Probing, scanning, or testing the vulnerability of any of our technical systems or networks unless all the following conditions are met:
 
-- such actions do not unduly abuse or disrupt our technical systems or networks;
+  - such actions do not unduly abuse or disrupt our technical systems or networks;
 
-- such actions are not for personal gain (except for credit for your work);
+  - such actions are not for personal gain (except for credit for your work);
 
-- you report any vulnerabilities to Atlos (contact@atlos.org); and
+  - you report any vulnerabilities to Atlos (contact@atlos.org); and
 
-- you do not undertake such actions with malicious or destructive intent.
+  - you do not undertake such actions with malicious or destructive intent.
 
 We reserve the right to exercise our enforcement discretion with respect to the above terms.
 
