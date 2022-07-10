@@ -1,9 +1,9 @@
-defmodule PlatformWeb.SubscriptionsLive do
+defmodule PlatformWeb.NotificationsLive do
   use PlatformWeb, :live_view
   alias Platform.Material
 
   def mount(_params, _session, socket) do
-    {:ok, socket |> assign(:title, "Subscriptions") |> assign(:media, list_media(socket))}
+    {:ok, socket |> assign(:title, "Notifications") |> assign(:media, list_media(socket))}
   end
 
   def list_media(socket) do

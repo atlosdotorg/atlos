@@ -267,7 +267,7 @@ defmodule PlatformWeb.Components do
             </svg>
           </.navlink>
 
-          <.navlink to="/subscriptions" label="Subscriptions" request_path={@path}>
+          <.navlink to="/notifications" label="Notifications" request_path={@path}>
             <svg
               xmlns="http://www.w3.org/2000/svg"
               class="text-neutral-300 group-hover:text-white h-6 w-6"

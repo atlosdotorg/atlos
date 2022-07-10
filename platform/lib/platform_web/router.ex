@@ -112,7 +112,7 @@ defmodule PlatformWeb.Router do
       live("/profile/:username", ProfilesLive.Show, :show)
       live("/profile/:username/edit", ProfilesLive.Show, :edit)
 
-      live("/subscriptions", SubscriptionsLive)
+      live("/notifications", NotificationsLive)
     end
 
     live_session :admin, on_mount: {MountHelperLive, :admin} do
