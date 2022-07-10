@@ -7,14 +7,18 @@ defmodule Platform.Auditor do
 
   def log(event, metadata, socket_or_conn \\ %{}) do
     now = DateTime.utc_now() |> DateTime.to_iso8601()
+    assigns = Map.get(socket_or_conn, :assigns, %{})
 
-    user =
-      (Map.get(socket_or_conn, :assigns) || %{})
-      |> Map.get(:current_user) || %{}
-
+    user = Map.get(assigns, :current_user) || %{}
     username = user |> Map.get(:username)
 
-    ip = Map.get(socket_or_conn, :assigns, %{}) |> Map.get(:remote_ip, nil)
+    ip =
+      case Map.get(assigns, :remote_ip) || Map.get(user, :current_ip) do
+        # We look in both assigns and user because current user is passed around to live components,
+        # while the `remote_ip` assign is not.
+        nil -> nil
+        val -> to_string(:inet_parse.ntoa(val))
+      end
 
     complete_metadata = Map.merge(metadata, %{authed_username: username, remote_ip: ip})
 
@@ -22,6 +26,14 @@ defmodule Platform.Auditor do
 
     slack_webhook = System.get_env("SLACK_AUDITING_WEBHOOK")
     environment = System.get_env("ENVIRONMENT", "dev")
+
+    full_metadata =
+      with {:ok, val} <- Jason.encode(complete_metadata),
+           printed <- Jason.Formatter.pretty_print(val) do
+        printed |> String.replace("```", "'''")
+      else
+        _ -> "[error]"
+      end
 
     if not is_nil(slack_webhook) and environment != "dev" do
       Task.start(fn ->
@@ -45,8 +57,7 @@ defmodule Platform.Auditor do
                 type: "section",
                 text: %{
                   type: "mrkdwn",
-                  text:
-                    "```#{Jason.encode!(complete_metadata) |> Jason.Formatter.pretty_print() |> String.replace("```", "'''")}```"
+                  text: "```#{full_metadata}```"
                 }
               },
               %{

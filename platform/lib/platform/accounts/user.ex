@@ -16,6 +16,8 @@ defmodule Platform.Accounts.User do
 
     field :invite_code, :string, virtual: true
     field :terms_agree, :boolean, virtual: true
+    # Used for passing current IP around
+    field :current_ip, :binary, virtual: true
     field :password, :string, virtual: true, redact: true
     field :hashed_password, :string, redact: true
     field :confirmed_at, :naive_datetime
