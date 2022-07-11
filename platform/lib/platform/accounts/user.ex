@@ -204,6 +204,21 @@ defmodule Platform.Accounts.User do
   end
 
   @doc """
+  A user changeset for disabling MFA.
+  """
+  def confirm_mfa_changeset(user, attrs) do
+    user
+    |> cast(attrs, [:current_otp_code])
+    |> validate_change(:current_otp_code, fn _, code ->
+      if NimbleTOTP.valid?(user.otp_secret, code) do
+        []
+      else
+        [current_otp_code: "This code is not valid."]
+      end
+    end)
+  end
+
+  @doc """
   A user changeset for changing user-modifiable profile attributes,
   like the profile photo and bio.
   """

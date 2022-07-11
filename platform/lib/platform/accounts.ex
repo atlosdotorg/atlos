@@ -191,6 +191,13 @@ defmodule Platform.Accounts do
   end
 
   @doc """
+  Confirms a user's MFA code.
+  """
+  def confirm_user_mfa(user, attrs \\ %{}) do
+    User.confirm_mfa_changeset(user, attrs)
+  end
+
+  @doc """
   Emulates that the email will change without actually changing
   it in the database.
 
