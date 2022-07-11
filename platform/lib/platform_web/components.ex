@@ -572,7 +572,7 @@ defmodule PlatformWeb.Components do
     ~H"""
     <span class="inline-flex flex-wrap gap-1">
       <span class="font-medium">
-        <%= attr.name |> to_string() %><%= if attr.required, do: "*", else: "" %>
+        <%= attr.name |> to_string() %>
       </span>
       &mdash;
       <%= case attr.type do %>
