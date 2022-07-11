@@ -95,6 +95,7 @@ defmodule PlatformWeb.Router do
 
     live_session :default, on_mount: {MountHelperLive, :authenticated} do
       live("/settings", SettingsLive)
+      live("/settings/mfa", SettingsLive.MFALive)
 
       live("/new", NewLive)
       live("/map", MapLive.Index)

@@ -89,6 +89,13 @@ defmodule Platform.Utils do
     sanitized
   end
 
+  def generate_qrcode(uri) do
+    uri
+    |> EQRCode.encode()
+    |> EQRCode.svg(width: 264)
+    |> Phoenix.HTML.raw()
+  end
+
   def text_search(search_terms, queryable) do
     queryable
     |> where(

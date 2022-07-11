@@ -161,6 +161,36 @@ defmodule Platform.Accounts do
   end
 
   @doc """
+  Returns an `%Ecto.Changeset{}` for enabling MFA.
+  """
+  def change_user_mfa_enabled(user, attrs \\ %{}) do
+    User.enable_mfa_changeset(user, attrs)
+  end
+
+  @doc """
+  Enables MFA for a user.
+  """
+  def update_user_mfa_enabled(user, attrs \\ %{}) do
+    User.enable_mfa_changeset(user, attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for disabling MFA.
+  """
+  def change_user_mfa_disabled(user, attrs \\ %{}) do
+    User.disable_mfa_changeset(user, attrs)
+  end
+
+  @doc """
+  Disables MFA for a user.
+  """
+  def update_user_mfa_disabled(user, attrs \\ %{}) do
+    User.disable_mfa_changeset(user, attrs)
+    |> Repo.update()
+  end
+
+  @doc """
   Emulates that the email will change without actually changing
   it in the database.
 
