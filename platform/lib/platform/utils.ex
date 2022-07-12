@@ -70,14 +70,30 @@ defmodule Platform.Utils do
   def render_markdown(markdown) do
     # Safe markdown rendering. No images or headers.
 
-    # First, strip images.
+    # First, strip images and turn them into links. Primitive.
     stripped_images = Regex.replace(~r"!*\[", markdown, "[")
 
     # Second, link ATL identifiers.
-    preprocessed = Regex.replace(~r/(ATL-[A-Z0-9]{6})/, stripped_images, "[\\0](/incidents/\\0)")
+    identifiers_linked =
+      Regex.replace(~r/(ATL-[A-Z0-9]{6})/, stripped_images, "[\\0](/incidents/\\0)")
 
-    # Manually kill images!
-    preprocessed |> Earmark.as_html!()
+    # Third, turn @'s into links.
+    tags_linked = Regex.replace(~r/@([A-Za-z0-9]+)/, identifiers_linked, "[\\0](/profile/\\1)")
+
+    # Strip all tags and render markdown
+    rendered = tags_linked |> HtmlSanitizeEx.strip_tags() |> Earmark.as_html!()
+
+    # Perform another round of cleaning (images will be stripped here too)
+    sanitized = rendered |> HtmlSanitizeEx.Scrubber.scrub(Platform.Security.UgcSanitizer)
+
+    sanitized
+  end
+
+  def generate_qrcode(uri) do
+    uri
+    |> EQRCode.encode()
+    |> EQRCode.svg(width: 264)
+    |> Phoenix.HTML.raw()
   end
 
   def text_search(search_terms, queryable) do

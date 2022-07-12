@@ -23,11 +23,6 @@
     </div>
 
     <div>
-      <%= checkbox(f, :remember_me) %>
-      <%= label(f, :remember_me, "Remember me", class: "!inline") %>
-    </div>
-
-    <div>
       <.hcaptcha />
       <%= error_tag(f, :captcha) %>
     </div>

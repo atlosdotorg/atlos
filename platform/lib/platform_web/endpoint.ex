@@ -12,7 +12,10 @@ defmodule PlatformWeb.Endpoint do
   ]
 
   socket "/live", Phoenix.LiveView.Socket,
-    websocket: [connect_info: [:x_headers, session: @session_options], timeout: :infinity]
+    websocket: [
+      connect_info: [:x_headers, :peer_data, session: @session_options],
+      timeout: :infinity
+    ]
 
   # Serve at "/" the static files from "priv/static" directory.
   #

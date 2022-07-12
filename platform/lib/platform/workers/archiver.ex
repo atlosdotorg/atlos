@@ -64,7 +64,7 @@ defmodule Platform.Workers.Archiver do
       Auditor.log(:archive_success, %{media_id: media_id, source_url: new_version.source_url})
 
       Updates.change_from_comment(media, Accounts.get_auto_account(), %{
-        "explanation" => "✅ Successfully archived the media at <#{version.source_url}>."
+        "explanation" => "✅ Successfully archived the media at #{version.source_url}."
       })
       |> Updates.create_update_from_changeset()
 
@@ -77,7 +77,7 @@ defmodule Platform.Workers.Archiver do
 
         Updates.change_from_comment(media, Accounts.get_auto_account(), %{
           "explanation" =>
-            "🛑 Unable to automatically download the media from <#{version.source_url}>. Either the website is unsupported, or the media is not a video. Someone will need to upload the media manually."
+            "🛑 Unable to automatically download the media from #{version.source_url}. Either the website is unsupported, or the media is not a video. Someone will need to upload the media manually."
         })
         |> Updates.create_update_from_changeset()
 

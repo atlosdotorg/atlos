@@ -22,7 +22,7 @@ defmodule PlatformWeb.ProfilesLive.Show do
            Accounts.is_suspended(user) && !Accounts.is_privileged(socket.assigns.current_user) do
       socket
       |> assign(:user, user)
-      |> assign(:updates, Updates.get_updates_for_user(user, limit: 50))
+      |> assign(:updates, Updates.get_updates_by_user(user, limit: 50))
     else
       _ ->
         socket

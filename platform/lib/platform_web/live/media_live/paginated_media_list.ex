@@ -63,7 +63,7 @@ defmodule PlatformWeb.MediaLive.PaginatedMediaList do
             />
           </svg>
           <h3 class="mt-2 font-medium text-gray-900">No results</h3>
-          <p class="mt-1 text-gray-500">Check your spelling or try broadening your search</p>
+          <p class="mt-1 text-gray-500">No incidents matched this criteria</p>
           <div class="mt-6">
             <a href="/incidents" class="button ~urge @high">
               View All &rarr;

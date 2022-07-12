@@ -1,0 +1,55 @@
+<article class="w-full max-w-screen-xl md:mx-auto px-4">
+  <h1 class="page-header mb-8">Notifications</h1>
+  <div class="lg:grid lg:grid-cols-3 gap-12">
+    <div class="lg:col-span-2">
+      <.card>
+        <:header>
+          <div>
+            <p class="sec-head">Updates</p>
+            <p class="sec-subhead">
+              Updates to incidents you are subscribed to will show up here, as will @tags.
+            </p>
+          </div>
+        </:header>
+        <.live_component
+          module={PlatformWeb.UpdatesLive.UpdateFeed}
+          updates={@updates}
+          current_user={@current_user}
+          reverse={true}
+          show_media={true}
+          show_final_line={false}
+          id="notifications-updates-feed"
+        />
+        <div class="mx-auto mt-8 text-center text-xs">
+          <%= if !is_nil(@result.metadata.after) do %>
+            <button
+              type="button"
+              class="text-button"
+              phx-click="load_more"
+              phx-disable-with="Loading..."
+            >
+              Load More
+            </button>
+          <% end %>
+        </div>
+      </.card>
+    </div>
+    <div class="mt-12 lg:mt-0">
+      <div>
+        <h1 class="sec-head mt-4">Subscriptions</h1>
+        <p class="sec-subhead">
+          <%= if length(@media) == 0 do %>
+            You are not yet subscribed to any incidents. To subscribe to an incident, click the "Subscribe" button on the incident's page.
+          <% else %>
+            You are subscribed to these incidents. Unsubscribing from an incident will remove its updates from your feed.
+          <% end %>
+        </p>
+      </div>
+      <div class="grid gap-4 grid-cols-1 mt-4 lg:mt-8">
+        <%= for media <- @media do %>
+          <.media_card media={media} current_user={@current_user} />
+        <% end %>
+      </div>
+    </div>
+  </div>
+</article>

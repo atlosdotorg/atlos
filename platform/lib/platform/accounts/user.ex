@@ -5,6 +5,7 @@ defmodule Platform.Accounts.User do
   alias Platform.Invites
 
   schema "users" do
+    # General metadata
     field :email, :string
     field :username, :string
     field :roles, {:array, Ecto.Enum}, values: [:coordinator, :trusted, :admin]
@@ -14,8 +15,15 @@ defmodule Platform.Accounts.User do
     field :flair, :string, default: ""
     field :admin_notes, :string, default: ""
 
+    # Multi-factor authentication
+    field :has_mfa, :boolean, default: false
+    field :otp_secret, :binary, redact: true
+    field :current_otp_code, :string, virtual: true, redact: true
+
     field :invite_code, :string, virtual: true
     field :terms_agree, :boolean, virtual: true
+    # Used for passing current IP around
+    field :current_ip, :binary, virtual: true
     field :password, :string, virtual: true, redact: true
     field :hashed_password, :string, redact: true
     field :confirmed_at, :naive_datetime
@@ -146,6 +154,68 @@ defmodule Platform.Accounts.User do
       %{changes: %{email: _}} = changeset -> changeset
       %{} = changeset -> add_error(changeset, :email, "did not change")
     end
+  end
+
+  @doc """
+  A user changeset for enabling MFA.
+  """
+  def enable_mfa_changeset(user, attrs) do
+    changeset =
+      user
+      |> cast(attrs, [:otp_secret, :current_otp_code])
+      |> put_change(:has_mfa, true)
+      |> validate_required([:has_mfa, :otp_secret, :current_otp_code])
+
+    secret = get_field(changeset, :otp_secret)
+
+    changeset
+    |> validate_change(:current_otp_code, fn _, code ->
+      if NimbleTOTP.valid?(secret, code) do
+        []
+      else
+        [current_otp_code: "This code is not valid."]
+      end
+    end)
+  end
+
+  @doc """
+  A user changeset for disabling MFA.
+  """
+  def disable_mfa_changeset(user, attrs) do
+    user
+    |> cast(attrs, [:current_otp_code, :password])
+    |> put_change(:has_mfa, false)
+    |> put_change(:otp_secret, nil)
+    |> validate_required([:has_mfa, :current_otp_code, :password])
+    |> validate_change(:password, fn _, password ->
+      if valid_password?(user, password) do
+        []
+      else
+        [password: "This password is not correct."]
+      end
+    end)
+    |> validate_change(:current_otp_code, fn _, code ->
+      if NimbleTOTP.valid?(user.otp_secret, code) do
+        []
+      else
+        [current_otp_code: "This code is not valid."]
+      end
+    end)
+  end
+
+  @doc """
+  A user changeset for disabling MFA.
+  """
+  def confirm_mfa_changeset(user, attrs) do
+    user
+    |> cast(attrs, [:current_otp_code])
+    |> validate_change(:current_otp_code, fn _, code ->
+      if NimbleTOTP.valid?(user.otp_secret, code) do
+        []
+      else
+        [current_otp_code: "This code is not valid."]
+      end
+    end)
   end
 
   @doc """

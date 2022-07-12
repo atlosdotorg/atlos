@@ -2,6 +2,7 @@ defmodule PlatformWeb.UserAuth do
   import Plug.Conn
   import Phoenix.Controller
 
+  alias Platform.Auditor
   alias Platform.Accounts
   alias PlatformWeb.Router.Helpers, as: Routes
 
@@ -27,6 +28,8 @@ defmodule PlatformWeb.UserAuth do
   def log_in_user(conn, user, params \\ %{}) do
     token = Accounts.generate_user_session_token(user)
     user_return_to = get_session(conn, :user_return_to)
+    Accounts.UserNotifier.deliver_login_notification(user, conn.remote_ip)
+    Auditor.log(:login, %{username: user.username}, conn)
 
     conn
     |> renew_session()
@@ -37,6 +40,7 @@ defmodule PlatformWeb.UserAuth do
   end
 
   defp maybe_write_remember_me_cookie(conn, token, %{"remember_me" => "true"}) do
+    # This code path is currently unused -- we don't offer remember me for heightened security
     put_resp_cookie(conn, @remember_me_cookie, token, @remember_me_options)
   end
 

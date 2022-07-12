@@ -16,7 +16,9 @@ defmodule PlatformWeb.MountHelperLive do
       end)
 
     unless is_nil(socket.assigns.current_user) do
-      {:cont, socket}
+      # Also include `current_ip` inside the user struct
+      user = socket.assigns.current_user |> Map.put(:current_ip, socket.assigns.remote_ip)
+      {:cont, socket |> assign(:current_user, user)}
     else
       # TODO: use routes
       {:halt, redirect(socket, to: "/users/log_in")}
@@ -45,8 +47,7 @@ defmodule PlatformWeb.MountHelperLive do
   end
 
   defp attach_metadata(socket) do
-    headers = get_connect_info(socket, :x_headers)
-    remote_ip = RemoteIp.from(headers)
-    socket |> assign(:remote_ip, remote_ip)
+    data = get_connect_info(socket, :peer_data)
+    socket |> assign(:remote_ip, data.address)
   end
 end

@@ -137,7 +137,10 @@ defmodule PlatformWeb.MediaLive.CommentBox do
                   phx_debounce: 300,
                   rows: 4,
                   placeholder:
-                    if(@disabled, do: "Commenting has been disabled", else: "Add your comment..."),
+                    if(@disabled,
+                      do: "Commenting has been disabled",
+                      else: "Add your comment. You can @tag others by their username."
+                    ),
                   class: "block w-full py-3 border-0 resize-none focus:ring-0 sm:text-sm",
                   required: true,
                   disabled: @disabled,

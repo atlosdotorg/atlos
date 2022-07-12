@@ -202,7 +202,8 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
               <%= label(f, :explanation, "Briefly Explain Your Change") %>
               <%= textarea(f, :explanation,
                 phx_debounce: "200",
-                placeholder: "Recommended for all non-trivial changes.",
+                placeholder:
+                  "Recommended for all non-trivial changes. You can @tag others by their username.",
                 rows: "5",
                 class: "my-1"
               ) %>
