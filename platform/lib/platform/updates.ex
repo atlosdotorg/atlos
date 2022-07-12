@@ -240,8 +240,11 @@ defmodule Platform.Updates do
         join: subscription in assoc(media, :subscriptions),
         where: subscription.user_id == ^user.id
 
-    # Get all the user's tags
-    tags_query = text_search("@" <> user.username)
+    # Get all the user's tags. Just to be safe, we remove %.
+    query_text = ("@" <> user.username) |> String.replace("%", "")
+
+    tags_query =
+      from u in subquery(text_search(query_text)), where: ilike(u.explanation, ^"%#{query_text}%")
 
     # Combine them
     union_query = union(subscriptions_query, ^tags_query)
