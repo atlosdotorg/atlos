@@ -2,23 +2,21 @@ defmodule PlatformWeb.MountHelperLive do
   import Phoenix.LiveView
   alias Platform.Accounts
 
-  def on_mount(:default, _params, _session, socket) do
-    {:cont, socket |> attach_path_hook() |> attach_metadata()}
+  def on_mount(:default, _params, session, socket) do
+    {:cont, socket |> attach_path_hook() |> attach_metadata(session)}
   end
 
-  def on_mount(:authenticated, _params, %{"user_token" => user_token} = _session, socket) do
+  def on_mount(:authenticated, _params, %{"user_token" => user_token} = session, socket) do
     socket =
       socket
       |> attach_path_hook()
-      |> attach_metadata()
+      |> attach_metadata(session)
       |> assign_new(:current_user, fn ->
         Accounts.get_user_by_session_token(user_token)
       end)
 
     unless is_nil(socket.assigns.current_user) do
-      # Also include `current_ip` inside the user struct
-      user = socket.assigns.current_user |> Map.put(:current_ip, socket.assigns.remote_ip)
-      {:cont, socket |> assign(:current_user, user)}
+      {:cont, socket |> assign(:current_user, socket.assigns.current_user)}
     else
       # TODO: use routes
       {:halt, redirect(socket, to: "/users/log_in")}
@@ -46,8 +44,7 @@ defmodule PlatformWeb.MountHelperLive do
     end)
   end
 
-  defp attach_metadata(socket) do
-    data = get_connect_info(socket, :peer_data)
-    socket |> assign(:remote_ip, data.address)
+  defp attach_metadata(socket, session) do
+    socket |> assign(:remote_ip, Map.get(session, :remote_ip))
   end
 end

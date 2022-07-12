@@ -50,7 +50,7 @@ defmodule PlatformWeb.Endpoint do
 
   plug Plug.MethodOverride
   plug Plug.Head
-  plug RemoteIp
   plug Plug.Session, @session_options
+  plug PlatformWeb.Plugs.RemoteIp
   plug PlatformWeb.Router
 end
