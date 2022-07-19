@@ -3,6 +3,7 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
   alias Platform.Material
   alias Platform.Utils
   alias Platform.Auditor
+  alias Platform.Workers.Archiver
 
   def update(assigns, socket) do
     # Track temporary files so they are properly cleaned up later
@@ -160,7 +161,7 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
     path = consume_uploaded_entry(socket, entry, &handle_static_file(&1))
 
     with {:ok, path, duration, size} <-
-           Material.process_uploaded_media(path, entry.client_type, socket.assigns.media) do
+           Archiver.process_uploaded_media(path, entry.client_type, socket.assigns.media) do
       socket
       |> update_internal_params("file_location", path)
       |> update_internal_params("duration_seconds", duration)

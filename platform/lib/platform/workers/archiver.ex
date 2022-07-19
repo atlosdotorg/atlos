@@ -101,7 +101,10 @@ defmodule Platform.Workers.Archiver do
     end
   end
 
-  defp process_uploaded_media(path, mime, media) do
+  @doc """
+  Process the media at the given path. Also called by the manual media uploader.
+  """
+  def process_uploaded_media(path, mime, media) do
     # Preprocesses the given media and uploads it to persistent storage.
     # Returns {:ok, file_path, thumbnail_path, duration}
 
