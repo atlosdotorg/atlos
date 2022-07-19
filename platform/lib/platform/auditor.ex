@@ -13,7 +13,7 @@ defmodule Platform.Auditor do
     username = user |> Map.get(:username)
 
     # This is set by our `PlatformWeb.Plugs.RemoteIp` middleware
-    ip = Map.get(socket_or_conn.assigns, :remote_ip)
+    ip = Map.get(assigns, :remote_ip)
 
     complete_metadata = Map.merge(metadata, %{authed_username: username, remote_ip: ip})
 
