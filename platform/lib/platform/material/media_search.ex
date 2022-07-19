@@ -48,7 +48,10 @@ defmodule Platform.Material.MediaSearch do
         where(
           queryable,
           [u],
-          fragment("EXISTS (SELECT * FROM media_versions other WHERE other.media_id = ?)", u.id)
+          fragment(
+            "EXISTS (SELECT * FROM media_versions other WHERE other.media_id = ? AND other.status = 'complete' AND other.visibility = 'visible')",
+            u.id
+          )
         )
 
       true ->
@@ -56,7 +59,7 @@ defmodule Platform.Material.MediaSearch do
           queryable,
           [u],
           fragment(
-            "NOT EXISTS (SELECT * FROM media_versions other WHERE other.media_id = ?)",
+            "NOT EXISTS (SELECT * FROM media_versions other WHERE other.media_id = ? AND other.status = 'complete' AND other.visibility = 'visible')",
             u.id
           )
         )

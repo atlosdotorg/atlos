@@ -48,7 +48,7 @@ def run(infile, outfile, only_geolocated):
             else:
                 location = f"Reported near {location}."
 
-            more_info = f"Corresponds to `{identifier}` in CIVHARM. {location} {comments}"
+            more_info = f"Corresponds to **{identifier}** in CIVHARM. {location} {comments}"
 
             sensitive = []
             if row["Private Information Visible"] == "Yes":
@@ -125,7 +125,7 @@ def run(infile, outfile, only_geolocated):
                 "status": status,
                 "latitude": row["Lat"],
                 "longitude": row["Lon"],
-                "tags": "CIVHARM"
+                "tags": "CIVHARM, Bulk Import"
             }
 
             source_number = 1
