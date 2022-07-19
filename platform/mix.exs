@@ -63,13 +63,13 @@ defmodule Platform.MixProject do
       {:hackney, "~> 1.18.0"},
       {:appsignal, "~> 2.2.13"},
       {:appsignal_phoenix, "~> 2.0"},
-      {:remote_ip, "~> 1.0"},
       {:earmark, "~> 1.4"},
       {:csv, "~> 2.4"},
       {:oban, "~> 2.12"},
       {:html_sanitize_ex, "~> 1.4"},
       {:eqrcode, "~> 0.1.10"},
-      {:nimble_totp, "~> 0.2.0"}
+      {:nimble_totp, "~> 0.2.0"},
+      {:memoize, "~> 1.4"}
     ]
   end
 

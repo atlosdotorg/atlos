@@ -54,11 +54,11 @@ defmodule Platform.Accounts.UserNotifier do
   @doc """
   Deliver notification of a new login.
   """
-  def deliver_login_notification(user, _ip_address) do
+  def deliver_login_notification(user, ip_address) do
     Mailer.construct_and_send(user.email, "New login to your account", """
     Hi #{user.username},
 
-    Someone just logged into your Atlos account.
+    Someone just logged into your Atlos account#{if is_bitstring(ip_address), do: " from the IP address " <> ip_address, else: ""}.
 
     If this was you, great! If not, please change your Atlos password immediately and notify us at contact@atlos.org.
 

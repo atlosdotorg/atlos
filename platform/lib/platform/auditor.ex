@@ -12,17 +12,12 @@ defmodule Platform.Auditor do
     user = Map.get(assigns, :current_user) || %{}
     username = user |> Map.get(:username)
 
-    ip =
-      case Map.get(assigns, :remote_ip) || Map.get(user, :current_ip) do
-        # We look in both assigns and user because current user is passed around to live components,
-        # while the `remote_ip` assign is not.
-        nil -> nil
-        val -> to_string(:inet_parse.ntoa(val))
-      end
+    # This is set by our `PlatformWeb.Plugs.RemoteIp` middleware
+    ip = Map.get(socket_or_conn.assigns, :remote_ip)
 
     complete_metadata = Map.merge(metadata, %{authed_username: username, remote_ip: ip})
 
-    Logger.notice("#{event}", complete_metadata)
+    Logger.notice("#{event}", complete_metadata |> Map.to_list())
 
     slack_webhook = System.get_env("SLACK_AUDITING_WEBHOOK")
     environment = System.get_env("ENVIRONMENT", "dev")

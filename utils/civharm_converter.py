@@ -9,7 +9,8 @@ from collections import defaultdict
 @click.command()
 @click.argument("infile", type=click.File("rb"))
 @click.argument("outfile", type=click.File("wb"))
-def run(infile, outfile):
+@click.option("--only-geolocated", type=click.BOOL)
+def run(infile, outfile, only_geolocated):
     """Convert from a CIVHARM spreadsheet export (CSV) to something importable by Atlos."""
 
     reader = csv.DictReader(infile)
@@ -28,6 +29,7 @@ def run(infile, outfile):
             "weapon",
             "date_recorded",
             "status",
+            "tags"
         ]
         + ["source_" + str(i) for i in range(1, 23)],
     )
@@ -36,7 +38,17 @@ def run(infile, outfile):
     for row in reader:
         identifier = row["Incident no. "]
         if identifier.startswith("CIV") and len(row["Narrative"]) > 7:
-            more_info = f"Corresponds to '{identifier}' in CIVHARM. Reported near {row['Location'] or '[no location reported]'}. Comments:\n\n{row['Comments'] or '(No comments)'}"
+            comments = row['Comments'].strip()
+            if len(comments) > 0:
+                comments = f"\n\n{comments}"
+
+            location = row['Location'].strip()
+            if len(location) == 0:
+                location = "No reported location."
+            else:
+                location = f"Reported near {location}."
+
+            more_info = f"Corresponds to **{identifier}** in CIVHARM. {location} {comments}"
 
             sensitive = []
             if row["Private Information Visible"] == "Yes":
@@ -98,6 +110,10 @@ def run(infile, outfile):
 
             status = "Completed" if row["BCAT\n (geolocated)"] == "TRUE" else "Unclaimed"
 
+            if only_geolocated and row["BCAT\n (geolocated)"] != "TRUE":
+                print(f"Skipping {identifier}: not geolocated and published")
+                continue
+
             values = {
                 "more_info": more_info,
                 "sensitive": ", ".join(sensitive),
@@ -109,6 +125,7 @@ def run(infile, outfile):
                 "status": status,
                 "latitude": row["Lat"],
                 "longitude": row["Lon"],
+                "tags": "CIVHARM, Bulk Import"
             }
 
             source_number = 1

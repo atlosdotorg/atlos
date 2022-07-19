@@ -5,6 +5,7 @@ defmodule Platform.Material.Attribute do
   alias Platform.Material.Media
   alias Platform.Accounts.User
   alias Platform.Accounts
+  alias Platform.Material
 
   defstruct [
     :schema_field,
@@ -24,7 +25,9 @@ defmodule Platform.Material.Attribute do
     # for selects and multiple selects -- the values which require the user to have special privileges
     :privileged_values,
     # for selects and multiple selects
-    :option_descriptions
+    :option_descriptions,
+    # allows users to define their own options in a multi-select
+    :allow_user_defined_options
   ]
 
   defp renamed_attributes() do
@@ -299,6 +302,17 @@ defmodule Platform.Material.Attribute do
           "Completed" => "Investigation complete (only moderators can set)",
           "Cancelled" => "Will not be completed (out of scope, etc.)"
         }
+      },
+      %Attribute{
+        schema_field: :attr_tags,
+        type: :multi_select,
+        label: "Tags",
+        pane: :metadata,
+        required: false,
+        name: :tags,
+        required_roles: [:admin, :trusted, :coordinator],
+        allow_user_defined_options: true,
+        description: "Use tags to help organize incidents on Atlos."
       }
     ]
   end
@@ -401,11 +415,27 @@ defmodule Platform.Material.Attribute do
     end
   end
 
-  def options(%Attribute{} = attribute) do
-    if attribute.add_none do
-      [attribute.add_none] ++ attribute.options
+  def options(%Attribute{} = attribute, current_val \\ nil) do
+    base_options = attribute.options || []
+
+    primary_options =
+      if Attribute.allow_user_defined_options(attribute) and attribute.type == :multi_select do
+        base_options ++ Material.get_values_of_attribute_cached(attribute)
+      else
+        base_options
+      end
+
+    base_options =
+      if attribute.add_none do
+        [attribute.add_none] ++ primary_options
+      else
+        primary_options
+      end
+
+    if is_list(current_val) do
+      base_options ++ current_val
     else
-      attribute.options
+      base_options
     end
   end
 
@@ -413,12 +443,18 @@ defmodule Platform.Material.Attribute do
     validations =
       case attribute.type do
         :multi_select ->
-          changeset
-          |> validate_subset(attribute.schema_field, options(attribute),
-            message:
-              "Includes an invalid value. Valid values are: " <>
-                Enum.join(options(attribute), ", ")
-          )
+          if Attribute.allow_user_defined_options(attribute) == true do
+            # If `allow_user_defined_options` is unset or false, verify that the
+            # values are a subset of the options.
+            changeset
+          else
+            changeset
+            |> validate_subset(attribute.schema_field, options(attribute),
+              message:
+                "Includes an invalid value. Valid values are: " <>
+                  Enum.join(options(attribute), ", ")
+            )
+          end
           |> validate_length(attribute.schema_field,
             min: attribute.min_length,
             max: attribute.max_length
@@ -583,5 +619,13 @@ defmodule Platform.Material.Attribute do
       _ ->
         "~neutral"
     end
+  end
+
+  def allow_user_defined_options(%Attribute{allow_user_defined_options: true}) do
+    true
+  end
+
+  def allow_user_defined_options(%Attribute{}) do
+    false
   end
 end
