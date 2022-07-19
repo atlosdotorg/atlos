@@ -473,7 +473,7 @@ defmodule Platform.MaterialTest do
 
     test "values_of_attribute/1 gets all values of the attribute" do
       attr = Material.Attribute.get_attribute(:tags)
-      assert Material.values_of_attribute(attr) == []
+      assert Material.get_values_of_attribute(attr) == []
 
       {:ok, _} =
         Material.update_media_attribute(
@@ -494,7 +494,7 @@ defmodule Platform.MaterialTest do
         )
 
       real_vals = ["tag 1", "tag 2", "tag 3"]
-      found_vals = Material.values_of_attribute(attr)
+      found_vals = Material.get_values_of_attribute(attr)
 
       assert length(real_vals) == length(real_vals)
       assert Enum.all?(real_vals, &Enum.member?(found_vals, &1))
