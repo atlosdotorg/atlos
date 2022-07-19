@@ -68,7 +68,8 @@ defmodule Platform.MixProject do
       {:oban, "~> 2.12"},
       {:html_sanitize_ex, "~> 1.4"},
       {:eqrcode, "~> 0.1.10"},
-      {:nimble_totp, "~> 0.2.0"}
+      {:nimble_totp, "~> 0.2.0"},
+      {:memoize, "~> 1.4"}
     ]
   end
 

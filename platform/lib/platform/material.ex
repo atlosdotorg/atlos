@@ -6,6 +6,7 @@ defmodule Platform.Material do
   import Ecto.Query, warn: false
   alias Platform.Repo
   require Logger
+  use Memoize
 
   alias Phoenix.PubSub
 
@@ -471,9 +472,14 @@ defmodule Platform.Material do
   end
 
   def update_media_attribute(media, %Attribute{} = attribute, attrs, user \\ nil) do
-    media
-    |> Attribute.changeset(attribute, attrs, user)
-    |> Repo.update()
+    result =
+      media
+      |> Attribute.changeset(attribute, attrs, user)
+      |> Repo.update()
+
+    invalidate_attribute_values_cache()
+
+    result
   end
 
   @doc """
@@ -561,5 +567,20 @@ defmodule Platform.Material do
     |> select([m], fragment("unnest(?)", field(m, ^attribute.schema_field)))
     |> distinct(true)
     |> Repo.all()
+  end
+
+  @doc """
+  Get the unique values of the given attribute across *all* media. May hit the database, but cached for 5 minutes.
+  """
+  defmemo get_values_of_attribute_cached(%Attribute{type: :multi_select} = attribute),
+    expires_in: 300 * 1000 do
+    get_values_of_attribute(attribute)
+  end
+
+  @doc """
+  Invalidate the value cache for the given attribute.
+  """
+  def invalidate_attribute_values_cache() do
+    Memoize.invalidate(__MODULE__, :get_values_of_attribute_cached)
   end
 end

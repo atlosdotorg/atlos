@@ -420,7 +420,7 @@ defmodule Platform.Material.Attribute do
 
     primary_options =
       if Attribute.allow_user_defined_options(attribute) and attribute.type == :multi_select do
-        base_options ++ Material.get_values_of_attribute(attribute)
+        base_options ++ Material.get_values_of_attribute_cached(attribute)
       else
         base_options
       end
