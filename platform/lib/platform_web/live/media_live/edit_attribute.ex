@@ -129,8 +129,9 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
                     <%= multiple_select(
                       f,
                       @attr.schema_field,
-                      Attribute.options(@attr),
-                      data_descriptions: Jason.encode!(@attr.option_descriptions || %{})
+                      Attribute.options(@attr, Map.get(@media, @attr.schema_field)),
+                      data_descriptions: Jason.encode!(@attr.option_descriptions || %{}),
+                      data_allow_user_defined_options: Attribute.allow_user_defined_options(@attr)
                     ) %>
                   </div>
                 <% :location -> %>

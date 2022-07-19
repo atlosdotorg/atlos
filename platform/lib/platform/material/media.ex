@@ -33,6 +33,7 @@ defmodule Platform.Material.Media do
     field :attr_restrictions, {:array, :string}
     field :attr_sensitive, {:array, :string}
     field :attr_status, :string
+    field :attr_tags, {:array, :string}
 
     # Virtual attributes for updates + multi-part attributes
     field :explanation, :string, virtual: true

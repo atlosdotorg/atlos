@@ -552,4 +552,14 @@ defmodule Platform.Material do
   def contributors(%Media{} = media) do
     Enum.uniq(media.updates |> Enum.filter(&(not &1.hidden)) |> Enum.map(& &1.user))
   end
+
+  @doc """
+  Get the unique values of the given attribute across *all* media. Will hit the database.
+  """
+  def get_values_of_attribute(%Attribute{type: :multi_select} = attribute) do
+    Media
+    |> select([m], fragment("unnest(?)", field(m, ^attribute.schema_field)))
+    |> distinct(true)
+    |> Repo.all()
+  end
 end

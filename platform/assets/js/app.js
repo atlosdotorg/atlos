@@ -76,6 +76,7 @@ function initializeMultiSelects() {
             allowEmptyOption: true,
             hideSelected: false,
             hidePlaceholder: true,
+            create: s.hasAttribute("data-allow-user-defined-options"),
             closeAfterSelect: !s.hasAttribute("multiple"),
             onItemAdd(_a, _b) {
                 setTimeout(() => x.control_input.value = "", 1);

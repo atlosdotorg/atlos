@@ -470,5 +470,34 @@ defmodule Platform.MaterialTest do
       assert length(Material.query_media_paginated().entries) == 30
       assert length(Material.query_media_paginated(Material.Media, limit: 50).entries) == 50
     end
+
+    test "values_of_attribute/1 gets all values of the attribute" do
+      attr = Material.Attribute.get_attribute(:tags)
+      assert Material.values_of_attribute(attr) == []
+
+      {:ok, _} =
+        Material.update_media_attribute(
+          media_fixture(),
+          Material.Attribute.get_attribute(:tags),
+          %{
+            attr_tags: ["tag 1", "tag 2"]
+          }
+        )
+
+      {:ok, _} =
+        Material.update_media_attribute(
+          media_fixture(),
+          Material.Attribute.get_attribute(:tags),
+          %{
+            attr_tags: ["tag 3"]
+          }
+        )
+
+      real_vals = ["tag 1", "tag 2", "tag 3"]
+      found_vals = Material.values_of_attribute(attr)
+
+      assert length(real_vals) == length(real_vals)
+      assert Enum.all?(real_vals, &Enum.member?(found_vals, &1))
+    end
   end
 end
