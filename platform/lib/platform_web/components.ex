@@ -589,6 +589,9 @@ defmodule PlatformWeb.Components do
             <div class="badge ~urge inline-block"><%= item %></div>
           <% end %>
           (comma separated)
+          <%= if Attribute.allow_user_defined_options(attr) do %>
+            (new values allowed)
+          <% end %>
         <% :location -> %>
           put latitude in a
           <div class="badge ~urge inline-block">latitude</div>
