@@ -63,23 +63,25 @@ defmodule Platform.Workers.Archiver do
       # Track event
       Auditor.log(:archive_success, %{media_id: media_id, source_url: new_version.source_url})
 
-      Updates.change_from_comment(media, Accounts.get_auto_account(), %{
-        "explanation" => "✅ Successfully archived the media at #{version.source_url}."
-      })
-      |> Updates.create_update_from_changeset()
+      {:ok, _} =
+        Updates.change_from_comment(media, Accounts.get_auto_account(), %{
+          "explanation" => "✅ Successfully archived the media at #{version.source_url}."
+        })
+        |> Updates.create_update_from_changeset()
 
       {:ok, new_version}
     rescue
       val ->
         # Some error happened! Log it and update the media version appropriately.
-        Logger.error("Unable to automatically archive media!")
-        Auditor.log(:archive_failed, %{error: val, version: version})
+        Logger.error("Unable to automatically archive media: " <> inspect(val))
+        Auditor.log(:archive_failed, %{error: inspect(val), version: version})
 
-        Updates.change_from_comment(media, Accounts.get_auto_account(), %{
-          "explanation" =>
-            "🛑 Unable to automatically download the media from #{version.source_url}. Either the website is unsupported, or the media is not a video. Someone will need to upload the media manually."
-        })
-        |> Updates.create_update_from_changeset()
+        {:ok, _} =
+          Updates.change_from_comment(media, Accounts.get_auto_account(), %{
+            "explanation" =>
+              "🛑 Unable to automatically download the media from #{version.source_url}. Either the website is unsupported, or the media is not a video. Someone will need to upload the media manually."
+          })
+          |> Updates.create_update_from_changeset()
 
         # Update the media version.
         version_map = %{
