@@ -66,7 +66,7 @@ defmodule PlatformWeb.UpdatesLive.UpdateFeed do
         <% end %>
         <%= for {update, idx} <- to_show do %>
           <li class={if update.hidden, do: "opacity-50", else: ""}>
-            <div class="relative pb-8 group">
+            <div class="relative pb-8 group word-breaks">
               <%= if idx != length(to_show) - 1 || @show_final_line do %>
                 <span class="absolute top-5 left-5 -ml-px h-full w-0.5 bg-gray-200" aria-hidden="true">
                 </span>
