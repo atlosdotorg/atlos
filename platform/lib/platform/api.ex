@@ -38,6 +38,11 @@ defmodule Platform.API do
   def get_api_token!(id), do: Repo.get!(APIToken, id)
 
   @doc """
+  Gets a single api_token by its value.
+  """
+  def get_api_token_by_value(value), do: Repo.get_by(APIToken, value: value)
+
+  @doc """
   Creates a api_token.
 
   ## Examples

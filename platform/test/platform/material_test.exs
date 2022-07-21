@@ -83,7 +83,7 @@ defmodule Platform.MaterialTest do
 
     test "list_media_versions/0 returns all media_versions" do
       media_version = media_version_fixture()
-      assert Material.list_media_versions() == [media_version]
+      assert hd(Material.list_media_versions()).id == media_version.id
     end
 
     test "get_media_version!/1 returns the media_version with given id" do

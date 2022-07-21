@@ -11,8 +11,7 @@ defmodule Platform.APIFixtures do
     {:ok, api_token} =
       attrs
       |> Enum.into(%{
-        description: "some description",
-        value: "some value"
+        description: "some description"
       })
       |> Platform.API.create_api_token()
 

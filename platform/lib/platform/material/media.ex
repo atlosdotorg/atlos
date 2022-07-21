@@ -9,6 +9,7 @@ defmodule Platform.Material.Media do
   alias Platform.Accounts
   alias __MODULE__
 
+  @derive {Jason.Encoder, except: [:__meta__, :subscriptions, :updates, :versions]}
   schema "media" do
     # Core uneditable data
     field :slug, :string, autogenerate: {Utils, :generate_media_slug, []}

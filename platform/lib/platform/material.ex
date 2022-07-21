@@ -295,7 +295,7 @@ defmodule Platform.Material do
 
   """
   def list_media_versions do
-    Repo.all(MediaVersion)
+    Repo.all(MediaVersion |> preload(:media))
   end
 
   @doc """

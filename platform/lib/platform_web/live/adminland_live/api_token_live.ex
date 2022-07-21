@@ -117,6 +117,32 @@ defmodule PlatformWeb.AdminlandLive.APITokenLive do
                 </div>
               </div>
             <% end %>
+            <div class="bg-urge-50 border border-urge-400 mx-auto aside ~urge prose text-sm mt-8 w-full">
+              <p>
+                <strong class="text-blue-800">
+                  The Atlos API is a read-only API for administrators.
+                </strong>
+                You can learn more about the API authentication scheme and endpoints below.
+              </p>
+              <details class="-mt-2">
+                <summary class="cursor-pointer font-medium">How to use the API</summary>
+                <p>The Atlos API supports the following endpoints:</p>
+                <ul>
+                  <li>
+                    <code>/api/v1/media</code>
+                    &mdash; returns all incidents (internally, incidents are called media &mdash; that is, collections of individual pieces of media)
+                  </li>
+                  <li><code>/api/v1/media_versions</code> &mdash; returns all media versions</li>
+                </ul>
+                <p>
+                  Depending on the number of incidents, these endpoints may return a lot of data. Avoid calling them often.
+                </p>
+                <p>
+                  To authenticate against the API, include a <code>Authorization</code>
+                  header and set its value to <code>Bearer &lt;your token&gt;</code>.
+                </p>
+              </details>
+            </div>
           </div>
         </div>
       </div>
