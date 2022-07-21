@@ -52,7 +52,7 @@ defmodule PlatformWeb.APIV1Test do
       |> get("/api/v1/media_versions")
 
     assert json_response(auth_conn, 200) == %{
-             "results" => [Jason.decode!(Jason.encode!(version))]
+             "results" => Jason.decode!(Jason.encode!(Material.list_media_versions()))
            }
   end
 end
