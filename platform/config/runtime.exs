@@ -25,7 +25,7 @@ if config_env() == :prod do
   config :platform, Platform.Repo,
     # ssl: true,
     url: database_url,
-    pool_size: String.to_integer(System.get_env("POOL_SIZE") || "10"),
+    pool_size: String.to_integer(System.get_env("POOL_SIZE") || "20"),
     socket_options: maybe_ipv6,
     types: Platform.Repo.PostgresTypes
 
