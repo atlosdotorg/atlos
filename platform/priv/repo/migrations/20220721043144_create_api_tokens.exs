@@ -8,5 +8,7 @@ defmodule Platform.Repo.Migrations.CreateApiTokens do
 
       timestamps()
     end
+
+    create index(:api_tokens, [:value])
   end
 end

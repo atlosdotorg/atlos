@@ -12,7 +12,9 @@ defmodule Platform.API.APIToken do
   @doc false
   def changeset(api_token, attrs) do
     api_token
-    |> cast(attrs, [:value, :description])
-    |> validate_required([:value, :description])
+    |> cast(attrs, [:description])
+    |> validate_required([:description])
+    |> validate_length(:description, min: 3, max: 100)
+    |> put_change(:value, Platform.Utils.generate_secure_code())
   end
 end

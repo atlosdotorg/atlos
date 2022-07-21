@@ -125,6 +125,8 @@ defmodule PlatformWeb.Router do
       live("/adminland/users", AdminlandLive.Index, :users)
       live("/adminland/activity", AdminlandLive.Index, :activity)
       live("/adminland/upload", AdminlandLive.Index, :upload)
+      live("/adminland/api", AdminlandLive.Index, :api)
+      live("/adminland/api/new", AdminlandLive.Index, :api_new)
     end
   end
 end

@@ -34,7 +34,7 @@ defmodule Platform.Accounts do
             username: "Atlos",
             email: "admin@atlos.org",
             invite_code: get_valid_invite_code(),
-            password: Utils.generate_random_sequence(64)
+            password: Utils.generate_secure_code()
           })
 
         {:ok, user} = update_user_admin(user, %{roles: [:trusted, :coordinator], flair: "Bot"})

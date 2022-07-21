@@ -21,11 +21,10 @@ defmodule Platform.APITest do
     end
 
     test "create_api_token/1 with valid data creates a api_token" do
-      valid_attrs = %{description: "some description", value: "some value"}
+      valid_attrs = %{description: "some description"}
 
       assert {:ok, %APIToken{} = api_token} = API.create_api_token(valid_attrs)
       assert api_token.description == "some description"
-      assert api_token.value == "some value"
     end
 
     test "create_api_token/1 with invalid data returns error changeset" do
@@ -34,11 +33,10 @@ defmodule Platform.APITest do
 
     test "update_api_token/2 with valid data updates the api_token" do
       api_token = api_token_fixture()
-      update_attrs = %{description: "some updated description", value: "some updated value"}
+      update_attrs = %{description: "some updated description"}
 
       assert {:ok, %APIToken{} = api_token} = API.update_api_token(api_token, update_attrs)
       assert api_token.description == "some updated description"
-      assert api_token.value == "some updated value"
     end
 
     test "update_api_token/2 with invalid data returns error changeset" do
