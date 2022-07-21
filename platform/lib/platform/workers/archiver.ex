@@ -22,6 +22,9 @@ defmodule Platform.Workers.Archiver do
     hide_version_on_failure = Map.get(args, "hide_version_on_failure", false)
 
     try do
+      # Cleanup any existing tempfiles. (The worker is a long-running task.)
+      Temp.cleanup()
+
       # Setup tempfiles for media download
       Temp.track!()
       temp_dir = Temp.mkdir!()
