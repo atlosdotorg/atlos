@@ -23,10 +23,11 @@ defmodule Platform.Workers.Archiver do
 
     try do
       # Cleanup any existing tempfiles. (The worker is a long-running task.)
+      # In case we haven't already
+      Temp.track!()
       Temp.cleanup()
 
       # Setup tempfiles for media download
-      Temp.track!()
       temp_dir = Temp.mkdir!()
 
       # Download the media
