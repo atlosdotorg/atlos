@@ -20,6 +20,10 @@ defmodule Platform.Utils do
     for _ <- 1..length, into: "", do: <<Enum.random('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ')>>
   end
 
+  def generate_secure_code() do
+    :crypto.strong_rand_bytes(32) |> Base.url_encode64()
+  end
+
   def make_keys_strings(map) do
     Enum.reduce(map, %{}, fn
       {key, value}, acc when is_atom(key) -> Map.put(acc, Atom.to_string(key), value)

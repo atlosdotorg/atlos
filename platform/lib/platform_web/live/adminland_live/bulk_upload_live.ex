@@ -3,13 +3,14 @@ defmodule PlatformWeb.AdminlandLive.BulkUploadLive do
 
   alias Platform.Utils
   alias Platform.Material
-  alias Material.Media
+  alias Platform.Auditor
 
-  def update(_assigns, socket) do
+  def update(%{parent_socket: parent_socket} = _assigns, socket) do
     Temp.track!()
 
     {:ok,
      socket
+     |> assign(parent_socket: parent_socket)
      |> assign(:stage, "Upload incidents")
      |> assign(:processing, false)
      |> assign(:media_processing_error, false)
@@ -88,6 +89,12 @@ defmodule PlatformWeb.AdminlandLive.BulkUploadLive do
 
   def handle_event("publish", _params, socket) do
     Task.start(fn ->
+      Auditor.log(
+        :bulk_upload,
+        %{num_items: length(socket.assigns.import_items)},
+        socket.assigns.parent_socket
+      )
+
       socket.assigns.import_items
       |> Enum.map(fn item ->
         {:ok, _} = item |> Material.bulk_import_create()

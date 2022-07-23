@@ -2,6 +2,7 @@ defmodule PlatformWeb.Router do
   use PlatformWeb, :router
 
   import PlatformWeb.UserAuth
+  import PlatformWeb.APIAuth
   alias PlatformWeb.MountHelperLive
 
   pipeline :browser do
@@ -52,6 +53,15 @@ defmodule PlatformWeb.Router do
       pipe_through(:browser)
 
       forward("/mailbox", Plug.Swoosh.MailboxPreview)
+    end
+  end
+
+  scope "/api", PlatformWeb do
+    pipe_through([:api, :check_api_token])
+
+    scope "/v1" do
+      get("/media_versions", APIV1Controller, :media_versions)
+      get("/media", APIV1Controller, :media)
     end
   end
 
@@ -125,6 +135,8 @@ defmodule PlatformWeb.Router do
       live("/adminland/users", AdminlandLive.Index, :users)
       live("/adminland/activity", AdminlandLive.Index, :activity)
       live("/adminland/upload", AdminlandLive.Index, :upload)
+      live("/adminland/api", AdminlandLive.Index, :api)
+      live("/adminland/api/new", AdminlandLive.Index, :api_new)
     end
   end
 end

@@ -286,7 +286,7 @@ defmodule Platform.Material do
   end
 
   @doc """
-  Returns the list of media_versions.
+  Returns the list of media_versions. Will preload the associated media.
 
   ## Examples
 
@@ -295,7 +295,18 @@ defmodule Platform.Material do
 
   """
   def list_media_versions do
-    Repo.all(MediaVersion)
+    Repo.all(MediaVersion |> preload(:media))
+  end
+
+  @doc """
+  Query the list of media versions, paginated. Will preload the associated media.
+  """
+  def query_media_versions_paginated(query \\ MediaVersion, opts \\ []) do
+    applied_options = Keyword.merge([cursor_fields: [{:updated_at, :desc}], limit: 30], opts)
+
+    query
+    |> preload(:media)
+    |> Repo.paginate(applied_options)
   end
 
   @doc """

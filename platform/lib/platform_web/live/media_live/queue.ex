@@ -39,7 +39,7 @@ defmodule PlatformWeb.MediaLive.Queue do
 
   def render(assigns) do
     ~H"""
-    <article class="w-full max-w-screen-xl px-4 md:px-8">
+    <article class="w-full xl:max-w-screen-xl px-4 md:px-8">
       <div>
         <div class="border-b border-gray-200 flex flex-col md:flex-row mb-8 items-baseline">
           <h1 class="text-3xl flex-grow font-medium md:mr-8">Queue</h1>

@@ -228,13 +228,13 @@ function initializeMaps() {
                     .addTo(map);
             });
 
-            // Change the cursor to a pointer when the mouse is over the places layer.
-            map.on('mouseenter', 'places', () => {
-                map.getCanvas().style.cursor = 'pointer';
+            // Change the cursor to a pointer when the mouse is over the incidents layer.
+            map.on('mouseenter', 'incidents', () => {
+                map.getCanvas().style.cursor = 'zoom-in';
             });
 
             // Change it back to a pointer when it leaves.
-            map.on('mouseleave', 'places', () => {
+            map.on('mouseleave', 'incidents', () => {
                 map.getCanvas().style.cursor = '';
             });
         });
