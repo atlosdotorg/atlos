@@ -24,16 +24,16 @@ defmodule PlatformWeb.APIV1Controller do
 
   defp pagination_api(conn, params, pagination_function) do
     token = conn.assigns.token.value
-    page_unverified = Map.get(params, "page")
+    cursor_unverified = Map.get(params, "cursor")
 
-    page_result =
-      if is_nil(page_unverified) do
+    cursor_result =
+      if is_nil(cursor_unverified) do
         {:ok, nil}
       else
-        extract_value(page_unverified, token)
+        extract_value(cursor_unverified, token)
       end
 
-    with {:ok, page} <- page_result do
+    with {:ok, page} <- cursor_result do
       results =
         pagination_function.(
           sort: "modified_desc",

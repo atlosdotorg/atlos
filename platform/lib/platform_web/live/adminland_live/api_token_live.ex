@@ -130,16 +130,23 @@ defmodule PlatformWeb.AdminlandLive.APITokenLive do
                 <ul>
                   <li>
                     <code>/api/v1/media</code>
-                    &mdash; returns all incidents (internally, incidents are called media &mdash; that is, collections of individual pieces of media)
+                    &mdash; returns all incidents, with the most recently modified incidents listed first (internally, incidents are called media &mdash; that is, collections of individual pieces of media)
                   </li>
-                  <li><code>/api/v1/media_versions</code> &mdash; returns all media versions</li>
+                  <li>
+                    <code>/api/v1/media_versions</code>
+                    &mdash; returns all media versions, with the most recently modified media versions listed first
+                  </li>
                 </ul>
                 <p>
-                  Depending on the number of incidents, these endpoints may return a lot of data. Avoid calling them often.
+                  All endpoints return 30 results at a time. You can paginate using the
+                  <code>cursor</code> query parameter, whose value is provided by the
+                  <code>next</code> and <code>previous</code>
+                  keys in the response. Results are available under the <code>results</code> key.
                 </p>
                 <p>
                   To authenticate against the API, include a <code>Authorization</code>
-                  header and set its value to <code>Bearer &lt;your token&gt;</code>.
+                  header and set its value to <code>Bearer &lt;your token&gt;</code>
+                  (without the brackets).
                 </p>
               </details>
             </div>
