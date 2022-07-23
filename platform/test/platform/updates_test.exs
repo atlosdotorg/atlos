@@ -12,7 +12,7 @@ defmodule Platform.UpdatesTest do
       media = media_fixture()
       admin = admin_user_fixture()
 
-      assert length(Updates.get_updates_for_media(media)) == 0
+      assert Enum.empty?(Updates.get_updates_for_media(media))
 
       assert {:ok, _} =
                Material.update_media_attribute_audited(
@@ -37,7 +37,7 @@ defmodule Platform.UpdatesTest do
       media = media_fixture()
       admin = admin_user_fixture()
 
-      assert length(Updates.get_updates_for_media(media)) == 0
+      assert Enum.empty?(Updates.get_updates_for_media(media))
 
       assert {:ok, _} =
                Material.update_media_attribute_audited(
@@ -99,11 +99,11 @@ defmodule Platform.UpdatesTest do
       assert length(modified_updates) == 1
       assert Enum.any?(Enum.map(modified_updates, & &1.hidden))
 
-      assert length(Enum.filter(modified_updates, &Updates.can_user_view(&1, user))) == 0
+      assert Enum.empty?(Enum.filter(modified_updates, &Updates.can_user_view(&1, user)))
       assert length(Enum.filter(modified_updates, &Updates.can_user_view(&1, admin))) == 1
 
       # Quick check to also verify get_updates_for_media excludes hidden
-      assert length(Updates.get_updates_for_media(media, true)) == 0
+      assert Enum.empty?(Updates.get_updates_for_media(media, true))
     end
   end
 end

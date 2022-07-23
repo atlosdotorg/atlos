@@ -25,7 +25,7 @@ defmodule PlatformWeb.AdminlandLive.APITokenLive do
 
   def handle_event("delete_token", %{"token" => token_id}, socket) do
     with token <- API.get_api_token!(token_id),
-         {:ok, _} <- API.delete_api_token(token) |> IO.inspect() do
+         {:ok, _} <- API.delete_api_token(token) do
       Auditor.log(
         :api_token_deleted,
         %{description: token.description},
