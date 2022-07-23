@@ -3,10 +3,11 @@ defmodule PlatformWeb.AdminlandLive.APITokenCreateLive do
   alias Platform.API
   alias Platform.Auditor
 
-  def update(assigns, socket) do
+  def update(%{parent_socket: parent_socket} = assigns, socket) do
     {:ok,
      socket
      |> assign(assigns)
+     |> assign(:parent_socket, parent_socket)
      |> assign(:token, nil)
      |> assign(:changeset, API.change_api_token(%API.APIToken{}))}
   end
@@ -21,7 +22,12 @@ defmodule PlatformWeb.AdminlandLive.APITokenCreateLive do
 
   def handle_event("save", %{"api_token" => params}, socket) do
     with {:ok, value} <- API.create_api_token(params) do
-      Auditor.log(:api_token_created, %{description: value.description}, socket)
+      Auditor.log(
+        :api_token_created,
+        %{description: value.description},
+        socket.assigns.parent_socket
+      )
+
       {:noreply, socket |> assign(:token, value)}
     else
       {:error, changeset} -> {:noreply, socket |> assign(:changeset, changeset)}

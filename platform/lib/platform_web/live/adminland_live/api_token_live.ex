@@ -26,7 +26,12 @@ defmodule PlatformWeb.AdminlandLive.APITokenLive do
   def handle_event("delete_token", %{"token" => token_id}, socket) do
     with token <- API.get_api_token!(token_id),
          {:ok, _} <- API.delete_api_token(token) |> IO.inspect() do
-      Auditor.log(:api_token_deleted, %{description: token.description}, socket)
+      Auditor.log(
+        :api_token_deleted,
+        %{description: token.description},
+        socket.assigns.parent_socket
+      )
+
       {:noreply, socket |> put_flash(:info, "API token deleted successfully.") |> assign_tokens()}
     else
       _ -> {:noreply, socket |> put_flash(:info, "Unable to delete API token.")}
@@ -163,7 +168,11 @@ defmodule PlatformWeb.AdminlandLive.APITokenLive do
               Note that you will only be able to see the secret value once.
             </p>
           </div>
-          <.live_component module={PlatformWeb.AdminlandLive.APITokenCreateLive} id="new-token" />
+          <.live_component
+            module={PlatformWeb.AdminlandLive.APITokenCreateLive}
+            id="new-token"
+            parent_socket={@parent_socket}
+          />
         </.modal>
       <% end %>
     </section>
