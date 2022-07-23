@@ -5,6 +5,8 @@ defmodule PlatformWeb.APIV1Test do
   alias Platform.Material
 
   test "GET /api/v1/media", %{conn: conn} do
+    # TODO: add tests that also check pagination is working
+
     noauth_conn = get(conn, "/api/v1/media")
     assert json_response(noauth_conn, 401) == %{"error" => "invalid token or token not found"}
 
@@ -15,7 +17,7 @@ defmodule PlatformWeb.APIV1Test do
       |> put_req_header("authorization", "Bearer " <> token.value)
       |> get("/api/v1/media")
 
-    assert json_response(auth_conn, 200) == %{"results" => []}
+    assert json_response(auth_conn, 200) == %{"results" => [], "previous" => nil, "next" => nil}
 
     media = media_fixture()
 
@@ -26,11 +28,15 @@ defmodule PlatformWeb.APIV1Test do
 
     assert json_response(auth_conn, 200) == %{
              # Manually fetch since the database will change certain values
-             "results" => [Jason.decode!(Jason.encode!(Material.get_media!(media.id)))]
+             "results" => [Jason.decode!(Jason.encode!(Material.get_media!(media.id)))],
+             "previous" => nil,
+             "next" => nil
            }
   end
 
   test "GET /api/v1/media_versions", %{conn: conn} do
+    # TODO: add tests that also check pagination is working
+
     noauth_conn = get(conn, "/api/v1/media_versions")
     assert json_response(noauth_conn, 401) == %{"error" => "invalid token or token not found"}
 
@@ -41,7 +47,7 @@ defmodule PlatformWeb.APIV1Test do
       |> put_req_header("authorization", "Bearer " <> token.value)
       |> get("/api/v1/media_versions")
 
-    assert json_response(auth_conn, 200) == %{"results" => []}
+    assert json_response(auth_conn, 200) == %{"results" => [], "previous" => nil, "next" => nil}
 
     media = media_fixture()
     version = media_version_fixture(%{media_id: media.id})
@@ -52,7 +58,9 @@ defmodule PlatformWeb.APIV1Test do
       |> get("/api/v1/media_versions")
 
     assert json_response(auth_conn, 200) == %{
-             "results" => Jason.decode!(Jason.encode!(Material.list_media_versions()))
+             "results" => Jason.decode!(Jason.encode!(Material.list_media_versions())),
+             "previous" => nil,
+             "next" => nil
            }
   end
 end
