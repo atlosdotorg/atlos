@@ -434,7 +434,7 @@ defmodule Platform.Material do
   - hide_version_on_failure: true/false, whether to hide versions that failed
   """
   def archive_media_version(
-        %MediaVersion{status: :pending, media_id: media_id, id: id} = version,
+        %MediaVersion{status: :pending, media_id: _media_id, id: id} = _version,
         opts \\ []
       ) do
     %{
