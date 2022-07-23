@@ -1,9 +1,7 @@
 defmodule PlatformWeb.AdminlandLive.ActivityFeedLive do
   use PlatformWeb, :live_component
   use Ecto.Schema
-  import Ecto.Query
 
-  alias Platform.Accounts
   alias Platform.Updates
 
   def update(assigns, socket) do

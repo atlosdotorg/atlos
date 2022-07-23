@@ -1,7 +1,6 @@
 defmodule Platform.Material.Media do
   use Ecto.Schema
   import Ecto.Changeset
-  import Ecto.Query
   alias Platform.Utils
   alias Platform.Material.Attribute
   alias Platform.Material.MediaSubscription
