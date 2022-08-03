@@ -69,7 +69,8 @@ defmodule Platform.MixProject do
       {:html_sanitize_ex, "~> 1.4"},
       {:eqrcode, "~> 0.1.10"},
       {:nimble_totp, "~> 0.2.0"},
-      {:memoize, "~> 1.4"}
+      {:memoize, "~> 1.4"},
+      {:credo, "~> 1.6", only: [:dev, :test], runtime: false}
     ]
   end
 

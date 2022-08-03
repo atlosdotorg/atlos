@@ -28,7 +28,7 @@ defmodule Platform.InvitesTest do
 
     test "get_invites_by_user/1 returns the invites with given user" do
       owner = user_fixture()
-      assert length(Invites.get_invites_by_user(owner)) == 0
+      assert Enum.empty?(Invites.get_invites_by_user(owner))
 
       invite_fixture(%{owner_id: owner.id})
       invite_fixture(%{owner_id: owner.id})

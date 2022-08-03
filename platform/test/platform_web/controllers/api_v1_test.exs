@@ -50,7 +50,7 @@ defmodule PlatformWeb.APIV1Test do
     assert json_response(auth_conn, 200) == %{"results" => [], "previous" => nil, "next" => nil}
 
     media = media_fixture()
-    version = media_version_fixture(%{media_id: media.id})
+    media_version_fixture(%{media_id: media.id})
 
     auth_conn =
       build_conn()

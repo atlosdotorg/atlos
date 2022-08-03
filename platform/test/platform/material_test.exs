@@ -97,7 +97,7 @@ defmodule Platform.MaterialTest do
       assert length(results) == 1
       assert hd(results).id == media_version.id
 
-      assert length(Material.get_media_versions_by_source_url("https://atlos.org/invalid")) == 0
+      assert Enum.empty?(Material.get_media_versions_by_source_url("https://atlos.org/invalid"))
     end
 
     test "create_media_version/1 with valid data creates a media_version" do
@@ -337,7 +337,7 @@ defmodule Platform.MaterialTest do
     end
 
     test "query_media/0 returns all media by default" do
-      assert length(Material.query_media()) == 0
+      assert Enum.empty?(Material.query_media())
 
       Enum.map(1..100, fn _ -> media_fixture() end)
       assert length(Material.query_media()) == 100
@@ -347,7 +347,7 @@ defmodule Platform.MaterialTest do
     end
 
     test "query_media_paginated/1 works with uploaded sorting" do
-      assert length(Material.query_media()) == 0
+      assert Enum.empty?(Material.query_media())
 
       Enum.map(1..25, fn _ -> media_fixture(%{description: "this is earlier"}) end)
       Process.sleep(1000)
@@ -367,7 +367,7 @@ defmodule Platform.MaterialTest do
     end
 
     test "query_media/1 works with basic text search" do
-      assert length(Material.query_media()) == 0
+      assert Enum.empty?(Material.query_media())
 
       Enum.map(1..25, fn _ -> media_fixture() end)
       Enum.map(1..25, fn _ -> media_fixture(%{description: "this is foobar"}) end)
@@ -380,7 +380,7 @@ defmodule Platform.MaterialTest do
     end
 
     test "query_media/1 works with longer text search" do
-      assert length(Material.query_media()) == 0
+      assert Enum.empty?(Material.query_media())
 
       Enum.map(1..1000, fn _ ->
         media_fixture(%{description: Faker.Lorem.Shakespeare.En.hamlet()})
@@ -463,7 +463,7 @@ defmodule Platform.MaterialTest do
     end
 
     test "query_media_paginated/0 paginates" do
-      assert length(Material.query_media_paginated().entries) == 0
+      assert Enum.empty?(Material.query_media_paginated().entries)
 
       Enum.map(1..100, fn _ -> media_fixture() end)
 

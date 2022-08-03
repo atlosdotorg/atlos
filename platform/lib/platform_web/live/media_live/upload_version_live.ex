@@ -103,7 +103,7 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
     # So we *manually* check to verify the source URL is correct before proceeding.
     ugc_invalid =
       Enum.any?([:source_url], &Keyword.has_key?(changeset.errors, &1)) ||
-        length(socket.assigns.uploads.media_upload.entries) == 0
+        Enum.empty?(socket.assigns.uploads.media_upload.entries)
 
     if ugc_invalid do
       {:noreply,
