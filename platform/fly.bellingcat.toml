@@ -8,7 +8,7 @@ processes = []
   release_command = "/app/bin/migrate"
 
 [env]
-  PHX_HOST = "bellingcat.atlos.org"
+  PHX_HOST = "gap.atlos.org"
   PORT = "8080"
   S3_BUCKET = "atlos-content-bellingcat"
   AWS_REGION = "us-east-1"
