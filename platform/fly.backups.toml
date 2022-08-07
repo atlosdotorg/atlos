@@ -1,0 +1,38 @@
+# image: kartoza/pg-backup:14-3
+# note that this image is not (currently) automatically deployed
+# you can deploy it with: `fly deploy --config fly.backups.toml --image kartoza/pg-backup:14-3.3`
+# it will require the following secrets:
+#     S3CMD_CONFIG="[default] host_base = s3-eu-central-1.amazonaws.com"
+#     AWS_ACCESS_KEY_ID
+#     AWS_SECRET_ACCESS_KEY
+#     BUCKET
+#     POSTGRES_HOST
+#     POSTGRES_PASS
+#     POSTGRES_USER
+
+app = "atlos-backup-generator"
+kill_signal = "SIGINT"
+kill_timeout = 5
+processes = []
+
+[env]
+  STORAGE_BACKEND = "S3"
+  CRON_SCHEDULE = "20 4 * * *"
+  DEFAULT_REGION = "eu-central-1"
+  SSL_SECURE = "True"
+
+[experimental]
+  allowed_public_ports = []
+  auto_rollback = true
+  private_network = true
+
+[[services]]
+  http_checks = []
+  internal_port = 8080
+  processes = ["app"]
+  protocol = "tcp"
+  script_checks = []
+  [services.concurrency]
+    hard_limit = 25
+    soft_limit = 20
+    type = "connections"
