@@ -40,6 +40,9 @@ defmodule PlatformWeb.AdminlandLive.UserListLive do
                     <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
                       Joined
                     </th>
+                    <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                      MFA
+                    </th>
                     <th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-6">
                       <span class="sr-only">More</span>
                     </th>
@@ -95,6 +98,13 @@ defmodule PlatformWeb.AdminlandLive.UserListLive do
                       </td>
                       <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                         <.rel_time time={user.inserted_at} />
+                      </td>
+                      <td class="max-w-md px-3 py-4 text-sm text-gray-500">
+                        <%= if user.has_mfa do %>
+                          <span class="chip ~positive mb-1">enabled</span>
+                        <% else %>
+                          <span class="chip ~critical mb-1">disabled</span>
+                        <% end %>
                       </td>
                       <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
                         <%= live_patch(to: "/profile/#{user.username}",
