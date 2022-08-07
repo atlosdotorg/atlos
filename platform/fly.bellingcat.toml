@@ -10,7 +10,7 @@ processes = []
 [env]
   PHX_HOST = "gap.atlos.org"
   PORT = "8080"
-  S3_BUCKET = "atlos-content-bellingcat"
+  S3_BUCKET = "atlos-content-gap"
   AWS_REGION = "us-east-1"
   APPSIGNAL_APP_ENV = "prod-bellingcat"
   ENVIRONMENT = "prod-bellingcat"
