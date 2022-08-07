@@ -17,18 +17,18 @@ defmodule Platform.Auditor do
 
     complete_metadata = Map.merge(metadata, %{authed_username: username, remote_ip: ip})
 
-    Logger.notice("#{event}", complete_metadata |> Map.to_list())
+    {pretty_metadata_json, raw_metadata_json} =
+      with {:ok, val} <- Jason.encode(complete_metadata),
+           printed <- Jason.Formatter.pretty_print(val) do
+        {printed |> String.replace("```", "'''"), val}
+      else
+        _ -> {"{}", "{}"}
+      end
+
+    Logger.notice("[auditor] #{event} #{raw_metadata_json}")
 
     slack_webhook = System.get_env("SLACK_AUDITING_WEBHOOK")
     environment = System.get_env("ENVIRONMENT", "dev")
-
-    full_metadata =
-      with {:ok, val} <- Jason.encode(complete_metadata),
-           printed <- Jason.Formatter.pretty_print(val) do
-        printed |> String.replace("```", "'''")
-      else
-        _ -> "[error]"
-      end
 
     if not is_nil(slack_webhook) and environment != "dev" do
       Task.start(fn ->
@@ -52,7 +52,7 @@ defmodule Platform.Auditor do
                 type: "section",
                 text: %{
                   type: "mrkdwn",
-                  text: "```#{full_metadata}```"
+                  text: "```#{pretty_metadata_json}```"
                 }
               },
               %{

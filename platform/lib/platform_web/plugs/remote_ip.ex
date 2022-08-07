@@ -12,6 +12,8 @@ defmodule PlatformWeb.Plugs.RemoteIp do
         _ -> to_string(:inet_parse.ntoa(conn.remote_ip))
       end
 
+    Logger.metadata(remote_ip: remote_ip)
+
     conn
     |> fetch_session()
     # We put the remote in three places, just to make sure it's always accessible.
