@@ -50,6 +50,7 @@ config :phoenix, :json_library, Jason
 # Use Arc for file uploads
 config :arc,
   bucket: {:system, "S3_BUCKET"},
+  virtual_host: true,
   # milliseconds
   version_timeout: 120_000
 
