@@ -50,8 +50,17 @@ config :phoenix, :json_library, Jason
 # Use Arc for file uploads
 config :arc,
   bucket: {:system, "S3_BUCKET"},
+  virtual_host: true,
   # milliseconds
   version_timeout: 120_000
+
+config :ex_aws,
+  access_key_id: {:system, "AWS_ACCESS_KEY_ID"},
+  secret_access_key: {:system, "AWS_SECRET_ACCESS_KEY"},
+  region: {:system, "AWS_REGION"},
+  s3: [
+    region: {:system, "AWS_REGION"}
+  ]
 
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
