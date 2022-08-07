@@ -90,11 +90,14 @@ defmodule PlatformWeb.UserAuth do
 
   @doc """
   Authenticates the user by looking into the session
-  and remember me token.
+  and remember me token. Also updates logger metadata.
   """
   def fetch_current_user(conn, _opts) do
     {user_token, conn} = ensure_user_token(conn)
     user = user_token && Accounts.get_user_by_session_token(user_token)
+
+    Logger.metadata(username: user && user.username)
+
     assign(conn, :current_user, user)
   end
 
