@@ -2,6 +2,7 @@ defmodule PlatformWeb.UserConfirmationController do
   use PlatformWeb, :controller
 
   alias Platform.Accounts
+  alias Platform.Auditor
 
   def new(conn, _params) do
     render(conn, "new.html", title: "Confirm your email")
@@ -32,7 +33,9 @@ defmodule PlatformWeb.UserConfirmationController do
   # leaked token giving the user access to the account.
   def update(conn, %{"token" => token}) do
     case Accounts.confirm_user(token) do
-      {:ok, _} ->
+      {:ok, user} ->
+        Auditor.log(:user_confirmed, %{username: user.username}, conn)
+
         conn
         |> put_flash(:info, "User confirmed successfully.")
         |> redirect(to: "/")

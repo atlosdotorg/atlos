@@ -20,6 +20,8 @@ defmodule PlatformWeb.UserResetPasswordController do
       )
     end
 
+    Auditor.log(:password_recovery_requested, %{email: email}, conn)
+
     conn
     |> put_flash(
       :info,

@@ -28,7 +28,13 @@ defmodule PlatformWeb.UserAuth do
   def log_in_user(conn, user, params \\ %{}) do
     token = Accounts.generate_user_session_token(user)
     user_return_to = get_session(conn, :user_return_to)
-    Accounts.UserNotifier.deliver_login_notification(user, conn.remote_ip)
+
+    Accounts.UserNotifier.deliver_login_notification(
+      user,
+      conn.remote_ip,
+      Routes.user_settings_url(conn, :edit)
+    )
+
     Auditor.log(:login, %{username: user.username}, conn)
 
     conn
