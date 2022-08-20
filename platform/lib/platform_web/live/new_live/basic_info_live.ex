@@ -21,11 +21,11 @@ defmodule PlatformWeb.NewLive.BasicInfoLive do
     socket |> assign(:changeset, Material.change_media(socket.assigns.media))
   end
 
-  def handle_event("validate", %{"media" => media_params}, socket) do
-    changeset =
-      socket.assigns.media |> Material.change_media(media_params) |> Map.put(:action, :validate)
+  def handle_event("validate", %{"media" => _media_params}, socket) do
+    # TODO: We don't currently do live validation because it causes the multiselect panel to jump around.
+    # Given the time, it'd be nice to fix this.
 
-    {:noreply, assign(socket, :changeset, changeset)}
+    {:noreply, socket}
   end
 
   def handle_event("save", %{"media" => media_params}, socket) do
@@ -74,7 +74,8 @@ defmodule PlatformWeb.NewLive.BasicInfoLive do
               <%= multiple_select(
                 f,
                 :attr_sensitive,
-                Attribute.get_attribute(:sensitive) |> Attribute.options()
+                Attribute.get_attribute(:sensitive) |> Attribute.options(),
+                phx_debounce: "blur"
               ) %>
             </div>
             <p class="support">
