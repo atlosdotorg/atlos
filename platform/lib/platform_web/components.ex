@@ -169,12 +169,12 @@ defmodule PlatformWeb.Components do
     >
       <div class="w-full pt-6 flex flex-col items-center md:h-full">
         <div class="flex w-full px-4 md:px-0 border-b pb-6 md:pb-0 md:border-0 border-neutral-600 justify-between md:justify-center items-center">
-          <%= link to: "/", class: "flex flex-col items-center text-white" do %>
+          <%= link to: "/", class: "flex gap-2 md:gap-0 md:flex-col items-center text-white" do %>
             <span class="text-xl py-px px-1 rounded-sm bg-white text-neutral-700 uppercase font-extrabold font-mono">
               Atlos
             </span>
             <%= if not is_nil(name) do %>
-              <span class="font-mono text-sm uppercase font-medium mt-1">
+              <span class="font-mono md:text-sm uppercase font-medium text-xl md:mt-1">
                 <%= name %>
               </span>
             <% end %>
