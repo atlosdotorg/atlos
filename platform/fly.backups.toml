@@ -1,14 +1,13 @@
-# image: kartoza/pg-backup:14-3
+# image: milesmcc/postback:latest
 # note that this image is not (currently) automatically deployed
-# you can deploy it with: `fly deploy --config fly.backups.toml --image kartoza/pg-backup:14-3.3`
+# you can deploy it with: `fly deploy --config fly.backups.toml --image milesmcc/postback:latest`
 # it will require the following secrets:
-#     S3CMD_CONFIG="[default] host_base = s3-eu-central-1.amazonaws.com"
 #     AWS_ACCESS_KEY_ID
 #     AWS_SECRET_ACCESS_KEY
-#     BUCKET
-#     POSTGRES_HOST
-#     POSTGRES_PASS
-#     POSTGRES_USER
+#     S3_BUCKET
+#     PG_URL
+#     AGE_RECIPIENTS
+# for more info, see: https://github.com/milesmcc/postback
 
 app = "atlos-backup-generator"
 kill_signal = "SIGINT"
@@ -17,7 +16,7 @@ processes = []
 
 [env]
   STORAGE_BACKEND = "S3"
-  CRON_SCHEDULE = "20 4 * * *"
+  CRON_SCHEDULE = "20 0,6,12,18 * * *"
   DEFAULT_REGION = "eu-central-1"
   SSL_SECURE = "True"
 
