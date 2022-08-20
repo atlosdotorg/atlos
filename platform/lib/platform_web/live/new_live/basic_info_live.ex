@@ -137,11 +137,14 @@ defmodule PlatformWeb.NewLive.BasicInfoLive do
             </div>
           </div>
 
-          <%= submit("Next step →",
-            phx_disable_with: "Saving...",
-            class: "button ~urge @high",
-            disabled: @disabled
-          ) %>
+          <div class="md:flex gap-2 items-center justify-between">
+            <%= submit("Create incident",
+              phx_disable_with: "Saving...",
+              class: "button ~urge @high",
+              disabled: @disabled
+            ) %>
+            <p class="support text-neutral-600">You can upload media in the next step</p>
+          </div>
         </div>
       </.form>
     </div>
