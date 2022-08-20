@@ -640,4 +640,8 @@ defmodule Platform.Material.Attribute do
   def allow_user_defined_options(%Attribute{}) do
     false
   end
+
+  def requires_privileges_to_edit(%Attribute{} = attr) do
+    is_list(attr.required_roles) and not Enum.empty?(attr.required_roles)
+  end
 end

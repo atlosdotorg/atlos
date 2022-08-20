@@ -490,17 +490,17 @@ defmodule PlatformWeb.Components do
           </div>
         <% :select -> %>
           <div class="inline-block">
-            <div class="chip ~neutral inline-block"><%= value %></div>
+            <div class="chip ~neutral inline-block self-start"><%= value %></div>
           </div>
         <% :multi_select -> %>
           <%= for item <- value do %>
-            <div class="chip ~neutral inline-block"><%= item %></div>
+            <div class="chip ~neutral inline-block self-start"><%= item %></div>
           <% end %>
         <% :location -> %>
           <div class="inline-block">
             <% {lon, lat} = value.coordinates %>
             <a
-              class="chip ~neutral inline-block flex gap-1"
+              class="chip ~neutral inline-block flex gap-1 self-start"
               target="_blank"
               href={"https://maps.google.com/maps?q=#{lat},#{lon}"}
             >
@@ -509,11 +509,11 @@ defmodule PlatformWeb.Components do
           </div>
         <% :time -> %>
           <div class="inline-block">
-            <div class="chip ~neutral inline-block"><%= value %></div>
+            <div class="chip ~neutral inline-block self-start"><%= value %></div>
           </div>
         <% :date -> %>
           <div class="inline-block">
-            <div class="chip ~neutral inline-block"><%= value %></div>
+            <div class="chip ~neutral inline-block self-start"><%= value %></div>
           </div>
       <% end %>
     </span>
