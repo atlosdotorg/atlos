@@ -158,6 +158,8 @@ defmodule PlatformWeb.Components do
   end
 
   def nav(assigns) do
+    name = Utils.get_instance_name()
+
     ~H"""
     <div class="md:w-28 h-20"></div>
     <div
@@ -168,9 +170,14 @@ defmodule PlatformWeb.Components do
       <div class="w-full pt-6 flex flex-col items-center md:h-full">
         <div class="flex w-full px-4 md:px-0 border-b pb-6 md:pb-0 md:border-0 border-neutral-600 justify-between md:justify-center items-center">
           <%= link to: "/", class: "flex flex-col items-center text-white" do %>
-            <span class="text-white text-xl py-px px-1 rounded-sm bg-white text-neutral-700 uppercase font-extrabold font-mono">
+            <span class="text-xl py-px px-1 rounded-sm bg-white text-neutral-700 uppercase font-extrabold font-mono">
               Atlos
             </span>
+            <%= if not is_nil(name) do %>
+              <span class="font-mono text-sm uppercase font-medium mt-1">
+                <%= name %>
+              </span>
+            <% end %>
           <% end %>
           <div>
             <button type="button" class="md:hidden pt-1" x-on:click="open = true" x-show="!open">
@@ -1432,32 +1439,37 @@ defmodule PlatformWeb.Components do
 
   def footer(assigns) do
     ~H"""
-    <footer class="grid grid-cols-3 text-center gap-4 place-self-center md:flex md:justify-between max-w-lg mx-auto mt-8 text-gray-500 text-xs">
-      <a href="https://github.com/milesmcc/atlos" class="hover:text-gray-600">Source Code</a>
-      <a
-        href={
-          System.get_env("RULES_LINK", "https://github.com/milesmcc/atlos/blob/main/policy/RULES.md")
-        }
-        class="hover:text-gray-600 transition"
-      >
-        Rules
-      </a>
-      <a
-        href="https://github.com/milesmcc/atlos/blob/main/policy/TERMS_OF_USE.md"
-        class="hover:text-gray-600 transition"
-      >
-        Terms of Use
-      </a>
-      <a
-        href="https://github.com/milesmcc/atlos/blob/main/policy/RESILIENCE.md"
-        class="hover:text-gray-600 transition"
-      >
-        Resilience
-      </a>
-      <a href="https://github.com/milesmcc/atlos/discussions" class="hover:text-gray-600 transition">
-        Feedback
-      </a>
-      <a href="mailto:contact@atlos.org" class="hover:text-gray-600 transition">Contact</a>
+    <footer class="place-self-center max-w-lg mx-auto mt-8 text-gray-500 text-xs">
+      <div class="grid grid-cols-3 text-center gap-4 md:flex md:justify-between">
+        <a href="https://github.com/milesmcc/atlos" class="hover:text-gray-600">Source Code</a>
+        <a
+          href={
+            System.get_env(
+              "RULES_LINK",
+              "https://github.com/milesmcc/atlos/blob/main/policy/RULES.md"
+            )
+          }
+          class="hover:text-gray-600 transition"
+        >
+          Rules
+        </a>
+        <a
+          href="https://github.com/milesmcc/atlos/blob/main/policy/TERMS_OF_USE.md"
+          class="hover:text-gray-600 transition"
+        >
+          Terms of Use
+        </a>
+        <a
+          href="https://github.com/milesmcc/atlos/blob/main/policy/RESILIENCE.md"
+          class="hover:text-gray-600 transition"
+        >
+          Resilience
+        </a>
+        <a href="https://github.com/milesmcc/atlos/discussions" class="hover:text-gray-600 transition">
+          Feedback
+        </a>
+        <a href="mailto:contact@atlos.org" class="hover:text-gray-600 transition">Contact</a>
+      </div>
     </footer>
     """
   end

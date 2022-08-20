@@ -100,6 +100,10 @@ defmodule Platform.Utils do
     |> Phoenix.HTML.raw()
   end
 
+  def get_instance_name() do
+    System.get_env("INSTANCE_NAME")
+  end
+
   def text_search(search_terms, queryable) do
     queryable
     |> where(

@@ -16,6 +16,7 @@ processes = []
   ENVIRONMENT = "staging"
   APP_REVISION = "v0.1.0"
   ENABLE_CAPTCHAS = "true"
+  INSTANCE_NAME = "staging"
 
 [experimental]
   allowed_public_ports = []

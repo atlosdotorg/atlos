@@ -17,6 +17,7 @@ processes = []
   APP_REVISION = "v0.1.0"
   ENABLE_CAPTCHAS = "true"
   RULES_LINK = "https://bit.ly/3AKpytQ"
+  INSTANCE_NAME = "GAP"
 
 [experimental]
   allowed_public_ports = []
