@@ -369,6 +369,7 @@ defmodule Platform.Material.Attribute do
     |> validate_attribute(attribute, user)
     |> cast_and_validate_virtual_explanation(attrs, attribute)
     |> update_from_virtual_data(attribute)
+    |> verify_change_exists(attribute)
   end
 
   defp populate_virtual_data(media, %Attribute{} = attribute) do
@@ -555,7 +556,7 @@ defmodule Platform.Material.Attribute do
           requires_privilege =
             MapSet.intersection(Enum.into(v, MapSet.new()), Enum.into(values, MapSet.new()))
 
-          if length(requires_privilege) > 0 do
+          if not Enum.empty?(requires_privilege) do
             changeset
             |> add_error(
               attribute.schema_field,
@@ -581,7 +582,18 @@ defmodule Platform.Material.Attribute do
   end
 
   defp validate_privileged_values(changeset, _attribute, _user) do
+    # When attribute and user aren't provided, or there are no privileged values,
+    # then there is nothing to validate.
+
     changeset
+  end
+
+  defp verify_change_exists(changeset, %Attribute{} = attribute) do
+    if is_nil(Map.get(changeset.changes, attribute.schema_field)) do
+      changeset |> add_error(attribute.schema_field, "A change is required to post an update.")
+    else
+      changeset
+    end
   end
 
   @doc """
