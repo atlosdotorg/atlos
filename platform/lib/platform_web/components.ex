@@ -1327,7 +1327,7 @@ defmodule PlatformWeb.Components do
   def floating_warning(assigns) do
     ~H"""
     <section class="fixed bottom-0 inset-x-0 pb-2 sm:pb-5 z-50">
-      <div class="max-w-7xl mx-auto lg:pl-36 px-2 sm:px-6 lg:px-8">
+      <div class="max-w-7xl mx-auto md:pl-36 px-2 sm:px-6 md:px-8">
         <div class="p-2 rounded-lg bg-critical-600 shadow-lg sm:p-3">
           <div class="flex items-center justify-between flex-wrap">
             <div class="w-0 flex-1 flex items-center">
@@ -1361,7 +1361,7 @@ defmodule PlatformWeb.Components do
   def floating_info(assigns) do
     ~H"""
     <section class="fixed bottom-0 inset-x-0 pb-2 sm:pb-5 z-50">
-      <div class="max-w-7xl mx-auto lg:pl-36 px-2 sm:px-6 lg:px-8">
+      <div class="max-w-7xl mx-auto md:pl-36 px-2 sm:px-6 md:px-8">
         <div class="p-2 rounded-lg bg-neutral-600 shadow-lg sm:p-3">
           <div class="flex items-center justify-between flex-wrap">
             <div class="w-0 flex-1 flex items-center">
