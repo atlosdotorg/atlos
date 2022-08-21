@@ -70,8 +70,12 @@ liveSocket.connect()
 // >> liveSocket.disableLatencySim()
 window.liveSocket = liveSocket
 
-function initializeMultiSelects() {
-    // Make multi-selects interactive
+let lockIcon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 m-px mb-1 inline" viewBox="0 0 20 20" fill="currentColor">
+<path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
+</svg>`;
+
+function initializeSmartSelects() {
+    // Make smart-selects interactive
     document.querySelectorAll("select:not(.ts-ignore *)").forEach(s => {
         if (s.tomselect) {
             return;
@@ -82,6 +86,7 @@ function initializeMultiSelects() {
             prompt = "Select all that apply..."
         }
         let descriptions = JSON.parse(s.getAttribute("data-descriptions")) || {};
+        let privileged = JSON.parse(s.getAttribute("data-privileged")) || [];
 
         let x = new TomSelect(`#${s.id}`, {
             maxOptions: null,
@@ -103,7 +108,8 @@ function initializeMultiSelects() {
                     if (desc.length != 0) {
                         desc = "— " + desc;
                     }
-                    return '<div class="lg:flex"><div><span>' + escape(data.text) + '</span><span class="text-gray-400">&nbsp;' + escape(desc) + '</span></div></div>';
+                    let requiresPrivilege = privileged.indexOf(data.text) >= 0;
+                    return '<div class="lg:flex"><div><span>' + escape(data.text) + '</span><span class="text-gray-400">' + (requiresPrivilege ? lockIcon : '') + '&nbsp;' + escape(desc) + '</span></div></div>';
                 },
                 item: function (data, escape) {
                     return '<div>' + escape(data.text) + '</div>';
@@ -248,8 +254,8 @@ window.toggleClass = (id, classname) => {
     elem.classList.toggle(classname);
 }
 
-document.addEventListener("phx:update", initializeMultiSelects);
-document.addEventListener("load", initializeMultiSelects);
+document.addEventListener("phx:update", initializeSmartSelects);
+document.addEventListener("load", initializeSmartSelects);
 
 document.addEventListener("phx:update", initializeMaps);
 document.addEventListener("load", initializeMaps);
