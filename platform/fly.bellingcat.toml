@@ -14,7 +14,6 @@ processes = []
   AWS_REGION = "eu-central-1"
   APPSIGNAL_APP_ENV = "prod-bellingcat"
   ENVIRONMENT = "prod-bellingcat"
-  APP_REVISION = "v0.1.0"
   ENABLE_CAPTCHAS = "true"
   RULES_LINK = "https://bit.ly/3AKpytQ"
   INSTANCE_NAME = "GAP"

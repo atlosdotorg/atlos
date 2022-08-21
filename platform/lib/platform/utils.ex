@@ -104,6 +104,10 @@ defmodule Platform.Utils do
     System.get_env("INSTANCE_NAME")
   end
 
+  def get_instance_version() do
+    System.get_env("APP_REVISION", "unknown")
+  end
+
   def text_search(search_terms, queryable) do
     queryable
     |> where(
