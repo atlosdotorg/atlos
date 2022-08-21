@@ -20,7 +20,6 @@ ARG BUILDER_IMAGE="hexpm/elixir:${ELIXIR_VERSION}-erlang-${OTP_VERSION}-debian-$
 ARG RUNNER_IMAGE="debian:${DEBIAN_VERSION}"
 
 ARG APP_REVISION
-ENV APP_REVISION=$APP_REVISION
 
 FROM ${BUILDER_IMAGE} as builder
 
@@ -86,6 +85,7 @@ RUN chown nobody /app
 
 # set runner ENV
 ENV MIX_ENV="prod"
+ENV APP_REVISION=$APP_REVISION
 
 # Only copy the final release from the build stage
 COPY --from=builder --chown=nobody:root /app/_build/${MIX_ENV}/rel/platform ./
