@@ -67,7 +67,7 @@ export default function Home() {
             </p>
           </div>
           <div>
-            <a href="https://platform.atlos.org" class="button ~neutral @high text-sm uppercase font-mono">Log in / Register</a>
+            <a href="https://platform.atlos.org" className="button ~neutral @high text-sm uppercase font-mono">Log in / Register</a>
           </div>
         </section>
       </main>
