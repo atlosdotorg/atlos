@@ -197,7 +197,7 @@ defmodule PlatformWeb.MediaLive.CommentBox do
 
               <div class="absolute bottom-0 inset-x-0 pl-3 pr-2 pt-1 pb-2 flex justify-between">
                 <div class="flex items-center space-x-5">
-                  <div class="flex items-center">
+                  <div class="md:flex items-center">
                     <%= live_file_input(@uploads.attachments, class: "sr-only") %>
                     <button
                       type="button"
@@ -220,8 +220,10 @@ defmodule PlatformWeb.MediaLive.CommentBox do
                       <span class="sr-only">Attach a file</span>
                     </button>
 
-                    <%= error_tag(f, :explanation) %>
-                    <%= error_tag(f, :attachments) %>
+                    <span class="phx-form md:ml-2">
+                      <%= error_tag(f, :explanation) %>
+                      <%= error_tag(f, :attachments) %>
+                    </span>
                   </div>
                 </div>
                 <div class="flex-shrink-0">
