@@ -94,10 +94,12 @@ RUN apt-get update -y && apt-get install -y ffmpeg imagemagick curl python3 \
   && apt-get clean && rm -f /var/lib/apt/lists/*_*
 RUN curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /usr/local/bin/yt-dlp && chmod a+rx /usr/local/bin/yt-dlp
 
+RUN echo $APP_REVISION > APP_REVISION
+
 USER nobody
 
 CMD ["/app/bin/server"]
 
 ENV ECTO_IPV6 true
 ENV ERL_AFLAGS "-proto_dist inet6_tcp"
-ENV APP_REVISION=$APP_REVISION
+ENV APP_REVISION ${APP_REVISION}
