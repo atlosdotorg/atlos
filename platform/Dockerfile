@@ -19,8 +19,6 @@ ARG DEBIAN_VERSION=bullseye-20210902-slim
 ARG BUILDER_IMAGE="hexpm/elixir:${ELIXIR_VERSION}-erlang-${OTP_VERSION}-debian-${DEBIAN_VERSION}"
 ARG RUNNER_IMAGE="debian:${DEBIAN_VERSION}"
 
-ARG APP_REVISION="unset"
-
 FROM ${BUILDER_IMAGE} as builder
 
 # install build dependencies
@@ -70,6 +68,9 @@ RUN mix release
 # the compiled release and other runtime necessities
 FROM ${RUNNER_IMAGE}
 
+ARG APP_REVISION="unset"
+ENV APP_REVISION=${APP_REVISION}
+
 RUN apt-get update -y && apt-get install -y libstdc++6 openssl libncurses5 locales \
   && apt-get clean && rm -f /var/lib/apt/lists/*_*
 
@@ -94,12 +95,12 @@ RUN apt-get update -y && apt-get install -y ffmpeg imagemagick curl python3 \
   && apt-get clean && rm -f /var/lib/apt/lists/*_*
 RUN curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /usr/local/bin/yt-dlp && chmod a+rx /usr/local/bin/yt-dlp
 
-RUN echo $APP_REVISION > APP_REVISION
-
 USER nobody
+
+RUN echo $APP_REVISION > APP_REVISION
+RUN echo APP_REVISION=${APP_REVISION}
 
 CMD ["/app/bin/server"]
 
 ENV ECTO_IPV6 true
 ENV ERL_AFLAGS "-proto_dist inet6_tcp"
-ENV APP_REVISION ${APP_REVISION}
