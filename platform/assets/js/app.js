@@ -97,7 +97,7 @@ function initializeSmartSelects() {
             create: s.hasAttribute("data-allow-user-defined-options"),
             closeAfterSelect: !s.hasAttribute("multiple"),
             onItemAdd(_a, _b) {
-                setTimeout(() => x.control_input.value = "", 1);
+                x.control_input.value = "";
             },
             plugins: s.hasAttribute("multiple") ? [
                 "remove_button", "checkbox_options"
@@ -109,7 +109,7 @@ function initializeSmartSelects() {
                         desc = "— " + desc;
                     }
                     let requiresPrivilege = privileged.indexOf(data.text) >= 0;
-                    return '<div class="flex flex-wrap"><div><span>' + escape(data.text) + '</span><span class="text-gray-400">' + (requiresPrivilege ? lockIcon : '') + '&nbsp;' + escape(desc) + '</span></div></div>';
+                    return '<div class="flex"><div><span>' + escape(data.text) + '</span><span class="text-gray-400">' + (requiresPrivilege ? lockIcon : '') + '&nbsp;' + escape(desc) + '</span></div></div>';
                 },
                 item: function (data, escape) {
                     return '<div>' + escape(data.text) + '</div>';
