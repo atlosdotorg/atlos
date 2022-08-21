@@ -621,12 +621,13 @@ defmodule Platform.Material do
           "Not submitting #{url} for archival by the Internet Archive; no SPN archive key available."
         )
       else
-        :hackney.post(
-          "https://web.archive.org/save",
-          [{"Authorization", "LOW #{key}"}],
-          "url=#{url |> URI.encode_www_form()}",
-          [:with_body]
-        )
+        {:ok, 200, _, _} =
+          :hackney.post(
+            "https://web.archive.org/save",
+            [{"Authorization", "LOW #{key}"}, {"Accept", "application/json"}],
+            "url=#{url |> URI.encode_www_form()}",
+            [:with_body]
+          )
 
         Logger.info("Submitted #{url} for archival by the Internet Archive.")
       end
