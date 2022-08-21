@@ -109,7 +109,7 @@ function initializeSmartSelects() {
                         desc = "— " + desc;
                     }
                     let requiresPrivilege = privileged.indexOf(data.text) >= 0;
-                    return '<div class="lg:flex"><div><span>' + escape(data.text) + '</span><span class="text-gray-400">' + (requiresPrivilege ? lockIcon : '') + '&nbsp;' + escape(desc) + '</span></div></div>';
+                    return '<div class="flex flex-wrap"><div><span>' + escape(data.text) + '</span><span class="text-gray-400">' + (requiresPrivilege ? lockIcon : '') + '&nbsp;' + escape(desc) + '</span></div></div>';
                 },
                 item: function (data, escape) {
                     return '<div>' + escape(data.text) + '</div>';
