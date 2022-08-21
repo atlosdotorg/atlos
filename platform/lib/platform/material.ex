@@ -351,9 +351,22 @@ defmodule Platform.Material do
   end
 
   def create_media_version(%Media{} = media, attrs \\ %{}) do
-    %MediaVersion{}
-    |> MediaVersion.changeset(attrs |> Map.put("media_id", media.id) |> Utils.make_keys_strings())
-    |> Repo.insert()
+    result =
+      %MediaVersion{}
+      |> MediaVersion.changeset(
+        attrs
+        |> Map.put("media_id", media.id)
+        |> Utils.make_keys_strings()
+      )
+      |> Repo.insert()
+
+    # If successful, also submit for external archival
+    case result do
+      {:ok, version} -> submit_for_external_archival(version)
+      _ -> {}
+    end
+
+    result
   end
 
   def create_media_version_audited(
@@ -594,5 +607,29 @@ defmodule Platform.Material do
   """
   def invalidate_attribute_values_cache() do
     Memoize.invalidate(__MODULE__, :get_values_of_attribute_cached)
+  end
+
+  @doc """
+  Submit the given `MediaVersion` for archival by the Internet Archive, if keys are available.
+  """
+  def submit_for_external_archival(%MediaVersion{source_url: url} = _version) do
+    Task.start(fn ->
+      key = System.get_env("SPN_ARCHIVE_API_KEY")
+
+      if is_nil(key) do
+        Logger.info(
+          "Not submitting #{url} for archival by the Internet Archive; no SPN archive key available."
+        )
+      else
+        :hackney.post(
+          "https://web.archive.org/save",
+          [{"Authorization", "LOW #{key}"}],
+          "url=#{url |> URI.encode_www_form()}",
+          [:with_body]
+        )
+
+        Logger.info("Submitted #{url} for archival by the Internet Archive.")
+      end
+    end)
   end
 end
