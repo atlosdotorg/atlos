@@ -85,7 +85,6 @@ RUN chown nobody /app
 
 # set runner ENV
 ENV MIX_ENV="prod"
-ENV APP_REVISION=$APP_REVISION
 
 # Only copy the final release from the build stage
 COPY --from=builder --chown=nobody:root /app/_build/${MIX_ENV}/rel/platform ./
@@ -99,6 +98,6 @@ USER nobody
 
 CMD ["/app/bin/server"]
 
-# Appended by flyctl
 ENV ECTO_IPV6 true
 ENV ERL_AFLAGS "-proto_dist inet6_tcp"
+ENV APP_REVISION=$APP_REVISION
