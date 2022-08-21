@@ -445,7 +445,10 @@ defmodule Platform.Material do
     |> Oban.insert!()
   end
 
-  def media_version_location(version, media) do
+  @doc """
+  Get a signed URL for the media version. Type can be :original or :thumb (defaults to :original).
+  """
+  def media_version_location(version, media, type \\ :original) do
     cond do
       is_nil(version.file_location) ->
         nil
@@ -454,9 +457,7 @@ defmodule Platform.Material do
         version.file_location
 
       true ->
-        Uploads.WatermarkedMediaVersion.url({version.file_location, media}, :original,
-          signed: true
-        )
+        Uploads.WatermarkedMediaVersion.url({version.file_location, media}, type, signed: true)
     end
   end
 

@@ -1036,6 +1036,7 @@ defmodule PlatformWeb.Components do
       x-data={"{grayscale: true, hidden: #{should_blur_js_bool}}"}
     >
       <% loc = Material.media_version_location(version, media) %>
+      <% thumbnail = Material.media_version_location(version, media, :thumb) %>
       <% media_id = "version-#{version.id}-media" %>
       <div class="relative">
         <%= if media_to_show do %>
@@ -1044,7 +1045,7 @@ defmodule PlatformWeb.Components do
               <%= if String.starts_with?(version.mime_type, "image/") do %>
                 <img src={loc} class="w-full" />
               <% else %>
-                <video controls preload="metadata" muted>
+                <video controls preload="none" muted poster={thumbnail}>
                   <source src={loc} class="w-full" />
                 </video>
               <% end %>
