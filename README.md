@@ -28,3 +28,4 @@ Atlos is open source, licensed under the GPLv3. We take the license very serious
 ## Special Thanks
 
 - We are grateful to [AppSignal](https://appsignal.com) for sponsoring our application performance monitoring.
+- We are grateful to [Fly.io](https://fly.io) for sponsoring our infrastructure.

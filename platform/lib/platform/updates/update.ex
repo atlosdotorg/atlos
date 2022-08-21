@@ -88,6 +88,9 @@ defmodule Platform.Updates.Update do
   def validate_explanation(update) do
     update
     # Also validated in attribute.ex
-    |> validate_length(:explanation, min: 0, max: 2500)
+    |> validate_length(:explanation,
+      max: 2500,
+      message: "Updates cannot exceed 2500 characters."
+    )
   end
 end

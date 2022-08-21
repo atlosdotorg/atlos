@@ -21,10 +21,6 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
     socket |> push_patch(to: Routes.media_show_path(socket, :show, socket.assigns.media.slug))
   end
 
-  defp has_changes(changeset) do
-    map_size(changeset.changes) > 0
-  end
-
   defp inject_attr_field_if_missing(params, %Attribute{} = attr) do
     Map.put_new(params, attr.schema_field |> Atom.to_string(), nil)
   end
@@ -71,7 +67,7 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
 
   def render(assigns) do
     confirm_prompt = "This will discard your changes without saving. Are you sure?"
-    disabled = !has_changes(assigns.changeset)
+    disabled = !assigns.changeset.valid?
 
     ~H"""
     <article>
@@ -213,7 +209,7 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
             <div class="flex md:justify-between">
               <%= submit("Post update →",
                 phx_disable_with: "Saving...",
-                class: "button ~urge @high",
+                class: "button ~urge @high transition-all",
                 disabled: disabled
               ) %>
               <button

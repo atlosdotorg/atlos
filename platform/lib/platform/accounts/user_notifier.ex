@@ -54,13 +54,15 @@ defmodule Platform.Accounts.UserNotifier do
   @doc """
   Deliver notification of a new login.
   """
-  def deliver_login_notification(user, ip_address) do
+  def deliver_login_notification(user, ip_address, change_password_url) do
     Mailer.construct_and_send(user.email, "New login to your account", """
     Hi #{user.username},
 
     Someone just logged into your Atlos account#{if is_bitstring(ip_address), do: " from the IP address " <> ip_address, else: ""}.
 
-    If this was you, great! If not, please change your Atlos password immediately and notify us at contact@atlos.org.
+    If this was you, great! If not, please change your Atlos password immediately and notify us at contact@atlos.org. (Changing your password will log everyone out of your account.)
+
+    If necessary, you can change your password here: #{change_password_url}
 
     We know this email might feel excessive. But we take security extremely security at Atlos, and want to make sure that unauthorized logins are detected and remedied quickly.
 

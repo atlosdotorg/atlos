@@ -54,12 +54,12 @@ defmodule Platform.Material.Media do
     media
     |> cast(attrs, [:description, :attr_sensitive, :attr_status])
     |> validate_required([:description],
-      message: "Incident descriptions can't be blank. Please describe the incident."
+      message: "Please add a short description."
     )
     |> validate_length(:description,
       min: 8,
       max: 240,
-      message: "Incident descriptions should be between 8 and 240 characters."
+      message: "Descriptions should be 8-240 characters."
     )
     |> validate_required([:attr_sensitive],
       message:

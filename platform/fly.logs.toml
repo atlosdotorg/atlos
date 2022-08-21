@@ -1,26 +1,16 @@
-app = "atlos-platform-staging"
+# image: flyio/log-shipper
 
+app = "atlos-log-shipper"
 kill_signal = "SIGINT"
 kill_timeout = 5
 processes = []
 
-[deploy]
-  release_command = "/app/bin/migrate"
-
 [env]
-  PHX_HOST = "staging.atlos.org"
-  PORT = "8080"
-  S3_BUCKET = "atlos-content-dev"
-  AWS_REGION = "us-east-1"
-  APPSIGNAL_APP_ENV = "staging"
-  ENVIRONMENT = "staging"
-  APP_REVISION = "v0.1.0"
-  ENABLE_CAPTCHAS = "true"
-  INSTANCE_NAME = "staging"
 
 [experimental]
   allowed_public_ports = []
   auto_rollback = true
+  private_network = true
 
 [[services]]
   http_checks = []
@@ -28,7 +18,6 @@ processes = []
   processes = ["app"]
   protocol = "tcp"
   script_checks = []
-
   [services.concurrency]
     hard_limit = 25
     soft_limit = 20

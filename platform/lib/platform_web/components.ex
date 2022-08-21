@@ -33,7 +33,11 @@ defmodule PlatformWeb.Components do
       aria-modal="true"
     >
       <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true">
+        <div
+          class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
+          aria-hidden="true"
+          phx-click="close_modal"
+        >
         </div>
         <!-- This element is to trick the browser into centering the modal contents. -->
         <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">
@@ -42,7 +46,6 @@ defmodule PlatformWeb.Components do
 
         <div
           class="relative inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-xl sm:w-full sm:p-6"
-          phx-click-away="close_modal"
           phx-window-keydown="close_modal"
           phx-key="Escape"
           phx-target={@target}
@@ -155,6 +158,8 @@ defmodule PlatformWeb.Components do
   end
 
   def nav(assigns) do
+    name = Utils.get_instance_name()
+
     ~H"""
     <div class="md:w-28 h-20"></div>
     <div
@@ -164,10 +169,15 @@ defmodule PlatformWeb.Components do
     >
       <div class="w-full pt-6 flex flex-col items-center md:h-full">
         <div class="flex w-full px-4 md:px-0 border-b pb-6 md:pb-0 md:border-0 border-neutral-600 justify-between md:justify-center items-center">
-          <%= link to: "/", class: "flex flex-col items-center text-white" do %>
-            <span class="text-white text-xl py-px px-1 rounded-sm bg-white text-neutral-700 uppercase font-extrabold font-mono">
+          <%= link to: "/", class: "flex gap-2 md:gap-0 md:flex-col items-center text-white" do %>
+            <span class="text-xl py-px px-1 rounded-sm bg-white text-neutral-700 uppercase font-extrabold font-mono">
               Atlos
             </span>
+            <%= if not is_nil(name) do %>
+              <span class="font-mono md:text-sm uppercase font-medium text-xl md:mt-1">
+                <%= name %>
+              </span>
+            <% end %>
           <% end %>
           <div>
             <button type="button" class="md:hidden pt-1" x-on:click="open = true" x-show="!open">
@@ -480,17 +490,17 @@ defmodule PlatformWeb.Components do
           </div>
         <% :select -> %>
           <div class="inline-block">
-            <div class="chip ~neutral inline-block"><%= value %></div>
+            <div class="chip ~neutral inline-block self-start"><%= value %></div>
           </div>
         <% :multi_select -> %>
           <%= for item <- value do %>
-            <div class="chip ~neutral inline-block"><%= item %></div>
+            <div class="chip ~neutral inline-block self-start"><%= item %></div>
           <% end %>
         <% :location -> %>
           <div class="inline-block">
             <% {lon, lat} = value.coordinates %>
             <a
-              class="chip ~neutral inline-block flex gap-1"
+              class="chip ~neutral inline-block flex gap-1 self-start"
               target="_blank"
               href={"https://maps.google.com/maps?q=#{lat},#{lon}"}
             >
@@ -499,11 +509,11 @@ defmodule PlatformWeb.Components do
           </div>
         <% :time -> %>
           <div class="inline-block">
-            <div class="chip ~neutral inline-block"><%= value %></div>
+            <div class="chip ~neutral inline-block self-start"><%= value %></div>
           </div>
         <% :date -> %>
           <div class="inline-block">
-            <div class="chip ~neutral inline-block"><%= value %></div>
+            <div class="chip ~neutral inline-block self-start"><%= value %></div>
           </div>
       <% end %>
     </span>
@@ -1026,6 +1036,7 @@ defmodule PlatformWeb.Components do
       x-data={"{grayscale: true, hidden: #{should_blur_js_bool}}"}
     >
       <% loc = Material.media_version_location(version, media) %>
+      <% thumbnail = Material.media_version_location(version, media, :thumb) %>
       <% media_id = "version-#{version.id}-media" %>
       <div class="relative">
         <%= if media_to_show do %>
@@ -1034,7 +1045,7 @@ defmodule PlatformWeb.Components do
               <%= if String.starts_with?(version.mime_type, "image/") do %>
                 <img src={loc} class="w-full" />
               <% else %>
-                <video controls preload="metadata" muted>
+                <video controls preload="none" muted poster={thumbnail}>
                   <source src={loc} class="w-full" />
                 </video>
               <% end %>
@@ -1429,32 +1440,37 @@ defmodule PlatformWeb.Components do
 
   def footer(assigns) do
     ~H"""
-    <footer class="grid grid-cols-3 text-center gap-4 place-self-center md:flex md:justify-between max-w-lg mx-auto mt-8 text-gray-500 text-xs">
-      <a href="https://github.com/milesmcc/atlos" class="hover:text-gray-600">Source Code</a>
-      <a
-        href={
-          System.get_env("RULES_LINK", "https://github.com/milesmcc/atlos/blob/main/policy/RULES.md")
-        }
-        class="hover:text-gray-600 transition"
-      >
-        Rules
-      </a>
-      <a
-        href="https://github.com/milesmcc/atlos/blob/main/policy/TERMS_OF_USE.md"
-        class="hover:text-gray-600 transition"
-      >
-        Terms of Use
-      </a>
-      <a
-        href="https://github.com/milesmcc/atlos/blob/main/policy/RESILIENCE.md"
-        class="hover:text-gray-600 transition"
-      >
-        Resilience
-      </a>
-      <a href="https://github.com/milesmcc/atlos/discussions" class="hover:text-gray-600 transition">
-        Feedback
-      </a>
-      <a href="mailto:contact@atlos.org" class="hover:text-gray-600 transition">Contact</a>
+    <footer class="place-self-center max-w-lg mx-auto mt-8 text-gray-500 text-xs">
+      <div class="grid grid-cols-3 text-center gap-4 md:flex md:justify-between">
+        <a href="https://github.com/milesmcc/atlos" class="hover:text-gray-600">Source Code</a>
+        <a
+          href={
+            System.get_env(
+              "RULES_LINK",
+              "https://github.com/milesmcc/atlos/blob/main/policy/RULES.md"
+            )
+          }
+          class="hover:text-gray-600 transition"
+        >
+          Rules
+        </a>
+        <a
+          href="https://github.com/milesmcc/atlos/blob/main/policy/TERMS_OF_USE.md"
+          class="hover:text-gray-600 transition"
+        >
+          Terms of Use
+        </a>
+        <a
+          href="https://github.com/milesmcc/atlos/blob/main/policy/RESILIENCE.md"
+          class="hover:text-gray-600 transition"
+        >
+          Resilience
+        </a>
+        <a href="https://github.com/milesmcc/atlos/discussions" class="hover:text-gray-600 transition">
+          Feedback
+        </a>
+        <a href="mailto:contact@atlos.org" class="hover:text-gray-600 transition">Contact</a>
+      </div>
     </footer>
     """
   end

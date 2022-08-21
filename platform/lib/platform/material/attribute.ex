@@ -369,6 +369,7 @@ defmodule Platform.Material.Attribute do
     |> validate_attribute(attribute, user)
     |> cast_and_validate_virtual_explanation(attrs, attribute)
     |> update_from_virtual_data(attribute)
+    |> verify_change_exists(attribute)
   end
 
   defp populate_virtual_data(media, %Attribute{} = attribute) do
@@ -405,14 +406,43 @@ defmodule Platform.Material.Attribute do
   end
 
   defp cast_attribute(media, %Attribute{} = attribute, attrs) do
-    case attribute.type do
-      # Explanation is a virtual field! We cast here so we can validate.
-      :location ->
-        media |> cast(attrs, [:latitude, :longitude, :explanation], message: "casting failed")
+    media
+    |> cast(attrs, [:explanation], message: "Unable to parse explanation.")
+    |> then(fn changeset ->
+      case attribute.type do
+        # Explanation is a virtual field! We cast here so we can validate.
+        # TODO: Is there an idiomatic way to clean this up?
+        :location ->
+          changeset
+          |> cast(attrs, [:latitude, :longitude])
 
-      _ ->
-        media |> cast(attrs, [attribute.schema_field, :explanation], message: "casting failed")
-    end
+        _ ->
+          changeset
+          |> cast(attrs, [attribute.schema_field])
+      end
+    end)
+    |> then(fn changeset ->
+      changeset
+      |> Map.put(
+        :errors,
+        changeset.errors
+        |> Enum.map(fn {attr, {error_message, metadata}} ->
+          cond do
+            Enum.member?([:latitude, :longitude], attr) ->
+              {attr, {"Please enter a valid coordinate (e.g., 37.4286969).", metadata}}
+
+            attribute.type == :time and attr == attribute.schema_field ->
+              {attr, {"Time must include an hour and minute.", metadata}}
+
+            attribute.type == :date and attr == attribute.schema_field ->
+              {attr, {"Date must include a year, month, and day.", metadata}}
+
+            true ->
+              {attr, {error_message, metadata}}
+          end
+        end)
+      )
+    end)
   end
 
   def options(%Attribute{} = attribute, current_val \\ nil) do
@@ -555,7 +585,7 @@ defmodule Platform.Material.Attribute do
           requires_privilege =
             MapSet.intersection(Enum.into(v, MapSet.new()), Enum.into(values, MapSet.new()))
 
-          if length(requires_privilege) > 0 do
+          if not Enum.empty?(requires_privilege) do
             changeset
             |> add_error(
               attribute.schema_field,
@@ -581,7 +611,18 @@ defmodule Platform.Material.Attribute do
   end
 
   defp validate_privileged_values(changeset, _attribute, _user) do
+    # When attribute and user aren't provided, or there are no privileged values,
+    # then there is nothing to validate.
+
     changeset
+  end
+
+  defp verify_change_exists(changeset, %Attribute{} = attribute) do
+    if not Map.has_key?(changeset.changes, attribute.schema_field) do
+      changeset |> add_error(attribute.schema_field, "A change is required to post an update.")
+    else
+      changeset
+    end
   end
 
   @doc """
@@ -627,5 +668,9 @@ defmodule Platform.Material.Attribute do
 
   def allow_user_defined_options(%Attribute{}) do
     false
+  end
+
+  def requires_privileges_to_edit(%Attribute{} = attr) do
+    is_list(attr.required_roles) and not Enum.empty?(attr.required_roles)
   end
 end

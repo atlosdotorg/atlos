@@ -275,7 +275,7 @@ defmodule Platform.MaterialTest do
       assert {:ok, _} =
                Material.update_media_attribute_audited(media, attribute, user, %{
                  "explanation" => "Very important explanation",
-                 "attr_sensitive" => ["Graphic Violence"]
+                 "attr_sensitive" => ["Personal Information Visible"]
                })
 
       assert {:ok, modded_user} = Accounts.update_user_admin(user, %{restrictions: [:muted]})

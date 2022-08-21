@@ -223,7 +223,7 @@ defmodule Platform.Accounts.User do
   def profile_changeset(user, attrs) do
     user
     |> cast(attrs, [:bio, :profile_photo_file])
-    |> validate_length(:bio, max: 240, message: "Your bio may not exceed 240 characters.")
+    |> validate_length(:bio, max: 240, message: "Bios may not exceed 2400 characters.")
   end
 
   @doc """
@@ -233,7 +233,7 @@ defmodule Platform.Accounts.User do
   def admin_changeset(user, attrs) do
     user
     |> cast(attrs, [:roles, :restrictions, :bio, :flair, :admin_notes])
-    |> validate_length(:bio, max: 240, message: "Bio may not exceed 240 characters.")
+    |> validate_length(:bio, max: 240, message: "Bios may not exceed 2400 characters.")
   end
 
   @doc """

@@ -38,15 +38,14 @@ defmodule Platform.Material.MediaVersion do
       :media_id,
       :visibility
     ])
+    |> validate_required([:source_url],
+      message: "Please add a link."
+    )
     |> validate_required([
       :status,
       :upload_type,
-      :source_url,
       :media_id
     ])
-    |> validate_required([:source_url],
-      message: "Please provide a source link to demonstrate the media's authenticity."
-    )
   end
 
   @doc """

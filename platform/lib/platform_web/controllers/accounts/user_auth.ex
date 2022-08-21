@@ -28,7 +28,23 @@ defmodule PlatformWeb.UserAuth do
   def log_in_user(conn, user, params \\ %{}) do
     token = Accounts.generate_user_session_token(user)
     user_return_to = get_session(conn, :user_return_to)
-    Accounts.UserNotifier.deliver_login_notification(user, conn.remote_ip)
+
+    Task.start(fn ->
+      login_url =
+        try do
+          Routes.user_settings_url(conn, :edit)
+        rescue
+          _ ->
+            "[unable to automatically generate URL; please visit your account settings in Atlos manually]"
+        end
+
+      Accounts.UserNotifier.deliver_login_notification(
+        user,
+        conn.remote_ip,
+        login_url
+      )
+    end)
+
     Auditor.log(:login, %{username: user.username}, conn)
 
     conn

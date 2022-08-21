@@ -46,9 +46,9 @@ defmodule PlatformWeb.MediaLive.LinkVersionLive do
     Material.change_media_version(version, params)
     |> Ecto.Changeset.validate_format(
       :source_url,
-      ~r/(https:\/\/)(www.)?(youtube.com|twitter.com|youtu.be|t.co)/iu,
+      ~r/(https:\/\/)(www.)?(youtube.com|twitter.com|youtu.be|t.co|tiktok.com)/iu,
       message:
-        "Only videos on Twitter and YouTube are currently supported. Should start with 'https://...'"
+        "Only videos on Twitter, YouTube, and TikTok are currently supported. Should start with 'https://...'"
     )
   end
 

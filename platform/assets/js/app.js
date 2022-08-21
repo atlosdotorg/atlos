@@ -138,7 +138,7 @@ function initializeMaps() {
     });
 
     document.querySelectorAll("map-events").forEach(s => {
-        if (s.classList.contains("mapboxgl-map")) {
+        if (s.classList.contains("mapboxgl-map") || s.classList.contains("map-initialized")) {
             return;
         }
 
@@ -238,6 +238,8 @@ function initializeMaps() {
                 map.getCanvas().style.cursor = '';
             });
         });
+
+        s.classList.add("map-initialized");
     });
 }
 

@@ -84,3 +84,5 @@ if File.exists?("config/dev.secret.exs") do
 end
 
 config :appsignal, :config, active: false
+
+System.put_env("INSTANCE_NAME", "Development")
