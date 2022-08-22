@@ -15,5 +15,5 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: superfly/flyctl-actions/setup-flyctl@master
-      - run: flyctl deploy --config fly.prod.toml --remote-only
-      - run: flyctl deploy --config fly.bellingcat.toml --remote-only
+      - run: flyctl deploy --config fly.prod.toml --remote-only --build-arg APP_REVISION=${{ github.sha }}
+      - run: flyctl deploy --config fly.bellingcat.toml --remote-only --build-arg APP_REVISION=${{ github.sha }}

@@ -299,7 +299,7 @@ defmodule Platform.Material.Attribute do
           "Claimed" => "Actively being worked on",
           "Help Needed" => "Stuck, or second opinion needed",
           "Ready for Review" => "Ready for a moderator's verification",
-          "Completed" => "Investigation complete (only moderators can set)",
+          "Completed" => "Investigation complete",
           "Cancelled" => "Will not be completed (out of scope, etc.)"
         }
       },

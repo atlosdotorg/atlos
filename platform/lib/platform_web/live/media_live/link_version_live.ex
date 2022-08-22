@@ -116,7 +116,8 @@ defmodule PlatformWeb.MediaLive.LinkVersionLive do
             <%= label(f, :source_url, "What is the link to the media you would like to upload?") %>
             <%= url_input(f, :source_url, placeholder: "https://twitter.com/...", phx_debounce: "250") %>
             <p class="support">
-              We support automatically archiving videos from YouTube and Twitter. To upload from other platforms, use manual uploading.
+              We support automatically archiving <strong>videos</strong>
+              from YouTube, Twitter, and TikTok. To upload from other platforms, or to upload images, use manual uploading.
             </p>
             <%= error_tag(f, :source_url) %>
             <%= if length(@url_duplicate_of) > 0 do %>

@@ -14,7 +14,6 @@ processes = []
   AWS_REGION = "us-east-1"
   APPSIGNAL_APP_ENV = "prod-main"
   ENVIRONMENT = "prod-main"
-  APP_REVISION = "v0.1.0"
   ENABLE_CAPTCHAS = "true"
   RULES_LINK = "https://github.com/milesmcc/atlos/blob/main/policy/RULES.md"
 

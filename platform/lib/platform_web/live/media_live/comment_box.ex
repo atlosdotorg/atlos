@@ -122,7 +122,7 @@ defmodule PlatformWeb.MediaLive.CommentBox do
         class="pulse-form-on-submit"
       >
         <div class="flex items-start space-x-4">
-          <div class="flex-shrink-0">
+          <div class="flex-shrink-0" phx-update="ignore" id="comment-box">
             <img
               class="inline-block h-10 w-10 rounded-full"
               src={Accounts.get_profile_photo_path(@current_user)}

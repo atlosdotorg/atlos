@@ -112,7 +112,8 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
                       @attr.schema_field,
                       if(@attr.required, do: [], else: ["[Unset]": nil]) ++
                         Attribute.options(@attr),
-                      data_descriptions: Jason.encode!(@attr.option_descriptions || %{})
+                      data_descriptions: Jason.encode!(@attr.option_descriptions || %{}),
+                      data_privileged: Jason.encode!(@attr.privileged_values || [])
                     ) %>
                   </div>
                 <% :multi_select -> %>
@@ -127,6 +128,7 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
                       @attr.schema_field,
                       Attribute.options(@attr, Map.get(@media, @attr.schema_field)),
                       data_descriptions: Jason.encode!(@attr.option_descriptions || %{}),
+                      data_privileged: Jason.encode!(@attr.privileged_values || []),
                       data_allow_user_defined_options: Attribute.allow_user_defined_options(@attr)
                     ) %>
                   </div>

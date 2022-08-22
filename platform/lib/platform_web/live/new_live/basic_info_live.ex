@@ -9,8 +9,8 @@ defmodule PlatformWeb.NewLive.BasicInfoLive do
      socket
      |> assign(assigns)
      |> assign_media()
-     |> assign_changeset()
-     |> assign(:disabled, false)}
+     |> assign(:disabled, false)
+     |> assign_changeset()}
   end
 
   defp assign_media(socket) do
@@ -32,9 +32,17 @@ defmodule PlatformWeb.NewLive.BasicInfoLive do
     case Material.create_media_audited(socket.assigns.current_user, media_params) do
       {:ok, media} ->
         {:ok, _} = Material.subscribe_user(media, socket.assigns.current_user)
+        # We log here, rather than in the context, because we have access to the socket.
+        # TODO: We should do the audit logging inside the context. We just need to sort out
+        # the socket issue.
         Auditor.log(:media_created, Map.merge(media_params, %{media_slug: media.slug}), socket)
         send(self(), {:media_created, media})
-        {:noreply, socket |> assign(:disabled, true)}
+
+        {:noreply,
+         socket
+         |> assign(:disabled, true)
+         # We assign a changeset to prevent their changes from flickering during submit
+         |> assign(:changeset, Material.change_media(socket.assigns.media, media_params))}
 
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign(socket, :changeset, changeset |> Map.put(:action, :validate))}
@@ -49,7 +57,6 @@ defmodule PlatformWeb.NewLive.BasicInfoLive do
         for={@changeset}
         id="media-form"
         phx-target={@myself}
-        phx-change="validate"
         phx-submit="save"
         class="phx-form"
       >
