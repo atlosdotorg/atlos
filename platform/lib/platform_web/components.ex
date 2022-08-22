@@ -531,18 +531,14 @@ defmodule PlatformWeb.Components do
                 </a>
               </div>
             <% else %>
-              <div class="relative ml-[0.65rem] mt-2 mr-2">
+              <div class="relative ml-[0.85em] mt-4 mr-4">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  class="h-5 w-5 ring-4 ring-white bg-white text-gray-400"
+                  class="h-3 w-3 ring-4 ring-white bg-white text-gray-400"
                   viewBox="0 0 20 20"
                   fill="currentColor"
                 >
-                  <path
-                    fill-rule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z"
-                    clip-rule="evenodd"
-                  />
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM7" clip-rule="evenodd" />
                 </svg>
               </div>
             <% end %>
