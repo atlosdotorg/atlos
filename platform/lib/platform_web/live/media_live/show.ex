@@ -41,14 +41,22 @@ defmodule PlatformWeb.MediaLive.Show do
     versions |> Enum.filter(&Material.MediaVersion.can_user_view(&1, user))
   end
 
+  defp subscribe_to_media(socket, media) do
+    if not Map.get(socket.assigns, :pubsub_subscribed, false) do
+      PubSub.subscribe(Platform.PubSub, Material.pubsub_topic_for_media(media.id))
+      socket |> assign(:pubsub_subscribed, true)
+    else
+      socket
+    end
+  end
+
   defp assign_media_and_updates(socket) do
     with %Material.Media{} = media <- Material.get_full_media_by_slug(socket.assigns.slug),
          true <- Media.can_user_view(media, socket.assigns.current_user) do
-      PubSub.subscribe(Platform.PubSub, Material.pubsub_topic_for_media(media.id))
-
       socket
       |> assign(:media, media)
       |> assign(:updates, media.updates |> Enum.sort_by(& &1.inserted_at))
+      |> subscribe_to_media(media)
     else
       _ ->
         socket
@@ -105,6 +113,8 @@ defmodule PlatformWeb.MediaLive.Show do
   end
 
   def handle_info({:media_updated}, socket) do
+    IO.puts("Media updated")
+
     {:noreply,
      socket
      |> assign_media_and_updates()}

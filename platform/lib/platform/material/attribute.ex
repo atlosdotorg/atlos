@@ -222,7 +222,7 @@ defmodule Platform.Material.Attribute do
         pane: :attributes,
         required: false,
         name: :military_infrastructure,
-        description: "What military infrastructure is visibile in the media?",
+        description: "What military infrastructure is visible in the media?",
         add_none: "None"
       },
       %Attribute{
