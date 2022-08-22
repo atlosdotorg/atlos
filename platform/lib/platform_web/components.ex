@@ -412,6 +412,13 @@ defmodule PlatformWeb.Components do
     """
   end
 
+  defp connector_language(index, total) do
+    cond do
+      index == total - 1 -> ""
+      true -> ","
+    end
+  end
+
   def update_entry(
         %{
           update: update,
@@ -419,131 +426,237 @@ defmodule PlatformWeb.Components do
           show_media: show_media,
           can_user_change_visibility: can_user_change_visibility,
           target: target,
-          socket: socket
+          socket: socket,
+          show_profile: show_profile
         } = assigns
       ) do
-    ~H"""
-    <div class="relative pb-8 group word-breaks">
-      <%= if show_line do %>
-        <span class="absolute top-5 left-5 -ml-px h-full w-0.5 bg-gray-200" aria-hidden="true"></span>
-      <% end %>
-      <div class="relative flex items-start space-x-3">
-        <div class="relative">
-          <a href={"/profile/#{update.user.username}"}>
-            <img
-              class="h-10 w-10 rounded-full bg-gray-400 flex items-center justify-center ring-8 ring-white shadow"
-              src={Accounts.get_profile_photo_path(update.user)}
-              alt={"Profile photo for #{update.user.username}"}
-            />
-          </a>
-        </div>
-        <div class="min-w-0 flex-1 flex flex-col flex-grow">
-          <div>
-            <div class="text-sm text-gray-600 mt-2">
-              <%= if show_media do %>
-                <%= live_patch class: "text-button text-gray-800 inline-block mr-2", to: Routes.media_show_path(socket, :show, update.media.slug) do %>
-                  <%= update.media.slug %> &nearr;
-                <% end %>
-              <% end %>
-              <.user_text user={update.user} />
-              <%= case update.type do %>
-                <% :update_attribute -> %>
-                  <% attr = Attribute.get_attribute(update.modified_attribute) %> updated
-                  <%= live_patch class: "text-button text-gray-800 inline-block", to: Routes.media_show_path(socket, :history, update.media.slug, attr.name) do %>
-                    <%= attr.label %> &nearr;
+    if is_list(update) do
+      [head | _] = update
+
+      attributes =
+        update
+        |> Enum.map(&Attribute.get_attribute(&1.modified_attribute))
+        |> Enum.sort()
+        |> Enum.uniq()
+
+      n_attributes = length(attributes)
+
+      ~H"""
+      <li x-data="{expanded: false}" id={"collapsed-update-#{head.id}"}>
+        <div
+          class="relative pb-8 group word-breaks cursor-pointer"
+          x-on:click="expanded = !expanded"
+          class="group"
+        >
+          <%= if show_line do %>
+            <span class="absolute top-5 left-5 -ml-px h-full w-0.5 bg-gray-200" aria-hidden="true">
+            </span>
+          <% end %>
+          <div class="relative flex items-start space-x-2">
+            <%= if show_profile do %>
+              <div class="relative">
+                <a href={"/profile/#{head.user.username}"}>
+                  <img
+                    class="h-10 w-10 rounded-full bg-gray-400 flex items-center justify-center ring-8 ring-white shadow"
+                    src={Accounts.get_profile_photo_path(head.user)}
+                    alt={"Profile photo for #{head.user.username}"}
+                  />
+                </a>
+              </div>
+            <% end %>
+            <div class="min-w-0 flex-1 flex flex-col flex-grow group-hover:bg-gray-100 focus-within:bg-gray-100 rounded px-1 py-2 transition-all mt-1">
+              <div class="flex flex-wrap items-center">
+                <div class="text-sm text-gray-600 flex-grow">
+                  <%= if show_media do %>
+                    <%= live_patch class: "text-button text-gray-800 inline-block mr-2", to: Routes.media_show_path(socket, :show, head.media.slug) do %>
+                      <%= head.media.slug %> &nearr;
+                    <% end %>
                   <% end %>
-                <% :create -> %>
-                  added <span class="font-medium text-gray-900"><%= update.media.slug %></span>
-                <% :upload_version -> %>
-                  added
-                  <a
-                    href={
-                      Routes.media_show_path(socket, :show, update.media.slug) <>
-                        "#version-#{update.media_version.id}"
-                    }
-                    class="text-button text-gray-800"
-                  >
-                    Media &nearr;
-                  </a>
-                <% :comment -> %>
-                  commented
-              <% end %>
-              <.rel_time time={update.inserted_at} />
-              <%= if update.hidden do %>
-                <span class="badge ~neutral">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="h-3 w-3 mr-1"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                  >
-                    <path
-                      fill-rule="evenodd"
-                      d="M3.707 2.293a1 1 0 00-1.414 1.414l14 14a1 1 0 001.414-1.414l-1.473-1.473A10.014 10.014 0 0019.542 10C18.268 5.943 14.478 3 10 3a9.958 9.958 0 00-4.512 1.074l-1.78-1.781zm4.261 4.26l1.514 1.515a2.003 2.003 0 012.45 2.45l1.514 1.514a4 4 0 00-5.478-5.478z"
-                      clip-rule="evenodd"
-                    />
-                    <path d="M12.454 16.697L9.75 13.992a4 4 0 01-3.742-3.741L2.335 6.578A9.98 9.98 0 00.458 10c1.274 4.057 5.065 7 9.542 7 .847 0 1.669-.105 2.454-.303z" />
-                  </svg>
-                  Hidden
-                </span>
-              <% end %>
-              <%= if can_user_change_visibility do %>
+                  <.user_text user={head.user} /> made <%= length(update) %> updates to
+                  <%= for {attr, idx} <- attributes |> Enum.with_index() do %>
+                    <span class="font-medium text-gray-800">
+                      <%= attr.label <> connector_language(idx, n_attributes) %>
+                    </span>
+                  <% end %>
+                  <.rel_time time={head.inserted_at} />
+                </div>
                 <button
+                  class="text-sm absolute right-0 text-urge-600 opacity-0 font-medium group-hover:opacity-100 focus:opacity-100 group-focus:opacity-100 transition-all px-2 py-1 bg-gray-100 shadow shadow-gray-100 shadow-xl rounded"
+                  @click.stop="expanded = !expanded"
                   type="button"
-                  phx-target={target}
-                  phx-click="change_visibility"
-                  phx-value-update={update.id}
-                  class="opacity-0 group-hover:opacity-100 text-critical-700 transition text-xs ml-2"
-                  data-confirm="Are you sure you want to change the visibility of this update?"
+                  x-html="expanded ? 'Collapse' : 'Expand'"
                 >
-                  <%= if update.hidden, do: "Show", else: "Hide" %>
                 </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <ul
+          class="relative overflow-hidden transition-all ease-out duration-700"
+          x-ref="container"
+          x-show="expanded"
+          x-cloak
+        >
+          <%= for sub_update <- update |> Enum.reverse() do %>
+            <.update_entry
+              update={sub_update}
+              show_line={true}
+              show_media={false}
+              can_user_change_visibility={can_user_change_visibility}
+              target={target}
+              socket={socket}
+              show_profile={false}
+            />
+          <% end %>
+        </ul>
+      </li>
+      """
+    else
+      ~H"""
+      <li class={if update.hidden, do: "opacity-50", else: ""}>
+        <div class="relative pb-8 group word-breaks">
+          <%= if show_line do %>
+            <span class="absolute top-5 left-5 -ml-px h-full w-0.5 bg-gray-200" aria-hidden="true">
+            </span>
+          <% end %>
+          <div class="relative flex items-start space-x-2">
+            <%= if show_profile do %>
+              <div class="relative">
+                <a href={"/profile/#{update.user.username}"}>
+                  <img
+                    class="h-10 w-10 rounded-full bg-gray-400 flex items-center justify-center ring-8 ring-white shadow"
+                    src={Accounts.get_profile_photo_path(update.user)}
+                    alt={"Profile photo for #{update.user.username}"}
+                  />
+                </a>
+              </div>
+            <% else %>
+              <div class="relative ml-[0.65rem] mt-2 mr-2">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-5 w-5 ring-4 ring-white bg-white text-gray-400"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+              </div>
+            <% end %>
+            <div class="min-w-0 flex-1 flex flex-col flex-grow pl-1">
+              <div>
+                <div class="text-sm text-gray-600 mt-2">
+                  <%= if show_media do %>
+                    <%= live_patch class: "text-button text-gray-800 inline-block mr-2", to: Routes.media_show_path(socket, :show, update.media.slug) do %>
+                      <%= update.media.slug %> &nearr;
+                    <% end %>
+                  <% end %>
+                  <.user_text user={update.user} />
+                  <%= case update.type do %>
+                    <% :update_attribute -> %>
+                      <% attr = Attribute.get_attribute(update.modified_attribute) %> updated
+                      <%= live_patch class: "text-button text-gray-800 inline-block", to: Routes.media_show_path(socket, :history, update.media.slug, attr.name) do %>
+                        <%= attr.label %> &nearr;
+                      <% end %>
+                    <% :create -> %>
+                      added <span class="font-medium text-gray-900"><%= update.media.slug %></span>
+                    <% :upload_version -> %>
+                      added
+                      <a
+                        href={
+                          Routes.media_show_path(socket, :show, update.media.slug) <>
+                            "#version-#{update.media_version.id}"
+                        }
+                        class="text-button text-gray-800"
+                      >
+                        Media &nearr;
+                      </a>
+                    <% :comment -> %>
+                      commented
+                  <% end %>
+                  <.rel_time time={update.inserted_at} />
+                  <%= if update.hidden do %>
+                    <span class="badge ~neutral">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-3 w-3 mr-1"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
+                        <path
+                          fill-rule="evenodd"
+                          d="M3.707 2.293a1 1 0 00-1.414 1.414l14 14a1 1 0 001.414-1.414l-1.473-1.473A10.014 10.014 0 0019.542 10C18.268 5.943 14.478 3 10 3a9.958 9.958 0 00-4.512 1.074l-1.78-1.781zm4.261 4.26l1.514 1.515a2.003 2.003 0 012.45 2.45l1.514 1.514a4 4 0 00-5.478-5.478z"
+                          clip-rule="evenodd"
+                        />
+                        <path d="M12.454 16.697L9.75 13.992a4 4 0 01-3.742-3.741L2.335 6.578A9.98 9.98 0 00.458 10c1.274 4.057 5.065 7 9.542 7 .847 0 1.669-.105 2.454-.303z" />
+                      </svg>
+                      Hidden
+                    </span>
+                  <% end %>
+                  <%= if can_user_change_visibility do %>
+                    <button
+                      type="button"
+                      phx-target={target}
+                      phx-click="change_visibility"
+                      phx-value-update={update.id}
+                      class="opacity-0 group-hover:opacity-100 text-critical-700 transition text-xs ml-2"
+                      data-confirm="Are you sure you want to change the visibility of this update?"
+                    >
+                      <%= if update.hidden, do: "Show", else: "Hide" %>
+                    </button>
+                  <% end %>
+                </div>
+              </div>
+
+              <%= if update.type == :update_attribute || update.explanation do %>
+                <div class="mt-1 text-sm text-gray-700 border border-gray-300 rounded-lg shadow-sm overflow-hidden flex flex-col divide-y">
+                  <!-- Update detail section -->
+                  <%= if update.type == :update_attribute do %>
+                    <div class="bg-gray-50 p-2 flex">
+                      <div class="flex-grow">
+                        <.attr_diff
+                          name={update.modified_attribute}
+                          old={Jason.decode!(update.old_value)}
+                          new={Jason.decode!(update.new_value)}
+                        />
+                      </div>
+                    </div>
+                  <% end %>
+                  <!-- Text comment section -->
+                  <%= if update.explanation do %>
+                    <article class="prose text-sm p-2 w-full max-w-full">
+                      <%= raw(update.explanation |> Platform.Utils.render_markdown()) %>
+                    </article>
+                  <% end %>
+
+                  <%= if not Enum.empty?(update.attachments) do %>
+                    <div class="p-2 grid grid-cols-2 md:grid-cols-3 gap-2">
+                      <%= for attachment <- update.attachments do %>
+                        <% url =
+                          Uploads.UpdateAttachment.url({attachment, update.media}, :original,
+                            signed: true
+                          ) %>
+                        <a
+                          class="rounded overflow-hidden max-h-64 cursor-zoom-in"
+                          href={url}
+                          target="_blank"
+                        >
+                          <img src={url} />
+                        </a>
+                      <% end %>
+                    </div>
+                  <% end %>
+                </div>
               <% end %>
             </div>
           </div>
-
-          <%= if update.type == :update_attribute || update.explanation do %>
-            <div class="mt-1 text-sm text-gray-700 border border-gray-300 rounded-lg shadow-sm overflow-hidden flex flex-col divide-y">
-              <!-- Update detail section -->
-              <%= if update.type == :update_attribute do %>
-                <div class="bg-gray-50 p-2 flex">
-                  <div class="flex-grow">
-                    <.attr_diff
-                      name={update.modified_attribute}
-                      old={Jason.decode!(update.old_value)}
-                      new={Jason.decode!(update.new_value)}
-                    />
-                  </div>
-                </div>
-              <% end %>
-              <!-- Text comment section -->
-              <%= if update.explanation do %>
-                <article class="prose text-sm p-2 w-full max-w-full">
-                  <%= raw(update.explanation |> Platform.Utils.render_markdown()) %>
-                </article>
-              <% end %>
-
-              <%= if not Enum.empty?(update.attachments) do %>
-                <div class="p-2 grid grid-cols-2 md:grid-cols-3 gap-2">
-                  <%= for attachment <- update.attachments do %>
-                    <% url =
-                      Uploads.UpdateAttachment.url({attachment, update.media}, :original, signed: true) %>
-                    <a
-                      class="rounded overflow-hidden max-h-64 cursor-zoom-in"
-                      href={url}
-                      target="_blank"
-                    >
-                      <img src={url} />
-                    </a>
-                  <% end %>
-                </div>
-              <% end %>
-            </div>
-          <% end %>
         </div>
-      </div>
-    </div>
-    """
+      </li>
+      """
+    end
   end
 
   def naive_pluralise(amt, word) when amt == 1, do: word

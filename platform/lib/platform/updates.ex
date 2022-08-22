@@ -214,7 +214,7 @@ defmodule Platform.Updates do
       from u in Update,
         where: u.user_id == ^user.id,
         preload: [:user, :media, :media_version],
-        order_by: [asc: u.inserted_at],
+        order_by: [desc: u.inserted_at],
         limit: ^Keyword.get(opts, :limit, nil)
 
     Repo.all(
