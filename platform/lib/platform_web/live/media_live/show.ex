@@ -113,8 +113,6 @@ defmodule PlatformWeb.MediaLive.Show do
   end
 
   def handle_info({:media_updated}, socket) do
-    IO.puts("Media updated")
-
     {:noreply,
      socket
      |> assign_media_and_updates()}

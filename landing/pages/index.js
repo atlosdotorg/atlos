@@ -66,8 +66,9 @@ export default function Home() {
               Atlos is an open source initiative; <a href="https://github.com/milesmcc/atlos" className='link'>view the code on GitHub</a>.
             </p>
           </div>
-          <div>
-            <a href="https://platform.atlos.org" className="button ~neutral @high text-sm uppercase font-mono">Log in / Register</a>
+          <div className="flex gap-2 font-mono text-white text-sm items-center">
+            <a href="/waitlist" className="button ~neutral text-sm uppercase font-mono">Join the waitlist</a>
+            <a href="https://platform.atlos.org" className="button ~neutral @high text-sm uppercase font-mono">Log in</a>
           </div>
         </section>
       </main>
