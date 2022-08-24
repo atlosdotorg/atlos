@@ -162,6 +162,7 @@ defmodule PlatformWeb.Components do
   def nav(assigns) do
     name = Utils.get_instance_name()
     version = Utils.get_instance_version()
+    runtime = Utils.get_runtime_information()
 
     ~H"""
     <div class="md:w-28 h-20"></div>
@@ -172,7 +173,7 @@ defmodule PlatformWeb.Components do
     >
       <div class="w-full pt-6 flex flex-col items-center md:h-full">
         <div class="flex w-full px-4 md:px-0 border-b pb-6 md:pb-0 md:border-0 border-neutral-600 justify-between md:justify-center items-center">
-          <%= link to: "/", class: "flex gap-2 md:gap-0 md:flex-col items-center text-white", title: "Atlos version #{version}" do %>
+          <%= link to: "/", class: "flex gap-2 md:gap-0 md:flex-col items-center text-white", title: "Atlos version #{version} (runtime: #{runtime})" do %>
             <span class="text-xl py-px px-1 rounded-sm bg-white text-neutral-700 uppercase font-extrabold font-mono">
               Atlos
             </span>
