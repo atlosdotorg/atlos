@@ -4,6 +4,7 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
   alias Platform.Utils
   alias Platform.Auditor
   alias Platform.Workers.Archiver
+  alias Platform.Uploads
 
   def update(assigns, socket) do
     # Track temporary files so they are properly cleaned up later
@@ -12,13 +13,8 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
     {:ok,
      socket
      |> assign(assigns)
-     |> assign(:media_processing_error, false)
      |> assign_version()
-     # Internal params for uploaded data to keep in the form
-     |> assign(:internal_params, %{})
      |> assign_changeset()
-     |> assign(:disabled, false)
-     |> assign(:processing, false)
      |> assign(:form_id, Utils.generate_random_sequence(10))
      |> assign_source_url_duplicate(%{})
      |> allow_upload(:media_upload,
@@ -40,19 +36,11 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
     socket |> assign(:changeset, Material.change_media_version(socket.assigns.version))
   end
 
-  defp update_internal_params(socket, key, value) do
-    socket |> assign(:internal_params, Map.put(socket.assigns.internal_params, key, value))
-  end
-
-  defp all_params(socket, params) do
-    Map.merge(params, socket.assigns.internal_params)
-  end
-
-  defp handle_static_file(%{path: path}) do
-    # Just make a copy of the file; all the real processing is done later in handle_uploaded_file.
-    to_path = Temp.path!()
+  defp handle_static_file(%{path: path}, media, client_name) do
+    # Do something to create a better filename?
+    to_path = Temp.path!(%{prefix: "user_provided", suffix: client_name})
     File.cp!(path, to_path)
-    {:ok, to_path}
+    Uploads.OriginalMediaVersion.store({to_path, media})
   end
 
   defp clear_error(socket) do
@@ -62,7 +50,7 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
   defp set_fixed_params(params, socket) do
     params
     |> Map.put("media_id", socket.assigns.media.id)
-    |> Map.put("status", "complete")
+    |> Map.put("status", "pending")
     |> Map.put("upload_type", "user_provided")
   end
 
@@ -102,7 +90,7 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
     # This is a bit of a hack, but we only want to handle the uploaded media if everything else is OK.
     # So we *manually* check to verify the source URL is correct before proceeding.
     ugc_invalid =
-      Enum.any?([:source_url], &Keyword.has_key?(changeset.errors, &1)) ||
+      not changeset.valid? ||
         Enum.empty?(socket.assigns.uploads.media_upload.entries)
 
     if ugc_invalid do
@@ -111,43 +99,43 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
        |> assign(:changeset, changeset)
        |> assign(:error, "Please be sure to provide a photo or video and its source link.")}
     else
+      entry = hd(socket.assigns.uploads.media_upload.entries)
+
+      # Upload the provided file to S3
+      remote_path =
+        consume_uploaded_entry(
+          socket,
+          entry,
+          &handle_static_file(&1, socket.assigns.media, entry.client_name)
+        )
+
       socket =
-        socket
-        |> assign(:processing, true)
-        |> assign(:disabled, true)
-        |> clear_error()
+        case Material.create_media_version_audited(
+               socket.assigns.media,
+               socket.assigns.current_user,
+               Map.merge(params, %{"file_location" => remote_path})
+             ) do
+          {:ok, version} ->
+            Auditor.log(
+              :media_version_uploaded,
+              Map.merge(params, %{media_slug: socket.assigns.media.slug}),
+              socket
+            )
 
-      # Run the actual processing in a subtask
-      component_pid = self()
+            Material.archive_media_version(version)
+            send(self(), {:version_created, version})
+            socket
 
-      {:ok, _pid} =
-        Task.start(fn ->
-          socket = socket |> handle_uploaded_file(hd(socket.assigns.uploads.media_upload.entries))
+          {:error, %Ecto.Changeset{} = changeset} ->
+            Auditor.log(
+              :direct_media_version_processing_failure,
+              Map.merge(params, %{media_slug: socket.assigns.media.slug}),
+              socket
+            )
 
-          case Material.create_media_version_audited(
-                 socket.assigns.media,
-                 socket.assigns.current_user,
-                 all_params(socket, params)
-               ) do
-            {:ok, version} ->
-              Auditor.log(
-                :media_version_uploaded,
-                Map.merge(params, %{media_slug: socket.assigns.media.slug}),
-                socket
-              )
-
-              send(component_pid, {:version_created, version})
-
-            {:error, %Ecto.Changeset{} = changeset} ->
-              Auditor.log(
-                :media_version_processing_failure,
-                Map.merge(params, %{media_slug: socket.assigns.media.slug}),
-                socket
-              )
-
-              {:processing_error, changeset}
-          end
-        end)
+            socket
+            |> assign(:changeset, changeset)
+        end
 
       {:noreply, socket}
     end
@@ -155,24 +143,6 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
 
   def handle_event("cancel_upload", %{"ref" => ref}, socket) do
     {:noreply, cancel_upload(socket, :media_upload, ref)}
-  end
-
-  defp handle_uploaded_file(socket, entry) do
-    path = consume_uploaded_entry(socket, entry, &handle_static_file(&1))
-
-    with {:ok, path, duration, size} <-
-           Archiver.process_uploaded_media(path, entry.client_type, socket.assigns.media) do
-      socket
-      |> update_internal_params("file_location", path)
-      |> update_internal_params("duration_seconds", duration)
-      |> update_internal_params("mime_type", entry.client_type)
-      |> update_internal_params("client_name", entry.client_name)
-      |> update_internal_params("file_size", size)
-    else
-      {:error, _} ->
-        socket
-        |> assign(:media_processing_error, true)
-    end
   end
 
   def handle_progress(:media_upload, _entry, socket) do
@@ -190,9 +160,7 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
     uploads = Enum.filter(assigns.uploads.media_upload.entries, &(!&1.cancelled?))
     is_uploading = length(uploads) > 0
 
-    is_invalid =
-      Enum.any?(assigns.uploads.media_upload.entries, &(!&1.valid?)) or
-        assigns.media_processing_error
+    is_invalid = Enum.any?(assigns.uploads.media_upload.entries, &(!&1.valid?))
 
     is_complete = Enum.any?(uploads, & &1.done?)
 
@@ -222,7 +190,6 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
         let={f}
         for={@changeset}
         id={"media-upload-#{@form_id}"}
-        disabled={@disabled}
         phx-target={@myself}
         phx-change="validate"
         phx-submit="save"
@@ -234,39 +201,38 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
             phx-drop-target={@uploads.media_upload.ref}
           >
             <%= live_file_input(@uploads.media_upload, class: "sr-only") %>
-            <%= if @processing do %>
-              <div>
-                <div class="space-y-1 text-center">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="mx-auto h-12 w-12 text-urge-400 animate-spin"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    stroke-width="2"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
-                    />
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                    />
-                  </svg>
-                  <div class="w-full text-sm text-gray-600">
-                    <div class="w-42 mt-2 text-center">
-                      <p class="font-medium text-neutral-800 mb-1">Processing your media...</p>
-                      <p>
-                        This might take a moment. You can safely close this window. You will be redirected to the incident once the upload is complete.
-                      </p>
-                    </div>
+            <div class="phx-only-during-submit">
+              <div class="space-y-1 text-center">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="mx-auto h-12 w-12 text-urge-400 animate-spin"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+                  />
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                  />
+                </svg>
+                <div class="w-full text-sm text-gray-600">
+                  <div class="w-42 mt-2 text-center">
+                    <p class="font-medium text-neutral-800 mb-1">Processing your media...</p>
+                    <p>
+                      This might take a moment. You will be redirected to the incident once the upload is complete.
+                    </p>
                   </div>
                 </div>
               </div>
-            <% else %>
+            </div>
+            <div class="phx-only-during-reg">
               <%= cond do %>
                 <% is_complete -> %>
                   <div class="space-y-1 text-center phx-only-during-reg">
@@ -388,14 +354,13 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
                     <p class="text-xs text-gray-500">PNG, JPG, GIF, MP4, or AVI up to 250MB</p>
                   </div>
               <% end %>
-            <% end %>
+            </div>
           </div>
           <div>
             <%= label(f, :source_url, "Where did this media come from?") %>
             <%= url_input(f, :source_url,
               placeholder: "https://example.com/...",
-              phx_debounce: "250",
-              disabled: @disabled
+              phx_debounce: "250"
             ) %>
             <p class="support">
               This might be a tweet, a Telegram message, or something else. Where did the media come from?
@@ -408,26 +373,15 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
           </div>
           <div class="flex flex-col sm:flex-row gap-4 justify-between sm:items-center">
             <%= submit(
-              if(@processing,
-                do: "Processing media...",
-                else: "Publish to Atlos"
-              ),
+              "Publish to Atlos",
               phx_disable_with: "Uploading...",
-              class: "button ~urge @high",
-              disabled: @disabled
+              class: "button ~urge @high"
             ) %>
             <a href={"/incidents/#{@media.slug}/"} class="text-button text-sm text-right">
-              <%= if @processing do %>
-                Continue to media &rarr;
-                <span class="text-gray-500 font-normal block text-xs">
-                  Upload will continue in the background
-                </span>
-              <% else %>
-                Or skip media upload
-                <span class="text-gray-500 font-normal block text-xs">
-                  You can upload media later
-                </span>
-              <% end %>
+              Or skip media upload
+              <span class="text-gray-500 font-normal block text-xs">
+                You can upload media later
+              </span>
             </a>
           </div>
         </div>
