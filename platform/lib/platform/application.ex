@@ -9,6 +9,8 @@ defmodule Platform.Application do
   def start(_type, _args) do
     Appsignal.Phoenix.LiveView.attach()
 
+    topologies = Application.get_env(:libcluster, :topologies) || []
+
     children = [
       # Start the Ecto repository
       Platform.Repo,
@@ -19,7 +21,9 @@ defmodule Platform.Application do
       # Start the Endpoint (http/https)
       PlatformWeb.Endpoint,
       # Start the task worker
-      {Oban, Application.fetch_env!(:platform, Oban)}
+      {Oban, Application.fetch_env!(:platform, Oban)},
+      # Start the cluster supervisor
+      {Cluster.Supervisor, [topologies, [name: Platform.ClusterSupervisor]]}
       # Start a worker by calling: Platform.Worker.start_link(arg)
       # {Platform.Worker, arg}
     ]
