@@ -13,6 +13,7 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
     {:ok,
      socket
      |> assign(assigns)
+     |> assign(:processing, false)
      |> assign_version()
      |> assign_changeset()
      |> assign(:form_id, Utils.generate_random_sequence(10))
@@ -36,11 +37,11 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
     socket |> assign(:changeset, Material.change_media_version(socket.assigns.version))
   end
 
-  defp handle_static_file(%{path: path}, media, client_name) do
+  defp handle_static_file(%{path: path}, client_name) do
     # Do something to create a better filename?
     to_path = Temp.path!(%{prefix: "user_provided", suffix: client_name})
     File.cp!(path, to_path)
-    Uploads.OriginalMediaVersion.store({to_path, media})
+    to_path
   end
 
   defp clear_error(socket) do
@@ -102,42 +103,51 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
       entry = hd(socket.assigns.uploads.media_upload.entries)
 
       # Upload the provided file to S3
-      remote_path =
+      local_path =
         consume_uploaded_entry(
           socket,
           entry,
-          &handle_static_file(&1, socket.assigns.media, entry.client_name)
+          &handle_static_file(&1, entry.client_name)
         )
 
-      socket =
-        case Material.create_media_version_audited(
-               socket.assigns.media,
-               socket.assigns.current_user,
-               Map.merge(params, %{"file_location" => remote_path})
-             ) do
-          {:ok, version} ->
-            Auditor.log(
-              :media_version_uploaded,
-              Map.merge(params, %{media_slug: socket.assigns.media.slug}),
-              socket
+      pid = self()
+
+      Task.start(fn ->
+        try do
+          # Store the file in S3
+          {:ok, remote_path} =
+            Uploads.OriginalMediaVersion.store({local_path, socket.assigns.media})
+
+          # Update the media version
+          {:ok, version} =
+            Material.create_media_version_audited(
+              socket.assigns.media,
+              socket.assigns.current_user,
+              Map.merge(params, %{"file_location" => remote_path})
             )
 
-            Material.archive_media_version(version)
-            send(self(), {:version_created, version})
-            socket
+          Material.archive_media_version(version)
 
-          {:error, %Ecto.Changeset{} = changeset} ->
+          Auditor.log(
+            :media_version_uploaded,
+            Map.merge(params, %{media_slug: socket.assigns.media.slug}),
+            socket
+          )
+
+          send(pid, {:version_created, version})
+        rescue
+          error ->
             Auditor.log(
               :direct_media_version_processing_failure,
-              Map.merge(params, %{media_slug: socket.assigns.media.slug}),
+              Map.merge(params, %{media_slug: socket.assigns.media.slug, error: inspect(error)}),
               socket
             )
 
-            socket
-            |> assign(:changeset, changeset)
+            send(pid, {:version_creation_failed, changeset})
         end
+      end)
 
-      {:noreply, socket}
+      {:noreply, socket |> assign(:processing, true)}
     end
   end
 
@@ -193,7 +203,7 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
         phx-target={@myself}
         phx-change="validate"
         phx-submit="save"
-        class="phx-form"
+        class={"phx-form " <> if @processing, do: "phx-submit-loading", else: ""}
       >
         <div class="space-y-6">
           <div
@@ -356,34 +366,36 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
               <% end %>
             </div>
           </div>
-          <div>
-            <%= label(f, :source_url, "Where did this media come from?") %>
-            <%= url_input(f, :source_url,
-              placeholder: "https://example.com/...",
-              phx_debounce: "250"
-            ) %>
-            <p class="support">
-              This might be a tweet, a Telegram message, or something else. Where did the media come from?
-            </p>
-            <%= error_tag(f, :source_url) %>
+          <%= if not @processing do %>
+            <div>
+              <%= label(f, :source_url, "Where did this media come from?") %>
+              <%= url_input(f, :source_url,
+                placeholder: "https://example.com/...",
+                phx_debounce: "250"
+              ) %>
+              <p class="support">
+                This might be a tweet, a Telegram message, or something else. Where did the media come from?
+              </p>
+              <%= error_tag(f, :source_url) %>
 
-            <%= if length(@url_duplicate_of) > 0 do %>
-              <.deconfliction_warning duplicates={@url_duplicate_of} current_user={@current_user} />
-            <% end %>
-          </div>
-          <div class="flex flex-col sm:flex-row gap-4 justify-between sm:items-center">
-            <%= submit(
-              "Publish to Atlos",
-              phx_disable_with: "Uploading...",
-              class: "button ~urge @high"
-            ) %>
-            <a href={"/incidents/#{@media.slug}/"} class="text-button text-sm text-right">
-              Or skip media upload
-              <span class="text-gray-500 font-normal block text-xs">
-                You can upload media later
-              </span>
-            </a>
-          </div>
+              <%= if length(@url_duplicate_of) > 0 do %>
+                <.deconfliction_warning duplicates={@url_duplicate_of} current_user={@current_user} />
+              <% end %>
+            </div>
+            <div class="flex flex-col sm:flex-row gap-4 justify-between sm:items-center">
+              <%= submit(
+                "Publish to Atlos",
+                phx_disable_with: "Uploading...",
+                class: "button ~urge @high"
+              ) %>
+              <a href={"/incidents/#{@media.slug}/"} class="text-button text-sm text-right">
+                Or skip media upload
+                <span class="text-gray-500 font-normal block text-xs">
+                  You can upload media later
+                </span>
+              </a>
+            </div>
+          <% end %>
         </div>
       </.form>
     </article>
