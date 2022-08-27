@@ -245,7 +245,7 @@ defmodule Platform.Material.Attribute do
         pane: :attributes,
         required: false,
         name: :weapon,
-        description: "What weapons are involved in the incident?",
+        description: "What weapons are visible in the incident's media?",
         add_none: "None"
       },
       %Attribute{
