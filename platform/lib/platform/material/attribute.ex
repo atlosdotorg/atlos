@@ -184,6 +184,7 @@ defmodule Platform.Material.Attribute do
         pane: :attributes,
         required: false,
         name: :event,
+        description: "What events are visible in the incident's media?",
         add_none: "None"
       },
       %Attribute{
