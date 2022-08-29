@@ -108,6 +108,13 @@ defmodule Platform.Utils do
     System.get_env("APP_REVISION", "unknown")
   end
 
+  def get_runtime_information() do
+    region = System.get_env("FLY_REGION", "unknown")
+    alloc_id = System.get_env("FLY_ALLOC_ID", "unknown")
+
+    "allocation #{alloc_id} in region #{region}"
+  end
+
   def text_search(search_terms, queryable) do
     queryable
     |> where(

@@ -18,10 +18,11 @@ defmodule Platform.Auditor do
     complete_metadata = Map.merge(metadata, %{authed_username: username, remote_ip: ip})
 
     {pretty_metadata_json, raw_metadata_json} =
-      with {:ok, val} <- Jason.encode(complete_metadata),
-           printed <- Jason.Formatter.pretty_print(val) do
+      try do
+        {:ok, val} = Jason.encode(complete_metadata)
+        printed = Jason.Formatter.pretty_print(val)
         {printed |> String.replace("```", "'''"), val}
-      else
+      rescue
         _ -> {"{}", "{}"}
       end
 

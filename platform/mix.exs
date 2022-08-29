@@ -70,6 +70,7 @@ defmodule Platform.MixProject do
       {:eqrcode, "~> 0.1.10"},
       {:nimble_totp, "~> 0.2.0"},
       {:memoize, "~> 1.4"},
+      {:libcluster, "~> 3.3"},
       {:credo, "~> 1.6", only: [:dev, :test], runtime: false}
     ]
   end

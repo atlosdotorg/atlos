@@ -30,29 +30,48 @@ defmodule Platform.Workers.Archiver do
       # Setup tempfiles for media download
       temp_dir = Temp.mkdir!()
 
-      # Download the media
-      {_, 0} =
-        System.cmd(
-          "yt-dlp",
-          [
-            version.source_url,
-            "-o",
-            Path.join(temp_dir, "out.%(ext)s"),
-            "--max-filesize",
-            "500m",
-            "--merge-output-format",
-            "mp4"
-          ],
-          into: IO.stream()
-        )
+      # Download the media (either from S3 for user-provided files, or from the original source)
+      case version.upload_type do
+        :user_provided ->
+          url = Uploads.OriginalMediaVersion.url({version.file_location, media}, signed: true)
+
+          {_, 0} =
+            System.cmd(
+              "curl",
+              [
+                "-L",
+                url,
+                "-o",
+                Path.join(temp_dir, version.file_location)
+              ],
+              into: IO.stream()
+            )
+
+        :direct ->
+          {_, 0} =
+            System.cmd(
+              "yt-dlp",
+              [
+                version.source_url,
+                "-o",
+                Path.join(temp_dir, "out.%(ext)s"),
+                "--max-filesize",
+                "500m",
+                "--merge-output-format",
+                "mp4"
+              ],
+              into: IO.stream()
+            )
+      end
 
       # Figure out what we downloaded
       [file_name] = File.ls!(temp_dir)
       file_path = Path.join(temp_dir, file_name)
       mime = MIME.from_path(file_path)
 
-      # Process + upload it
-      {:ok, identifier, duration, size} = process_uploaded_media(file_path, mime, media)
+      # Process + upload it (only store original if upload_type is direct/not user provided)
+      {:ok, identifier, duration, size} =
+        process_uploaded_media(file_path, mime, media, version.upload_type == :direct)
 
       # Update the media version to reflect the change
       {:ok, new_version} =
@@ -69,7 +88,8 @@ defmodule Platform.Workers.Archiver do
 
       {:ok, _} =
         Updates.change_from_comment(media, Accounts.get_auto_account(), %{
-          "explanation" => "✅ Successfully archived the media at #{version.source_url}."
+          "explanation" =>
+            "✅ Successfully processed and archived the media at #{version.source_url}."
         })
         |> Updates.create_update_from_changeset()
 
@@ -78,12 +98,14 @@ defmodule Platform.Workers.Archiver do
       val ->
         # Some error happened! Log it and update the media version appropriately.
         Logger.error("Unable to automatically archive media: " <> inspect(val))
+        Logger.error(Exception.format_stacktrace())
+
         Auditor.log(:archive_failed, %{error: inspect(val), version: version})
 
         {:ok, _} =
           Updates.change_from_comment(media, Accounts.get_auto_account(), %{
             "explanation" =>
-              "🛑 Unable to automatically download the media from #{version.source_url}. Either the website is unsupported, or the media is not a video. Someone will need to upload the media manually."
+              "🛑 Unable to automatically process the media from #{version.source_url}. Consider retrying using manual upload."
           })
           |> Updates.create_update_from_changeset()
 
@@ -110,7 +132,7 @@ defmodule Platform.Workers.Archiver do
   @doc """
   Process the media at the given path. Also called by the manual media uploader.
   """
-  def process_uploaded_media(path, mime, media) do
+  def process_uploaded_media(path, mime, media, store_original \\ true) do
     # Preprocesses the given media and uploads it to persistent storage.
     # Returns {:ok, file_path, thumbnail_path, duration}
 
@@ -149,7 +171,10 @@ defmodule Platform.Workers.Archiver do
 
     # Upload to cloud storage
     {:ok, new_path} = Uploads.WatermarkedMediaVersion.store({media_path, media})
-    {:ok, _original_path} = Uploads.OriginalMediaVersion.store({path, media})
+
+    if store_original do
+      {:ok, _original_path} = Uploads.OriginalMediaVersion.store({path, media})
+    end
 
     {:ok, new_path, duration, size}
   end
