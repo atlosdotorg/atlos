@@ -350,6 +350,13 @@ defmodule Platform.Material do
     |> Enum.dedup_by(& &1.media.id)
   end
 
+  def get_media_by_source_url(source_url) do
+    get_media_versions_by_source_url(source_url)
+    |> Enum.map(& &1.media)
+    |> Enum.sort()
+    |> Enum.dedup()
+  end
+
   def create_media_version(%Media{} = media, attrs \\ %{}) do
     result =
       %MediaVersion{}
