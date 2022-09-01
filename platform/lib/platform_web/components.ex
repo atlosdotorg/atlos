@@ -51,7 +51,6 @@ defmodule PlatformWeb.Components do
         <div
           class="relative inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-xl sm:w-full sm:p-6"
           @keydown.escape="closeModal()"
-          @click.outside="closeModal()"
         >
           <div class="hidden sm:block absolute z-50 top-0 right-0 pt-4 pr-4">
             <button
@@ -996,7 +995,7 @@ defmodule PlatformWeb.Components do
       </p>
       <div class="grid grid-cols-1 gap-4 mt-4">
         <%= for dupe <- duplicates do %>
-          <.media_card media={dupe.media} current_user={current_user} target="_blank" />
+          <.media_card media={dupe} current_user={current_user} target="_blank" />
         <% end %>
       </div>
     </div>
