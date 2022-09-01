@@ -214,13 +214,7 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
                 class: "button ~urge @high transition-all",
                 disabled: disabled
               ) %>
-              <button
-                phx-click="close_modal"
-                phx-target={@myself}
-                data-confirm={confirm_prompt}
-                type="button"
-                class="base-button"
-              >
+              <button @click="closeModal()" type="button" class="base-button">
                 Cancel
               </button>
             </div>
