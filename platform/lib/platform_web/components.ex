@@ -723,6 +723,103 @@ defmodule PlatformWeb.Components do
     """
   end
 
+  def attr_display_block(
+        %{
+          set_attrs: set_attrs,
+          unset_attrs: _unset_attrs,
+          media: %Media{} = media,
+          updates: updates,
+          socket: socket,
+          current_user: current_user
+        } = assigns
+      ) do
+    ~H"""
+    <dl class="divide-y divide-dashed divide-gray-200 -mt-5 -mb-3">
+      <%= for attr <- set_attrs do %>
+        <.attr_display_row
+          attr={attr}
+          updates={updates}
+          media={media}
+          socket={socket}
+          current_user={current_user}
+        />
+      <% end %>
+      <%= if length(@unset_attrs) > 0 do %>
+        <div class="py-2 sm:grid sm:grid-cols-3 sm:gap-4 -mb-2">
+          <dt class="text-sm font-medium text-gray-500 mt-1">Add Attributes</dt>
+          <dd class="mt-1 flex flex-wrap gap-2 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+            <%= for attr <- @unset_attrs do %>
+              <%= live_patch("+ #{attr.label}",
+                class: "button original",
+                to: Routes.media_show_path(socket, :edit, @media.slug, attr.name)
+              ) %>
+            <% end %>
+          </dd>
+        </div>
+      <% end %>
+    </dl>
+    """
+  end
+
+  def attr_display_row(
+        %{
+          attr: %Attribute{} = attr,
+          media: %Media{} = media,
+          updates: updates,
+          socket: socket,
+          current_user: current_user
+        } = assigns
+      ) do
+    ~H"""
+    <div class="py-2 sm:grid sm:grid-cols-3 sm:gap-2">
+      <dt class="text-sm font-medium text-gray-500 mt-1 flex justify-between flex-wrap">
+        <span class="flex items-center gap-1">
+          <%= attr.label %>
+          <%= if Platform.Material.Attribute.requires_privileges_to_edit(attr) do %>
+            <span title="Special privileges are required to update this attribute.">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-4 w-4 text-gray-400"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+            </span>
+          <% end %>
+        </span>
+        <%= live_patch(class: "text-button inline-block",
+            to: Routes.media_show_path(socket, :history, media.slug, attr.name)
+          ) do %>
+          <.user_stack users={
+            updates
+            |> Enum.filter(&(&1.modified_attribute == attr.name))
+            |> Enum.map(& &1.user)
+            |> Enum.take(1)
+          } />
+        <% end %>
+      </dt>
+      <dd class="mt-1 flex text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+        <span class="flex-grow gap-1 flex flex-wrap">
+          <.attr_entry name={attr.name} value={Map.get(media, attr.schema_field)} />
+        </span>
+        <span class="ml-4 flex-shrink-0">
+          <%= if Attribute.can_user_edit(attr, current_user, media) do %>
+            <%= live_patch("Update",
+              class: "text-button mt-1 inline-block",
+              to: Routes.media_show_path(@socket, :edit, media.slug, attr.name)
+            ) %>
+          <% end %>
+        </span>
+      </dd>
+    </div>
+    """
+  end
+
   def attr_entry(%{name: name, value: value} = assigns) do
     attr = Attribute.get_attribute(name)
 

@@ -69,7 +69,7 @@ defmodule Platform.Material.Attribute do
         max_length: 240,
         min_length: 8,
         label: "Description",
-        pane: :attributes,
+        pane: :not_shown,
         required: true,
         name: :description
       },

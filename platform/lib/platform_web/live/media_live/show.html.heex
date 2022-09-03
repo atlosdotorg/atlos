@@ -3,6 +3,22 @@
     <div class="flex-1 min-w-0 max-w-full">
       <h2 class="text-xl font-medium leading-7 text-gray-900 sm:text-3xl">
         <%= @media.description %>
+        <%= if Attribute.can_user_edit(Attribute.get_attribute(:description), @current_user, @media) do %>
+          <%= live_patch(class: "text-button mt-1 inline-block",
+              to: Routes.media_show_path(@socket, :edit, @media.slug, :description),
+              title: "Edit description"
+            ) do %>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+              class="w-5 h-5"
+            >
+              <path d="M21.731 2.269a2.625 2.625 0 00-3.712 0l-1.157 1.157 3.712 3.712 1.157-1.157a2.625 2.625 0 000-3.712zM19.513 8.199l-3.712-3.712-8.4 8.4a5.25 5.25 0 00-1.32 2.214l-.8 2.685a.75.75 0 00.933.933l2.685-.8a5.25 5.25 0 002.214-1.32l8.4-8.4z" />
+              <path d="M5.25 5.25a3 3 0 00-3 3v10.5a3 3 0 003 3h10.5a3 3 0 003-3V13.5a.75.75 0 00-1.5 0v5.25a1.5 1.5 0 01-1.5 1.5H5.25a1.5 1.5 0 01-1.5-1.5V8.25a1.5 1.5 0 011.5-1.5h5.25a.75.75 0 000-1.5H5.25z" />
+            </svg>
+          <% end %>
+        <% end %>
       </h2>
       <div class="mt-1 flex flex-col sm:flex-row sm:flex-wrap sm:mt-0 sm:space-x-4">
         <div class="mt-2 flex items-center text-sm text-gray-500">
@@ -123,77 +139,21 @@
         <:header>
           <h3 class="sec-head">Attributes</h3>
           <p class="sec-subhead">
-            This information is gathered and organized through consensus.
+            This information is inferred based on the media, news reporting, and other public information.
           </p>
         </:header>
         <div class="border-gray-200">
-          <dl class="divide-y divide-dashed divide-gray-200 -mt-5 -mb-3">
-            <%= for attr <- Attribute.set_for_media(@media, :attributes) do %>
-              <div class="py-2 sm:grid sm:grid-cols-3 sm:gap-2">
-                <dt class="text-sm font-medium text-gray-500 mt-1 flex justify-between flex-wrap">
-                  <span class="flex items-center gap-1">
-                    <%= attr.label %>
-                    <%= if Platform.Material.Attribute.requires_privileges_to_edit(attr) do %>
-                      <span title="Special privileges are required to update this attribute.">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          class="h-4 w-4 text-gray-400"
-                          viewBox="0 0 20 20"
-                          fill="currentColor"
-                        >
-                          <path
-                            fill-rule="evenodd"
-                            d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"
-                            clip-rule="evenodd"
-                          />
-                        </svg>
-                      </span>
-                    <% end %>
-                  </span>
-                  <%= live_patch(class: "text-button inline-block",
-                      to: Routes.media_show_path(@socket, :history, @media.slug, attr.name)
-                    ) do %>
-                    <.user_stack users={
-                      @updates
-                      |> Enum.filter(&(&1.modified_attribute == attr.name))
-                      |> Enum.map(& &1.user)
-                      |> Enum.reverse()
-                      |> Enum.take(1)
-                    } />
-                  <% end %>
-                </dt>
-                <dd class="mt-1 flex text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                  <span class="flex-grow gap-1 flex flex-wrap">
-                    <.attr_entry name={attr.name} value={Map.get(@media, attr.schema_field)} />
-                  </span>
-                  <span class="ml-4 flex-shrink-0">
-                    <%= if Attribute.can_user_edit(attr, @current_user, @media) do %>
-                      <%= live_patch("Update",
-                        class: "text-button mt-1 inline-block",
-                        to: Routes.media_show_path(@socket, :edit, @media.slug, attr.name)
-                      ) %>
-                    <% end %>
-                  </span>
-                </dd>
-              </div>
-            <% end %>
-            <% unset =
+          <.attr_display_block
+            set_attrs={Attribute.set_for_media(@media, :attributes)}
+            unset_attrs={
               Attribute.unset_for_media(@media, :attributes)
-              |> filter_editable(@media, @current_user) %>
-            <%= if length(unset) > 0 do %>
-              <div class="py-2 sm:grid sm:grid-cols-3 sm:gap-4 -mb-2">
-                <dt class="text-sm font-medium text-gray-500 mt-1">Add Attributes</dt>
-                <dd class="mt-1 flex flex-wrap gap-2 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                  <%= for attr <- unset do %>
-                    <%= live_patch("+ #{attr.label}",
-                      class: "button original",
-                      to: Routes.media_show_path(@socket, :edit, @media.slug, attr.name)
-                    ) %>
-                  <% end %>
-                </dd>
-              </div>
-            <% end %>
-          </dl>
+              |> filter_editable(@media, @current_user)
+            }
+            media={@media}
+            updates={@updates}
+            socket={@socket}
+            current_user={@current_user}
+          />
         </div>
       </.card>
       <.card>
@@ -242,73 +202,17 @@
           <p class="sec-subhead">This information is used to coordinate work.</p>
         </:header>
         <div class="border-gray-200">
-          <dl class="divide-y divide-dashed divide-gray-200 -mt-5 -mb-3">
-            <%= for attr <- Attribute.set_for_media(@media, :metadata) do %>
-              <div class="py-2 sm:grid sm:grid-cols-3 sm:gap-2">
-                <dt class="text-sm font-medium text-gray-500 mt-1 flex justify-between flex-wrap">
-                  <span class="flex items-center gap-1">
-                    <%= attr.label %>
-                    <%= if Platform.Material.Attribute.requires_privileges_to_edit(attr) do %>
-                      <span title="Special privileges are required to update this attribute.">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          class="h-4 w-4 text-gray-400"
-                          viewBox="0 0 20 20"
-                          fill="currentColor"
-                        >
-                          <path
-                            fill-rule="evenodd"
-                            d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"
-                            clip-rule="evenodd"
-                          />
-                        </svg>
-                      </span>
-                    <% end %>
-                  </span>
-                  <%= live_patch(class: "text-button inline-block",
-                      to: Routes.media_show_path(@socket, :history, @media.slug, attr.name)
-                    ) do %>
-                    <.user_stack users={
-                      @updates
-                      |> Enum.filter(&(&1.modified_attribute == attr.name))
-                      |> Enum.map(& &1.user)
-                      |> Enum.reverse()
-                      |> Enum.take(1)
-                    } />
-                  <% end %>
-                </dt>
-                <dd class="mt-1 flex text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                  <span class="flex-grow gap-1 flex flex-wrap">
-                    <.attr_entry name={attr.name} value={Map.get(@media, attr.schema_field)} />
-                  </span>
-                  <span class="ml-4 flex-shrink-0">
-                    <%= if Attribute.can_user_edit(attr, @current_user, @media) do %>
-                      <%= live_patch("Update",
-                        class: "text-button mt-1 inline-block",
-                        to: Routes.media_show_path(@socket, :edit, @media.slug, attr.name)
-                      ) %>
-                    <% end %>
-                  </span>
-                </dd>
-              </div>
-            <% end %>
-            <% unset =
+          <.attr_display_block
+            set_attrs={Attribute.set_for_media(@media, :metadata)}
+            unset_attrs={
               Attribute.unset_for_media(@media, :metadata)
-              |> filter_editable(@media, @current_user) %>
-            <%= if length(unset) > 0 do %>
-              <div class="py-2 sm:grid sm:grid-cols-3 sm:gap-4 -mb-2">
-                <dt class="text-sm font-medium text-gray-500 mt-1">Unset</dt>
-                <dd class="mt-1 flex flex-wrap gap-2 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                  <%= for attr <- unset do %>
-                    <%= live_patch("+ #{attr.label}",
-                      class: "button original",
-                      to: Routes.media_show_path(@socket, :edit, @media.slug, attr.name)
-                    ) %>
-                  <% end %>
-                </dd>
-              </div>
-            <% end %>
-          </dl>
+              |> filter_editable(@media, @current_user)
+            }
+            media={@media}
+            updates={@updates}
+            socket={@socket}
+            current_user={@current_user}
+          />
         </div>
       </.card>
       <.card>
