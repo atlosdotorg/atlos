@@ -119,10 +119,23 @@ function initializeSmartSelects() {
                         desc = "— " + desc;
                     }
                     let requiresPrivilege = privileged.indexOf(data.text) >= 0;
-                    return '<div class="flex"><div><span>' + escape(data.text) + '</span><span class="text-gray-400">' + (requiresPrivilege ? lockIcon : '') + '&nbsp;' + escape(desc) + '</span></div></div>';
+
+                    let rawDepth = data.text.split("/").length - 1;
+                    let effectiveDepth = rawDepth > 4 ? 4 : rawDepth;
+                    let nestingDepth = ["ml-0", "ml-3", "ml-6", "ml-9", "ml-12"][effectiveDepth];
+
+                    let lastComponentIndex = data.text.lastIndexOf('/');
+                    let before = lastComponentIndex >= 0 ? data.text.slice(0, lastComponentIndex + 1) : "";
+                    let after = data.text.slice(lastComponentIndex + 1);
+
+                    return '<div class="flex rounded ' + nestingDepth + '"><div><span class="opacity-50">' + escape(before) + '</span><span>' + escape(after) + '</span><span class="text-gray-400">' + (requiresPrivilege ? lockIcon : '') + '&nbsp;' + escape(desc) + '</span></div></div>';
                 },
                 item: function (data, escape) {
-                    return '<div>' + escape(data.text) + '</div>';
+                    let lastComponentIndex = data.text.lastIndexOf('/');
+                    let before = lastComponentIndex >= 0 ? data.text.slice(0, lastComponentIndex + 1) : "";
+                    let after = data.text.slice(lastComponentIndex + 1);
+
+                    return '<div><div><span class="opacity-[60%]">' + escape(before) + '</span><span>' + escape(after) + '</span></div></div>';
                 }
             }
         });
