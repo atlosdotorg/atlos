@@ -76,7 +76,7 @@ defmodule PlatformWeb.MediaLive.CreateMediaVersion do
             media={@media}
           />
         </div>
-        <div x-show="tab === 'upload'">
+        <div x-show="tab === 'upload'" x-cloak>
           <.live_component
             module={PlatformWeb.MediaLive.UploadVersionLive}
             id="upload-version"

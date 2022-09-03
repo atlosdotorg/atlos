@@ -35,12 +35,16 @@ defmodule PlatformWeb.Components do
       aria-modal="true"
       phx-hook="Modal"
       id="modal"
+      x-data
     >
-      <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+      <div
+        class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0"
+        @keydown.escape="window.closeModal()"
+      >
         <div
           class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
           aria-hidden="true"
-          onclick="closeModal()"
+          @click="window.closeModal()"
         >
         </div>
         <!-- This element is to trick the browser into centering the modal contents. -->
@@ -48,15 +52,12 @@ defmodule PlatformWeb.Components do
           &#8203;
         </span>
 
-        <div
-          class="relative inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-xl sm:w-full sm:p-6"
-          @keydown.escape="closeModal()"
-        >
+        <div class="relative inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-xl sm:w-full sm:p-6">
           <div class="hidden sm:block absolute z-50 top-0 right-0 pt-4 pr-4">
             <button
               type="button"
               class="text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-urge-500 p-1"
-              @click="closeModal()"
+              @click="window.closeModal()"
             >
               <span class="sr-only">Close</span>
               <!-- Heroicon name: outline/x -->

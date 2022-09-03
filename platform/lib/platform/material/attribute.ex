@@ -19,6 +19,8 @@ defmodule Platform.Material.Attribute do
     :custom_validation,
     :name,
     :description,
+    # boolean for deprecated attributes
+    :deprecated,
     :add_none,
     :required_roles,
     :explanation_required,
@@ -77,9 +79,10 @@ defmodule Platform.Material.Attribute do
         schema_field: :attr_time_of_day,
         type: :select,
         options: ["Night", "Day"],
-        label: "Day/Night",
+        label: "Day/Night (Deprecated)",
         pane: :attributes,
         required: false,
+        deprecated: true,
         name: :time_of_day
       },
       %Attribute{
@@ -94,10 +97,11 @@ defmodule Platform.Material.Attribute do
         schema_field: :attr_environment,
         type: :select,
         options: ["Inside", "Outside"],
-        label: "Environment",
+        label: "Environment (Deprecated)",
         pane: :attributes,
         required: false,
         name: :environment,
+        deprecated: true,
         description:
           "What is primarily in view? Note that this does not refer to where the media was captured."
       },
@@ -105,20 +109,22 @@ defmodule Platform.Material.Attribute do
         schema_field: :attr_weather,
         type: :multi_select,
         options: ["Sunny", "Partly Cloudly", "Overcast", "Raining", "Snowing"],
-        label: "Weather",
+        label: "Weather (Deprecated)",
         pane: :attributes,
         required: false,
         name: :weather,
+        deprecated: true,
         add_none: "Indeterminable"
       },
       %Attribute{
         schema_field: :attr_camera_system,
         type: :multi_select,
         options: ["Handheld", "Satellite", "Surveillance Camera", "Drone", "Dashcam", "Other"],
-        label: "Camera System",
+        label: "Camera System (Deprecated)",
         pane: :attributes,
         required: false,
         name: :camera_system,
+        deprecated: true,
         description:
           "What kinds of camera systems does the media use? If there are multiple pieces of media, select all that apply."
       },
@@ -252,16 +258,17 @@ defmodule Platform.Material.Attribute do
       %Attribute{
         schema_field: :attr_time_recorded,
         type: :time,
-        label: "Time Recorded",
+        label: "Time Recorded (Deprecated)",
         pane: :attributes,
         required: false,
         name: :time_recorded,
+        deprecated: true,
         description: "What time of day was the incident? Use the local timezone, if possible."
       },
       %Attribute{
         schema_field: :attr_date_recorded,
         type: :date,
-        label: "Date Recorded",
+        label: "Date",
         pane: :attributes,
         required: false,
         name: :date_recorded,
@@ -324,7 +331,7 @@ defmodule Platform.Material.Attribute do
   def set_for_media(media, pane \\ nil) do
     Enum.filter(attributes(), fn attr ->
       val = Map.get(media, attr.schema_field)
-      val != nil && val != [] && (pane == nil || attr.pane == pane)
+      val != nil && val != [] && (pane == nil || attr.pane == pane) && attr.deprecated != true
     end)
   end
 
@@ -333,6 +340,7 @@ defmodule Platform.Material.Attribute do
 
     attributes()
     |> Enum.filter(&(!Enum.member?(set, &1)))
+    |> Enum.filter(&(&1.deprecated != true))
     |> Enum.filter(&(pane == nil || &1.pane == pane))
   end
 
