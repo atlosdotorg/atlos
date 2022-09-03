@@ -30,7 +30,7 @@ mapboxgl.accessToken = 'pk.eyJ1IjoibWlsZXNtY2MiLCJhIjoiY2t6ZzdzZmY0MDRobjJvbXByd
 let Hooks = {};
 Hooks.Modal = {
     mounted() {
-        window.addEventListener("modal:close", e => {
+        window.addEventListener("modal:close", () => {
             this.pushEvent("close_modal", {});
         })
     }
