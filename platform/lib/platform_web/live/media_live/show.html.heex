@@ -2,7 +2,7 @@
   <div class="lg:flex lg:items-center lg:justify-between">
     <div class="flex-1 min-w-0 max-w-full">
       <h2 class="text-xl font-medium leading-7 text-gray-900 sm:text-3xl">
-        <%= @media.description %>
+        <%= @media.attr_description %>
         <%= if Attribute.can_user_edit(Attribute.get_attribute(:description), @current_user, @media) do %>
           <%= live_patch(class: "text-button mt-1 inline-block",
               to: Routes.media_show_path(@socket, :edit, @media.slug, :description),

@@ -414,12 +414,12 @@ defmodule PlatformWeb.AdminlandLive.BulkUploadLive do
                     <p class="sec-head text-md p-4 border-b text-sm">
                       <span class="text-gray-500">Row <%= idx %>:</span> <%= Ecto.Changeset.get_field(
                         changeset,
-                        :description
+                        :attr_description
                       ) %>
                     </p>
                     <div class="grid gap-2 grid-cols-1 md:grid-cols-3 text-sm p-4">
                       <%= for {key, value} <- changeset.changes |> Map.to_list() do %>
-                        <%= if String.length(value |> to_string()) > 0 and key != :description do %>
+                        <%= if String.length(value |> to_string()) > 0 and key != :attr_description do %>
                           <div class="overflow-hidden max-w-full">
                             <p class="font-medium text-gray-500">
                               <%= key |> to_string() |> String.replace(~r/^attr_/, "") %>

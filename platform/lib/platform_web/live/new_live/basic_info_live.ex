@@ -62,8 +62,8 @@ defmodule PlatformWeb.NewLive.BasicInfoLive do
       >
         <div class="space-y-6">
           <div>
-            <%= label(f, :description, "Short Description") %>
-            <%= textarea(f, :description,
+            <%= label(f, :attr_description, "Short Description") %>
+            <%= textarea(f, :attr_description,
               class: "text-xl",
               rows: 2,
               disabled: @disabled,
@@ -72,11 +72,27 @@ defmodule PlatformWeb.NewLive.BasicInfoLive do
             <p class="support">
               Try to be as descriptive as possible. You'll be able to change this later.
             </p>
-            <%= error_tag(f, :description) %>
+            <%= error_tag(f, :attr_description) %>
           </div>
 
           <div>
-            <%= label(f, :attr_sensitive, "Sensitivity (select all that apply)") %>
+            <%= label(f, :attr_type, "Incident Type") %>
+            <div phx-update="ignore" id="incident_type_select">
+              <%= multiple_select(
+                f,
+                :attr_type,
+                Attribute.get_attribute(:type) |> Attribute.options(),
+                phx_debounce: "blur"
+              ) %>
+            </div>
+            <p class="support">
+              <%= Attribute.get_attribute(:type).description %>
+            </p>
+            <%= error_tag(f, :attr_type) %>
+          </div>
+
+          <div>
+            <%= label(f, :attr_sensitive, "Sensitivity") %>
             <div phx-update="ignore" id="sensitive_select">
               <%= multiple_select(
                 f,
@@ -86,7 +102,7 @@ defmodule PlatformWeb.NewLive.BasicInfoLive do
               ) %>
             </div>
             <p class="support">
-              Is this incident sensitive? This information helps us keep our community safe.
+              <%= Attribute.get_attribute(:sensitive).description %>
             </p>
             <%= error_tag(f, :attr_sensitive) %>
           </div>

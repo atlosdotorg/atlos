@@ -35,7 +35,8 @@ defmodule Platform.Material.Attribute do
   defp renamed_attributes() do
     %{
       recorded_by: :camera_system,
-      flag: :status
+      flag: :status,
+      date_recorded: :date
     }
   end
 
@@ -63,10 +64,12 @@ defmodule Platform.Material.Attribute do
         pane: :metadata,
         required: true,
         name: :sensitive,
-        add_none: "Not Sensitive"
+        add_none: "Not Sensitive",
+        description:
+          "Is this incident sensitive? This information helps us keep our community safe."
       },
       %Attribute{
-        schema_field: :description,
+        schema_field: :attr_description,
         type: :text,
         max_length: 240,
         min_length: 8,
@@ -76,9 +79,110 @@ defmodule Platform.Material.Attribute do
         name: :description
       },
       %Attribute{
+        schema_field: :attr_type,
+        type: :multi_select,
+        options: [
+          "Military Activity",
+          "Military Activity/Movement",
+          "Military Activity/Equipment",
+          "Military Activity/Equipment/Lost",
+          "Military Activity/Execution",
+          "Military Activity/Combat",
+          "Military Activity/Encampment",
+          "Military Activity/Strike",
+          "Military Activity/Detention",
+          "Military Activity/Mass Grave",
+          "Civilian Activity",
+          "Civilian Activity/Protest",
+          "Civilian Activity/Riot",
+          "Civilian Activity/Violence",
+          "Policing",
+          "Policing/Use of Force",
+          "Policing/Detention",
+          "Weather",
+          "Weather/Flooding",
+          "Weather/Hurricane",
+          "Weather/Fire",
+          "Other"
+        ],
+        label: "Incident Type",
+        description: "What type of incident is this? Select all that apply.",
+        pane: :attributes,
+        required: true,
+        name: :type
+      },
+      %Attribute{
+        schema_field: :attr_impact,
+        type: :multi_select,
+        options: [
+          "Structure",
+          "Structure/Residential",
+          "Structure/Residential/House",
+          "Structure/Residential/Apartment",
+          "Structure/Healthcare",
+          "Structure/School or Childcare",
+          "Structure/Park or Playground",
+          "Structure/Cultural or Religious",
+          "Structure/Industrial",
+          "Structure/Administrative",
+          "Structure/Commercial",
+          "Structure/Transit Station",
+          "Structure/Airport",
+          "Vehicle/Car",
+          "Vehicle/Train",
+          "Vehicle/Bus",
+          "Vehicle/Aircraft",
+          "Vehicle/Boat",
+          "Injury",
+          "Injury/Civilian",
+          "Injury/Soldier",
+          "Death",
+          "Death/Civilian",
+          "Death/Soldier"
+        ],
+        label: "Impact",
+        pane: :attributes,
+        required: false,
+        name: :impact,
+        add_none: "None"
+      },
+      %Attribute{
+        schema_field: :attr_equipment,
+        type: :multi_select,
+        options: [
+          "Small Arm",
+          "Munition",
+          "Munition/Cluster",
+          "Munition/Chemical",
+          "Munition/Thermobaric",
+          "Munition/Incendiary",
+          "Non-Lethal Weapon",
+          "Non-Lethal Weapon/Tear Gas",
+          "Non-Lethal Weapon/Rubber Bullet",
+          "Land Mine",
+          "Launch System",
+          "Launch System/Artillery",
+          "Launch System/Self-Propelled",
+          "Launch System/Multiple Launch Rocket System (MLRS)",
+          "Land-based Vehicle",
+          "Ship",
+          "Aircraft",
+          "Aircraft/Fighter",
+          "Aircraft/Bomber",
+          "Aircraft/Helicopter",
+          "Aircraft/Drone",
+          "Encampment"
+        ],
+        label: "Equipment",
+        pane: :attributes,
+        required: false,
+        name: :equipment,
+        add_none: "None"
+      },
+      %Attribute{
         schema_field: :attr_time_of_day,
         type: :select,
-        options: ["Night", "Day"],
+        options: [],
         label: "Day/Night (Deprecated)",
         pane: :attributes,
         required: false,
@@ -96,7 +200,7 @@ defmodule Platform.Material.Attribute do
       %Attribute{
         schema_field: :attr_environment,
         type: :select,
-        options: ["Inside", "Outside"],
+        options: [],
         label: "Environment (Deprecated)",
         pane: :attributes,
         required: false,
@@ -108,7 +212,7 @@ defmodule Platform.Material.Attribute do
       %Attribute{
         schema_field: :attr_weather,
         type: :multi_select,
-        options: ["Sunny", "Partly Cloudly", "Overcast", "Raining", "Snowing"],
+        options: [],
         label: "Weather (Deprecated)",
         pane: :attributes,
         required: false,
@@ -119,7 +223,7 @@ defmodule Platform.Material.Attribute do
       %Attribute{
         schema_field: :attr_camera_system,
         type: :multi_select,
-        options: ["Handheld", "Satellite", "Surveillance Camera", "Drone", "Dashcam", "Other"],
+        options: [],
         label: "Camera System (Deprecated)",
         pane: :attributes,
         required: false,
@@ -141,118 +245,59 @@ defmodule Platform.Material.Attribute do
       %Attribute{
         schema_field: :attr_civilian_impact,
         type: :multi_select,
-        options: [
-          "Structure/Residential",
-          "Structure/Residential/House",
-          "Structure/Residential/Apartment",
-          "Structure/Healthcare",
-          "Structure/School or Childcare",
-          "Structure/Park or Playground",
-          "Structure/Cultural",
-          "Structure/Religious",
-          "Structure/Industrial",
-          "Structure/Administrative",
-          "Structure/Commercial",
-          "Structure/Airport",
-          "Structure/Transit Station",
-          "Vehicle/Car",
-          "Vehicle/Train",
-          "Vehicle/Bus",
-          "Vehicle/Aircraft",
-          "Vehicle/Boat"
-        ],
-        label: "Civilian Impact",
+        options: [],
+        label: "Civilian Impact (Deprecated)",
         pane: :attributes,
         required: false,
         name: :civilian_impact,
+        deprecated: true,
         add_none: "None"
       },
       %Attribute{
         schema_field: :attr_event,
         type: :multi_select,
-        options: [
-          "Explosion",
-          "Debris",
-          "Fire",
-          "Fire Damage",
-          "Smoke",
-          "Projectile Launching",
-          "Projectile Striking",
-          "Execution",
-          "Combat",
-          "Protest",
-          "Civilian-Military Interaction",
-          "Abandoned Military Infrastructure",
-          "Destroyed Military Infrastructure",
-          "Traveling Military Infrastructure"
-        ],
-        label: "Event",
+        options: [],
+        label: "Event (Deprecated)",
         pane: :attributes,
         required: false,
         name: :event,
         description: "What events are visible in the incident's media?",
+        deprecated: true,
         add_none: "None"
       },
       %Attribute{
         schema_field: :attr_casualty,
         type: :multi_select,
-        options: [
-          "Injured Person",
-          "Injured Person/Civilian",
-          "Injured Person/Soldier",
-          "Killed Person",
-          "Killed Person/Civilian",
-          "Killed Person/Soldier",
-          "Mass Grave"
-        ],
-        label: "Casualty",
+        options: [],
+        label: "Casualty (Deprecated)",
         pane: :attributes,
         required: false,
         name: :casualty,
+        deprecated: true,
         add_none: "None"
       },
       %Attribute{
         schema_field: :attr_military_infrastructure,
         type: :multi_select,
-        options: [
-          "Land-Based Vehicle",
-          "Ship",
-          "Aircraft",
-          "Aircraft/Fighter",
-          "Aircraft/Bomber",
-          "Aircraft/Helicopter",
-          "Aircraft/Drone",
-          "Convoy",
-          "Encampment"
-        ],
-        label: "Military Infrastructure",
+        options: [],
+        label: "Military Infrastructure (Deprecated)",
         pane: :attributes,
         required: false,
         name: :military_infrastructure,
         description: "What military infrastructure is visible in the media?",
+        deprecated: true,
         add_none: "None"
       },
       %Attribute{
         schema_field: :attr_weapon,
         type: :multi_select,
-        options: [
-          "Small Arm",
-          "Land Mine",
-          "Launch System",
-          "Launch System/Artillery",
-          "Launch System/Self-Propelled",
-          "Launch System/Multiple Launch Rocket System (MLRS)",
-          "Munition",
-          "Munition/Cluster",
-          "Munition/Chemical",
-          "Munition/Thermobaric",
-          "Munition/Incendiary"
-        ],
-        label: "Weapon",
+        options: [],
+        label: "Weapon (Deprecated)",
         pane: :attributes,
         required: false,
         name: :weapon,
         description: "What weapons are visible in the incident's media?",
+        deprecated: true,
         add_none: "None"
       },
       %Attribute{
@@ -266,12 +311,12 @@ defmodule Platform.Material.Attribute do
         description: "What time of day was the incident? Use the local timezone, if possible."
       },
       %Attribute{
-        schema_field: :attr_date_recorded,
+        schema_field: :attr_date,
         type: :date,
         label: "Date",
         pane: :attributes,
         required: false,
-        name: :date_recorded,
+        name: :date,
         description: "On what date did the incident take place?"
       },
       %Attribute{
@@ -444,7 +489,8 @@ defmodule Platform.Material.Attribute do
               {attr, {"Time must include an hour and minute.", metadata}}
 
             attribute.type == :date and attr == attribute.schema_field ->
-              {attr, {"Date must include a year, month, and day.", metadata}}
+              {attr,
+               {"Verify the date is valid. Date must include a year, month, and day.", metadata}}
 
             true ->
               {attr, {error_message, metadata}}

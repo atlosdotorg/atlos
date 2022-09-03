@@ -799,7 +799,9 @@ defmodule PlatformWeb.Components do
           <.user_stack users={
             updates
             |> Enum.filter(&(&1.modified_attribute == attr.name))
+            |> Enum.sort_by(& &1.inserted_at)
             |> Enum.map(& &1.user)
+            |> Enum.reverse()
             |> Enum.take(1)
           } />
         <% end %>
@@ -1117,7 +1119,7 @@ defmodule PlatformWeb.Components do
           <section>
             <p class="font-mono text-xs text-gray-500"><%= media.slug %></p>
             <p class="text-gray-900 group-hover:text-gray-900">
-              <%= media.description |> Utils.truncate(80) %>
+              <%= media.attr_description |> Utils.truncate(80) %>
             </p>
           </section>
           <section class="flex flex-wrap gap-1 self-start align-top">
@@ -1199,7 +1201,7 @@ defmodule PlatformWeb.Components do
               </span>
             <% end %>
 
-            <%= if media.attr_date_recorded do %>
+            <%= if media.attr_date do %>
               <span class="badge ~neutral">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -1213,7 +1215,7 @@ defmodule PlatformWeb.Components do
                     clip-rule="evenodd"
                   />
                 </svg>
-                <%= media.attr_date_recorded %>
+                <%= media.attr_date %>
               </span>
             <% end %>
 
