@@ -89,12 +89,8 @@ defmodule Platform.Workers.Archiver do
       # Track event
       Auditor.log(:archive_success, %{media_id: media_id, source_url: new_version.source_url})
 
-      {:ok, _} =
-        Updates.change_from_comment(media, Accounts.get_auto_account(), %{
-          "explanation" =>
-            "✅ Successfully processed and archived the media at #{version.source_url}."
-        })
-        |> Updates.create_update_from_changeset()
+      # Push update to viewers
+      Material.broadcast_media_updated(media_id)
 
       {:ok, new_version}
     rescue
