@@ -1390,7 +1390,7 @@ defmodule PlatformWeb.Components do
               <%= if String.starts_with?(version.mime_type, "image/") do %>
                 <img src={loc} class="w-full" />
               <% else %>
-                <video controls preload="none" muted poster={thumbnail}>
+                <video controls preload="auto" muted>
                   <source src={loc} class="w-full" />
                 </video>
               <% end %>
