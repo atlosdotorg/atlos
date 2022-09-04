@@ -27,6 +27,9 @@ defmodule Platform.Workers.Archiver do
       Temp.track!()
       Temp.cleanup()
 
+      # Submit to the Internet Archive for archival
+      Material.submit_for_external_archival(version)
+
       # Setup tempfiles for media download
       temp_dir = Temp.mkdir!()
 

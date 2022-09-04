@@ -367,12 +367,6 @@ defmodule Platform.Material do
       )
       |> Repo.insert()
 
-    # If successful, also submit for external archival
-    case result do
-      {:ok, version} -> submit_for_external_archival(version)
-      _ -> {}
-    end
-
     result
   end
 
