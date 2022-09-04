@@ -1369,7 +1369,6 @@ defmodule PlatformWeb.Components do
       ) do
     # Verify it was archived successfully
     media_to_show = version.status == :complete && !is_nil(version.mime_type)
-
     should_blur_js_bool = if Media.is_graphic(media), do: "true", else: "false"
 
     ~H"""
@@ -1379,6 +1378,7 @@ defmodule PlatformWeb.Components do
       x-data={"{grayscale: true, hidden: #{should_blur_js_bool}}"}
     >
       <% loc = Material.media_version_location(version, media) %>
+      <% thumbnail = Material.media_version_location(version, media, :thumb) %>
       <% media_id = "version-#{version.id}-media" %>
       <div class="relative">
         <%= if media_to_show do %>
@@ -1387,7 +1387,7 @@ defmodule PlatformWeb.Components do
               <%= if String.starts_with?(version.mime_type, "image/") do %>
                 <img src={loc} class="w-full" />
               <% else %>
-                <video controls preload="auto" muted>
+                <video controls preload="auto" poster={thumbnail} muted>
                   <source src={loc} class="w-full" />
                 </video>
               <% end %>
