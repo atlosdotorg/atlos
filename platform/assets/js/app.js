@@ -122,7 +122,7 @@ function initializeSmartSelects() {
 
                     let rawDepth = data.text.split("/").length - 1;
                     let effectiveDepth = rawDepth > 4 ? 4 : rawDepth;
-                    let nestingDepth = ["ml-0", "ml-3", "ml-6", "ml-9", "ml-12"][effectiveDepth];
+                    let nestingDepth = ["ml-0", "ml-[25px]", "ml-[50px]", "ml-[75px]", "ml-[100px]"][effectiveDepth];
 
                     let lastComponentIndex = data.text.lastIndexOf('/');
                     let before = lastComponentIndex >= 0 ? data.text.slice(0, lastComponentIndex + 1) : "";

@@ -677,8 +677,7 @@
  .ts-dropdown-content {
    overflow-y: auto;
    overflow-x: hidden;
-   max-height: 200px;
-   overflow-scrolling: touch;
+   max-height: 40vh;
    scroll-behavior: smooth;
  }
 
