@@ -74,7 +74,7 @@ defmodule Platform.Workers.Archiver do
 
       # Process + upload it (only store original if upload_type is direct/not user provided)
       {:ok, identifier, duration, size} =
-        process_uploaded_media(file_path, mime, media, version.upload_type == :direct)
+        process_uploaded_media(file_path, mime, media, version, version.upload_type == :direct)
 
       # Update the media version to reflect the change
       {:ok, new_version} =
@@ -135,16 +135,16 @@ defmodule Platform.Workers.Archiver do
   @doc """
   Process the media at the given path. Also called by the manual media uploader.
   """
-  def process_uploaded_media(path, mime, media, store_original \\ true) do
+  def process_uploaded_media(path, mime, media, version, store_original \\ true) do
     # Preprocesses the given media and uploads it to persistent storage.
     # Returns {:ok, file_path, thumbnail_path, duration}
 
-    identifier = media.slug
+    identifier = Material.get_human_readable_media_version_name(media, version)
 
     media_path =
       cond do
-        String.starts_with?(mime, "image/") -> Temp.path!(%{suffix: ".jpg", prefix: identifier})
-        String.starts_with?(mime, "video/") -> Temp.path!(%{suffix: ".mp4", prefix: identifier})
+        String.starts_with?(mime, "image/") -> Temp.path!(%{suffix: ".jpg", prefix: media.slug})
+        String.starts_with?(mime, "video/") -> Temp.path!(%{suffix: ".mp4", prefix: media.slug})
       end
 
     font_path =

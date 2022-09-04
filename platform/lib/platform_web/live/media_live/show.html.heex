@@ -139,7 +139,7 @@
         <:header>
           <h3 class="sec-head">Attributes</h3>
           <p class="sec-subhead">
-            This information is inferred based on the media, news reporting, and other public information.
+            This information is inferred based on the uploaded media, news reporting, and other public information.
           </p>
         </:header>
         <div class="border-gray-200">
@@ -256,7 +256,6 @@
                 <.media_version_display
                   version={version}
                   media={@media}
-                  blur={Media.is_graphic(@media)}
                   current_user={@current_user}
                 />
               <% end %>
@@ -278,7 +277,6 @@
                   <.media_version_display
                     version={version}
                     media={@media}
-                    blur={Media.is_graphic(@media)}
                     current_user={@current_user}
                   />
                 <% end %>
@@ -293,7 +291,6 @@
                   <.media_version_display
                     version={version}
                     media={@media}
-                    blur={Media.is_graphic(@media)}
                     current_user={@current_user}
                   />
                 <% end %>

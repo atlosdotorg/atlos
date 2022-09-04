@@ -2,6 +2,7 @@ defmodule Platform.Material.MediaVersion do
   use Ecto.Schema
   import Ecto.Changeset
   alias Platform.Accounts
+  alias Platform.Material.Media
   alias __MODULE__
 
   @derive {Jason.Encoder, except: [:__meta__, :client_name, :file_location, :media_id]}
@@ -12,13 +13,14 @@ defmodule Platform.Material.MediaVersion do
     field :client_name, :string
     field :duration_seconds, :integer
 
+    field :scoped_id, :integer
     field :upload_type, Ecto.Enum, values: [:user_provided, :direct], default: :user_provided
     field :status, Ecto.Enum, values: [:pending, :complete, :error], default: :complete
     field :source_url, :string
 
     field :visibility, Ecto.Enum, default: :visible, values: [:visible, :hidden, :removed]
 
-    belongs_to :media, Platform.Material.Media
+    belongs_to :media, Media
 
     timestamps()
   end
@@ -36,7 +38,8 @@ defmodule Platform.Material.MediaVersion do
       :mime_type,
       :client_name,
       :media_id,
-      :visibility
+      :visibility,
+      :scoped_id
     ])
     |> validate_required([:source_url],
       message: "Please add a link."
@@ -46,6 +49,7 @@ defmodule Platform.Material.MediaVersion do
       :upload_type,
       :media_id
     ])
+    |> unique_constraint([:media_id, :scoped_id], name: "media_versions_scoped_id_index")
   end
 
   @doc """
