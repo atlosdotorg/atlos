@@ -123,7 +123,8 @@ defmodule Platform.Material.Attribute do
           "Structure/Healthcare",
           "Structure/School or Childcare",
           "Structure/Park or Playground",
-          "Structure/Cultural or Religious",
+          "Structure/Cultural",
+          "Structure/Religious",
           "Structure/Industrial",
           "Structure/Administrative",
           "Structure/Commercial",
@@ -391,6 +392,13 @@ defmodule Platform.Material.Attribute do
   end
 
   @doc """
+  Get all the active, non-deprecated attributes.
+  """
+  def active_attributes() do
+    attributes() |> Enum.filter(&(&1.deprecated != true))
+  end
+
+  @doc """
   Get the names of the attributes that are available for the given media. Both nil and the empty list count as unset.
   """
   def set_for_media(media, pane \\ nil) do
@@ -409,8 +417,10 @@ defmodule Platform.Material.Attribute do
     |> Enum.filter(&(pane == nil || &1.pane == pane))
   end
 
-  def attribute_names(include_renamed_attributes \\ true) do
-    (attributes() |> Enum.map(& &1.name)) ++
+  def attribute_names(include_renamed_attributes \\ true, include_deprecated_attributes \\ true) do
+    (attributes()
+     |> Enum.filter(&(&1.deprecated != true or include_deprecated_attributes))
+     |> Enum.map(& &1.name)) ++
       if include_renamed_attributes, do: Map.keys(renamed_attributes()), else: []
   end
 
@@ -436,14 +446,22 @@ defmodule Platform.Material.Attribute do
     Enum.find(attributes(), &(&1.schema_field |> to_string() == name))
   end
 
-  def changeset(media_or_changeset, %Attribute{} = attribute, attrs \\ %{}, user \\ nil) do
+  def changeset(
+        media_or_changeset,
+        %Attribute{} = attribute,
+        attrs \\ %{},
+        user \\ nil,
+        verify_change_exists \\ true
+      ) do
     media_or_changeset
     |> populate_virtual_data(attribute)
     |> cast_attribute(attribute, attrs)
     |> validate_attribute(attribute, user)
     |> cast_and_validate_virtual_explanation(attrs, attribute)
     |> update_from_virtual_data(attribute)
-    |> verify_change_exists(attribute)
+    |> then(fn changeset ->
+      if verify_change_exists, do: verify_change_exists(changeset, attribute), else: changeset
+    end)
   end
 
   defp populate_virtual_data(media, %Attribute{} = attribute) do
@@ -480,6 +498,10 @@ defmodule Platform.Material.Attribute do
   end
 
   defp cast_attribute(media, %Attribute{} = attribute, attrs) do
+    if attribute.deprecated == true do
+      raise "cannot cast deprecated attribute"
+    end
+
     media
     |> cast(attrs, [:explanation], message: "Unable to parse explanation.")
     |> then(fn changeset ->

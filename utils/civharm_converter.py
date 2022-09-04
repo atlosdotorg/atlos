@@ -4,6 +4,11 @@ import click
 import unicodecsv as csv
 from dateutil.parser import parse as date_parse
 from collections import defaultdict
+import re
+
+
+def strip_to_float(string):
+    return re.sub("[^0-9\.]", "", string)
 
 
 @click.command()
@@ -22,33 +27,33 @@ def run(infile, outfile, only_geolocated):
             "latitude",
             "longitude",
             "more_info",
-            "civilian_impact",
-            "event",
-            "casualty",
-            "military_infrastructure",
-            "weapon",
-            "date_recorded",
+            "type",
+            "impact",
+            "equipment",
+            "date",
             "status",
-            "tags"
+            "tags",
         ]
         + ["source_" + str(i) for i in range(1, 23)],
     )
 
     writer.writeheader()
     for row in reader:
-        identifier = row["Incident no. "]
+        identifier = row["Incident no."]
         if identifier.startswith("CIV") and len(row["Narrative"]) > 7:
-            comments = row['Comments'].strip()
+            comments = row.get("Comments", "").strip()
             if len(comments) > 0:
                 comments = f"\n\n{comments}"
 
-            location = row['Location'].strip()
+            location = row["Location"].strip()
             if len(location) == 0:
                 location = "No reported location."
             else:
                 location = f"Reported near {location}."
 
-            more_info = f"Corresponds to **{identifier}** in CIVHARM. {location} {comments}"
+            more_info = (
+                f"Corresponds to **{identifier}** in CIVHARM. {location} {comments}"
+            )
 
             sensitive = []
             if row["Private Information Visible"] == "Yes":
@@ -62,8 +67,8 @@ def run(infile, outfile, only_geolocated):
             if len(description) > 239:
                 description = description[:237] + "…"
 
-            civilian_impact_mapping = defaultdict(lambda: "")
-            civilian_impact_mapping.update(
+            impact_mapping = defaultdict(lambda: "")
+            impact_mapping.update(
                 {
                     "Administrative": "Structure/Administrative",
                     "Commercial": "Structure/Commercial",
@@ -76,11 +81,10 @@ def run(infile, outfile, only_geolocated):
                 }
             )
 
-            civilian_impact = [
-                civilian_impact_mapping[row["Type of area affected"]]]
+            impact = [impact_mapping[row["Type of area affected"]]]
 
-            weapon_system_mapping = defaultdict(lambda: "")
-            weapon_system_mapping.update(
+            equipment_mapping = defaultdict(lambda: "")
+            equipment_mapping.update(
                 {
                     "Small arms": "Small Arm",
                     "Ballistic missile": "Launch System/Self-Propelled",
@@ -90,27 +94,36 @@ def run(infile, outfile, only_geolocated):
                     "Incendiary munitions": "Munition/Incendiary",
                     "Land mines": "Land Mine",
                     "Thermobaric munition": "Munition/Thermobaric",
+                    "Air strike": "Aircraft",
                 }
             )
 
-            weapon = [weapon_system_mapping[row["Weapon System"]]]
+            equipment = [equipment_mapping[row["Weapon System"]]]
 
-            military_infrastructure_mapping = defaultdict(lambda: "")
-            military_infrastructure_mapping.update({"Air strike": "Aircraft"})
+            type_mapping = defaultdict(lambda: "Military Activity")
+            type_mapping.update(
+                {
+                    "Air strike": "Military Activity/Strike",
+                    "Cluster munitions": "Military Activity/Strike",
+                    "HE rocket artillery": "Military Activity/Strike",
+                    "HE tube artillery": "Military Activity/Strike",
+                }
+            )
 
-            military_infrastructure = [
-                military_infrastructure_mapping[row["Weapon System"]]
-            ]
+            type = [type_mapping[row["Weapon System"]]]
 
             try:
-                date_recorded = date_parse(
-                    row["Reported Date"]).strftime("%Y-%m-%d")
+                date = date_parse(row["Reported Date"]).strftime("%Y-%m-%d")
             except:
-                date_recorded = ""
+                date = ""
 
-            status = "Completed" if row["BCAT\n (geolocated)"] == "TRUE" else "Unclaimed"
+            status = (
+                "Completed"
+                if row.get("BCAT\n (geolocated)", "TRUE") == "TRUE"
+                else "Unclaimed"
+            )
 
-            if only_geolocated and row["BCAT\n (geolocated)"] != "TRUE":
+            if only_geolocated and row.get("BCAT\n (geolocated)", "TRUE") != "TRUE":
                 print(f"Skipping {identifier}: not geolocated and published")
                 continue
 
@@ -118,14 +131,14 @@ def run(infile, outfile, only_geolocated):
                 "more_info": more_info,
                 "sensitive": ", ".join(sensitive),
                 "description": description,
-                "civilian_impact": ", ".join(civilian_impact),
-                "weapon": ", ".join(weapon),
-                "military_infrastructure": ", ".join(military_infrastructure),
-                "date_recorded": date_recorded,
+                "type": ", ".join(type),
+                "equipment": ", ".join(equipment),
+                "impact": ", ".join(impact),
+                "date": date,
                 "status": status,
-                "latitude": row["Lat"],
-                "longitude": row["Lon"],
-                "tags": "CIVHARM, Bulk Import"
+                "latitude": strip_to_float(row["Lat"]),
+                "longitude": strip_to_float(row["Lon"]),
+                "tags": "CIVHARM, Bulk Import",
             }
 
             source_number = 1
@@ -134,9 +147,7 @@ def run(infile, outfile, only_geolocated):
                     values["source_" + str(source_number)] = v
                     source_number += 1
 
-            writer.writerow(
-                values
-            )
+            writer.writerow(values)
         else:
             print(f"Skipping {identifier}: {row['Narrative']}...")
 

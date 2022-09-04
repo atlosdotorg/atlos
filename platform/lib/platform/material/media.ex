@@ -87,7 +87,7 @@ defmodule Platform.Material.Media do
   """
   def import_changeset(media, attrs) do
     # First, we rename and parse fields to match their internal representation.
-    attr_names = Attribute.attribute_names(false) |> Enum.map(&(&1 |> to_string()))
+    attr_names = Attribute.attribute_names(false, false) |> Enum.map(&(&1 |> to_string()))
 
     attrs =
       attrs
@@ -120,13 +120,13 @@ defmodule Platform.Material.Media do
         Map.put(acc, k, v)
       end)
 
-    Enum.reduce(Attribute.attributes(), media, fn attr, acc ->
-      Attribute.changeset(acc, attr, attrs)
+    Enum.reduce(Attribute.active_attributes(), media, fn attr, acc ->
+      Attribute.changeset(acc, attr, attrs, nil, false)
     end)
   end
 
   def attribute_ratio(%Media{} = media) do
-    length(Attribute.set_for_media(media)) / length(Attribute.attribute_names())
+    length(Attribute.set_for_media(media)) / length(Attribute.attribute_names(false, false))
   end
 
   def is_sensitive(%Media{} = media) do

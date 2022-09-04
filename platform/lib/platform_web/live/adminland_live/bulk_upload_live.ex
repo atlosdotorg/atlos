@@ -178,7 +178,7 @@ defmodule PlatformWeb.AdminlandLive.BulkUploadLive do
                       <summary class="cursor-pointer font-medium">Required file format</summary>
                       <p>Atlos can perform bulk imports from CSV files with the following columns:</p>
                       <ul>
-                        <%= for attr <- Material.Attribute.attribute_names(false) do %>
+                        <%= for attr <- Material.Attribute.attribute_names(false, false) do %>
                           <li>
                             <.attr_explanation name={attr} />
                           </li>
@@ -382,8 +382,10 @@ defmodule PlatformWeb.AdminlandLive.BulkUploadLive do
                         <li>
                           <strong class="font-semibold">Row <%= idx %></strong>
                           <%= for {key, errors} <- extract_errors(changeset) |> Map.to_list() do %>
+                            <% {key, errors} |> IO.inspect() %>
                             <p>
-                              <%= Material.Attribute.get_attribute_by_schema_field(key).name
+                              <%= (Material.Attribute.get_attribute_by_schema_field(key) ||
+                                     %{name: key}).name
                               |> to_string() %>: <%= Enum.join(
                                 errors,
                                 ","
