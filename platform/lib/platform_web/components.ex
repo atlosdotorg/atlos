@@ -472,11 +472,20 @@ defmodule PlatformWeb.Components do
                       <%= head.media.slug %> &nearr;
                     <% end %>
                   <% end %>
-                  <.user_text user={head.user} /> made <%= length(update) %> updates to
-                  <%= for {attr, idx} <- attributes |> Enum.with_index() do %>
-                    <span class="font-medium text-gray-800">
-                      <%= attr.label <> connector_language(idx, n_attributes) %>
-                    </span>
+                  <.user_text user={head.user} />
+                  <%= case head.type do %>
+                    <% :update_attribute -> %>
+                      made <%= length(update) %> updates to
+                      <%= for {attr, idx} <- attributes |> Enum.with_index() do %>
+                        <span class="font-medium text-gray-800">
+                          <%= attr.label <> connector_language(idx, n_attributes) %>
+                        </span>
+                      <% end %>
+                    <% :upload_version -> %>
+                      added
+                      <span class="font-medium text-gray-800">
+                        <%= length(update) %> pieces of media
+                      </span>
                   <% end %>
                   <.rel_time time={head.inserted_at} />
                 </div>
