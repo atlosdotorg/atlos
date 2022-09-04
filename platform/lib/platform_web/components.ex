@@ -782,7 +782,7 @@ defmodule PlatformWeb.Components do
       ) do
     ~H"""
     <div class="py-2 sm:grid sm:grid-cols-3 sm:gap-2">
-      <dt class="text-sm font-medium text-gray-500 mt-1 flex justify-between flex-wrap">
+      <dt class="text-sm font-medium text-gray-500 mt-1 flex justify-between items-center flex-wrap">
         <span class="flex items-center gap-1">
           <%= attr.label %>
           <%= if Platform.Material.Attribute.requires_privileges_to_edit(attr) do %>
@@ -815,7 +815,7 @@ defmodule PlatformWeb.Components do
           } />
         <% end %>
       </dt>
-      <dd class="mt-1 flex text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+      <dd class="mt-1 flex items-center text-sm text-gray-900 sm:mt-0 sm:col-span-2">
         <span class="flex-grow gap-1 flex flex-wrap">
           <.attr_entry name={attr.name} value={Map.get(media, attr.schema_field)} />
         </span>
@@ -836,7 +836,7 @@ defmodule PlatformWeb.Components do
     attr = Attribute.get_attribute(name)
 
     ~H"""
-    <span class="inline-flex flex-wrap gap-1">
+    <span class="inline-flex flex-wrap gap-1 max-w-full">
       <%= case attr.type do %>
         <% :text -> %>
           <div class="inline-block prose prose-sm my-px">
@@ -844,17 +844,21 @@ defmodule PlatformWeb.Components do
           </div>
         <% :select -> %>
           <div class="inline-block">
-            <div class="chip ~neutral inline-block self-start"><%= value %></div>
+            <div class="chip ~neutral inline-block self-start break-all xl:break-normal">
+              <%= value %>
+            </div>
           </div>
         <% :multi_select -> %>
           <%= for item <- value do %>
-            <div class="chip ~neutral inline-block self-start"><%= item %></div>
+            <div class="chip ~neutral inline-block self-start break-all xl:break-normal">
+              <%= item %>
+            </div>
           <% end %>
         <% :location -> %>
           <div class="inline-block">
             <% {lon, lat} = value.coordinates %>
             <a
-              class="chip ~neutral inline-block flex gap-1 self-start"
+              class="chip ~neutral inline-block flex gap-1 self-start break-all xl:break-normal"
               target="_blank"
               href={"https://maps.google.com/maps?q=#{lat},#{lon}"}
             >
@@ -863,11 +867,15 @@ defmodule PlatformWeb.Components do
           </div>
         <% :time -> %>
           <div class="inline-block">
-            <div class="chip ~neutral inline-block self-start"><%= value %></div>
+            <div class="chip ~neutral inline-block self-start break-all xl:break-normal">
+              <%= value %>
+            </div>
           </div>
         <% :date -> %>
           <div class="inline-block">
-            <div class="chip ~neutral inline-block self-start"><%= value %></div>
+            <div class="chip ~neutral inline-block self-start break-all xl:break-normal">
+              <%= value %>
+            </div>
           </div>
       <% end %>
     </span>
