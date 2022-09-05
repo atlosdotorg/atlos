@@ -272,7 +272,7 @@ function initializeMaps() {
     });
 }
 
-function debounce(func, timeout = 100) {
+function debounce(func, timeout = 25) {
     let timer;
     return (...args) => {
         clearTimeout(timer);
