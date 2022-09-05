@@ -1112,7 +1112,9 @@ defmodule PlatformWeb.Components do
       </p>
       <div class="grid grid-cols-1 gap-4 mt-4">
         <%= for dupe <- duplicates do %>
-          <.media_card media={dupe} current_user={current_user} target="_blank" />
+          <div data-confirm="Open the incident in a new tab? Your current upload won't be affected.">
+            <.media_card media={dupe} current_user={current_user} target="_blank" />
+          </div>
         <% end %>
       </div>
     </div>
