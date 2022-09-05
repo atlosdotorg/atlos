@@ -1,6 +1,6 @@
 # image: milesmcc/postback:latest
 # note that this image is not (currently) automatically deployed
-# you can deploy it with: `fly deploy --config fly.backups.toml --image milesmcc/postback:latest`
+# you can deploy it with: `fly deploy --config deployments/fly.backups.toml --image milesmcc/postback:latest`
 # it will require the following secrets:
 #     AWS_ACCESS_KEY_ID
 #     AWS_SECRET_ACCESS_KEY
