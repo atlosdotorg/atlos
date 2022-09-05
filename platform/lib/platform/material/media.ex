@@ -13,21 +13,26 @@ defmodule Platform.Material.Media do
     # Core uneditable data
     field :slug, :string, autogenerate: {Utils, :generate_media_slug, []}
 
-    # "Normal" Attributes
-    field :description, :string
-    field :attr_time_of_day, :string
+    # Core Attributes
+    field :attr_description, :string
     field :attr_geolocation, Geo.PostGIS.Geometry
-    field :attr_environment, :string
-    field :attr_weather, {:array, :string}
-    field :attr_camera_system, {:array, :string}
     field :attr_more_info, :string
-    field :attr_civilian_impact, {:array, :string}
-    field :attr_event, {:array, :string}
-    field :attr_casualty, {:array, :string}
-    field :attr_military_infrastructure, {:array, :string}
-    field :attr_weapon, {:array, :string}
-    field :attr_time_recorded, :time
-    field :attr_date_recorded, :date
+    field :attr_date, :date
+    field :attr_type, {:array, :string}
+    field :attr_impact, {:array, :string}
+    field :attr_equipment, {:array, :string}
+
+    # Deprecated attributes (that still live in the database)
+    # field :attr_time_of_day, :string
+    # field :attr_environment, :string
+    # field :attr_weather, {:array, :string}
+    # field :attr_camera_system, {:array, :string}
+    # field :attr_civilian_impact, {:array, :string}
+    # field :attr_event, {:array, :string}
+    # field :attr_casualty, {:array, :string}
+    # field :attr_military_infrastructure, {:array, :string}
+    # field :attr_weapon, {:array, :string}
+    # field :attr_time_recorded, :time
 
     # Metadata Attributes
     field :attr_restrictions, {:array, :string}
@@ -52,11 +57,11 @@ defmodule Platform.Material.Media do
   @doc false
   def changeset(media, attrs) do
     media
-    |> cast(attrs, [:description, :attr_sensitive, :attr_status])
-    |> validate_required([:description],
+    |> cast(attrs, [:attr_description, :attr_sensitive, :attr_status, :attr_type])
+    |> validate_required([:attr_description],
       message: "Please add a short description."
     )
-    |> validate_length(:description,
+    |> validate_length(:attr_description,
       min: 8,
       max: 240,
       message: "Descriptions should be 8-240 characters."
@@ -65,9 +70,13 @@ defmodule Platform.Material.Media do
       message:
         "Sensitivity must be set. If this incident doesn't include sensitive media, choose 'Not Sensitive.'"
     )
+    |> validate_required([:attr_type],
+      message: "The incident type must be set."
+    )
 
     # These are special attributes, since we define it at creation time. Eventually, it'd be nice to unify this logic with the attribute-specific editing logic.
     |> Attribute.validate_attribute(Attribute.get_attribute(:sensitive))
+    |> Attribute.validate_attribute(Attribute.get_attribute(:type))
   end
 
   @doc """
@@ -78,7 +87,7 @@ defmodule Platform.Material.Media do
   """
   def import_changeset(media, attrs) do
     # First, we rename and parse fields to match their internal representation.
-    attr_names = Attribute.attribute_names(false) |> Enum.map(&(&1 |> to_string()))
+    attr_names = Attribute.attribute_names(false, false) |> Enum.map(&(&1 |> to_string()))
 
     attrs =
       attrs
@@ -111,13 +120,13 @@ defmodule Platform.Material.Media do
         Map.put(acc, k, v)
       end)
 
-    Enum.reduce(Attribute.attributes(), media, fn attr, acc ->
-      Attribute.changeset(acc, attr, attrs)
+    Enum.reduce(Attribute.active_attributes(), media, fn attr, acc ->
+      Attribute.changeset(acc, attr, attrs, nil, false)
     end)
   end
 
   def attribute_ratio(%Media{} = media) do
-    length(Attribute.set_for_media(media)) / length(Attribute.attribute_names())
+    length(Attribute.set_for_media(media)) / length(Attribute.attribute_names(false, false))
   end
 
   def is_sensitive(%Media{} = media) do

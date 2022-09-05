@@ -98,10 +98,10 @@
   .phx-only-during-submit { display: none; }
   .phx-only-during-reg { display: block; }
   .phx-submit-loading .phx-only-during-submit {
-     display: block;
+     display: block !important;
   }
   .phx-submit-loading .phx-only-during-reg {
-    display: none;
+    display: none !important;
  }
 
   .phx-form input[type="checkbox"] {
@@ -677,8 +677,7 @@
  .ts-dropdown-content {
    overflow-y: auto;
    overflow-x: hidden;
-   max-height: 200px;
-   overflow-scrolling: touch;
+   max-height: 40vh;
    scroll-behavior: smooth;
  }
 

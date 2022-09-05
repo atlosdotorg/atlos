@@ -340,6 +340,18 @@ defmodule Platform.Material do
     end)
   end
 
+  @doc """
+  Returns the number of media versions associated with the given media ID. We don't require
+  the media itself, since sometimes we don't have it loaded.
+  """
+  def count_media_versions_for_media_id(media_id) do
+    Repo.one(
+      from v in MediaVersion,
+        where: v.media_id == ^media_id,
+        select: count("*")
+    )
+  end
+
   def get_media_versions_by_source_url(url) do
     Repo.all(
       from v in MediaVersion,
@@ -350,21 +362,23 @@ defmodule Platform.Material do
     |> Enum.dedup_by(& &1.media.id)
   end
 
+  def get_media_by_source_url(source_url) do
+    get_media_versions_by_source_url(source_url)
+    |> Enum.map(& &1.media)
+    |> Enum.sort()
+    |> Enum.dedup()
+  end
+
   def create_media_version(%Media{} = media, attrs \\ %{}) do
     result =
       %MediaVersion{}
       |> MediaVersion.changeset(
         attrs
         |> Map.put("media_id", media.id)
+        |> Map.put("scoped_id", count_media_versions_for_media_id(media.id) + 1)
         |> Utils.make_keys_strings()
       )
       |> Repo.insert()
-
-    # If successful, also submit for external archival
-    case result do
-      {:ok, version} -> submit_for_external_archival(version)
-      _ -> {}
-    end
 
     result
   end
@@ -635,5 +649,12 @@ defmodule Platform.Material do
         end
       end
     end)
+  end
+
+  @doc """
+  Get the human-readable name of the media version (e.g., ATL-ABCDEF/1). The media must match the version.
+  """
+  def get_human_readable_media_version_name(%Media{} = media, %MediaVersion{} = version) do
+    "#{media.slug}/#{version.scoped_id}"
   end
 end

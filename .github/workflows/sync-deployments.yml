@@ -1,0 +1,36 @@
+name: Keep deployment branches up to date with main
+on:
+  push:
+    branches:
+      - main
+jobs:
+  updatePlatform:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: deployments/platform
+      - name: Reset promotion branch
+        run: |
+          git fetch origin main:main
+          git reset --hard main
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v3
+        with:
+          branch: main
+          title: "Deploy recent changes to `platform`"
+  updateGAP:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: deployments/gap
+      - name: Reset promotion branch
+        run: |
+          git fetch origin main:main
+          git reset --hard main
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v3
+        with:
+          branch: main
+          title: "Deploy recent changes to `GAP`"

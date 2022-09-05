@@ -27,8 +27,9 @@ defmodule PlatformWeb.MediaLive.LinkVersionLive do
       socket
       |> assign(
         :url_duplicate_of,
-        Material.get_media_versions_by_source_url(source_url)
-        |> Enum.filter(&Material.Media.can_user_view(&1.media, socket.assigns.current_user))
+        Material.get_media_by_source_url(source_url)
+        |> Enum.filter(&Material.Media.can_user_view(&1, socket.assigns.current_user))
+        |> Enum.filter(&(&1.id != socket.assigns.media.id))
       )
     else
       socket |> assign(:url_duplicate_of, [])

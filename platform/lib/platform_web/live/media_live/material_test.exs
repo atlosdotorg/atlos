@@ -31,14 +31,12 @@ defmodule Platform.MaterialTest do
     test "create_media/1 with valid data creates a media" do
       valid_attrs = %{
         attr_description: "some description",
-        attr_sensitive: ["Not Sensitive"],
-        attr_type: ["Other"]
+        attr_sensitive: ["Not Sensitive"]
       }
 
       assert {:ok, %Media{} = media} = Material.create_media(valid_attrs)
       assert media.attr_description == "some description"
       assert media.attr_sensitive == ["Not Sensitive"]
-      assert media.attr_type == ["Other"]
     end
 
     test "create_media/1 with invalid data returns error changeset" do

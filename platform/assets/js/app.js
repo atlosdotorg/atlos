@@ -27,7 +27,16 @@ import Alpine from 'alpinejs'
 
 mapboxgl.accessToken = 'pk.eyJ1IjoibWlsZXNtY2MiLCJhIjoiY2t6ZzdzZmY0MDRobjJvbXBydWVmaXBpNSJ9.-aHM8bjOOsSrGI0VvZenAQ';
 
-let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
+let Hooks = {};
+Hooks.Modal = {
+    mounted() {
+        window.addEventListener("modal:close", () => {
+            this.pushEvent("close_modal", {});
+        })
+    }
+}
+
+let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content");
 let liveSocket = new LiveSocket("/live", Socket, {
     dom: {
         onBeforeElUpdated(from, to) {
@@ -36,7 +45,8 @@ let liveSocket = new LiveSocket("/live", Socket, {
             }
         },
     },
-    params: { _csrf_token: csrfToken }
+    params: { _csrf_token: csrfToken },
+    hooks: Hooks
 })
 
 /**
@@ -109,10 +119,23 @@ function initializeSmartSelects() {
                         desc = "— " + desc;
                     }
                     let requiresPrivilege = privileged.indexOf(data.text) >= 0;
-                    return '<div class="flex"><div><span>' + escape(data.text) + '</span><span class="text-gray-400">' + (requiresPrivilege ? lockIcon : '') + '&nbsp;' + escape(desc) + '</span></div></div>';
+
+                    let rawDepth = data.text.split("/").length - 1;
+                    let effectiveDepth = rawDepth > 4 ? 4 : rawDepth;
+                    let nestingDepth = ["ml-0", "ml-[25px]", "ml-[50px]", "ml-[75px]", "ml-[100px]"][effectiveDepth];
+
+                    let lastComponentIndex = data.text.lastIndexOf('/');
+                    let before = lastComponentIndex >= 0 ? data.text.slice(0, lastComponentIndex + 1) : "";
+                    let after = data.text.slice(lastComponentIndex + 1);
+
+                    return '<div class="flex rounded ' + nestingDepth + '"><div><span class="opacity-50">' + escape(before) + '</span><span>' + escape(after) + '</span><span class="text-gray-400">' + (requiresPrivilege ? lockIcon : '') + '&nbsp;' + escape(desc) + '</span></div></div>';
                 },
                 item: function (data, escape) {
-                    return '<div>' + escape(data.text) + '</div>';
+                    let lastComponentIndex = data.text.lastIndexOf('/');
+                    let before = lastComponentIndex >= 0 ? data.text.slice(0, lastComponentIndex + 1) : "";
+                    let after = data.text.slice(lastComponentIndex + 1);
+
+                    return '<div><div><span class="opacity-[60%]">' + escape(before) + '</span><span>' + escape(after) + '</span></div></div>';
                 }
             }
         });
@@ -248,6 +271,22 @@ function initializeMaps() {
         s.classList.add("map-initialized");
     });
 }
+
+function debounce(func, timeout = 25) {
+    let timer;
+    return (...args) => {
+        clearTimeout(timer);
+        timer = setTimeout(() => { func.apply(this, args); }, timeout);
+    };
+}
+
+// Used to centralize modal closing logic. See Hooks.Modal for core logic.
+window.closeModal = debounce(() => {
+    if (confirm("Are you sure you want to exit? Any unsaved changes will be lost.")) {
+        let event = new CustomEvent("modal:close");
+        window.dispatchEvent(event);
+    }
+});
 
 window.toggleClass = (id, classname) => {
     let elem = document.getElementById(id);

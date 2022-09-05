@@ -454,6 +454,9 @@ defmodule Platform.Accounts do
       String.starts_with?(user.profile_photo_file, "https://") ->
         user.profile_photo_file
 
+      user.username == "Atlos" ->
+        "/images/bot_profile.png"
+
       String.length(user.profile_photo_file) == 0 ->
         "/images/default_profile.jpg"
 

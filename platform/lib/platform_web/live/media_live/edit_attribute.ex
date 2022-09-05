@@ -211,16 +211,10 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
             <div class="flex md:justify-between">
               <%= submit("Post update →",
                 phx_disable_with: "Saving...",
-                class: "button ~urge @high transition-all",
+                class: "button ~urge @high transition-all mr-2",
                 disabled: disabled
               ) %>
-              <button
-                phx-click="close_modal"
-                phx-target={@myself}
-                data-confirm={confirm_prompt}
-                type="button"
-                class="base-button"
-              >
+              <button @click="closeModal()" type="button" class="base-button">
                 Cancel
               </button>
             </div>
