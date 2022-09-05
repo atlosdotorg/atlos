@@ -495,9 +495,10 @@ defmodule Platform.Material do
         %Media{} = media,
         %Attribute{} = attribute,
         %User{} = user,
-        attrs \\ %{}
+        attrs \\ %{},
+        verify_change_exists \\ true
       ) do
-    changeset = Attribute.changeset(media, attribute, attrs, user)
+    changeset = Attribute.changeset(media, attribute, attrs, user, verify_change_exists)
 
     if Attribute.can_user_edit(attribute, user, media) do
       changeset

@@ -59,7 +59,13 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
 
     changeset =
       socket.assigns.media
-      |> Material.change_media_attribute(socket.assigns.attr, socket.assigns.current_user, params)
+      # When validating, don't require the change to exist (that will be validated on submit)
+      |> Material.change_media_attribute(
+        socket.assigns.attr,
+        socket.assigns.current_user,
+        params,
+        false
+      )
       |> Map.put(:action, :validate)
 
     {:noreply, socket |> assign(:changeset, changeset)}
@@ -70,7 +76,7 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
     disabled = !assigns.changeset.valid?
 
     ~H"""
-    <article>
+    <article x-data="{user_lat: null, user_lon: null}">
       <.modal target={@myself} close_confirmation={confirm_prompt}>
         <div class="md:flex justify-between">
           <div>
@@ -138,7 +144,9 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
                       <%= label(f, :latitude, "Latitude") %>
                       <%= text_input(f, :latitude,
                         placeholder: "Lat, e.g., 37.4286969",
-                        novalidate: true
+                        novalidate: true,
+                        phx_debounce: 5000,
+                        "x-on:input": "user_lat = $event.target.value"
                       ) %>
                       <%= error_tag(f, :latitude) %>
                     </div>
@@ -146,7 +154,9 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
                       <%= label(f, :longitude, "Longitude") %>
                       <%= text_input(f, :longitude,
                         placeholder: "Lon, e.g., -122.1721319",
-                        novalidate: true
+                        novalidate: true,
+                        phx_debounce: 5000,
+                        "x-on:input": "user_lon = $event.target.value"
                       ) %>
                       <%= error_tag(f, :longitude) %>
                     </div>
@@ -158,7 +168,8 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
                     <%= time_select(f, @attr.schema_field,
                       hour: [prompt: "[Unset]"],
                       minute: [prompt: "[Unset]"],
-                      class: "select"
+                      class: "select",
+                      phx_debounce: 5000
                     ) %>
                   </div>
                   <p class="support">
@@ -172,7 +183,8 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
                       year: [prompt: "[Unset]", options: DateTime.utc_now().year..1990],
                       month: [prompt: "[Unset]"],
                       day: [prompt: "[Unset]"],
-                      class: "select"
+                      class: "select",
+                      phx_debounce: 5000
                     ) %>
                   </div>
                   <p class="support">
@@ -180,19 +192,14 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
                   </p>
                   <%= error_tag(f, @attr.schema_field) %>
               <% end %>
-              <% val =
-                Map.get(@changeset.changes, @attr.schema_field, Map.get(@media, @attr.schema_field)) %>
-              <%= if @attr.type == :location and !is_nil(val) and val.coordinates |> Tuple.to_list |> Enum.all?(&(is_float(&1))) do %>
-                <% {lon, lat} = val.coordinates %>
+              <%= if @attr.type == :location do %>
                 <a
                   class="support text-urge-700 underline mt-4"
                   target="_blank"
-                  href={"https://maps.google.com/maps?q=#{lat},#{lon}"}
+                  x-show="user_lat != null && user_lon != null && user_lat.length > 0 && user_lon.length > 0"
+                  x-bind:href="'https://maps.google.com/maps?q=' + user_lat + ',' + user_lon"
                 >
-                  Preview
-                  <span class="font-bold">
-                    <.location lat={lat} lon={lon} />
-                  </span>
+                  Preview <span class="font-bold" x-text="user_lat + ', ' + user_lon"></span>
                   on Google Maps
                 </a>
               <% end %>
