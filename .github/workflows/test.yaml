@@ -9,8 +9,8 @@ jobs:
     name: OTP ${{matrix.otp}} / Elixir ${{matrix.elixir}}
     strategy:
       matrix:
-        otp: ['24.3']
-        elixir: ['1.13']
+        otp: ["24.3"]
+        elixir: ["1.13"]
     services:
       postgres:
         image: postgis/postgis:14-master
