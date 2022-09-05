@@ -2,7 +2,7 @@ name: Fly Deploy Platform
 on:
   push:
     branches:
-      - deployment/platform
+      - deployments/platform
 env:
   FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN_PROD }}
 jobs:

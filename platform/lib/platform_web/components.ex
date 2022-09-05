@@ -540,14 +540,9 @@ defmodule PlatformWeb.Components do
                 </a>
               </div>
             <% else %>
-              <div class="relative ml-[0.85em] mt-4 mr-4">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="h-3 w-3 ring-4 ring-white bg-white text-gray-400"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM7" clip-rule="evenodd" />
+              <div class="relative ml-[0.90em] mt-3 mr-4">
+                <svg viewBox="0 0 100 100" class="h-3 w-3 ring-4 ring-white bg-white text-gray-400">
+                  <circle cx="50" cy="50" r="40" stroke-width="3" fill="currentColor" />
                 </svg>
               </div>
             <% end %>
@@ -1401,7 +1396,7 @@ defmodule PlatformWeb.Components do
       <% media_id = "version-#{version.id}-media" %>
       <div class="relative">
         <%= if media_to_show do %>
-          <div id={media_id} x-if="!hidden" x-bind:class="hidden ? 'invisible' : ''">
+          <div id={media_id} x-bind:class="hidden ? 'invisible' : ''">
             <div x-bind:class="grayscale ? 'grayscale' : ''">
               <%= if String.starts_with?(version.mime_type, "image/") do %>
                 <img src={loc} class="w-full" />
