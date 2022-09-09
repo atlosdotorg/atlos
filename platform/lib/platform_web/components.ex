@@ -39,12 +39,14 @@ defmodule PlatformWeb.Components do
     >
       <div
         class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0"
-        @keydown.escape="window.closeModal()"
+        @keydown.escape="window.closeModal($event)"
+        phx-target={@target}
       >
         <div
           class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
           aria-hidden="true"
-          @click="window.closeModal()"
+          @click="window.closeModal($event)"
+          phx-target={@target}
         >
         </div>
         <!-- This element is to trick the browser into centering the modal contents. -->
@@ -57,7 +59,8 @@ defmodule PlatformWeb.Components do
             <button
               type="button"
               class="text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-urge-500 p-1"
-              @click="window.closeModal()"
+              @click="window.closeModal($event)"
+              phx-target={@target}
             >
               <span class="sr-only">Close</span>
               <!-- Heroicon name: outline/x -->

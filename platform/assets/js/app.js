@@ -30,8 +30,8 @@ mapboxgl.accessToken = 'pk.eyJ1IjoibWlsZXNtY2MiLCJhIjoiY2t6ZzdzZmY0MDRobjJvbXByd
 let Hooks = {};
 Hooks.Modal = {
     mounted() {
-        window.addEventListener("modal:close", () => {
-            this.pushEvent("close_modal", {});
+        window.addEventListener("modal:close", (event) => {
+            this.pushEventTo(event.detail.elem, "close_modal", {});
         })
     }
 }
@@ -281,9 +281,11 @@ function debounce(func, timeout = 25) {
 }
 
 // Used to centralize modal closing logic. See Hooks.Modal for core logic.
-window.closeModal = debounce(() => {
+window.closeModal = debounce((event) => {
+    // Find the target, if possible.
+    let elem = event.target;
     if (confirm("Are you sure you want to exit? Any unsaved changes will be lost.")) {
-        let event = new CustomEvent("modal:close");
+        let event = new CustomEvent("modal:close", { detail: { elem } });
         window.dispatchEvent(event);
     }
 });

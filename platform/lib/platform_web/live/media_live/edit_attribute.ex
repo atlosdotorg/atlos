@@ -221,7 +221,7 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
                 class: "button ~urge @high transition-all mr-2",
                 disabled: disabled
               ) %>
-              <button @click="closeModal()" type="button" class="base-button">
+              <button @click="closeModal($event)" type="button" class="base-button">
                 Cancel
               </button>
             </div>
