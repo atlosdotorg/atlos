@@ -29,7 +29,9 @@ defmodule Platform.Material.Attribute do
     # for selects and multiple selects
     :option_descriptions,
     # allows users to define their own options in a multi-select
-    :allow_user_defined_options
+    :allow_user_defined_options,
+    # allows the attribute to be embedded on another attribute's edit pane (i.e., combine attributes)
+    :parent
   ]
 
   defp renamed_attributes() do
@@ -216,6 +218,26 @@ defmodule Platform.Material.Attribute do
         pane: :attributes,
         required: false,
         name: :geolocation
+      },
+      %Attribute{
+        schema_field: :attr_geolocation_resolution,
+        type: :select,
+        label: "Geolocation Resolution",
+        pane: :not_shown,
+        required: true,
+        name: :geolocation_resolution,
+        parent: :geolocation,
+        options: [
+          "Exact",
+          "10m",
+          "25m",
+          "50m",
+          "100m",
+          "250m",
+          "500m",
+          "1km",
+          "General Area"
+        ]
       },
       %Attribute{
         schema_field: :attr_environment,
@@ -446,34 +468,64 @@ defmodule Platform.Material.Attribute do
   end
 
   def changeset(
-        media_or_changeset,
+        %Media{} = media,
         %Attribute{} = attribute,
         attrs \\ %{},
         user \\ nil,
-        verify_change_exists \\ true
+        verify_change_exists \\ true,
+        changeset \\ nil
       ) do
-    media_or_changeset
+    (changeset || media)
+    |> cast(%{}, [])
     |> populate_virtual_data(attribute)
     |> cast_attribute(attribute, attrs)
     |> validate_attribute(attribute, user)
     |> cast_and_validate_virtual_explanation(attrs, attribute)
     |> update_from_virtual_data(attribute)
-    |> then(fn changeset ->
-      if verify_change_exists, do: verify_change_exists(changeset, attribute), else: changeset
+    |> verify_user_can_edit(attribute, user, media)
+    |> then(fn c ->
+      if verify_change_exists, do: verify_change_exists(c, [attribute]), else: c
     end)
   end
 
-  defp populate_virtual_data(media, %Attribute{} = attribute) do
+  def combined_changeset(
+        %Media{} = media,
+        attributes,
+        attrs \\ %{},
+        user \\ nil,
+        verify_change_exists \\ true
+      ) do
+    Enum.reduce(attributes, media, fn elem, acc ->
+      changeset(media, elem, attrs, user, false, acc)
+    end)
+    |> then(fn c ->
+      if verify_change_exists, do: verify_change_exists(c, attributes), else: c
+    end)
+  end
+
+  def verify_user_can_edit(changeset, attribute, user, media) do
+    if is_nil(user) || can_user_edit(attribute, user, media) do
+      changeset
+    else
+      changeset
+      |> Ecto.Changeset.add_error(
+        attribute.schema_field,
+        "You do not have permission to edit this attribute."
+      )
+    end
+  end
+
+  defp populate_virtual_data(changeset, %Attribute{} = attribute) do
     case attribute.type do
       :location ->
-        with %Geo.Point{coordinates: {lon, lat}} <- Map.get(media, attribute.schema_field) do
-          media |> Map.put(:latitude, lat) |> Map.put(:longitude, lon)
+        with %Geo.Point{coordinates: {lon, lat}} <- get_field(changeset, attribute.schema_field) do
+          changeset |> put_change(:latitude, lat) |> put_change(:longitude, lon)
         else
-          _ -> media
+          _ -> changeset
         end
 
       _ ->
-        media
+        changeset
     end
   end
 
@@ -713,9 +765,10 @@ defmodule Platform.Material.Attribute do
     changeset
   end
 
-  defp verify_change_exists(changeset, %Attribute{} = attribute) do
-    if not Map.has_key?(changeset.changes, attribute.schema_field) do
-      changeset |> add_error(attribute.schema_field, "A change is required to post an update.")
+  defp verify_change_exists(changeset, attributes) do
+    if not Enum.any?(attributes, &Map.has_key?(changeset.changes, &1.schema_field)) do
+      changeset
+      |> add_error(hd(attributes).schema_field, "A change is required to post an update.")
     else
       changeset
     end
@@ -768,5 +821,12 @@ defmodule Platform.Material.Attribute do
 
   def requires_privileges_to_edit(%Attribute{} = attr) do
     is_list(attr.required_roles) and not Enum.empty?(attr.required_roles)
+  end
+
+  @doc """
+  Get the child attributes of the given parent attribute.
+  """
+  def get_children(parent_name) do
+    attributes() |> Enum.filter(&(&1.parent == parent_name))
   end
 end

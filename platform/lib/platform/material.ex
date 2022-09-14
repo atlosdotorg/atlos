@@ -489,6 +489,19 @@ defmodule Platform.Material do
   end
 
   @doc """
+  Changeset for multiple media attributes at a time. Delegates most functionality to change_media_attribute, so it also checks permissions.
+  """
+  def change_media_attributes(
+        %Media{} = media,
+        attributes,
+        %User{} = user,
+        attrs \\ %{},
+        verify_change_exists \\ true
+      ) do
+    Attribute.combined_changeset(media, attributes, attrs, user, verify_change_exists)
+  end
+
+  @doc """
   Changeset for the media attribute. Also checks permissions.
   """
   def change_media_attribute(
@@ -496,19 +509,16 @@ defmodule Platform.Material do
         %Attribute{} = attribute,
         %User{} = user,
         attrs \\ %{},
-        verify_change_exists \\ true
+        verify_change_exists \\ true,
+        changeset \\ nil
       ) do
-    changeset = Attribute.changeset(media, attribute, attrs, user, verify_change_exists)
-
-    if Attribute.can_user_edit(attribute, user, media) do
-      changeset
-    else
-      changeset
-      |> Ecto.Changeset.add_error(
-        attribute.schema_field,
-        "You do not have permission to edit this attribute."
-      )
-    end
+    Attribute.combined_changeset(
+      changeset || media,
+      attribute,
+      attrs,
+      user,
+      verify_change_exists
+    )
   end
 
   def update_media_attribute(media, %Attribute{} = attribute, attrs, user \\ nil) do
@@ -522,14 +532,31 @@ defmodule Platform.Material do
     result
   end
 
+  def update_media_attributes(media, attributes, attrs, user \\ nil) do
+    result =
+      change_media_attributes(media, attributes, user, attrs)
+      |> Repo.update()
+
+    invalidate_attribute_values_cache()
+
+    result
+  end
+
   @doc """
   Do an audited update of the given attribute. Will broadcast change via PubSub.
   """
   def update_media_attribute_audited(media, %Attribute{} = attribute, %User{} = user, attrs) do
-    media_changeset = change_media_attribute(media, attribute, user, attrs)
+    update_media_attributes_audited(media, [attribute], user, attrs)
+  end
+
+  @doc """
+  Do an audited update of the given attributes. Will broadcast change via PubSub.
+  """
+  def update_media_attributes_audited(media, attributes, %User{} = user, attrs) do
+    media_changeset = change_media_attributes(media, attributes, user, attrs)
 
     update_changeset =
-      Updates.change_from_attribute_changeset(media, attribute, user, media_changeset, attrs)
+      Updates.change_from_attributes_changeset(media, attributes, user, media_changeset, attrs)
 
     # Make sure both changesets are valid
     cond do
@@ -539,7 +566,7 @@ defmodule Platform.Material do
       true ->
         Repo.transaction(fn ->
           {:ok, _} = Updates.create_update_from_changeset(update_changeset)
-          {:ok, res} = update_media_attribute(media, attribute, attrs, user)
+          {:ok, res} = update_media_attributes(media, attributes, attrs, user)
           res
         end)
     end

@@ -16,6 +16,7 @@ defmodule Platform.Material.Media do
     # Core Attributes
     field :attr_description, :string
     field :attr_geolocation, Geo.PostGIS.Geometry
+    field :attr_geolocation_resolution, :string
     field :attr_more_info, :string
     field :attr_date, :date
     field :attr_type, {:array, :string}

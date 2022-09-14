@@ -119,25 +119,31 @@ defmodule Platform.Updates do
   end
 
   @doc """
-  Helper API function that takes attribute change information and uses it to create an Update changeset. Requires 'explanation' to be in attrs.
+  Helper API function that takes attributes change information and uses it to create an Update changeset. Requires 'explanation' to be in attrs. The change is recorded as belonging to the head of `attributes`; all other attributes should be children of the first element.
   """
-  def change_from_attribute_changeset(
+  def change_from_attributes_changeset(
         %Media{} = media,
-        %Attribute{} = attribute,
+        attributes,
         %User{} = user,
         changeset,
         attrs \\ %{}
       ) do
     # We add the _combined field so that it's unambiguous when a dict represents a collection of schema fields changing
     old_value =
-      %{attribute.schema_field => Map.get(media, attribute.schema_field), "_combined" => true}
+      attributes
+      |> Enum.map(&{&1.schema_field, Map.get(media, &1.schema_field)})
+      |> Map.new()
+      |> Map.put("_combined", true)
       |> Jason.encode!()
 
     new_value =
-      %{
-        attribute.schema_field => Map.get(changeset.changes, attribute.schema_field),
-        "_combined" => true
-      }
+      attributes
+      |> Enum.map(
+        &{&1.schema_field,
+         Map.get(changeset.changes, &1.schema_field, Map.get(media, &1.schema_field))}
+      )
+      |> Map.new()
+      |> Map.put("_combined", true)
       |> Jason.encode!()
 
     change_update(
@@ -147,7 +153,7 @@ defmodule Platform.Updates do
       attrs
       |> Map.put("old_value", old_value)
       |> Map.put("new_value", new_value)
-      |> Map.put("modified_attribute", attribute.name)
+      |> Map.put("modified_attribute", hd(attributes).name)
       |> Map.put("type", :update_attribute)
     )
   end
