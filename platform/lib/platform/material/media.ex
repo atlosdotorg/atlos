@@ -121,9 +121,7 @@ defmodule Platform.Material.Media do
         Map.put(acc, k, v)
       end)
 
-    Enum.reduce(Attribute.active_attributes(), media, fn attr, acc ->
-      Attribute.changeset(acc, attr, attrs, nil, false)
-    end)
+    Attribute.combined_changeset(media, Attribute.active_attributes(), attrs, nil, false)
   end
 
   def attribute_ratio(%Media{} = media) do

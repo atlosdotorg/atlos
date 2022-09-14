@@ -222,9 +222,9 @@ defmodule Platform.Material.Attribute do
       %Attribute{
         schema_field: :attr_geolocation_resolution,
         type: :select,
-        label: "Geolocation Resolution",
+        label: "Precision",
         pane: :not_shown,
-        required: true,
+        required: false,
         name: :geolocation_resolution,
         parent: :geolocation,
         options: [

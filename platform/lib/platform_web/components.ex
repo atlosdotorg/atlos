@@ -778,6 +778,8 @@ defmodule PlatformWeb.Components do
           current_user: current_user
         } = assigns
       ) do
+    children = Attribute.get_children(attr.name)
+
     ~H"""
     <div class="py-2 sm:grid sm:grid-cols-3 sm:gap-2">
       <dt class="text-sm font-medium text-gray-500 mt-1 flex justify-between items-center flex-wrap">
@@ -816,6 +818,15 @@ defmodule PlatformWeb.Components do
       <dd class="mt-1 flex items-center text-sm text-gray-900 sm:mt-0 sm:col-span-2">
         <span class="flex-grow gap-1 flex flex-wrap">
           <.attr_entry name={attr.name} value={Map.get(media, attr.schema_field)} />
+          <%= for child <- children do %>
+            <%= if not is_nil(Map.get(media, child.schema_field)) do %>
+              <.attr_entry
+                name={child.name}
+                value={Map.get(media, child.schema_field)}
+                label={child.label}
+              />
+            <% end %>
+          <% end %>
         </span>
         <span class="ml-4 flex-shrink-0">
           <%= if Attribute.can_user_edit(attr, current_user, media) do %>
@@ -830,23 +841,36 @@ defmodule PlatformWeb.Components do
     """
   end
 
+  def attr_label(%{label: label} = assigns) do
+    ~H"""
+    <%= if String.length(label) > 0 do %>
+      <span class="opacity-[70%]"><%= label %>:</span>
+    <% end %>
+    """
+  end
+
   def attr_entry(%{name: name, value: value} = assigns) do
     attr = Attribute.get_attribute(name)
+
+    label = Map.get(assigns, :label, "")
 
     ~H"""
     <span class="inline-flex flex-wrap gap-1 max-w-full">
       <%= case attr.type do %>
         <% :text -> %>
           <div class="inline-block prose prose-sm my-px">
+            <.attr_label label={label} />
             <%= raw(value |> Utils.render_markdown()) %>
           </div>
         <% :select -> %>
           <div class="inline-block">
             <div class="chip ~neutral inline-block self-start break-all xl:break-normal">
+              <.attr_label label={label} />
               <%= value %>
             </div>
           </div>
         <% :multi_select -> %>
+          <.attr_label label={label} />
           <%= for item <- value do %>
             <div class="chip ~neutral inline-block self-start break-all xl:break-normal">
               <%= item %>
@@ -860,18 +884,21 @@ defmodule PlatformWeb.Components do
               target="_blank"
               href={"https://maps.google.com/maps?q=#{lat},#{lon}"}
             >
+              <.attr_label label={label} />
               <.location lat={lat} lon={lon} />
             </a>
           </div>
         <% :time -> %>
           <div class="inline-block">
             <div class="chip ~neutral inline-block self-start break-all xl:break-normal">
+              <.attr_label label={label} />
               <%= value %>
             </div>
           </div>
         <% :date -> %>
           <div class="inline-block">
             <div class="chip ~neutral inline-block self-start break-all xl:break-normal">
+              <.attr_label label={label} />
               <%= value %>
             </div>
           </div>
@@ -989,6 +1016,7 @@ defmodule PlatformWeb.Components do
 
     ~H"""
     <span class="text-sm">
+      <.attr_label label={Map.get(assigns, :label, "")} />
       <%= for {action, elem} <- diff do %>
         <%= for val <- elem do %>
           <%= case action do %>
@@ -1026,19 +1054,22 @@ defmodule PlatformWeb.Components do
           <% :eq -> %>
             <%= for item <- elem do %>
               <span class="chip ~neutral inline-block text-xs">
+                <.attr_label label={Map.get(assigns, :label, "")} />
                 <%= item %>
               </span>
             <% end %>
           <% :ins -> %>
             <%= for item <- elem do %>
               <span class="chip ~blue inline-block text-xs">
-                + <%= item %>
+                + <.attr_label label={Map.get(assigns, :label, "")} />
+                <%= item %>
               </span>
             <% end %>
           <% :del -> %>
             <%= for item <- elem do %>
               <span class="chip ~yellow inline-block text-xs">
-                - <%= item %>
+                - <.attr_label label={Map.get(assigns, :label, "")} />
+                <%= item %>
               </span>
             <% end %>
         <% end %>
@@ -1050,27 +1081,44 @@ defmodule PlatformWeb.Components do
   def location_diff(%{old: old, new: new} = assigns) do
     ~H"""
     <span>
-      <%= case old do %>
-        <% %{"coordinates" => [lon, lat]} -> %>
-          <a
-            class="chip ~yellow inline-flex text-xs"
-            target="_blank"
-            href={"https://maps.google.com/maps?q=#{lat},#{lon}"}
-          >
-            - <.location lat={lat} lon={lon} />
-          </a>
-        <% _x -> %>
-      <% end %>
-      <%= case new do %>
-        <% %{"coordinates" => [lon, lat]} -> %>
-          <a
-            class="chip ~blue inline-flex text-xs"
-            target="_blank"
-            href={"https://maps.google.com/maps?q=#{lat},#{lon}"}
-          >
-            + <.location lat={lat} lon={lon} />
-          </a>
-        <% _x -> %>
+      <%= if old != new do %>
+        <%= case old do %>
+          <% %{"coordinates" => [lon, lat]} -> %>
+            <a
+              class="chip ~yellow inline-flex text-xs"
+              target="_blank"
+              href={"https://maps.google.com/maps?q=#{lat},#{lon}"}
+            >
+              - <.attr_label label={Map.get(assigns, :label, "")} />
+              <.location lat={lat} lon={lon} />
+            </a>
+          <% _x -> %>
+        <% end %>
+        <%= case new do %>
+          <% %{"coordinates" => [lon, lat]} -> %>
+            <a
+              class="chip ~blue inline-flex text-xs"
+              target="_blank"
+              href={"https://maps.google.com/maps?q=#{lat},#{lon}"}
+            >
+              + <.attr_label label={Map.get(assigns, :label, "")} />
+              <.location lat={lat} lon={lon} />
+            </a>
+          <% _x -> %>
+        <% end %>
+      <% else %>
+        <%= case new do %>
+          <% %{"coordinates" => [lon, lat]} -> %>
+            <a
+              class="chip ~neutral inline-flex text-xs"
+              target="_blank"
+              href={"https://maps.google.com/maps?q=#{lat},#{lon}"}
+            >
+              <.attr_label label={Map.get(assigns, :label, "")} />
+              <.location lat={lat} lon={lon} />
+            </a>
+          <% _x -> %>
+        <% end %>
       <% end %>
     </span>
     """
@@ -1078,6 +1126,8 @@ defmodule PlatformWeb.Components do
 
   def attr_diff(%{name: name, old: old, new: new} = assigns) do
     attr = Attribute.get_attribute(name)
+    label = Map.get(assigns, :label, "")
+    children = Attribute.get_children(name)
 
     # It's possible to encode changes to multiple schema fields in one update, but some legacy/existing updates
     # have their values encoded in the old format, so we perform a render-time conversion here.
@@ -1092,25 +1142,34 @@ defmodule PlatformWeb.Components do
         else: new
 
     ~H"""
-    <span>
-      <%= case attr.type do %>
-        <% :text -> %>
-          <.text_diff old={old_val} new={new_val} />
-        <% :select -> %>
-          <.list_diff old={[old_val]} new={[new_val]} />
-        <% :multi_select -> %>
-          <.list_diff
-            old={if is_list(old_val), do: old_val, else: [old_val]}
-            new={if is_list(new_val), do: new_val, else: [new_val]}
-          />
-        <% :location -> %>
-          <.location_diff old={old_val} new={new_val} />
-        <% :time -> %>
-          <.list_diff old={[old_val]} new={[new_val]} />
-        <% :date -> %>
-          <.list_diff old={[old_val]} new={[new_val]} />
+    <div class="inline-block">
+      <span>
+        <%= case attr.type do %>
+          <% :text -> %>
+            <.text_diff old={old_val} new={new_val} label={label} />
+          <% :select -> %>
+            <.list_diff old={[old_val]} new={[new_val]} label={label} />
+          <% :multi_select -> %>
+            <.list_diff
+              old={if is_list(old_val), do: old_val, else: [old_val]}
+              label={label}
+              new={if is_list(new_val), do: new_val, else: [new_val]}
+              label={label}
+            />
+          <% :location -> %>
+            <.location_diff old={old_val} new={new_val} label={label} />
+          <% :time -> %>
+            <.list_diff old={[old_val]} new={[new_val]} label={label} />
+          <% :date -> %>
+            <.list_diff old={[old_val]} new={[new_val]} label={label} />
+        <% end %>
+      </span>
+      <%= if Material.is_combined_update_value(old) and Material.is_combined_update_value(new) do %>
+        <%= for child <- children do %>
+          <.attr_diff name={child.name} old={old} new={new} label={child.label} />
+        <% end %>
       <% end %>
-    </span>
+    </div>
     """
   end
 
