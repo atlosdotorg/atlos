@@ -1091,8 +1091,6 @@ defmodule PlatformWeb.Components do
         do: new |> Map.get(attr.schema_field |> to_string()),
         else: new
 
-    IO.inspect(new_val)
-
     ~H"""
     <span>
       <%= case attr.type do %>
