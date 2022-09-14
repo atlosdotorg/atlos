@@ -128,8 +128,17 @@ defmodule Platform.Updates do
         changeset,
         attrs \\ %{}
       ) do
-    old_value = Map.get(media, attribute.schema_field) |> Jason.encode!()
-    new_value = Map.get(changeset.changes, attribute.schema_field) |> Jason.encode!()
+    # We add the _combined field so that it's unambiguous when a dict represents a collection of schema fields changing
+    old_value =
+      %{attribute.schema_field => Map.get(media, attribute.schema_field), "_combined" => true}
+      |> Jason.encode!()
+
+    new_value =
+      %{
+        attribute.schema_field => Map.get(changeset.changes, attribute.schema_field),
+        "_combined" => true
+      }
+      |> Jason.encode!()
 
     change_update(
       %Update{},

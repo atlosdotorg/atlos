@@ -1079,24 +1079,38 @@ defmodule PlatformWeb.Components do
   def attr_diff(%{name: name, old: old, new: new} = assigns) do
     attr = Attribute.get_attribute(name)
 
+    # It's possible to encode changes to multiple schema fields in one update, but some legacy/existing updates
+    # have their values encoded in the old format, so we perform a render-time conversion here.
+    old_val =
+      if Material.is_combined_update_value(old),
+        do: old |> Map.get(attr.schema_field |> to_string()),
+        else: old
+
+    new_val =
+      if Material.is_combined_update_value(new),
+        do: new |> Map.get(attr.schema_field |> to_string()),
+        else: new
+
+    IO.inspect(new_val)
+
     ~H"""
     <span>
       <%= case attr.type do %>
         <% :text -> %>
-          <.text_diff old={old} new={new} />
+          <.text_diff old={old_val} new={new_val} />
         <% :select -> %>
-          <.list_diff old={[old]} new={[new]} />
+          <.list_diff old={[old_val]} new={[new_val]} />
         <% :multi_select -> %>
           <.list_diff
-            old={if is_list(old), do: old, else: [old]}
-            new={if is_list(new), do: new, else: [new]}
+            old={if is_list(old_val), do: old_val, else: [old_val]}
+            new={if is_list(new_val), do: new_val, else: [new_val]}
           />
         <% :location -> %>
-          <.location_diff old={old} new={new} />
+          <.location_diff old={old_val} new={new_val} />
         <% :time -> %>
-          <.list_diff old={[old]} new={[new]} />
+          <.list_diff old={[old_val]} new={[new_val]} />
         <% :date -> %>
-          <.list_diff old={[old]} new={[new]} />
+          <.list_diff old={[old_val]} new={[new_val]} />
       <% end %>
     </span>
     """

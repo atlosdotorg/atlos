@@ -545,6 +545,21 @@ defmodule Platform.Material do
     end
   end
 
+  @doc """
+  Returns whether the update change attribute is combined or legacy. Prior to September 2022, update
+  change values (e.g., `new` or `old`) were JSON encodings of the schema field value; now, update values
+  are a dictionary of schema fields and their values. This allows us to encode changes to fields in the same
+  update.
+  """
+  def is_combined_update_value(value) do
+    with true <- is_map(value),
+         true <- Map.get(value, "_combined", false) do
+      true
+    else
+      _ -> false
+    end
+  end
+
   def get_subscription(%Media{} = media, %User{} = user) do
     Repo.get_by(MediaSubscription, media_id: media.id, user_id: user.id)
   end
