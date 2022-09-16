@@ -213,6 +213,8 @@ defmodule Platform.Material.Attribute do
       },
       %Attribute{
         schema_field: :attr_geolocation,
+        description:
+          "Provide the maximum precision possible. For incidents that span multiple locations (e.g., movement down a street or a fire), choose a representative verifiable location. All geolocations must be confirmable visually.",
         type: :location,
         label: "Geolocation",
         pane: :attributes,
@@ -229,15 +231,14 @@ defmodule Platform.Material.Attribute do
         parent: :geolocation,
         options: [
           "Exact",
-          "10m",
-          "25m",
-          "50m",
-          "100m",
-          "250m",
-          "500m",
-          "1km",
-          "General Area"
-        ]
+          "Vicinity",
+          "Locality"
+        ],
+        option_descriptions: %{
+          "Exact" => "Maximum precision (± 10m)",
+          "Vicinity" => "Same street, block, field, etc. (± 1km)",
+          "Locality" => "Same town, village, neighbood, city, etc. (± 10km)"
+        }
       },
       %Attribute{
         schema_field: :attr_environment,
