@@ -79,7 +79,7 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
     disabled = !assigns.changeset.valid?
 
     ~H"""
-    <article x-data="{user_lat: null, user_lon: null}">
+    <article x-data="{user_loc: null}">
       <.modal target={@myself} close_confirmation={confirm_prompt}>
         <div class="md:flex justify-between">
           <div>
@@ -145,24 +145,15 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
                   <% :location -> %>
                     <div class="space-y-4">
                       <div>
-                        <%= label(f, :latitude, "Latitude") %>
-                        <%= text_input(f, :latitude,
-                          placeholder: "Lat, e.g., 37.4286969",
+                        <%= label(f, :location, "Location (latitude, longitude)") %>
+                        <%= text_input(f, :location,
+                          placeholder:
+                            "Comma-separated coordinates (lat, lon). E.g., 37.428696, -122.172131.",
                           novalidate: true,
                           phx_debounce: 5000,
-                          "x-on:input": "user_lat = $event.target.value"
+                          "x-on:input": "user_loc = $event.target.value"
                         ) %>
-                        <%= error_tag(f, :latitude) %>
-                      </div>
-                      <div>
-                        <%= label(f, :longitude, "Longitude") %>
-                        <%= text_input(f, :longitude,
-                          placeholder: "Lon, e.g., -122.1721319",
-                          novalidate: true,
-                          phx_debounce: 5000,
-                          "x-on:input": "user_lon = $event.target.value"
-                        ) %>
-                        <%= error_tag(f, :longitude) %>
+                        <%= error_tag(f, :location) %>
                       </div>
                       <%= error_tag(f, attr.schema_field) %>
                     </div>
@@ -200,11 +191,10 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
                   <a
                     class="support text-urge-700 underline mt-4"
                     target="_blank"
-                    x-show="user_lat != null && user_lon != null && user_lat.length > 0 && user_lon.length > 0"
-                    x-bind:href="'https://maps.google.com/maps?q=' + user_lat + ',' + user_lon"
+                    x-show="user_loc != null && user_loc.length > 0"
+                    x-bind:href="'https://maps.google.com/maps?q=' + user_loc.replace(' ', '')"
                   >
-                    Preview <span class="font-bold" x-text="user_lat + ', ' + user_lon"></span>
-                    on Google Maps
+                    Preview <span class="font-bold" x-text="user_loc"></span> on Google Maps
                   </a>
                 <% end %>
               </div>

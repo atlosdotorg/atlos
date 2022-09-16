@@ -43,8 +43,7 @@ defmodule Platform.Material.Media do
 
     # Virtual attributes for updates + multi-part attributes
     field :explanation, :string, virtual: true
-    field :latitude, :float, virtual: true
-    field :longitude, :float, virtual: true
+    field :location, :string, virtual: true
 
     # Metadata
     timestamps()

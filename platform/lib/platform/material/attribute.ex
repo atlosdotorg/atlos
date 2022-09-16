@@ -214,7 +214,7 @@ defmodule Platform.Material.Attribute do
       %Attribute{
         schema_field: :attr_geolocation,
         description:
-          "Provide the maximum precision possible. For incidents that span multiple locations (e.g., movement down a street or a fire), choose a representative verifiable location. All geolocations must be confirmable visually.",
+          "For incidents that span multiple locations (e.g., movement down a street or a fire), choose a representative verifiable location. All geolocations must be confirmable visually.",
         type: :location,
         label: "Geolocation",
         pane: :attributes,
@@ -236,8 +236,8 @@ defmodule Platform.Material.Attribute do
         ],
         option_descriptions: %{
           "Exact" => "Maximum precision (± 10m)",
-          "Vicinity" => "Same street, block, field, etc. (± 1km)",
-          "Locality" => "Same town, village, neighbood, city, etc. (± 10km)"
+          "Vicinity" => "Same complex, block, field, etc. (± 100m)",
+          "Locality" => "Same neighborhood, village, etc. (± 1km)"
         }
       },
       %Attribute{
@@ -520,7 +520,7 @@ defmodule Platform.Material.Attribute do
     case attribute.type do
       :location ->
         with %Geo.Point{coordinates: {lon, lat}} <- get_field(changeset, attribute.schema_field) do
-          changeset |> put_change(:latitude, lat) |> put_change(:longitude, lon)
+          changeset |> put_change(:location, to_string(lat) <> ", " <> to_string(lon))
         else
           _ -> changeset
         end
@@ -533,15 +533,42 @@ defmodule Platform.Material.Attribute do
   defp update_from_virtual_data(changeset, %Attribute{} = attribute) do
     case attribute.type do
       :location ->
-        lat = Map.get(changeset.changes, :latitude, changeset.data.latitude)
-        lon = Map.get(changeset.changes, :longitude, changeset.data.longitude)
+        error_msg =
+          "Unable to parse this location; please enter a latitude-longitude pair separated by commas."
 
-        if is_nil(lat) or is_nil(lon) do
-          changeset
-          |> put_change(attribute.schema_field, nil)
-        else
-          changeset
-          |> put_change(attribute.schema_field, %Geo.Point{coordinates: {lon, lat}, srid: 4326})
+        coords =
+          Map.get(changeset.changes, :location, changeset.data.location)
+          |> String.trim()
+          |> String.split(",")
+
+        case coords do
+          [""] ->
+            changeset
+            |> put_change(attribute.schema_field, nil)
+
+          [lat_string, lon_string] ->
+            with {lat, ""} <- Float.parse(lat_string |> String.trim()),
+                 {lon, ""} <- Float.parse(lon_string |> String.trim()) do
+              changeset
+              |> put_change(attribute.schema_field, %Geo.Point{
+                coordinates: {lon, lat},
+                srid: 4326
+              })
+            else
+              _ ->
+                changeset
+                |> add_error(
+                  attribute.schema_field,
+                  error_msg
+                )
+            end
+
+          _ ->
+            changeset
+            |> add_error(
+              attribute.schema_field,
+              error_msg
+            )
         end
 
       _ ->
@@ -562,7 +589,7 @@ defmodule Platform.Material.Attribute do
         # TODO: Is there an idiomatic way to clean this up?
         :location ->
           changeset
-          |> cast(attrs, [:latitude, :longitude])
+          |> cast(attrs, [:location])
 
         _ ->
           changeset
@@ -576,9 +603,6 @@ defmodule Platform.Material.Attribute do
         changeset.errors
         |> Enum.map(fn {attr, {error_message, metadata}} ->
           cond do
-            Enum.member?([:latitude, :longitude], attr) ->
-              {attr, {"Please enter a valid coordinate (e.g., 37.4286969).", metadata}}
-
             attribute.type == :time and attr == attribute.schema_field ->
               {attr, {"Time must include an hour and minute.", metadata}}
 
@@ -665,20 +689,6 @@ defmodule Platform.Material.Attribute do
             min: attribute.min_length,
             max: attribute.max_length
           )
-
-        :location ->
-          lat = Map.get(changeset.changes, :latitude, changeset.data.latitude)
-          lon = Map.get(changeset.changes, :longitude, changeset.data.longitude)
-
-          if is_nil(lon) != is_nil(lat) do
-            changeset
-            |> add_error(
-              :longitude,
-              "Both latitude and longitude are required. To clear the geolocation, set both latitude and longitude to blank."
-            )
-          else
-            changeset
-          end
 
         _ ->
           changeset
