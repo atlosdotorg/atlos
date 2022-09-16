@@ -68,6 +68,7 @@ defmodule PlatformWeb.Router do
   scope "/", PlatformWeb do
     pipe_through([:browser, :interstitial])
     get("/users/suspended", UserRegistrationController, :suspended)
+    get("/users/no_access", UserRegistrationController, :no_access)
   end
 
   scope "/", PlatformWeb do
@@ -134,6 +135,8 @@ defmodule PlatformWeb.Router do
       live("/adminland/", AdminlandLive.Index, :activity)
       live("/adminland/users", AdminlandLive.Index, :users)
       live("/adminland/activity", AdminlandLive.Index, :activity)
+      live("/adminland/security", AdminlandLive.Index, :security)
+      live("/adminland/security/update", AdminlandLive.Index, :security_mode_create)
       live("/adminland/upload", AdminlandLive.Index, :upload)
       live("/adminland/api", AdminlandLive.Index, :api)
       live("/adminland/api/new", AdminlandLive.Index, :api_new)

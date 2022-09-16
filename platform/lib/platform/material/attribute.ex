@@ -537,7 +537,7 @@ defmodule Platform.Material.Attribute do
           "Unable to parse this location; please enter a latitude-longitude pair separated by commas."
 
         coords =
-          Map.get(changeset.changes, :location, changeset.data.location)
+          Map.get(changeset.changes, :location, changeset.data.location || "")
           |> String.trim()
           |> String.split(",")
 

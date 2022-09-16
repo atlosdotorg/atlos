@@ -331,6 +331,13 @@ defmodule Platform.Accounts do
     :ok
   end
 
+  @doc """
+  Deletes all session tokens.
+  """
+  def delete_all_session_tokens() do
+    Repo.delete_all(from Platform.Accounts.UserToken, where: [context: "session"])
+  end
+
   ## Confirmation
 
   @doc """

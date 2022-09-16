@@ -152,13 +152,22 @@ defmodule PlatformWeb.UserAuth do
   """
   def require_authenticated_user(conn, _opts) do
     if conn.assigns[:current_user] do
-      if Accounts.is_suspended(conn.assigns[:current_user]) do
-        conn
-        |> clear_session()
-        |> redirect(to: Routes.user_registration_path(conn, :suspended))
-        |> halt()
-      else
-        conn
+      cond do
+        Accounts.is_suspended(conn.assigns[:current_user]) ->
+          conn
+          |> clear_session()
+          |> redirect(to: Routes.user_registration_path(conn, :suspended))
+          |> halt()
+
+        !Accounts.is_admin(conn.assigns[:current_user]) &&
+            Platform.Security.get_security_mode_state() == :no_access ->
+          conn
+          |> clear_session()
+          |> redirect(to: Routes.user_registration_path(conn, :no_access))
+          |> halt()
+
+        true ->
+          conn
       end
     else
       conn

@@ -18,7 +18,15 @@ defmodule Platform.Security do
 
   """
   def list_security_modes do
-    Repo.all(SecurityMode)
+    Repo.all(SecurityMode |> preload(:user) |> order_by(desc: :id))
+  end
+
+  defp get_current_state() do
+    Repo.one(
+      from x in Platform.Security.SecurityMode,
+        order_by: [desc: x.id],
+        limit: 1
+    )
   end
 
   @doc """
@@ -30,9 +38,24 @@ defmodule Platform.Security do
       :normal
   """
   def get_security_mode_state do
-    case Repo.one(from x in Platform.Security.SecurityMode, order_by: [desc: x.id], limit: 1) do
+    case get_current_state() do
       nil -> :normal
       value -> value.mode
+    end
+  end
+
+  @doc """
+  Gets the current security mode state.
+
+  ## Examples
+
+      iex> get_security_mode_state()
+      :normal
+  """
+  def get_security_mode_description do
+    case get_current_state() do
+      nil -> ""
+      value -> value.description
     end
   end
 

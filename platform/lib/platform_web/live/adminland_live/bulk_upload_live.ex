@@ -382,7 +382,6 @@ defmodule PlatformWeb.AdminlandLive.BulkUploadLive do
                         <li>
                           <strong class="font-semibold">Row <%= idx %></strong>
                           <%= for {key, errors} <- extract_errors(changeset) |> Map.to_list() do %>
-                            <% {key, errors} |> IO.inspect() %>
                             <p>
                               <%= (Material.Attribute.get_attribute_by_schema_field(key) ||
                                      %{name: key}).name

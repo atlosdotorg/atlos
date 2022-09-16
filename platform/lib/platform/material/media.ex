@@ -157,18 +157,24 @@ defmodule Platform.Material.Media do
   """
   def can_user_edit(%Media{} = media, %User{} = user) do
     # This logic would be nice to refactor into a `with` statement
-    case Enum.member?(user.restrictions || [], :muted) do
-      true ->
-        false
+    case Platform.Security.get_security_mode_state() do
+      :normal ->
+        case Enum.member?(user.restrictions || [], :muted) do
+          true ->
+            false
 
-      false ->
-        if Accounts.is_privileged(user) do
-          true
-        else
-          not (Enum.member?(media.attr_restrictions || [], "Hidden") ||
-                 Enum.member?(media.attr_restrictions || [], "Frozen") ||
-                 media.attr_status == "Completed" || media.attr_status == "Cancelled")
+          false ->
+            if Accounts.is_privileged(user) do
+              true
+            else
+              not (Enum.member?(media.attr_restrictions || [], "Hidden") ||
+                     Enum.member?(media.attr_restrictions || [], "Frozen") ||
+                     media.attr_status == "Completed" || media.attr_status == "Cancelled")
+            end
         end
+
+      _ ->
+        Accounts.is_admin(user)
     end
   end
 
@@ -176,23 +182,39 @@ defmodule Platform.Material.Media do
   Can the user comment on the media?
   """
   def can_user_comment(%Media{} = media, %User{} = user) do
-    case Enum.member?(user.restrictions || [], :muted) do
-      true ->
-        false
+    case Platform.Security.get_security_mode_state() do
+      :normal ->
+        case Enum.member?(user.restrictions || [], :muted) do
+          true ->
+            false
 
-      false ->
-        case media.attr_restrictions do
-          nil ->
-            true
+          false ->
+            case media.attr_restrictions do
+              nil ->
+                true
 
-          values ->
-            # Restrictions are present.
-            if Enum.member?(values, "Hidden") || Enum.member?(values, "Frozen") do
-              Accounts.is_privileged(user)
-            else
-              true
+              values ->
+                # Restrictions are present.
+                if Enum.member?(values, "Hidden") || Enum.member?(values, "Frozen") do
+                  Accounts.is_privileged(user)
+                else
+                  true
+                end
             end
         end
+
+      _ ->
+        Accounts.is_admin(user)
+    end
+  end
+
+  def can_user_create(%User{} = user) do
+    case Platform.Security.get_security_mode_state() do
+      :normal ->
+        true
+
+      _ ->
+        Accounts.is_admin(user)
     end
   end
 
