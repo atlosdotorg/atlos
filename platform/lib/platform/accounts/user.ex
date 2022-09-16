@@ -139,6 +139,13 @@ defmodule Platform.Accounts.User do
     end
   end
 
+  defp verify_otp_code(secret, code) do
+    time = System.os_time(:second)
+
+    NimbleTOTP.valid?(secret, code, time: time) or
+      NimbleTOTP.valid?(secret, code, time: time - 30)
+  end
+
   @doc """
   A user changeset for changing the email.
 
@@ -168,7 +175,7 @@ defmodule Platform.Accounts.User do
 
     changeset
     |> validate_change(:current_otp_code, fn _, code ->
-      if NimbleTOTP.valid?(secret, code) do
+      if verify_otp_code(secret, code) do
         []
       else
         [current_otp_code: "This code is not valid."]
@@ -193,7 +200,7 @@ defmodule Platform.Accounts.User do
       end
     end)
     |> validate_change(:current_otp_code, fn _, code ->
-      if NimbleTOTP.valid?(user.otp_secret, code) do
+      if verify_otp_code(user.otp_secret, code) do
         []
       else
         [current_otp_code: "This code is not valid."]
@@ -208,7 +215,7 @@ defmodule Platform.Accounts.User do
     user
     |> cast(attrs, [:current_otp_code])
     |> validate_change(:current_otp_code, fn _, code ->
-      if NimbleTOTP.valid?(user.otp_secret, code) do
+      if verify_otp_code(user.otp_secret, code) do
         []
       else
         [current_otp_code: "This code is not valid."]
