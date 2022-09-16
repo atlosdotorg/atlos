@@ -500,4 +500,8 @@ defmodule Platform.Accounts do
   def is_muted(%User{} = user) do
     Enum.member?(user.restrictions || [], :muted)
   end
+
+  def is_bot(%User{} = user) do
+    user.username == "Atlos"
+  end
 end
