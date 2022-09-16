@@ -192,7 +192,7 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
                     class="support text-urge-700 underline mt-4"
                     target="_blank"
                     x-show="user_loc != null && user_loc.length > 0"
-                    x-bind:href="'https://maps.google.com/maps?q=' + user_loc.replace(' ', '')"
+                    x-bind:href="'https://maps.google.com/maps?q=' + (user_loc || '').replace(' ', '')"
                   >
                     Preview <span class="font-bold" x-text="user_loc"></span> on Google Maps
                   </a>
