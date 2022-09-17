@@ -3,7 +3,6 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
   alias Platform.Material
   alias Platform.Utils
   alias Platform.Auditor
-  alias Platform.Workers.Archiver
   alias Platform.Uploads
 
   def update(assigns, socket) do

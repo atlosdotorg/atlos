@@ -11,8 +11,13 @@ defmodule Platform.SecurityTest do
     @invalid_attrs %{description: nil, mode: nil}
 
     test "list_security_modes/0 returns all security_modes" do
-      security_mode = security_mode_fixture()
-      assert Security.list_security_modes() == [security_mode]
+      assert length(Security.list_security_modes()) == 0
+
+      security_mode_fixture()
+      assert length(Security.list_security_modes()) == 1
+
+      security_mode_fixture()
+      assert length(Security.list_security_modes()) == 2
     end
 
     test "get_security_mode_state/0 gets the current security mode" do

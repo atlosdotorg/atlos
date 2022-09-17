@@ -8,7 +8,6 @@ defmodule Platform.Updates do
 
   alias Platform.Utils
   alias Platform.Updates.Update
-  alias Platform.Material.Attribute
   alias Platform.Material.Media
   alias Platform.Material.MediaVersion
   alias Platform.Accounts.User
