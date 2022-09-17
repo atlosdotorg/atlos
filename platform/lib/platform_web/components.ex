@@ -92,13 +92,17 @@ defmodule PlatformWeb.Components do
     assigns =
       assigns
       |> assign_new(:header, fn -> [] end)
-      |> assign_new(:header_classes, fn -> "" end)
+      |> assign_new(:header_class, fn -> "" end)
+      |> assign_new(:class, fn -> "" end)
       |> assign_new(:no_pad, fn -> false end)
 
     ~H"""
-    <div class="bg-white shadow rounded-lg divide-y divide-gray-200">
+    <div class={
+      "bg-white shadow rounded-lg divide-y divide-gray-200 " <>
+        @class
+    }>
       <%= unless Enum.empty?(@header) do %>
-        <div class={"py-4 px-5 sm:py-5 " <> @header_classes}>
+        <div class={"py-4 px-5 sm:py-5 " <> @header_class}>
           <%= render_slot(@header) %>
         </div>
       <% end %>
