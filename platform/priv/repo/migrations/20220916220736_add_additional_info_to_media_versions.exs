@@ -3,7 +3,7 @@ defmodule Platform.Repo.Migrations.AddAdditionalInfoToMediaVersions do
 
   def change do
     alter table(:media_versions) do
-      add :hashes, :map, default: %{}
+      add_if_not_exists :hashes, :map, default: %{}
     end
   end
 end
