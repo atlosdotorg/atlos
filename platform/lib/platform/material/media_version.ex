@@ -17,6 +17,7 @@ defmodule Platform.Material.MediaVersion do
     field :upload_type, Ecto.Enum, values: [:user_provided, :direct], default: :user_provided
     field :status, Ecto.Enum, values: [:pending, :complete, :error], default: :complete
     field :source_url, :string
+    field :hashes, :map, default: %{}
 
     field :visibility, Ecto.Enum, default: :visible, values: [:visible, :hidden, :removed]
 
@@ -39,7 +40,8 @@ defmodule Platform.Material.MediaVersion do
       :client_name,
       :media_id,
       :visibility,
-      :scoped_id
+      :scoped_id,
+      :hashes
     ])
     |> validate_required([:source_url],
       message: "Please add a link."

@@ -12,6 +12,13 @@ defmodule Platform.Workers.Archiver do
     queue: :media_archival,
     priority: 3
 
+  defp hash_sha256_file(file_path) do
+    File.stream!(file_path)
+    |> Enum.reduce(:crypto.hash_init(:sha256), &:crypto.hash_update(&2, &1))
+    |> :crypto.hash_final()
+    |> Base.encode16(case: :lower)
+  end
+
   @impl Oban.Worker
   def perform(%Oban.Job{args: %{"media_version_id" => id} = args}) do
     %MediaVersion{status: :pending, media_id: media_id} =
@@ -73,7 +80,7 @@ defmodule Platform.Workers.Archiver do
       mime = MIME.from_path(file_path)
 
       # Process + upload it (only store original if upload_type is direct/not user provided)
-      {:ok, identifier, duration, size} =
+      {:ok, identifier, duration, size, watermarked_hash, original_hash} =
         process_uploaded_media(file_path, mime, media, version, version.upload_type == :direct)
 
       # Update the media version to reflect the change
@@ -83,7 +90,8 @@ defmodule Platform.Workers.Archiver do
           file_size: size,
           status: :complete,
           duration_seconds: duration,
-          mime_type: mime
+          mime_type: mime,
+          hashes: %{original_sha256: original_hash, watermarked_sha256: watermarked_hash}
         })
 
       # Track event
@@ -165,6 +173,9 @@ defmodule Platform.Workers.Archiver do
 
     {:ok, out_data} = FFprobe.format(media_path)
 
+    watermarked_hash = hash_sha256_file(media_path)
+    original_hash = hash_sha256_file(path)
+
     {duration, _} = Integer.parse(out_data["duration"])
     {size, _} = Integer.parse(out_data["size"])
 
@@ -175,6 +186,6 @@ defmodule Platform.Workers.Archiver do
       {:ok, _original_path} = Uploads.OriginalMediaVersion.store({path, media})
     end
 
-    {:ok, new_path, duration, size}
+    {:ok, new_path, duration, size, watermarked_hash, original_hash}
   end
 end

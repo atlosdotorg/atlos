@@ -300,3 +300,19 @@ document.addEventListener("load", initializeSmartSelects);
 
 document.addEventListener("phx:update", initializeMaps);
 document.addEventListener("load", initializeMaps);
+
+// Used to set the clipboard when copying hash information
+window.setClipboard = (text) => {
+    const type = "text/plain";
+    const blob = new Blob([text], { type });
+    const data = [new ClipboardItem({ [type]: blob })];
+
+    navigator.clipboard.write(data).then(
+        () => {
+            alert("Copied to your clipboard!")
+        },
+        () => {
+            alert("Unable to write to your clipboard.")
+        }
+    );
+}

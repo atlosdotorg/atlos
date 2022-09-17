@@ -38,10 +38,10 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
   end
 
   defp handle_static_file(%{path: path}, client_name) do
-    # Do something to create a better filename?
+    # TODO: Do something to create a better filename?
     to_path = Temp.path!(%{prefix: "user_provided", suffix: client_name})
     File.cp!(path, to_path)
-    to_path
+    {:ok, to_path}
   end
 
   defp clear_error(socket) do
