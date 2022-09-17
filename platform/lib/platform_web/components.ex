@@ -96,7 +96,7 @@ defmodule PlatformWeb.Components do
       |> assign_new(:no_pad, fn -> false end)
 
     ~H"""
-    <div class="bg-white overflow-hidden shadow rounded-lg divide-y divide-gray-200">
+    <div class="bg-white shadow rounded-lg divide-y divide-gray-200">
       <%= unless Enum.empty?(@header) do %>
         <div class={"py-4 px-5 sm:py-5 " <> @header_classes}>
           <%= render_slot(@header) %>
@@ -1665,7 +1665,7 @@ defmodule PlatformWeb.Components do
               </button>
             </div>
             <div
-              class="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
+              class="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none overflow-visible z-[100]"
               role="menu"
               aria-orientation="vertical"
               aria-labelledby="menu-button"
@@ -1740,7 +1740,11 @@ defmodule PlatformWeb.Components do
                     class="text-gray-700 px-2 py-2 text-sm flex items-center gap-2 hover:bg-gray-100 w-full"
                     onclick={
                       "window.setClipboard(JSON.stringify(" <>
-                        Jason.encode!(version.hashes) <>
+                        Jason.encode!(
+                          if version.hashes == %{},
+                            do: %{error: "no hash information available"},
+                            else: version.hashes
+                        ) <>
                         ", null, 4))"
                     }
                   >
