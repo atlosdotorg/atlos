@@ -28,8 +28,7 @@ defmodule PlatformWeb.AdminlandLive.SecurityModeCreateLive do
   def handle_event("save", %{"security_mode" => params}, socket) do
     with true <-
            socket.assigns.parent_socket.assigns.current_user.roles
-           |> Enum.member?(:admin)
-           |> dbg(),
+           |> Enum.member?(:admin),
          {:ok, value} <-
            Security.create_security_mode(params |> assign_local_params(socket)) do
       Auditor.log(
