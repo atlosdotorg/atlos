@@ -21,7 +21,7 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
        accept: ~w(.png .jpg .jpeg .avi .mp4 .webm),
        max_entries: 1,
        max_file_size: 250_000_000,
-       auto_upload: true,
+       auto_upload: false,
        progress: &handle_progress/3,
        chunk_size: 512_000
      )
@@ -312,7 +312,7 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       aria-hidden="true"
-                      class="mx-auto h-12 w-12 text-gray-400 animate-pulse"
+                      class="mx-auto h-12 w-12 text-gray-400"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -326,14 +326,9 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
                     </svg>
                     <div class="w-full text-sm text-gray-600">
                       <%= for entry <- @uploads.media_upload.entries do %>
-                        <%= if entry.progress < 100 and entry.progress > 0 do %>
-                          <div class="w-42 mt-4 text-center">
-                            <p>Uploading <%= Utils.truncate(entry.client_name) %></p>
-                            <progress value={entry.progress} max="100" class="progress ~urge mt-2">
-                              <%= entry.progress %>%
-                            </progress>
-                          </div>
-                        <% end %>
+                        <div class="w-42 mt-4 text-center">
+                          <p>Selected: <%= Utils.truncate(entry.client_name) %></p>
+                        </div>
                       <% end %>
                     </div>
                     <div>
@@ -393,7 +388,10 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
                 phx_disable_with: "Uploading...",
                 class: "button ~urge @high"
               ) %>
-              <a href={"/incidents/#{@media.slug}/"} class="text-button text-sm text-right">
+              <a
+                href={"/incidents/#{@media.slug}/"}
+                class="text-button text-sm text-right phx-only-during-reg"
+              >
                 Or skip media upload
                 <span class="text-gray-500 font-normal block text-xs">
                   You can upload media later
