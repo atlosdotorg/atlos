@@ -484,7 +484,10 @@ defmodule Platform.Material do
         version.file_location
 
       true ->
-        Uploads.WatermarkedMediaVersion.url({version.file_location, media}, type, signed: true)
+        Uploads.WatermarkedMediaVersion.url({version.file_location, media}, type,
+          signed: true,
+          expires_in: 60 * 60 * 6
+        )
     end
   end
 
@@ -633,7 +636,10 @@ defmodule Platform.Material do
           # This allows us to have easy demo data — just give a raw HTTPS URL
           do: val.file_location,
           else:
-            Uploads.WatermarkedMediaVersion.url({val.file_location, media}, :thumb, signed: true)
+            Uploads.WatermarkedMediaVersion.url({val.file_location, media}, :thumb,
+              signed: true,
+              expires_in: 60 * 60 * 6
+            )
     end
   end
 

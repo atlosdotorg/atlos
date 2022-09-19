@@ -60,7 +60,10 @@ defmodule PlatformWeb.SettingsLive.ProfileComponent do
        |> update_changeset(:profile_photo_file, path)
        |> assign(
          :profile_photo_display,
-         Avatar.url({path, socket.assigns.current_user}, :thumb, signed: true)
+         Avatar.url({path, socket.assigns.current_user}, :thumb,
+           signed: true,
+           expires_in: 60 * 60 * 6
+         )
        )}
     else
       {:noreply, socket}

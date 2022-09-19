@@ -468,7 +468,10 @@ defmodule Platform.Accounts do
         "/images/default_profile.jpg"
 
       true ->
-        Platform.Uploads.Avatar.url({user.profile_photo_file, user}, :thumb, signed: true)
+        Platform.Uploads.Avatar.url({user.profile_photo_file, user}, :thumb,
+          signed: true,
+          expires_in: 60 * 60 * 6
+        )
     end
   end
 

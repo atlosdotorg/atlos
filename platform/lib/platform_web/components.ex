@@ -660,7 +660,8 @@ defmodule PlatformWeb.Components do
                       <%= for attachment <- update.attachments do %>
                         <% url =
                           Uploads.UpdateAttachment.url({attachment, update.media}, :original,
-                            signed: true
+                            signed: true,
+                            expires_in: 60 * 60 * 6
                           ) %>
                         <a
                           class="rounded overflow-hidden max-h-64 cursor-zoom-in"
