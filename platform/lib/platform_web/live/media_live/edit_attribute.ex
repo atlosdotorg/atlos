@@ -147,8 +147,7 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
                       <div>
                         <%= label(f, :location, "Location (latitude, longitude)") %>
                         <%= text_input(f, :location,
-                          placeholder:
-                            "Comma-separated coordinates (lat, lon). E.g., 37.428696, -122.172131.",
+                          placeholder: "Comma-separated coordinates (lat, lon).",
                           novalidate: true,
                           phx_debounce: 5000,
                           "x-on:input": "user_loc = $event.target.value"
