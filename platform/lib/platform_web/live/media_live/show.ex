@@ -22,7 +22,7 @@ defmodule PlatformWeb.MediaLive.Show do
      |> assign(:attribute, Map.get(params, "attribute"))
      |> assign(:title, "Incident #{slug}")
      # This forces the comment box to be fully rerendered on submit
-     |> assign(:comment_box_id, Utils.generate_random_sequence(10))
+     #  |> assign(:comment_box_id, Utils.generate_random_sequence(10))
      |> assign_media_and_updates()}
   end
 

@@ -186,9 +186,10 @@
           updates={@updates}
         />
         <hr class="sep h-2" id="feed-bottom" />
+        <!-- There should only ever be one comment box per page -->
         <.live_component
           module={PlatformWeb.MediaLive.CommentBox}
-          id={"comment-box-#{@comment_box_id}"}
+          id="comment-box"
           media={@media}
           current_user={@current_user}
           disabled={!Media.can_user_comment(@media, @current_user)}
