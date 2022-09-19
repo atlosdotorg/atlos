@@ -45,7 +45,7 @@ defmodule PlatformWeb.Components do
         <div
           class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
           aria-hidden="true"
-          @click="window.closeModal($event)"
+          x-on:click="window.closeModal($event)"
           phx-target={@target}
         >
         </div>
@@ -59,7 +59,7 @@ defmodule PlatformWeb.Components do
             <button
               type="button"
               class="text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-urge-500 p-1"
-              @click="window.closeModal($event)"
+              x-on:click="window.closeModal($event)"
               phx-target={@target}
             >
               <span class="sr-only">Close</span>
@@ -514,7 +514,7 @@ defmodule PlatformWeb.Components do
                 </div>
                 <button
                   class="text-sm absolute right-0 text-urge-600 opacity-0 font-medium group-hover:opacity-100 focus:opacity-100 group-focus:opacity-100 transition-all px-2 py-1 bg-gray-100 shadow shadow-gray-100 shadow-xl rounded"
-                  @click.stop="expanded = !expanded"
+                  x-on:click.stop="expanded = !expanded"
                   type="button"
                   x-html="expanded ? 'Collapse' : 'Expand'"
                 >
@@ -1652,8 +1652,8 @@ defmodule PlatformWeb.Components do
                 class="flex items-center rounded-full text-gray-500 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-urge-500 focus:ring-offset-2 focus:ring-offset-gray-100"
                 aria-expanded="true"
                 aria-haspopup="true"
-                @click.prevent="open = !open"
-                @click.outside="open = false"
+                x-on:click.prevent="open = !open"
+                x-on:click.outside="open = false"
               >
                 <span class="sr-only">Open options</span>
                 <!-- Heroicon name: mini/ellipsis-vertical -->
@@ -1682,7 +1682,7 @@ defmodule PlatformWeb.Components do
                     type="button"
                     rel="nofollow"
                     title="Toggle Color"
-                    @click="grayscale = !grayscale"
+                    x-on:click="grayscale = !grayscale"
                     class="text-gray-700 px-2 py-2 text-sm flex items-center gap-2 hover:bg-gray-100 w-full"
                   >
                     <svg
