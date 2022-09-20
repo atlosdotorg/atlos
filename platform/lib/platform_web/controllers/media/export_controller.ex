@@ -17,7 +17,7 @@ defmodule PlatformWeb.ExportController do
       (media
        |> Map.put(:latitude, lat)
        |> Map.put(:longitude, lon)
-       |> Map.put(:location, lat <> ", " <> lon)
+       |> Map.put(:location, to_string(lat) <> ", " <> to_string(lon))
        |> Map.to_list()
        |> Enum.map(fn {k, v} ->
          name = k |> to_string()
