@@ -706,4 +706,14 @@ defmodule Platform.Material do
   def get_human_readable_media_version_name(%Media{} = media, %MediaVersion{} = version) do
     "#{media.slug}/#{version.scoped_id}"
   end
+
+  def get_media_organization_type(%Media{} = media) do
+    case media.attr_type do
+      ["Military Activity" <> _ | _] -> :military
+      ["Civilian Activity" <> _ | _] -> :civilian
+      ["Policing" <> _ | _] -> :policing
+      ["Weather" <> _ | _] -> :weather
+      _ -> :other
+    end
+  end
 end

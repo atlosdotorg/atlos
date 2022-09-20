@@ -23,7 +23,8 @@ defmodule PlatformWeb.MapLive.Index do
           slug: item.slug,
           # Stringify to avoid floating point issues
           lat: "#{lat}",
-          lon: "#{lon}"
+          lon: "#{lon}",
+          type: Material.get_media_organization_type(item)
         }
       end)
 

@@ -173,12 +173,13 @@ function initializeMaps() {
 
         let lon = parseFloat(s.getAttribute("lon"));
         let lat = parseFloat(s.getAttribute("lat"));
+        let zoom = parseFloat(s.getAttribute("zoom") || 6);
 
         let map = new mapboxgl.Map({
             container: s.id,
-            style: 'mapbox://styles/mapbox/light-v10',
+            style: 'mapbox://styles/milesmcc/cl89ukz84000514oebbd92bjm',
             center: [lon, lat],
-            zoom: 6
+            zoom: zoom
         });
 
         map.on('load', function () {
@@ -197,22 +198,33 @@ function initializeMaps() {
                 "data": {
                     "type": "FeatureCollection",
                     "features": data.map(incident => {
+                        let colorForType = (type) => {
+                            switch (type) {
+                                case "policing": return '#14b8a6';
+                                case "military": return '#60a5fa';
+                                case "civilian": return '#ec4899';
+                                case "weather": return '#22c55e';
+                                default: return '#0f172a';
+                            }
+                        };
+
                         return {
                             "type": "Feature",
                             "properties": {
                                 "description": `
-                                <div class="fixed w-[350px] h-[190px] flex rounded-lg shadow-lg items-center bg-white justify-around -z-50">
-                                    <div class="font-medium text-lg text-md p-4">
-                                        <span class="animate-pulse">Loading...</span>
+                                    <div class="fixed w-[350px] h-[190px] flex rounded-lg shadow-lg items-center bg-white justify-around -z-50">
+                                        <div class="font-medium text-lg text-md p-4">
+                                            <span class="animate-pulse">Loading...</span>
+                                        </div>
                                     </div>
-                                </div>
-                                <iframe
-                                    src='/incidents/${incident.slug}/card'
-                                    width="350px"
-                                    height="190px"
-                                />
-                            `,
-                                "slug": incident.slug
+                                    <iframe
+                                        src='/incidents/${incident.slug}/card'
+                                        width="350px"
+                                        height="190px"
+                                    />
+                                `,
+                                "slug": incident.slug,
+                                "color": colorForType(incident.type)
                             },
                             'geometry': {
                                 'type': 'Point',
@@ -223,7 +235,7 @@ function initializeMaps() {
                 }
             };
 
-            map.addSource("incidents", geojson);
+            map.addSource('incidents', geojson);
 
             map.addLayer({
                 'id': 'incidents',
@@ -231,7 +243,7 @@ function initializeMaps() {
                 'source': 'incidents',
                 'paint': {
                     'circle-radius': 7,
-                    'circle-color': '#60a5fa',
+                    'circle-color': ["get", "color"],
                     'circle-opacity': 0.6,
                 },
             });
