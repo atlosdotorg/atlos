@@ -23,7 +23,8 @@ defmodule Platform.Auditor do
         printed = Jason.Formatter.pretty_print(val)
         {printed |> String.replace("```", "'''"), val}
       rescue
-        _ -> {"{}", "{}"}
+        _ ->
+          {"{}", "{}"}
       end
 
     Logger.notice("[auditor] #{event} #{raw_metadata_json}")

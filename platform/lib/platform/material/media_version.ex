@@ -5,7 +5,7 @@ defmodule Platform.Material.MediaVersion do
   alias Platform.Material.Media
   alias __MODULE__
 
-  @derive {Jason.Encoder, except: [:__meta__, :client_name, :file_location, :media_id]}
+  @derive {Jason.Encoder, except: [:__meta__, :client_name, :file_location, :media_id, :media]}
   schema "media_versions" do
     field :file_location, :string
     field :file_size, :integer
