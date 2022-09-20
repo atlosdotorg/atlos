@@ -763,7 +763,7 @@ defmodule PlatformWeb.Components do
         } = assigns
       ) do
     ~H"""
-    <dl class="divide-y divide-dashed divide-gray-200 -mt-5 -mb-3">
+    <dl class="divide-y divide-dashed divide-gray-200 -mt-5 -mb-3 overflow-hidden">
       <%= for attr <- set_attrs do %>
         <.attr_display_row
           attr={attr}
@@ -895,7 +895,7 @@ defmodule PlatformWeb.Components do
     <span class="inline-flex flex-wrap gap-1 max-w-full">
       <%= case attr.type do %>
         <% :text -> %>
-          <div class="inline-block prose prose-sm my-px">
+          <div class="inline-block prose prose-sm my-px break-words">
             <.attr_label label={label} />
             <%= raw(value |> Utils.render_markdown()) %>
           </div>
