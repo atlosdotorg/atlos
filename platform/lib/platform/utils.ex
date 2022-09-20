@@ -82,7 +82,8 @@ defmodule Platform.Utils do
       Regex.replace(~r/(ATL-[A-Z0-9]{6})/, stripped_images, "[\\0](/incidents/\\0)")
 
     # Third, turn @'s into links.
-    tags_linked = Regex.replace(~r/@([A-Za-z0-9]+)/, identifiers_linked, "[\\0](/profile/\\1)")
+    tags_linked =
+      Regex.replace(~r/(\s|^)@([A-Za-z0-9]+)/, identifiers_linked, "[\\0](/profile/\\2)")
 
     # Strip all tags and render markdown
     rendered = tags_linked |> HtmlSanitizeEx.strip_tags() |> Earmark.as_html!()
