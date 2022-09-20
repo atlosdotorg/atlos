@@ -95,7 +95,11 @@ defmodule Platform.Workers.Archiver do
         })
 
       # Track event
-      Auditor.log(:archive_success, %{media_id: media_id, source_url: new_version.source_url})
+      Auditor.log(:archive_success, %{
+        media_id: media_id,
+        source_url: new_version.source_url,
+        media_version: new_version
+      })
 
       # Push update to viewers
       Material.broadcast_media_updated(media_id)
