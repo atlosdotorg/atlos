@@ -83,7 +83,7 @@ defmodule Platform.Utils do
 
     # Third, turn @'s into links.
     tags_linked =
-      Regex.replace(~r/(\s|^)@([A-Za-z0-9]+)/, identifiers_linked, "[\\0](/profile/\\2)")
+      Regex.replace(~r/(\s|^)@([A-Za-z0-9_]+)/, identifiers_linked, "[\\0](/profile/\\2)")
 
     # Strip all tags and render markdown
     rendered = tags_linked |> HtmlSanitizeEx.strip_tags() |> Earmark.as_html!()
