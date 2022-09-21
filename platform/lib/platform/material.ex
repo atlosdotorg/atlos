@@ -612,6 +612,15 @@ defmodule Platform.Material do
     end
   end
 
+  def get_subscribers(%Media{} = media) do
+    Repo.all(
+      from w in MediaSubscription,
+        where: w.media_id == ^media.id,
+        preload: :user
+    )
+    |> Enum.map(& &1.user)
+  end
+
   def total_subscribed!(%Media{} = media) do
     [count] =
       Repo.all(

@@ -68,14 +68,18 @@ defmodule Platform.Updates do
 
   @doc """
   Insert the given Update changeset. Helpful to use in conjunction with the dynamic changeset
-  generation functions (e.g., `change_from_attribute_changeset`).
+  generation functions (e.g., `change_from_attribute_changeset`). Will also generate notifications.
   """
   def create_update_from_changeset(%Ecto.Changeset{data: %Update{} = _} = changeset) do
     res = changeset |> Repo.insert()
 
     case res do
-      {:ok, update} -> Material.broadcast_media_updated(update.media_id)
-      _ -> nil
+      {:ok, update} ->
+        Platform.Notifications.create_notifications_from_update(update)
+        Material.broadcast_media_updated(update.media_id)
+
+      _ ->
+        nil
     end
 
     res
