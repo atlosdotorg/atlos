@@ -140,6 +140,7 @@ function initializeSmartSelects() {
             }
         });
         x.control_input.setAttribute("phx-debounce", "blur");
+        x.control_input.setAttribute("phx-update", "ignore");
     });
 }
 
