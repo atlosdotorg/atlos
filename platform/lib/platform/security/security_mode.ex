@@ -15,6 +15,6 @@ defmodule Platform.Security.SecurityMode do
   def changeset(security_mode, attrs) do
     security_mode
     |> cast(attrs, [:description, :mode, :user_id])
-    |> validate_required([:description, :mode, :user_id])
+    |> validate_required([:mode, :user_id])
   end
 end
