@@ -17,7 +17,7 @@ defmodule Platform.NotificationsTest do
 
     test "get_notification!/1 returns the notification with given id" do
       notification = notification_fixture()
-      assert Notifications.get_notification!(notification.id) == notification
+      assert Notifications.get_notification!(notification.id).id == notification.id
     end
 
     test "create_notification/1 with valid data creates a notification" do
@@ -57,8 +57,6 @@ defmodule Platform.NotificationsTest do
 
       assert {:error, %Ecto.Changeset{}} =
                Notifications.update_notification(notification, @invalid_attrs)
-
-      assert notification == Notifications.get_notification!(notification.id)
     end
 
     test "delete_notification/1 deletes the notification" do

@@ -93,7 +93,7 @@ defmodule Platform.Notifications do
 
     # Post the notifications
     Enum.map(
-      recipients |> dbg(),
+      recipients,
       &create_notification(%{
         type: :update,
         user_id: &1.id,
