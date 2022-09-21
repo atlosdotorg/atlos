@@ -44,8 +44,15 @@ defmodule Platform.Notifications do
   @doc """
   Gets all the notifications for a user.
   """
-  def get_notifications_by_user(%User{} = user) do
-    Repo.all(from n in Notification, where: n.user_id == ^user.id, preload: [:update])
+  def get_notifications_by_user_paginated(%User{} = user, options \\ []) do
+    Repo.paginate(
+      from(n in Notification,
+        where: n.user_id == ^user.id,
+        preload: [:update],
+        order_by: [desc: :inserted_at, desc: :id]
+      ),
+      Keyword.merge([cursor_fields: [{:inserted_at, :desc}, desc: :id], limit: 30], options)
+    )
   end
 
   @doc """

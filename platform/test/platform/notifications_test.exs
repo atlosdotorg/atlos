@@ -20,6 +20,74 @@ defmodule Platform.NotificationsTest do
       assert Notifications.get_notification!(notification.id).id == notification.id
     end
 
+    test "get_notifications_by_user_paginated/2 returns the right notifications" do
+      assert Notifications.get_notifications_by_user_paginated(
+               Platform.Accounts.get_auto_account()
+             ).entries == []
+
+      %Notification{id: id1} = notification_fixture()
+
+      assert [
+               %Notification{id: ^id1}
+             ] =
+               Notifications.get_notifications_by_user_paginated(
+                 Platform.Accounts.get_auto_account()
+               ).entries
+
+      %Notification{id: id2} = notification_fixture()
+
+      assert [
+               %Notification{id: ^id2},
+               %Notification{id: ^id1}
+             ] =
+               Notifications.get_notifications_by_user_paginated(
+                 Platform.Accounts.get_auto_account()
+               ).entries
+
+      user2 = Platform.AccountsFixtures.user_fixture()
+      %Notification{id: id3} = notification_fixture(%{user_id: user2.id})
+
+      assert [
+               %Notification{id: ^id2},
+               %Notification{id: ^id1}
+             ] =
+               Notifications.get_notifications_by_user_paginated(
+                 Platform.Accounts.get_auto_account()
+               ).entries
+
+      assert [
+               %Notification{id: ^id3}
+             ] = Notifications.get_notifications_by_user_paginated(user2).entries
+    end
+
+    test "has_unread_notifications/1 works correctly" do
+      user = Platform.Accounts.get_auto_account()
+      other_user = Platform.AccountsFixtures.user_fixture()
+
+      assert Notifications.has_unread_notifications(user) == false
+      assert Notifications.has_unread_notifications(other_user) == false
+
+      n1 = notification_fixture(%{user_id: user.id})
+
+      assert Notifications.has_unread_notifications(user) == true
+      assert Notifications.has_unread_notifications(other_user) == false
+
+      n2 = notification_fixture(%{user_id: other_user.id})
+
+      assert Notifications.has_unread_notifications(user) == true
+      assert Notifications.has_unread_notifications(other_user) == true
+
+      Notifications.update_notification(n1, %{read: true})
+
+      assert Notifications.has_unread_notifications(user) == false
+      assert Notifications.has_unread_notifications(other_user) == true
+
+      Notifications.update_notification(n2, %{read: true})
+
+      assert Notifications.has_unread_notifications(user) == false
+      assert Notifications.has_unread_notifications(other_user) == false
+    end
+
     test "create_notification/1 with valid data creates a notification" do
       valid_attrs = %{
         content: "some content",
