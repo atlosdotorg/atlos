@@ -242,7 +242,7 @@ defmodule Platform.MaterialTest do
                )
 
       assert !changeset.valid?
-      assert String.contains?(hd(errors_on(changeset).attr_sensitive), "permission")
+      assert String.contains?(errors_on(changeset).attr_sensitive |> Enum.join(), "permission")
     end
 
     test "normal users cannot edit restricted attributes" do

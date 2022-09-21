@@ -30,8 +30,8 @@ mapboxgl.accessToken = 'pk.eyJ1IjoibWlsZXNtY2MiLCJhIjoiY2t6ZzdzZmY0MDRobjJvbXByd
 let Hooks = {};
 Hooks.Modal = {
     mounted() {
-        window.addEventListener("modal:close", () => {
-            this.pushEvent("close_modal", {});
+        window.addEventListener("modal:close", (event) => {
+            this.pushEventTo(event.detail.elem, "close_modal", {});
         })
     }
 }
@@ -173,12 +173,13 @@ function initializeMaps() {
 
         let lon = parseFloat(s.getAttribute("lon"));
         let lat = parseFloat(s.getAttribute("lat"));
+        let zoom = parseFloat(s.getAttribute("zoom") || 6);
 
         let map = new mapboxgl.Map({
             container: s.id,
-            style: 'mapbox://styles/mapbox/light-v10',
+            style: 'mapbox://styles/milesmcc/cl89ukz84000514oebbd92bjm',
             center: [lon, lat],
-            zoom: 6
+            zoom: zoom
         });
 
         map.on('load', function () {
@@ -197,22 +198,33 @@ function initializeMaps() {
                 "data": {
                     "type": "FeatureCollection",
                     "features": data.map(incident => {
+                        let colorForType = (type) => {
+                            switch (type) {
+                                case "policing": return '#14b8a6';
+                                case "military": return '#60a5fa';
+                                case "civilian": return '#ec4899';
+                                case "weather": return '#22c55e';
+                                default: return '#0f172a';
+                            }
+                        };
+
                         return {
                             "type": "Feature",
                             "properties": {
                                 "description": `
-                                <div class="fixed w-[350px] h-[190px] flex rounded-lg shadow-lg items-center bg-white justify-around -z-50">
-                                    <div class="font-medium text-lg text-md p-4">
-                                        <span class="animate-pulse">Loading...</span>
+                                    <div class="fixed w-[350px] h-[190px] flex rounded-lg shadow-lg items-center bg-white justify-around -z-50">
+                                        <div class="font-medium text-lg text-md p-4">
+                                            <span class="animate-pulse">Loading...</span>
+                                        </div>
                                     </div>
-                                </div>
-                                <iframe
-                                    src='/incidents/${incident.slug}/card'
-                                    width="350px"
-                                    height="190px"
-                                />
-                            `,
-                                "slug": incident.slug
+                                    <iframe
+                                        src='/incidents/${incident.slug}/card'
+                                        width="350px"
+                                        height="190px"
+                                    />
+                                `,
+                                "slug": incident.slug,
+                                "color": colorForType(incident.type)
                             },
                             'geometry': {
                                 'type': 'Point',
@@ -223,7 +235,7 @@ function initializeMaps() {
                 }
             };
 
-            map.addSource("incidents", geojson);
+            map.addSource('incidents', geojson);
 
             map.addLayer({
                 'id': 'incidents',
@@ -231,7 +243,7 @@ function initializeMaps() {
                 'source': 'incidents',
                 'paint': {
                     'circle-radius': 7,
-                    'circle-color': '#60a5fa',
+                    'circle-color': ["get", "color"],
                     'circle-opacity': 0.6,
                 },
             });
@@ -281,9 +293,11 @@ function debounce(func, timeout = 25) {
 }
 
 // Used to centralize modal closing logic. See Hooks.Modal for core logic.
-window.closeModal = debounce(() => {
+window.closeModal = debounce((event) => {
+    // Find the target, if possible.
+    let elem = event.target;
     if (confirm("Are you sure you want to exit? Any unsaved changes will be lost.")) {
-        let event = new CustomEvent("modal:close");
+        let event = new CustomEvent("modal:close", { detail: { elem } });
         window.dispatchEvent(event);
     }
 });
@@ -298,3 +312,19 @@ document.addEventListener("load", initializeSmartSelects);
 
 document.addEventListener("phx:update", initializeMaps);
 document.addEventListener("load", initializeMaps);
+
+// Used to set the clipboard when copying hash information
+window.setClipboard = (text) => {
+    const type = "text/plain";
+    const blob = new Blob([text], { type });
+    const data = [new ClipboardItem({ [type]: blob })];
+
+    navigator.clipboard.write(data).then(
+        () => {
+            alert("Copied to your clipboard!")
+        },
+        () => {
+            alert("Unable to write to your clipboard.")
+        }
+    );
+}

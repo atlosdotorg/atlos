@@ -137,7 +137,7 @@ defmodule PlatformWeb.ProfilesLive.EditComponent do
                 phx_disable_with: "Saving...",
                 class: "button ~urge @high"
               ) %>
-              <button @click="closeModal()" type="button" class="base-button">
+              <button x-on:click="closeModal($event)" type="button" class="base-button">
                 Cancel
               </button>
             </div>

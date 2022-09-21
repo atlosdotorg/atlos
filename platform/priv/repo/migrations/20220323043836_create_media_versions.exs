@@ -10,6 +10,8 @@ defmodule Platform.Repo.Migrations.CreateMediaVersions do
       add :source_url, :string
       add :mime_type, :string
       add :client_name, :string
+      # Hashes added ex post to aid later data migrations
+      add :hashes, :map, default: %{}
       add :media_id, references(:media, on_delete: :nothing)
 
       timestamps()

@@ -16,6 +16,7 @@ defmodule Platform.Material.Media do
     # Core Attributes
     field :attr_description, :string
     field :attr_geolocation, Geo.PostGIS.Geometry
+    field :attr_geolocation_resolution, :string
     field :attr_more_info, :string
     field :attr_date, :date
     field :attr_type, {:array, :string}
@@ -42,8 +43,7 @@ defmodule Platform.Material.Media do
 
     # Virtual attributes for updates + multi-part attributes
     field :explanation, :string, virtual: true
-    field :latitude, :float, virtual: true
-    field :longitude, :float, virtual: true
+    field :location, :string, virtual: true
 
     # Metadata
     timestamps()
@@ -120,9 +120,7 @@ defmodule Platform.Material.Media do
         Map.put(acc, k, v)
       end)
 
-    Enum.reduce(Attribute.active_attributes(), media, fn attr, acc ->
-      Attribute.changeset(acc, attr, attrs, nil, false)
-    end)
+    Attribute.combined_changeset(media, Attribute.active_attributes(), attrs, nil, false)
   end
 
   def attribute_ratio(%Media{} = media) do
@@ -159,18 +157,24 @@ defmodule Platform.Material.Media do
   """
   def can_user_edit(%Media{} = media, %User{} = user) do
     # This logic would be nice to refactor into a `with` statement
-    case Enum.member?(user.restrictions || [], :muted) do
-      true ->
-        false
+    case Platform.Security.get_security_mode_state() do
+      :normal ->
+        case Enum.member?(user.restrictions || [], :muted) do
+          true ->
+            false
 
-      false ->
-        if Accounts.is_privileged(user) do
-          true
-        else
-          not (Enum.member?(media.attr_restrictions || [], "Hidden") ||
-                 Enum.member?(media.attr_restrictions || [], "Frozen") ||
-                 media.attr_status == "Completed" || media.attr_status == "Cancelled")
+          false ->
+            if Accounts.is_privileged(user) do
+              true
+            else
+              not (Enum.member?(media.attr_restrictions || [], "Hidden") ||
+                     Enum.member?(media.attr_restrictions || [], "Frozen") ||
+                     media.attr_status == "Completed" || media.attr_status == "Cancelled")
+            end
         end
+
+      _ ->
+        Accounts.is_admin(user)
     end
   end
 
@@ -178,23 +182,39 @@ defmodule Platform.Material.Media do
   Can the user comment on the media?
   """
   def can_user_comment(%Media{} = media, %User{} = user) do
-    case Enum.member?(user.restrictions || [], :muted) do
-      true ->
-        false
+    case Platform.Security.get_security_mode_state() do
+      :normal ->
+        case Enum.member?(user.restrictions || [], :muted) do
+          true ->
+            false
 
-      false ->
-        case media.attr_restrictions do
-          nil ->
-            true
+          false ->
+            case media.attr_restrictions do
+              nil ->
+                true
 
-          values ->
-            # Restrictions are present.
-            if Enum.member?(values, "Hidden") || Enum.member?(values, "Frozen") do
-              Accounts.is_privileged(user)
-            else
-              true
+              values ->
+                # Restrictions are present.
+                if Enum.member?(values, "Hidden") || Enum.member?(values, "Frozen") do
+                  Accounts.is_privileged(user)
+                else
+                  true
+                end
             end
         end
+
+      _ ->
+        Accounts.is_admin(user)
+    end
+  end
+
+  def can_user_create(%User{} = user) do
+    case Platform.Security.get_security_mode_state() do
+      :normal ->
+        true
+
+      _ ->
+        Accounts.is_admin(user)
     end
   end
 

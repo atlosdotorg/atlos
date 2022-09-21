@@ -104,15 +104,22 @@
       <:header>
         <p class="sec-head">Recent Activity</p>
       </:header>
-      <.live_component
-        module={PlatformWeb.UpdatesLive.UpdateFeed}
-        id="update-feed"
-        current_user={@current_user}
-        updates={@updates}
-        show_final_line={false}
-        show_media={true}
-        reverse={true}
-      />
+      <%= if Platform.Accounts.is_bot(@user) do %>
+        <aside class="aside ~neutral">
+          <strong class="font-semibold">This is a bot account!</strong>
+          Its activity is entirely automated, so there's nothing to see here.
+        </aside>
+      <% else %>
+        <.live_component
+          module={PlatformWeb.UpdatesLive.UpdateFeed}
+          id="update-feed"
+          current_user={@current_user}
+          updates={@updates}
+          show_final_line={false}
+          show_media={true}
+          reverse={true}
+        />
+      <% end %>
     </.card>
   </section>
   <%= if @live_action == :edit do %>

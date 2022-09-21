@@ -4,7 +4,14 @@ defmodule PlatformWeb.NewLive do
   alias Platform.Accounts
 
   def mount(_params, _session, socket) do
-    {:ok, socket |> assign(:title, "New Incident")}
+    if Platform.Material.Media.can_user_create(socket.assigns.current_user) do
+      {:ok, socket |> assign(:title, "New Incident")}
+    else
+      {:ok,
+       socket
+       |> redirect(to: "/")
+       |> put_flash(:info, "You cannot create incidents at this time.")}
+    end
   end
 
   def handle_info({:media_created, media}, socket) do

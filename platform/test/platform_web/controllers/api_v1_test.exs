@@ -10,6 +10,12 @@ defmodule PlatformWeb.APIV1Test do
     noauth_conn = get(conn, "/api/v1/media")
     assert json_response(noauth_conn, 401) == %{"error" => "invalid token or token not found"}
 
+    noauth_conn = get(put_req_header(conn, "authorization", "Bearer "), "/api/v1/media")
+    assert json_response(noauth_conn, 401) == %{"error" => "invalid token or token not found"}
+
+    noauth_conn = get(put_req_header(conn, "authorization", "Bearer bad"), "/api/v1/media")
+    assert json_response(noauth_conn, 401) == %{"error" => "invalid token or token not found"}
+
     token = api_token_fixture()
 
     auth_conn =

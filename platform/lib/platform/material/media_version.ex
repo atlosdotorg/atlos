@@ -5,7 +5,7 @@ defmodule Platform.Material.MediaVersion do
   alias Platform.Material.Media
   alias __MODULE__
 
-  @derive {Jason.Encoder, except: [:__meta__, :client_name, :file_location, :media_id]}
+  @derive {Jason.Encoder, except: [:__meta__, :client_name, :file_location, :media_id, :media]}
   schema "media_versions" do
     field :file_location, :string
     field :file_size, :integer
@@ -17,6 +17,7 @@ defmodule Platform.Material.MediaVersion do
     field :upload_type, Ecto.Enum, values: [:user_provided, :direct], default: :user_provided
     field :status, Ecto.Enum, values: [:pending, :complete, :error], default: :complete
     field :source_url, :string
+    field :hashes, :map, default: %{}
 
     field :visibility, Ecto.Enum, default: :visible, values: [:visible, :hidden, :removed]
 
@@ -39,7 +40,8 @@ defmodule Platform.Material.MediaVersion do
       :client_name,
       :media_id,
       :visibility,
-      :scoped_id
+      :scoped_id,
+      :hashes
     ])
     |> validate_required([:source_url],
       message: "Please add a link."

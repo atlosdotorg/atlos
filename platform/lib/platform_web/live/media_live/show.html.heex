@@ -186,9 +186,10 @@
           updates={@updates}
         />
         <hr class="sep h-2" id="feed-bottom" />
+        <!-- There should only ever be one comment box per page -->
         <.live_component
           module={PlatformWeb.MediaLive.CommentBox}
-          id={"comment-box-#{@comment_box_id}"}
+          id="comment-box"
           media={@media}
           current_user={@current_user}
           disabled={!Media.can_user_comment(@media, @current_user)}
@@ -299,7 +300,7 @@
           <% end %>
         </div>
       </.card>
-      <.card no_pad={true}>
+      <.card no_pad={@media.attr_geolocation != nil}>
         <:header>
           <h3 class="sec-head">Location</h3>
           <%= if @media.attr_geolocation do %>
@@ -329,7 +330,7 @@
             <map-pin lat={lat} lon={lon} id={"#{@media.slug}-geolocation-map"} />
           </div>
         <% else %>
-          <div class="relative block border-2 border-gray-300 border-dashed rounded-lg p-12 m-4 text-center">
+          <div class="relative block border-2 border-gray-300 border-dashed rounded-lg p-12 text-center">
             <svg
               class="mx-auto h-12 w-12 text-gray-400"
               xmlns="http://www.w3.org/2000/svg"
