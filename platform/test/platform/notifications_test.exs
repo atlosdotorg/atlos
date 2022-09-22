@@ -110,14 +110,13 @@ defmodule Platform.NotificationsTest do
 
     test "update_notification/2 with valid data updates the notification" do
       notification = notification_fixture()
-      update_attrs = %{content: "some updated content", read: false, type: :other}
+      update_attrs = %{content: "some updated content", read: true}
 
       assert {:ok, %Notification{} = notification} =
                Notifications.update_notification(notification, update_attrs)
 
       assert notification.content == "some updated content"
-      assert notification.read == false
-      assert notification.type == :other
+      assert notification.read == true
     end
 
     test "update_notification/2 with invalid data returns error changeset" do
