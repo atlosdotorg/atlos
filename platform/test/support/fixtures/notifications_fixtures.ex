@@ -15,7 +15,7 @@ defmodule Platform.NotificationsFixtures do
       |> Enum.into(%{
         content: "some content",
         read: false,
-        type: :other,
+        type: :update,
         user_id: Accounts.get_auto_account().id
       })
       |> Platform.Notifications.create_notification()
