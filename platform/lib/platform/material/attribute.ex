@@ -96,7 +96,7 @@ defmodule Platform.Material.Attribute do
           "Military Activity/Detention",
           "Military Activity/Mass Grave",
           "Civilian Activity",
-          "Civilian Activity/Protest",
+          "Civilian Activity/Protest or March",
           "Civilian Activity/Riot",
           "Civilian Activity/Violence",
           "Policing",
