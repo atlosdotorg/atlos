@@ -2,13 +2,11 @@
   <h1 class="page-header mb-8">Notifications</h1>
   <div class="lg:grid lg:grid-cols-3 gap-12">
     <div class="lg:col-span-2">
-      <.card no_pad={true} class="overflow-hidden">
-        <.live_component
-          module={PlatformWeb.NotificationsLive.NotificationsList}
-          id="notifications-list"
-          current_user={@current_user}
-        />
-      </.card>
+      <.live_component
+        module={PlatformWeb.NotificationsLive.NotificationsList}
+        id="notifications-list"
+        current_user={@current_user}
+      />
     </div>
     <div class="mt-12 lg:mt-0">
       <div>

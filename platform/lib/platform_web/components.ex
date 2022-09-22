@@ -498,7 +498,7 @@ defmodule PlatformWeb.Components do
               <div class="relative">
                 <a href={"/profile/#{head.user.username}"}>
                   <img
-                    class="h-10 w-10 rounded-full bg-gray-400 flex items-center justify-center ring-8 shadow"
+                    class="h-10 w-10 rounded-full bg-gray-400 flex items-center justify-center ring-8 ring-white shadow"
                     src={Accounts.get_profile_photo_path(head.user)}
                     alt={"Profile photo for #{head.user.username}"}
                   />
@@ -575,7 +575,7 @@ defmodule PlatformWeb.Components do
                 <div class="relative">
                   <a href={"/profile/#{update.user.username}"}>
                     <img
-                      class="h-10 w-10 rounded-full bg-gray-400 flex items-center justify-center"
+                      class="h-10 w-10 rounded-full bg-gray-400 flex items-center justify-center ring-8 ring-white"
                       src={Accounts.get_profile_photo_path(update.user)}
                       alt={"Profile photo for #{update.user.username}"}
                     />
@@ -670,7 +670,7 @@ defmodule PlatformWeb.Components do
                   <% end %>
                   <!-- Text comment section -->
                   <%= if update.explanation do %>
-                    <article class="prose text-sm p-2 w-full max-w-full">
+                    <article class="prose text-sm p-2 w-full max-w-full bg-white">
                       <%= raw(update.explanation |> Platform.Utils.render_markdown()) %>
                     </article>
                   <% end %>

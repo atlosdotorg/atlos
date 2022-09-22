@@ -51,7 +51,7 @@ defmodule Platform.Notifications do
         preload: [update: [:user, :media]],
         order_by: [desc: :inserted_at, desc: :id]
       ),
-      Keyword.merge([cursor_fields: [{:inserted_at, :desc}, desc: :id], limit: 30], options)
+      Keyword.merge([cursor_fields: [{:inserted_at, :desc}, {:id, :desc}], limit: 30], options)
     )
   end
 
@@ -60,6 +60,12 @@ defmodule Platform.Notifications do
   """
   def has_unread_notifications(%User{} = user) do
     Repo.exists?(from n in Notification, where: n.user_id == ^user.id and n.read == false)
+  end
+
+  def mark_notifications_as_read(%User{} = user, media \\ nil) do
+    base = from(n in Notification, where: n.user_id == ^user.id)
+    base = if media, do: base |> where([n], n.media_id == ^media.id), else: base
+    Repo.update_all(base, set: [read: true])
   end
 
   @doc """
