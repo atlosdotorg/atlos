@@ -111,11 +111,20 @@ defmodule PlatformWeb.NotificationsLive.NotificationsList do
                       <circle cx="50" cy="50" r="50" />
                     </svg>
                     <span class="sr-only">
-                      Read notification
+                      Unread notification
                     </span>
                   </div>
                 <% else %>
-                  <span class="mr-2 w-3">&nbsp;</span>
+                  <div class="mr-2 mt-3 cursor-pointer text-transparent">
+                    <svg
+                      viewBox="0 0 100 100"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="currentColor"
+                      class="h-3 w-3"
+                    >
+                      <circle cx="50" cy="50" r="50" />
+                    </svg>
+                  </div>
                 <% end %>
                 <div class="flex-grow">
                   <%= case notification.type do %>
@@ -129,6 +138,7 @@ defmodule PlatformWeb.NotificationsLive.NotificationsList do
                         target={@myself}
                         socket={@socket}
                         left_indicator={:profile}
+                        profile_ring={false}
                       />
                   <% end %>
                 </div>
