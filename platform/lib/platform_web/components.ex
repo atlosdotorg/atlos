@@ -506,7 +506,7 @@ defmodule PlatformWeb.Components do
               <div class="relative">
                 <a href={"/profile/#{head.user.username}"}>
                   <img
-                    class={"h-10 w-10 rounded-full bg-gray-400 flex items-center justify-center shadow" <> profile_ring_classes}
+                    class={"h-10 w-10 rounded-full bg-gray-400 flex items-center justify-center shadow " <> profile_ring_classes}
                     src={Accounts.get_profile_photo_path(head.user)}
                     alt={"Profile photo for #{head.user.username}"}
                   />
@@ -582,7 +582,7 @@ defmodule PlatformWeb.Components do
                 <div class="relative">
                   <a href={"/profile/#{update.user.username}"}>
                     <img
-                      class={"h-10 w-10 rounded-full bg-gray-400 flex items-center justify-center" <> profile_ring_classes}
+                      class={"h-10 w-10 rounded-full bg-gray-400 flex items-center justify-center " <> profile_ring_classes}
                       src={Accounts.get_profile_photo_path(update.user)}
                       alt={"Profile photo for #{update.user.username}"}
                     />
@@ -1560,7 +1560,7 @@ defmodule PlatformWeb.Components do
             </div>
           </div>
           <div
-            class="w-full h-full absolute bg-neutral-50 border rounded-lg flex items-center justify-around top-0"
+            class="w-full h-full min-h-[50px] absolute bg-neutral-50 border rounded-lg flex items-center justify-around top-0"
             x-show="hidden"
           >
             <!-- Overlay for potentially graphic content -->
