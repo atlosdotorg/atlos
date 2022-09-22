@@ -468,7 +468,8 @@ defmodule PlatformWeb.Components do
           can_user_change_visibility: can_user_change_visibility,
           target: target,
           socket: socket,
-          left_indicator: indicator
+          left_indicator: indicator,
+          current_user: current_user
         } = assigns
       ) do
     if is_list(update) do
@@ -509,9 +510,7 @@ defmodule PlatformWeb.Components do
               <div class="flex flex-wrap items-center">
                 <div class="text-sm text-gray-600 flex-grow">
                   <%= if show_media do %>
-                    <%= live_patch class: "text-button text-gray-800 inline-block mr-2", to: Routes.media_show_path(socket, :show, head.media.slug) do %>
-                      <%= head.media.slug %> &nearr;
-                    <% end %>
+                    <.media_text media={head.media} />
                   <% end %>
                   <.user_text user={head.user} />
                   <%= case head.type do %>
@@ -556,6 +555,7 @@ defmodule PlatformWeb.Components do
               target={target}
               socket={socket}
               left_indicator={:dot}
+              current_user={current_user}
             />
           <% end %>
         </ul>
@@ -593,9 +593,7 @@ defmodule PlatformWeb.Components do
               <div>
                 <div class="text-sm text-gray-600 mt-2">
                   <%= if show_media do %>
-                    <%= live_patch class: "text-button text-gray-800 inline-block mr-2", to: Routes.media_show_path(socket, :show, update.media.slug) do %>
-                      <%= update.media.slug %> &nearr;
-                    <% end %>
+                    <.media_text media={update.media} />
                   <% end %>
                   <.user_text user={update.user} />
                   <%= case update.type do %>
@@ -1246,8 +1244,20 @@ defmodule PlatformWeb.Components do
     """
   end
 
+  def media_card_lazy(%{media: %Media{} = media} = assigns) do
+    ~H"""
+    <div>
+      <div class="fixed w-[350px] h-[190px] flex rounded-lg shadow-lg items-center bg-white justify-around -z-50">
+        <div class="font-medium text-lg text-md p-4">
+          <span class="animate-pulse">Loading...</span>
+        </div>
+      </div>
+      <iframe src={"/incidents/#{media.slug}/card"} width="350px" height="190px" />
+    </div>
+    """
+  end
+
   def media_card(%{media: %Media{} = media, current_user: %Accounts.User{} = user} = assigns) do
-    # TODO: preload
     contributors = Material.contributors(media)
     sensitive = Media.is_sensitive(media)
     assigns = assigns |> Map.put_new(:target, nil)
@@ -1481,12 +1491,17 @@ defmodule PlatformWeb.Components do
     ~H"""
     <div class="flex -space-x-1 relative z-0 overflow-hidden">
       <%= for user <- @users |> Enum.take(5) do %>
-        <img
-          class="relative z-30 inline-block h-5 w-5 rounded-full ring-2 ring-white"
-          src={Accounts.get_profile_photo_path(user)}
-          title={user.username}
-          alt={"Profile photo for #{user.username}"}
-        />
+        <.popover class="inline">
+          <img
+            class="relative z-30 inline-block h-5 w-5 rounded-full ring-2 ring-white"
+            src={Accounts.get_profile_photo_path(user)}
+            title={user.username}
+            alt={"Profile photo for #{user.username}"}
+          />
+          <:display>
+            <.user_card user={user} />
+          </:display>
+        </.popover>
       <% end %>
       <%= if length(@users) > max do %>
         <div class="bg-gray-300 text-gray-700 text-xl rounded-full h-5 w-5 z-30 ring-2 ring-white flex items-center justify-center">
@@ -1879,7 +1894,18 @@ defmodule PlatformWeb.Components do
     """
   end
 
-  def user_text(%{user: user} = assigns) do
+  def popover(assigns) do
+    ~H"""
+    <div class={Map.get(assigns, :class, "")} data-popover>
+      <%= render_slot(@inner_block) %>
+      <template role="popover">
+        <%= render_slot(@display) %>
+      </template>
+    </div>
+    """
+  end
+
+  defp user_name_display(%{user: %Accounts.User{} = user} = assigns) do
     ~H"""
     <a
       class="font-medium text-gray-900 hover:text-urge-600 inline-flex gap-1 flex-wrap"
@@ -1897,6 +1923,58 @@ defmodule PlatformWeb.Components do
         <% end %>
       <% end %>
     </a>
+    """
+  end
+
+  def user_card(%{user: %Accounts.User{} = user} = assigns) do
+    ~H"""
+    <.link navigate={"/profile/" <> user.username}>
+      <div class="flex items-center gap-4 p-2">
+        <img
+          class="relative z-30 inline-block h-12 w-12 rounded-full ring-2 ring-white"
+          src={Accounts.get_profile_photo_path(user)}
+          alt={"Profile photo for #{user.username}"}
+        />
+        <div class="flex flex-col gap-1">
+          <.user_name_display user={user} />
+          <p class="text-neutral-600">
+            <%= if is_nil(user.bio) or String.length(user.bio |> String.trim()) == 0,
+              do: "This user has not provided a bio.",
+              else: user.bio %>
+          </p>
+        </div>
+      </div>
+    </.link>
+    """
+  end
+
+  def user_text(%{user: %Accounts.User{} = user} = assigns) do
+    ~H"""
+    <.popover class="inline">
+      <.user_name_display user={user} />
+      <:display>
+        <%= if is_nil(user) do %>
+          This is an administrative user.
+        <% else %>
+          <.user_card user={user} />
+        <% end %>
+      </:display>
+    </.popover>
+    """
+  end
+
+  def media_text(%{media: %Media{} = media} = assigns) do
+    ~H"""
+    <.popover class="inline overflow-hidden" no_pad={true}>
+      <span class="text-button text-gray-800 inline-block mr-2">
+        <.link navigate={"/incidents/" <> media.slug}><%= media.slug %> &nearr;</.link>
+      </span>
+      <:display>
+        <div class="-m-3 w-[350px] h-[190px] rounded">
+          <.media_card_lazy media={media} />
+        </div>
+      </:display>
+    </.popover>
     """
   end
 

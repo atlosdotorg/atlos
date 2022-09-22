@@ -99,7 +99,7 @@ defmodule PlatformWeb.NotificationsLive.NotificationsList do
                     phx-value-notification={notification.id}
                     phx-target={@myself}
                     tab-index="0"
-                    title="Mark as read"
+                    data-tooltip="Mark as read"
                     class="mr-2 mt-3 cursor-pointer text-urge-600"
                   >
                     <svg
@@ -138,6 +138,7 @@ defmodule PlatformWeb.NotificationsLive.NotificationsList do
                     phx-click="toggle_notification_read"
                     phx-value-notification={notification.id}
                     phx-target={@myself}
+                    data-tooltip={if notification.read, do: "Mark as unread", else: "Mark as unread"}
                   >
                     <%= if notification.read do %>
                       <svg
@@ -172,6 +173,7 @@ defmodule PlatformWeb.NotificationsLive.NotificationsList do
                     phx-click="delete_notification"
                     phx-value-notification={notification.id}
                     phx-target={@myself}
+                    data-tooltip="Delete notification"
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"

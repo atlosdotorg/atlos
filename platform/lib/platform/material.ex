@@ -653,7 +653,11 @@ defmodule Platform.Material do
   end
 
   def contributors(%Media{} = media) do
-    Enum.uniq(media.updates |> Enum.filter(&(not &1.hidden)) |> Enum.map(& &1.user))
+    Enum.uniq(
+      media.updates
+      |> Enum.filter(&(not &1.hidden))
+      |> Enum.map(& &1.user)
+    )
   end
 
   @doc """
