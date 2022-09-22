@@ -1937,11 +1937,13 @@ defmodule PlatformWeb.Components do
     ~H"""
     <.link navigate={"/profile/" <> user.username}>
       <div class="flex items-center gap-4 p-2">
-        <img
-          class="relative z-30 inline-block h-12 w-12 rounded-full ring-2 ring-white"
-          src={Accounts.get_profile_photo_path(user)}
-          alt={"Profile photo for #{user.username}"}
-        />
+        <div class="w-12">
+          <img
+            class="relative z-30 inline-block h-12 w-12 rounded-full ring-2 ring-white"
+            src={Accounts.get_profile_photo_path(user)}
+            alt={"Profile photo for #{user.username}"}
+          />
+        </div>
         <div class="flex flex-col gap-1">
           <.user_name_display user={user} />
           <p class="text-neutral-600">
