@@ -7,12 +7,15 @@ defmodule PlatformWeb.Components do
   alias Platform.Material.Media
   alias Platform.Material
   alias Platform.Utils
+  alias Platform.Notifications
   alias Platform.Uploads
   alias PlatformWeb.Router.Helpers, as: Routes
 
   def navlink(%{request_path: path, to: to} = assigns) do
+    active = String.starts_with?(path, to) and !String.equivalent?(path, "/")
+
     classes =
-      if String.starts_with?(path, to) and !String.equivalent?(path, "/") do
+      if active do
         "self-start bg-neutral-800 text-white group w-full p-3 rounded-md flex flex-col items-center text-xs font-medium"
       else
         "self-start text-neutral-100 hover:bg-neutral-800 hover:text-white group w-full p-3 rounded-md flex flex-col items-center text-xs font-medium"
@@ -304,20 +307,35 @@ defmodule PlatformWeb.Components do
           </.navlink>
 
           <.navlink to="/notifications" label="Notifications" request_path={@path}>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="text-neutral-300 group-hover:text-white h-6 w-6"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-              />
-            </svg>
+            <div class="relative">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="text-neutral-300 group-hover:text-white h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+                />
+              </svg>
+              <%= if Notifications.has_unread_notifications(@current_user) do %>
+                <% active = String.starts_with?(@path, "/notifications") %>
+                <div class={"text-urge-400 absolute top-[3px] right-[3px] rounded-full ring-2 group-hover:ring-neutral-800 " <> (if active, do: "ring-neutral-800", else: "ring-neutral-700")}>
+                  <svg
+                    viewBox="0 0 100 100"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="currentColor"
+                    class="h-2 w-2"
+                  >
+                    <circle cx="50" cy="50" r="50" />
+                  </svg>
+                </div>
+              <% end %>
+            </div>
           </.navlink>
           <%= if !is_nil(@current_user) and Accounts.is_admin(@current_user) do %>
             <.navlink to="/adminland" label="Adminland" request_path={@path}>
