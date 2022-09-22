@@ -5,7 +5,7 @@ defmodule Platform.Notifications.Notification do
   schema "notifications" do
     field :content, :string
     field :read, :boolean, default: false
-    field :type, Ecto.Enum, values: [:update, :other]
+    field :type, Ecto.Enum, values: [:update]
 
     belongs_to :user, Platform.Accounts.User
     belongs_to :media, Platform.Material.Media
@@ -18,6 +18,6 @@ defmodule Platform.Notifications.Notification do
   def changeset(notification, attrs) do
     notification
     |> cast(attrs, [:read, :content, :type, :user_id, :media_id, :update_id])
-    |> validate_required([:read, :content, :type, :user_id])
+    |> validate_required([:read, :type, :user_id])
   end
 end

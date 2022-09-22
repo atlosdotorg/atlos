@@ -39,7 +39,7 @@ defmodule Platform.Notifications do
       ** (Ecto.NoResultsError)
 
   """
-  def get_notification!(id), do: Repo.get!(Notification |> preload([:update]), id)
+  def get_notification!(id), do: Repo.get!(Notification |> preload(update: [:user, :media]), id)
 
   @doc """
   Gets all the notifications for a user.
@@ -48,7 +48,7 @@ defmodule Platform.Notifications do
     Repo.paginate(
       from(n in Notification,
         where: n.user_id == ^user.id,
-        preload: [:update],
+        preload: [update: [:user, :media]],
         order_by: [desc: :inserted_at, desc: :id]
       ),
       Keyword.merge([cursor_fields: [{:inserted_at, :desc}, desc: :id], limit: 30], options)

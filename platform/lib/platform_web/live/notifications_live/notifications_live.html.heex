@@ -2,36 +2,12 @@
   <h1 class="page-header mb-8">Notifications</h1>
   <div class="lg:grid lg:grid-cols-3 gap-12">
     <div class="lg:col-span-2">
-      <.card>
-        <:header>
-          <div>
-            <p class="sec-head">Updates</p>
-            <p class="sec-subhead">
-              Updates to incidents you are subscribed to will show up here, as will @tags.
-            </p>
-          </div>
-        </:header>
+      <.card no_pad={true} class="overflow-hidden">
         <.live_component
-          module={PlatformWeb.UpdatesLive.UpdateFeed}
-          updates={@updates}
+          module={PlatformWeb.NotificationsLive.NotificationsList}
+          id="notifications-list"
           current_user={@current_user}
-          reverse={true}
-          show_media={true}
-          show_final_line={false}
-          id="notifications-updates-feed"
         />
-        <div class="mx-auto mt-8 text-center text-xs">
-          <%= if !is_nil(@result.metadata.after) do %>
-            <button
-              type="button"
-              class="text-button"
-              phx-click="load_more"
-              phx-disable-with="Loading..."
-            >
-              Load More
-            </button>
-          <% end %>
-        </div>
       </.card>
     </div>
     <div class="mt-12 lg:mt-0">

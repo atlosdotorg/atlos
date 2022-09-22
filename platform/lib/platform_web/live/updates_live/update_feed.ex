@@ -107,7 +107,7 @@ defmodule PlatformWeb.UpdatesLive.UpdateFeed do
             can_user_change_visibility={can_user_change_visibility(@current_user)}
             target={@myself}
             socket={@socket}
-            show_profile={true}
+            left_indicator={:profile}
           />
         <% end %>
       </ul>

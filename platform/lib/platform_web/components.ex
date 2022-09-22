@@ -450,7 +450,7 @@ defmodule PlatformWeb.Components do
           can_user_change_visibility: can_user_change_visibility,
           target: target,
           socket: socket,
-          show_profile: show_profile
+          left_indicator: indicator
         } = assigns
       ) do
     if is_list(update) do
@@ -476,11 +476,11 @@ defmodule PlatformWeb.Components do
             </span>
           <% end %>
           <div class="relative flex items-start space-x-2">
-            <%= if show_profile do %>
+            <%= if indicator == :profile do %>
               <div class="relative">
                 <a href={"/profile/#{head.user.username}"}>
                   <img
-                    class="h-10 w-10 rounded-full bg-gray-400 flex items-center justify-center ring-8 ring-white shadow"
+                    class="h-10 w-10 rounded-full bg-gray-400 flex items-center justify-center ring-8 shadow"
                     src={Accounts.get_profile_photo_path(head.user)}
                     alt={"Profile photo for #{head.user.username}"}
                   />
@@ -537,7 +537,7 @@ defmodule PlatformWeb.Components do
               can_user_change_visibility={can_user_change_visibility}
               target={target}
               socket={socket}
-              show_profile={false}
+              left_indicator={:dot}
             />
           <% end %>
         </ul>
@@ -552,22 +552,24 @@ defmodule PlatformWeb.Components do
             </span>
           <% end %>
           <div class="relative flex items-start space-x-2">
-            <%= if show_profile do %>
-              <div class="relative">
-                <a href={"/profile/#{update.user.username}"}>
-                  <img
-                    class="h-10 w-10 rounded-full bg-gray-400 flex items-center justify-center ring-8 ring-white shadow"
-                    src={Accounts.get_profile_photo_path(update.user)}
-                    alt={"Profile photo for #{update.user.username}"}
-                  />
-                </a>
-              </div>
-            <% else %>
-              <div class="relative ml-[0.90em] mt-3 mr-4">
-                <svg viewBox="0 0 100 100" class="h-3 w-3 ring-4 ring-white bg-white text-gray-400">
-                  <circle cx="50" cy="50" r="40" stroke-width="3" fill="currentColor" />
-                </svg>
-              </div>
+            <%= case indicator do %>
+              <% :profile -> %>
+                <div class="relative">
+                  <a href={"/profile/#{update.user.username}"}>
+                    <img
+                      class="h-10 w-10 rounded-full bg-gray-400 flex items-center justify-center"
+                      src={Accounts.get_profile_photo_path(update.user)}
+                      alt={"Profile photo for #{update.user.username}"}
+                    />
+                  </a>
+                </div>
+              <% :dot -> %>
+                <div class="relative ml-[0.90em] mt-3 mr-4">
+                  <svg viewBox="0 0 100 100" class="h-3 w-3 bg-white text-gray-400">
+                    <circle cx="50" cy="50" r="40" stroke-width="3" fill="currentColor" />
+                  </svg>
+                </div>
+              <% _ -> %>
             <% end %>
             <div class="min-w-0 flex-1 flex flex-col flex-grow pl-1">
               <div>
