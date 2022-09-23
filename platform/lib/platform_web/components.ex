@@ -1502,7 +1502,6 @@ defmodule PlatformWeb.Components do
           <img
             class="relative z-30 inline-block h-5 w-5 rounded-full ring-2 ring-white"
             src={Accounts.get_profile_photo_path(user)}
-            title={user.username}
             alt={"Profile photo for #{user.username}"}
           />
           <:display>
