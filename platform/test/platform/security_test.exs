@@ -11,7 +11,7 @@ defmodule Platform.SecurityTest do
     @invalid_attrs %{description: nil, mode: nil}
 
     test "list_security_modes/0 returns all security_modes" do
-      assert length(Security.list_security_modes()) == 0
+      assert Enum.empty?(Security.list_security_modes())
 
       security_mode_fixture()
       assert length(Security.list_security_modes()) == 1

@@ -40,7 +40,11 @@ defmodule Platform.MixProject do
       {:postgrex, ">= 0.0.0"},
       {:phoenix_html, "~> 3.0"},
       {:phoenix_live_reload, "~> 1.2", only: :dev},
-      {:phoenix_live_view, "~> 0.17"},
+      # Temporary fix for LiveView
+      {:phoenix_live_view,
+       git: "https://github.com/phoenixframework/phoenix_live_view.git",
+       tag: "9b7f6ac2cf0ffdd4575377f2598db9bd9cd12ec0",
+       override: true},
       {:floki, "~> 0.33", only: :test},
       {:phoenix_live_dashboard, "~> 0.6"},
       {:esbuild, "~> 0.5", runtime: Mix.env() == :dev},
