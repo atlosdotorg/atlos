@@ -51,8 +51,6 @@ defmodule PlatformWeb.MediaLive.CommentBox do
   defp friendly_error(val), do: val
 
   def handle_event("save", %{"update" => params} = _input, socket) do
-    IO.inspect("Consuming uploaded entires")
-
     attachments =
       consume_uploaded_entries(socket, :attachments, fn %{path: path}, entry ->
         # Copying it to _another_ temporary path helps ensure we remove the user's provided filename
@@ -65,7 +63,6 @@ defmodule PlatformWeb.MediaLive.CommentBox do
         File.cp!(path, to_path)
         Uploads.UpdateAttachment.store({to_path, socket.assigns.media})
       end)
-      |> dbg()
 
     changeset =
       Updates.change_from_comment(
