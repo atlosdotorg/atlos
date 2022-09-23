@@ -84,10 +84,10 @@ defmodule Platform.Utils do
 
     # Second, link ATL identifiers.
     identifiers_linked =
-      Regex.replace(@identifier_regex, stripped_images, " [\\0](/incidents/\\1)")
+      Regex.replace(@identifier_regex, stripped_images, " [\\0](/incidents/\\2)")
 
     # Third, turn @'s into links.
-    tags_linked = Regex.replace(@tag_regex, identifiers_linked, " [\\0](/profile/\\2)")
+    tags_linked = Regex.replace(@tag_regex, identifiers_linked, " [\\0](/profile/\\3)")
 
     # Strip all tags and render markdown
     rendered = tags_linked |> HtmlSanitizeEx.strip_tags() |> Earmark.as_html!()
