@@ -7,12 +7,15 @@ defmodule PlatformWeb.Components do
   alias Platform.Material.Media
   alias Platform.Material
   alias Platform.Utils
+  alias Platform.Notifications
   alias Platform.Uploads
   alias PlatformWeb.Router.Helpers, as: Routes
 
   def navlink(%{request_path: path, to: to} = assigns) do
+    active = String.starts_with?(path, to) and !String.equivalent?(path, "/")
+
     classes =
-      if String.starts_with?(path, to) and !String.equivalent?(path, "/") do
+      if active do
         "self-start bg-neutral-800 text-white group w-full p-3 rounded-md flex flex-col items-center text-xs font-medium"
       else
         "self-start text-neutral-100 hover:bg-neutral-800 hover:text-white group w-full p-3 rounded-md flex flex-col items-center text-xs font-medium"
@@ -304,20 +307,35 @@ defmodule PlatformWeb.Components do
           </.navlink>
 
           <.navlink to="/notifications" label="Notifications" request_path={@path}>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="text-neutral-300 group-hover:text-white h-6 w-6"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-              />
-            </svg>
+            <div class="relative">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="text-neutral-300 group-hover:text-white h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+                />
+              </svg>
+              <%= if Notifications.has_unread_notifications(@current_user) do %>
+                <% active = String.starts_with?(@path, "/notifications") %>
+                <div class={"text-urge-400 absolute top-[3px] right-[3px] rounded-full ring-2 group-hover:ring-neutral-800 " <> (if active, do: "ring-neutral-800", else: "ring-neutral-700")}>
+                  <svg
+                    viewBox="0 0 100 100"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="currentColor"
+                    class="h-2 w-2"
+                  >
+                    <circle cx="50" cy="50" r="50" />
+                  </svg>
+                </div>
+              <% end %>
+            </div>
           </.navlink>
           <%= if !is_nil(@current_user) and Accounts.is_admin(@current_user) do %>
             <.navlink to="/adminland" label="Adminland" request_path={@path}>
@@ -450,9 +468,17 @@ defmodule PlatformWeb.Components do
           can_user_change_visibility: can_user_change_visibility,
           target: target,
           socket: socket,
-          show_profile: show_profile
+          left_indicator: indicator,
+          current_user: current_user
         } = assigns
       ) do
+    profile_ring_classes =
+      if Map.get(assigns, :profile_ring, true) do
+        "ring-8 ring-white"
+      else
+        ""
+      end
+
     if is_list(update) do
       [head | _] = update
 
@@ -476,11 +502,11 @@ defmodule PlatformWeb.Components do
             </span>
           <% end %>
           <div class="relative flex items-start space-x-2">
-            <%= if show_profile do %>
+            <%= if indicator == :profile do %>
               <div class="relative">
                 <a href={"/profile/#{head.user.username}"}>
                   <img
-                    class="h-10 w-10 rounded-full bg-gray-400 flex items-center justify-center ring-8 ring-white shadow"
+                    class={"h-10 w-10 rounded-full bg-gray-400 flex items-center justify-center shadow " <> profile_ring_classes}
                     src={Accounts.get_profile_photo_path(head.user)}
                     alt={"Profile photo for #{head.user.username}"}
                   />
@@ -491,9 +517,7 @@ defmodule PlatformWeb.Components do
               <div class="flex flex-wrap items-center">
                 <div class="text-sm text-gray-600 flex-grow">
                   <%= if show_media do %>
-                    <%= live_patch class: "text-button text-gray-800 inline-block mr-2", to: Routes.media_show_path(socket, :show, head.media.slug) do %>
-                      <%= head.media.slug %> &nearr;
-                    <% end %>
+                    <.media_text media={head.media} />
                   <% end %>
                   <.user_text user={head.user} />
                   <%= case head.type do %>
@@ -537,7 +561,8 @@ defmodule PlatformWeb.Components do
               can_user_change_visibility={can_user_change_visibility}
               target={target}
               socket={socket}
-              show_profile={false}
+              left_indicator={:dot}
+              current_user={current_user}
             />
           <% end %>
         </ul>
@@ -552,30 +577,30 @@ defmodule PlatformWeb.Components do
             </span>
           <% end %>
           <div class="relative flex items-start space-x-2">
-            <%= if show_profile do %>
-              <div class="relative">
-                <a href={"/profile/#{update.user.username}"}>
-                  <img
-                    class="h-10 w-10 rounded-full bg-gray-400 flex items-center justify-center ring-8 ring-white shadow"
-                    src={Accounts.get_profile_photo_path(update.user)}
-                    alt={"Profile photo for #{update.user.username}"}
-                  />
-                </a>
-              </div>
-            <% else %>
-              <div class="relative ml-[0.90em] mt-3 mr-4">
-                <svg viewBox="0 0 100 100" class="h-3 w-3 ring-4 ring-white bg-white text-gray-400">
-                  <circle cx="50" cy="50" r="40" stroke-width="3" fill="currentColor" />
-                </svg>
-              </div>
+            <%= case indicator do %>
+              <% :profile -> %>
+                <div class="relative">
+                  <a href={"/profile/#{update.user.username}"}>
+                    <img
+                      class={"h-10 w-10 rounded-full bg-gray-400 flex items-center justify-center " <> profile_ring_classes}
+                      src={Accounts.get_profile_photo_path(update.user)}
+                      alt={"Profile photo for #{update.user.username}"}
+                    />
+                  </a>
+                </div>
+              <% :dot -> %>
+                <div class="relative ml-[0.90em] mt-3 mr-4">
+                  <svg viewBox="0 0 100 100" class="h-3 w-3 bg-white text-gray-400">
+                    <circle cx="50" cy="50" r="40" stroke-width="3" fill="currentColor" />
+                  </svg>
+                </div>
+              <% _ -> %>
             <% end %>
             <div class="min-w-0 flex-1 flex flex-col flex-grow pl-1">
               <div>
                 <div class="text-sm text-gray-600 mt-2">
                   <%= if show_media do %>
-                    <%= live_patch class: "text-button text-gray-800 inline-block mr-2", to: Routes.media_show_path(socket, :show, update.media.slug) do %>
-                      <%= update.media.slug %> &nearr;
-                    <% end %>
+                    <.media_text media={update.media} />
                   <% end %>
                   <.user_text user={update.user} />
                   <%= case update.type do %>
@@ -650,7 +675,7 @@ defmodule PlatformWeb.Components do
                   <% end %>
                   <!-- Text comment section -->
                   <%= if update.explanation do %>
-                    <article class="prose text-sm p-2 w-full max-w-full">
+                    <article class="prose text-sm p-2 w-full max-w-full bg-white">
                       <%= raw(update.explanation |> Platform.Utils.render_markdown()) %>
                     </article>
                   <% end %>
@@ -737,11 +762,11 @@ defmodule PlatformWeb.Components do
 
     if ago > 7 * 24 * 60 * 60 do
       ~H"""
-      <span title={@time}><%= months[@time.month] %> <%= @time.day %> <%= @time.year %></span>
+      <span data-tooltip={@time}><%= months[@time.month] %> <%= @time.day %> <%= @time.year %></span>
       """
     else
       ~H"""
-      <span title={@time}><%= ago |> time_ago_in_words() %></span>
+      <span data-tooltip={@time}><%= ago |> time_ago_in_words() %></span>
       """
     end
   end
@@ -1226,8 +1251,20 @@ defmodule PlatformWeb.Components do
     """
   end
 
+  def media_card_lazy(%{media: %Media{} = media} = assigns) do
+    ~H"""
+    <div>
+      <div class="fixed w-[350px] h-[190px] flex rounded-lg shadow-lg items-center bg-white justify-around -z-50">
+        <div class="font-medium text-lg text-md p-4">
+          <span class="animate-pulse">Loading...</span>
+        </div>
+      </div>
+      <iframe src={"/incidents/#{media.slug}/card"} width="350px" height="190px" />
+    </div>
+    """
+  end
+
   def media_card(%{media: %Media{} = media, current_user: %Accounts.User{} = user} = assigns) do
-    # TODO: preload
     contributors = Material.contributors(media)
     sensitive = Media.is_sensitive(media)
     assigns = assigns |> Map.put_new(:target, nil)
@@ -1461,12 +1498,16 @@ defmodule PlatformWeb.Components do
     ~H"""
     <div class="flex -space-x-1 relative z-0 overflow-hidden">
       <%= for user <- @users |> Enum.take(5) do %>
-        <img
-          class="relative z-30 inline-block h-5 w-5 rounded-full ring-2 ring-white"
-          src={Accounts.get_profile_photo_path(user)}
-          title={user.username}
-          alt={"Profile photo for #{user.username}"}
-        />
+        <.popover class="inline">
+          <img
+            class="relative z-30 inline-block h-5 w-5 rounded-full ring-2 ring-white"
+            src={Accounts.get_profile_photo_path(user)}
+            alt={"Profile photo for #{user.username}"}
+          />
+          <:display>
+            <.user_card user={user} />
+          </:display>
+        </.popover>
       <% end %>
       <%= if length(@users) > max do %>
         <div class="bg-gray-300 text-gray-700 text-xl rounded-full h-5 w-5 z-30 ring-2 ring-white flex items-center justify-center">
@@ -1518,7 +1559,7 @@ defmodule PlatformWeb.Components do
             </div>
           </div>
           <div
-            class="w-full h-full absolute bg-neutral-50 border rounded-lg flex items-center justify-around top-0"
+            class="w-full h-full min-h-[50px] absolute bg-neutral-50 border rounded-lg flex items-center justify-around top-0"
             x-show="hidden"
           >
             <!-- Overlay for potentially graphic content -->
@@ -1859,7 +1900,18 @@ defmodule PlatformWeb.Components do
     """
   end
 
-  def user_text(%{user: user} = assigns) do
+  def popover(assigns) do
+    ~H"""
+    <div class={Map.get(assigns, :class, "")} data-popover>
+      <%= render_slot(@inner_block) %>
+      <template role="popover">
+        <%= render_slot(@display) %>
+      </template>
+    </div>
+    """
+  end
+
+  defp user_name_display(%{user: %Accounts.User{} = user} = assigns) do
     ~H"""
     <a
       class="font-medium text-gray-900 hover:text-urge-600 inline-flex gap-1 flex-wrap"
@@ -1877,6 +1929,60 @@ defmodule PlatformWeb.Components do
         <% end %>
       <% end %>
     </a>
+    """
+  end
+
+  def user_card(%{user: %Accounts.User{} = user} = assigns) do
+    ~H"""
+    <.link navigate={"/profile/" <> user.username}>
+      <div class="flex items-center gap-4 p-2">
+        <div class="w-12">
+          <img
+            class="relative z-30 inline-block h-12 w-12 rounded-full ring-2 ring-white"
+            src={Accounts.get_profile_photo_path(user)}
+            alt={"Profile photo for #{user.username}"}
+          />
+        </div>
+        <div class="flex flex-col gap-1">
+          <.user_name_display user={user} />
+          <p class="text-neutral-600">
+            <%= if is_nil(user.bio) or String.length(user.bio |> String.trim()) == 0,
+              do: "This user has not provided a bio.",
+              else: user.bio %>
+          </p>
+        </div>
+      </div>
+    </.link>
+    """
+  end
+
+  def user_text(%{user: %Accounts.User{} = user} = assigns) do
+    ~H"""
+    <.popover class="inline">
+      <.user_name_display user={user} />
+      <:display>
+        <%= if is_nil(user) do %>
+          This is an administrative user.
+        <% else %>
+          <.user_card user={user} />
+        <% end %>
+      </:display>
+    </.popover>
+    """
+  end
+
+  def media_text(%{media: %Media{} = media} = assigns) do
+    ~H"""
+    <.popover class="inline overflow-hidden" no_pad={true}>
+      <span class="text-button text-gray-800 inline-block mr-2">
+        <.link navigate={"/incidents/" <> media.slug}><%= media.slug %> &nearr;</.link>
+      </span>
+      <:display>
+        <div class="-m-3 w-[350px] h-[190px] rounded">
+          <.media_card_lazy media={media} />
+        </div>
+      </:display>
+    </.popover>
     """
   end
 

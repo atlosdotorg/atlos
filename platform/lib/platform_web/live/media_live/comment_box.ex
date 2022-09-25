@@ -20,7 +20,7 @@ defmodule PlatformWeb.MediaLive.CommentBox do
        accept: ~w(.png .jpg .jpeg),
        max_entries: 9,
        max_file_size: 10_000_000,
-       auto_upload: true,
+       auto_upload: false,
        progress: &handle_progress/3
      )
      |> assign_changeset()}
@@ -113,7 +113,7 @@ defmodule PlatformWeb.MediaLive.CommentBox do
       id={"#{@id}"}
       phx-drop-target={@uploads.attachments.ref}
     >
-      <.form let={f} for={@changeset} phx-target={@myself} phx-change="validate" phx-submit="save">
+      <.form :let={f} for={@changeset} phx-target={@myself} phx-change="validate" phx-submit="save">
         <div class="flex items-start space-x-4">
           <div class="flex-shrink-0" phx-update="ignore" id="comment-box-profile-photo">
             <img
@@ -168,7 +168,7 @@ defmodule PlatformWeb.MediaLive.CommentBox do
                         </div>
                       </div>
                       <figure class="rounded">
-                        <%= live_img_preview(entry) %>
+                        <.live_img_preview entry={entry} />
                       </figure>
 
                       <button
@@ -215,7 +215,7 @@ defmodule PlatformWeb.MediaLive.CommentBox do
               <div class="absolute bottom-0 inset-x-0 pl-3 pr-2 pt-1 pb-2 flex justify-between">
                 <div class="flex items-center space-x-5">
                   <div class="md:flex items-center">
-                    <%= live_file_input(@uploads.attachments, class: "sr-only") %>
+                    <.live_file_input upload={@uploads.attachments} class="sr-only" />
                     <button
                       type="button"
                       onclick={"document.getElementById('#{@uploads.attachments.ref}').click()"}

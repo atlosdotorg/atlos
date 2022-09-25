@@ -5,7 +5,9 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/svg" href={Routes.static_path(@conn, "/images/icon.svg")} />
-    <%= live_title_tag(assigns[:title] || "Collaborative OSINT", suffix: " | Atlos") %>
+    <.live_title suffix="| Atlos">
+      <%= assigns[:title] || "Collaborative OSINT" %>
+    </.live_title>
     <link phx-track-static rel="stylesheet" href={Routes.static_path(@conn, "/assets/app.css")} />
     <link
       phx-track-static

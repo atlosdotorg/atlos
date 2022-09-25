@@ -10,7 +10,7 @@ jobs:
     strategy:
       matrix:
         otp: ["24.3"]
-        elixir: ["1.13"]
+        elixir: ["1.14"]
     services:
       postgres:
         image: postgis/postgis:14-master

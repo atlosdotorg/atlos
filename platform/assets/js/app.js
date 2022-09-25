@@ -24,6 +24,7 @@ import { LiveSocket } from "phoenix_live_view"
 import topbar from "../vendor/topbar"
 import mapboxgl from 'mapbox-gl'
 import Alpine from 'alpinejs'
+import tippy from 'tippy.js';
 
 mapboxgl.accessToken = 'pk.eyJ1IjoibWlsZXNtY2MiLCJhIjoiY2t6ZzdzZmY0MDRobjJvbXBydWVmaXBpNSJ9.-aHM8bjOOsSrGI0VvZenAQ';
 
@@ -84,6 +85,35 @@ let lockIcon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 m-px mb-1
 <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
 </svg>`;
 
+// Logic specifically for the <.popover> component
+function initializePopovers() {
+    document.querySelectorAll("[data-popover]:not(.popover-initialized)").forEach(s => {
+        let popover = s.querySelector("template[role=\"popover\"]");
+
+        tippy(s, {
+            interactive: true,
+            allowHTML: true,
+            content: popover.innerHTML,
+            theme: "light",
+            appendTo: document.body,
+            delay: [1000, 0]
+        });
+
+        s.classList.add("popover-initialized");
+    })
+
+    document.querySelectorAll("[data-tooltip]:not(.tooltip-initialized)").forEach(s => {
+        tippy(s, {
+            allowHTML: true,
+            content: s.getAttribute("data-tooltip"),
+            appendTo: document.body,
+            delay: [1000, 0]
+        });
+
+        s.classList.add("tooltip-initialized");
+    });
+}
+
 function initializeSmartSelects() {
     // Make smart-selects interactive
     document.querySelectorAll("select:not(.ts-ignore *)").forEach(s => {
@@ -140,6 +170,7 @@ function initializeSmartSelects() {
             }
         });
         x.control_input.setAttribute("phx-debounce", "blur");
+        x.control_input.setAttribute("phx-update", "ignore");
     });
 }
 
@@ -312,6 +343,9 @@ document.addEventListener("load", initializeSmartSelects);
 
 document.addEventListener("phx:update", initializeMaps);
 document.addEventListener("load", initializeMaps);
+
+document.addEventListener("phx:update", initializePopovers);
+document.addEventListener("load", initializePopovers);
 
 // Used to set the clipboard when copying hash information
 window.setClipboard = (text) => {

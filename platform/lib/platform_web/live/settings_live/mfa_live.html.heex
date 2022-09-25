@@ -26,7 +26,7 @@
           <.form
             let={f}
             for={@enable_changeset}
-            as="enable_mfa"
+            as={:enable_mfa}
             phx-submit="save_enable_mfa"
             class="phx-form"
           >
@@ -73,7 +73,7 @@
         <.form
           let={f}
           for={@disable_changeset}
-          as="disable_mfa"
+          as={:disable_mfa}
           phx-submit="save_disable_mfa"
           class="phx-form"
         >

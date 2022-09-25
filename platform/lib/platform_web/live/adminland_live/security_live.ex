@@ -88,7 +88,7 @@ defmodule PlatformWeb.AdminlandLive.SecurityLive do
                     <tbody class="divide-y divide-gray-200 bg-white">
                       <%= for mode <- @security_modes do %>
                         <tr>
-                          <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm sm:pl-6">
+                          <td class="py-4 pl-4 pr-3 text-sm sm:pl-6">
                             <%= mode.description %>
                           </td>
                           <td class="max-w-md px-3 py-4 text-sm text-gray-500">

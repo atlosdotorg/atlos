@@ -58,32 +58,41 @@ defmodule PlatformWeb.AdminlandLive.SecurityModeCreateLive do
         phx-target={@myself}
         phx-change="validate"
         phx-submit="save"
-        class="phx-form"
+        class="phx-form space-y-6"
       >
-        <%= label(
-          f,
-          :description,
-          "User-facing description"
-        ) %>
-        <%= text_input(f, :description,
-          placeholder: "Some user-facing description...",
-          phx_debounce: "250"
-        ) %>
-        <%= error_tag(f, :description) %>
-        <p class="support">
-          This description will be shown to users when they try to perform a disallowed action (e.g., logging in when mode is "No Access").
-        </p>
+        <div>
+          <%= label(
+            f,
+            :description,
+            "User-facing description"
+          ) %>
+          <%= text_input(f, :description,
+            placeholder: "Some user-facing description...",
+            phx_debounce: "250"
+          ) %>
+          <%= error_tag(f, :description) %>
+          <p class="support">
+            This description will be shown to users when they try to perform a disallowed action (e.g., logging in when mode is "No Access"). Only relevant for non-Normal security modes.
+          </p>
+        </div>
 
-        <%= label(f, :mode, "What security mode would you like to set?") %>
-        <%= select(f, :mode, [Normal: "normal", "Read Only": "read_only", "No Access": "no_access"],
-          data_descriptions:
-            Jason.encode!(%{
-              "normal" => "Everyone can use Atlos normally",
-              "read_only" => "Only admins can edit incident data",
-              "no_access" => "Only Admins can access Atlos"
-            })
-        ) %>
-        <%= error_tag(f, :mode) %>
+        <div>
+          <%= label(f, :mode, "What security mode would you like to set?") %>
+          <div phx-update="ignore" id="mode-selector">
+            <%= select(
+              f,
+              :mode,
+              [Normal: "normal", "Read Only": "read_only", "No Access": "no_access"],
+              data_descriptions:
+                Jason.encode!(%{
+                  "normal" => "Everyone can use Atlos normally",
+                  "read_only" => "Only admins can edit incident data",
+                  "no_access" => "Only Admins can access Atlos"
+                })
+            ) %>
+          </div>
+          <%= error_tag(f, :mode) %>
+        </div>
 
         <%= submit(
           "Set security mode",
