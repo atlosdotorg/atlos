@@ -1,8 +1,8 @@
-name: Fly Deploy Production
+name: Fly Deploy GAP
 on:
   push:
     branches:
-      - prod
+      - deployments/gap
 env:
   FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN_PROD }}
 jobs:
@@ -15,5 +15,4 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: superfly/flyctl-actions/setup-flyctl@master
-      - run: flyctl deploy --config fly.prod.toml --remote-only --build-arg APP_REVISION=${{ github.sha }}
-      - run: flyctl deploy --config fly.bellingcat.toml --remote-only --build-arg APP_REVISION=${{ github.sha }}
+      - run: flyctl deploy --config deployments/fly.gap.toml --remote-only --build-arg APP_REVISION=${{ github.sha }}

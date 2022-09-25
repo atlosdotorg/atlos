@@ -3,7 +3,6 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
   alias Platform.Material
   alias Platform.Utils
   alias Platform.Auditor
-  alias Platform.Workers.Archiver
   alias Platform.Uploads
 
   def update(assigns, socket) do
@@ -22,7 +21,7 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
        accept: ~w(.png .jpg .jpeg .avi .mp4 .webm),
        max_entries: 1,
        max_file_size: 250_000_000,
-       auto_upload: true,
+       auto_upload: false,
        progress: &handle_progress/3,
        chunk_size: 512_000
      )
@@ -38,10 +37,10 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
   end
 
   defp handle_static_file(%{path: path}, client_name) do
-    # Do something to create a better filename?
+    # TODO: Do something to create a better filename?
     to_path = Temp.path!(%{prefix: "user_provided", suffix: client_name})
     File.cp!(path, to_path)
-    to_path
+    {:ok, to_path}
   end
 
   defp clear_error(socket) do
@@ -59,7 +58,13 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
     source_url = Map.get(params, "source_url", "")
 
     if String.length(source_url) > 0 do
-      socket |> assign(:url_duplicate_of, Material.get_media_versions_by_source_url(source_url))
+      socket
+      |> assign(
+        :url_duplicate_of,
+        Material.get_media_by_source_url(source_url)
+        |> Enum.filter(&Material.Media.can_user_view(&1, socket.assigns.current_user))
+        |> Enum.filter(&(&1.id != socket.assigns.media.id))
+      )
     else
       socket |> assign(:url_duplicate_of, [])
     end
@@ -307,7 +312,7 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       aria-hidden="true"
-                      class="mx-auto h-12 w-12 text-gray-400 animate-pulse"
+                      class="mx-auto h-12 w-12 text-gray-400"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -321,14 +326,9 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
                     </svg>
                     <div class="w-full text-sm text-gray-600">
                       <%= for entry <- @uploads.media_upload.entries do %>
-                        <%= if entry.progress < 100 and entry.progress > 0 do %>
-                          <div class="w-42 mt-4 text-center">
-                            <p>Uploading <%= Utils.truncate(entry.client_name) %></p>
-                            <progress value={entry.progress} max="100" class="progress ~urge mt-2">
-                              <%= entry.progress %>%
-                            </progress>
-                          </div>
-                        <% end %>
+                        <div class="w-42 mt-4 text-center">
+                          <p>Selected: <%= Utils.truncate(entry.client_name) %></p>
+                        </div>
                       <% end %>
                     </div>
                     <div>
@@ -388,7 +388,10 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
                 phx_disable_with: "Uploading...",
                 class: "button ~urge @high"
               ) %>
-              <a href={"/incidents/#{@media.slug}/"} class="text-button text-sm text-right">
+              <a
+                href={"/incidents/#{@media.slug}/"}
+                class="text-button text-sm text-right phx-only-during-reg"
+              >
                 Or skip media upload
                 <span class="text-gray-500 font-normal block text-xs">
                   You can upload media later

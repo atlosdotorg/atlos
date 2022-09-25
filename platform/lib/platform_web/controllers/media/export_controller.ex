@@ -17,6 +17,7 @@ defmodule PlatformWeb.ExportController do
       (media
        |> Map.put(:latitude, lat)
        |> Map.put(:longitude, lon)
+       |> Map.put(:location, to_string(lat) <> ", " <> to_string(lon))
        |> Map.to_list()
        |> Enum.map(fn {k, v} ->
          name = k |> to_string()
@@ -62,8 +63,8 @@ defmodule PlatformWeb.ExportController do
     file = File.open!(path, [:write, :utf8])
 
     fields =
-      [:slug, :inserted_at, :updated_at, :latitude, :longitude] ++
-        Attribute.attribute_names(false) ++
+      [:slug, :inserted_at, :updated_at, :latitude, :longitude, :location] ++
+        Attribute.attribute_names(false, false) ++
         Enum.map(1..max_num_versions, &("source_" <> to_string(&1)))
 
     results

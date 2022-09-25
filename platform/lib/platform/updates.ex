@@ -8,7 +8,6 @@ defmodule Platform.Updates do
 
   alias Platform.Utils
   alias Platform.Updates.Update
-  alias Platform.Material.Attribute
   alias Platform.Material.Media
   alias Platform.Material.MediaVersion
   alias Platform.Accounts.User
@@ -69,14 +68,18 @@ defmodule Platform.Updates do
 
   @doc """
   Insert the given Update changeset. Helpful to use in conjunction with the dynamic changeset
-  generation functions (e.g., `change_from_attribute_changeset`).
+  generation functions (e.g., `change_from_attribute_changeset`). Will also generate notifications.
   """
   def create_update_from_changeset(%Ecto.Changeset{data: %Update{} = _} = changeset) do
     res = changeset |> Repo.insert()
 
     case res do
-      {:ok, update} -> Material.broadcast_media_updated(update.media_id)
-      _ -> nil
+      {:ok, update} ->
+        Platform.Notifications.create_notifications_from_update(update)
+        Material.broadcast_media_updated(update.media_id)
+
+      _ ->
+        nil
     end
 
     res
@@ -119,17 +122,32 @@ defmodule Platform.Updates do
   end
 
   @doc """
-  Helper API function that takes attribute change information and uses it to create an Update changeset. Requires 'explanation' to be in attrs.
+  Helper API function that takes attributes change information and uses it to create an Update changeset. Requires 'explanation' to be in attrs. The change is recorded as belonging to the head of `attributes`; all other attributes should be children of the first element.
   """
-  def change_from_attribute_changeset(
+  def change_from_attributes_changeset(
         %Media{} = media,
-        %Attribute{} = attribute,
+        attributes,
         %User{} = user,
         changeset,
         attrs \\ %{}
       ) do
-    old_value = Map.get(media, attribute.schema_field) |> Jason.encode!()
-    new_value = Map.get(changeset.changes, attribute.schema_field) |> Jason.encode!()
+    # We add the _combined field so that it's unambiguous when a dict represents a collection of schema fields changing
+    old_value =
+      attributes
+      |> Enum.map(&{&1.schema_field, Map.get(media, &1.schema_field)})
+      |> Map.new()
+      |> Map.put("_combined", true)
+      |> Jason.encode!()
+
+    new_value =
+      attributes
+      |> Enum.map(
+        &{&1.schema_field,
+         Map.get(changeset.changes, &1.schema_field, Map.get(media, &1.schema_field))}
+      )
+      |> Map.new()
+      |> Map.put("_combined", true)
+      |> Jason.encode!()
 
     change_update(
       %Update{},
@@ -138,7 +156,7 @@ defmodule Platform.Updates do
       attrs
       |> Map.put("old_value", old_value)
       |> Map.put("new_value", new_value)
-      |> Map.put("modified_attribute", attribute.name)
+      |> Map.put("modified_attribute", hd(attributes).name)
       |> Map.put("type", :update_attribute)
     )
   end
@@ -222,44 +240,6 @@ defmodule Platform.Updates do
         do: query |> where([u], not u.hidden),
         else: query
     )
-  end
-
-  @doc """
-  Generate a query for the updates that are relevant to the given user.
-  That is, they either @tag the user in the explanation, or they relate to
-  an incident that the user is subscribed to.
-
-  Options:
-  - exclude_hidden: whether to exclude updates marked as hidden
-  """
-  def query_updates_for_user(user, opts) do
-    # Get all the updates for the media that the user is subscriped to
-    subscriptions_query =
-      from u in Update,
-        join: media in assoc(u, :media),
-        join: subscription in assoc(media, :subscriptions),
-        where: subscription.user_id == ^user.id
-
-    # Get all the user's tags. Just to be safe, we remove %.
-    query_text = ("@" <> user.username) |> String.replace("%", "")
-
-    tags_query =
-      from u in subquery(text_search(query_text)), where: ilike(u.explanation, ^"%#{query_text}%")
-
-    # Combine them
-    union_query = union(subscriptions_query, ^tags_query)
-
-    # Filter hidden updates, if told to
-    filtered_query =
-      if Keyword.get(opts, :exclude_hidden, false),
-        do: union_query |> where([u], not u.hidden),
-        else: union_query
-
-    # Filter out own updates, preload, and order correctly
-    from u in subquery(filtered_query),
-      where: u.user_id != ^user.id,
-      preload: [:user, :media, :media_version],
-      order_by: [desc: u.inserted_at]
   end
 
   @doc """

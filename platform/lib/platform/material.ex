@@ -340,6 +340,18 @@ defmodule Platform.Material do
     end)
   end
 
+  @doc """
+  Returns the number of media versions associated with the given media ID. We don't require
+  the media itself, since sometimes we don't have it loaded.
+  """
+  def count_media_versions_for_media_id(media_id) do
+    Repo.one(
+      from v in MediaVersion,
+        where: v.media_id == ^media_id,
+        select: count("*")
+    )
+  end
+
   def get_media_versions_by_source_url(url) do
     Repo.all(
       from v in MediaVersion,
@@ -350,21 +362,23 @@ defmodule Platform.Material do
     |> Enum.dedup_by(& &1.media.id)
   end
 
+  def get_media_by_source_url(source_url) do
+    get_media_versions_by_source_url(source_url)
+    |> Enum.map(& &1.media)
+    |> Enum.sort()
+    |> Enum.dedup()
+  end
+
   def create_media_version(%Media{} = media, attrs \\ %{}) do
     result =
       %MediaVersion{}
       |> MediaVersion.changeset(
         attrs
         |> Map.put("media_id", media.id)
+        |> Map.put("scoped_id", count_media_versions_for_media_id(media.id) + 1)
         |> Utils.make_keys_strings()
       )
       |> Repo.insert()
-
-    # If successful, also submit for external archival
-    case result do
-      {:ok, version} -> submit_for_external_archival(version)
-      _ -> {}
-    end
 
     result
   end
@@ -470,8 +484,24 @@ defmodule Platform.Material do
         version.file_location
 
       true ->
-        Uploads.WatermarkedMediaVersion.url({version.file_location, media}, type, signed: true)
+        Uploads.WatermarkedMediaVersion.url({version.file_location, media}, type,
+          signed: true,
+          expires_in: 60 * 60 * 6
+        )
     end
+  end
+
+  @doc """
+  Changeset for multiple media attributes at a time. Delegates most functionality to change_media_attribute, so it also checks permissions.
+  """
+  def change_media_attributes(
+        %Media{} = media,
+        attributes,
+        %User{} = user,
+        attrs \\ %{},
+        verify_change_exists \\ true
+      ) do
+    Attribute.combined_changeset(media, attributes, attrs, user, verify_change_exists)
   end
 
   @doc """
@@ -481,19 +511,17 @@ defmodule Platform.Material do
         %Media{} = media,
         %Attribute{} = attribute,
         %User{} = user,
-        attrs \\ %{}
+        attrs \\ %{},
+        verify_change_exists \\ true,
+        changeset \\ nil
       ) do
-    changeset = Attribute.changeset(media, attribute, attrs, user)
-
-    if Attribute.can_user_edit(attribute, user, media) do
-      changeset
-    else
-      changeset
-      |> Ecto.Changeset.add_error(
-        attribute.schema_field,
-        "You do not have permission to edit this attribute."
-      )
-    end
+    Attribute.combined_changeset(
+      changeset || media,
+      attribute,
+      attrs,
+      user,
+      verify_change_exists
+    )
   end
 
   def update_media_attribute(media, %Attribute{} = attribute, attrs, user \\ nil) do
@@ -507,14 +535,31 @@ defmodule Platform.Material do
     result
   end
 
+  def update_media_attributes(media, attributes, attrs, user \\ nil) do
+    result =
+      change_media_attributes(media, attributes, user, attrs)
+      |> Repo.update()
+
+    invalidate_attribute_values_cache()
+
+    result
+  end
+
   @doc """
   Do an audited update of the given attribute. Will broadcast change via PubSub.
   """
   def update_media_attribute_audited(media, %Attribute{} = attribute, %User{} = user, attrs) do
-    media_changeset = change_media_attribute(media, attribute, user, attrs)
+    update_media_attributes_audited(media, [attribute], user, attrs)
+  end
+
+  @doc """
+  Do an audited update of the given attributes. Will broadcast change via PubSub.
+  """
+  def update_media_attributes_audited(media, attributes, %User{} = user, attrs) do
+    media_changeset = change_media_attributes(media, attributes, user, attrs)
 
     update_changeset =
-      Updates.change_from_attribute_changeset(media, attribute, user, media_changeset, attrs)
+      Updates.change_from_attributes_changeset(media, attributes, user, media_changeset, attrs)
 
     # Make sure both changesets are valid
     cond do
@@ -524,9 +569,24 @@ defmodule Platform.Material do
       true ->
         Repo.transaction(fn ->
           {:ok, _} = Updates.create_update_from_changeset(update_changeset)
-          {:ok, res} = update_media_attribute(media, attribute, attrs, user)
+          {:ok, res} = update_media_attributes(media, attributes, attrs, user)
           res
         end)
+    end
+  end
+
+  @doc """
+  Returns whether the update change attribute is combined or legacy. Prior to September 2022, update
+  change values (e.g., `new` or `old`) were JSON encodings of the schema field value; now, update values
+  are a dictionary of schema fields and their values. This allows us to encode changes to fields in the same
+  update.
+  """
+  def is_combined_update_value(value) do
+    with true <- is_map(value),
+         true <- Map.get(value, "_combined", false) do
+      true
+    else
+      _ -> false
     end
   end
 
@@ -550,6 +610,15 @@ defmodule Platform.Material do
     else
       _ -> :error
     end
+  end
+
+  def get_subscribers(%Media{} = media) do
+    Repo.all(
+      from w in MediaSubscription,
+        where: w.media_id == ^media.id,
+        preload: :user
+    )
+    |> Enum.map(& &1.user)
   end
 
   def total_subscribed!(%Media{} = media) do
@@ -576,12 +645,19 @@ defmodule Platform.Material do
           # This allows us to have easy demo data — just give a raw HTTPS URL
           do: val.file_location,
           else:
-            Uploads.WatermarkedMediaVersion.url({val.file_location, media}, :thumb, signed: true)
+            Uploads.WatermarkedMediaVersion.url({val.file_location, media}, :thumb,
+              signed: true,
+              expires_in: 60 * 60 * 6
+            )
     end
   end
 
   def contributors(%Media{} = media) do
-    Enum.uniq(media.updates |> Enum.filter(&(not &1.hidden)) |> Enum.map(& &1.user))
+    Enum.uniq(
+      media.updates
+      |> Enum.filter(&(not &1.hidden))
+      |> Enum.map(& &1.user)
+    )
   end
 
   @doc """
@@ -635,5 +711,22 @@ defmodule Platform.Material do
         end
       end
     end)
+  end
+
+  @doc """
+  Get the human-readable name of the media version (e.g., ATL-ABCDEF/1). The media must match the version.
+  """
+  def get_human_readable_media_version_name(%Media{} = media, %MediaVersion{} = version) do
+    "#{media.slug}/#{version.scoped_id}"
+  end
+
+  def get_media_organization_type(%Media{} = media) do
+    case media.attr_type do
+      ["Military Activity" <> _ | _] -> :military
+      ["Civilian Activity" <> _ | _] -> :civilian
+      ["Policing" <> _ | _] -> :policing
+      ["Weather" <> _ | _] -> :weather
+      _ -> :other
+    end
   end
 end

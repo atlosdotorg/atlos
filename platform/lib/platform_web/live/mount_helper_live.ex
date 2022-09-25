@@ -1,5 +1,6 @@
 defmodule PlatformWeb.MountHelperLive do
   import Phoenix.LiveView
+  import Phoenix.Component
   alias Platform.Accounts
 
   def on_mount(:default, _params, session, socket) do

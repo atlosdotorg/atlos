@@ -64,7 +64,7 @@ defmodule PlatformWeb.AdminlandLive.ActivityFeedLive do
                 <.form
                   let={f}
                   for={@changeset}
-                  as="query"
+                  as={:query}
                   phx-change="change"
                   phx-submit="save"
                   phx-target={@myself}

@@ -16,8 +16,9 @@ defmodule Platform.MaterialFixtures do
     {:ok, media} =
       attrs
       |> Enum.into(%{
-        description: "some description",
+        attr_description: "some description",
         attr_sensitive: ["Graphic Violence"],
+        attr_type: ["Other"],
         slug: unique_media_slug(),
         status: "Unclaimed"
       })

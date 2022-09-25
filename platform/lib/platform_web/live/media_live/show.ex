@@ -9,7 +9,7 @@ defmodule PlatformWeb.MediaLive.Show do
   alias Material.Media
   alias Platform.Accounts
   alias Accounts.User
-  alias Platform.Utils
+  alias Platform.Notifications
 
   def mount(_params, _session, socket) do
     {:ok, socket}
@@ -22,7 +22,7 @@ defmodule PlatformWeb.MediaLive.Show do
      |> assign(:attribute, Map.get(params, "attribute"))
      |> assign(:title, "Incident #{slug}")
      # This forces the comment box to be fully rerendered on submit
-     |> assign(:comment_box_id, Utils.generate_random_sequence(10))
+     #  |> assign(:comment_box_id, Utils.generate_random_sequence(10))
      |> assign_media_and_updates()}
   end
 
@@ -53,6 +53,9 @@ defmodule PlatformWeb.MediaLive.Show do
   defp assign_media_and_updates(socket) do
     with %Material.Media{} = media <- Material.get_full_media_by_slug(socket.assigns.slug),
          true <- Media.can_user_view(media, socket.assigns.current_user) do
+      # Mark notifications for this media as read
+      Notifications.mark_notifications_as_read(socket.assigns.current_user, media)
+
       socket
       |> assign(:media, media)
       |> assign(:updates, media.updates |> Enum.sort_by(& &1.inserted_at))

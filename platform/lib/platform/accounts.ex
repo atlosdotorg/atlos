@@ -331,6 +331,13 @@ defmodule Platform.Accounts do
     :ok
   end
 
+  @doc """
+  Deletes all session tokens.
+  """
+  def delete_all_session_tokens() do
+    Repo.delete_all(from Platform.Accounts.UserToken, where: [context: "session"])
+  end
+
   ## Confirmation
 
   @doc """
@@ -454,11 +461,17 @@ defmodule Platform.Accounts do
       String.starts_with?(user.profile_photo_file, "https://") ->
         user.profile_photo_file
 
+      user.username == "Atlos" ->
+        "/images/bot_profile.png"
+
       String.length(user.profile_photo_file) == 0 ->
         "/images/default_profile.jpg"
 
       true ->
-        Platform.Uploads.Avatar.url({user.profile_photo_file, user}, :thumb, signed: true)
+        Platform.Uploads.Avatar.url({user.profile_photo_file, user}, :thumb,
+          signed: true,
+          expires_in: 60 * 60 * 6
+        )
     end
   end
 
@@ -489,5 +502,9 @@ defmodule Platform.Accounts do
 
   def is_muted(%User{} = user) do
     Enum.member?(user.restrictions || [], :muted)
+  end
+
+  def is_bot(%User{} = user) do
+    user.username == "Atlos"
   end
 end

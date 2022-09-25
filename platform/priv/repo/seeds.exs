@@ -75,7 +75,7 @@ random_media =
 
     {:ok, media} =
       Material.create_media_audited(creator, %{
-        description: Faker.StarWars.quote() |> String.slice(0..230),
+        attr_description: Faker.StarWars.quote() |> String.slice(0..230),
         attr_sensitive:
           if(Enum.random(0..10) < 2,
             do: [
@@ -84,7 +84,10 @@ random_media =
               )
             ],
             else: ["Not Sensitive"]
-          )
+          ),
+        attr_type: [
+          Enum.random(Material.Attribute.options(Material.Attribute.get_attribute(:type)))
+        ]
       })
 
     Material.create_media_version_audited(media, creator, %{

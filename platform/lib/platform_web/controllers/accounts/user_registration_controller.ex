@@ -15,6 +15,14 @@ defmodule PlatformWeb.UserRegistrationController do
     end
   end
 
+  def no_access(conn, _params) do
+    if Platform.Security.get_security_mode_state() != :no_access do
+      conn |> redirect(to: "/")
+    else
+      render(conn, "no_access.html", title: "Maintenance Mode")
+    end
+  end
+
   def new(conn, params) do
     invite_code = Map.get(params, "invite_code", "")
     changeset = Accounts.change_user_registration(%User{invite_code: invite_code})

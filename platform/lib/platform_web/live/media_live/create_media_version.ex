@@ -24,7 +24,7 @@ defmodule PlatformWeb.MediaLive.CreateMediaVersion do
       >
         <button
           type="button"
-          @click="tab = 'link'"
+          x-on:click="tab = 'link'"
           class="group relative min-w-0 flex-1 overflow-hidden bg-white py-4 px-4 text-sm font-medium text-center hover:bg-gray-50 focus:z-10"
           aria-current="page"
         >
@@ -47,7 +47,7 @@ defmodule PlatformWeb.MediaLive.CreateMediaVersion do
 
         <button
           type="button"
-          @click="tab = 'upload'"
+          x-on:click="tab = 'upload'"
           class="group relative min-w-0 flex-1 overflow-hidden bg-white py-4 px-4 text-sm font-medium text-center hover:bg-gray-50 focus:z-10"
         >
           <span>Manual Upload</span>
@@ -76,7 +76,7 @@ defmodule PlatformWeb.MediaLive.CreateMediaVersion do
             media={@media}
           />
         </div>
-        <div x-show="tab === 'upload'">
+        <div x-show="tab === 'upload'" x-cloak>
           <.live_component
             module={PlatformWeb.MediaLive.UploadVersionLive}
             id="upload-version"

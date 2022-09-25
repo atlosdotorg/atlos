@@ -52,7 +52,7 @@
             </dd>
           </div>
           <div class="sm:col-span-1">
-            <dt class="text-sm font-medium text-gray-500">Confirmed</dt>
+            <dt class="text-sm font-medium text-gray-500">Email Confirmed</dt>
             <dd class="mt-1 text-sm text-gray-900">
               <.rel_time time={@user.confirmed_at} />
             </dd>
@@ -85,13 +85,7 @@
               <% end %>
             </dd>
           </div>
-          <div class="sm:col-span-1">
-            <dt class="text-sm font-medium text-gray-500">Total Activity</dt>
-            <dd class="mt-1 text-sm text-gray-900">
-              <%= length(@updates) %>
-            </dd>
-          </div>
-          <div class="sm:col-span-2">
+          <div>
             <dt class="text-sm font-medium text-gray-500">Admin Notes</dt>
             <dd class="mt-1 text-sm text-gray-900">
               <%= if String.length(@user.admin_notes) > 0 do %>
@@ -110,15 +104,22 @@
       <:header>
         <p class="sec-head">Recent Activity</p>
       </:header>
-      <.live_component
-        module={PlatformWeb.UpdatesLive.UpdateFeed}
-        id="update-feed"
-        current_user={@current_user}
-        updates={@updates}
-        show_final_line={false}
-        show_media={true}
-        reverse={true}
-      />
+      <%= if Platform.Accounts.is_bot(@user) do %>
+        <aside class="aside ~neutral">
+          <strong class="font-semibold">This is a bot account!</strong>
+          Its activity is entirely automated, so there's nothing to see here.
+        </aside>
+      <% else %>
+        <.live_component
+          module={PlatformWeb.UpdatesLive.UpdateFeed}
+          id="update-feed"
+          current_user={@current_user}
+          updates={@updates}
+          show_final_line={false}
+          show_media={true}
+          reverse={true}
+        />
+      <% end %>
     </.card>
   </section>
   <%= if @live_action == :edit do %>

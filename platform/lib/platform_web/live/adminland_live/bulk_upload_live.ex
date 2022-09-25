@@ -178,7 +178,7 @@ defmodule PlatformWeb.AdminlandLive.BulkUploadLive do
                       <summary class="cursor-pointer font-medium">Required file format</summary>
                       <p>Atlos can perform bulk imports from CSV files with the following columns:</p>
                       <ul>
-                        <%= for attr <- Material.Attribute.attribute_names(false) do %>
+                        <%= for attr <- Material.Attribute.attribute_names(false, false) do %>
                           <li>
                             <.attr_explanation name={attr} />
                           </li>
@@ -383,7 +383,8 @@ defmodule PlatformWeb.AdminlandLive.BulkUploadLive do
                           <strong class="font-semibold">Row <%= idx %></strong>
                           <%= for {key, errors} <- extract_errors(changeset) |> Map.to_list() do %>
                             <p>
-                              <%= Material.Attribute.get_attribute_by_schema_field(key).name
+                              <%= (Material.Attribute.get_attribute_by_schema_field(key) ||
+                                     %{name: key}).name
                               |> to_string() %>: <%= Enum.join(
                                 errors,
                                 ","
@@ -414,12 +415,12 @@ defmodule PlatformWeb.AdminlandLive.BulkUploadLive do
                     <p class="sec-head text-md p-4 border-b text-sm">
                       <span class="text-gray-500">Row <%= idx %>:</span> <%= Ecto.Changeset.get_field(
                         changeset,
-                        :description
+                        :attr_description
                       ) %>
                     </p>
                     <div class="grid gap-2 grid-cols-1 md:grid-cols-3 text-sm p-4">
                       <%= for {key, value} <- changeset.changes |> Map.to_list() do %>
-                        <%= if String.length(value |> to_string()) > 0 and key != :description do %>
+                        <%= if String.length(value |> to_string()) > 0 and key != :attr_description do %>
                           <div class="overflow-hidden max-w-full">
                             <p class="font-medium text-gray-500">
                               <%= key |> to_string() |> String.replace(~r/^attr_/, "") %>

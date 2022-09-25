@@ -15,4 +15,4 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: superfly/flyctl-actions/setup-flyctl@master
-      - run: flyctl deploy --config fly.staging.toml --remote-only --build-arg APP_REVISION=${{ github.sha }}
+      - run: flyctl deploy --config deployments/fly.staging.toml --remote-only --build-arg APP_REVISION=${{ github.sha }}

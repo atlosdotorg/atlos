@@ -11,7 +11,7 @@ defmodule Platform.MaterialTest do
   describe "media" do
     alias Platform.Material.Media
 
-    @invalid_attrs %{description: nil, slug: nil}
+    @invalid_attrs %{attr_description: nil, slug: nil}
 
     test "list_media/0 returns all media" do
       media = media_fixture()
@@ -19,8 +19,8 @@ defmodule Platform.MaterialTest do
       assert length(listed) == 1
 
       id = media.id
-      desc = media.description
-      assert [%{id: ^id, description: ^desc}] = listed
+      desc = media.attr_description
+      assert [%{id: ^id, attr_description: ^desc}] = listed
     end
 
     test "get_media!/1 returns the media with given id" do
@@ -30,13 +30,15 @@ defmodule Platform.MaterialTest do
 
     test "create_media/1 with valid data creates a media" do
       valid_attrs = %{
-        description: "some description",
-        attr_sensitive: ["Not Sensitive"]
+        attr_description: "some description",
+        attr_sensitive: ["Not Sensitive"],
+        attr_type: ["Other"]
       }
 
       assert {:ok, %Media{} = media} = Material.create_media(valid_attrs)
-      assert media.description == "some description"
+      assert media.attr_description == "some description"
       assert media.attr_sensitive == ["Not Sensitive"]
+      assert media.attr_type == ["Other"]
     end
 
     test "create_media/1 with invalid data returns error changeset" do
@@ -45,10 +47,10 @@ defmodule Platform.MaterialTest do
 
     test "update_media/2 with valid data updates the media" do
       media = media_fixture()
-      update_attrs = %{description: "some updated description"}
+      update_attrs = %{attr_description: "some updated description"}
 
       assert {:ok, %Media{} = media} = Material.update_media(media, update_attrs)
-      assert media.description == "some updated description"
+      assert media.attr_description == "some updated description"
     end
 
     test "update_media/2 with invalid data returns error changeset" do
@@ -240,7 +242,7 @@ defmodule Platform.MaterialTest do
                )
 
       assert !changeset.valid?
-      assert String.contains?(hd(errors_on(changeset).attr_sensitive), "permission")
+      assert String.contains?(errors_on(changeset).attr_sensitive |> Enum.join(), "permission")
     end
 
     test "normal users cannot edit restricted attributes" do
@@ -349,20 +351,20 @@ defmodule Platform.MaterialTest do
     test "query_media_paginated/1 works with uploaded sorting" do
       assert Enum.empty?(Material.query_media())
 
-      Enum.map(1..25, fn _ -> media_fixture(%{description: "this is earlier"}) end)
+      Enum.map(1..25, fn _ -> media_fixture(%{attr_description: "this is earlier"}) end)
       Process.sleep(1000)
-      Enum.map(1..25, fn _ -> media_fixture(%{description: "this is later"}) end)
+      Enum.map(1..25, fn _ -> media_fixture(%{attr_description: "this is later"}) end)
 
       changeset_desc = Material.MediaSearch.changeset(%{sort: "uploaded_desc"})
       {query_desc, opts_desc} = Material.MediaSearch.search_query(changeset_desc)
 
-      assert hd(Material.query_media_paginated(query_desc, opts_desc).entries).description ==
+      assert hd(Material.query_media_paginated(query_desc, opts_desc).entries).attr_description ==
                "this is later"
 
       changeset_asc = Material.MediaSearch.changeset(%{sort: "uploaded_asc"})
       {query_asc, opts_asc} = Material.MediaSearch.search_query(changeset_asc)
 
-      assert hd(Material.query_media_paginated(query_asc, opts_asc).entries).description ==
+      assert hd(Material.query_media_paginated(query_asc, opts_asc).entries).attr_description ==
                "this is earlier"
     end
 
@@ -370,7 +372,7 @@ defmodule Platform.MaterialTest do
       assert Enum.empty?(Material.query_media())
 
       Enum.map(1..25, fn _ -> media_fixture() end)
-      Enum.map(1..25, fn _ -> media_fixture(%{description: "this is foobar"}) end)
+      Enum.map(1..25, fn _ -> media_fixture(%{attr_description: "this is foobar"}) end)
 
       changeset = Material.MediaSearch.changeset(%{query: "foobar"})
       {query, _} = Material.MediaSearch.search_query(changeset)
@@ -383,12 +385,12 @@ defmodule Platform.MaterialTest do
       assert Enum.empty?(Material.query_media())
 
       Enum.map(1..1000, fn _ ->
-        media_fixture(%{description: Faker.Lorem.Shakespeare.En.hamlet()})
+        media_fixture(%{attr_description: Faker.Lorem.Shakespeare.En.hamlet()})
       end)
 
       Enum.map(1..3, fn _ ->
         media_fixture(%{
-          description:
+          attr_description:
             (Faker.Lorem.Shakespeare.En.hamlet() |> String.slice(0..100)) <>
               " internet " <> (Faker.Lorem.Shakespeare.En.hamlet() |> String.slice(0..100))
         })
@@ -428,18 +430,18 @@ defmodule Platform.MaterialTest do
       admin = admin_user_fixture()
 
       Enum.map(1..50, fn _ ->
-        media_fixture(%{description: "description is foo bar!"})
+        media_fixture(%{attr_description: "description is foo bar!"})
       end)
 
       Enum.map(1..50, fn _ ->
-        media_fixture(%{description: "description is bing bong!"})
+        media_fixture(%{attr_description: "description is bing bong!"})
       end)
 
       (Enum.map(1..10, fn _ ->
-         media_fixture(%{description: "description is foo bar!"})
+         media_fixture(%{attr_description: "description is foo bar!"})
        end) ++
          Enum.map(1..10, fn _ ->
-           media_fixture(%{description: "description is bing bong!"})
+           media_fixture(%{attr_description: "description is bing bong!"})
          end))
       |> Enum.map(
         &Material.update_media_attribute(&1, Material.Attribute.get_attribute(:restrictions), %{

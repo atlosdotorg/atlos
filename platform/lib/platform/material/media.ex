@@ -13,21 +13,27 @@ defmodule Platform.Material.Media do
     # Core uneditable data
     field :slug, :string, autogenerate: {Utils, :generate_media_slug, []}
 
-    # "Normal" Attributes
-    field :description, :string
-    field :attr_time_of_day, :string
+    # Core Attributes
+    field :attr_description, :string
     field :attr_geolocation, Geo.PostGIS.Geometry
-    field :attr_environment, :string
-    field :attr_weather, {:array, :string}
-    field :attr_camera_system, {:array, :string}
+    field :attr_geolocation_resolution, :string
     field :attr_more_info, :string
-    field :attr_civilian_impact, {:array, :string}
-    field :attr_event, {:array, :string}
-    field :attr_casualty, {:array, :string}
-    field :attr_military_infrastructure, {:array, :string}
-    field :attr_weapon, {:array, :string}
-    field :attr_time_recorded, :time
-    field :attr_date_recorded, :date
+    field :attr_date, :date
+    field :attr_type, {:array, :string}
+    field :attr_impact, {:array, :string}
+    field :attr_equipment, {:array, :string}
+
+    # Deprecated attributes (that still live in the database)
+    # field :attr_time_of_day, :string
+    # field :attr_environment, :string
+    # field :attr_weather, {:array, :string}
+    # field :attr_camera_system, {:array, :string}
+    # field :attr_civilian_impact, {:array, :string}
+    # field :attr_event, {:array, :string}
+    # field :attr_casualty, {:array, :string}
+    # field :attr_military_infrastructure, {:array, :string}
+    # field :attr_weapon, {:array, :string}
+    # field :attr_time_recorded, :time
 
     # Metadata Attributes
     field :attr_restrictions, {:array, :string}
@@ -37,8 +43,7 @@ defmodule Platform.Material.Media do
 
     # Virtual attributes for updates + multi-part attributes
     field :explanation, :string, virtual: true
-    field :latitude, :float, virtual: true
-    field :longitude, :float, virtual: true
+    field :location, :string, virtual: true
 
     # Metadata
     timestamps()
@@ -52,11 +57,11 @@ defmodule Platform.Material.Media do
   @doc false
   def changeset(media, attrs) do
     media
-    |> cast(attrs, [:description, :attr_sensitive, :attr_status])
-    |> validate_required([:description],
+    |> cast(attrs, [:attr_description, :attr_sensitive, :attr_status, :attr_type])
+    |> validate_required([:attr_description],
       message: "Please add a short description."
     )
-    |> validate_length(:description,
+    |> validate_length(:attr_description,
       min: 8,
       max: 240,
       message: "Descriptions should be 8-240 characters."
@@ -65,9 +70,13 @@ defmodule Platform.Material.Media do
       message:
         "Sensitivity must be set. If this incident doesn't include sensitive media, choose 'Not Sensitive.'"
     )
+    |> validate_required([:attr_type],
+      message: "The incident type must be set."
+    )
 
     # These are special attributes, since we define it at creation time. Eventually, it'd be nice to unify this logic with the attribute-specific editing logic.
     |> Attribute.validate_attribute(Attribute.get_attribute(:sensitive))
+    |> Attribute.validate_attribute(Attribute.get_attribute(:type))
   end
 
   @doc """
@@ -78,7 +87,7 @@ defmodule Platform.Material.Media do
   """
   def import_changeset(media, attrs) do
     # First, we rename and parse fields to match their internal representation.
-    attr_names = Attribute.attribute_names(false) |> Enum.map(&(&1 |> to_string()))
+    attr_names = Attribute.attribute_names(false, false) |> Enum.map(&(&1 |> to_string()))
 
     attrs =
       attrs
@@ -111,13 +120,11 @@ defmodule Platform.Material.Media do
         Map.put(acc, k, v)
       end)
 
-    Enum.reduce(Attribute.attributes(), media, fn attr, acc ->
-      Attribute.changeset(acc, attr, attrs)
-    end)
+    Attribute.combined_changeset(media, Attribute.active_attributes(), attrs, nil, false)
   end
 
   def attribute_ratio(%Media{} = media) do
-    length(Attribute.set_for_media(media)) / length(Attribute.attribute_names())
+    length(Attribute.set_for_media(media)) / length(Attribute.attribute_names(false, false))
   end
 
   def is_sensitive(%Media{} = media) do
@@ -150,18 +157,24 @@ defmodule Platform.Material.Media do
   """
   def can_user_edit(%Media{} = media, %User{} = user) do
     # This logic would be nice to refactor into a `with` statement
-    case Enum.member?(user.restrictions || [], :muted) do
-      true ->
-        false
+    case Platform.Security.get_security_mode_state() do
+      :normal ->
+        case Enum.member?(user.restrictions || [], :muted) do
+          true ->
+            false
 
-      false ->
-        if Accounts.is_privileged(user) do
-          true
-        else
-          not (Enum.member?(media.attr_restrictions || [], "Hidden") ||
-                 Enum.member?(media.attr_restrictions || [], "Frozen") ||
-                 media.attr_status == "Completed" || media.attr_status == "Cancelled")
+          false ->
+            if Accounts.is_privileged(user) do
+              true
+            else
+              not (Enum.member?(media.attr_restrictions || [], "Hidden") ||
+                     Enum.member?(media.attr_restrictions || [], "Frozen") ||
+                     media.attr_status == "Completed" || media.attr_status == "Cancelled")
+            end
         end
+
+      _ ->
+        Accounts.is_admin(user)
     end
   end
 
@@ -169,23 +182,39 @@ defmodule Platform.Material.Media do
   Can the user comment on the media?
   """
   def can_user_comment(%Media{} = media, %User{} = user) do
-    case Enum.member?(user.restrictions || [], :muted) do
-      true ->
-        false
+    case Platform.Security.get_security_mode_state() do
+      :normal ->
+        case Enum.member?(user.restrictions || [], :muted) do
+          true ->
+            false
 
-      false ->
-        case media.attr_restrictions do
-          nil ->
-            true
+          false ->
+            case media.attr_restrictions do
+              nil ->
+                true
 
-          values ->
-            # Restrictions are present.
-            if Enum.member?(values, "Hidden") || Enum.member?(values, "Frozen") do
-              Accounts.is_privileged(user)
-            else
-              true
+              values ->
+                # Restrictions are present.
+                if Enum.member?(values, "Hidden") || Enum.member?(values, "Frozen") do
+                  Accounts.is_privileged(user)
+                else
+                  true
+                end
             end
         end
+
+      _ ->
+        Accounts.is_admin(user)
+    end
+  end
+
+  def can_user_create(%User{} = user) do
+    case Platform.Security.get_security_mode_state() do
+      :normal ->
+        true
+
+      _ ->
+        Accounts.is_admin(user)
     end
   end
 

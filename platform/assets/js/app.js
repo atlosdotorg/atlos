@@ -24,10 +24,20 @@ import { LiveSocket } from "phoenix_live_view"
 import topbar from "../vendor/topbar"
 import mapboxgl from 'mapbox-gl'
 import Alpine from 'alpinejs'
+import tippy from 'tippy.js';
 
 mapboxgl.accessToken = 'pk.eyJ1IjoibWlsZXNtY2MiLCJhIjoiY2t6ZzdzZmY0MDRobjJvbXBydWVmaXBpNSJ9.-aHM8bjOOsSrGI0VvZenAQ';
 
-let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
+let Hooks = {};
+Hooks.Modal = {
+    mounted() {
+        window.addEventListener("modal:close", (event) => {
+            this.pushEventTo(event.detail.elem, "close_modal", {});
+        })
+    }
+}
+
+let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content");
 let liveSocket = new LiveSocket("/live", Socket, {
     dom: {
         onBeforeElUpdated(from, to) {
@@ -36,7 +46,8 @@ let liveSocket = new LiveSocket("/live", Socket, {
             }
         },
     },
-    params: { _csrf_token: csrfToken }
+    params: { _csrf_token: csrfToken },
+    hooks: Hooks
 })
 
 /**
@@ -74,6 +85,35 @@ let lockIcon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 m-px mb-1
 <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
 </svg>`;
 
+// Logic specifically for the <.popover> component
+function initializePopovers() {
+    document.querySelectorAll("[data-popover]:not(.popover-initialized)").forEach(s => {
+        let popover = s.querySelector("template[role=\"popover\"]");
+
+        tippy(s, {
+            interactive: true,
+            allowHTML: true,
+            content: popover.innerHTML,
+            theme: "light",
+            appendTo: document.body,
+            delay: [1000, 0]
+        });
+
+        s.classList.add("popover-initialized");
+    })
+
+    document.querySelectorAll("[data-tooltip]:not(.tooltip-initialized)").forEach(s => {
+        tippy(s, {
+            allowHTML: true,
+            content: s.getAttribute("data-tooltip"),
+            appendTo: document.body,
+            delay: [1000, 0]
+        });
+
+        s.classList.add("tooltip-initialized");
+    });
+}
+
 function initializeSmartSelects() {
     // Make smart-selects interactive
     document.querySelectorAll("select:not(.ts-ignore *)").forEach(s => {
@@ -109,14 +149,28 @@ function initializeSmartSelects() {
                         desc = "— " + desc;
                     }
                     let requiresPrivilege = privileged.indexOf(data.text) >= 0;
-                    return '<div class="flex"><div><span>' + escape(data.text) + '</span><span class="text-gray-400">' + (requiresPrivilege ? lockIcon : '') + '&nbsp;' + escape(desc) + '</span></div></div>';
+
+                    let rawDepth = data.text.split("/").length - 1;
+                    let effectiveDepth = rawDepth > 4 ? 4 : rawDepth;
+                    let nestingDepth = ["ml-0", "ml-[25px]", "ml-[50px]", "ml-[75px]", "ml-[100px]"][effectiveDepth];
+
+                    let lastComponentIndex = data.text.lastIndexOf('/');
+                    let before = lastComponentIndex >= 0 ? data.text.slice(0, lastComponentIndex + 1) : "";
+                    let after = data.text.slice(lastComponentIndex + 1);
+
+                    return '<div class="flex rounded ' + nestingDepth + '"><div><span class="opacity-50">' + escape(before) + '</span><span>' + escape(after) + '</span><span class="text-gray-400">' + (requiresPrivilege ? lockIcon : '') + '&nbsp;' + escape(desc) + '</span></div></div>';
                 },
                 item: function (data, escape) {
-                    return '<div>' + escape(data.text) + '</div>';
+                    let lastComponentIndex = data.text.lastIndexOf('/');
+                    let before = lastComponentIndex >= 0 ? data.text.slice(0, lastComponentIndex + 1) : "";
+                    let after = data.text.slice(lastComponentIndex + 1);
+
+                    return '<div><div><span class="opacity-[60%]">' + escape(before) + '</span><span>' + escape(after) + '</span></div></div>';
                 }
             }
         });
         x.control_input.setAttribute("phx-debounce", "blur");
+        x.control_input.setAttribute("phx-update", "ignore");
     });
 }
 
@@ -150,12 +204,13 @@ function initializeMaps() {
 
         let lon = parseFloat(s.getAttribute("lon"));
         let lat = parseFloat(s.getAttribute("lat"));
+        let zoom = parseFloat(s.getAttribute("zoom") || 6);
 
         let map = new mapboxgl.Map({
             container: s.id,
-            style: 'mapbox://styles/mapbox/light-v10',
+            style: 'mapbox://styles/milesmcc/cl89ukz84000514oebbd92bjm',
             center: [lon, lat],
-            zoom: 6
+            zoom: zoom
         });
 
         map.on('load', function () {
@@ -174,22 +229,33 @@ function initializeMaps() {
                 "data": {
                     "type": "FeatureCollection",
                     "features": data.map(incident => {
+                        let colorForType = (type) => {
+                            switch (type) {
+                                case "policing": return '#14b8a6';
+                                case "military": return '#60a5fa';
+                                case "civilian": return '#ec4899';
+                                case "weather": return '#22c55e';
+                                default: return '#0f172a';
+                            }
+                        };
+
                         return {
                             "type": "Feature",
                             "properties": {
                                 "description": `
-                                <div class="fixed w-[350px] h-[190px] flex rounded-lg shadow-lg items-center bg-white justify-around -z-50">
-                                    <div class="font-medium text-lg text-md p-4">
-                                        <span class="animate-pulse">Loading...</span>
+                                    <div class="fixed w-[350px] h-[190px] flex rounded-lg shadow-lg items-center bg-white justify-around -z-50">
+                                        <div class="font-medium text-lg text-md p-4">
+                                            <span class="animate-pulse">Loading...</span>
+                                        </div>
                                     </div>
-                                </div>
-                                <iframe
-                                    src='/incidents/${incident.slug}/card'
-                                    width="350px"
-                                    height="190px"
-                                />
-                            `,
-                                "slug": incident.slug
+                                    <iframe
+                                        src='/incidents/${incident.slug}/card'
+                                        width="350px"
+                                        height="190px"
+                                    />
+                                `,
+                                "slug": incident.slug,
+                                "color": colorForType(incident.type)
                             },
                             'geometry': {
                                 'type': 'Point',
@@ -200,7 +266,7 @@ function initializeMaps() {
                 }
             };
 
-            map.addSource("incidents", geojson);
+            map.addSource('incidents', geojson);
 
             map.addLayer({
                 'id': 'incidents',
@@ -208,7 +274,7 @@ function initializeMaps() {
                 'source': 'incidents',
                 'paint': {
                     'circle-radius': 7,
-                    'circle-color': '#60a5fa',
+                    'circle-color': ["get", "color"],
                     'circle-opacity': 0.6,
                 },
             });
@@ -249,6 +315,24 @@ function initializeMaps() {
     });
 }
 
+function debounce(func, timeout = 25) {
+    let timer;
+    return (...args) => {
+        clearTimeout(timer);
+        timer = setTimeout(() => { func.apply(this, args); }, timeout);
+    };
+}
+
+// Used to centralize modal closing logic. See Hooks.Modal for core logic.
+window.closeModal = debounce((event) => {
+    // Find the target, if possible.
+    let elem = event.target;
+    if (confirm("Are you sure you want to exit? Any unsaved changes will be lost.")) {
+        let event = new CustomEvent("modal:close", { detail: { elem } });
+        window.dispatchEvent(event);
+    }
+});
+
 window.toggleClass = (id, classname) => {
     let elem = document.getElementById(id);
     elem.classList.toggle(classname);
@@ -259,3 +343,22 @@ document.addEventListener("load", initializeSmartSelects);
 
 document.addEventListener("phx:update", initializeMaps);
 document.addEventListener("load", initializeMaps);
+
+document.addEventListener("phx:update", initializePopovers);
+document.addEventListener("load", initializePopovers);
+
+// Used to set the clipboard when copying hash information
+window.setClipboard = (text) => {
+    const type = "text/plain";
+    const blob = new Blob([text], { type });
+    const data = [new ClipboardItem({ [type]: blob })];
+
+    navigator.clipboard.write(data).then(
+        () => {
+            alert("Copied to your clipboard!")
+        },
+        () => {
+            alert("Unable to write to your clipboard.")
+        }
+    );
+}

@@ -4,6 +4,11 @@ defmodule Platform.Utils do
   """
   import Ecto.Query, warn: false
 
+  @tag_regex ~r/(\s|^)(@([A-Za-z0-9_]+))/
+  @identifier_regex ~r/(\s|^)(ATL-[A-Z0-9]{6})/
+
+  def get_tag_regex(), do: @tag_regex
+
   def generate_media_slug() do
     slug =
       "ATL-" <>
@@ -79,10 +84,10 @@ defmodule Platform.Utils do
 
     # Second, link ATL identifiers.
     identifiers_linked =
-      Regex.replace(~r/(ATL-[A-Z0-9]{6})/, stripped_images, "[\\0](/incidents/\\0)")
+      Regex.replace(@identifier_regex, stripped_images, " [\\0](/incidents/\\2)")
 
     # Third, turn @'s into links.
-    tags_linked = Regex.replace(~r/@([A-Za-z0-9]+)/, identifiers_linked, "[\\0](/profile/\\1)")
+    tags_linked = Regex.replace(@tag_regex, identifiers_linked, " [\\0](/profile/\\3)")
 
     # Strip all tags and render markdown
     rendered = tags_linked |> HtmlSanitizeEx.strip_tags() |> Earmark.as_html!()
@@ -120,14 +125,6 @@ defmodule Platform.Utils do
     |> where(
       [q],
       fragment("? @@ websearch_to_tsquery('english', ?)", q.searchable, ^search_terms)
-    )
-    |> order_by([q],
-      asc:
-        fragment(
-          "ts_rank_cd(?, websearch_to_tsquery('english', ?), 4)",
-          q.searchable,
-          ^search_terms
-        )
     )
   end
 end

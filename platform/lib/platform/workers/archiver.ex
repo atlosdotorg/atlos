@@ -12,6 +12,13 @@ defmodule Platform.Workers.Archiver do
     queue: :media_archival,
     priority: 3
 
+  defp hash_sha256_file(file_path) do
+    File.stream!(file_path)
+    |> Enum.reduce(:crypto.hash_init(:sha256), &:crypto.hash_update(&2, &1))
+    |> :crypto.hash_final()
+    |> Base.encode16(case: :lower)
+  end
+
   @impl Oban.Worker
   def perform(%Oban.Job{args: %{"media_version_id" => id} = args}) do
     %MediaVersion{status: :pending, media_id: media_id} =
@@ -26,6 +33,9 @@ defmodule Platform.Workers.Archiver do
       # In case we haven't already
       Temp.track!()
       Temp.cleanup()
+
+      # Submit to the Internet Archive for archival
+      Material.submit_for_external_archival(version)
 
       # Setup tempfiles for media download
       temp_dir = Temp.mkdir!()
@@ -70,8 +80,8 @@ defmodule Platform.Workers.Archiver do
       mime = MIME.from_path(file_path)
 
       # Process + upload it (only store original if upload_type is direct/not user provided)
-      {:ok, identifier, duration, size} =
-        process_uploaded_media(file_path, mime, media, version.upload_type == :direct)
+      {:ok, identifier, duration, size, watermarked_hash, original_hash} =
+        process_uploaded_media(file_path, mime, media, version, version.upload_type == :direct)
 
       # Update the media version to reflect the change
       {:ok, new_version} =
@@ -80,18 +90,19 @@ defmodule Platform.Workers.Archiver do
           file_size: size,
           status: :complete,
           duration_seconds: duration,
-          mime_type: mime
+          mime_type: mime,
+          hashes: %{original_sha256: original_hash, watermarked_sha256: watermarked_hash}
         })
 
       # Track event
-      Auditor.log(:archive_success, %{media_id: media_id, source_url: new_version.source_url})
+      Auditor.log(:archive_success, %{
+        media_id: media_id,
+        source_url: new_version.source_url,
+        media_version: new_version
+      })
 
-      {:ok, _} =
-        Updates.change_from_comment(media, Accounts.get_auto_account(), %{
-          "explanation" =>
-            "✅ Successfully processed and archived the media at #{version.source_url}."
-        })
-        |> Updates.create_update_from_changeset()
+      # Push update to viewers
+      Material.broadcast_media_updated(media_id)
 
       {:ok, new_version}
     rescue
@@ -132,16 +143,16 @@ defmodule Platform.Workers.Archiver do
   @doc """
   Process the media at the given path. Also called by the manual media uploader.
   """
-  def process_uploaded_media(path, mime, media, store_original \\ true) do
+  def process_uploaded_media(path, mime, media, version, store_original \\ true) do
     # Preprocesses the given media and uploads it to persistent storage.
     # Returns {:ok, file_path, thumbnail_path, duration}
 
-    identifier = media.slug
+    identifier = Material.get_human_readable_media_version_name(media, version)
 
     media_path =
       cond do
-        String.starts_with?(mime, "image/") -> Temp.path!(%{suffix: ".jpg", prefix: identifier})
-        String.starts_with?(mime, "video/") -> Temp.path!(%{suffix: ".mp4", prefix: identifier})
+        String.starts_with?(mime, "image/") -> Temp.path!(%{suffix: ".jpg", prefix: media.slug})
+        String.starts_with?(mime, "video/") -> Temp.path!(%{suffix: ".mp4", prefix: media.slug})
       end
 
     font_path =
@@ -166,6 +177,9 @@ defmodule Platform.Workers.Archiver do
 
     {:ok, out_data} = FFprobe.format(media_path)
 
+    watermarked_hash = hash_sha256_file(media_path)
+    original_hash = hash_sha256_file(path)
+
     {duration, _} = Integer.parse(out_data["duration"])
     {size, _} = Integer.parse(out_data["size"])
 
@@ -176,6 +190,6 @@ defmodule Platform.Workers.Archiver do
       {:ok, _original_path} = Uploads.OriginalMediaVersion.store({path, media})
     end
 
-    {:ok, new_path, duration, size}
+    {:ok, new_path, duration, size, watermarked_hash, original_hash}
   end
 end
