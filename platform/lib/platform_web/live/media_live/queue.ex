@@ -41,7 +41,7 @@ defmodule PlatformWeb.MediaLive.Queue do
 
   def render(assigns) do
     ~H"""
-    <article class={"w-full ml-4 md:ml-8" <> (if @tab != "overview", do: " mr-4 md:mr-8", else: "")}>
+    <article class={"w-full max-w-screen-2xl 2xl:mx-auto ml-4 md:ml-8" <> (if @tab != "overview", do: " mr-4 md:mr-8", else: "")}>
       <%= if @tab != "overview" do %>
         <div class="mb-8">
           <h1 class={"text-3xl font-medium heading mb-2 " <> Platform.Material.Attribute.attr_color(:status, which_to_title(@tab))}>

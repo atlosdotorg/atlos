@@ -1284,7 +1284,7 @@ defmodule PlatformWeb.Components do
           <section>
             <p class="font-mono text-xs text-gray-500"><%= media.slug %></p>
             <p class="text-gray-900 group-hover:text-gray-900">
-              <%= media.attr_description |> Utils.truncate(80) %>
+              <%= media.attr_description |> Utils.truncate(60) %>
             </p>
           </section>
           <section class="flex flex-wrap gap-1 self-start align-top">
