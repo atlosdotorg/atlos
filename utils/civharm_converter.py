@@ -18,7 +18,7 @@ def strip_to_float(string):
 def run(civharm, civcas, outfile):
     """Convert from a CIVHARM spreadsheet export (CSV) to something importable by Atlos."""
 
-    civcas_incidents = [row["Incident ID"] for row in csv.DictReader(civcas) if len(row["Incident ID"]) == 7]
+    civcas_incidents = {row["Incident ID"]: row for row in csv.DictReader(civcas) if len(row["Incident ID"]) == 7}
 
     reader = csv.DictReader(civharm)
     writer = csv.DictWriter(
@@ -43,7 +43,7 @@ def run(civharm, civcas, outfile):
     for row in reader:
         identifier = row["Incident no. "]
         if identifier.startswith("CIV") and len(row["Narrative"]) > 7 and identifier in civcas_incidents:
-            comments = row.get("Comments", "").strip()
+            comments = civcas_incidents[identifier].get("Comments", "").strip()
             if len(comments) > 0:
                 comments = f"\n\n{comments}"
 
@@ -145,7 +145,7 @@ def run(civharm, civcas, outfile):
             }
 
             source_number = 1
-            for k, v in row.items():
+            for k, v in civcas_incidents[identifier].items():
                 if k.startswith("Source") and v is not None and len(v) > 0:
                     values["source_" + str(source_number)] = v
                     source_number += 1
