@@ -57,6 +57,9 @@ def run(civharm, civcas, outfile):
                 f"Corresponds to **{identifier}**. {location} {comments}"
             )
 
+            if len(more_info) > 3000:
+                more_info = more_info[:2997] + "…"
+
             sensitive = []
             if row["Private Information Visible"] == "Yes":
                 sensitive.append("Personal Information Visible")
