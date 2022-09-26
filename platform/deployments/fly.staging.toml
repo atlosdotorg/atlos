@@ -16,6 +16,7 @@ processes = []
   ENVIRONMENT = "staging"
   ENABLE_CAPTCHAS = "true"
   INSTANCE_NAME = "staging"
+  CUSTOM_ATTRIBUTE_OPTIONS = "{\"type\": [\"Custom Staging Incident Type\"], \"impact\": [\"Custom Staging Impact\"], \"impact\": [\"Custom Staging Equipment Used\"]}"
 
 [experimental]
   allowed_public_ports = []
