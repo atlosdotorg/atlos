@@ -50,6 +50,12 @@ defmodule PlatformWeb.MediaLive.Queue do
           </h1>
           <.link class="text-button" navigate="/queue/overview">&larr; Back to overview</.link>
         </div>
+      <% else %>
+        <div class="mb-8">
+          <h1 class="text-3xl font-medium heading">
+            Queue
+          </h1>
+        </div>
       <% end %>
       <%= if @tab != "overview" do %>
         <.live_component
