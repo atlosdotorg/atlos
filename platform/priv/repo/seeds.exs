@@ -111,8 +111,9 @@ random_media =
           attr,
           Enum.random(random_users),
           %{
-            "latitude" => 49 + :rand.uniform() * 30 - 15,
-            "longitude" => 30 + :rand.uniform() * 16 - 8
+            "location" =>
+              to_string(49 + :rand.uniform() * 30 - 15) <>
+                ", " <> to_string(30 + :rand.uniform() * 16 - 8)
           }
         )
     end
