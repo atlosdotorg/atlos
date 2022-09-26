@@ -106,6 +106,7 @@ defmodule Platform.Material.Attribute do
           "Weather/Flooding",
           "Weather/Hurricane",
           "Weather/Fire",
+          "Civilian Harm",
           "Other"
         ],
         label: "Incident Type",
