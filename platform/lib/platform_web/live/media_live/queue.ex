@@ -45,9 +45,10 @@ defmodule PlatformWeb.MediaLive.Queue do
       <%= if @tab != "overview" do %>
         <div class="mb-8">
           <h1 class={"text-3xl font-medium heading mb-2 " <> Platform.Material.Attribute.attr_color(:status, which_to_title(@tab))}>
-            <a class="text-gray-400" href="/queue">Queue /</a> <%= which_to_title(@tab) %>
+            <.link class="text-gray-400" navigate="/queue">Queue /</.link>
+             <%= which_to_title(@tab) %>
           </h1>
-          <a class="text-button" href="/queue/overview">&larr; Back to overview</a>
+          <.link class="text-button" navigate="/queue/overview">&larr; Back to overview</.link>
         </div>
       <% end %>
       <%= if @tab != "overview" do %>

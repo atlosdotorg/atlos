@@ -44,19 +44,22 @@ defmodule PlatformWeb.MediaLive.GroupedMediaList do
         <div class="rounded-lg border bg-neutral-100 p-4">
           <div>
             <div class="mb-4 md:flex md:justify-between md:items-center">
-              <a
-                href={link}
+              <.link
+                navigate={link}
                 class={"block text-2xl font-medium heading " <> Platform.Material.Attribute.attr_color(:status, label)}
               >
                 <%= label %>
-              </a>
-              <a class="block sm:mt-0 font-medium text-neutral-600 hover:text-neutral-800" href={link}>
+              </.link>
+              <.link
+                class="block sm:mt-0 font-medium text-neutral-600 hover:text-neutral-800"
+                navigate={link}
+              >
                 All
                 <span class={"badge text-sm mb-px " <> Platform.Material.Attribute.attr_color(:status, label)}>
                   <%= label %>
                 </span>
                 incidents &rarr;
-              </a>
+              </.link>
             </div>
             <%= if Enum.empty?(media) do %>
               <div class="text-center py-12 rounded border-neutral-300 w-full border border-dashed w-full border-2">
