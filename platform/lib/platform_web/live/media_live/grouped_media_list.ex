@@ -41,7 +41,7 @@ defmodule PlatformWeb.MediaLive.GroupedMediaList do
     ~H"""
     <section class="flex flex-col mx-auto gap-8 w-full pr-8 md:pr-16">
       <%= for {label, link, _params, media} <- @groups do %>
-        <div class="rounded border bg-neutral-100 p-4">
+        <div class="rounded-lg border bg-neutral-100 p-4">
           <div>
             <div class="mb-4 md:flex md:justify-between md:items-center">
               <a
