@@ -12,13 +12,15 @@ def strip_to_float(string):
 
 
 @click.command()
-@click.argument("infile", type=click.File("rb"))
-@click.argument("outfile", type=click.File("wb"))
-@click.option("--only-geolocated", type=click.BOOL)
-def run(infile, outfile, only_geolocated):
+@click.option("--civharm", type=click.File("rb"))
+@click.option("--civcas", type=click.File("rb"))
+@click.option("--outfile", type=click.File("wb"))
+def run(civharm, civcas, outfile):
     """Convert from a CIVHARM spreadsheet export (CSV) to something importable by Atlos."""
 
-    reader = csv.DictReader(infile)
+    civcas_incidents = [row["Incident ID"] for row in csv.DictReader(civcas) if len(row["Incident ID"]) == 7]
+
+    reader = csv.DictReader(civharm)
     writer = csv.DictWriter(
         outfile,
         [
@@ -39,8 +41,8 @@ def run(infile, outfile, only_geolocated):
 
     writer.writeheader()
     for row in reader:
-        identifier = row["Incident no."]
-        if identifier.startswith("CIV") and len(row["Narrative"]) > 7:
+        identifier = row["Incident no. "]
+        if identifier.startswith("CIV") and len(row["Narrative"]) > 7 and identifier in civcas_incidents:
             comments = row.get("Comments", "").strip()
             if len(comments) > 0:
                 comments = f"\n\n{comments}"
@@ -52,7 +54,7 @@ def run(infile, outfile, only_geolocated):
                 location = f"Reported near {location}."
 
             more_info = (
-                f"Corresponds to **{identifier}** in CIVHARM. {location} {comments}"
+                f"Corresponds to **{identifier}**. {location} {comments}"
             )
 
             sensitive = []
@@ -74,6 +76,8 @@ def run(infile, outfile, only_geolocated):
                     "Commercial": "Structure/Commercial",
                     "Cultural": "Structure/Cultural",
                     "Healthcare": "Structure/Healthcare",
+                    "Humanitarian": "Structure/Humanitarian",
+                    "Military": "Structure/Military",
                     "Industrial": "Structure/Industrial",
                     "Religious": "Structure/Religious",
                     "Residential": "Structure/Residential",
@@ -110,7 +114,7 @@ def run(infile, outfile, only_geolocated):
                 }
             )
 
-            type = [type_mapping[row["Weapon System"]]]
+            type = [type_mapping[row["Weapon System"]], "Civilian Harm"]
 
             try:
                 date = date_parse(row["Reported Date"]).strftime("%Y-%m-%d")
@@ -122,10 +126,6 @@ def run(infile, outfile, only_geolocated):
                 if row.get("BCAT\n (geolocated)", "TRUE") == "TRUE"
                 else "Unclaimed"
             )
-
-            if only_geolocated and row.get("BCAT\n (geolocated)", "TRUE") != "TRUE":
-                print(f"Skipping {identifier}: not geolocated and published")
-                continue
 
             values = {
                 "more_info": more_info,
