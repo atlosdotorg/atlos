@@ -1271,10 +1271,11 @@ defmodule PlatformWeb.Components do
 
     border = Map.get(assigns, :border, false)
     link = Map.get(assigns, :link, true)
+    class = Map.get(assigns, :class, "")
 
     ~H"""
     <a
-      class={"flex items-stretch group flex-row bg-white overflow-hidden shadow rounded-lg justify-between min-h-32 max-h-48 " <> (if border, do: "border", else: "")}
+      class={"flex items-stretch group flex-row bg-white overflow-hidden shadow rounded-lg justify-between min-h-32 max-h-48 " <> (if border, do: "border ", else: "") <> class}
       href={if link, do: "/incidents/#{media.slug}", else: nil}
       target={@target}
     >

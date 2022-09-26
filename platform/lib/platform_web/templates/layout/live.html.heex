@@ -3,7 +3,7 @@
 
   <div class="flex-1 flex flex-col overflow-hidden z-0">
     <div class="my-8 mx-auto w-full">
-      <div class="mx-auto w-full 2xl:w-[1280px] min-h-[85vh]">
+      <div class={"mx-auto w-full " <> (if @full_width, do: "", else: "2xl:w-[1280px] min-h-[85vh]")}>
         <%= @inner_content %>
       </div>
       <div class="mx-auto w-full">
