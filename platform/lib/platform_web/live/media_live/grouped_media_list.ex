@@ -51,7 +51,7 @@ defmodule PlatformWeb.MediaLive.GroupedMediaList do
                 <%= label %>
               </a>
               <a class="block sm:mt-0 font-medium text-neutral-600 hover:text-neutral-800" href={link}>
-                More
+                All
                 <span class={"badge text-sm mb-px " <> Platform.Material.Attribute.attr_color(:status, label)}>
                   <%= label %>
                 </span>
