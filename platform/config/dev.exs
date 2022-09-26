@@ -87,3 +87,4 @@ config :appsignal, :config, active: false
 
 System.put_env("INSTANCE_NAME", "Development")
 System.put_env("COMMUNITY_DISCORD_LINK", "https://discord.gg/gqCcHc9Gav")
+System.put_env("CUSTOM_ATTRIBUTE_OPTIONS", "{\"type\": [\"(Dev) Civilian Harm\"]}")
