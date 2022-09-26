@@ -48,4 +48,48 @@
       <a href="/settings/mfa" class="button ~urge @high">Multi-factor auth &rarr;</a>
     </div>
   </.card>
+
+  <.card>
+    <:header>
+      <h3 class="sec-head">Additional Resources</h3>
+      <p class="sec-subhead">
+        These resources can help you use Atlos more effectively.
+      </p>
+    </:header>
+    <article class="text-sm flex flex-col gap-4">
+      <%= if not is_nil(@discord_link) do %>
+        <p class="flex gap-2 sm:gap-4 items-center">
+          <span class="text-3xl">💬</span>
+          <span>
+            If you haven't already, <a href={@discord_link} class="font-semibold text-urge-600">join our Discord server</a>, where you can chat with the Atlos team, connect with the community, and provide feedback.
+          </span>
+        </p>
+      <% end %>
+      <p class="flex gap-2 sm:gap-4 items-center" x-data>
+        <span class="text-3xl">📘</span>
+        <span>
+          Bookmark the
+          <a href="https://atlos.org/guide" class="font-semibold text-urge-600">user guide</a>
+          for more info about how to use Atlos.
+        </span>
+      </p>
+      <p class="flex gap-2 sm:gap-4 items-center">
+        <span class="text-3xl">📚</span>
+        <span>
+          For more information on staying safe, see our tips on <a
+            href="https://atlos.org/resilience"
+            class="font-semibold text-urge-600"
+          >researcher resilience</a>.
+        </span>
+      </p>
+      <p class="flex gap-2 sm:gap-4 items-center">
+        <span class="text-3xl">🎓</span>
+        <span>
+          If you'd like, you can repeat our brief
+          <a href="/users/onboarding" class="font-semibold text-urge-600">onboarding flow</a>
+          to refresh yourself on the basics of Atlos.
+        </span>
+      </p>
+    </article>
+  </.card>
 </div>

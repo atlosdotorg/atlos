@@ -1,6 +1,6 @@
 <div class="phx-form">
   <.form
-    let={f}
+    :let={f}
     for={@changeset}
     action={Routes.user_session_path(@conn, :create_mfa)}
     as="mfa"

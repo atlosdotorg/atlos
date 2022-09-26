@@ -85,7 +85,7 @@ defmodule PlatformWeb.SettingsLive.ProfileComponent do
     ~H"""
     <article>
       <.form
-        let={f}
+        :let={f}
         for={@changeset}
         id="profile-form"
         phx-target={@myself}

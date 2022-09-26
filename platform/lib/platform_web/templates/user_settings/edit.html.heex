@@ -26,7 +26,7 @@
   </div>
   <.card>
     <.form
-      let={f}
+      :let={f}
       for={@password_changeset}
       action={Routes.user_settings_path(@conn, :update)}
       id="update_password"

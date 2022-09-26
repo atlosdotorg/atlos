@@ -1,6 +1,6 @@
 <div class="phx-form">
   <.form
-    let={f}
+    :let={f}
     for={@changeset}
     action={Routes.user_reset_password_path(@conn, :update, @token)}
     class="flex flex-col gap-y-4"

@@ -202,7 +202,7 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
         </aside>
       <% end %>
       <.form
-        let={f}
+        :let={f}
         for={@changeset}
         id={"media-upload-#{@form_id}"}
         phx-target={@myself}

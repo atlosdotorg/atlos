@@ -1,5 +1,5 @@
 <div class="phx-form">
-  <.form let={f} for={@changeset} action={Routes.user_registration_path(@conn, :create)}>
+  <.form :let={f} for={@changeset} action={Routes.user_registration_path(@conn, :create)}>
     <%= if @changeset.action do %>
       <div class="aside ~critical mb-4">
         <p>

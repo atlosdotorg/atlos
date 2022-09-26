@@ -89,7 +89,7 @@ defmodule PlatformWeb.ProfilesLive.EditComponent do
         <p class="sec-subhead">These changes will affect this user's account.</p>
         <hr class="h-8 sep" />
         <.form
-          let={f}
+          :let={f}
           for={@changeset}
           id={"#{@user.username}-access"}
           phx-target={@myself}

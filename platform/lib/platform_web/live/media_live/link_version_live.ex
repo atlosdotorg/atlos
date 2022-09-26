@@ -104,7 +104,7 @@ defmodule PlatformWeb.MediaLive.LinkVersionLive do
     ~H"""
     <article>
       <.form
-        let={f}
+        :let={f}
         for={@changeset}
         id="media-upload"
         phx-target={@myself}

@@ -97,7 +97,7 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
         </div>
         <hr class="h-8 sep" />
         <.form
-          let={f}
+          :let={f}
           for={@changeset}
           id={"#{hd(@attrs).schema_field}-attribute-form"}
           phx-target={@myself}
