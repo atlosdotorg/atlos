@@ -6,6 +6,8 @@ defmodule PlatformWeb.UserRegistrationController do
   alias PlatformWeb.UserAuth
   alias Platform.Auditor
 
+  import PlatformWeb.Components
+
   def suspended(conn, _params) do
     if Map.get(conn.assigns, :current_user) != nil and
          !Accounts.is_suspended(Map.get(conn.assigns, :current_user)) do
@@ -21,6 +23,13 @@ defmodule PlatformWeb.UserRegistrationController do
     else
       render(conn, "no_access.html", title: "Maintenance Mode")
     end
+  end
+
+  def onboarding(conn, _params) do
+    render(conn, "onboarding.html",
+      title: "Welcome to Atlos",
+      discord_link: System.get_env("COMMUNITY_DISCORD_LINK")
+    )
   end
 
   def new(conn, params) do
@@ -42,7 +51,8 @@ defmodule PlatformWeb.UserRegistrationController do
             )
 
           conn
-          |> put_flash(:info, "User created successfully.")
+          |> put_flash(:info, "Account created successfully.")
+          |> put_session(:user_return_to, Routes.user_registration_path(conn, :onboarding))
           |> UserAuth.log_in_user(user)
 
         {:error, %Ecto.Changeset{} = changeset} ->

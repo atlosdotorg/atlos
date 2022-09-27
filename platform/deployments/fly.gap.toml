@@ -17,6 +17,7 @@ processes = []
   ENABLE_CAPTCHAS = "true"
   RULES_LINK = "https://bit.ly/3AKpytQ"
   INSTANCE_NAME = "GAP"
+  CUSTOM_ATTRIBUTE_OPTIONS = "{\"type\": [\"Civilian Harm\"]}"
 
 [experimental]
   allowed_public_ports = []

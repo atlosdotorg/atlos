@@ -29,7 +29,7 @@ defmodule PlatformWeb.UserRegistrationControllerTest do
         })
 
       assert get_session(conn, :user_token)
-      assert redirected_to(conn) == "/"
+      assert redirected_to(conn) == "/users/onboarding"
 
       # Now do a logged in request and assert on the menu
       conn = get(conn, "/users/settings")

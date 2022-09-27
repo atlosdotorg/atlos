@@ -52,7 +52,7 @@ defmodule PlatformWeb.AdminlandLive.SecurityModeCreateLive do
     ~H"""
     <section>
       <.form
-        let={f}
+        :let={f}
         for={@changeset}
         id="security-mode-create"
         phx-target={@myself}

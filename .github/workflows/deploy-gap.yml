@@ -9,6 +9,8 @@ jobs:
   deploy:
     name: Deploy app
     runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.ref }}
     defaults:
       run:
         working-directory: ./platform

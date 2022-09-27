@@ -53,7 +53,7 @@ defmodule PlatformWeb.NewLive.BasicInfoLive do
     ~H"""
     <div>
       <.form
-        let={f}
+        :let={f}
         for={@changeset}
         id="media-form"
         phx-target={@myself}

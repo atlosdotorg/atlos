@@ -144,9 +144,11 @@ defmodule PlatformWeb.AdminlandLive.APITokenLive do
                 </ul>
                 <p>
                   All endpoints return 30 results at a time. You can paginate using the
-                  <code>cursor</code> query parameter, whose value is provided by the
-                  <code>next</code> and <code>previous</code>
-                  keys in the response. Results are available under the <code>results</code> key.
+                  <code>cursor</code>
+                  query parameter, whose value is provided by the <code>next</code>
+                  and <code>previous</code>
+                  keys in the response. Results are available under the <code>results</code>
+                  key.
                 </p>
                 <p>
                   To authenticate against the API, include a <code>Authorization</code>

@@ -7,6 +7,8 @@ defmodule Platform.Material.Attribute do
   alias Platform.Accounts
   alias Platform.Material
 
+  use Memoize
+
   defstruct [
     :schema_field,
     :type,
@@ -621,8 +623,16 @@ defmodule Platform.Material.Attribute do
     end)
   end
 
+  defmemo get_custom_attribute_options(name) do
+    extra = Jason.decode!(System.get_env("CUSTOM_ATTRIBUTE_OPTIONS", "{}"))
+
+    Map.get(extra, name |> to_string(), [])
+  end
+
   def options(%Attribute{} = attribute, current_val \\ nil) do
     base_options = attribute.options || []
+
+    base_options = base_options ++ get_custom_attribute_options(attribute.name)
 
     primary_options =
       if Attribute.allow_user_defined_options(attribute) and attribute.type == :multi_select do
@@ -817,6 +827,7 @@ defmodule Platform.Material.Attribute do
           "Cancelled" -> "~neutral"
           "Ready for Review" -> "~cyan"
           "Completed" -> "~purple"
+          "Needs Upload" -> "~purple"
           _ -> "~warning"
         end
 

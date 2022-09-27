@@ -23,6 +23,10 @@ defmodule PlatformWeb.Router do
     plug(:put_layout, {PlatformWeb.LayoutView, "interstitial.html"})
   end
 
+  pipeline :interstitial_minimal do
+    plug(:put_layout, {PlatformWeb.LayoutView, "interstitial_minimal.html"})
+  end
+
   pipeline :api do
     plug(:accepts, ["json"])
   end
@@ -96,6 +100,12 @@ defmodule PlatformWeb.Router do
     post("/users/confirm", UserConfirmationController, :create)
     get("/users/confirm/:token", UserConfirmationController, :edit)
     post("/users/confirm/:token", UserConfirmationController, :update)
+  end
+
+  scope "/", PlatformWeb do
+    pipe_through([:browser, :require_authenticated_user, :interstitial_minimal])
+
+    get("/users/onboarding", UserRegistrationController, :onboarding)
   end
 
   scope "/", PlatformWeb do
