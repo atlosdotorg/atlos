@@ -3,19 +3,14 @@ defmodule PlatformWeb.MediaLive.CommentBox do
   alias Platform.Accounts
   alias Platform.Updates
   alias Platform.Uploads
-  alias Phoenix.LiveView.Upload
   alias Platform.Auditor
+  alias Phoenix.LiveView.Upload
 
-  def update(assigns, socket) do
+  def mount(socket) do
     Temp.track!()
 
     {:ok,
      socket
-     |> assign(assigns)
-     # Clear uploads from previous render
-     |> Upload.maybe_cancel_uploads()
-     |> Kernel.elem(0)
-     |> assign_new(:disabled, fn -> false end)
      |> allow_upload(:attachments,
        accept: ~w(.png .jpg .jpeg),
        max_entries: 9,
@@ -23,6 +18,13 @@ defmodule PlatformWeb.MediaLive.CommentBox do
        auto_upload: false,
        progress: &handle_progress/3
      )
+     |> assign_new(:disabled, fn -> false end)}
+  end
+
+  def update(assigns, socket) do
+    {:ok,
+     socket
+     |> assign(assigns)
      |> assign_changeset()}
   end
 
@@ -30,11 +32,21 @@ defmodule PlatformWeb.MediaLive.CommentBox do
     {:noreply, socket}
   end
 
-  defp assign_changeset(socket) do
+  def reset_state(socket) do
     socket
+    |> Upload.maybe_cancel_uploads()
+    |> Kernel.elem(0)
     |> assign(
       :changeset,
       Updates.change_from_comment(socket.assigns.media, socket.assigns.current_user)
+    )
+  end
+
+  defp assign_changeset(socket) do
+    socket
+    |> assign_new(
+      :changeset,
+      fn -> Updates.change_from_comment(socket.assigns.media, socket.assigns.current_user) end
     )
   end
 
@@ -86,7 +98,7 @@ defmodule PlatformWeb.MediaLive.CommentBox do
         {:noreply,
          socket
          |> put_flash(:info, "Your comment has been posted.")
-         |> assign_changeset()
+         |> reset_state()
          |> push_patch(to: Routes.media_show_path(socket, :show, socket.assigns.media.slug))}
 
       {:error, %Ecto.Changeset{} = changeset} ->

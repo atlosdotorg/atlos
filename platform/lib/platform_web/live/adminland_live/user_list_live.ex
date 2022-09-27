@@ -93,7 +93,7 @@ defmodule PlatformWeb.AdminlandLive.UserListLive do
                           <% nil -> %>
                             (none)
                           <% invite -> %>
-                            <.user_text user={invite.owner} />
+                            <.user_text user={invite.owner || Accounts.get_auto_account()} />
                         <% end %>
                       </td>
                       <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">

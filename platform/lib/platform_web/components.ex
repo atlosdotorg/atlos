@@ -1269,10 +1269,14 @@ defmodule PlatformWeb.Components do
     sensitive = Media.is_sensitive(media)
     assigns = assigns |> Map.put_new(:target, nil)
 
+    border = Map.get(assigns, :border, false)
+    link = Map.get(assigns, :link, true)
+    class = Map.get(assigns, :class, "")
+
     ~H"""
     <a
-      class="flex items-stretch group flex-row bg-white overflow-hidden shadow rounded-lg justify-between min-h-32 max-h-48"
-      href={"/incidents/#{media.slug}"}
+      class={"flex items-stretch group flex-row bg-white overflow-hidden shadow rounded-lg justify-between min-h-32 max-h-48 " <> (if border, do: "border ", else: "") <> class}
+      href={if link, do: "/incidents/#{media.slug}", else: nil}
       target={@target}
     >
       <%= if Media.can_user_view(media, user) do %>
@@ -1280,12 +1284,12 @@ defmodule PlatformWeb.Components do
           <section>
             <p class="font-mono text-xs text-gray-500"><%= media.slug %></p>
             <p class="text-gray-900 group-hover:text-gray-900">
-              <%= media.attr_description |> Utils.truncate(80) %>
+              <%= media.attr_description |> Utils.truncate(60) %>
             </p>
           </section>
           <section class="flex flex-wrap gap-1 self-start align-top">
             <%= if media.attr_status do %>
-              <span class={"badge " <> Attribute.attr_color(:status, @media.attr_status)}>
+              <span class={"self-start badge " <> Attribute.attr_color(:status, @media.attr_status)}>
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   class="h-3 w-3 mr-px"
@@ -1304,7 +1308,7 @@ defmodule PlatformWeb.Components do
 
             <%= if sensitive do %>
               <%= for item <- media.attr_sensitive || [] do %>
-                <span class={"badge " <> Attribute.attr_color(:sensitive, @media.attr_sensitive)}>
+                <span class={"self-start badge " <> Attribute.attr_color(:sensitive, @media.attr_sensitive)}>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     class="h-3 w-3 mr-px"
@@ -1325,7 +1329,7 @@ defmodule PlatformWeb.Components do
 
             <%= for item <- media.attr_restrictions || [] do %>
               <!-- TODO: make this use Attribute.attr_color/2 -->
-              <span class="badge ~warning">
+              <span class="self-start badge ~warning">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   class="h-3 w-3 mr-px"
@@ -1345,7 +1349,7 @@ defmodule PlatformWeb.Components do
             <% end %>
 
             <%= if media.attr_geolocation do %>
-              <span class="badge ~neutral">
+              <span class="self-start badge ~neutral">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   class="h-3 w-3 mr-px"
@@ -1363,7 +1367,7 @@ defmodule PlatformWeb.Components do
             <% end %>
 
             <%= if media.attr_date do %>
-              <span class="badge ~neutral">
+              <span class="self-start badge ~neutral">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   class="h-3 w-3 mr-px"
@@ -1380,7 +1384,7 @@ defmodule PlatformWeb.Components do
               </span>
             <% end %>
 
-            <span class="badge ~neutral">
+            <span class="self-start badge ~neutral">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 class="h-3 w-3 mr-px"
@@ -1394,7 +1398,7 @@ defmodule PlatformWeb.Components do
               <%= length(Attribute.set_for_media(media)) %> Attrs
             </span>
 
-            <span class="badge ~neutral">
+            <span class="self-start badge ~neutral">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 class="h-3 w-3 mr-px"

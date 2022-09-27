@@ -12,6 +12,8 @@ jobs:
     defaults:
       run:
         working-directory: ./platform
+    concurrency:
+      group: ${{ github.ref }}
     steps:
       - uses: actions/checkout@v2
       - uses: superfly/flyctl-actions/setup-flyctl@master

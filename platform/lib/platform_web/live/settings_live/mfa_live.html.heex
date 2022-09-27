@@ -24,7 +24,7 @@
             ><%= secret_url(@current_user, @secret) %></a>. To finish setting up MFA, enter the current code below:
           </p>
           <.form
-            let={f}
+            :let={f}
             for={@enable_changeset}
             as={:enable_mfa}
             phx-submit="save_enable_mfa"
@@ -71,7 +71,7 @@
       <div class="prose prose-sm">
         <p>To disable MFA, please enter your password and current MFA code below.</p>
         <.form
-          let={f}
+          :let={f}
           for={@disable_changeset}
           as={:disable_mfa}
           phx-submit="save_disable_mfa"

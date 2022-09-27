@@ -62,7 +62,7 @@ defmodule PlatformWeb.AdminlandLive.ActivityFeedLive do
               </div>
               <div class="flex-grow max-w-md">
                 <.form
-                  let={f}
+                  :let={f}
                   for={@changeset}
                   as={:query}
                   phx-change="change"

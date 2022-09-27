@@ -1,0 +1,239 @@
+<div>
+  <div x-data="{page: 0, pages: [0, 1, 2, 3, 4], maxPage: 4}">
+    <nav aria-label="Progress">
+      <ol role="list" class="flex items-center -ml-5 space-x-5 justify-center">
+        <template x-for="p in pages">
+          <li>
+            <!-- Completed Step -->
+            <a
+              href="#"
+              class="block h-2.5 w-2.5 rounded-full bg-urge-600 hover:bg-urge-900"
+              x-on:click="page = p"
+              x-show="p < page"
+            >
+              <span class="sr-only" x-text="'Step ' + p"></span>
+            </a>
+            <!-- Current Step -->
+            <span
+              class="relative flex items-center justify-center"
+              aria-current="step"
+              x-show="p === page"
+            >
+              <span class="absolute flex h-5 w-5 p-px" aria-hidden="true">
+                <span class="h-full w-full rounded-full bg-urge-200"></span>
+              </span>
+              <span class="relative block h-2.5 w-2.5 rounded-full bg-urge-600" aria-hidden="true">
+              </span>
+              <span class="sr-only" x-text="'Step ' + p"></span>
+            </span>
+            <!-- Upcoming Step -->
+            <span href="#" class="block h-2.5 w-2.5 rounded-full bg-gray-200" x-show="page < p">
+              <span class="sr-only" x-text="'Step ' + p"></span>
+            </span>
+          </li>
+        </template>
+      </ol>
+    </nav>
+    <section class="mt-8 text-base text-neutral-700">
+      <article x-show="page === 0" class="flex flex-col gap-4" x-transition:enter>
+        <div>
+          <h3 class="text-3xl font-bold text-neutral-900 text-gray-900 text-center">
+            Welcome to Atlos!
+          </h3>
+        </div>
+        <p class="flex gap-2 sm:gap-4 items-center">
+          <span class="text-3xl">📖</span>
+          <span>
+            Atlos is an <strong class="font-semibold">open source commons</strong>
+            for visual investigations.
+          </span>
+        </p>
+        <p class="flex gap-2 sm:gap-4 items-center">
+          <span class="text-3xl">🔬</span>
+          <span>
+            On Atlos, you investigate incidents, build on other researchers' findings, and leverage our archive.
+          </span>
+        </p>
+        <p class="flex gap-2 sm:gap-4 items-center">
+          <span class="text-3xl">👋</span>
+          <span>
+            <strong class="font-semibold">We're excited to have you on board.</strong>
+            You'll be ready to contribute in just a moment!
+          </span>
+        </p>
+        <div class="mt-8">
+          <button x-on:click="page++" class="button ~urge @high w-full !text-base">
+            Continue &rarr;
+          </button>
+        </div>
+      </article>
+      <article x-show="page === 1" class="flex flex-col gap-4" x-transition:enter>
+        <div>
+          <h3 class="text-3xl font-bold text-neutral-900 text-gray-900 text-center">
+            Atlos is built around incidents.
+          </h3>
+        </div>
+        <p class="flex gap-2 sm:gap-4 items-center">
+          <span class="text-3xl">📄</span>
+          <span>
+            Each incident has its own <strong class="font-semibold">dedicated page</strong>
+            with media, attributes, metadata, and comments.
+          </span>
+        </p>
+        <div class="relative">
+          <.media_card
+            border={true}
+            link={false}
+            media={
+              %Platform.Material.Media{
+                slug: "ATL-H3LL0",
+                attr_description: "This is a short description of an example incident.",
+                attr_status: "Completed",
+                attr_type: ["Military Activity/Strike"],
+                updates: [
+                  %Platform.Updates.Update{
+                    type: :create,
+                    user: Platform.Accounts.get_auto_account()
+                  },
+                  %Platform.Updates.Update{
+                    type: :create,
+                    user: @current_user
+                  }
+                ],
+                updated_at: DateTime.utc_now() |> DateTime.add(-2, :hour),
+                versions: [
+                  %Platform.Material.MediaVersion{
+                    file_location:
+                      "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2b/Stanford_University_Green_Library_Bing_Wing.jpg/640px-Stanford_University_Green_Library_Bing_Wing.jpg",
+                    mime_type: "image/jpeg",
+                    status: :complete,
+                    upload_type: :direct,
+                    visibility: :visible
+                  }
+                ]
+              }
+            }
+            current_user={@current_user}
+          />
+        </div>
+        <p class="flex gap-2 sm:gap-4 items-center">
+          <span class="text-3xl">📌</span>
+          <span>
+            Each incident has a <strong class="font-semibold">unique ID</strong>, like <code class="code">ATL-H3LL0</code>, making it easy to discuss and track incidents on and off Atlos.
+          </span>
+        </p>
+        <div class="mt-8">
+          <button x-on:click="page++" class="button ~urge @high w-full !text-base">
+            Continue &rarr;
+          </button>
+        </div>
+      </article>
+      <article x-show="page === 2" class="flex flex-col gap-4" x-transition:enter>
+        <div>
+          <h3 class="text-3xl font-bold text-neutral-900 text-gray-900 text-center">
+            Atlos is collaborative.
+          </h3>
+        </div>
+        <p class="flex gap-2 sm:gap-4 items-center">
+          <span class="text-3xl">📢</span>
+          <span>
+            Use <strong class="font-semibold">incident status</strong>
+            to mark incidents as Claimed, Help Needed, Ready for Review, and more.
+          </span>
+        </p>
+        <p class="flex gap-2 sm:gap-4 items-center">
+          <span class="text-3xl">💬</span>
+          <span>
+            Use <strong class="font-semibold">comments</strong>
+            to collaborate with other researchers. You can tag others using their @username.
+          </span>
+        </p>
+        <p class="flex gap-2 sm:gap-4 items-center">
+          <span class="text-3xl">🔔</span>
+          <span>
+            You'll be <strong class="font-semibold">notified</strong>
+            when you're tagged in a comment or if there's activity in an incident you're subscribed to.
+          </span>
+        </p>
+        <div class="mt-8">
+          <button x-on:click="page++" class="button ~urge @high w-full !text-base">
+            Continue &rarr;
+          </button>
+        </div>
+      </article>
+      <article x-show="page === 3" class="flex flex-col gap-4" x-transition:enter>
+        <div>
+          <h3 class="text-3xl font-bold text-neutral-900 text-gray-900 text-center">
+            We take safety seriously.
+          </h3>
+        </div>
+        <p class="flex gap-2 sm:gap-4 items-center">
+          <span class="text-3xl">🔒</span>
+          <span>
+            Use <strong class="font-semibold">incident sensitivity</strong>
+            to label graphic violence, personal information, and so on.
+          </span>
+        </p>
+        <p class="flex gap-2 sm:gap-4 items-center">
+          <span class="text-3xl">❤️</span>
+          <span>
+            To protect your <strong class="font-semibold">mental health</strong>, Atlos implements several industry best practices&nbsp;&mdash;&nbsp;including making all media grayscale by default.
+          </span>
+        </p>
+        <p class="flex gap-2 sm:gap-4 items-center">
+          <span class="text-3xl">📚</span>
+          <span>
+            For more information on staying safe, see our tips on <a
+              href="https://atlos.org/resilience"
+              class="font-semibold underline"
+            >researcher resilience</a>.
+          </span>
+        </p>
+        <div class="mt-8">
+          <button x-on:click="page++" class="button ~urge @high w-full !text-base">
+            Continue &rarr;
+          </button>
+        </div>
+      </article>
+      <article x-show="page === 4" class="flex flex-col gap-4" x-transition:enter>
+        <div>
+          <h3 class="text-3xl font-bold text-neutral-900 text-gray-900 text-center">
+            Time to get started!
+          </h3>
+        </div>
+        <%= if not is_nil(@discord_link) do %>
+          <p class="flex gap-2 sm:gap-4 items-center">
+            <span class="text-3xl">💬</span>
+            <span>
+              <a href={@discord_link} class="font-semibold underline">Join our Discord server</a>, where you can chat with the Atlos team and provide feedback.
+            </span>
+          </p>
+        <% end %>
+        <p class="flex gap-2 sm:gap-4 items-center">
+          <span class="text-3xl">📘</span>
+          <span>
+            Bookmark the
+            <a href="https://atlos.org/guide" class="font-semibold underline">user guide</a>
+            for more info about how to use Atlos. You can also repeat this onboarding by visiting your settings.
+          </span>
+        </p>
+        <p class="flex gap-2 sm:gap-4 items-center">
+          <span class="text-3xl">✅</span>
+          <span>
+            Now you're ready to <strong class="font-semibold">contribute</strong>! Your next stop is the Queue, where you can see active incidents at a glance.
+          </span>
+        </p>
+        <div class="mt-8">
+          <a href="/queue" class="button ~urge @high w-full !text-base">
+            Open Atlos &rarr;
+          </a>
+        </div>
+      </article>
+      <div class="mt-2 text-center text-sm">
+        <button x-on:click="page--" x-show="page > 0" class="text-button text-neutral-600">
+          &larr; Back
+        </button>
+      </div>
+    </section>
+  </div>
+</div>

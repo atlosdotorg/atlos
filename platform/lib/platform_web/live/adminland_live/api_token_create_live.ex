@@ -39,7 +39,7 @@ defmodule PlatformWeb.AdminlandLive.APITokenCreateLive do
     <section>
       <%= if is_nil(@token) do %>
         <.form
-          let={f}
+          :let={f}
           for={@changeset}
           id="api-token-create"
           phx-target={@myself}
