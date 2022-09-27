@@ -12,9 +12,9 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
      socket
      |> assign(assigns)
      |> assign(:attrs, attributes)
-     |> assign(
+     |> assign_new(
        :changeset,
-       Material.change_media_attributes(assigns.media, attributes, assigns.current_user)
+       fn -> Material.change_media_attributes(assigns.media, attributes, assigns.current_user) end
      )}
   end
 

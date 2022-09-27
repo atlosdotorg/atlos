@@ -17,7 +17,8 @@ defmodule PlatformWeb.MediaLive.LinkVersionLive do
   end
 
   defp assign_changeset(socket) do
-    socket |> assign(:changeset, Material.change_media_version(socket.assigns.version))
+    socket
+    |> assign_new(:changeset, fn -> Material.change_media_version(socket.assigns.version) end)
   end
 
   defp assign_source_url_duplicate(socket, params) do

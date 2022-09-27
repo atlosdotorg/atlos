@@ -5,18 +5,10 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
   alias Platform.Auditor
   alias Platform.Uploads
 
-  def update(assigns, socket) do
-    # Track temporary files so they are properly cleaned up later
-    Temp.track!()
-
+  def mount(socket) do
     {:ok,
      socket
-     |> assign(assigns)
-     |> assign(:processing, false)
-     |> assign_version()
-     |> assign_changeset()
      |> assign(:form_id, Utils.generate_random_sequence(10))
-     |> assign_source_url_duplicate(%{})
      |> allow_upload(:media_upload,
        accept: ~w(.png .jpg .jpeg .avi .mp4 .webm),
        max_entries: 1,
@@ -25,15 +17,29 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
        progress: &handle_progress/3,
        chunk_size: 512_000
      )
+     |> assign(:processing, false)
+     |> assign_source_url_duplicate(%{})
      |> clear_error()}
   end
 
+  def update(assigns, socket) do
+    # Track temporary files so they are properly cleaned up later
+    Temp.track!()
+
+    {:ok,
+     socket
+     |> assign(assigns)
+     |> assign_version()
+     |> assign_changeset()}
+  end
+
   defp assign_version(socket) do
-    socket |> assign(:version, %Material.MediaVersion{media: socket.assigns.media})
+    socket |> assign_new(:version, fn -> %Material.MediaVersion{media: socket.assigns.media} end)
   end
 
   defp assign_changeset(socket) do
-    socket |> assign(:changeset, Material.change_media_version(socket.assigns.version))
+    socket
+    |> assign_new(:changeset, fn -> Material.change_media_version(socket.assigns.version) end)
   end
 
   defp handle_static_file(%{path: path}, client_name) do
@@ -177,8 +183,6 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
 
     is_invalid = Enum.any?(assigns.uploads.media_upload.entries, &(!&1.valid?))
 
-    is_complete = Enum.any?(uploads, & &1.done?)
-
     cancel_upload =
       if is_uploading do
         ~H"""
@@ -249,35 +253,8 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
             </div>
             <div class="phx-only-during-reg">
               <%= cond do %>
-                <% is_complete -> %>
-                  <div class="space-y-1 text-center phx-only-during-reg">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      class="mx-auto h-12 w-12 text-positive-600"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      stroke-width="2"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                      />
-                    </svg>
-                    <div class="w-full text-sm text-gray-600">
-                      <%= for entry <- @uploads.media_upload.entries do %>
-                        <div class="w-42 mt-4 text-center">
-                          <p>Uploaded <%= Utils.truncate(entry.client_name) %>.</p>
-                        </div>
-                      <% end %>
-                    </div>
-                    <div>
-                      <%= cancel_upload %>
-                    </div>
-                  </div>
                 <% is_invalid -> %>
-                  <div class="space-y-1 text-center phx-only-during-reg">
+                  <div class="space-y-1 text-center">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       class="mx-auto h-12 w-12 text-critical-600"
@@ -308,7 +285,7 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
                     </div>
                   </div>
                 <% is_uploading -> %>
-                  <div class="space-y-1 text-center w-full phx-only-during-reg">
+                  <div class="space-y-1 text-center w-full">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       aria-hidden="true"
@@ -331,12 +308,14 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
                         </div>
                       <% end %>
                     </div>
-                    <div>
-                      <%= cancel_upload %>
-                    </div>
+                    <%= if not @processing do %>
+                      <div>
+                        <%= cancel_upload %>
+                      </div>
+                    <% end %>
                   </div>
                 <% true -> %>
-                  <div class="space-y-1 text-center phx-only-during-reg">
+                  <div class="space-y-1 text-center">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       aria-hidden="true"
