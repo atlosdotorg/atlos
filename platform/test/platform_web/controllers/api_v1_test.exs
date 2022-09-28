@@ -34,7 +34,11 @@ defmodule PlatformWeb.APIV1Test do
 
     assert json_response(auth_conn, 200) == %{
              # Manually fetch since the database will change certain values
-             "results" => [Jason.decode!(Jason.encode!(Material.get_media!(media.id)))],
+             "results" => [
+               Jason.decode!(
+                 Jason.encode!(Material.get_media!(media.id) |> Map.put(:versions, []))
+               )
+             ],
              "previous" => nil,
              "next" => nil
            }
