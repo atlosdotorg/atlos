@@ -28,12 +28,12 @@ defmodule Platform.Workers.Archiver do
 
     hide_version_on_failure = Map.get(args, "hide_version_on_failure", false)
 
-    try do
-      # Cleanup any existing tempfiles. (The worker is a long-running task.)
-      # In case we haven't already
-      Temp.track!()
-      Temp.cleanup()
+    # Cleanup any existing tempfiles. (The worker is a long-running task.)
+    # In case we haven't already
+    Temp.track!()
+    Temp.cleanup()
 
+    try do
       # Submit to the Internet Archive for archival
       Material.submit_for_external_archival(version)
 
@@ -138,6 +138,8 @@ defmodule Platform.Workers.Archiver do
 
         {:ok, new_version}
     end
+
+    Temp.cleanup()
   end
 
   @doc """
