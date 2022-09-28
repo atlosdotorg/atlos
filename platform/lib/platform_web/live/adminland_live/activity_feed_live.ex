@@ -73,7 +73,7 @@ defmodule PlatformWeb.AdminlandLive.ActivityFeedLive do
                     <%= label(f, :query, "Search", class: "block text-xs font-medium text-gray-900") %>
                     <%= text_input(f, :query,
                       placeholder: "Enter a query...",
-                      phx_debounce: "1000",
+                      phx_debounce: "500",
                       class:
                         "block w-full border-0 p-0 text-gray-900 placeholder-gray-500 focus:ring-0 sm:text-sm"
                     ) %>
