@@ -4,7 +4,6 @@ defmodule PlatformWeb.MediaLive.CommentBox do
   alias Platform.Updates
   alias Platform.Uploads
   alias Platform.Auditor
-  alias Phoenix.LiveView.Upload
 
   def mount(socket) do
     Temp.track!()
