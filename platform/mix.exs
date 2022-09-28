@@ -61,7 +61,7 @@ defmodule Platform.MixProject do
       {:faker, "~> 0.17", only: [:dev, :test]},
       {:ex_aws, "~> 2.4"},
       {:ex_aws_s3, "~> 2.3"},
-      {:arc, "~> 0.11.0"},
+      {:waffle, "~> 1.1"},
       {:sweet_xml, "~> 0.7.3"},
       {:gen_smtp, "~> 1.1"},
       {:hackney, "~> 1.18.0"},

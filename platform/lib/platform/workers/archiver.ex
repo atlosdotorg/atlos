@@ -33,113 +33,115 @@ defmodule Platform.Workers.Archiver do
     Temp.track!()
     Temp.cleanup()
 
-    try do
-      # Submit to the Internet Archive for archival
-      Material.submit_for_external_archival(version)
+    result =
+      try do
+        # Submit to the Internet Archive for archival
+        Material.submit_for_external_archival(version)
 
-      # Setup tempfiles for media download
-      temp_dir = Temp.mkdir!()
+        # Setup tempfiles for media download
+        temp_dir = Temp.mkdir!()
 
-      # Download the media (either from S3 for user-provided files, or from the original source)
-      case version.upload_type do
-        :user_provided ->
-          url = Uploads.OriginalMediaVersion.url({version.file_location, media}, signed: true)
+        # Download the media (either from S3 for user-provided files, or from the original source)
+        case version.upload_type do
+          :user_provided ->
+            url = Uploads.OriginalMediaVersion.url({version.file_location, media}, signed: true)
 
-          {_, 0} =
-            System.cmd(
-              "curl",
-              [
-                "-L",
-                url,
-                "-o",
-                Path.join(temp_dir, version.file_location)
-              ],
-              into: IO.stream()
-            )
+            {_, 0} =
+              System.cmd(
+                "curl",
+                [
+                  "-L",
+                  url,
+                  "-o",
+                  Path.join(temp_dir, version.file_location)
+                ],
+                into: IO.stream()
+              )
 
-        :direct ->
-          {_, 0} =
-            System.cmd(
-              "yt-dlp",
-              [
-                version.source_url,
-                "-o",
-                Path.join(temp_dir, "out.%(ext)s"),
-                "--max-filesize",
-                "500m",
-                "--merge-output-format",
-                "mp4"
-              ],
-              into: IO.stream()
-            )
-      end
+          :direct ->
+            {_, 0} =
+              System.cmd(
+                "yt-dlp",
+                [
+                  version.source_url,
+                  "-o",
+                  Path.join(temp_dir, "out.%(ext)s"),
+                  "--max-filesize",
+                  "500m",
+                  "--merge-output-format",
+                  "mp4"
+                ],
+                into: IO.stream()
+              )
+        end
 
-      # Figure out what we downloaded
-      [file_name] = File.ls!(temp_dir)
-      file_path = Path.join(temp_dir, file_name)
-      mime = MIME.from_path(file_path)
+        # Figure out what we downloaded
+        [file_name] = File.ls!(temp_dir)
+        file_path = Path.join(temp_dir, file_name)
+        mime = MIME.from_path(file_path)
 
-      # Process + upload it (only store original if upload_type is direct/not user provided)
-      {:ok, identifier, duration, size, watermarked_hash, original_hash} =
-        process_uploaded_media(file_path, mime, media, version, version.upload_type == :direct)
+        # Process + upload it (only store original if upload_type is direct/not user provided)
+        {:ok, identifier, duration, size, watermarked_hash, original_hash} =
+          process_uploaded_media(file_path, mime, media, version, version.upload_type == :direct)
 
-      # Update the media version to reflect the change
-      {:ok, new_version} =
-        Material.update_media_version(version, %{
-          file_location: identifier,
-          file_size: size,
-          status: :complete,
-          duration_seconds: duration,
-          mime_type: mime,
-          hashes: %{original_sha256: original_hash, watermarked_sha256: watermarked_hash}
+        # Update the media version to reflect the change
+        {:ok, new_version} =
+          Material.update_media_version(version, %{
+            file_location: identifier,
+            file_size: size,
+            status: :complete,
+            duration_seconds: duration,
+            mime_type: mime,
+            hashes: %{original_sha256: original_hash, watermarked_sha256: watermarked_hash}
+          })
+
+        # Track event
+        Auditor.log(:archive_success, %{
+          media_id: media_id,
+          source_url: new_version.source_url,
+          media_version: new_version
         })
 
-      # Track event
-      Auditor.log(:archive_success, %{
-        media_id: media_id,
-        source_url: new_version.source_url,
-        media_version: new_version
-      })
-
-      # Push update to viewers
-      Material.broadcast_media_updated(media_id)
-
-      {:ok, new_version}
-    rescue
-      val ->
-        # Some error happened! Log it and update the media version appropriately.
-        Logger.error("Unable to automatically archive media: " <> inspect(val))
-        Logger.error(Exception.format_stacktrace())
-
-        Auditor.log(:archive_failed, %{error: inspect(val), version: version})
-
-        {:ok, _} =
-          Updates.change_from_comment(media, Accounts.get_auto_account(), %{
-            "explanation" =>
-              "🛑 Unable to automatically process the media from #{version.source_url}. Consider retrying using manual upload."
-          })
-          |> Updates.create_update_from_changeset()
-
-        # Update the media version.
-        version_map = %{
-          status: :error
-        }
-
-        # If we're supposed to hide versions on failure, we do so here.
-        new_version_map =
-          if hide_version_on_failure && version.visibility == :visible do
-            Map.put(version_map, :visibility, :hidden)
-          else
-            version_map
-          end
-
-        # Actually update the media version
-        {:ok, new_version} = Material.update_media_version(version, new_version_map)
+        # Push update to viewers
+        Material.broadcast_media_updated(media_id)
 
         {:ok, new_version}
-    end
+      rescue
+        val ->
+          # Some error happened! Log it and update the media version appropriately.
+          Logger.error("Unable to automatically archive media: " <> inspect(val))
+          Logger.error(Exception.format_stacktrace())
+
+          Auditor.log(:archive_failed, %{error: inspect(val), version: version})
+
+          {:ok, _} =
+            Updates.change_from_comment(media, Accounts.get_auto_account(), %{
+              "explanation" =>
+                "🛑 Unable to automatically process the media from #{version.source_url}. Consider retrying using manual upload."
+            })
+            |> Updates.create_update_from_changeset()
+
+          # Update the media version.
+          version_map = %{
+            status: :error
+          }
+
+          # If we're supposed to hide versions on failure, we do so here.
+          new_version_map =
+            if hide_version_on_failure && version.visibility == :visible do
+              Map.put(version_map, :visibility, :hidden)
+            else
+              version_map
+            end
+
+          # Actually update the media version
+          {:ok, new_version} = Material.update_media_version(version, new_version_map)
+
+          {:ok, new_version}
+      end
 
     Temp.cleanup()
+    result
   end
 
   @doc """
