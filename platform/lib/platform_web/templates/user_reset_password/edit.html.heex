@@ -4,6 +4,7 @@
     for={@changeset}
     action={Routes.user_reset_password_path(@conn, :update, @token)}
     class="flex flex-col gap-y-4"
+    method="PUT"
   >
     <%= if @changeset.action do %>
       <div class="alert alert-danger">
