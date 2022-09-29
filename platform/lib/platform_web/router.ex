@@ -89,7 +89,7 @@ defmodule PlatformWeb.Router do
     get("/users/reset_password", UserResetPasswordController, :new)
     post("/users/reset_password", UserResetPasswordController, :create)
     get("/users/reset_password/:token", UserResetPasswordController, :edit)
-    post("/users/reset_password/:token", UserResetPasswordController, :update)
+    put("/users/reset_password/:token", UserResetPasswordController, :update)
   end
 
   scope "/", PlatformWeb do
