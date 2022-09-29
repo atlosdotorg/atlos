@@ -1,5 +1,5 @@
 defmodule Platform.Uploads.Avatar do
-  use Arc.Definition
+  use Waffle.Definition
 
   @versions [:original, :thumb]
 
@@ -25,7 +25,7 @@ defmodule Platform.Uploads.Avatar do
 end
 
 defmodule Platform.Uploads.WatermarkedMediaVersion do
-  use Arc.Definition
+  use Waffle.Definition
 
   @versions [:original, :thumb]
 
@@ -55,7 +55,7 @@ defmodule Platform.Uploads.WatermarkedMediaVersion do
 end
 
 defmodule Platform.Uploads.OriginalMediaVersion do
-  use Arc.Definition
+  use Waffle.Definition
 
   @versions [:original]
 
@@ -73,7 +73,7 @@ defmodule Platform.Uploads.OriginalMediaVersion do
 end
 
 defmodule Platform.Uploads.UpdateAttachment do
-  use Arc.Definition
+  use Waffle.Definition
 
   @versions [:original]
 

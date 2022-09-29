@@ -4,7 +4,6 @@ defmodule PlatformWeb.MediaLive.CommentBox do
   alias Platform.Updates
   alias Platform.Uploads
   alias Platform.Auditor
-  alias Phoenix.LiveView.Upload
 
   def mount(socket) do
     Temp.track!()
@@ -34,8 +33,6 @@ defmodule PlatformWeb.MediaLive.CommentBox do
 
   def reset_state(socket) do
     socket
-    |> Upload.maybe_cancel_uploads()
-    |> Kernel.elem(0)
     |> assign(
       :changeset,
       Updates.change_from_comment(socket.assigns.media, socket.assigns.current_user)
