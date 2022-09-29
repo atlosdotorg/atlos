@@ -8,7 +8,6 @@ defmodule Platform.Material.Media do
   alias Platform.Accounts
   alias __MODULE__
 
-  @derive {Jason.Encoder, except: [:__meta__, :subscriptions, :updates, :versions]}
   schema "media" do
     # Core uneditable data
     field :slug, :string, autogenerate: {Utils, :generate_media_slug, []}
@@ -228,5 +227,36 @@ defmodule Platform.Material.Media do
 
   def text_search(search_terms, queryable \\ Media) do
     Utils.text_search(search_terms, queryable)
+  end
+end
+
+defimpl Jason.Encoder, for: Platform.Material.Media do
+  def encode(value, opts) do
+    Jason.Encode.map(
+      Map.take(value, [
+        :slug,
+        :attr_description,
+        :attr_geolocation,
+        :attr_geolocation_resolution,
+        :attr_more_info,
+        :attr_date,
+        :attr_type,
+        :attr_impact,
+        :attr_equipment,
+        :attr_restrictions,
+        :attr_sensitive,
+        :attr_status,
+        :attr_tags,
+        :versions,
+        :inserted_at,
+        :updated_at,
+        :id
+      ])
+      |> Enum.into(%{}, fn
+        {key, %Ecto.Association.NotLoaded{}} -> {key, nil}
+        {key, value} -> {key, value}
+      end),
+      opts
+    )
   end
 end

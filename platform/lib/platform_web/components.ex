@@ -796,6 +796,7 @@ defmodule PlatformWeb.Components do
           media={media}
           socket={socket}
           current_user={current_user}
+          immutable={Map.get(assigns, :immutable, false)}
         />
       <% end %>
       <%= if length(@unset_attrs) > 0 do %>
@@ -875,7 +876,7 @@ defmodule PlatformWeb.Components do
           <% end %>
         </span>
         <span class="ml-4 flex-shrink-0">
-          <%= if Attribute.can_user_edit(attr, current_user, media) do %>
+          <%= if Attribute.can_user_edit(attr, current_user, media) and not (Map.get(assigns, :immutable, false)) do %>
             <%= live_patch("Update",
               class: "text-button mt-1 inline-block",
               to: Routes.media_show_path(@socket, :edit, media.slug, attr.name)

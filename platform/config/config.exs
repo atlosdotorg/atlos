@@ -47,8 +47,9 @@ config :logger, :console,
 # Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, Jason
 
-# Use Arc for file uploads
-config :arc,
+# Use Waffle for file uploads
+config :waffle,
+  storage: Waffle.Storage.S3,
   bucket: {:system, "S3_BUCKET"},
   virtual_host: true,
   # milliseconds

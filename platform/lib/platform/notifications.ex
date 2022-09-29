@@ -48,7 +48,7 @@ defmodule Platform.Notifications do
     Repo.paginate(
       from(n in Notification,
         where: n.user_id == ^user.id,
-        preload: [update: [:user, :media]],
+        preload: [update: [:user, :media, :media_version]],
         order_by: [desc: :inserted_at, desc: :id]
       ),
       Keyword.merge([cursor_fields: [{:inserted_at, :desc}, {:id, :desc}], limit: 30], options)

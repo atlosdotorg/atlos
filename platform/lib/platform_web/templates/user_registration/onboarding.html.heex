@@ -1,5 +1,36 @@
+<% example_media = %Platform.Material.Media{
+  slug: "ATL-H3LL0",
+  attr_description: "This is a short description of an example incident.",
+  attr_status: "Completed",
+  attr_type: ["Military Activity/Strike"],
+  attr_equipment: ["Munition/Cluster"],
+  attr_impact: ["Structure/Transit Station", "Injury/Civilian"],
+  attr_geolocation: Geo.WKT.decode!("POINT(-122.1635 37.4200)"),
+  updates: [
+    %Platform.Updates.Update{
+      type: :create,
+      user: Platform.Accounts.get_auto_account()
+    },
+    %Platform.Updates.Update{
+      type: :create,
+      user: @current_user
+    }
+  ],
+  updated_at: DateTime.utc_now() |> DateTime.add(-2, :hour),
+  versions: [
+    %Platform.Material.MediaVersion{
+      file_location:
+        "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2b/Stanford_University_Green_Library_Bing_Wing.jpg/640px-Stanford_University_Green_Library_Bing_Wing.jpg",
+      mime_type: "image/jpeg",
+      status: :complete,
+      upload_type: :direct,
+      visibility: :visible
+    }
+  ]
+} %>
+
 <div>
-  <div x-data="{page: 0, pages: [0, 1, 2, 3, 4], maxPage: 4}">
+  <div x-data="{page: 0, pages: [0, 1, 2, 3, 4, 5], maxPage: 5}">
     <nav aria-label="Progress">
       <ol role="list" class="flex items-center -ml-5 space-x-5 justify-center">
         <template x-for="p in pages">
@@ -84,35 +115,7 @@
           <.media_card
             border={true}
             link={false}
-            media={
-              %Platform.Material.Media{
-                slug: "ATL-H3LL0",
-                attr_description: "This is a short description of an example incident.",
-                attr_status: "Completed",
-                attr_type: ["Military Activity/Strike"],
-                updates: [
-                  %Platform.Updates.Update{
-                    type: :create,
-                    user: Platform.Accounts.get_auto_account()
-                  },
-                  %Platform.Updates.Update{
-                    type: :create,
-                    user: @current_user
-                  }
-                ],
-                updated_at: DateTime.utc_now() |> DateTime.add(-2, :hour),
-                versions: [
-                  %Platform.Material.MediaVersion{
-                    file_location:
-                      "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2b/Stanford_University_Green_Library_Bing_Wing.jpg/640px-Stanford_University_Green_Library_Bing_Wing.jpg",
-                    mime_type: "image/jpeg",
-                    status: :complete,
-                    upload_type: :direct,
-                    visibility: :visible
-                  }
-                ]
-              }
-            }
+            media={example_media}
             current_user={@current_user}
           />
         </div>
@@ -131,14 +134,65 @@
       <article x-show="page === 2" class="flex flex-col gap-4" x-transition:enter>
         <div>
           <h3 class="text-3xl font-bold text-neutral-900 text-gray-900 text-center">
+            Attributes describe incidents.
+          </h3>
+        </div>
+        <div>
+          <p class="supra mb-1 text-xs">Example Attributes</p>
+          <div class="px-4 pt-6 pb-4 rounded border">
+            <.attr_display_block
+              set_attrs={[
+                Platform.Material.Attribute.get_attribute(:type),
+                Platform.Material.Attribute.get_attribute(:impact),
+                Platform.Material.Attribute.get_attribute(:equipment),
+                Platform.Material.Attribute.get_attribute(:geolocation)
+              ]}
+              media={example_media}
+              updates={example_media.updates}
+              socket={@conn}
+              unset_attrs={[]}
+              current_user={@current_user}
+              immutable={true}
+            />
+          </div>
+        </div>
+        <p class="flex gap-2 sm:gap-4 items-center">
+          <span class="text-3xl">💡</span>
+          <span>
+            <strong class="font-medium">Incident Type</strong>
+            describes what the media depicts: military activity, extreme weather, etc.
+          </span>
+        </p>
+        <p class="flex gap-2 sm:gap-4 items-center">
+          <span class="text-3xl">💡</span>
+          <span>
+            <strong class="font-medium">Impact</strong>
+            describes who and what was impacted by the incident.
+          </span>
+        </p>
+        <p class="flex gap-2 sm:gap-4 items-center">
+          <span class="text-3xl">💡</span>
+          <span>
+            <strong class="font-medium">Equipment Used</strong>
+            refers to what equipment was used to carry out the incident.
+          </span>
+        </p>
+        <div class="mt-8">
+          <button x-on:click="page++" class="button ~urge @high w-full !text-base">
+            Continue &rarr;
+          </button>
+        </div>
+      </article>
+      <article x-show="page === 3" class="flex flex-col gap-4" x-transition:enter>
+        <div>
+          <h3 class="text-3xl font-bold text-neutral-900 text-gray-900 text-center">
             Atlos is collaborative.
           </h3>
         </div>
         <p class="flex gap-2 sm:gap-4 items-center">
           <span class="text-3xl">📢</span>
           <span>
-            Use <strong class="font-semibold">incident status</strong>
-            to mark incidents as Claimed, Help Needed, Ready for Review, and more.
+            When you're working on an incident, mark its Status as <strong class="font-semibold">Claimed</strong>. Once you've finished investigating, change Status to <strong class="font-semibold">Ready for Review</strong>.
           </span>
         </p>
         <p class="flex gap-2 sm:gap-4 items-center">
@@ -151,8 +205,8 @@
         <p class="flex gap-2 sm:gap-4 items-center">
           <span class="text-3xl">🔔</span>
           <span>
-            You'll be <strong class="font-semibold">notified</strong>
-            when you're tagged in a comment or if there's activity in an incident you're subscribed to.
+            <strong class="font-semibold">Subscribe</strong>
+            to incidents to stay updated on others' changes.
           </span>
         </p>
         <div class="mt-8">
@@ -161,7 +215,7 @@
           </button>
         </div>
       </article>
-      <article x-show="page === 3" class="flex flex-col gap-4" x-transition:enter>
+      <article x-show="page === 4" class="flex flex-col gap-4" x-transition:enter>
         <div>
           <h3 class="text-3xl font-bold text-neutral-900 text-gray-900 text-center">
             We take safety seriously.
@@ -170,8 +224,8 @@
         <p class="flex gap-2 sm:gap-4 items-center">
           <span class="text-3xl">🔒</span>
           <span>
-            Use <strong class="font-semibold">incident sensitivity</strong>
-            to label graphic violence, personal information, and so on.
+            Use <strong class="font-semibold">Sensitivity</strong>
+            to label graphic violence, personal information, and so on. Any media that could endanger someone (by revealing their identity or home address) should be marked as sensitive.
           </span>
         </p>
         <p class="flex gap-2 sm:gap-4 items-center">
@@ -195,7 +249,7 @@
           </button>
         </div>
       </article>
-      <article x-show="page === 4" class="flex flex-col gap-4" x-transition:enter>
+      <article x-show="page === 5" class="flex flex-col gap-4" x-transition:enter>
         <div>
           <h3 class="text-3xl font-bold text-neutral-900 text-gray-900 text-center">
             Time to get started!

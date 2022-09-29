@@ -149,7 +149,7 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
                         <%= text_input(f, :location,
                           placeholder: "Comma-separated coordinates (lat, lon).",
                           novalidate: true,
-                          phx_debounce: 5000,
+                          phx_debounce: 500,
                           "x-on:input": "user_loc = $event.target.value"
                         ) %>
                         <%= error_tag(f, :location) %>
@@ -163,7 +163,7 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
                         hour: [prompt: "[Unset]"],
                         minute: [prompt: "[Unset]"],
                         class: "select",
-                        phx_debounce: 5000
+                        phx_debounce: 500
                       ) %>
                     </div>
                     <p class="support">
@@ -178,7 +178,7 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
                         month: [prompt: "[Unset]"],
                         day: [prompt: "[Unset]"],
                         class: "select",
-                        phx_debounce: 5000
+                        phx_debounce: 500
                       ) %>
                     </div>
                     <p class="support">

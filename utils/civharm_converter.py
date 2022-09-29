@@ -34,6 +34,7 @@ def run(civharm, civcas, outfile):
             "equipment",
             "date",
             "status",
+            "location",
             "tags",
         ]
         + ["source_" + str(i) for i in range(1, 23)],
@@ -57,8 +58,8 @@ def run(civharm, civcas, outfile):
                 f"Corresponds to **{identifier}**. {location} {comments}"
             )
 
-            if len(more_info) > 3000:
-                more_info = more_info[:2997] + "…"
+            if len(more_info) >= 2750:
+                more_info = more_info[:2750] + "…"
 
             sensitive = []
             if row["Private Information Visible"] == "Yes":
@@ -68,7 +69,7 @@ def run(civharm, civcas, outfile):
             if len(sensitive) == 0:
                 sensitive.append("Not Sensitive")
 
-            description = row["Narrative"]
+            description = identifier + ": " + row["Narrative"]
             if len(description) > 239:
                 description = description[:237] + "…"
 
@@ -141,6 +142,7 @@ def run(civharm, civcas, outfile):
                 "status": status,
                 "latitude": strip_to_float(row["Lat"]),
                 "longitude": strip_to_float(row["Lon"]),
+                "location": f"{strip_to_float(row['Lat'])}, {strip_to_float(row['Lon'])}" if len(strip_to_float(row['Lon'])) > 0 else "",
                 "tags": "CIVHARM, Bulk Import",
             }
 
