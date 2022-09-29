@@ -57,7 +57,7 @@ export default function Home() {
               We help OSINT researchers and organizations collaborate so they can focus on content, not coordination. <a href="https://atlos.notion.site/Platform-Overview-46d4723f22ef420fb5ad0e07feba8d79" className='link'>Preview our platform.</a>
             </p>
             <p>
-              OSINT research can be taxing; Atlos puts researchers&apos; safety and mental health first. <a href="https://atlos.notion.site/Our-Approach-to-Safety-3c1b9842128a4149b3c60c32773c8e5a" className='link'>Learn about our approach to safety.</a>
+              We take safety seriously. Atlos puts researchers&apos; resilience and mental health first. <a href="https://atlos.notion.site/Our-Approach-to-Safety-3c1b9842128a4149b3c60c32773c8e5a" className='link'>Learn about our approach to safety.</a>
             </p>
             <p>
               If you or your organization is interested in working with us, please <a href="mailto:contact@atlos.org" className='link'>reach out</a> or <a href="https://mailchi.mp/a1de52cd4614/atlos" className='link'>sign up to receive updates</a>. An invite is required to join the community.
