@@ -92,3 +92,5 @@ System.put_env(
   "CUSTOM_ATTRIBUTE_OPTIONS",
   "{\"type\": [\"(Dev) Civilian Harm\", \"Civilian Harm\"]}"
 )
+
+System.put_env("AUTOTAG_USER_INCIDENTS", "[\"Volunteer\", \"User Created\"]")

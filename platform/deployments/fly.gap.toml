@@ -18,6 +18,7 @@ processes = []
   RULES_LINK = "https://bit.ly/3AKpytQ"
   INSTANCE_NAME = "GAP"
   CUSTOM_ATTRIBUTE_OPTIONS = "{\"type\": [\"Civilian Harm\"]}"
+  AUTOTAG_USER_INCIDENTS = "[\"Volunteer\"]"
 
 [experimental]
   allowed_public_ports = []
