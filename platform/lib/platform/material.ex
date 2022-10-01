@@ -163,6 +163,24 @@ defmodule Platform.Material do
             Updates.change_from_media_creation(media, user)
             |> Updates.create_update_from_changeset()
 
+          # Automatically tag new incidents created by regular users, if desirable
+          {:ok, media} =
+            with false <- Accounts.is_privileged(user),
+                 new_tags_json <- System.get_env("AUTOTAG_USER_INCIDENTS"),
+                 {:ok, new_tags} <- Jason.decode(new_tags_json) do
+              {:ok, new_media} =
+                update_media_attribute_audited(
+                  media,
+                  Attribute.get_attribute(:tags),
+                  Accounts.get_auto_account(),
+                  %{"attr_tags" => (media.attr_tags || []) ++ new_tags}
+                )
+
+              {:ok, new_media}
+            else
+              _ -> {:ok, media}
+            end
+
           media
         end)
     end
