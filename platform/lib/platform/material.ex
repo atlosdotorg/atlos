@@ -167,6 +167,7 @@ defmodule Platform.Material do
           {:ok, media} =
             with false <- Accounts.is_privileged(user),
                  new_tags_json <- System.get_env("AUTOTAG_USER_INCIDENTS"),
+                 false <- is_nil(new_tags_json),
                  {:ok, new_tags} <- Jason.decode(new_tags_json) do
               {:ok, new_media} =
                 update_media_attribute_audited(
