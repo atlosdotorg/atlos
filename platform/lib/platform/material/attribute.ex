@@ -85,8 +85,32 @@ defmodule Platform.Material.Attribute do
       %Attribute{
         schema_field: :attr_type,
         type: :multi_select,
-        # Set in ATTRIBUTE_OPTIONS environment variable
-        options: [],
+        # Set in ATTRIBUTE_OPTIONS environment variable to override
+        options: [
+          "Military Activity",
+          "Military Activity/Movement",
+          "Military Activity/Equipment",
+          "Military Activity/Equipment/Lost",
+          "Military Activity/Execution",
+          "Military Activity/Combat",
+          "Military Activity/Encampment",
+          "Military Activity/Strike",
+          "Military Activity/Explosion",
+          "Military Activity/Detention",
+          "Military Activity/Mass Grave",
+          "Civilian Activity",
+          "Civilian Activity/Protest or March",
+          "Civilian Activity/Riot",
+          "Civilian Activity/Violence",
+          "Policing",
+          "Policing/Use of Force",
+          "Policing/Detention",
+          "Weather",
+          "Weather/Flooding",
+          "Weather/Hurricane",
+          "Weather/Fire",
+          "Other"
+        ],
         label: "Incident Type",
         description: "What type of incident is this? Select all that apply.",
         pane: :attributes,
@@ -96,8 +120,48 @@ defmodule Platform.Material.Attribute do
       %Attribute{
         schema_field: :attr_impact,
         type: :multi_select,
-        # Set in ATTRIBUTE_OPTIONS environment variable
-        options: [],
+        # Set in ATTRIBUTE_OPTIONS environment variable to override
+        options: [
+          "Structure",
+          "Structure/Residential",
+          "Structure/Residential/House",
+          "Structure/Residential/Apartment",
+          "Structure/Healthcare",
+          "Structure/Humanitarian",
+          "Structure/Food Infrastructure",
+          "Structure/School or Childcare",
+          "Structure/Park or Playground",
+          "Structure/Cultural",
+          "Structure/Religious",
+          "Structure/Industrial",
+          "Structure/Administrative",
+          "Structure/Commercial",
+          "Structure/Roads, Highways, or Transport",
+          "Structure/Transit Station",
+          "Structure/Airport",
+          "Structure/Military",
+          "Land Vehicle",
+          "Land Vehicle/Car",
+          "Land Vehicle/Truck",
+          "Land Vehicle/Armored",
+          "Land Vehicle/Train",
+          "Land Vehicle/Bus",
+          "Aircraft",
+          "Aircraft/Fighter",
+          "Aircraft/Bomber",
+          "Aircraft/Helicopter",
+          "Aircraft/Drone",
+          "Sea Vehicle",
+          "Sea Vehicle/Boat",
+          "Sea Vehicle/Warship",
+          "Sea Vehicle/Aircraft Carrier",
+          "Injury",
+          "Injury/Civilian",
+          "Injury/Soldier",
+          "Death",
+          "Death/Civilian",
+          "Death/Soldier"
+        ],
         label: "Impact",
         description: "What is damaged, harmed, or lost in this incident?",
         pane: :attributes,
@@ -108,8 +172,35 @@ defmodule Platform.Material.Attribute do
       %Attribute{
         schema_field: :attr_equipment,
         type: :multi_select,
-        # Set in ATTRIBUTE_OPTIONS environment variable
-        options: [],
+        # Set in ATTRIBUTE_OPTIONS environment variable to override
+        options: [
+          "Small Arm",
+          "Munition",
+          "Munition/Cluster",
+          "Munition/Chemical",
+          "Munition/Thermobaric",
+          "Munition/Incendiary",
+          "Non-Lethal Weapon",
+          "Non-Lethal Weapon/Tear Gas",
+          "Non-Lethal Weapon/Rubber Bullet",
+          "Land Mine",
+          "Launch System",
+          "Launch System/Artillery",
+          "Launch System/Self-Propelled",
+          "Launch System/Multiple Launch Rocket System",
+          "Land Vehicle",
+          "Land Vehicle/Car",
+          "Land Vehicle/Armored",
+          "Aircraft",
+          "Aircraft/Fighter",
+          "Aircraft/Bomber",
+          "Aircraft/Helicopter",
+          "Aircraft/Drone",
+          "Sea Vehicle",
+          "Sea Vehicle/Small Boat",
+          "Sea Vehicle/Ship",
+          "Sea Vehicle/Aircraft Carrier"
+        ],
         label: "Equipment Used",
         description:
           "What equipment — weapon, military infrastructure, etc. — is used in the incident?",
@@ -542,28 +633,30 @@ defmodule Platform.Material.Attribute do
   end
 
   def options(%Attribute{} = attribute, current_val \\ nil) do
-    base_options = attribute.options || []
-
-    base_options = base_options ++ get_custom_attribute_options(attribute.name)
-
-    primary_options =
-      if Attribute.allow_user_defined_options(attribute) and attribute.type == :multi_select do
-        base_options ++ Material.get_values_of_attribute_cached(attribute)
-      else
-        base_options
+    options =
+      case get_custom_attribute_options(attribute.name) do
+        [] -> attribute.options || []
+        values -> values
       end
 
-    base_options =
-      if attribute.add_none do
-        [attribute.add_none] ++ primary_options
+    options =
+      if Attribute.allow_user_defined_options(attribute) and attribute.type == :multi_select do
+        options ++ Material.get_values_of_attribute_cached(attribute)
       else
-        primary_options
+        options
+      end
+
+    options =
+      if attribute.add_none do
+        [attribute.add_none] ++ options
+      else
+        options
       end
 
     if is_list(current_val) do
-      base_options ++ current_val
+      options ++ current_val
     else
-      base_options
+      options
     end
   end
 
