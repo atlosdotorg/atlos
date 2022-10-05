@@ -41,6 +41,7 @@ processes = []
         "Unknown",
         "HE rocket artillery",
         "HE artillery inc mortars",
+        "HE tube artillery",
         "Cluster munitions",
         "Incendiary munitions",
         "Cruise missile",

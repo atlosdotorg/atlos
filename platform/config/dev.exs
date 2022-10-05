@@ -88,4 +88,47 @@ config :appsignal, :config, active: false
 System.put_env("INSTANCE_NAME", "Development")
 System.put_env("COMMUNITY_DISCORD_LINK", "https://discord.gg/gqCcHc9Gav")
 
+System.put_env(
+  "ATTRIBUTE_OPTIONS",
+  """
+  {
+    "type": [
+      "Civilian Harm"
+    ],
+    "impact": [
+      "Residential",
+      "Industrial",
+      "Administrative",
+      "Healthcare",
+      "School or childcare",
+      "Military",
+      "Undefined",
+      "Commercial",
+      "Religious",
+      "Cultural",
+      "Roads/Highways/Transport",
+      "Humanitarian",
+      "Food/Food Infrastructure"
+    ],
+    "equipment": [
+      "Unknown",
+      "HE rocket artillery",
+      "HE tube artillery",
+      "HE artillery inc mortars",
+      "Cluster munitions",
+      "Incendiary munitions",
+      "Cruise missile",
+      "Ballistic missile",
+      "Thermobaric munition",
+      "Vehicle mounted weapon",
+      "Small arms",
+      "Air strike",
+      "Land mines",
+      "Anti-air missile",
+      "Loitering munition"
+    ]
+  }
+  """
+)
+
 System.put_env("AUTOTAG_USER_INCIDENTS", "[\"Volunteer\", \"User Created\"]")
