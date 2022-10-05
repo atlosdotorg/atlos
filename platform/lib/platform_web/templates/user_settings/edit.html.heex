@@ -31,6 +31,7 @@
       action={Routes.user_settings_path(@conn, :update)}
       id="update_password"
       class="phx-form"
+      method="PUT"
     >
       <%= if @password_changeset.action do %>
         <div class="aside ~critical mb-4">

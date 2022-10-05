@@ -5,7 +5,7 @@ defmodule PlatformWeb.MediaLive.GroupedMediaList do
   def groups(%Platform.Accounts.User{} = user) do
     [
       {"Unclaimed", "/queue/unclaimed", %{"attr_status" => "Unclaimed"}},
-      {"Claimed", "/queue/claimed", %{"attr_status" => "Claimed"}},
+      {"In Progress", "/queue/in_progress", %{"attr_status" => "In Progress"}},
       {"Help Needed", "/queue/help_needed", %{"attr_status" => "Help Needed"}},
       {"Needs Upload", "/queue/needs_upload", %{"no_media_versions" => true}}
     ] ++

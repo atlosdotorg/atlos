@@ -85,6 +85,7 @@ defmodule Platform.Material.Attribute do
       %Attribute{
         schema_field: :attr_type,
         type: :multi_select,
+        # Set in ATTRIBUTE_OPTIONS environment variable to override
         options: [
           "Military Activity",
           "Military Activity/Movement",
@@ -119,6 +120,7 @@ defmodule Platform.Material.Attribute do
       %Attribute{
         schema_field: :attr_impact,
         type: :multi_select,
+        # Set in ATTRIBUTE_OPTIONS environment variable to override
         options: [
           "Structure",
           "Structure/Residential",
@@ -170,6 +172,7 @@ defmodule Platform.Material.Attribute do
       %Attribute{
         schema_field: :attr_equipment,
         type: :multi_select,
+        # Set in ATTRIBUTE_OPTIONS environment variable to override
         options: [
           "Small Arm",
           "Munition",
@@ -383,7 +386,7 @@ defmodule Platform.Material.Attribute do
         type: :select,
         options: [
           "Unclaimed",
-          "Claimed",
+          "In Progress",
           "Help Needed",
           "Ready for Review",
           "Completed",
@@ -397,7 +400,7 @@ defmodule Platform.Material.Attribute do
         privileged_values: ["Completed", "Cancelled"],
         option_descriptions: %{
           "Unclaimed" => "Not actively being worked on",
-          "Claimed" => "Actively being worked on",
+          "In Progress" => "Actively being worked on",
           "Help Needed" => "Stuck, or second opinion needed",
           "Ready for Review" => "Ready for a moderator's verification",
           "Completed" => "Investigation complete",
@@ -624,34 +627,36 @@ defmodule Platform.Material.Attribute do
   end
 
   defmemo get_custom_attribute_options(name) do
-    extra = Jason.decode!(System.get_env("CUSTOM_ATTRIBUTE_OPTIONS", "{}"))
+    extra = Jason.decode!(System.get_env("ATTRIBUTE_OPTIONS", "{}"))
 
     Map.get(extra, name |> to_string(), [])
   end
 
   def options(%Attribute{} = attribute, current_val \\ nil) do
-    base_options = attribute.options || []
-
-    base_options = base_options ++ get_custom_attribute_options(attribute.name)
-
-    primary_options =
-      if Attribute.allow_user_defined_options(attribute) and attribute.type == :multi_select do
-        base_options ++ Material.get_values_of_attribute_cached(attribute)
-      else
-        base_options
+    options =
+      case get_custom_attribute_options(attribute.name) do
+        [] -> attribute.options || []
+        values -> values
       end
 
-    base_options =
-      if attribute.add_none do
-        [attribute.add_none] ++ primary_options
+    options =
+      if Attribute.allow_user_defined_options(attribute) and attribute.type == :multi_select do
+        options ++ Material.get_values_of_attribute_cached(attribute)
       else
-        primary_options
+        options
+      end
+
+    options =
+      if attribute.add_none do
+        [attribute.add_none] ++ options
+      else
+        options
       end
 
     if is_list(current_val) do
-      base_options ++ current_val
+      options ++ current_val
     else
-      base_options
+      options
     end
   end
 
@@ -823,7 +828,7 @@ defmodule Platform.Material.Attribute do
       :status ->
         case value do
           "Unclaimed" -> "~positive"
-          "Claimed" -> "~urge"
+          "In Progress" -> "~urge"
           "Cancelled" -> "~neutral"
           "Ready for Review" -> "~cyan"
           "Completed" -> "~purple"
