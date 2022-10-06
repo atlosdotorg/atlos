@@ -52,7 +52,7 @@ def run(civharm, outfile):
                 location = f"Reported near {location}."
 
             more_info = (
-                f"Corresponds to **{identifier}**. {location} {comments}"
+                f"Corresponds to **{identifier}**. {location}"
             )
 
             if len(more_info) >= 2750:
