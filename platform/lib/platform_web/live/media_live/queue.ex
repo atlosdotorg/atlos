@@ -20,7 +20,7 @@ defmodule PlatformWeb.MediaLive.Queue do
     case which do
       "overview" -> "Overview"
       "unclaimed" -> "Unclaimed"
-      "claimed" -> "Claimed"
+      "in_progress" -> "In Progress"
       "help_needed" -> "Help Needed"
       "review" -> "Ready for Review"
       "needs_upload" -> "Needs Media Upload"
@@ -32,7 +32,7 @@ defmodule PlatformWeb.MediaLive.Queue do
       # "overview" is unused
       "overview" -> %{}
       "unclaimed" -> %{"attr_status" => "Unclaimed"}
-      "claimed" -> %{"attr_status" => "Claimed"}
+      "in_progress" -> %{"attr_status" => "In Progress"}
       "help_needed" -> %{"attr_status" => "Help Needed"}
       "review" -> %{"attr_status" => "Ready for Review"}
       "needs_upload" -> %{"no_media_versions" => true}

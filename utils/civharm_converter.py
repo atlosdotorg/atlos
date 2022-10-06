@@ -13,12 +13,9 @@ def strip_to_float(string):
 
 @click.command()
 @click.option("--civharm", type=click.File("rb"))
-@click.option("--civcas", type=click.File("rb"))
 @click.option("--outfile", type=click.File("wb"))
-def run(civharm, civcas, outfile):
+def run(civharm, outfile):
     """Convert from a CIVHARM spreadsheet export (CSV) to something importable by Atlos."""
-
-    civcas_incidents = {row["Incident ID"]: row for row in csv.DictReader(civcas) if len(row["Incident ID"]) == 7}
 
     reader = csv.DictReader(civharm)
     writer = csv.DictWriter(
@@ -43,8 +40,8 @@ def run(civharm, civcas, outfile):
     writer.writeheader()
     for row in reader:
         identifier = row["Incident no. "]
-        if identifier.startswith("CIV") and len(row["Narrative"]) > 7 and identifier in civcas_incidents:
-            comments = civcas_incidents[identifier].get("Comments", "").strip()
+        if identifier.startswith("CIV") and len(row["Narrative"]) > 7:
+            comments = row["Comments"]
             if len(comments) > 0:
                 comments = f"\n\n{comments}"
 
@@ -55,7 +52,7 @@ def run(civharm, civcas, outfile):
                 location = f"Reported near {location}."
 
             more_info = (
-                f"Corresponds to **{identifier}**. {location} {comments}"
+                f"Corresponds to **{identifier}**. {location}"
             )
 
             if len(more_info) >= 2750:
@@ -64,7 +61,7 @@ def run(civharm, civcas, outfile):
             sensitive = []
             if row["Private Information Visible"] == "Yes":
                 sensitive.append("Personal Information Visible")
-            if "graphic" in row["Narrative"].lower():
+            if "graphic" in row["Narrative"].lower() or row["Graphic"] == "TRUE":
                 sensitive.append("Graphic Violence")
             if len(sensitive) == 0:
                 sensitive.append("Not Sensitive")
@@ -73,52 +70,22 @@ def run(civharm, civcas, outfile):
             if len(description) > 239:
                 description = description[:237] + "…"
 
-            impact_mapping = defaultdict(lambda: "")
-            impact_mapping.update(
-                {
-                    "Administrative": "Structure/Administrative",
-                    "Commercial": "Structure/Commercial",
-                    "Cultural": "Structure/Cultural",
-                    "Healthcare": "Structure/Healthcare",
-                    "Humanitarian": "Structure/Humanitarian",
-                    "Military": "Structure/Military",
-                    "Industrial": "Structure/Industrial",
-                    "Religious": "Structure/Religious",
-                    "Residential": "Structure/Residential",
-                    "School or childcare": "Structure/School or Childcare",
-                }
-            )
+            impact_mapping = {
+                "Roads/Highways": ["Roads/Highways/Transport"],
+                "Undefined": [],
+                "": []
+            }
 
-            impact = [impact_mapping[row["Type of area affected"]]]
+            impact = [row["Type of area affected"]] if row["Type of area affected"] not in impact_mapping else impact_mapping[row["Type of area affected"]]
 
-            equipment_mapping = defaultdict(lambda: "")
-            equipment_mapping.update(
-                {
-                    "Small arms": "Small Arm",
-                    "Ballistic missile": "Launch System/Self-Propelled",
-                    "Cluster munitions": "Munition/Cluster",
-                    "Cruise missile": "Launch System/Self-Propelled",
-                    "HE rocket artillery": "Launch System/Artillery",
-                    "Incendiary munitions": "Munition/Incendiary",
-                    "Land mines": "Land Mine",
-                    "Thermobaric munition": "Munition/Thermobaric",
-                    "Air strike": "Aircraft",
-                }
-            )
+            equipment_mapping = {
+                "Undefined": [],
+                "": []
+            }
 
-            equipment = [equipment_mapping[row["Weapon System"]]]
+            equipment = [row["Weapon System"]] if row["Weapon System"] not in equipment_mapping else equipment_mapping[row["Weapon System"]]
 
-            type_mapping = defaultdict(lambda: "Military Activity")
-            type_mapping.update(
-                {
-                    "Air strike": "Military Activity/Strike",
-                    "Cluster munitions": "Military Activity/Strike",
-                    "HE rocket artillery": "Military Activity/Strike",
-                    "HE tube artillery": "Military Activity/Strike",
-                }
-            )
-
-            type = [type_mapping[row["Weapon System"]], "Civilian Harm"]
+            type = ["Civilian Harm"]
 
             try:
                 date = date_parse(row["Reported Date"]).strftime("%Y-%m-%d")
@@ -147,7 +114,7 @@ def run(civharm, civcas, outfile):
             }
 
             source_number = 1
-            for k, v in civcas_incidents[identifier].items():
+            for k, v in row.items():
                 if k.startswith("Source") and v is not None and len(v) > 0:
                     values["source_" + str(source_number)] = v
                     source_number += 1

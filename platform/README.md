@@ -27,7 +27,7 @@ Ready to run in production? Please [check our deployment guides](https://hexdocs
 - `INSTANCE_NAME` — user-facing instance name (appears in footer and below logo; not shown if empty)
 - `SPN_ARCHIVE_API_KEY` — API key for the Internet Archive [SPN API](https://docs.google.com/document/d/1Nsv52MvSjbLb2PCpHlat0gkzw0EvtSgpKHu4mk0MnrA/edit#) (if provided, Atlos will submit all links to the Internet Archive for persistent archival; key expected in the form `myaccesskey:mysecret`)
 - `COMMUNITY_DISCORD_LINK` — link to the community Discord server (shown in onboarding and in Settings)
-- `CUSTOM_ATTRIBUTE_OPTIONS` — JSON object of custom _additional_ attribute options; e.g., `{"type": ["Civilian Harm"]}`
+- `ATTRIBUTE_OPTIONS` — JSON object of attribute options; e.g., `{"type": ["Civilian Harm"], "impact": ["Structure", "Structure/Residential"], "equipment": ["Small Arm", "Munition"]}`
 - `AUTOTAG_USER_INCIDENTS` — JSON object of tags to apply to incidents created by non-privileged users; e.g., `["Volunteer"]`
 
 ## Learn more
