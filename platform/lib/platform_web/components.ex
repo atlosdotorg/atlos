@@ -1924,15 +1924,19 @@ defmodule PlatformWeb.Components do
   end
 
   def edit_attribute(%{attr: attr, form: f, media_slug: slug, media: media} = assigns) do
+    optional = Map.get(assigns, :optional, false)
+
+    label = attr.label <> if optional, do: " (Optional)", else: ""
+
     ~H"""
     <div>
       <%= case attr.type do %>
         <% :text -> %>
-          <%= label(f, attr.schema_field, attr.label) %>
-          <%= textarea(f, attr.schema_field, rows: 5) %>
+          <%= label(f, attr.schema_field, label) %>
+          <%= textarea(f, attr.schema_field, rows: 3) %>
           <%= error_tag(f, attr.schema_field) %>
         <% :select -> %>
-          <%= label(f, attr.schema_field, attr.label) %>
+          <%= label(f, attr.schema_field, label) %>
           <%= error_tag(f, attr.schema_field) %>
           <div phx-update="ignore" id={"attr_select_#{slug}_#{attr.schema_field}"}>
             <%= select(
@@ -1945,16 +1949,16 @@ defmodule PlatformWeb.Components do
             ) %>
           </div>
         <% :multi_select -> %>
-          <%= label(f, attr.schema_field, attr.label) %>
+          <%= label(f, attr.schema_field, label) %>
           <%= error_tag(f, attr.schema_field) %>
-          <div
-            phx-update="ignore"
-            id={"attr_multi_select_#{slug}_#{attr.schema_field}"}
-          >
+          <div phx-update="ignore" id={"attr_multi_select_#{slug}_#{attr.schema_field}"}>
             <%= multiple_select(
               f,
               attr.schema_field,
-              Attribute.options(attr, (if is_nil(media), do: nil, else: Map.get(media, attr.schema_field))),
+              Attribute.options(
+                attr,
+                if(is_nil(media), do: nil, else: Map.get(media, attr.schema_field))
+              ),
               data_descriptions: Jason.encode!(attr.option_descriptions || %{}),
               data_privileged: Jason.encode!(attr.privileged_values || []),
               data_allow_user_defined_options: Attribute.allow_user_defined_options(attr)
@@ -1975,7 +1979,7 @@ defmodule PlatformWeb.Components do
             <%= error_tag(f, attr.schema_field) %>
           </div>
         <% :time -> %>
-          <%= label(f, attr.schema_field, attr.label) %>
+          <%= label(f, attr.schema_field, label) %>
           <div class="flex items-center gap-2 ts-ignore sm:w-64 apply-a17t-fields">
             <%= time_select(f, attr.schema_field,
               hour: [prompt: "[Unset]"],
@@ -1989,7 +1993,7 @@ defmodule PlatformWeb.Components do
           </p>
           <%= error_tag(f, attr.schema_field) %>
         <% :date -> %>
-          <%= label(f, attr.schema_field, attr.label) %>
+          <%= label(f, attr.schema_field, label) %>
           <div class="flex items-center gap-2 ts-ignore apply-a17t-fields">
             <%= date_select(f, attr.schema_field,
               year: [prompt: "[Unset]", options: DateTime.utc_now().year..1990],

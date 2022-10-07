@@ -64,21 +64,6 @@ defmodule Platform.Material.Media do
       :attr_equipment,
       :attr_impact
     ])
-    |> validate_required([:attr_description],
-      message: "Please add a short description."
-    )
-    |> validate_length(:attr_description,
-      min: 8,
-      max: 240,
-      message: "Descriptions should be 8-240 characters."
-    )
-    |> validate_required([:attr_sensitive],
-      message:
-        "Sensitivity must be set. If this incident doesn't include sensitive media, choose 'Not Sensitive.'"
-    )
-    |> validate_required([:attr_type],
-      message: "The incident type must be set."
-    )
 
     # These are special attributes, since we define it at creation time. Eventually, it'd be nice to unify this logic with the attribute-specific editing logic.
     |> Attribute.validate_attribute(Attribute.get_attribute(:description), user, true)
