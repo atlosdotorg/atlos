@@ -126,3 +126,9 @@ def run(civharm, outfile):
 
 if __name__ == "__main__":
     run()
+
+# delete from media_versions using media where media_versions.media_id = media.id and media.attr_description like 'CIV%';
+# truncate table notifications;
+# delete from updates using media where updates.media_id = media.id and media.attr_description like 'CIV%';
+# delete from media where media.attr_description like 'CIV%';
+#

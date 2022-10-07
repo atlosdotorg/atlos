@@ -268,7 +268,7 @@ defmodule Platform.Material do
             media_id: media.id
           })
 
-        archive_media_version(version, priority: 3, hide_version_on_failure: true)
+        archive_media_version(version, priority: 3, hide_version_on_failure: false)
       end
 
       media
