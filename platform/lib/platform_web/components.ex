@@ -1287,7 +1287,7 @@ defmodule PlatformWeb.Components do
 
     ~H"""
     <a
-      class={"flex items-stretch group flex-row bg-white overflow-hidden shadow rounded-lg justify-between min-h-32 max-h-48 " <> (if border, do: "border ", else: "") <> class}
+      class={"flex items-stretch group flex-row bg-white overflow-hidden shadow rounded-lg justify-between min-h-[12rem] " <> (if border, do: "border ", else: "") <> class}
       href={if link, do: "/incidents/#{media.slug}", else: nil}
       target={@target}
     >
@@ -1423,6 +1423,7 @@ defmodule PlatformWeb.Components do
               <%= length(media.updates) %> Updates
             </span>
           </section>
+          <section class="mb-2 h-4" />
           <section class="bottom-0 mb-2 pr-4 w-full absolute flex gap-2 justify-between items-center">
             <.user_stack users={contributors} />
             <p class="text-xs text-gray-500 flex items-center">
@@ -1447,7 +1448,7 @@ defmodule PlatformWeb.Components do
         <div class="block h-full w-1/4 grayscale self-stretch overflow-hidden">
           <%= if thumb do %>
             <%= if Media.is_graphic(media) do %>
-              <div class="bg-gray-200 flex items-center justify-around h-48 w-full text-gray-500">
+              <div class="bg-gray-200 flex items-center justify-around h-full w-full text-gray-500">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   class="h-8 w-8"
@@ -1464,10 +1465,15 @@ defmodule PlatformWeb.Components do
                 </svg>
               </div>
             <% else %>
-              <img class="sr-hide object-cover h-48 overflow-hidden w-full" src={thumb} />
+              <div class="h-full min-h-[12rem] relative overflow-hidden">
+                <img
+                  class="absolute sr-hide object-cover overflow-hidden min-h-[12rem] h-full w-full"
+                  src={thumb}
+                />
+              </div>
             <% end %>
           <% else %>
-            <div class="bg-gray-200 flex items-center justify-around h-48 w-full text-gray-500">
+            <div class="bg-gray-200 flex items-center justify-around h-full w-full text-gray-500">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 class="h-8 w-8"
