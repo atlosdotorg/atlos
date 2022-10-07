@@ -62,7 +62,8 @@ defmodule Platform.Material.Media do
       :attr_status,
       :attr_type,
       :attr_equipment,
-      :attr_impact
+      :attr_impact,
+      :attr_date
     ])
 
     # These are special attributes, since we define it at creation time. Eventually, it'd be nice to unify this logic with the attribute-specific editing logic.
@@ -71,6 +72,19 @@ defmodule Platform.Material.Media do
     |> Attribute.validate_attribute(Attribute.get_attribute(:sensitive), user, true)
     |> Attribute.validate_attribute(Attribute.get_attribute(:equipment), user, false)
     |> Attribute.validate_attribute(Attribute.get_attribute(:impact), user, false)
+    |> Attribute.validate_attribute(Attribute.get_attribute(:date), user, false)
+    |> then(fn cs ->
+      attr = Attribute.get_attribute(:tags)
+
+      if Attribute.can_user_edit(attr, user, media) do
+        cs
+        # TODO: This is a good refactoring opportunity with the logic above
+        |> cast(attrs, [:attr_tags])
+        |> Attribute.validate_attribute(Attribute.get_attribute(:tags), user, false)
+      else
+        cs
+      end
+    end)
   end
 
   @doc """

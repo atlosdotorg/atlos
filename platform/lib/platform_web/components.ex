@@ -1929,7 +1929,7 @@ defmodule PlatformWeb.Components do
     label = attr.label <> if optional, do: " (Optional)", else: ""
 
     ~H"""
-    <div>
+    <div x-data="{user_loc: null}">
       <%= case attr.type do %>
         <% :text -> %>
           <%= label(f, attr.schema_field, label) %>
@@ -1967,7 +1967,7 @@ defmodule PlatformWeb.Components do
         <% :location -> %>
           <div class="space-y-4">
             <div>
-              <%= label(f, :location, "Location (latitude, longitude)") %>
+              <%= label(f, :location, label <> " (latitude, longitude)") %>
               <%= text_input(f, :location,
                 placeholder: "Comma-separated coordinates (lat, lon).",
                 novalidate: true,
