@@ -13,8 +13,10 @@ defmodule Platform.Mailer do
       |> subject(subject)
       |> text_body(body)
 
-    with {:ok, _metadata} <- Mailer.deliver(email) do
-      {:ok, email}
-    end
+    Task.start(fn ->
+      {:ok, _metadata} = Mailer.deliver(email)
+    end)
+
+    {:ok, email}
   end
 end
