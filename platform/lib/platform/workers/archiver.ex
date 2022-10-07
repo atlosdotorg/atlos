@@ -114,13 +114,6 @@ defmodule Platform.Workers.Archiver do
 
           Auditor.log(:archive_failed, %{error: inspect(val), version: version})
 
-          {:ok, _} =
-            Updates.change_from_comment(media, Accounts.get_auto_account(), %{
-              "explanation" =>
-                "🛑 Unable to automatically process the media from #{version.source_url}. Consider retrying using manual upload."
-            })
-            |> Updates.create_update_from_changeset()
-
           # Update the media version.
           version_map = %{
             status: :error

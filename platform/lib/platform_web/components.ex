@@ -816,6 +816,15 @@ defmodule PlatformWeb.Components do
     """
   end
 
+  def url_icon(%{url: url, class: classes} = assigns) do
+    parsed = URI.parse(url)
+    loc = "https://s2.googleusercontent.com/s2/favicons?domain=#{parsed.host}&sz=256"
+
+    ~H"""
+    <img src={loc} class={"rounded " <> classes} />
+    """
+  end
+
   def attr_display_row(
         %{
           attr: %Attribute{} = attr,
@@ -1637,32 +1646,20 @@ defmodule PlatformWeb.Components do
                 </a>
               </div>
             <% else %>
-              <div class="text-center w-48">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="mx-auto h-8 w-8 text-critical-600"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  stroke-width="2"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                  />
-                </svg>
-                <h3 class="mt-2 font-medium text-gray-900 text-sm">Unable to Archive</h3>
-                <p class="mt-1 text-gray-500 text-sm">
-                  Automatic archival failed. Please upload manually.
-                </p>
-                <a
-                  target="_blank"
-                  href={version.source_url}
-                  rel="nofollow"
-                  class="button mt-1 original py-1 px-2 text-xs"
-                  data-confirm="This link will open an external site in a new tab. Are you sure?"
-                >
+              <a
+                target="_blank"
+                href={version.source_url}
+                rel="nofollow"
+                class="text-center w-48 block"
+                data-confirm="This link will open an external site in a new tab. Are you sure?"
+              >
+                <.url_icon url={version.source_url} class="mx-auto h-10 w-10 shadow-sm" />
+                <% display =
+                  if String.length(version.source_url) > 50,
+                    do: String.slice(version.source_url, 0..50) <> "...",
+                    else: version.source_url %>
+                <h3 class="mt-2 break-all font-medium text-gray-900 text-sm"><%= display %></h3>
+                <span class="button mt-1 original py-1 px-2 text-xs">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     class="h-4 w-4 text-neutral-500 mr-1"
@@ -1672,23 +1669,42 @@ defmodule PlatformWeb.Components do
                     <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
                     <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
                   </svg>
-                  View Source
-                </a>
-              </div>
+                  View Directly
+                </span>
+              </a>
             <% end %>
           </div>
         <% end %>
       </div>
       <div class="flex gap-1 mt-1 text-sm max-w-full flex-wrap items-center justify-between">
         <span class="flex items-center gap-2 flex-wrap">
+          <%= if version.status != :error do %>
+            <.url_icon url={version.source_url} class="h-6" />
+          <% end %>
           <span class="font-mono">
             <%= Material.get_human_readable_media_version_name(media, version) %>
           </span>
           <%= if version.upload_type == :user_provided do %>
             <span class="badge ~neutral self-start">User Upload</span>
           <% end %>
-          <%= if version.upload_type == :direct do %>
-            <span class="badge ~neutral self-start">Direct Archive</span>
+          <%= if version.status == :error do %>
+            <div
+              class="text-gray-400"
+              data-tooltip="Atlos could not archive this URL automatically, but you can view it directly."
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+                class="w-4 h-4"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+            </div>
           <% end %>
         </span>
         <div class="flex gap-1 items-center">
