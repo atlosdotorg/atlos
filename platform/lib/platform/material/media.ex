@@ -54,9 +54,16 @@ defmodule Platform.Material.Media do
   end
 
   @doc false
-  def changeset(media, attrs) do
+  def changeset(media, attrs, user \\ nil) do
     media
-    |> cast(attrs, [:attr_description, :attr_sensitive, :attr_status, :attr_type])
+    |> cast(attrs, [
+      :attr_description,
+      :attr_sensitive,
+      :attr_status,
+      :attr_type,
+      :attr_equipment,
+      :attr_impact
+    ])
     |> validate_required([:attr_description],
       message: "Please add a short description."
     )
@@ -74,8 +81,11 @@ defmodule Platform.Material.Media do
     )
 
     # These are special attributes, since we define it at creation time. Eventually, it'd be nice to unify this logic with the attribute-specific editing logic.
-    |> Attribute.validate_attribute(Attribute.get_attribute(:sensitive))
-    |> Attribute.validate_attribute(Attribute.get_attribute(:type))
+    |> Attribute.validate_attribute(Attribute.get_attribute(:description), user, true)
+    |> Attribute.validate_attribute(Attribute.get_attribute(:type), user, true)
+    |> Attribute.validate_attribute(Attribute.get_attribute(:sensitive), user, true)
+    |> Attribute.validate_attribute(Attribute.get_attribute(:equipment), user, false)
+    |> Attribute.validate_attribute(Attribute.get_attribute(:impact), user, false)
   end
 
   @doc """

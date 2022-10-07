@@ -660,7 +660,7 @@ defmodule Platform.Material.Attribute do
     end
   end
 
-  def validate_attribute(changeset, %Attribute{} = attribute, user \\ nil) do
+  def validate_attribute(changeset, %Attribute{} = attribute, user \\ nil, required \\ true) do
     validations =
       case attribute.type do
         :multi_select ->
@@ -719,7 +719,7 @@ defmodule Platform.Material.Attribute do
         validations
       end
 
-    if attribute.required do
+    if attribute.required and required do
       custom |> validate_required([attribute.schema_field])
     else
       custom
