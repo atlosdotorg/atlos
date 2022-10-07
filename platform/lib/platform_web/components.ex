@@ -865,7 +865,7 @@ defmodule PlatformWeb.Components do
           ) do %>
           <.user_stack users={
             updates
-            |> Enum.filter(&(&1.modified_attribute == attr.name))
+            |> Enum.filter(&(&1.modified_attribute == attr.name || &1.type == :create))
             |> Enum.sort_by(& &1.inserted_at)
             |> Enum.map(& &1.user)
             |> Enum.reverse()

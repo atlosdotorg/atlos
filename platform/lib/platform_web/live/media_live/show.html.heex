@@ -418,7 +418,9 @@
         current_user={@current_user}
         should_combine={false}
         show_final_line={false}
-        updates={@updates |> Enum.filter(&(&1.modified_attribute == attr.name))}
+        updates={
+          @updates |> Enum.filter(&(&1.modified_attribute == attr.name || &1.type == :create))
+        }
       />
     </.modal>
   <% end %>
