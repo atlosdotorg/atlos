@@ -76,7 +76,7 @@ defmodule Platform.Material.Media do
     |> then(fn cs ->
       attr = Attribute.get_attribute(:tags)
 
-      if Attribute.can_user_edit(attr, user, media) do
+      if !is_nil(user) && Attribute.can_user_edit(attr, user, media) do
         cs
         # TODO: This is a good refactoring opportunity with the logic above
         |> cast(attrs, [:attr_tags])
