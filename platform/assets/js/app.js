@@ -127,6 +127,7 @@ function initializeSmartSelects() {
         }
         let descriptions = JSON.parse(s.getAttribute("data-descriptions")) || {};
         let privileged = JSON.parse(s.getAttribute("data-privileged")) || [];
+        let indent = JSON.parse(s.getAttribute("data-indent")) || false;
 
         let x = new TomSelect(`#${s.id}`, {
             maxOptions: null,
@@ -150,13 +151,15 @@ function initializeSmartSelects() {
                     }
                     let requiresPrivilege = privileged.indexOf(data.text) >= 0;
 
-                    let rawDepth = data.text.split("/").length - 1;
-                    let effectiveDepth = rawDepth > 4 ? 4 : rawDepth;
+                    // let rawDepth = data.text.split("/").length - 1;
+                    // let effectiveDepth = rawDepth > 4 ? 4 : rawDepth;
+                    let effectiveDepth = 0; // TODO: Smart indents currently disabled
                     let nestingDepth = ["ml-0", "ml-[25px]", "ml-[50px]", "ml-[75px]", "ml-[100px]"][effectiveDepth];
 
-                    let lastComponentIndex = data.text.lastIndexOf('/');
-                    let before = lastComponentIndex >= 0 ? data.text.slice(0, lastComponentIndex + 1) : "";
-                    let after = data.text.slice(lastComponentIndex + 1);
+                    // let lastComponentIndex = data.text.lastIndexOf('/');
+                    // let before = lastComponentIndex >= 0 ? data.text.slice(0, lastComponentIndex + 1) : "";
+                    let before = "";
+                    let after = data.text;
 
                     return '<div class="flex rounded ' + nestingDepth + '"><div><span class="opacity-50">' + escape(before) + '</span><span>' + escape(after) + '</span><span class="text-gray-400">' + (requiresPrivilege ? lockIcon : '') + '&nbsp;' + escape(desc) + '</span></div></div>';
                 },
