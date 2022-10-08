@@ -163,13 +163,13 @@ function initializeSmartSelects() {
 
                     return '<div class="flex rounded ' + nestingDepth + '"><div><span class="opacity-50">' + escape(before) + '</span><span>' + escape(after) + '</span><span class="text-gray-400">' + (requiresPrivilege ? lockIcon : '') + '&nbsp;' + escape(desc) + '</span></div></div>';
                 },
-                item: function (data, escape) {
-                    let lastComponentIndex = data.text.lastIndexOf('/');
-                    let before = lastComponentIndex >= 0 ? data.text.slice(0, lastComponentIndex + 1) : "";
-                    let after = data.text.slice(lastComponentIndex + 1);
+                // item: function (data, escape) {
+                //     let lastComponentIndex = data.text.lastIndexOf('/');
+                //     let before = lastComponentIndex >= 0 ? data.text.slice(0, lastComponentIndex + 1) : "";
+                //     let after = data.text.slice(lastComponentIndex + 1);
 
-                    return '<div><div><span class="opacity-[60%]">' + escape(before) + '</span><span>' + escape(after) + '</span></div></div>';
-                }
+                //     return '<div><div><span class="opacity-[60%]">' + escape(before) + '</span><span>' + escape(after) + '</span></div></div>';
+                // }
             }
         });
         x.control_input.setAttribute("phx-debounce", "blur");
