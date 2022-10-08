@@ -146,7 +146,7 @@ defmodule Platform.Material do
   def create_media_audited(%User{} = user, attrs \\ %{}) do
     changeset =
       %Media{}
-      |> Media.changeset(attrs)
+      |> Media.changeset(attrs, user)
 
     cond do
       !changeset.valid? ->
@@ -156,7 +156,7 @@ defmodule Platform.Material do
         Repo.transaction(fn ->
           {:ok, media} =
             %Media{}
-            |> Media.changeset(attrs)
+            |> Media.changeset(attrs, user)
             |> Repo.insert()
 
           {:ok, _} =
@@ -300,8 +300,8 @@ defmodule Platform.Material do
       %Ecto.Changeset{data: %Media{}}
 
   """
-  def change_media(%Media{} = media, attrs \\ %{}) do
-    Media.changeset(media, attrs)
+  def change_media(%Media{} = media, attrs \\ %{}, user \\ nil) do
+    Media.changeset(media, attrs, user)
   end
 
   @doc """

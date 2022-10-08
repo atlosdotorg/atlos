@@ -13,7 +13,8 @@ Ready to run in production? Please [check our deployment guides](https://hexdocs
 ## Environment Variables
 
 - `S3_BUCKET` — the primary S3 bucket to use for content
-- `AWS_REGION` — the AWS region
+- `AWS_REGION` — the AWS region for S3
+- `AWS_MAILER_REGION` — the AWS region for mail
 - `AWS_ACCESS_KEY_ID` — the AWS access key id
 - `AWS_SECRET_ACCESS_KEY` — the AWS access secret
 - `APPSIGNAL_PUSH_KEY` — the AppSignal push key

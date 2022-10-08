@@ -865,7 +865,7 @@ defmodule PlatformWeb.Components do
           ) do %>
           <.user_stack users={
             updates
-            |> Enum.filter(&(&1.modified_attribute == attr.name))
+            |> Enum.filter(&(&1.modified_attribute == attr.name || &1.type == :create))
             |> Enum.sort_by(& &1.inserted_at)
             |> Enum.map(& &1.user)
             |> Enum.reverse()
@@ -973,7 +973,7 @@ defmodule PlatformWeb.Components do
           <div class="inline-block">
             <div class="chip ~neutral inline-block self-start break-all xl:break-normal">
               <.attr_label label={label} />
-              <%= value %>
+              <%= value |> Calendar.strftime("%m %B %Y") %>
             </div>
           </div>
       <% end %>
@@ -1287,7 +1287,7 @@ defmodule PlatformWeb.Components do
 
     ~H"""
     <a
-      class={"flex items-stretch group flex-row bg-white overflow-hidden shadow rounded-lg justify-between min-h-32 max-h-48 " <> (if border, do: "border ", else: "") <> class}
+      class={"flex items-stretch group flex-row bg-white overflow-hidden shadow rounded-lg justify-between min-h-[12rem] " <> (if border, do: "border ", else: "") <> class}
       href={if link, do: "/incidents/#{media.slug}", else: nil}
       target={@target}
     >
@@ -1423,6 +1423,7 @@ defmodule PlatformWeb.Components do
               <%= length(media.updates) %> Updates
             </span>
           </section>
+          <section class="mb-2 h-4" />
           <section class="bottom-0 mb-2 pr-4 w-full absolute flex gap-2 justify-between items-center">
             <.user_stack users={contributors} />
             <p class="text-xs text-gray-500 flex items-center">
@@ -1447,7 +1448,7 @@ defmodule PlatformWeb.Components do
         <div class="block h-full w-1/4 grayscale self-stretch overflow-hidden">
           <%= if thumb do %>
             <%= if Media.is_graphic(media) do %>
-              <div class="bg-gray-200 flex items-center justify-around h-48 w-full text-gray-500">
+              <div class="bg-gray-200 flex items-center justify-around h-full w-full text-gray-500">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   class="h-8 w-8"
@@ -1464,10 +1465,15 @@ defmodule PlatformWeb.Components do
                 </svg>
               </div>
             <% else %>
-              <img class="sr-hide object-cover h-48 overflow-hidden w-full" src={thumb} />
+              <div class="h-full min-h-[12rem] relative overflow-hidden">
+                <img
+                  class="absolute sr-hide object-cover overflow-hidden min-h-[12rem] h-full w-full"
+                  src={thumb}
+                />
+              </div>
             <% end %>
           <% else %>
-            <div class="bg-gray-200 flex items-center justify-around h-48 w-full text-gray-500">
+            <div class="bg-gray-200 flex items-center justify-around h-full w-full text-gray-500">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 class="h-8 w-8"
@@ -1512,7 +1518,7 @@ defmodule PlatformWeb.Components do
     max = Map.get(assigns, :max, 5)
 
     ~H"""
-    <div class="flex -space-x-1 relative z-0 overflow-hidden">
+    <div class="flex -space-x-1 relative z-0 overflow-hidden items-center">
       <%= for user <- @users |> Enum.take(5) do %>
         <.popover class="inline">
           <img
@@ -1526,7 +1532,7 @@ defmodule PlatformWeb.Components do
         </.popover>
       <% end %>
       <%= if length(@users) > max do %>
-        <div class="bg-gray-300 text-gray-700 text-xl rounded-full h-5 w-5 z-30 ring-2 ring-white flex items-center justify-center">
+        <div class="bg-gray-300 text-gray-700 text-xl rounded-full mt-1 h-5 w-5 z-30 ring-2 ring-white flex items-center justify-center">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             class="h-3 w-3"
@@ -1574,8 +1580,10 @@ defmodule PlatformWeb.Components do
               <% end %>
             </div>
           </div>
+        <% end %>
+        <%= if version.status != :pending do %>
           <div
-            class="w-full h-full min-h-[50px] absolute bg-neutral-50 border rounded-lg flex items-center justify-around top-0"
+            class="w-full z-[100] h-full min-h-[50px] absolute bg-neutral-50 border rounded-lg flex items-center justify-around top-0"
             x-show="hidden"
           >
             <!-- Overlay for potentially graphic content -->
@@ -1607,7 +1615,8 @@ defmodule PlatformWeb.Components do
               </button>
             </div>
           </div>
-        <% else %>
+        <% end %>
+        <%= if not media_to_show do %>
           <div class="w-full h-40 bg-neutral-50 border rounded-lg flex items-center justify-around">
             <%= if version.status == :pending do %>
               <div class="text-center w-48">
@@ -1647,7 +1656,8 @@ defmodule PlatformWeb.Components do
                   View Directly
                 </a>
               </div>
-            <% else %>
+            <% end %>
+            <%= if version.status == :error do %>
               <a
                 target="_blank"
                 href={version.source_url}
@@ -1924,15 +1934,19 @@ defmodule PlatformWeb.Components do
   end
 
   def edit_attribute(%{attr: attr, form: f, media_slug: slug, media: media} = assigns) do
+    optional = Map.get(assigns, :optional, false)
+
+    label = attr.label <> if optional, do: " (Optional)", else: ""
+
     ~H"""
-    <div>
+    <div x-data="{user_loc: null}">
       <%= case attr.type do %>
         <% :text -> %>
-          <%= label(f, attr.schema_field, attr.label) %>
-          <%= textarea(f, attr.schema_field, rows: 5) %>
+          <%= label(f, attr.schema_field, label) %>
+          <%= textarea(f, attr.schema_field, rows: 3) %>
           <%= error_tag(f, attr.schema_field) %>
         <% :select -> %>
-          <%= label(f, attr.schema_field, attr.label) %>
+          <%= label(f, attr.schema_field, label) %>
           <%= error_tag(f, attr.schema_field) %>
           <div phx-update="ignore" id={"attr_select_#{slug}_#{attr.schema_field}"}>
             <%= select(
@@ -1945,16 +1959,16 @@ defmodule PlatformWeb.Components do
             ) %>
           </div>
         <% :multi_select -> %>
-          <%= label(f, attr.schema_field, attr.label) %>
+          <%= label(f, attr.schema_field, label) %>
           <%= error_tag(f, attr.schema_field) %>
-          <div
-            phx-update="ignore"
-            id={"attr_multi_select_#{slug}_#{attr.schema_field}"}
-          >
+          <div phx-update="ignore" id={"attr_multi_select_#{slug}_#{attr.schema_field}"}>
             <%= multiple_select(
               f,
               attr.schema_field,
-              Attribute.options(attr, (if is_nil(media), do: nil, else: Map.get(media, attr.schema_field))),
+              Attribute.options(
+                attr,
+                if(is_nil(media), do: nil, else: Map.get(media, attr.schema_field))
+              ),
               data_descriptions: Jason.encode!(attr.option_descriptions || %{}),
               data_privileged: Jason.encode!(attr.privileged_values || []),
               data_allow_user_defined_options: Attribute.allow_user_defined_options(attr)
@@ -1963,7 +1977,7 @@ defmodule PlatformWeb.Components do
         <% :location -> %>
           <div class="space-y-4">
             <div>
-              <%= label(f, :location, "Location (latitude, longitude)") %>
+              <%= label(f, :location, label <> " (latitude, longitude)") %>
               <%= text_input(f, :location,
                 placeholder: "Comma-separated coordinates (lat, lon).",
                 novalidate: true,
@@ -1975,7 +1989,7 @@ defmodule PlatformWeb.Components do
             <%= error_tag(f, attr.schema_field) %>
           </div>
         <% :time -> %>
-          <%= label(f, attr.schema_field, attr.label) %>
+          <%= label(f, attr.schema_field, label) %>
           <div class="flex items-center gap-2 ts-ignore sm:w-64 apply-a17t-fields">
             <%= time_select(f, attr.schema_field,
               hour: [prompt: "[Unset]"],
@@ -1989,7 +2003,7 @@ defmodule PlatformWeb.Components do
           </p>
           <%= error_tag(f, attr.schema_field) %>
         <% :date -> %>
-          <%= label(f, attr.schema_field, attr.label) %>
+          <%= label(f, attr.schema_field, label) %>
           <div class="flex items-center gap-2 ts-ignore apply-a17t-fields">
             <%= date_select(f, attr.schema_field,
               year: [prompt: "[Unset]", options: DateTime.utc_now().year..1990],

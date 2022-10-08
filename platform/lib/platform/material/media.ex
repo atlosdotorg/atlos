@@ -62,23 +62,9 @@ defmodule Platform.Material.Media do
       :attr_status,
       :attr_type,
       :attr_equipment,
-      :attr_impact
+      :attr_impact,
+      :attr_date
     ])
-    |> validate_required([:attr_description],
-      message: "Please add a short description."
-    )
-    |> validate_length(:attr_description,
-      min: 8,
-      max: 240,
-      message: "Descriptions should be 8-240 characters."
-    )
-    |> validate_required([:attr_sensitive],
-      message:
-        "Sensitivity must be set. If this incident doesn't include sensitive media, choose 'Not Sensitive.'"
-    )
-    |> validate_required([:attr_type],
-      message: "The incident type must be set."
-    )
 
     # These are special attributes, since we define it at creation time. Eventually, it'd be nice to unify this logic with the attribute-specific editing logic.
     |> Attribute.validate_attribute(Attribute.get_attribute(:description), user, true)
@@ -86,6 +72,19 @@ defmodule Platform.Material.Media do
     |> Attribute.validate_attribute(Attribute.get_attribute(:sensitive), user, true)
     |> Attribute.validate_attribute(Attribute.get_attribute(:equipment), user, false)
     |> Attribute.validate_attribute(Attribute.get_attribute(:impact), user, false)
+    |> Attribute.validate_attribute(Attribute.get_attribute(:date), user, false)
+    |> then(fn cs ->
+      attr = Attribute.get_attribute(:tags)
+
+      if !is_nil(user) && Attribute.can_user_edit(attr, user, media) do
+        cs
+        # TODO: This is a good refactoring opportunity with the logic above
+        |> cast(attrs, [:attr_tags])
+        |> Attribute.validate_attribute(Attribute.get_attribute(:tags), user, false)
+      else
+        cs
+      end
+    end)
   end
 
   @doc """

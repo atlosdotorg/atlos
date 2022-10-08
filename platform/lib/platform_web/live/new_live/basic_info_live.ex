@@ -3,6 +3,7 @@ defmodule PlatformWeb.NewLive.BasicInfoLive do
   alias Platform.Material
   alias Platform.Material.Attribute
   alias Platform.Auditor
+  alias Platform.Accounts
 
   def update(assigns, socket) do
     {:ok,
@@ -18,7 +19,11 @@ defmodule PlatformWeb.NewLive.BasicInfoLive do
   end
 
   defp assign_changeset(socket) do
-    socket |> assign(:changeset, Material.change_media(socket.assigns.media))
+    socket
+    |> assign(
+      :changeset,
+      Material.change_media(socket.assigns.media, %{}, socket.assigns.current_user)
+    )
   end
 
   def handle_event("validate", %{"media" => _media_params}, socket) do
@@ -42,7 +47,10 @@ defmodule PlatformWeb.NewLive.BasicInfoLive do
          socket
          |> assign(:disabled, true)
          # We assign a changeset to prevent their changes from flickering during submit
-         |> assign(:changeset, Material.change_media(socket.assigns.media, media_params))}
+         |> assign(
+           :changeset,
+           Material.change_media(socket.assigns.media, media_params, socket.assigns.current_user)
+         )}
 
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign(socket, :changeset, changeset |> Map.put(:action, :validate))}
@@ -62,50 +70,82 @@ defmodule PlatformWeb.NewLive.BasicInfoLive do
       >
         <div class="space-y-6">
           <div>
-            <%= label(f, :attr_description, "Short Description") %>
-            <%= textarea(f, :attr_description,
-              class: "text-xl",
-              rows: 2,
-              disabled: @disabled,
-              phx_debounce: "blur"
-            ) %>
+            <.edit_attribute
+              attr={Attribute.get_attribute(:description)}
+              form={f}
+              media_slug="NEW"
+              media={nil}
+            />
             <p class="support">
               Try to be as descriptive as possible. You'll be able to change this later.
             </p>
-            <%= error_tag(f, :attr_description) %>
           </div>
 
           <div>
-            <%= label(f, :attr_type, "Incident Type") %>
-            <div phx-update="ignore" id="incident_type_select">
-              <%= multiple_select(
-                f,
-                :attr_type,
-                Attribute.get_attribute(:type) |> Attribute.options(),
-                phx_debounce: "blur"
-              ) %>
-            </div>
-            <p class="support">
-              <%= Attribute.get_attribute(:type).description %>
-            </p>
-            <%= error_tag(f, :attr_type) %>
+            <.edit_attribute
+              attr={Attribute.get_attribute(:sensitive)}
+              form={f}
+              media_slug="NEW"
+              media={nil}
+            />
           </div>
 
           <div>
-            <%= label(f, :attr_sensitive, "Sensitivity") %>
-            <div phx-update="ignore" id="sensitive_select">
-              <%= multiple_select(
-                f,
-                :attr_sensitive,
-                Attribute.get_attribute(:sensitive) |> Attribute.options(),
-                phx_debounce: "blur"
-              ) %>
-            </div>
-            <p class="support">
-              <%= Attribute.get_attribute(:sensitive).description %>
-            </p>
-            <%= error_tag(f, :attr_sensitive) %>
+            <.edit_attribute
+              attr={Attribute.get_attribute(:type)}
+              form={f}
+              media_slug="NEW"
+              media={nil}
+            />
           </div>
+
+          <details class="p-4 rounded bg-neutral-100 mt-2">
+            <summary class="text-button cursor-pointer transition-all">Additional attributes</summary>
+            <div class="space-y-6 mt-4">
+              <hr />
+              <div>
+                <.edit_attribute
+                  attr={Attribute.get_attribute(:equipment)}
+                  form={f}
+                  media_slug="NEW"
+                  media={nil}
+                  optional={true}
+                />
+              </div>
+
+              <div>
+                <.edit_attribute
+                  attr={Attribute.get_attribute(:impact)}
+                  form={f}
+                  media_slug="NEW"
+                  media={nil}
+                  optional={true}
+                />
+              </div>
+
+              <div>
+                <.edit_attribute
+                  attr={Attribute.get_attribute(:date)}
+                  form={f}
+                  media_slug="NEW"
+                  media={nil}
+                  optional={true}
+                />
+              </div>
+
+              <%= if Accounts.is_privileged(@current_user) do %>
+                <div>
+                  <.edit_attribute
+                    attr={Attribute.get_attribute(:tags)}
+                    form={f}
+                    media_slug="NEW"
+                    media={nil}
+                    optional={true}
+                  />
+                </div>
+              <% end %>
+            </div>
+          </details>
 
           <div class="rounded-md bg-neutral-100 p-4">
             <div class="flex">

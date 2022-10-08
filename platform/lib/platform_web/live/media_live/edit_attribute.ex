@@ -79,7 +79,7 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
     disabled = !assigns.changeset.valid?
 
     ~H"""
-    <article x-data="{user_loc: null}">
+    <article>
       <.modal target={@myself} close_confirmation={confirm_prompt}>
         <div class="md:flex justify-between">
           <div>
