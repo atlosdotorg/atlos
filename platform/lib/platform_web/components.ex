@@ -1518,7 +1518,7 @@ defmodule PlatformWeb.Components do
     max = Map.get(assigns, :max, 5)
 
     ~H"""
-    <div class="flex -space-x-1 relative z-0 overflow-hidden">
+    <div class="flex -space-x-1 relative z-0 overflow-hidden items-center">
       <%= for user <- @users |> Enum.take(5) do %>
         <.popover class="inline">
           <img
@@ -1532,7 +1532,7 @@ defmodule PlatformWeb.Components do
         </.popover>
       <% end %>
       <%= if length(@users) > max do %>
-        <div class="bg-gray-300 text-gray-700 text-xl rounded-full h-5 w-5 z-30 ring-2 ring-white flex items-center justify-center">
+        <div class="bg-gray-300 text-gray-700 text-xl rounded-full mt-1 h-5 w-5 z-30 ring-2 ring-white flex items-center justify-center">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             class="h-3 w-3"
