@@ -973,7 +973,7 @@ defmodule PlatformWeb.Components do
           <div class="inline-block">
             <div class="chip ~neutral inline-block self-start break-all xl:break-normal">
               <.attr_label label={label} />
-              <%= value %>
+              <%= value |> Calendar.strftime("%m %B %Y") %>
             </div>
           </div>
       <% end %>
