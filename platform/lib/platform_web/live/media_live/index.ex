@@ -10,9 +10,16 @@ defmodule PlatformWeb.MediaLive.Index do
   end
 
   def handle_params(params, _uri, socket) do
+    display = Map.get(params, "display", "cards")
+
     {:noreply,
      socket
-     |> assign(:changeset, Material.MediaSearch.changeset(params))
+     |> assign(
+       :changeset,
+       Material.MediaSearch.changeset(params)
+     )
+     |> assign(:display, display)
+     |> assign(:full_width, display == "table")
      |> assign(:query_params, params)}
   end
 

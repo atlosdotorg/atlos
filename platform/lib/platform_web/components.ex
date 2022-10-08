@@ -834,6 +834,55 @@ defmodule PlatformWeb.Components do
     """
   end
 
+  def attr_display_compact(
+        %{
+          attr: %Attribute{} = attr,
+          media: %Media{} = media,
+          updates: updates,
+          socket: socket,
+          current_user: current_user
+        } = assigns
+      ) do
+    children = Attribute.get_children(attr.name)
+
+    ~H"""
+    <div class="py-2 sm:grid sm:grid-cols-3 sm:gap-2">
+      <%= if not is_nil(Map.get(media, attr.schema_field)) do %>
+        <dt class="text-sm font-medium text-gray-500 mt-1 flex justify-between items-center flex-wrap">
+          <%= live_patch(class: "text-button inline-block",
+            to: Routes.media_show_path(socket, :history, media.slug, attr.name)
+          ) do %>
+            <.user_stack users={
+              updates
+              |> Enum.filter(&(&1.modified_attribute == attr.name || &1.type == :create))
+              |> Enum.sort_by(& &1.inserted_at)
+              |> Enum.map(& &1.user)
+              |> Enum.reverse()
+              |> Enum.take(1)
+            } />
+          <% end %>
+        </dt>
+        <dd class="mt-1 flex items-center text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+          <span class="flex-grow gap-1 flex flex-wrap">
+            <.attr_entry name={attr.name} value={Map.get(media, attr.schema_field)} />
+            <%= for child <- children do %>
+              <%= if not is_nil(Map.get(media, child.schema_field)) do %>
+                <.attr_entry
+                  name={child.name}
+                  value={Map.get(media, child.schema_field)}
+                  label={child.label}
+                />
+              <% end %>
+            <% end %>
+          </span>
+        </dd>
+      <% else %>
+        <span class="text-neutral-400">Unset</span>
+      <% end %>
+    </div>
+    """
+  end
+
   def attr_display_row(
         %{
           attr: %Attribute{} = attr,
@@ -882,14 +931,16 @@ defmodule PlatformWeb.Components do
       </dt>
       <dd class="mt-1 flex items-center text-sm text-gray-900 sm:mt-0 sm:col-span-2">
         <span class="flex-grow gap-1 flex flex-wrap">
-          <.attr_entry name={attr.name} value={Map.get(media, attr.schema_field)} />
-          <%= for child <- children do %>
-            <%= if not is_nil(Map.get(media, child.schema_field)) do %>
-              <.attr_entry
-                name={child.name}
-                value={Map.get(media, child.schema_field)}
-                label={child.label}
-              />
+          <%= if not is_nil(Map.get(media, attr.schema_field)) do %>
+            <.attr_entry name={attr.name} value={Map.get(media, attr.schema_field)} />
+            <%= for child <- children do %>
+              <%= if not is_nil(Map.get(media, child.schema_field)) do %>
+                <.attr_entry
+                  name={child.name}
+                  value={Map.get(media, child.schema_field)}
+                  label={child.label}
+                />
+              <% end %>
             <% end %>
           <% end %>
         </span>
@@ -1515,6 +1566,35 @@ defmodule PlatformWeb.Components do
         </div>
       <% end %>
     </a>
+    """
+  end
+
+  def no_media_results(assigns) do
+    ~H"""
+    <div class="text-center mt-12 mx-auto w-full">
+      <svg
+        class="mx-auto h-16 w-16 text-gray-400"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+        aria-hidden="true"
+      >
+        <path
+          vector-effect="non-scaling-stroke"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"
+        />
+      </svg>
+      <h3 class="mt-2 font-medium text-gray-900">No results</h3>
+      <p class="mt-1 text-gray-500">No incidents matched this criteria</p>
+      <div class="mt-6">
+        <a href="/incidents" class="button ~urge @high">
+          View All &rarr;
+        </a>
+      </div>
+    </div>
     """
   end
 

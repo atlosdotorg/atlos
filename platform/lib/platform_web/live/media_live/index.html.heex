@@ -54,6 +54,24 @@
           </div>
           <%= error_tag(f, :sort) %>
         </div>
+        <div>
+          <div class="ts-ignore border border-gray-300 bg-white rounded-md pl-3 py-2 shadow-sm focus-within:ring-1 focus-within:ring-urge-600 focus-within:border-urge-600">
+            <%= label(f, :display, "Display",
+              class: "block text-xs pr-4 font-medium text-gray-900"
+            ) %>
+            <%= select(
+              f,
+              :display,
+              [
+                Cards: :cards,
+                Table: :table
+              ],
+              class:
+                "block w-full border-0 py-0 pl-0 pr-7 text-gray-900 placeholder-gray-500 focus:ring-0 sm:text-sm"
+            ) %>
+          </div>
+          <%= error_tag(f, :display) %>
+        </div>
         <div class="place-self-center" x-data="{open: false}">
           <div class="relative text-left z-10">
             <div class="h-full">
@@ -117,10 +135,20 @@
       </div>
     </section>
   </.form>
-  <.live_component
-    module={PlatformWeb.MediaLive.PaginatedMediaList}
-    id="media-list"
-    current_user={@current_user}
-    query_params={@query_params}
-  />
+  <%= case @display do %>
+    <% "cards" -> %>
+      <.live_component
+        module={PlatformWeb.MediaLive.PaginatedMediaList}
+        id="media-list"
+        current_user={@current_user}
+        query_params={@query_params}
+      />
+    <% "table" -> %>
+      <.live_component
+        module={PlatformWeb.MediaLive.PaginatedMediaTable}
+        id="media-table"
+        current_user={@current_user}
+        query_params={@query_params}
+      />
+  <% end %>
 </article>
