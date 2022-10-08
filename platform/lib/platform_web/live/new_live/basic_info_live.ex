@@ -99,9 +99,10 @@ defmodule PlatformWeb.NewLive.BasicInfoLive do
             />
           </div>
 
-          <details>
-            <summary class="text-button cursor-pointer">Additional attributes</summary>
-            <div class="space-y-6 p-4 border rounded bg-neutral-50 mt-2">
+          <details class="p-4 rounded bg-neutral-100 mt-2">
+            <summary class="text-button cursor-pointer transition-all">Additional attributes</summary>
+            <div class="space-y-6 mt-4">
+              <hr />
               <div>
                 <.edit_attribute
                   attr={Attribute.get_attribute(:equipment)}
