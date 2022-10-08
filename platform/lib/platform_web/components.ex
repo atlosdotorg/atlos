@@ -1445,10 +1445,10 @@ defmodule PlatformWeb.Components do
         </div>
 
         <% thumb = Material.media_thumbnail(media) %>
-        <div class="block h-full w-1/4 grayscale self-stretch overflow-hidden">
+        <div class="block h-full min-h-[12rem] relative w-1/4 grayscale self-stretch overflow-hidden">
           <%= if thumb do %>
             <%= if Media.is_graphic(media) do %>
-              <div class="bg-gray-200 flex items-center justify-around h-full w-full text-gray-500">
+              <div class="absolute bg-gray-200 flex items-center justify-around h-full w-full text-gray-500">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   class="h-8 w-8"
@@ -1465,15 +1465,12 @@ defmodule PlatformWeb.Components do
                 </svg>
               </div>
             <% else %>
-              <div class="h-full min-h-[12rem] relative overflow-hidden">
-                <img
-                  class="absolute sr-hide object-cover overflow-hidden min-h-[12rem] h-full w-full"
-                  src={thumb}
-                />
+              <div class="overflow-hidden">
+                <img class="absolute sr-hide object-cover min-h-[12rem] h-full w-full" src={thumb} />
               </div>
             <% end %>
           <% else %>
-            <div class="bg-gray-200 flex items-center justify-around h-full w-full text-gray-500">
+            <div class="absolute bg-gray-200 flex items-center justify-around h-full w-full text-gray-500">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 class="h-8 w-8"
