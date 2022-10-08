@@ -102,9 +102,6 @@ defmodule Platform.Workers.Archiver do
           media_version: new_version
         })
 
-        # Push update to viewers
-        Material.broadcast_media_updated(media_id)
-
         {:ok, new_version}
       rescue
         val ->
@@ -132,6 +129,9 @@ defmodule Platform.Workers.Archiver do
 
           {:ok, new_version}
       end
+
+    # Push update to viewers
+    Material.broadcast_media_updated(media_id)
 
     Temp.cleanup()
     result
