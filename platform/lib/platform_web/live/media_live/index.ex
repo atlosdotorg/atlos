@@ -6,9 +6,14 @@ defmodule PlatformWeb.MediaLive.Index do
   def mount(_params, _session, socket) do
     {:ok,
      socket
-     |> assign(:title, "Incidents")
-     |> assign(:changeset, Material.MediaSearch.changeset())
-     |> assign(:query_params, %{})}
+     |> assign(:title, "Incidents")}
+  end
+
+  def handle_params(params, _uri, socket) do
+    {:noreply,
+     socket
+     |> assign(:changeset, Material.MediaSearch.changeset(params))
+     |> assign(:query_params, params)}
   end
 
   def handle_event("validate", params, socket) do
@@ -16,15 +21,6 @@ defmodule PlatformWeb.MediaLive.Index do
   end
 
   def handle_event("save", %{"search" => params}, socket) do
-    c = Material.MediaSearch.changeset(params)
-
-    if c.valid? do
-      {:noreply,
-       socket
-       |> assign(:changeset, c)
-       |> assign(:query_params, c.changes)}
-    else
-      {:noreply, socket |> assign(:changeset, c)}
-    end
+    {:noreply, socket |> push_patch(to: Routes.live_path(socket, __MODULE__, params))}
   end
 end
