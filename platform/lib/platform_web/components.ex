@@ -684,7 +684,7 @@ defmodule PlatformWeb.Components do
 
                   <%= if not Enum.empty?(update.attachments) do %>
                     <div class="p-2 grid grid-cols-2 md:grid-cols-3 gap-2">
-                      <%= for attachment <- update.attachments do %>
+                      <%= for {attachment, idx} <- update.attachments |> Enum.with_index() do %>
                         <% url =
                           Uploads.UpdateAttachment.url({attachment, update.media}, :original,
                             signed: true,
@@ -695,7 +695,14 @@ defmodule PlatformWeb.Components do
                           href={url}
                           target="_blank"
                         >
-                          <img src={url} />
+                          <%= if String.ends_with?(attachment, ".jpg") || String.ends_with?(attachment, ".jpeg") || String.ends_with?(attachment, ".png") do %>
+                            <img src={url} />
+                          <% else %>
+                            <.document_preview
+                              file_name={"Attachment #" <> to_string(idx + 1)}
+                              description="PDF Document"
+                            />
+                          <% end %>
                         </a>
                       <% end %>
                     </div>
@@ -1544,6 +1551,28 @@ defmodule PlatformWeb.Components do
           </svg>
         </div>
       <% end %>
+    </div>
+    """
+  end
+
+  def document_preview(%{file_name: file_name} = assigns) do
+    ~H"""
+    <div class="flex gap-2 flex-col items-center bg-neutral-100 border rounded p-2">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+        fill="currentColor"
+        class="w-6 h-6 text-urge-600"
+      >
+        <path
+          fill-rule="evenodd"
+          d="M5.625 1.5H9a3.75 3.75 0 013.75 3.75v1.875c0 1.036.84 1.875 1.875 1.875H16.5a3.75 3.75 0 013.75 3.75v7.875c0 1.035-.84 1.875-1.875 1.875H5.625a1.875 1.875 0 01-1.875-1.875V3.375c0-1.036.84-1.875 1.875-1.875zm6.905 9.97a.75.75 0 00-1.06 0l-3 3a.75.75 0 101.06 1.06l1.72-1.72V18a.75.75 0 001.5 0v-4.19l1.72 1.72a.75.75 0 101.06-1.06l-3-3z"
+          clip-rule="evenodd"
+        />
+        <path d="M14.25 5.25a5.23 5.23 0 00-1.279-3.434 9.768 9.768 0 016.963 6.963A5.23 5.23 0 0016.5 7.5h-1.875a.375.375 0 01-.375-.375V5.25z" />
+      </svg>
+      <p class="text-sm font-medium text-center"><%= file_name %></p>
+      <p class="text-xs text-center"><%= Map.get(assigns, :description, "Document") %></p>
     </div>
     """
   end
