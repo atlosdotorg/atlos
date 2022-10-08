@@ -1580,8 +1580,10 @@ defmodule PlatformWeb.Components do
               <% end %>
             </div>
           </div>
+        <% end %>
+        <%= if version.status != :pending do %>
           <div
-            class="w-full h-full min-h-[50px] absolute bg-neutral-50 border rounded-lg flex items-center justify-around top-0"
+            class="w-full z-[100] h-full min-h-[50px] absolute bg-neutral-50 border rounded-lg flex items-center justify-around top-0"
             x-show="hidden"
           >
             <!-- Overlay for potentially graphic content -->
@@ -1613,7 +1615,8 @@ defmodule PlatformWeb.Components do
               </button>
             </div>
           </div>
-        <% else %>
+        <% end %>
+        <%= if not media_to_show do %>
           <div class="w-full h-40 bg-neutral-50 border rounded-lg flex items-center justify-around">
             <%= if version.status == :pending do %>
               <div class="text-center w-48">
@@ -1653,7 +1656,8 @@ defmodule PlatformWeb.Components do
                   View Directly
                 </a>
               </div>
-            <% else %>
+            <% end %>
+            <%= if version.status == :error do %>
               <a
                 target="_blank"
                 href={version.source_url}
