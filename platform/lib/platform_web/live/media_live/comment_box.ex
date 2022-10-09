@@ -11,7 +11,7 @@ defmodule PlatformWeb.MediaLive.CommentBox do
     {:ok,
      socket
      |> allow_upload(:attachments,
-       accept: ~w(.png .jpg .jpeg),
+       accept: ~w(.png .jpg .jpeg .pdf),
        max_entries: 9,
        max_file_size: 10_000_000,
        auto_upload: false,
@@ -177,7 +177,14 @@ defmodule PlatformWeb.MediaLive.CommentBox do
                         </div>
                       </div>
                       <figure class="rounded">
-                        <.live_img_preview entry={entry} />
+                        <%= if entry.client_type == "application/pdf" do %>
+                          <.document_preview
+                            file_name={entry.client_name}
+                            description="The file name will not be shared."
+                          />
+                        <% else %>
+                          <.live_img_preview entry={entry} />
+                        <% end %>
                       </figure>
 
                       <button
