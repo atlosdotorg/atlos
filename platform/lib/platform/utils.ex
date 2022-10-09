@@ -120,11 +120,23 @@ defmodule Platform.Utils do
     "allocation #{alloc_id} in region #{region}"
   end
 
-  def text_search(search_terms, queryable) do
-    queryable
-    |> where(
-      [q],
-      fragment("? @@ websearch_to_tsquery('english', ?)", q.searchable, ^search_terms)
-    )
+  def text_search(search_terms, queryable, opts \\ []) do
+    if Keyword.get(opts, :literal, false) do
+      # Manually adding the quotes here make it possible to search for source links directly
+      wrapped =
+        if String.starts_with?(search_terms, "\""), do: search_terms, else: "\"#{search_terms}\""
+
+      queryable
+      |> where(
+        [q],
+        fragment("? @@ websearch_to_tsquery('english', ?)", q.searchable, ^wrapped)
+      )
+    else
+      queryable
+      |> where(
+        [q],
+        fragment("? @@ websearch_to_tsquery('english', ?)", q.searchable, ^search_terms)
+      )
+    end
   end
 end

@@ -1,6 +1,7 @@
 defmodule Platform.Material.Media do
   use Ecto.Schema
   import Ecto.Changeset
+  import Ecto.Query
   alias Platform.Utils
   alias Platform.Material.Attribute
   alias Platform.Material.MediaSubscription
@@ -234,8 +235,25 @@ defmodule Platform.Material.Media do
     Enum.member?(media.attr_sensitive || [], "Graphic Violence")
   end
 
+  @doc """
+  Perform a text search on the given queryable. Will also query associated media versions.
+  """
   def text_search(search_terms, queryable \\ Media) do
-    Utils.text_search(search_terms, queryable)
+    media_via_associated_media_versions =
+      from version in subquery(
+             Utils.text_search(search_terms, Platform.Material.MediaVersion, literal: true)
+           ),
+           where: version.visibility == :visible,
+           join: media in assoc(version, :media),
+           select: media
+
+    from u in subquery(
+           Ecto.Query.union(
+             Utils.text_search(search_terms, queryable),
+             ^media_via_associated_media_versions
+           )
+         ),
+         select: u
   end
 end
 
