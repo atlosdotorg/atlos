@@ -846,38 +846,54 @@ defmodule PlatformWeb.Components do
     children = Attribute.get_children(attr.name)
 
     ~H"""
-    <div class="py-2 sm:grid sm:grid-cols-3 sm:gap-2">
+    <div>
       <%= if not is_nil(Map.get(media, attr.schema_field)) do %>
-        <dt class="text-sm font-medium text-gray-500 mt-1 flex justify-between items-center flex-wrap">
-          <%= live_patch(class: "text-button inline-block",
-            to: Routes.media_show_path(socket, :history, media.slug, attr.name)
-          ) do %>
-            <.user_stack users={
-              updates
-              |> Enum.filter(&(&1.modified_attribute == attr.name || &1.type == :create))
-              |> Enum.sort_by(& &1.inserted_at)
-              |> Enum.map(& &1.user)
-              |> Enum.reverse()
-              |> Enum.take(1)
-            } />
-          <% end %>
-        </dt>
-        <dd class="mt-1 flex items-center text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-          <span class="flex-grow gap-1 flex flex-wrap">
-            <.attr_entry name={attr.name} value={Map.get(media, attr.schema_field)} />
-            <%= for child <- children do %>
-              <%= if not is_nil(Map.get(media, child.schema_field)) do %>
-                <.attr_entry
-                  name={child.name}
-                  value={Map.get(media, child.schema_field)}
-                  label={child.label}
-                />
-              <% end %>
-            <% end %>
-          </span>
-        </dd>
+        <% update =
+          updates
+          |> Enum.filter(&(&1.modified_attribute == attr.name || &1.type == :create))
+          |> Enum.sort_by(& &1.inserted_at)
+          |> Enum.reverse()
+          |> hd() %>
+        <div class="flex flex-wrap text-xs">
+          <.popover class="font-base p-0">
+            <div class="truncate max-w-full">
+              <.attr_entry
+                color={true}
+                compact={true}
+                name={attr.name}
+                value={Map.get(media, attr.schema_field)}
+              />
+            </div>
+            <:display>
+              <div class="py-2">
+                <%= if not is_nil(update) do %>
+                  <div class="text-sm text-neutral-600 mb-2 border-b pb-1">
+                    <.user_text user={update.user} /> &mdash; <.rel_time time={update.inserted_at} />
+                  </div>
+                <% end %>
+                <div class="text-ellipsis overflow-hidden max-w-full">
+                  <.attr_entry
+                    color={true}
+                    name={attr.name}
+                    value={Map.get(media, attr.schema_field)}
+                  />
+                  <%= for child <- children do %>
+                    <%= if not is_nil(Map.get(media, child.schema_field)) do %>
+                      <.attr_entry
+                        color={true}
+                        name={child.name}
+                        value={Map.get(media, child.schema_field)}
+                        label={child.label}
+                      />
+                    <% end %>
+                  <% end %>
+                </div>
+              </div>
+            </:display>
+          </.popover>
+        </div>
       <% else %>
-        <span class="text-neutral-400">Unset</span>
+        <span class="text-neutral-400">&mdash;</span> >>>>>>> 1134fe4 (Upstream pending changes)
       <% end %>
     </div>
     """
@@ -985,18 +1001,35 @@ defmodule PlatformWeb.Components do
     attr = Attribute.get_attribute(name)
 
     label = Map.get(assigns, :label, "")
+    compact = Map.get(assigns, :compact, false)
+
+    tone =
+      if Map.get(assigns, :color, false), do: Attribute.attr_color(name, value), else: "~neutral"
 
     ~H"""
     <span class="inline-flex flex-wrap gap-1 max-w-full">
       <%= case attr.type do %>
         <% :text -> %>
-          <div class="inline-block prose prose-sm my-px break-words">
-            <.attr_label label={label} />
-            <%= raw(value |> Utils.render_markdown()) %>
-          </div>
+          <%= if compact do %>
+            <div class="inline-block truncate prose prose-sm my-px">
+              <.attr_label label={label} />
+              <%= raw(
+                value
+                |> Utils.render_markdown()
+              ) %>
+            </div>
+          <% else %>
+            <div class="inline-block truncate prose prose-sm my-px">
+              <.attr_label label={label} />
+              <%= raw(
+                value
+                |> Utils.render_markdown()
+              ) %>
+            </div>
+          <% end %>
         <% :select -> %>
           <div class="inline-block">
-            <div class="chip ~neutral inline-block self-start break-all xl:break-normal">
+            <div class={"chip #{tone} inline-block self-start break-all xl:break-normal"}>
               <.attr_label label={label} />
               <%= value %>
             </div>
@@ -1004,7 +1037,7 @@ defmodule PlatformWeb.Components do
         <% :multi_select -> %>
           <.attr_label label={label} />
           <%= for item <- value do %>
-            <div class="chip ~neutral inline-block self-start break-all xl:break-normal">
+            <div class={"chip #{tone} inline-block self-start break-all xl:break-normal"}>
               <%= item %>
             </div>
           <% end %>
@@ -1012,7 +1045,7 @@ defmodule PlatformWeb.Components do
           <div class="inline-block">
             <% {lon, lat} = value.coordinates %>
             <a
-              class="chip ~neutral inline-block flex gap-1 self-start break-all xl:break-normal"
+              class={"chip #{tone} inline-block flex gap-1 self-start break-all xl:break-normal"}
               target="_blank"
               href={"https://maps.google.com/maps?q=#{lat},#{lon}"}
             >
@@ -1022,14 +1055,14 @@ defmodule PlatformWeb.Components do
           </div>
         <% :time -> %>
           <div class="inline-block">
-            <div class="chip ~neutral inline-block self-start break-all xl:break-normal">
+            <div class={"chip #{tone} inline-block self-start break-all xl:break-normal"}>
               <.attr_label label={label} />
               <%= value %>
             </div>
           </div>
         <% :date -> %>
           <div class="inline-block">
-            <div class="chip ~neutral inline-block self-start break-all xl:break-normal">
+            <div class={"chip #{tone} inline-block self-start break-all xl:break-normal"}>
               <.attr_label label={label} />
               <%= value |> Calendar.strftime("%d %B %Y") |> dbg() %>
             </div>
