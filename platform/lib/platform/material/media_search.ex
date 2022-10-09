@@ -49,7 +49,7 @@ defmodule Platform.Material.MediaSearch do
           queryable,
           [u],
           fragment(
-            "EXISTS (SELECT * FROM media_versions other WHERE other.media_id = ? AND other.status = 'complete' AND other.visibility = 'visible')",
+            "EXISTS (SELECT * FROM media_versions other WHERE other.media_id = ? AND other.visibility = 'visible')",
             u.id
           )
         )
