@@ -1064,7 +1064,7 @@ defmodule PlatformWeb.Components do
           <div class="inline-block">
             <div class={"chip #{tone} inline-block self-start break-all xl:break-normal"}>
               <.attr_label label={label} />
-              <%= value |> Calendar.strftime("%d %B %Y") |> dbg() %>
+              <%= value |> Calendar.strftime("%d %B %Y") %>
             </div>
           </div>
       <% end %>
@@ -1306,6 +1306,15 @@ defmodule PlatformWeb.Components do
         do: new |> Map.get(attr.schema_field |> to_string()),
         else: new
 
+    format_date = fn val ->
+      with false <- is_nil(val),
+           {:ok, date} <- val |> Date.from_iso8601() do
+        [date |> Calendar.strftime("%d %B %Y")]
+      else
+        _ -> nil
+      end
+    end
+
     ~H"""
     <div class="inline-block">
       <span>
@@ -1325,7 +1334,7 @@ defmodule PlatformWeb.Components do
           <% :time -> %>
             <.list_diff old={[old_val]} new={[new_val]} label={label} />
           <% :date -> %>
-            <.list_diff old={[old_val]} new={[new_val]} label={label} />
+            <.list_diff old={format_date.(old_val)} new={format_date.(new_val)} label={label} />
         <% end %>
       </span>
       <%= if Material.is_combined_update_value(old) and Material.is_combined_update_value(new) do %>
