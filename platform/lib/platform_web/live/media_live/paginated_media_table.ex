@@ -20,7 +20,7 @@ defmodule PlatformWeb.MediaLive.PaginatedMediaTable do
     results =
       search_media(socket, Material.MediaSearch.changeset(socket.assigns.query_params),
         after: cursor_after,
-        limit: 1000
+        limit: 100
       )
 
     new_socket =
@@ -41,6 +41,9 @@ defmodule PlatformWeb.MediaLive.PaginatedMediaTable do
 
   def render(assigns) do
     attributes = Attribute.active_attributes() |> Enum.filter(&is_nil(&1.parent))
+
+    media = assigns.media
+    source_cols = Enum.max(media |> Enum.map(&length(&1.versions)))
 
     ~H"""
     <section class="max-w-full">
@@ -73,28 +76,21 @@ defmodule PlatformWeb.MediaLive.PaginatedMediaTable do
                         <%= attr.label %>
                       </th>
                     <% end %>
-                    <th
-                      scope="col"
-                      class="sticky top-0 z-100 border-b border-gray-300 bg-gray-100 bg-opacity-75 px-4 py-4 font-medium text-sm text-left"
-                    >
-                      Sources
-                    </th>
-                    <th
-                      scope="col"
-                      class="sticky top-0 z-10 border-b border-gray-300 bg-gray-100 bg-opacity-75 py-3.5 pr-4 pl-3 backdrop-blur backdrop-filter sm:pr-6 lg:pr-8"
-                    >
-                      <span class="sr-only">Edit</span>
-                    </th>
+                    <%= for idx <- 0..source_cols do %>
+                      <th
+                        scope="col"
+                        class="sticky top-0 z-100 border-b border-gray-300 bg-gray-100 bg-opacity-75 px-4 py-4 font-medium text-sm text-left"
+                      >
+                        Source <%= idx + 1 %>
+                      </th>
+                    <% end %>
                   </tr>
                 </thead>
                 <tbody class="bg-white">
                   <%= for media <- @media do %>
                     <tr class="hover:bg-gray-50">
                       <td class="font-mono whitespace-nowrap border-b border-gray-200 p-0 h-10">
-                        <.link
-                          href={"/incidents/#{media.slug}"}
-                          class="text-button text-neutral-500 text-sm ml-4"
-                        >
+                        <.link href={"/incidents/#{media.slug}"} class="text-button text-sm ml-4">
                           <%= media.slug %>
                         </.link>
                       </td>
@@ -116,49 +112,31 @@ defmodule PlatformWeb.MediaLive.PaginatedMediaTable do
                           </div>
                         </td>
                       <% end %>
-                      <td class="border-b hover:bg-neutral-100 text-sm p-0">
-                        <div class="w-48 overflow-hidden">
-                          <% versions =
-                            media.versions
-                            |> Enum.filter(&Material.MediaVersion.can_user_view(&1, @current_user)) %>
-                          <.popover>
-                            <:display>
-                              <div class="break-all flex flex-col gap-px text-neutral-600">
-                                <%= for version <- versions do %>
-                                  <a
-                                    href={version.source_url}
-                                    title={version.source_url}
-                                    rel="nofollow"
-                                    target="_blank"
-                                    class="block"
-                                  >
-                                    <.url_icon url={version.source_url} class="h-4 w-4 inline" />
-                                    <%= version.source_url %>
-                                  </a>
-                                <% end %>
-                              </div>
-                            </:display>
-                            <div class="max-w-48">
-                              <%= for version <- versions do %>
+                      <% versions =
+                        media.versions
+                        |> Enum.filter(&Material.MediaVersion.can_user_view(&1, @current_user)) %>
+                      <%= for idx <- 0..source_cols do %>
+                        <td class="border-b hover:bg-neutral-100 cursor-pointer p-0">
+                          <div class="text-sm text-gray-900 px-4 truncate h-6 w-[12rem]">
+                            <% version = Enum.at(versions, idx) %>
+                            <%= if not is_nil(version) do %>
+                              <p>
                                 <a
                                   href={version.source_url}
-                                  title={version.source_url}
-                                  rel="nofollow"
                                   target="_blank"
+                                  rel="nofollow"
+                                  class="truncate"
                                 >
-                                  <.url_icon url={version.source_url} class="h-4 w-4 inline" />
-                                  <span class="hidden"><%= version.source_url %></span>
+                                  <.url_icon url={version.source_url} class="h-4 w-4 inline mb-px" />
+                                  <%= version.source_url %>
                                 </a>
-                              <% end %>
-                            </div>
-                          </.popover>
-                        </div>
-                      </td>
-                      <td class="relative whitespace-nowrap break-all border-b border-gray-200 pr-4 pl-3 text-right text-sm font-medium sm:pr-6 lg:pr-8">
-                        <.link href={"/incidents/#{media.slug}"} class="text-button">
-                          View &rarr;<span class="sr-only">, <%= media.slug %></span>
-                        </.link>
-                      </td>
+                              </p>
+                            <% else %>
+                              &mdash;
+                            <% end %>
+                          </div>
+                        </td>
+                      <% end %>
                     </tr>
                   <% end %>
                 </tbody>

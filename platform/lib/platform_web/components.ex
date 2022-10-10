@@ -893,7 +893,7 @@ defmodule PlatformWeb.Components do
           </.popover>
         </div>
       <% else %>
-        <span class="text-neutral-400">&mdash;</span> >>>>>>> 1134fe4 (Upstream pending changes)
+        <span class="text-neutral-400">&mdash;</span>
       <% end %>
     </div>
     """
