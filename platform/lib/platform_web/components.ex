@@ -834,6 +834,70 @@ defmodule PlatformWeb.Components do
     """
   end
 
+  def attr_display_compact(
+        %{
+          attr: %Attribute{} = attr,
+          media: %Media{} = media,
+          updates: updates,
+          socket: socket
+        } = assigns
+      ) do
+    children = Attribute.get_children(attr.name)
+
+    ~H"""
+    <div>
+      <%= if not is_nil(Map.get(media, attr.schema_field)) do %>
+        <% update =
+          updates
+          |> Enum.filter(&(&1.modified_attribute == attr.name || &1.type == :create))
+          |> Enum.sort_by(& &1.inserted_at)
+          |> Enum.reverse()
+          |> hd() %>
+        <div class="flex flex-wrap text-xs">
+          <.popover class="font-base p-0">
+            <div class="truncate max-w-full">
+              <.attr_entry
+                color={true}
+                compact={true}
+                name={attr.name}
+                value={Map.get(media, attr.schema_field)}
+              />
+            </div>
+            <:display>
+              <div class="py-2">
+                <%= if not is_nil(update) do %>
+                  <div class="text-sm text-neutral-600 mb-2 border-b pb-1">
+                    <.user_text user={update.user} /> &mdash; <.rel_time time={update.inserted_at} />
+                  </div>
+                <% end %>
+                <div class="text-ellipsis overflow-hidden max-w-full">
+                  <.attr_entry
+                    color={true}
+                    name={attr.name}
+                    value={Map.get(media, attr.schema_field)}
+                  />
+                  <%= for child <- children do %>
+                    <%= if not is_nil(Map.get(media, child.schema_field)) do %>
+                      <.attr_entry
+                        color={true}
+                        name={child.name}
+                        value={Map.get(media, child.schema_field)}
+                        label={child.label}
+                      />
+                    <% end %>
+                  <% end %>
+                </div>
+              </div>
+            </:display>
+          </.popover>
+        </div>
+      <% else %>
+        <span class="text-neutral-400">&mdash;</span>
+      <% end %>
+    </div>
+    """
+  end
+
   def attr_display_row(
         %{
           attr: %Attribute{} = attr,
@@ -934,18 +998,35 @@ defmodule PlatformWeb.Components do
     attr = Attribute.get_attribute(name)
 
     label = Map.get(assigns, :label, "")
+    compact = Map.get(assigns, :compact, false)
+
+    tone =
+      if Map.get(assigns, :color, false), do: Attribute.attr_color(name, value), else: "~neutral"
 
     ~H"""
     <span class="inline-flex flex-wrap gap-1 max-w-full">
       <%= case attr.type do %>
         <% :text -> %>
-          <div class="inline-block prose prose-sm my-px break-words">
-            <.attr_label label={label} />
-            <%= raw(value |> Utils.render_markdown()) %>
-          </div>
+          <%= if compact do %>
+            <div class="inline-block truncate prose prose-sm my-px">
+              <.attr_label label={label} />
+              <%= raw(
+                value
+                |> Utils.render_markdown()
+              ) %>
+            </div>
+          <% else %>
+            <div class="inline-block text-ellipsis overflow-hidden prose prose-sm my-px">
+              <.attr_label label={label} />
+              <%= raw(
+                value
+                |> Utils.render_markdown()
+              ) %>
+            </div>
+          <% end %>
         <% :select -> %>
           <div class="inline-block">
-            <div class="chip ~neutral inline-block self-start break-all xl:break-normal">
+            <div class={"chip #{tone} inline-block self-start break-all xl:break-normal"}>
               <.attr_label label={label} />
               <%= value %>
             </div>
@@ -953,7 +1034,7 @@ defmodule PlatformWeb.Components do
         <% :multi_select -> %>
           <.attr_label label={label} />
           <%= for item <- value do %>
-            <div class="chip ~neutral inline-block self-start break-all xl:break-normal">
+            <div class={"chip #{tone} inline-block self-start break-all xl:break-normal"}>
               <%= item %>
             </div>
           <% end %>
@@ -961,7 +1042,7 @@ defmodule PlatformWeb.Components do
           <div class="inline-block">
             <% {lon, lat} = value.coordinates %>
             <a
-              class="chip ~neutral inline-block flex gap-1 self-start break-all xl:break-normal"
+              class={"chip #{tone} inline-block flex gap-1 self-start break-all xl:break-normal"}
               target="_blank"
               href={"https://maps.google.com/maps?q=#{lat},#{lon}"}
             >
@@ -971,16 +1052,16 @@ defmodule PlatformWeb.Components do
           </div>
         <% :time -> %>
           <div class="inline-block">
-            <div class="chip ~neutral inline-block self-start break-all xl:break-normal">
+            <div class={"chip #{tone} inline-block self-start break-all xl:break-normal"}>
               <.attr_label label={label} />
               <%= value %>
             </div>
           </div>
         <% :date -> %>
           <div class="inline-block">
-            <div class="chip ~neutral inline-block self-start break-all xl:break-normal">
+            <div class={"chip #{tone} inline-block self-start break-all xl:break-normal"}>
               <.attr_label label={label} />
-              <%= value |> Calendar.strftime("%d %B %Y") |> dbg() %>
+              <%= value |> Calendar.strftime("%d %B %Y") %>
             </div>
           </div>
       <% end %>
@@ -1222,6 +1303,15 @@ defmodule PlatformWeb.Components do
         do: new |> Map.get(attr.schema_field |> to_string()),
         else: new
 
+    format_date = fn val ->
+      with false <- is_nil(val),
+           {:ok, date} <- val |> Date.from_iso8601() do
+        [date |> Calendar.strftime("%d %B %Y")]
+      else
+        _ -> nil
+      end
+    end
+
     ~H"""
     <div class="inline-block">
       <span>
@@ -1241,7 +1331,7 @@ defmodule PlatformWeb.Components do
           <% :time -> %>
             <.list_diff old={[old_val]} new={[new_val]} label={label} />
           <% :date -> %>
-            <.list_diff old={[old_val]} new={[new_val]} label={label} />
+            <.list_diff old={format_date.(old_val)} new={format_date.(new_val)} label={label} />
         <% end %>
       </span>
       <%= if Material.is_combined_update_value(old) and Material.is_combined_update_value(new) do %>

@@ -88,7 +88,7 @@ def run(civharm, outfile):
             type = ["Civilian Harm"]
 
             try:
-                date = date_parse(row["Reported Date"]).strftime("%Y-%m-%d")
+                date = date_parse(row["Reported Date"], dayfirst=True).strftime("%Y-%m-%d")
             except:
                 date = ""
 

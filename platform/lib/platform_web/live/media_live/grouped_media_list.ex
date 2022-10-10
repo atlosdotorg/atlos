@@ -39,7 +39,7 @@ defmodule PlatformWeb.MediaLive.GroupedMediaList do
 
   def render(assigns) do
     ~H"""
-    <section class="flex flex-col mx-auto gap-8 w-full pr-8 md:pr-16">
+    <section class="flex flex-col mx-auto gap-8 w-full">
       <%= for {label, link, _params, media} <- @groups do %>
         <div class="rounded-lg border bg-neutral-100 p-4">
           <div>

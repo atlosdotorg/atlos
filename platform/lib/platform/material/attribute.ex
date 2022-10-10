@@ -47,6 +47,32 @@ defmodule Platform.Material.Attribute do
   def attributes() do
     [
       %Attribute{
+        schema_field: :attr_status,
+        type: :select,
+        options: [
+          "Unclaimed",
+          "In Progress",
+          "Help Needed",
+          "Ready for Review",
+          "Completed",
+          "Cancelled"
+        ],
+        label: "Status",
+        pane: :metadata,
+        required: true,
+        name: :status,
+        description: "Use the status to help coordinate and track work on Atlos.",
+        privileged_values: ["Completed", "Cancelled"],
+        option_descriptions: %{
+          "Unclaimed" => "Not actively being worked on",
+          "In Progress" => "Actively being worked on",
+          "Help Needed" => "Stuck, or second opinion needed",
+          "Ready for Review" => "Ready for a moderator's verification",
+          "Completed" => "Investigation complete",
+          "Cancelled" => "Will not be completed (out of scope, etc.)"
+        }
+      },
+      %Attribute{
         schema_field: :attr_sensitive,
         type: :multi_select,
         options: [
@@ -380,32 +406,6 @@ defmodule Platform.Material.Attribute do
         # NOTE: Editing these values also requires editing the perm checks in `media.ex`
         options: ["Frozen", "Hidden"],
         required_roles: [:admin]
-      },
-      %Attribute{
-        schema_field: :attr_status,
-        type: :select,
-        options: [
-          "Unclaimed",
-          "In Progress",
-          "Help Needed",
-          "Ready for Review",
-          "Completed",
-          "Cancelled"
-        ],
-        label: "Status",
-        pane: :metadata,
-        required: true,
-        name: :status,
-        description: "Use the status to help coordinate and track work on Atlos.",
-        privileged_values: ["Completed", "Cancelled"],
-        option_descriptions: %{
-          "Unclaimed" => "Not actively being worked on",
-          "In Progress" => "Actively being worked on",
-          "Help Needed" => "Stuck, or second opinion needed",
-          "Ready for Review" => "Ready for a moderator's verification",
-          "Completed" => "Investigation complete",
-          "Cancelled" => "Will not be completed (out of scope, etc.)"
-        }
       },
       %Attribute{
         schema_field: :attr_tags,
@@ -823,7 +823,10 @@ defmodule Platform.Material.Attribute do
   def attr_color(name, value) do
     case name do
       :sensitive ->
-        "~critical"
+        case value do
+          ["Not Sensitive"] -> "~neutral"
+          _ -> "~critical"
+        end
 
       :status ->
         case value do
