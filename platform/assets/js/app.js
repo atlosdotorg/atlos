@@ -96,7 +96,7 @@ function initializePopovers() {
             content: popover.innerHTML,
             theme: "light",
             appendTo: document.body,
-            delay: [1000, 0]
+            delay: [250, 0]
         });
 
         s.classList.add("popover-initialized");
@@ -107,7 +107,7 @@ function initializePopovers() {
             allowHTML: true,
             content: s.getAttribute("data-tooltip"),
             appendTo: document.body,
-            delay: [1000, 0]
+            delay: [250, 0]
         });
 
         s.classList.add("tooltip-initialized");

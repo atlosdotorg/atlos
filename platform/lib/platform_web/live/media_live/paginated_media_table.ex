@@ -3,14 +3,18 @@ defmodule PlatformWeb.MediaLive.PaginatedMediaTable do
   alias Platform.Material
   alias Platform.Material.Attribute
 
-  def update(%{query_params: params, current_user: _user} = assigns, socket) do
+  def update(%{query_params: params, current_user: user} = assigns, socket) do
     hydrated_socket = socket |> assign(assigns)
+
+    # Noah: would be cool if when you hover over media, you get a preview
 
     results = search_media(hydrated_socket, Material.MediaSearch.changeset(params), limit: 250)
 
     {:ok,
      hydrated_socket
      |> assign(:results, results)
+     |> assign(:editing, nil)
+     |> assign(:current_user, user)
      |> assign(:media, results.entries)}
   end
 
@@ -29,6 +33,39 @@ defmodule PlatformWeb.MediaLive.PaginatedMediaTable do
       |> assign(:media, socket.assigns.media ++ results.entries)
 
     {:noreply, new_socket}
+  end
+
+  def handle_event(
+        "edit_attribute",
+        %{"attribute" => attr_name, "media-id" => media_id} = _params,
+        socket
+      ) do
+    {id, ""} = Integer.parse(media_id) |> dbg()
+
+    {:noreply,
+     socket
+     |> assign(
+       :editing,
+       {Enum.find(socket.assigns.media, &(&1.id == id)), attr_name}
+     )}
+  end
+
+  def handle_info(
+        {:end_attribute_edit, updated_media},
+        socket
+      ) do
+    if is_nil(updated_media) do
+      socket
+    else
+      {:noreply,
+       socket
+       |> assign(
+         :media,
+         Enum.map(socket.assigns.media, fn m ->
+           if m.id == updated_media.id, do: updated_media, else: m
+         end)
+       )}
+    end
   end
 
   defp search_media(socket, c, pagination_opts \\ []) do
@@ -89,19 +126,36 @@ defmodule PlatformWeb.MediaLive.PaginatedMediaTable do
                 <tbody class="bg-white">
                   <%= for media <- @media do %>
                     <tr class="hover:bg-gray-50">
-                      <td class="font-mono whitespace-nowrap border-b border-gray-200 p-0 h-10">
-                        <.link href={"/incidents/#{media.slug}"} class="text-button text-sm ml-4">
+                      <td class="sticky left-0 bg-white group-hover:bg-neutral-50 px-4 shadow font-mono whitespace-nowrap border-b border-gray-200 h-10">
+                        <.link href={"/incidents/#{media.slug}"} class="text-button text-sm">
                           <%= media.slug %>
                         </.link>
                       </td>
-                      <td class="whitespace-nowrap border-b border-gray-200 text-sm text-neutral-600">
-                        <div class="ml-4">
-                          <.rel_time time={media.updated_at} />
+                      <td class="border-b border-gray-200 text-sm text-neutral-600">
+                        <div class="ml-4 flex w-full">
+                          <div class="flex-shrink-0 w-5">
+                            <.user_stack users={
+                              media.updates
+                              |> Enum.sort_by(& &1.inserted_at)
+                              |> Enum.map(& &1.user)
+                              |> Enum.reverse()
+                              |> Enum.take(1)
+                            } />
+                          </div>
+                          <div class="flex-shrink-0">
+                            <.rel_time time={media.updated_at} />
+                          </div>
                         </div>
                       </td>
                       <%= for attr <- attributes do %>
                         <td class="border-b hover:bg-neutral-100 cursor-pointer p-0">
-                          <div class="text-sm text-gray-900 px-4 overflow-hidden h-6 max-w-[36rem]">
+                          <div
+                            class="text-sm text-gray-900 px-4 overflow-hidden h-6 max-w-[36rem]"
+                            phx-click="edit_attribute"
+                            phx-value-attribute={attr.name}
+                            phx-value-media-id={media.id}
+                            phx-target={@myself}
+                          >
                             <.attr_display_compact
                               attr={attr}
                               media={media}
@@ -158,6 +212,16 @@ defmodule PlatformWeb.MediaLive.PaginatedMediaTable do
           </button>
         <% end %>
       </div>
+      <%= with {media, attribute_name} <- @editing do %>
+        <.live_component
+          module={PlatformWeb.MediaLive.EditAttribute}
+          id="edit-attribute"
+          media={media}
+          name={attribute_name}
+          target={self()}
+          current_user={@current_user}
+        />
+      <% end %>
     </section>
     """
   end

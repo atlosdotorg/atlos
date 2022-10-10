@@ -5,7 +5,7 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
   alias Platform.Auditor
 
   def update(assigns, socket) do
-    attr = Attribute.get_attribute(String.to_atom(assigns.name))
+    attr = Attribute.get_attribute(String.to_existing_atom(assigns.name))
     attributes = [attr] ++ Attribute.get_children(attr.name)
 
     {:ok,
@@ -18,8 +18,12 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
      )}
   end
 
-  def close(socket) do
-    socket |> push_patch(to: Routes.media_show_path(socket, :show, socket.assigns.media.slug))
+  def close(socket, updated_media \\ nil) do
+    if Map.get(socket.assigns, :target) do
+      send(socket.assigns.target, {:end_attribute_edit, updated_media})
+    else
+      socket |> push_patch(to: Routes.media_show_path(socket, :show, socket.assigns.media.slug))
+    end
   end
 
   defp inject_attr_fields_if_missing(params, attrs) do
