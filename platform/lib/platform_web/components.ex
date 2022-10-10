@@ -1016,7 +1016,7 @@ defmodule PlatformWeb.Components do
               ) %>
             </div>
           <% else %>
-            <div class="inline-block truncate prose prose-sm my-px">
+            <div class="inline-block text-ellipsis overflow-hidden prose prose-sm my-px">
               <.attr_label label={label} />
               <%= raw(
                 value
