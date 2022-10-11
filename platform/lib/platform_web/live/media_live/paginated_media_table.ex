@@ -95,7 +95,7 @@ defmodule PlatformWeb.MediaLive.PaginatedMediaTable do
                   <tr>
                     <th
                       scope="col"
-                      class="sticky top-0 z-100 border-b border-gray-300 bg-gray-100 bg-opacity-75 px-4 py-4 font-medium text-sm text-left"
+                      class="sticky top-0 z-200 border-b border-gray-300 bg-gray-100 bg-opacity-75 px-4 py-4 font-medium text-sm text-left"
                     >
                       <span class="sr-only">Slug</span>
                     </th>
@@ -131,16 +131,10 @@ defmodule PlatformWeb.MediaLive.PaginatedMediaTable do
                           <%= media.slug %>
                         </.link>
                       </td>
-                      <td class="border-b border-gray-200 text-sm text-neutral-600">
-                        <div class="ml-4 flex w-full">
-                          <div class="flex-shrink-0 w-5">
-                            <.user_stack users={
-                              media.updates
-                              |> Enum.sort_by(& &1.inserted_at)
-                              |> Enum.map(& &1.user)
-                              |> Enum.reverse()
-                              |> Enum.take(1)
-                            } />
+                      <td class="border-b hover:bg-neutral-100 cursor-pointer p-0 text-sm text-neutral-600">
+                        <div class="ml-4 flex w-[7rem] relative z-0">
+                          <div class="flex-shrink-0 w-5 mr-1">
+                            <.user_stack users={media.updates |> Enum.take(1) |> Enum.map(& &1.user)} />
                           </div>
                           <div class="flex-shrink-0">
                             <.rel_time time={media.updated_at} />
