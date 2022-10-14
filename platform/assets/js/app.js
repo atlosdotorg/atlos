@@ -96,7 +96,7 @@ function initializePopovers() {
         if (s._tippy) {
             return;
         }
-        let popover = s.querySelector("template[role=\"popover\"]");
+        let popover = s.querySelector("div.hidden[role=\"popover\"]");
 
         tippy(s, {
             interactive: true,
