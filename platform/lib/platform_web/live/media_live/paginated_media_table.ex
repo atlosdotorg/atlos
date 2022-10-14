@@ -90,25 +90,25 @@ defmodule PlatformWeb.MediaLive.PaginatedMediaTable do
         <div class="min-w-full overflow-x-auto -mx-8 rounded-lg">
           <div class="min-w-full inline-block py-2 align-middle rounded-lg">
             <div class="shadow-sm rounded ring-1 ring-black ring-opacity-5">
-              <table class="min-w-full border-separate" style="border-spacing: 0">
+              <table class="min-w-full relative border-separate" style="border-spacing: 0">
                 <thead class="bg-gray-100 whitespace-nowrap">
                   <tr>
                     <th
                       scope="col"
-                      class="sticky top-0 z-200 border-b border-gray-300 bg-gray-100 bg-opacity-75 px-4 py-4 font-medium text-sm text-left"
+                      class="sticky left-0 z-[99] top-0 border-b border-gray-300 bg-gray-100 bg-opacity-75 px-4 py-4 font-medium text-sm text-left"
                     >
                       <span class="sr-only">Slug</span>
                     </th>
                     <th
                       scope="col"
-                      class="sticky top-0 z-100 border-b border-gray-300 bg-gray-100 bg-opacity-75 px-4 py-4 font-medium text-sm text-left"
+                      class="sticky z-[100] top-0 border-b border-gray-300 bg-gray-100 bg-opacity-75 px-4 py-4 font-medium text-sm text-left"
                     >
                       Updated
                     </th>
                     <%= for attr <- attributes do %>
                       <th
                         scope="col"
-                        class="sticky top-0 z-100 border-b border-gray-300 bg-gray-100 bg-opacity-75 px-4 py-4 font-medium text-sm text-left"
+                        class="sticky z-[100] top-0 border-b border-gray-300 bg-gray-100 bg-opacity-75 px-4 py-4 font-medium text-sm text-left"
                       >
                         <%= attr.label %>
                       </th>
@@ -116,7 +116,7 @@ defmodule PlatformWeb.MediaLive.PaginatedMediaTable do
                     <%= for idx <- 0..source_cols do %>
                       <th
                         scope="col"
-                        class="sticky top-0 z-100 border-b border-gray-300 bg-gray-100 bg-opacity-75 px-4 py-4 font-medium text-sm text-left"
+                        class="sticky z-[100] top-0 border-b border-gray-300 bg-gray-100 bg-opacity-75 px-4 py-4 font-medium text-sm text-left"
                       >
                         Source <%= idx + 1 %>
                       </th>
@@ -126,7 +126,7 @@ defmodule PlatformWeb.MediaLive.PaginatedMediaTable do
                 <tbody class="bg-white">
                   <%= for media <- @media do %>
                     <tr class="hover:bg-gray-50">
-                      <td class="sticky left-0 bg-white group-hover:bg-neutral-50 px-4 shadow font-mono whitespace-nowrap border-b border-gray-200 h-10">
+                      <td class="sticky left-0 z-[100] bg-white group-hover:bg-neutral-50 px-4 shadow font-mono whitespace-nowrap border-b border-gray-200 h-10">
                         <.link href={"/incidents/#{media.slug}"} class="text-button text-sm">
                           <%= media.slug %>
                         </.link>
@@ -180,7 +180,9 @@ defmodule PlatformWeb.MediaLive.PaginatedMediaTable do
                                 </a>
                               </p>
                             <% else %>
-                              &mdash;
+                              <span class="text-neutral-400">
+                                &mdash;
+                              </span>
                             <% end %>
                           </div>
                         </td>
