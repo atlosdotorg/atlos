@@ -20,10 +20,11 @@ defmodule Platform.Material do
   alias Platform.Uploads
   alias Platform.Accounts
 
-  defp hydrate_media_query(query) do
+  defp hydrate_media_query(query, for_user \\ nil) do
     query
     |> preload_media_versions()
     |> preload_media_updates()
+    |> populate_user_fields(for_user)
   end
 
   @doc """
@@ -42,28 +43,28 @@ defmodule Platform.Material do
     |> Repo.all()
   end
 
-  defp _query_media(query) do
+  defp _query_media(query, for_user \\ nil) do
     # Helper function used to abstract behavior of the `query_media` functions.
     query
-    |> hydrate_media_query()
+    |> hydrate_media_query(for_user)
     |> order_by(desc: :updated_at)
   end
 
   @doc """
   Query the list of media. Will preload the versions and updates.
   """
-  def query_media(query \\ Media) do
-    _query_media(query)
+  def query_media(query \\ Media, for_user \\ nil) do
+    _query_media(query, for_user)
     |> Repo.all()
   end
 
   @doc """
   Query the list of media, paginated. Will preload the versions and updates. Behavior otherwise the same as query_media/1.
   """
-  def query_media_paginated(query \\ Media, opts \\ []) do
+  def query_media_paginated(query \\ Media, opts \\ [], for_user \\ nil) do
     applied_options = Keyword.merge([cursor_fields: [{:updated_at, :desc}], limit: 30], opts)
 
-    _query_media(query)
+    _query_media(query, for_user)
     |> Repo.paginate(applied_options)
   end
 
@@ -107,6 +108,25 @@ defmodule Platform.Material do
   defp preload_media_updates(query) do
     # TODO: should this be pulled into the Updates context somehow?
     query |> preload(updates: [:user, :media, :media_version])
+  end
+
+  defp populate_user_fields(query, nil) do
+    query
+  end
+
+  defp populate_user_fields(media_query, %User{} = user) do
+    media_query
+    |> join(:left, [m], n in Platform.Notifications.Notification,
+      on: n.media_id == m.id and n.user_id == ^user.id and not n.read
+    )
+    |> join(:left, [m, _n], s in Platform.Material.MediaSubscription,
+      on: s.media_id == m.id and s.user_id == ^user.id
+    )
+    |> select_merge([_m, n, s], %{
+      has_unread_notification: not is_nil(n),
+      has_subscription: not is_nil(s)
+    })
+    |> distinct(true)
   end
 
   @doc """

@@ -25,6 +25,7 @@ import topbar from "../vendor/topbar"
 import mapboxgl from 'mapbox-gl'
 import Alpine from 'alpinejs'
 import tippy from 'tippy.js';
+import Mark from 'mark.js';
 
 mapboxgl.accessToken = 'pk.eyJ1IjoibWlsZXNtY2MiLCJhIjoiY2t6ZzdzZmY0MDRobjJvbXBydWVmaXBpNSJ9.-aHM8bjOOsSrGI0VvZenAQ';
 
@@ -43,6 +44,10 @@ let liveSocket = new LiveSocket("/live", Socket, {
         onBeforeElUpdated(from, to) {
             if (from._x_dataStack) {
                 window.Alpine.clone(from, to);
+            }
+            if (from._tippy) {
+                from._tippy.destroy();
+                console.log("Destroyed!")
             }
         },
     },
@@ -87,30 +92,33 @@ let lockIcon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 m-px mb-1
 
 // Logic specifically for the <.popover> component
 function initializePopovers() {
-    document.querySelectorAll("[data-popover]:not(.popover-initialized)").forEach(s => {
-        let popover = s.querySelector("template[role=\"popover\"]");
+    document.querySelectorAll("[data-popover]").forEach(s => {
+        if (s._tippy) {
+            return;
+        }
+        let popover = s.querySelector("div.hidden[role=\"popover\"]");
 
         tippy(s, {
             interactive: true,
             allowHTML: true,
             content: popover.innerHTML,
             theme: "light",
-            appendTo: document.body,
-            delay: [1000, 0]
+            delay: [250, 0],
+            appendTo: document.querySelector("#tooltips")
         });
-
-        s.classList.add("popover-initialized");
     })
 
     document.querySelectorAll("[data-tooltip]:not(.tooltip-initialized)").forEach(s => {
+        if (s._tippy) {
+            return;
+        }
+
         tippy(s, {
             allowHTML: true,
             content: s.getAttribute("data-tooltip"),
-            appendTo: document.body,
-            delay: [1000, 0]
+            delay: [250, 0],
+            appendTo: document.querySelector("#tooltips")
         });
-
-        s.classList.add("tooltip-initialized");
     });
 }
 
@@ -318,6 +326,18 @@ function initializeMaps() {
     });
 }
 
+let _searchHighlighter = null;
+function applySearchHighlighting() {
+    if (_searchHighlighter !== null) {
+        _searchHighlighter.unmark();
+    }
+    let query = new URLSearchParams(window.location.search).get("query");
+    if (query !== null) {
+        _searchHighlighter = new Mark(document.querySelectorAll(".search-highlighting"), { accuracy: "exactly" });
+        _searchHighlighter.mark(query)
+    }
+}
+
 function debounce(func, timeout = 25) {
     let timer;
     return (...args) => {
@@ -349,6 +369,9 @@ document.addEventListener("load", initializeMaps);
 
 document.addEventListener("phx:update", initializePopovers);
 document.addEventListener("load", initializePopovers);
+
+document.addEventListener("phx:update", applySearchHighlighting);
+document.addEventListener("load", applySearchHighlighting);
 
 // Used to set the clipboard when copying hash information
 window.setClipboard = (text) => {

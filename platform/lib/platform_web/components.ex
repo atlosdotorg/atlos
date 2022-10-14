@@ -34,7 +34,7 @@ defmodule PlatformWeb.Components do
   def modal(assigns) do
     ~H"""
     <div
-      class="fixed z-[100] inset-0 overflow-y-auto"
+      class="fixed z-[10000] inset-0 overflow-y-auto"
       aria-labelledby="modal-title"
       role="dialog"
       aria-modal="true"
@@ -838,58 +838,34 @@ defmodule PlatformWeb.Components do
         %{
           attr: %Attribute{} = attr,
           media: %Media{} = media,
-          updates: updates,
-          socket: socket
+          current_user: current_user
         } = assigns
       ) do
     children = Attribute.get_children(attr.name)
 
     ~H"""
-    <div>
+    <div class="inline">
       <%= if not is_nil(Map.get(media, attr.schema_field)) do %>
-        <% update =
-          updates
-          |> Enum.filter(&(&1.modified_attribute == attr.name || &1.type == :create))
-          |> Enum.sort_by(& &1.inserted_at)
-          |> Enum.reverse()
-          |> hd() %>
-        <div class="flex flex-wrap text-xs">
-          <.popover class="font-base p-0">
-            <div class="truncate max-w-full">
-              <.attr_entry
-                color={true}
-                compact={true}
-                name={attr.name}
-                value={Map.get(media, attr.schema_field)}
-              />
-            </div>
-            <:display>
-              <div class="py-2">
-                <%= if not is_nil(update) do %>
-                  <div class="text-sm text-neutral-600 mb-2 border-b pb-1">
-                    <.user_text user={update.user} /> &mdash; <.rel_time time={update.inserted_at} />
-                  </div>
-                <% end %>
-                <div class="text-ellipsis overflow-hidden max-w-full">
-                  <.attr_entry
-                    color={true}
-                    name={attr.name}
-                    value={Map.get(media, attr.schema_field)}
-                  />
-                  <%= for child <- children do %>
-                    <%= if not is_nil(Map.get(media, child.schema_field)) do %>
-                      <.attr_entry
-                        color={true}
-                        name={child.name}
-                        value={Map.get(media, child.schema_field)}
-                        label={child.label}
-                      />
-                    <% end %>
-                  <% end %>
-                </div>
-              </div>
-            </:display>
-          </.popover>
+        <div class="inline-flex flex-wrap text-xs">
+          <div class="break-word max-w-full text-ellipsis overflow-hidden">
+            <.attr_entry
+              color={true}
+              compact={Map.get(assigns, :truncate, true)}
+              name={attr.name}
+              value={Map.get(media, attr.schema_field)}
+            />
+            <%= for child <- children do %>
+              <%= if not is_nil(Map.get(media, child.schema_field)) do %>
+                <.attr_entry
+                  color={true}
+                  compact={Map.get(assigns, :truncate, true)}
+                  name={child.name}
+                  value={Map.get(media, child.schema_field)}
+                  label={child.label}
+                />
+              <% end %>
+            <% end %>
+          </div>
         </div>
       <% else %>
         <span class="text-neutral-400">&mdash;</span>
@@ -946,14 +922,16 @@ defmodule PlatformWeb.Components do
       </dt>
       <dd class="mt-1 flex items-center text-sm text-gray-900 sm:mt-0 sm:col-span-2">
         <span class="flex-grow gap-1 flex flex-wrap">
-          <.attr_entry name={attr.name} value={Map.get(media, attr.schema_field)} />
-          <%= for child <- children do %>
-            <%= if not is_nil(Map.get(media, child.schema_field)) do %>
-              <.attr_entry
-                name={child.name}
-                value={Map.get(media, child.schema_field)}
-                label={child.label}
-              />
+          <%= if not is_nil(Map.get(media, attr.schema_field)) do %>
+            <.attr_entry name={attr.name} value={Map.get(media, attr.schema_field)} />
+            <%= for child <- children do %>
+              <%= if not is_nil(Map.get(media, child.schema_field)) do %>
+                <.attr_entry
+                  name={child.name}
+                  value={Map.get(media, child.schema_field)}
+                  label={child.label}
+                />
+              <% end %>
             <% end %>
           <% end %>
         </span>
@@ -1008,15 +986,17 @@ defmodule PlatformWeb.Components do
       <%= case attr.type do %>
         <% :text -> %>
           <%= if compact do %>
-            <div class="inline-block truncate prose prose-sm my-px">
+            <div class="inline-block prose prose-sm my-px word-breaks">
               <.attr_label label={label} />
               <%= raw(
                 value
+                |> String.replace("\n", "")
+                |> Utils.truncate(80)
                 |> Utils.render_markdown()
               ) %>
             </div>
           <% else %>
-            <div class="inline-block text-ellipsis overflow-hidden prose prose-sm my-px">
+            <div class="inline-block prose prose-sm my-px word-breaks">
               <.attr_label label={label} />
               <%= raw(
                 value
@@ -1033,10 +1013,15 @@ defmodule PlatformWeb.Components do
           </div>
         <% :multi_select -> %>
           <.attr_label label={label} />
-          <%= for item <- value do %>
+          <%= for item <- (if compact, do: value |> Enum.take(1), else: value) do %>
             <div class={"chip #{tone} inline-block self-start break-all xl:break-normal"}>
               <%= item %>
             </div>
+            <%= if compact and length(value) > 1 do %>
+              <div class="text-xs mt-1 text-neutral-500">
+                + <%= length(value) - 1 %>
+              </div>
+            <% end %>
           <% end %>
         <% :location -> %>
           <div class="inline-block">
@@ -1608,11 +1593,40 @@ defmodule PlatformWeb.Components do
     """
   end
 
+  def no_media_results(assigns) do
+    ~H"""
+    <div class="text-center mt-12 mx-auto w-full">
+      <svg
+        class="mx-auto h-16 w-16 text-gray-400"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+        aria-hidden="true"
+      >
+        <path
+          vector-effect="non-scaling-stroke"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"
+        />
+      </svg>
+      <h3 class="mt-2 font-medium text-gray-900">No results</h3>
+      <p class="mt-1 text-gray-500">No incidents matched this criteria</p>
+      <div class="mt-6">
+        <a href="/incidents" class="button ~urge @high">
+          View All &rarr;
+        </a>
+      </div>
+    </div>
+    """
+  end
+
   def user_stack(assigns) do
     max = Map.get(assigns, :max, 5)
 
     ~H"""
-    <div class="flex -space-x-1 relative z-0 overflow-hidden items-center">
+    <div class="flex -space-x-1 relative z-0 items-center">
       <%= for user <- @users |> Enum.take(5) do %>
         <.popover class="inline">
           <img
@@ -2150,12 +2164,16 @@ defmodule PlatformWeb.Components do
 
   def popover(assigns) do
     ~H"""
-    <div class={Map.get(assigns, :class, "")} data-popover>
-      <%= render_slot(@inner_block) %>
-      <template role="popover">
-        <%= render_slot(@display) %>
-      </template>
-    </div>
+    <span>
+      <div class={Map.get(assigns, :class, "")} data-popover>
+        <%= render_slot(@inner_block) %>
+        <div role="popover" class="hidden">
+          <object>
+            <%= render_slot(@display) %>
+          </object>
+        </div>
+      </div>
+    </span>
     """
   end
 
