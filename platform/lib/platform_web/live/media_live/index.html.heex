@@ -135,20 +135,191 @@
       </div>
     </section>
   </.form>
-  <%= case @display do %>
-    <% "cards" -> %>
-      <.live_component
-        module={PlatformWeb.MediaLive.PaginatedMediaList}
-        id="media-list"
-        current_user={@current_user}
-        query_params={@query_params}
-      />
-    <% "table" -> %>
-      <.live_component
-        module={PlatformWeb.MediaLive.PaginatedMediaTable}
-        id="media-table"
-        current_user={@current_user}
-        query_params={@query_params}
-      />
+  <section>
+    <%= if not Enum.empty?(@media) do %>
+      <%= case @display do %>
+        <% "cards" -> %>
+          <div class="grid gap-4 grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 search-highlighting">
+            <%= for media <- @media do %>
+              <.media_card media={media} current_user={@current_user} />
+            <% end %>
+          </div>
+        <% "table" -> %>
+          <section class="max-w-full">
+            <div class="min-w-full overflow-x-auto -mx-8 rounded-lg">
+              <div class="min-w-full inline-block py-2 align-middle rounded-lg">
+                <div class="shadow-sm rounded ring-1 ring-black ring-opacity-5">
+                  <table class="min-w-full relative border-separate" style="border-spacing: 0">
+                    <thead class="bg-gray-100 whitespace-nowrap">
+                      <tr>
+                        <th
+                          scope="col"
+                          class="sticky left-0 z-[99] top-0 border-b border-gray-300 bg-gray-100 bg-opacity-75 px-4 py-4 font-medium text-sm text-left"
+                        >
+                          <span class="sr-only">Slug</span>
+                        </th>
+                        <th
+                          scope="col"
+                          class="sticky z-[100] top-0 border-b border-gray-300 bg-gray-100 bg-opacity-75 px-4 py-4 font-medium text-sm text-left"
+                        >
+                          Updated
+                        </th>
+                        <%= for attr <- @attributes do %>
+                          <th
+                            scope="col"
+                            class="sticky z-[100] top-0 border-b border-gray-300 bg-gray-100 bg-opacity-75 px-4 py-4 font-medium text-sm text-left"
+                          >
+                            <%= attr.label %>
+                          </th>
+                        <% end %>
+                        <%= for idx <- 0..@source_cols do %>
+                          <th
+                            scope="col"
+                            class="sticky z-[100] top-0 border-b border-gray-300 bg-gray-100 bg-opacity-75 px-4 py-4 font-medium text-sm text-left"
+                          >
+                            Source <%= idx + 1 %>
+                          </th>
+                        <% end %>
+                      </tr>
+                    </thead>
+                    <tbody class="bg-white">
+                      <%= for media <- @media do %>
+                        <tr class="hover:bg-gray-50 search-highlighting group">
+                          <.link href={"/incidents/#{media.slug}"}>
+                            <td class="sticky left-0 z-[100] bg-white group-hover:bg-neutral-50 px-4 shadow font-mono whitespace-nowrap border-b border-gray-200 h-10">
+                              <span class="text-button text-sm">
+                                <%= media.slug %>
+                              </span>
+                            </td>
+                            <td class="border-b cursor-pointer p-0 text-sm text-neutral-600">
+                              <div class="ml-4 flex w-[7rem] relative z-0">
+                                <div class="flex-shrink-0 w-5 mr-1">
+                                  <.user_stack users={
+                                    media.updates |> Enum.take(1) |> Enum.map(& &1.user)
+                                  } />
+                                </div>
+                                <div class="flex-shrink-0">
+                                  <.rel_time time={media.updated_at} />
+                                </div>
+                              </div>
+                            </td>
+                            <%= for attr <- @attributes do %>
+                              <td class="border-b cursor-pointer p-0">
+                                <div class="text-sm text-gray-900 px-4 overflow-hidden h-6 max-w-[36rem] truncate">
+                                  <.popover class="font-base p-0">
+                                    <div class="truncate max-w-full">
+                                      <.attr_display_compact
+                                        color={true}
+                                        attr={attr}
+                                        media={media}
+                                        current_user={@current_user}
+                                      />
+                                    </div>
+                                    <:display>
+                                      <% update =
+                                        media.updates
+                                        |> Enum.filter(
+                                          &(&1.modified_attribute == attr.name ||
+                                              &1.type == :create)
+                                        )
+                                        |> Enum.sort_by(& &1.inserted_at)
+                                        |> Enum.reverse()
+                                        |> hd() %>
+                                      <div class="py-2 flex flex-col gap-2">
+                                        <%= if not is_nil(update) do %>
+                                          <div class="text-sm text-neutral-600 border-b pb-1">
+                                            <.user_text user={update.user} /> &mdash;
+                                            <.rel_time time={update.inserted_at} />
+                                          </div>
+                                        <% end %>
+                                        <.attr_display_compact
+                                          color={true}
+                                          attr={attr}
+                                          truncate={false}
+                                          media={media}
+                                          current_user={@current_user}
+                                        />
+                                        <hr />
+                                        <button
+                                          class="text-button inline"
+                                          phx-click="edit_attribute"
+                                          phx-value-attribute={attr.name}
+                                          phx-value-media-id={media.id}
+                                        >
+                                          Quick edit &rarr;
+                                        </button>
+                                      </div>
+                                    </:display>
+                                  </.popover>
+                                </div>
+                              </td>
+                            <% end %>
+                            <% versions =
+                              media.versions
+                              |> Enum.filter(
+                                &Material.MediaVersion.can_user_view(&1, @current_user)
+                              ) %>
+                            <%= for idx <- 0..@source_cols do %>
+                              <td class="border-b cursor-pointer p-0">
+                                <div class="text-sm text-gray-900 px-4 truncate h-6 w-[12rem]">
+                                  <% version = Enum.at(versions, idx) %>
+                                  <%= if not is_nil(version) do %>
+                                    <p>
+                                      <a
+                                        href={version.source_url}
+                                        target="_blank"
+                                        rel="nofollow"
+                                        class="truncate"
+                                      >
+                                        <.url_icon
+                                          url={version.source_url}
+                                          class="h-4 w-4 inline mb-px"
+                                        />
+                                        <%= version.source_url %>
+                                      </a>
+                                    </p>
+                                  <% else %>
+                                    <span class="text-neutral-400">
+                                      &mdash;
+                                    </span>
+                                  <% end %>
+                                </div>
+                              </td>
+                            <% end %>
+                          </.link>
+                        </tr>
+                      <% end %>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </section>
+      <% end %>
+    <% else %>
+      <.no_media_results />
+    <% end %>
+    <div class="mx-auto mt-8 text-center text-xs">
+      <%= if !is_nil(@results.metadata.after) do %>
+        <button
+          type="button"
+          class="text-button"
+          phx-click="load_more"
+          phx-disable-with="Loading..."
+        >
+          Load More
+        </button>
+      <% end %>
+    </div>
+  </section>
+  <%= with {media, attribute_name} <- @editing do %>
+    <.live_component
+      module={PlatformWeb.MediaLive.EditAttribute}
+      id="edit-attribute"
+      media={media}
+      name={attribute_name}
+      target={@myself}
+      current_user={@current_user}
+    />
   <% end %>
 </article>

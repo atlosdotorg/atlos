@@ -34,7 +34,7 @@ defmodule PlatformWeb.Components do
   def modal(assigns) do
     ~H"""
     <div
-      class="fixed z-[100] inset-0 overflow-y-auto"
+      class="fixed z-[10000] inset-0 overflow-y-auto"
       aria-labelledby="modal-title"
       role="dialog"
       aria-modal="true"
@@ -838,8 +838,6 @@ defmodule PlatformWeb.Components do
         %{
           attr: %Attribute{} = attr,
           media: %Media{} = media,
-          updates: updates,
-          socket: socket,
           current_user: current_user
         } = assigns
       ) do
@@ -848,49 +846,26 @@ defmodule PlatformWeb.Components do
     ~H"""
     <div>
       <%= if not is_nil(Map.get(media, attr.schema_field)) do %>
-        <% update =
-          updates
-          |> Enum.filter(&(&1.modified_attribute == attr.name || &1.type == :create))
-          |> Enum.sort_by(& &1.inserted_at)
-          |> Enum.reverse()
-          |> hd() %>
         <div class="flex flex-wrap text-xs">
-          <.popover class="font-base p-0">
-            <div class="truncate max-w-full">
-              <.attr_entry
-                color={true}
-                compact={true}
-                name={attr.name}
-                value={Map.get(media, attr.schema_field)}
-              />
-            </div>
-            <:display>
-              <div class="py-2">
-                <%= if not is_nil(update) do %>
-                  <div class="text-sm text-neutral-600 mb-2 border-b pb-1">
-                    <.user_text user={update.user} /> &mdash; <.rel_time time={update.inserted_at} />
-                  </div>
-                <% end %>
-                <div class="text-ellipsis overflow-hidden max-w-full">
-                  <.attr_entry
-                    color={true}
-                    name={attr.name}
-                    value={Map.get(media, attr.schema_field)}
-                  />
-                  <%= for child <- children do %>
-                    <%= if not is_nil(Map.get(media, child.schema_field)) do %>
-                      <.attr_entry
-                        color={true}
-                        name={child.name}
-                        value={Map.get(media, child.schema_field)}
-                        label={child.label}
-                      />
-                    <% end %>
-                  <% end %>
-                </div>
-              </div>
-            </:display>
-          </.popover>
+          <div class="text-ellipsis overflow-hidden max-w-full">
+            <.attr_entry
+              color={true}
+              compact={Map.get(assigns, :truncate, true)}
+              name={attr.name}
+              value={Map.get(media, attr.schema_field)}
+            />
+            <%= for child <- children do %>
+              <%= if not is_nil(Map.get(media, child.schema_field)) do %>
+                <.attr_entry
+                  color={true}
+                  compact={Map.get(assigns, :truncate, true)}
+                  name={child.name}
+                  value={Map.get(media, child.schema_field)}
+                  label={child.label}
+                />
+              <% end %>
+            <% end %>
+          </div>
         </div>
       <% else %>
         <span class="text-neutral-400">&mdash;</span>

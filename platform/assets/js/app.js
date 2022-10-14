@@ -324,8 +324,11 @@ function applySearchHighlighting() {
     if (_searchHighlighter !== null) {
         _searchHighlighter.unmark();
     }
-    _searchHighlighter = new Mark(document.querySelectorAll(".search-highlighting"), { accuracy: "exactly" });
-    _searchHighlighter.mark(new URLSearchParams(window.location.search).get("query"))
+    let query = new URLSearchParams(window.location.search).get("query");
+    if (query !== null) {
+        _searchHighlighter = new Mark(document.querySelectorAll(".search-highlighting"), { accuracy: "exactly" });
+        _searchHighlighter.mark(query)
+    }
 }
 
 function debounce(func, timeout = 25) {

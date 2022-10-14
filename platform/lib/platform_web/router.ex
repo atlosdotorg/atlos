@@ -129,6 +129,7 @@ defmodule PlatformWeb.Router do
       live("/queue/:which", MediaLive.Queue)
 
       live("/incidents", MediaLive.Index)
+
       live("/incidents/:slug", MediaLive.Show, :show)
       live("/incidents/:slug/card", MediaLive.Card)
       live("/incidents/:slug/update/:attribute", MediaLive.Show, :edit)
