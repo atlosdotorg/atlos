@@ -769,13 +769,17 @@ defmodule PlatformWeb.Components do
       12 => "Dec"
     }
 
+    full_display_time = Calendar.strftime(time, "%d %B %Y at %H:%M UTC")
+
     if ago > 7 * 24 * 60 * 60 do
       ~H"""
-      <span data-tooltip={@time}><%= months[@time.month] %> <%= @time.day %> <%= @time.year %></span>
+      <span data-tooltip={full_display_time}>
+        <%= months[@time.month] %> <%= @time.day %> <%= @time.year %>
+      </span>
       """
     else
       ~H"""
-      <span data-tooltip={@time}><%= ago |> time_ago_in_words() %></span>
+      <span data-tooltip={full_display_time}><%= ago |> time_ago_in_words() %></span>
       """
     end
   end
