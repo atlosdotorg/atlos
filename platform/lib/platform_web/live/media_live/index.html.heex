@@ -145,7 +145,7 @@
             <% end %>
           </div>
         <% "table" -> %>
-          <section class="max-w-full">
+          <section class="max-w-full min-h-[90vh]">
             <div class="min-w-full overflow-x-auto -mx-8 rounded-lg">
               <div class="min-w-full inline-block py-2 align-middle rounded-lg">
                 <div class="shadow-sm rounded ring-1 ring-black ring-opacity-5">
@@ -184,16 +184,30 @@
                     </thead>
                     <tbody class="bg-white">
                       <%= for media <- @media do %>
-                        <% is_subscribed =
-                          Material.is_user_subscribed(media.subscriptions, @current_user)
-                          |> dbg() %>
+                        <% is_subscribed = media.has_subscription %>
+                        <% has_unread_notification = media.has_unread_notification %>
                         <tr class={"search-highlighting " <> (if is_subscribed, do: "bg-neutral-50", else: "bg-white")}>
-                          <td class={"sticky left-0 z-[100] px-4 shadow font-mono whitespace-nowrap border-b border-gray-200 h-10 "  <> (if is_subscribed, do: "bg-neutral-50", else: "bg-white")}>
+                          <td class={"sticky left-0 z-[100] px-4 shadow font-mono whitespace-nowrap border-b border-gray-200 h-10 " <> (if is_subscribed, do: "bg-neutral-50", else: "bg-white")}>
                             <.link
                               href={"/incidents/#{media.slug}"}
-                              class={"text-button text-sm " <> (if is_subscribed, do: "font-bold", else: "")}
+                              class={"text-button text-sm flex items-center gap-1 " <> (if is_subscribed, do: "font-bold", else: "")}
                             >
                               <%= media.slug %>
+                              <%= if has_unread_notification do %>
+                                <span data-tooltip="Unread notification">
+                                  <svg
+                                    viewBox="0 0 100 100"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="currentColor"
+                                    class="h-2 w-2"
+                                  >
+                                    <circle cx="50" cy="50" r="50" />
+                                  </svg>
+                                  <span class="sr-only">
+                                    Unread notification
+                                  </span>
+                                </span>
+                              <% end %>
                             </.link>
                           </td>
                           <td class="border-b cursor-pointer p-0 text-sm text-neutral-600">

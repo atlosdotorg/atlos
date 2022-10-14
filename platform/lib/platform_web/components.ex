@@ -990,6 +990,7 @@ defmodule PlatformWeb.Components do
               <.attr_label label={label} />
               <%= raw(
                 value
+                |> String.replace("\n", "")
                 |> Utils.truncate(80)
                 |> Utils.render_markdown()
               ) %>

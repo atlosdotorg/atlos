@@ -45,6 +45,10 @@ defmodule Platform.Material.Media do
     field :explanation, :string, virtual: true
     field :location, :string, virtual: true
 
+    # Virtual attributes for population during querying
+    field :has_unread_notification, :boolean, virtual: true
+    field :has_subscription, :boolean, virtual: true
+
     # Metadata
     timestamps()
 

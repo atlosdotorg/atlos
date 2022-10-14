@@ -45,6 +45,10 @@ let liveSocket = new LiveSocket("/live", Socket, {
             if (from._x_dataStack) {
                 window.Alpine.clone(from, to);
             }
+            if (from._tippy) {
+                from._tippy.destroy();
+                console.log("Destroyed!")
+            }
         },
     },
     params: { _csrf_token: csrfToken },
@@ -88,7 +92,10 @@ let lockIcon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 m-px mb-1
 
 // Logic specifically for the <.popover> component
 function initializePopovers() {
-    document.querySelectorAll("[data-popover]:not(.popover-initialized)").forEach(s => {
+    document.querySelectorAll("[data-popover]").forEach(s => {
+        if (s._tippy) {
+            return;
+        }
         let popover = s.querySelector("template[role=\"popover\"]");
 
         tippy(s, {
@@ -96,21 +103,22 @@ function initializePopovers() {
             allowHTML: true,
             content: popover.innerHTML,
             theme: "light",
-            delay: [250, 0]
+            delay: [250, 0],
+            appendTo: document.querySelector("#tooltips")
         });
-
-        s.classList.add("popover-initialized");
     })
 
     document.querySelectorAll("[data-tooltip]:not(.tooltip-initialized)").forEach(s => {
+        if (s._tippy) {
+            return;
+        }
+
         tippy(s, {
             allowHTML: true,
             content: s.getAttribute("data-tooltip"),
-            appendTo: document.body,
-            delay: [250, 0]
+            delay: [250, 0],
+            appendTo: document.querySelector("#tooltips")
         });
-
-        s.classList.add("tooltip-initialized");
     });
 }
 

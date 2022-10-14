@@ -39,7 +39,10 @@ defmodule PlatformWeb.MediaLive.Index do
 
     query
     |> Material.MediaSearch.filter_viewable(socket.assigns.current_user)
-    |> Material.query_media_paginated(Keyword.merge(pagination_options, pagination_opts))
+    |> Material.query_media_paginated(
+      Keyword.merge(pagination_options, pagination_opts),
+      socket.assigns.current_user
+    )
   end
 
   def handle_event("load_more", _params, socket) do
