@@ -2168,7 +2168,9 @@ defmodule PlatformWeb.Components do
       <div class={Map.get(assigns, :class, "")} data-popover>
         <%= render_slot(@inner_block) %>
         <div role="popover" class="hidden">
-          <%= render_slot(@display) %>
+          <object>
+            <%= render_slot(@display) %>
+          </object>
         </div>
       </div>
     </span>
