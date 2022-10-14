@@ -96,7 +96,6 @@ function initializePopovers() {
             allowHTML: true,
             content: popover.innerHTML,
             theme: "light",
-            appendTo: document.body,
             delay: [250, 0]
         });
 

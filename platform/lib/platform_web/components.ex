@@ -844,10 +844,10 @@ defmodule PlatformWeb.Components do
     children = Attribute.get_children(attr.name)
 
     ~H"""
-    <div>
+    <div class="inline">
       <%= if not is_nil(Map.get(media, attr.schema_field)) do %>
-        <div class="flex flex-wrap text-xs">
-          <div class="text-ellipsis overflow-hidden max-w-full">
+        <div class="inline-flex flex-wrap text-xs">
+          <div class="text-ellipsis overflow-hidden">
             <.attr_entry
               color={true}
               compact={Map.get(assigns, :truncate, true)}
@@ -2157,12 +2157,14 @@ defmodule PlatformWeb.Components do
 
   def popover(assigns) do
     ~H"""
-    <div class={Map.get(assigns, :class, "")} data-popover>
-      <%= render_slot(@inner_block) %>
-      <template role="popover">
-        <%= render_slot(@display) %>
-      </template>
-    </div>
+    <span>
+      <div class={Map.get(assigns, :class, "")} data-popover>
+        <%= render_slot(@inner_block) %>
+        <template role="popover">
+          <%= render_slot(@display) %>
+        </template>
+      </div>
+    </span>
     """
   end
 

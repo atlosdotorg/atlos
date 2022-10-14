@@ -185,13 +185,15 @@
                     <tbody class="bg-white">
                       <%= for media <- @media do %>
                         <tr class="hover:bg-gray-50 search-highlighting group">
-                          <.link href={"/incidents/#{media.slug}"}>
-                            <td class="sticky left-0 z-[100] bg-white group-hover:bg-neutral-50 px-4 shadow font-mono whitespace-nowrap border-b border-gray-200 h-10">
+                          <td class="sticky left-0 z-[100] bg-white group-hover:bg-neutral-50 px-4 shadow font-mono whitespace-nowrap border-b border-gray-200 h-10">
+                            <.link href={"/incidents/#{media.slug}"}>
                               <span class="text-button text-sm">
                                 <%= media.slug %>
                               </span>
-                            </td>
-                            <td class="border-b cursor-pointer p-0 text-sm text-neutral-600">
+                            </.link>
+                          </td>
+                          <td class="border-b cursor-pointer p-0 text-sm text-neutral-600">
+                            <.link href={"/incidents/#{media.slug}"}>
                               <div class="ml-4 flex w-[7rem] relative z-0">
                                 <div class="flex-shrink-0 w-5 mr-1">
                                   <.user_stack users={
@@ -202,36 +204,48 @@
                                   <.rel_time time={media.updated_at} />
                                 </div>
                               </div>
-                            </td>
-                            <%= for attr <- @attributes do %>
-                              <td class="border-b cursor-pointer p-0">
-                                <div class="text-sm text-gray-900 px-4 overflow-hidden h-6 max-w-[36rem] truncate">
-                                  <.popover class="font-base p-0">
-                                    <div class="truncate max-w-full">
-                                      <.attr_display_compact
-                                        color={true}
-                                        attr={attr}
-                                        media={media}
-                                        current_user={@current_user}
-                                      />
-                                    </div>
-                                    <:display>
-                                      <% update =
-                                        media.updates
-                                        |> Enum.filter(
-                                          &(&1.modified_attribute == attr.name ||
-                                              &1.type == :create)
-                                        )
-                                        |> Enum.sort_by(& &1.inserted_at)
-                                        |> Enum.reverse()
-                                        |> hd() %>
-                                      <div class="py-2 flex flex-col gap-2">
+                            </.link>
+                          </td>
+                          <%= for attr <- @attributes do %>
+                            <td class="border-b cursor-pointer p-0">
+                              <div class="text-sm text-gray-900 px-4 overflow-hidden h-6 max-w-[36rem] truncate">
+                                <.popover class="font-base p-0 inline">
+                                  <.link href={"/incidents/#{media.slug}"} class="truncate inline">
+                                    <.attr_display_compact
+                                      color={true}
+                                      attr={attr}
+                                      media={media}
+                                      current_user={@current_user}
+                                    />
+                                  </.link>
+                                  <:display>
+                                    <% update =
+                                      media.updates
+                                      |> Enum.filter(
+                                        &(&1.modified_attribute == attr.name ||
+                                            &1.type == :create)
+                                      )
+                                      |> Enum.sort_by(& &1.inserted_at)
+                                      |> Enum.reverse()
+                                      |> hd() %>
+                                    <div class="py-2 flex flex-col gap-2">
+                                      <div class="md:flex gap-4 items-center justify-between flex-wrap">
                                         <%= if not is_nil(update) do %>
-                                          <div class="text-sm text-neutral-600 border-b pb-1">
-                                            <.user_text user={update.user} /> &mdash;
+                                          <div class="text-sm text-neutral-600">
+                                            <.user_text user={update.user} /> changed
                                             <.rel_time time={update.inserted_at} />
                                           </div>
                                         <% end %>
+                                        <button
+                                          class="button ~urge @high inline !text-xs !px-2 !py-1"
+                                          phx-click="edit_attribute"
+                                          phx-value-attribute={attr.name}
+                                          phx-value-media-id={media.id}
+                                        >
+                                          Edit
+                                        </button>
+                                      </div>
+                                      <div class="border p-2 rounded shadow-sm">
                                         <.attr_display_compact
                                           color={true}
                                           attr={attr}
@@ -239,54 +253,46 @@
                                           media={media}
                                           current_user={@current_user}
                                         />
-                                        <hr />
-                                        <button
-                                          class="text-button inline"
-                                          phx-click="edit_attribute"
-                                          phx-value-attribute={attr.name}
-                                          phx-value-media-id={media.id}
-                                        >
-                                          Quick edit &rarr;
-                                        </button>
                                       </div>
-                                    </:display>
-                                  </.popover>
-                                </div>
-                              </td>
-                            <% end %>
-                            <% versions =
-                              media.versions
-                              |> Enum.filter(
-                                &Material.MediaVersion.can_user_view(&1, @current_user)
-                              ) %>
-                            <%= for idx <- 0..@source_cols do %>
-                              <td class="border-b cursor-pointer p-0">
-                                <div class="text-sm text-gray-900 px-4 truncate h-6 w-[12rem]">
-                                  <% version = Enum.at(versions, idx) %>
-                                  <%= if not is_nil(version) do %>
-                                    <p>
-                                      <a
-                                        href={version.source_url}
-                                        target="_blank"
-                                        rel="nofollow"
-                                        class="truncate"
-                                      >
-                                        <.url_icon
-                                          url={version.source_url}
-                                          class="h-4 w-4 inline mb-px"
-                                        />
-                                        <%= version.source_url %>
-                                      </a>
-                                    </p>
-                                  <% else %>
-                                    <span class="text-neutral-400">
-                                      &mdash;
-                                    </span>
-                                  <% end %>
-                                </div>
-                              </td>
-                            <% end %>
-                          </.link>
+                                    </div>
+                                  </:display>
+                                </.popover>
+                              </div>
+                            </td>
+                          <% end %>
+                          <% versions =
+                            media.versions
+                            |> Enum.filter(
+                              &Material.MediaVersion.can_user_view(&1, @current_user)
+                            ) %>
+                          <%= for idx <- 0..@source_cols do %>
+                            <td class="border-b cursor-pointer p-0">
+                              <div class="text-sm text-gray-900 px-4 truncate h-6 w-[12rem]">
+                                <% version = Enum.at(versions, idx) %>
+                                <%= if not is_nil(version) do %>
+                                  <p>
+                                    <a
+                                      href={version.source_url}
+                                      target="_blank"
+                                      rel="nofollow"
+                                      class="truncate"
+                                      data-confirm="This will open the source media in a new tab. Are you sure?"
+                                    >
+                                      <.url_icon
+                                        url={version.source_url}
+                                        class="h-4 w-4 inline mb-px"
+                                      />
+                                      <%= version.source_url %>
+                                    </a>
+                                  </p>
+                                <% else %>
+                                  <span class="text-neutral-400">
+                                    &mdash;
+                                  </span>
+                                <% end %>
+                              </div>
+                            </td>
+                          <% end %>
                         </tr>
                       <% end %>
                     </tbody>
