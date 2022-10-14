@@ -986,7 +986,7 @@ defmodule PlatformWeb.Components do
       <%= case attr.type do %>
         <% :text -> %>
           <%= if compact do %>
-            <div class="inline-block prose prose-sm my-px">
+            <div class="inline-block prose prose-sm my-px word-breaks">
               <.attr_label label={label} />
               <%= raw(
                 value
@@ -996,7 +996,7 @@ defmodule PlatformWeb.Components do
               ) %>
             </div>
           <% else %>
-            <div class="inline-block text-ellipsis overflow-hidden break-words prose prose-sm my-px">
+            <div class="inline-block prose prose-sm my-px word-breaks">
               <.attr_label label={label} />
               <%= raw(
                 value
@@ -1626,7 +1626,7 @@ defmodule PlatformWeb.Components do
     max = Map.get(assigns, :max, 5)
 
     ~H"""
-    <div class="flex -space-x-1 relative z-0 overflow-hidden items-center">
+    <div class="flex -space-x-1 relative z-0 items-center">
       <%= for user <- @users |> Enum.take(5) do %>
         <.popover class="inline">
           <img
@@ -2167,9 +2167,9 @@ defmodule PlatformWeb.Components do
     <span>
       <div class={Map.get(assigns, :class, "")} data-popover>
         <%= render_slot(@inner_block) %>
-        <template role="popover">
+        <div role="popover" class="hidden">
           <%= render_slot(@display) %>
-        </template>
+        </div>
       </div>
     </span>
     """

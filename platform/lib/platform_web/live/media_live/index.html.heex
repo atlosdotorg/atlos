@@ -247,7 +247,7 @@
                                       |> Enum.sort_by(& &1.inserted_at)
                                       |> Enum.reverse()
                                       |> hd() %>
-                                    <div class="py-2 flex flex-col gap-2">
+                                    <div class="py-2 flex flex-col gap-2 word-breaks">
                                       <div class="md:flex gap-4 items-center justify-between flex-wrap">
                                         <%= if not is_nil(update) do %>
                                           <div class="text-sm text-neutral-600">
@@ -255,14 +255,16 @@
                                             <.rel_time time={update.inserted_at} />
                                           </div>
                                         <% end %>
-                                        <button
-                                          class="button ~urge @high inline !rounded !text-xs !px-2 !py-1"
-                                          phx-click="edit_attribute"
-                                          phx-value-attribute={attr.name}
-                                          phx-value-media-id={media.id}
-                                        >
-                                          Edit
-                                        </button>
+                                        <%= if Platform.Material.Attribute.can_user_edit(attr, @current_user, media) do %>
+                                          <button
+                                            class="button ~urge @high inline !rounded !text-xs !px-2 !py-1"
+                                            phx-click="edit_attribute"
+                                            phx-value-attribute={attr.name}
+                                            phx-value-media-id={media.id}
+                                          >
+                                            Edit
+                                          </button>
+                                        <% end %>
                                       </div>
                                       <div class="border p-2 rounded shadow-sm max-w-full">
                                         <.attr_display_compact
