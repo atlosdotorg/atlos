@@ -25,6 +25,7 @@ import topbar from "../vendor/topbar"
 import mapboxgl from 'mapbox-gl'
 import Alpine from 'alpinejs'
 import tippy from 'tippy.js';
+import Mark from 'mark.js';
 
 mapboxgl.accessToken = 'pk.eyJ1IjoibWlsZXNtY2MiLCJhIjoiY2t6ZzdzZmY0MDRobjJvbXBydWVmaXBpNSJ9.-aHM8bjOOsSrGI0VvZenAQ';
 
@@ -318,6 +319,15 @@ function initializeMaps() {
     });
 }
 
+let _searchHighlighter = null;
+function applySearchHighlighting() {
+    if (_searchHighlighter !== null) {
+        _searchHighlighter.unmark();
+    }
+    _searchHighlighter = new Mark(document.querySelectorAll(".search-highlighting"), { accuracy: "exactly" });
+    _searchHighlighter.mark(new URLSearchParams(window.location.search).get("query"))
+}
+
 function debounce(func, timeout = 25) {
     let timer;
     return (...args) => {
@@ -349,6 +359,9 @@ document.addEventListener("load", initializeMaps);
 
 document.addEventListener("phx:update", initializePopovers);
 document.addEventListener("load", initializePopovers);
+
+document.addEventListener("phx:update", applySearchHighlighting);
+document.addEventListener("load", applySearchHighlighting);
 
 // Used to set the clipboard when copying hash information
 window.setClipboard = (text) => {

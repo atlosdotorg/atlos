@@ -80,7 +80,7 @@ defmodule PlatformWeb.MediaLive.PaginatedMediaTable do
     attributes = Attribute.active_attributes() |> Enum.filter(&is_nil(&1.parent))
 
     media = assigns.media
-    source_cols = Enum.max(media |> Enum.map(&length(&1.versions)))
+    source_cols = Enum.max(media |> Enum.map(&length(&1.versions)), &>=/2, fn -> 0 end)
 
     ~H"""
     <section class="max-w-full">
@@ -125,7 +125,7 @@ defmodule PlatformWeb.MediaLive.PaginatedMediaTable do
                 </thead>
                 <tbody class="bg-white">
                   <%= for media <- @media do %>
-                    <tr class="hover:bg-gray-50">
+                    <tr class="hover:bg-gray-50 search-highlighting">
                       <td class="sticky left-0 z-[100] bg-white group-hover:bg-neutral-50 px-4 shadow font-mono whitespace-nowrap border-b border-gray-200 h-10">
                         <.link href={"/incidents/#{media.slug}"} class="text-button text-sm">
                           <%= media.slug %>
