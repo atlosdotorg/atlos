@@ -24,6 +24,7 @@ defmodule Platform.Material do
     query
     |> preload_media_versions()
     |> preload_media_updates()
+    |> preload_media_subscriptions()
   end
 
   @doc """
@@ -107,6 +108,10 @@ defmodule Platform.Material do
   defp preload_media_updates(query) do
     # TODO: should this be pulled into the Updates context somehow?
     query |> preload(updates: [:user, :media, :media_version])
+  end
+
+  defp preload_media_subscriptions(query) do
+    query |> preload([:subscriptions])
   end
 
   @doc """
@@ -747,5 +752,10 @@ defmodule Platform.Material do
       ["Weather" <> _ | _] -> :weather
       _ -> :other
     end
+  end
+
+  def is_user_subscribed(subscriptions, %User{} = user) do
+    # TODO: there is an opportunity to improve performance here
+    Enum.any?(subscriptions, &(&1.user_id == user.id))
   end
 end

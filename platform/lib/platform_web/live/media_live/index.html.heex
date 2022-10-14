@@ -184,12 +184,16 @@
                     </thead>
                     <tbody class="bg-white">
                       <%= for media <- @media do %>
-                        <tr class="hover:bg-gray-50 search-highlighting group">
-                          <td class="sticky left-0 z-[100] bg-white group-hover:bg-neutral-50 px-4 shadow font-mono whitespace-nowrap border-b border-gray-200 h-10">
-                            <.link href={"/incidents/#{media.slug}"}>
-                              <span class="text-button text-sm">
-                                <%= media.slug %>
-                              </span>
+                        <% is_subscribed =
+                          Material.is_user_subscribed(media.subscriptions, @current_user)
+                          |> dbg() %>
+                        <tr class={"search-highlighting overflow-visible hover:shadow-lg " <> (if is_subscribed, do: "bg-neutral-50", else: "bg-white")}>
+                          <td class={"sticky left-0 z-[100] px-4 shadow font-mono whitespace-nowrap border-b border-gray-200 h-10 "  <> (if is_subscribed, do: "bg-neutral-50", else: "bg-white")}>
+                            <.link
+                              href={"/incidents/#{media.slug}"}
+                              class={"text-button text-sm " <> (if is_subscribed, do: "font-bold", else: "")}
+                            >
+                              <%= media.slug %>
                             </.link>
                           </td>
                           <td class="border-b cursor-pointer p-0 text-sm text-neutral-600">
