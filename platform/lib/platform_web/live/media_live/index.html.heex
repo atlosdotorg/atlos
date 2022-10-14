@@ -187,7 +187,7 @@
                         <% is_subscribed =
                           Material.is_user_subscribed(media.subscriptions, @current_user)
                           |> dbg() %>
-                        <tr class={"search-highlighting overflow-visible hover:shadow-lg " <> (if is_subscribed, do: "bg-neutral-50", else: "bg-white")}>
+                        <tr class={"search-highlighting " <> (if is_subscribed, do: "bg-neutral-50", else: "bg-white")}>
                           <td class={"sticky left-0 z-[100] px-4 shadow font-mono whitespace-nowrap border-b border-gray-200 h-10 "  <> (if is_subscribed, do: "bg-neutral-50", else: "bg-white")}>
                             <.link
                               href={"/incidents/#{media.slug}"}
@@ -198,7 +198,7 @@
                           </td>
                           <td class="border-b cursor-pointer p-0 text-sm text-neutral-600">
                             <.link href={"/incidents/#{media.slug}"}>
-                              <div class="ml-4 flex w-[7rem] relative z-0">
+                              <div class="ml-4 flex w-[7rem] relative z-0 items-center">
                                 <div class="flex-shrink-0 w-5 mr-1">
                                   <.user_stack users={
                                     media.updates |> Enum.take(1) |> Enum.map(& &1.user)
@@ -217,6 +217,7 @@
                                   <.link href={"/incidents/#{media.slug}"} class="truncate inline">
                                     <.attr_display_compact
                                       color={true}
+                                      truncate={true}
                                       attr={attr}
                                       media={media}
                                       current_user={@current_user}
@@ -241,7 +242,7 @@
                                           </div>
                                         <% end %>
                                         <button
-                                          class="button ~urge @high inline !text-xs !px-2 !py-1"
+                                          class="button ~urge @high inline !rounded !text-xs !px-2 !py-1"
                                           phx-click="edit_attribute"
                                           phx-value-attribute={attr.name}
                                           phx-value-media-id={media.id}
@@ -249,7 +250,7 @@
                                           Edit
                                         </button>
                                       </div>
-                                      <div class="border p-2 rounded shadow-sm">
+                                      <div class="border p-2 rounded shadow-sm max-w-full">
                                         <.attr_display_compact
                                           color={true}
                                           attr={attr}
@@ -271,24 +272,22 @@
                             ) %>
                           <%= for idx <- 0..@source_cols do %>
                             <td class="border-b cursor-pointer p-0">
-                              <div class="text-sm text-gray-900 px-4 truncate h-6 w-[12rem]">
+                              <div class="text-sm text-gray-900 px-4 whitespace-nowrap text-ellipsis overflow-hidden h-6 w-[12rem]">
                                 <% version = Enum.at(versions, idx) %>
                                 <%= if not is_nil(version) do %>
-                                  <p>
-                                    <a
-                                      href={version.source_url}
-                                      target="_blank"
-                                      rel="nofollow"
-                                      class="truncate"
-                                      data-confirm="This will open the source media in a new tab. Are you sure?"
-                                    >
-                                      <.url_icon
-                                        url={version.source_url}
-                                        class="h-4 w-4 inline mb-px"
-                                      />
-                                      <%= version.source_url %>
-                                    </a>
-                                  </p>
+                                  <a
+                                    href={version.source_url}
+                                    target="_blank"
+                                    rel="nofollow"
+                                    class="truncate"
+                                    data-confirm="This will open the source media in a new tab. Are you sure?"
+                                  >
+                                    <.url_icon
+                                      url={version.source_url}
+                                      class="h-4 w-4 inline mb-px"
+                                    />
+                                    <%= version.source_url %>
+                                  </a>
                                 <% else %>
                                   <span class="text-neutral-400">
                                     &mdash;

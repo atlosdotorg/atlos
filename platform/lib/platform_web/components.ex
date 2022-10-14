@@ -847,7 +847,7 @@ defmodule PlatformWeb.Components do
     <div class="inline">
       <%= if not is_nil(Map.get(media, attr.schema_field)) do %>
         <div class="inline-flex flex-wrap text-xs">
-          <div class="text-ellipsis overflow-hidden">
+          <div class="break-word max-w-full text-ellipsis overflow-hidden">
             <.attr_entry
               color={true}
               compact={Map.get(assigns, :truncate, true)}
@@ -986,15 +986,16 @@ defmodule PlatformWeb.Components do
       <%= case attr.type do %>
         <% :text -> %>
           <%= if compact do %>
-            <div class="inline-block truncate prose prose-sm my-px">
+            <div class="inline-block prose prose-sm my-px">
               <.attr_label label={label} />
               <%= raw(
                 value
+                |> Utils.truncate(80)
                 |> Utils.render_markdown()
               ) %>
             </div>
           <% else %>
-            <div class="inline-block text-ellipsis overflow-hidden prose prose-sm my-px">
+            <div class="inline-block text-ellipsis overflow-hidden break-words prose prose-sm my-px">
               <.attr_label label={label} />
               <%= raw(
                 value
@@ -1011,10 +1012,15 @@ defmodule PlatformWeb.Components do
           </div>
         <% :multi_select -> %>
           <.attr_label label={label} />
-          <%= for item <- value do %>
+          <%= for item <- (if compact, do: value |> Enum.take(1), else: value) do %>
             <div class={"chip #{tone} inline-block self-start break-all xl:break-normal"}>
               <%= item %>
             </div>
+            <%= if compact and length(value) > 1 do %>
+              <div class="text-xs mt-1 text-neutral-500">
+                + <%= length(value) - 1 %>
+              </div>
+            <% end %>
           <% end %>
         <% :location -> %>
           <div class="inline-block">
