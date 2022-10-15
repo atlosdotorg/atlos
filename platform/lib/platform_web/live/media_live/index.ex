@@ -74,7 +74,7 @@ defmodule PlatformWeb.MediaLive.Index do
         %{"attribute" => attr_name, "media-id" => media_id} = _params,
         socket
       ) do
-    {id, ""} = Integer.parse(media_id) |> dbg()
+    {id, ""} = Integer.parse(media_id)
 
     {:noreply,
      socket
