@@ -1380,7 +1380,44 @@ defmodule PlatformWeb.Components do
       <%= if Media.can_user_view(media, user) do %>
         <div class="p-2 flex flex-col w-3/4 gap-2 relative">
           <section>
-            <p class="font-mono text-xs text-gray-500"><%= media.slug %></p>
+            <p class="font-mono text-xs text-gray-500 flex items-center gap-1">
+              <%= media.slug %>
+              <%= if media.has_subscription do %>
+                <span data-tooltip="You are subscribed" class="text-neutral-400">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                    class="w-3 h-3"
+                  >
+                    <path d="M10 12.5a2.5 2.5 0 100-5 2.5 2.5 0 000 5z" />
+                    <path
+                      fill-rule="evenodd"
+                      d="M.664 10.59a1.651 1.651 0 010-1.186A10.004 10.004 0 0110 3c4.257 0 7.893 2.66 9.336 6.41.147.381.146.804 0 1.186A10.004 10.004 0 0110 17c-4.257 0-7.893-2.66-9.336-6.41zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
+                      clip-rule="evenodd"
+                    />
+                  </svg>
+                  <span class="sr-only">
+                    You are subscribed
+                  </span>
+                </span>
+              <% end %>
+              <%= if media.has_unread_notification do %>
+                <span data-tooltip="Unread notification" class="text-urge-600">
+                  <svg
+                    viewBox="0 0 100 100"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="currentColor"
+                    class="h-2 w-2"
+                  >
+                    <circle cx="50" cy="50" r="50" />
+                  </svg>
+                  <span class="sr-only">
+                    Unread notification
+                  </span>
+                </span>
+              <% end %>
+            </p>
             <p class="text-gray-900 group-hover:text-gray-900">
               <%= media.attr_description |> Utils.truncate(60) %>
             </p>

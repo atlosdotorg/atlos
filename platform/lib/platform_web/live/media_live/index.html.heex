@@ -145,29 +145,29 @@
             <% end %>
           </div>
         <% "table" -> %>
-          <section class="max-w-full min-h-[90vh]">
-            <div class="min-w-full overflow-x-auto -mx-8 rounded-lg">
-              <div class="min-w-full inline-block py-2 align-middle rounded-lg">
+          <section class="max-w-full">
+            <div class="overflow-x-auto -mx-8 rounded-lg">
+              <div class="inline-block py-2 align-middle rounded-lg">
                 <div class="shadow-sm rounded ring-1 ring-black ring-opacity-5">
-                  <table class="min-w-full relative border-separate" style="border-spacing: 0">
+                  <table class="border-separate relative" style="border-spacing: 0">
                     <thead class="bg-gray-200 whitespace-nowrap">
                       <tr>
                         <th
                           scope="col"
-                          class="sticky left-0 z-[101] top-0 border-b border-gray-300 bg-gray-200 bg-opacity-100 px-4 py-4 font-medium text-sm text-left"
+                          class="md:sticky left-0 z-[101] top-0 border-b border-gray-300 bg-gray-200 bg-opacity-100 px-4 py-4 font-medium text-sm text-left"
                         >
                           ID
                         </th>
                         <th
                           scope="col"
-                          class="sticky z-[100] top-0 border-b border-gray-300 bg-gray-200 bg-opacity-75 px-4 py-4 font-medium text-sm text-left"
+                          class="md:sticky z-[100] top-0 border-b border-gray-300 bg-gray-200 bg-opacity-75 px-4 py-4 font-medium text-sm text-left"
                         >
                           Updated
                         </th>
                         <%= for attr <- @attributes do %>
                           <th
                             scope="col"
-                            class="sticky z-[100] top-0 border-b border-gray-300 bg-gray-200 bg-opacity-75 px-4 py-4 font-medium text-sm text-left"
+                            class="md:sticky z-[100] top-0 border-b border-gray-300 bg-gray-200 bg-opacity-75 px-4 py-4 font-medium text-sm text-left"
                           >
                             <%= attr.label %>
                           </th>
@@ -175,7 +175,7 @@
                         <%= for idx <- 0..@source_cols do %>
                           <th
                             scope="col"
-                            class="sticky z-[100] top-0 border-b border-gray-300 bg-gray-200 bg-opacity-75 px-4 py-4 font-medium text-sm text-left"
+                            class="md:sticky z-[100] top-0 border-b border-gray-300 bg-gray-200 bg-opacity-75 px-4 py-4 font-medium text-sm text-left"
                           >
                             Source <%= idx + 1 %>
                           </th>
@@ -187,7 +187,7 @@
                         <% is_subscribed = media.has_subscription %>
                         <% has_unread_notification = media.has_unread_notification %>
                         <tr class={"search-highlighting " <> (if is_subscribed, do: "bg-neutral-100", else: "bg-white")}>
-                          <td class={"sticky left-0 z-[100] pl-4 pr-1 shadow font-mono whitespace-nowrap border-b border-gray-200 h-10 " <> (if is_subscribed, do: "bg-neutral-100", else: "bg-white")}>
+                          <td class={"md:sticky left-0 z-[100] pl-4 pr-1 shadow font-mono whitespace-nowrap border-b border-gray-200 h-10 " <> (if is_subscribed, do: "bg-neutral-100", else: "bg-white")}>
                             <.link
                               href={"/incidents/#{media.slug}"}
                               class="text-button text-sm flex items-center gap-1"
