@@ -1729,6 +1729,9 @@ defmodule PlatformWeb.Components do
     media_to_show = version.status == :complete && !is_nil(version.mime_type)
     should_blur_js_bool = if Media.is_graphic(media), do: "true", else: "false"
 
+    # Whether to show controls for hiding, adding media (requires that the caller be able to handle the events)
+    show_controls = Map.get(assigns, :show_controls, true)
+
     ~H"""
     <section
       id={"version-#{version.id}"}
@@ -1870,7 +1873,7 @@ defmodule PlatformWeb.Components do
           <%= if version.upload_type == :user_provided do %>
             <span class="badge ~neutral self-start">User Upload</span>
           <% end %>
-          <%= if version.status == :error do %>
+          <%= if version.status == :error and show_controls do %>
             <div
               class="text-gray-400"
               data-tooltip="Atlos could not archive this URL automatically, but you can view it directly."
@@ -1890,105 +1893,106 @@ defmodule PlatformWeb.Components do
             </div>
           <% end %>
         </span>
-        <div class="flex gap-1 items-center">
-          <div class="relative inline-block text-left" x-data="{open: false}">
-            <div>
-              <button
-                type="button"
-                class="flex items-center rounded-full text-gray-500 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-urge-500 focus:ring-offset-2 focus:ring-offset-gray-100"
-                aria-expanded="true"
-                aria-haspopup="true"
-                x-on:click.prevent="open = !open"
-                x-on:click.outside="open = false"
-              >
-                <span class="sr-only">Open options</span>
-                <!-- Heroicon name: mini/ellipsis-vertical -->
-                <svg
-                  class="h-5 w-5"
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                  aria-hidden="true"
+        <%= if media_to_show or show_controls do %>
+          <div class="flex gap-1 items-center">
+            <div class="relative inline-block text-left" x-data="{open: false}">
+              <div>
+                <button
+                  type="button"
+                  class="flex items-center rounded-full text-gray-500 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-urge-500 focus:ring-offset-2 focus:ring-offset-gray-100"
+                  aria-expanded="true"
+                  aria-haspopup="true"
+                  x-on:click.prevent="open = !open"
+                  x-on:click.outside="open = false"
                 >
-                  <path d="M10 3a1.5 1.5 0 110 3 1.5 1.5 0 010-3zM10 8.5a1.5 1.5 0 110 3 1.5 1.5 0 010-3zM11.5 15.5a1.5 1.5 0 10-3 0 1.5 1.5 0 003 0z" />
-                </svg>
-              </button>
-            </div>
-            <div
-              class="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none overflow-visible z-[100]"
-              role="menu"
-              aria-orientation="vertical"
-              aria-labelledby="menu-button"
-              x-show="open"
-              x-transition
-            >
-              <div class="py-1" role="none">
-                <%= if media_to_show do %>
-                  <button
-                    type="button"
-                    rel="nofollow"
-                    title="Toggle Color"
-                    x-on:click="grayscale = !grayscale"
-                    class="text-gray-700 px-2 py-2 text-sm flex items-center gap-2 hover:bg-gray-100 w-full"
+                  <span class="sr-only">Open options</span>
+                  <!-- Heroicon name: mini/ellipsis-vertical -->
+                  <svg
+                    class="h-5 w-5"
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                    aria-hidden="true"
                   >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 24 24"
-                      class="h-5 w-5 text-neutral-500"
-                      fill="currentColor"
+                    <path d="M10 3a1.5 1.5 0 110 3 1.5 1.5 0 010-3zM10 8.5a1.5 1.5 0 110 3 1.5 1.5 0 010-3zM11.5 15.5a1.5 1.5 0 10-3 0 1.5 1.5 0 003 0z" />
+                  </svg>
+                </button>
+              </div>
+              <div
+                class="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none overflow-visible z-[100]"
+                role="menu"
+                aria-orientation="vertical"
+                aria-labelledby="menu-button"
+                x-show="open"
+                x-transition
+              >
+                <div class="py-1" role="none">
+                  <%= if media_to_show do %>
+                    <button
+                      type="button"
+                      rel="nofollow"
+                      title="Toggle Color"
+                      x-on:click="grayscale = !grayscale"
+                      class="text-gray-700 px-2 py-2 text-sm flex items-center gap-2 hover:bg-gray-100 w-full"
                     >
-                      <path fill="none" d="M0 0h24v24H0z" /><path d="M12 2c5.522 0 10 3.978 10 8.889a5.558 5.558 0 0 1-5.556 5.555h-1.966c-.922 0-1.667.745-1.667 1.667 0 .422.167.811.422 1.1.267.3.434.689.434 1.122C13.667 21.256 12.9 22 12 22 6.478 22 2 17.522 2 12S6.478 2 12 2zM7.5 12a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3zm9 0a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3zM12 9a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z" />
-                    </svg>
-                    Toggle Color
-                  </button>
-                  <a
-                    target="_blank"
-                    href={version.source_url}
-                    rel="nofollow"
-                    title="Source"
-                    role="menuitem"
-                    class="text-gray-700 px-2 py-2 text-sm flex items-center gap-2 hover:bg-gray-100"
-                    data-confirm="This link will open an external site in a new tab. Are you sure?"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 24 24"
-                      fill="currentColor"
-                      class="w-5 h-5 text-neutral-500"
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        class="h-5 w-5 text-neutral-500"
+                        fill="currentColor"
+                      >
+                        <path fill="none" d="M0 0h24v24H0z" /><path d="M12 2c5.522 0 10 3.978 10 8.889a5.558 5.558 0 0 1-5.556 5.555h-1.966c-.922 0-1.667.745-1.667 1.667 0 .422.167.811.422 1.1.267.3.434.689.434 1.122C13.667 21.256 12.9 22 12 22 6.478 22 2 17.522 2 12S6.478 2 12 2zM7.5 12a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3zm9 0a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3zM12 9a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z" />
+                      </svg>
+                      Toggle Color
+                    </button>
+                    <a
+                      target="_blank"
+                      href={version.source_url}
+                      rel="nofollow"
+                      title="Source"
+                      role="menuitem"
+                      class="text-gray-700 px-2 py-2 text-sm flex items-center gap-2 hover:bg-gray-100"
+                      data-confirm="This link will open an external site in a new tab. Are you sure?"
                     >
-                      <path d="M11.47 1.72a.75.75 0 011.06 0l3 3a.75.75 0 01-1.06 1.06l-1.72-1.72V7.5h-1.5V4.06L9.53 5.78a.75.75 0 01-1.06-1.06l3-3zM11.25 7.5V15a.75.75 0 001.5 0V7.5h3.75a3 3 0 013 3v9a3 3 0 01-3 3h-9a3 3 0 01-3-3v-9a3 3 0 013-3h3.75z" />
-                    </svg>
-                    View Source
-                  </a>
-                  <a
-                    target="_blank"
-                    href={loc}
-                    rel="nofollow"
-                    role="menuitem"
-                    title="Download"
-                    class="text-gray-700 px-2 py-2 text-sm flex items-center gap-2 hover:bg-gray-100 w-full"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 24 24"
-                      fill="currentColor"
-                      class="h-5 w-5 text-neutral-500"
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                        class="w-5 h-5 text-neutral-500"
+                      >
+                        <path d="M11.47 1.72a.75.75 0 011.06 0l3 3a.75.75 0 01-1.06 1.06l-1.72-1.72V7.5h-1.5V4.06L9.53 5.78a.75.75 0 01-1.06-1.06l3-3zM11.25 7.5V15a.75.75 0 001.5 0V7.5h3.75a3 3 0 013 3v9a3 3 0 01-3 3h-9a3 3 0 01-3-3v-9a3 3 0 013-3h3.75z" />
+                      </svg>
+                      View Source
+                    </a>
+                    <a
+                      target="_blank"
+                      href={loc}
+                      rel="nofollow"
+                      role="menuitem"
+                      title="Download"
+                      class="text-gray-700 px-2 py-2 text-sm flex items-center gap-2 hover:bg-gray-100 w-full"
                     >
-                      <path
-                        fill-rule="evenodd"
-                        d="M19.5 21a3 3 0 003-3V9a3 3 0 00-3-3h-5.379a.75.75 0 01-.53-.22L11.47 3.66A2.25 2.25 0 009.879 3H4.5a3 3 0 00-3 3v12a3 3 0 003 3h15zm-6.75-10.5a.75.75 0 00-1.5 0v4.19l-1.72-1.72a.75.75 0 00-1.06 1.06l3 3a.75.75 0 001.06 0l3-3a.75.75 0 10-1.06-1.06l-1.72 1.72V10.5z"
-                        clip-rule="evenodd"
-                      />
-                    </svg>
-                    Download
-                  </a>
-                  <button
-                    type="button"
-                    rel="nofollow"
-                    role="menuitem"
-                    title="Copy Hash Information"
-                    class="text-gray-700 px-2 py-2 text-sm flex items-center gap-2 hover:bg-gray-100 w-full"
-                    onclick={
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                        class="h-5 w-5 text-neutral-500"
+                      >
+                        <path
+                          fill-rule="evenodd"
+                          d="M19.5 21a3 3 0 003-3V9a3 3 0 00-3-3h-5.379a.75.75 0 01-.53-.22L11.47 3.66A2.25 2.25 0 009.879 3H4.5a3 3 0 00-3 3v12a3 3 0 003 3h15zm-6.75-10.5a.75.75 0 00-1.5 0v4.19l-1.72-1.72a.75.75 0 00-1.06 1.06l3 3a.75.75 0 001.06 0l3-3a.75.75 0 10-1.06-1.06l-1.72 1.72V10.5z"
+                          clip-rule="evenodd"
+                        />
+                      </svg>
+                      Download
+                    </a>
+                    <button
+                      type="button"
+                      rel="nofollow"
+                      role="menuitem"
+                      title="Copy Hash Information"
+                      class="text-gray-700 px-2 py-2 text-sm flex items-center gap-2 hover:bg-gray-100 w-full"
+                      onclick={
                       "window.setClipboard(JSON.stringify(" <>
                         Jason.encode!(
                           if version.hashes == %{},
@@ -1997,108 +2001,109 @@ defmodule PlatformWeb.Components do
                         ) <>
                         ", null, 4))"
                     }
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 24 24"
-                      fill="currentColor"
-                      class="w-5 h-5 text-neutral-500"
                     >
-                      <path
-                        fill-rule="evenodd"
-                        d="M7.502 6h7.128A3.375 3.375 0 0118 9.375v9.375a3 3 0 003-3V6.108c0-1.505-1.125-2.811-2.664-2.94a48.972 48.972 0 00-.673-.05A3 3 0 0015 1.5h-1.5a3 3 0 00-2.663 1.618c-.225.015-.45.032-.673.05C8.662 3.295 7.554 4.542 7.502 6zM13.5 3A1.5 1.5 0 0012 4.5h4.5A1.5 1.5 0 0015 3h-1.5z"
-                        clip-rule="evenodd"
-                      />
-                      <path
-                        fill-rule="evenodd"
-                        d="M3 9.375C3 8.339 3.84 7.5 4.875 7.5h9.75c1.036 0 1.875.84 1.875 1.875v11.25c0 1.035-.84 1.875-1.875 1.875h-9.75A1.875 1.875 0 013 20.625V9.375zm9.586 4.594a.75.75 0 00-1.172-.938l-2.476 3.096-.908-.907a.75.75 0 00-1.06 1.06l1.5 1.5a.75.75 0 001.116-.062l3-3.75z"
-                        clip-rule="evenodd"
-                      />
-                    </svg>
-                    Copy Hash Info
-                  </button>
-                <% end %>
-                <%= if version.visibility == :visible do %>
-                  <button
-                    type="button"
-                    data-confirm="Are you sure you want to change the visibility of this media for all users on Atlos?"
-                    phx-click="set_media_visibility"
-                    phx-value-version={version.id}
-                    phx-value-state="hidden"
-                    class="text-gray-700 px-2 py-2 text-sm flex items-center gap-2 hover:bg-gray-100 w-full"
-                    title="Hide"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      class="h-5 w-5 text-neutral-500"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                        class="w-5 h-5 text-neutral-500"
+                      >
+                        <path
+                          fill-rule="evenodd"
+                          d="M7.502 6h7.128A3.375 3.375 0 0118 9.375v9.375a3 3 0 003-3V6.108c0-1.505-1.125-2.811-2.664-2.94a48.972 48.972 0 00-.673-.05A3 3 0 0015 1.5h-1.5a3 3 0 00-2.663 1.618c-.225.015-.45.032-.673.05C8.662 3.295 7.554 4.542 7.502 6zM13.5 3A1.5 1.5 0 0012 4.5h4.5A1.5 1.5 0 0015 3h-1.5z"
+                          clip-rule="evenodd"
+                        />
+                        <path
+                          fill-rule="evenodd"
+                          d="M3 9.375C3 8.339 3.84 7.5 4.875 7.5h9.75c1.036 0 1.875.84 1.875 1.875v11.25c0 1.035-.84 1.875-1.875 1.875h-9.75A1.875 1.875 0 013 20.625V9.375zm9.586 4.594a.75.75 0 00-1.172-.938l-2.476 3.096-.908-.907a.75.75 0 00-1.06 1.06l1.5 1.5a.75.75 0 001.116-.062l3-3.75z"
+                          clip-rule="evenodd"
+                        />
+                      </svg>
+                      Copy Hash Info
+                    </button>
+                  <% end %>
+                  <%= if version.visibility == :visible and show_controls do %>
+                    <button
+                      type="button"
+                      data-confirm="Are you sure you want to change the visibility of this media for all users on Atlos?"
+                      phx-click="set_media_visibility"
+                      phx-value-version={version.id}
+                      phx-value-state="hidden"
+                      class="text-gray-700 px-2 py-2 text-sm flex items-center gap-2 hover:bg-gray-100 w-full"
+                      title="Hide"
                     >
-                      <path
-                        fill-rule="evenodd"
-                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM7 9a1 1 0 000 2h6a1 1 0 100-2H7z"
-                        clip-rule="evenodd"
-                      />
-                    </svg>
-                    Hide
-                  </button>
-                <% end %>
-                <%= if version.visibility == :hidden do %>
-                  <button
-                    type="button"
-                    data-confirm="Are you sure you want to change the visibility of this media version?"
-                    phx-click="set_media_visibility"
-                    phx-value-version={version.id}
-                    phx-value-state="visible"
-                    class="text-gray-700 px-2 py-2 text-sm flex items-center gap-2 hover:bg-gray-100 w-full"
-                    title="Unhide"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      class="h-5 w-5 text-neutral-500"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-5 w-5 text-neutral-500"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
+                        <path
+                          fill-rule="evenodd"
+                          d="M10 18a8 8 0 100-16 8 8 0 000 16zM7 9a1 1 0 000 2h6a1 1 0 100-2H7z"
+                          clip-rule="evenodd"
+                        />
+                      </svg>
+                      Hide
+                    </button>
+                  <% end %>
+                  <%= if version.visibility == :hidden and show_controls do %>
+                    <button
+                      type="button"
+                      data-confirm="Are you sure you want to change the visibility of this media version?"
+                      phx-click="set_media_visibility"
+                      phx-value-version={version.id}
+                      phx-value-state="visible"
+                      class="text-gray-700 px-2 py-2 text-sm flex items-center gap-2 hover:bg-gray-100 w-full"
+                      title="Unhide"
                     >
-                      <path
-                        fill-rule="evenodd"
-                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z"
-                        clip-rule="evenodd"
-                      />
-                    </svg>
-                    Unhide
-                  </button>
-                <% end %>
-                <%= if Accounts.is_privileged(current_user) do %>
-                  <button
-                    type="button"
-                    data-confirm="Are you sure you want to change the visibility of this media version?"
-                    phx-click="set_media_visibility"
-                    phx-value-version={version.id}
-                    phx-value-state={
-                      if version.visibility == :removed, do: "visible", else: "removed"
-                    }
-                    title={if version.visibility == :removed, do: "Undo Removal", else: "Remove"}
-                    class="text-gray-700 px-2 py-2 text-sm flex items-center gap-2 hover:bg-gray-100 w-full"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      class="h-5 w-5 text-neutral-500"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-5 w-5 text-neutral-500"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
+                        <path
+                          fill-rule="evenodd"
+                          d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z"
+                          clip-rule="evenodd"
+                        />
+                      </svg>
+                      Unhide
+                    </button>
+                  <% end %>
+                  <%= if Accounts.is_privileged(current_user) and show_controls do %>
+                    <button
+                      type="button"
+                      data-confirm="Are you sure you want to change the visibility of this media version?"
+                      phx-click="set_media_visibility"
+                      phx-value-version={version.id}
+                      phx-value-state={
+                        if version.visibility == :removed, do: "visible", else: "removed"
+                      }
+                      title={if version.visibility == :removed, do: "Undo Removal", else: "Remove"}
+                      class="text-gray-700 px-2 py-2 text-sm flex items-center gap-2 hover:bg-gray-100 w-full"
                     >
-                      <path
-                        fill-rule="evenodd"
-                        d="M13.477 14.89A6 6 0 015.11 6.524l8.367 8.368zm1.414-1.414L6.524 5.11a6 6 0 018.367 8.367zM18 10a8 8 0 11-16 0 8 8 0 0116 0z"
-                        clip-rule="evenodd"
-                      />
-                    </svg>
-                    <%= if version.visibility == :removed, do: "Undo Removal", else: "Remove" %>
-                  </button>
-                <% end %>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-5 w-5 text-neutral-500"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
+                        <path
+                          fill-rule="evenodd"
+                          d="M13.477 14.89A6 6 0 015.11 6.524l8.367 8.368zm1.414-1.414L6.524 5.11a6 6 0 018.367 8.367zM18 10a8 8 0 11-16 0 8 8 0 0116 0z"
+                          clip-rule="evenodd"
+                        />
+                      </svg>
+                      <%= if version.visibility == :removed, do: "Undo Removal", else: "Remove" %>
+                    </button>
+                  <% end %>
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        <% end %>
       </div>
     </section>
     """
