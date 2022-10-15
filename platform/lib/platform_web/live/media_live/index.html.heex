@@ -154,20 +154,20 @@
                       <tr>
                         <th
                           scope="col"
-                          class="md:sticky left-0 z-[101] top-0 border-b border-gray-300 bg-gray-200 bg-opacity-100 px-4 py-4 font-medium text-sm text-left"
+                          class="md:sticky left-0 z-[101] top-0 border-b border-gray-300 bg-neutral-100 px-4 py-4 font-medium text-sm text-left"
                         >
                           ID
                         </th>
                         <th
                           scope="col"
-                          class="md:sticky z-[100] top-0 border-b border-gray-300 bg-gray-200 bg-opacity-75 px-4 py-4 font-medium text-sm text-left"
+                          class="md:sticky z-[100] top-0 border-b border-gray-300 bg-neutral-100 bg-opacity-75 px-4 py-4 font-medium text-sm text-left"
                         >
                           Updated
                         </th>
                         <%= for attr <- @attributes do %>
                           <th
                             scope="col"
-                            class="md:sticky z-[100] top-0 border-b border-gray-300 bg-gray-200 bg-opacity-75 px-4 py-4 font-medium text-sm text-left"
+                            class="md:sticky z-[100] top-0 border-b border-gray-300 bg-neutral-100 bg-opacity-75 px-4 py-4 font-medium text-sm text-left"
                           >
                             <%= attr.label %>
                           </th>
@@ -175,7 +175,7 @@
                         <%= for idx <- 0..@source_cols do %>
                           <th
                             scope="col"
-                            class="md:sticky z-[100] top-0 border-b border-gray-300 bg-gray-200 bg-opacity-75 px-4 py-4 font-medium text-sm text-left"
+                            class="md:sticky z-[100] top-0 border-b border-gray-300 bg-neutral-100 bg-opacity-75 px-4 py-4 font-medium text-sm text-left"
                           >
                             Source <%= idx + 1 %>
                           </th>
@@ -186,8 +186,8 @@
                       <%= for media <- @media do %>
                         <% is_subscribed = media.has_subscription %>
                         <% has_unread_notification = media.has_unread_notification %>
-                        <tr class={"search-highlighting " <> (if is_subscribed, do: "bg-neutral-100", else: "bg-white")}>
-                          <td class={"md:sticky left-0 z-[100] pl-4 pr-1 shadow font-mono whitespace-nowrap border-b border-gray-200 h-10 " <> (if is_subscribed, do: "bg-neutral-100", else: "bg-white")}>
+                        <tr class="search-highlighting bg-white group hover:bg-neutral-50 transition-all">
+                          <td class="md:sticky left-0 z-[100] pl-4 pr-1 shadow font-mono whitespace-nowrap border-b border-gray-200 h-10 bg-white group-hover:bg-neutral-50 transition-all">
                             <.link
                               href={"/incidents/#{media.slug}"}
                               class="text-button text-sm flex items-center gap-1"
