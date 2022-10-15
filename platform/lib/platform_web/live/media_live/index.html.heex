@@ -272,6 +272,9 @@
                                         <%= if not is_nil(update) do %>
                                           <div class="text-sm text-neutral-600">
                                             <.user_text user={update.user} /> changed
+                                            <span class="font-medium text-neutral-800">
+                                              <%= attr.label %>
+                                            </span>
                                             <.rel_time time={update.inserted_at} />
                                           </div>
                                         <% end %>
