@@ -95,12 +95,20 @@ function initializePopovers() {
         if (s._tippy) {
             return;
         }
-        let popover = s.querySelector("div.hidden[role=\"popover\"]");
-
         tippy(s, {
             interactive: true,
             allowHTML: true,
-            content: popover.innerHTML,
+            content: "",
+            onShow(ref) {
+                // Replace `dynamic-src` tags with `src` tags; this is to prevent things from being
+                // loaded and rendered until we want to show the popover. We can't use <template>
+                // tags because Phoenix won't update those.
+                let content = ref.reference.querySelector("section[role=\"popover\"]");
+                for (let elem of content.querySelectorAll("[dynamic-src]")) {
+                    elem.setAttribute("src", elem.getAttribute("dynamic-src"));
+                }
+                ref.setContent(content.innerHTML);
+            },
             theme: "light",
             delay: [250, 0],
             appendTo: document.querySelector("#tooltips")

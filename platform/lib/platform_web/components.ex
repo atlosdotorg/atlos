@@ -1357,7 +1357,7 @@ defmodule PlatformWeb.Components do
           <span class="animate-pulse">Loading...</span>
         </div>
       </div>
-      <iframe src={"/incidents/#{media.slug}/card"} width="350px" height="190px" />
+      <iframe dynamic-src={"/incidents/#{media.slug}/card"} width="350px" height="190px" />
     </div>
     """
   end
@@ -2213,11 +2213,11 @@ defmodule PlatformWeb.Components do
     <span>
       <div class={Map.get(assigns, :class, "")} data-popover>
         <%= render_slot(@inner_block) %>
-        <div role="popover" class="hidden">
+        <section role="popover" class="hidden">
           <object>
             <%= render_slot(@display) %>
           </object>
-        </div>
+        </section>
       </div>
     </span>
     """
