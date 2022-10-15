@@ -47,7 +47,6 @@ let liveSocket = new LiveSocket("/live", Socket, {
             }
             if (from._tippy) {
                 from._tippy.destroy();
-                console.log("Destroyed!")
             }
         },
     },

@@ -5,6 +5,7 @@ defmodule Platform.Security do
 
   import Ecto.Query, warn: false
   alias Platform.Repo
+  use Memoize
 
   alias Platform.Security.SecurityMode
 
@@ -21,7 +22,7 @@ defmodule Platform.Security do
     Repo.all(SecurityMode |> preload(:user) |> order_by(desc: :id))
   end
 
-  defp get_current_state() do
+  defmemo get_current_state(), expires_in: 60 * 1000 do
     Repo.one(
       from x in Platform.Security.SecurityMode,
         order_by: [desc: x.id],
@@ -106,6 +107,9 @@ defmodule Platform.Security do
 
   """
   def update_security_mode(%SecurityMode{} = security_mode, attrs) do
+    # Clear cache
+    Memoize.invalidate(SecurityMode)
+
     security_mode
     |> SecurityMode.changeset(attrs)
     |> Repo.update()
@@ -124,6 +128,9 @@ defmodule Platform.Security do
 
   """
   def delete_security_mode(%SecurityMode{} = security_mode) do
+    # Clear cache
+    Memoize.invalidate(SecurityMode)
+
     Repo.delete(security_mode)
   end
 
@@ -137,6 +144,9 @@ defmodule Platform.Security do
 
   """
   def change_security_mode(%SecurityMode{} = security_mode, attrs \\ %{}) do
+    # Clear cache
+    Memoize.invalidate(SecurityMode)
+
     SecurityMode.changeset(security_mode, attrs)
   end
 end
