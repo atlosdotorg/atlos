@@ -73,32 +73,6 @@ defmodule Platform.Material.Attribute do
         }
       },
       %Attribute{
-        schema_field: :attr_sensitive,
-        type: :multi_select,
-        options: [
-          "Personal Information Visible",
-          "Graphic Violence",
-          "Deleted by Source",
-          "Deceptive or Misleading"
-        ],
-        option_descriptions: %{
-          "Personal Information Visible" => "Could identify individuals or their location",
-          "Graphic Violence" => "Media contains violence or other graphic imagery",
-          "Deleted by Source" => "The media has been deleted from its original location",
-          "Deceptive or Misleading" =>
-            "The media is a hoax, misinformation, or otherwise deceptive",
-          "Not Sensitive" => "The media is not sensitive"
-        },
-        label: "Sensitivity",
-        min_length: 1,
-        pane: :metadata,
-        required: true,
-        name: :sensitive,
-        add_none: "Not Sensitive",
-        description:
-          "Is this incident sensitive? This information helps us keep our community safe."
-      },
-      %Attribute{
         schema_field: :attr_description,
         type: :text,
         max_length: 240,
@@ -107,6 +81,17 @@ defmodule Platform.Material.Attribute do
         pane: :not_shown,
         required: true,
         name: :description
+      },
+      %Attribute{
+        schema_field: :attr_tags,
+        type: :multi_select,
+        label: "Tags",
+        pane: :metadata,
+        required: false,
+        name: :tags,
+        required_roles: [:admin, :trusted, :coordinator],
+        allow_user_defined_options: true,
+        description: "Use tags to help organize incidents on Atlos."
       },
       %Attribute{
         schema_field: :attr_type,
@@ -408,15 +393,30 @@ defmodule Platform.Material.Attribute do
         required_roles: [:admin]
       },
       %Attribute{
-        schema_field: :attr_tags,
+        schema_field: :attr_sensitive,
         type: :multi_select,
-        label: "Tags",
+        options: [
+          "Personal Information Visible",
+          "Graphic Violence",
+          "Deleted by Source",
+          "Deceptive or Misleading"
+        ],
+        option_descriptions: %{
+          "Personal Information Visible" => "Could identify individuals or their location",
+          "Graphic Violence" => "Media contains violence or other graphic imagery",
+          "Deleted by Source" => "The media has been deleted from its original location",
+          "Deceptive or Misleading" =>
+            "The media is a hoax, misinformation, or otherwise deceptive",
+          "Not Sensitive" => "The media is not sensitive"
+        },
+        label: "Sensitivity",
+        min_length: 1,
         pane: :metadata,
-        required: false,
-        name: :tags,
-        required_roles: [:admin, :trusted, :coordinator],
-        allow_user_defined_options: true,
-        description: "Use tags to help organize incidents on Atlos."
+        required: true,
+        name: :sensitive,
+        add_none: "Not Sensitive",
+        description:
+          "Is this incident sensitive? This information helps us keep our community safe."
       }
     ]
   end
