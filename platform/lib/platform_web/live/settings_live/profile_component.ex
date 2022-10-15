@@ -144,11 +144,16 @@ defmodule PlatformWeb.SettingsLive.ProfileComponent do
             <%= error_tag(f, :bio) %>
           </div>
 
-          <%= submit("Save",
-            phx_disable_with: "Saving...",
-            class: "button ~urge @high",
-            disabled: !has_changes(@changeset)
-          ) %>
+          <div class="flex flex-col items-center md:flex-row md:justify-between gap-2">
+            <%= submit("Save",
+              phx_disable_with: "Saving...",
+              class: "button ~urge @high",
+              disabled: !has_changes(@changeset)
+            ) %>
+            <.link href={"/profile/#{@current_user.username}"} class="text-button text-sm">
+              View my profile and activity &rarr;
+            </.link>
+          </div>
         </div>
       </.form>
     </article>
