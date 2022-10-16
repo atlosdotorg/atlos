@@ -1365,158 +1365,148 @@ defmodule PlatformWeb.Components do
         class="mb-8"
         x-show="open"
         x-transition
+        x-ref="form"
       >
         <section class="md:flex w-full max-w-7xl mx-auto flex-wrap md:flex-nowrap gap-2 items-center">
           <div class="flex divide-y md:divide-y-0 md:divide-x flex-col flex-grow md:flex-row rounded-lg bg-white shadow border">
-            <%= if not Enum.member?(@exclude, :display) do %>
-              <div class="flex mx-2 my-2 md:my-0" x-data>
-                <div class="hidden">
-                  <%= select(
-                    f,
-                    :display,
-                    ["map", "cards", "table"],
-                    selected: @display,
-                    "x-ref": "select"
-                  ) %>
-                </div>
-                <nav class="flex items-center" aria-label="Tabs">
-                  <button
-                    class={"px-3 py-2 font-medium text-sm rounded-md " <> (if @display == "map", do: "bg-neutral-200 text-neutral-700", else: "text-neutral-700")}
-                    x-on:click="$refs.select.value = 'map'"
-                  >
+            <div class={"flex px-2 py-2 pd:my-0 " <> (if Enum.member?(@exclude, :query), do: "hidden", else: "")}>
+              <nav class="flex items-center gap-px" aria-label="Tabs">
+                <%= label do %>
+                  <div class={"cursor-pointer transition-all px-3 py-2 font-medium text-sm rounded-md " <> (if @display == "map", do: "bg-neutral-200 text-neutral-700", else: "text-neutral-700 hover:bg-neutral-100")}>
                     Map
-                  </button>
+                  </div>
+                  <%= radio_button(f, :display, "map", class: "fixed opacity-0 pointer-events-none") %>
+                <% end %>
 
-                  <button
-                    class={"px-3 py-2 font-medium text-sm rounded-md " <> (if @display == "cards", do: "bg-neutral-200 text-neutral-700", else: "text-neutral-700")}
-                    x-on:click="$refs.select.value = 'cards'"
-                  >
+                <%= label do %>
+                  <div class={"cursor-pointer transition-all px-3 py-2 font-medium text-sm rounded-md " <> (if @display == "cards", do: "bg-neutral-200 text-neutral-700", else: "text-neutral-700 hover:bg-neutral-100")}>
                     Cards
-                  </button>
+                  </div>
+                  <%= radio_button(f, :display, "cards", class: "fixed opacity-0 pointer-events-none") %>
+                <% end %>
 
-                  <button
-                    class={"px-3 py-2 font-medium text-sm rounded-md " <> (if @display == "table", do: "bg-neutral-200 text-neutral-700", else: "text-neutral-700")}
-                    x-on:click="$refs.select.value = 'table'"
-                    aria-current="page"
-                  >
+                <%= label do %>
+                  <div class={"cursor-pointer transition-all px-3 py-2 font-medium text-sm rounded-md " <> (if @display == "table", do: "bg-neutral-200 text-neutral-700", else: "text-neutral-700 hover:bg-neutral-100")}>
                     Table
-                  </button>
-                </nav>
+                  </div>
+                  <%= radio_button(f, :display, "table", class: "fixed opacity-0 pointer-events-none") %>
+                <% end %>
+              </nav>
+            </div>
+            <div class={"flex-grow " <> (if Enum.member?(@exclude, :query), do: "hidden", else: "")}>
+              <div class="px-3 h-full group flex flex-col md:flex-row py-2 items-center focus-within:bg-neutral-50">
+                <%= label(f, :query, "Search",
+                  class:
+                    "block w-full md:hidden text-xs font-medium text-gray-900 group-focus-within:text-urge-600"
+                ) %>
+                <%= text_input(f, :query,
+                  placeholder: "Enter a query...",
+                  phx_debounce: "1000",
+                  class:
+                    "block w-full border-0 p-0 bg-transparent text-gray-900 placeholder-gray-500 focus:ring-0 sm:text-sm"
+                ) %>
               </div>
-            <% end %>
-            <%= if not Enum.member?(@exclude, :query) do %>
-              <div class="flex-grow">
-                <div class="px-3 h-full group flex flex-col md:flex-row py-2 items-center focus-within:bg-neutral-50">
-                  <%= label(f, :query, "Search",
-                    class:
-                      "block w-full md:hidden text-xs font-medium text-gray-900 group-focus-within:text-urge-600"
-                  ) %>
-                  <%= text_input(f, :query,
-                    placeholder: "Enter a query...",
-                    phx_debounce: "1000",
-                    class:
-                      "block w-full border-0 p-0 bg-transparent text-gray-900 placeholder-gray-500 focus:ring-0 sm:text-sm"
-                  ) %>
-                </div>
-                <%= error_tag(f, :query) %>
+              <%= error_tag(f, :query) %>
+            </div>
+            <div class={if Enum.member?(@exclude, :status), do: "hidden", else: ""}>
+              <div class="ts-ignore pl-3 py-2 group focus-within:bg-neutral-50">
+                <%= label(f, :attr_status, "Status",
+                  class: "block text-xs font-medium text-gray-900 group-focus-within:text-urge-600"
+                ) %>
+                <%= select(
+                  f,
+                  :attr_status,
+                  ["Any"] ++ Attribute.options(Attribute.get_attribute(:status)),
+                  class:
+                    "block bg-transparent w-full border-0 py-0 pl-0 pr-7 text-gray-900 placeholder-gray-500 focus:ring-0 sm:text-sm"
+                ) %>
               </div>
-            <% end %>
-            <%= if not Enum.member?(@exclude, :status) do %>
-              <div>
-                <div class="ts-ignore pl-3 py-2 group focus-within:bg-neutral-50">
-                  <%= label(f, :attr_status, "Status",
-                    class: "block text-xs font-medium text-gray-900 group-focus-within:text-urge-600"
-                  ) %>
-                  <%= select(
-                    f,
-                    :attr_status,
-                    ["Any"] ++ Attribute.options(Attribute.get_attribute(:status)),
-                    class:
-                      "block bg-transparent w-full border-0 py-0 pl-0 pr-7 text-gray-900 placeholder-gray-500 focus:ring-0 sm:text-sm"
-                  ) %>
-                </div>
-                <%= error_tag(f, :status) %>
+              <%= error_tag(f, :status) %>
+            </div>
+            <div class={if Enum.member?(@exclude, :sort), do: "hidden", else: ""}>
+              <div class="ts-ignore pl-3 py-2 group focus-within:bg-neutral-50">
+                <%= label(f, :sort, "Sort",
+                  class: "block text-xs font-medium text-gray-900 group-focus-within:text-urge-600"
+                ) %>
+                <%= select(
+                  f,
+                  :sort,
+                  [
+                    "Newest Added": :uploaded_desc,
+                    "Oldest Added": :uploaded_asc,
+                    "Recently Modified": :modified_desc,
+                    "Least Recently Modified": :modified_asc
+                  ],
+                  class:
+                    "block bg-transparent w-full border-0 py-0 pl-0 pr-7 text-gray-900 placeholder-gray-500 focus:ring-0 sm:text-sm"
+                ) %>
               </div>
-            <% end %>
-            <%= if not Enum.member?(@exclude, :sort) do %>
-              <div>
-                <div class="ts-ignore pl-3 py-2 group focus-within:bg-neutral-50">
-                  <%= label(f, :sort, "Sort",
-                    class: "block text-xs font-medium text-gray-900 group-focus-within:text-urge-600"
-                  ) %>
-                  <%= select(
-                    f,
-                    :sort,
-                    [
-                      "Newest Added": :uploaded_desc,
-                      "Oldest Added": :uploaded_asc,
-                      "Recently Modified": :modified_desc,
-                      "Least Recently Modified": :modified_asc
-                    ],
-                    class:
-                      "block bg-transparent w-full border-0 py-0 pl-0 pr-7 text-gray-900 placeholder-gray-500 focus:ring-0 sm:text-sm"
-                  ) %>
-                </div>
-                <%= error_tag(f, :sort) %>
-              </div>
-            <% end %>
-          </div>
-          <div class="place-self-center -mr-1" x-data="{open: false}">
-            <div class="relative text-left z-10">
-              <div class="h-full">
-                <button
-                  x-on:click="open = !open"
-                  type="button"
-                  class="rounded-full flex items-center align-center text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-urge-500"
-                  id="menu-button"
-                  aria-expanded="true"
-                  aria-haspopup="true"
-                >
-                  <span class="sr-only">Open options</span>
-                  <!-- Heroicon name: solid/dots-vertical -->
-                  <svg
-                    class="h-5 w-5"
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                    aria-hidden="true"
+              <%= error_tag(f, :sort) %>
+            </div>
+            <div
+              class="flex place-self-center w-full md:w-auto h-full px-2 text-sm md:py-[18px] py-4"
+              x-data="{open: false}"
+            >
+              <div class="text-left z-10">
+                <div class="h-full">
+                  <button
+                    x-on:click="open = !open"
+                    type="button"
+                    class="rounded-full flex items-center align-center text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-urge-500"
+                    id="menu-button"
+                    aria-expanded="true"
+                    aria-haspopup="true"
                   >
-                    <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
-                  </svg>
-                </button>
-              </div>
+                    <span class="sr-only">Open options</span>
+                    <!-- Heroicon name: solid/dots-vertical -->
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                      class="w-4 h-4"
+                    >
+                      <path
+                        fill-rule="evenodd"
+                        d="M7.84 1.804A1 1 0 018.82 1h2.36a1 1 0 01.98.804l.331 1.652a6.993 6.993 0 011.929 1.115l1.598-.54a1 1 0 011.186.447l1.18 2.044a1 1 0 01-.205 1.251l-1.267 1.113a7.047 7.047 0 010 2.228l1.267 1.113a1 1 0 01.206 1.25l-1.18 2.045a1 1 0 01-1.187.447l-1.598-.54a6.993 6.993 0 01-1.929 1.115l-.33 1.652a1 1 0 01-.98.804H8.82a1 1 0 01-.98-.804l-.331-1.652a6.993 6.993 0 01-1.929-1.115l-1.598.54a1 1 0 01-1.186-.447l-1.18-2.044a1 1 0 01.205-1.251l1.267-1.114a7.05 7.05 0 010-2.227L1.821 7.773a1 1 0 01-.206-1.25l1.18-2.045a1 1 0 011.187-.447l1.598.54A6.993 6.993 0 017.51 3.456l.33-1.652zM10 13a3 3 0 100-6 3 3 0 000 6z"
+                        clip-rule="evenodd"
+                      />
+                    </svg>
+                    <span class="md:hidden text-neutral-800 ml-1">Additional options</span>
+                  </button>
+                </div>
 
-              <div
-                x-show="open"
-                x-on:click.outside="open = false"
-                x-transition
-                x-cloak
-                class="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none"
-                role="menu"
-                aria-orientation="vertical"
-                aria-labelledby="menu-button"
-                tabindex="-1"
-              >
-                <div class="py-1" role="none">
-                  <%= button type: "button", to: Routes.export_path(@socket, :create, @query_params),
+                <div
+                  x-show="open"
+                  x-on:click.outside="open = false"
+                  x-transition
+                  x-cloak
+                  class="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none"
+                  role="menu"
+                  aria-orientation="vertical"
+                  aria-labelledby="menu-button"
+                  tabindex="-1"
+                >
+                  <div class="py-1" role="none">
+                    <%= button type: "button", to: Routes.export_path(@socket, :create, @query_params),
                   class: "text-gray-700 group w-full hover:bg-gray-100 flex items-center px-4 py-2 text-sm",
                   role: "menuitem",
                   method: :post
                    do %>
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      class="mr-3 h-5 w-5 text-gray-400 group-hover:text-gray-500"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                    >
-                      <path
-                        fill-rule="evenodd"
-                        d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"
-                        clip-rule="evenodd"
-                      />
-                    </svg>
-                    Export Results
-                  <% end %>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="mr-3 h-5 w-5 text-gray-400 group-hover:text-gray-500"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
+                        <path
+                          fill-rule="evenodd"
+                          d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"
+                          clip-rule="evenodd"
+                        />
+                      </svg>
+                      Export Results
+                    <% end %>
+                  </div>
                 </div>
               </div>
             </div>
