@@ -1367,35 +1367,36 @@ defmodule PlatformWeb.Components do
         x-transition
       >
         <section class="md:flex w-full max-w-7xl mx-auto flex-wrap md:flex-nowrap gap-2 items-center">
-          <div class="flex divide-y md:divide-y-0 md:divide-x flex-col flex-grow md:flex-row rounded-xl bg-white shadow border">
+          <div class="flex divide-y md:divide-y-0 md:divide-x flex-col flex-grow md:flex-row rounded-lg bg-white shadow border">
             <%= if not Enum.member?(@exclude, :display) do %>
-              <div class="flex mx-2 my-2 md:my-0" x-data={"{selected: '#{@display}'}"}>
+              <div class="flex mx-2 my-2 md:my-0" x-data>
                 <div class="hidden">
                   <%= select(
                     f,
                     :display,
-                    [Map: :map, Cards: :cards, Table: :table],
-                    "x-model": "selected"
+                    ["map", "cards", "table"],
+                    selected: @display,
+                    "x-ref": "select"
                   ) %>
                 </div>
                 <nav class="flex items-center" aria-label="Tabs">
                   <button
-                    class={"px-3 py-2 font-medium text-sm rounded-md " <> (if @display |> dbg() == "map", do: "bg-neutral-200 text-neutral-700", else: "text-neutral-700")}
-                    x-on:click="selected = 'map'"
+                    class={"px-3 py-2 font-medium text-sm rounded-md " <> (if @display == "map", do: "bg-neutral-200 text-neutral-700", else: "text-neutral-700")}
+                    x-on:click="$refs.select.value = 'map'"
                   >
                     Map
                   </button>
 
                   <button
-                    class={"px-3 py-2 font-medium text-sm rounded-md " <> (if @display |> dbg() == "cards", do: "bg-neutral-200 text-neutral-700", else: "text-neutral-700")}
-                    x-on:click="selected = 'cards'"
+                    class={"px-3 py-2 font-medium text-sm rounded-md " <> (if @display == "cards", do: "bg-neutral-200 text-neutral-700", else: "text-neutral-700")}
+                    x-on:click="$refs.select.value = 'cards'"
                   >
                     Cards
                   </button>
 
                   <button
-                    class={"px-3 py-2 font-medium text-sm rounded-md " <> (if @display |> dbg() == "table", do: "bg-neutral-200 text-neutral-700", else: "text-neutral-700")}
-                    x-on:click="selected = 'table'"
+                    class={"px-3 py-2 font-medium text-sm rounded-md " <> (if @display == "table", do: "bg-neutral-200 text-neutral-700", else: "text-neutral-700")}
+                    x-on:click="$refs.select.value = 'table'"
                     aria-current="page"
                   >
                     Table

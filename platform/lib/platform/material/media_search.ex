@@ -8,7 +8,14 @@ defmodule Platform.Material.MediaSearch do
   #   - Date
   #   - Status
   #   - Sort by
-  @types %{query: :string, sort: :string, attr_status: :string, no_media_versions: :boolean}
+  #   - Display (used by views)
+  @types %{
+    query: :string,
+    sort: :string,
+    attr_status: :string,
+    no_media_versions: :boolean,
+    display: :string
+  }
 
   def changeset(params \\ %{}) do
     data = %{}

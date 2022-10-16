@@ -10,10 +10,11 @@ defmodule PlatformWeb.MediaLive.Index do
   end
 
   def handle_params(params, _uri, socket) do
-    display = Map.get(params, "display", "map")
+    changeset = Material.MediaSearch.changeset(params) |> dbg()
+    display = Ecto.Changeset.get_field(changeset, :display, "map")
 
     results =
-      search_media(socket, Material.MediaSearch.changeset(params),
+      search_media(socket, changeset,
         # Ideally we would put these params in search_media, but since this is map-specific logic, it'll only be called here (it's not possible to "load more" on the map)
         limit: if(display == "map", do: 100_000, else: 50),
         hydrate: display != "map"
@@ -25,7 +26,7 @@ defmodule PlatformWeb.MediaLive.Index do
      socket
      |> assign(
        :changeset,
-       Material.MediaSearch.changeset(params)
+       changeset
      )
      |> assign(:display, display)
      |> assign(:full_width, display == "table")
