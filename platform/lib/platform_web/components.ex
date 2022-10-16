@@ -1379,10 +1379,12 @@ defmodule PlatformWeb.Components do
                 <% end %>
 
                 <%= label do %>
-                  <div class={"cursor-pointer transition-all px-3 py-2 font-medium text-sm rounded-md " <> (if @display == "cards", do: "bg-neutral-200 text-neutral-700", else: "text-neutral-700 hover:bg-neutral-100")}>
-                    Cards
+                  <div class={"cursor-pointer transition-all px-3 py-2 font-medium text-sm rounded-md " <> (if @display == "previews", do: "bg-neutral-200 text-neutral-700", else: "text-neutral-700 hover:bg-neutral-100")}>
+                    Previews
                   </div>
-                  <%= radio_button(f, :display, "cards", class: "fixed opacity-0 pointer-events-none") %>
+                  <%= radio_button(f, :display, "previews",
+                    class: "fixed opacity-0 pointer-events-none"
+                  ) %>
                 <% end %>
 
                 <%= label do %>
