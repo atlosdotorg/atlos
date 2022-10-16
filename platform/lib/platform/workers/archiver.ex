@@ -102,9 +102,6 @@ defmodule Platform.Workers.Archiver do
           media_version: new_version
         })
 
-        # Push update to viewers
-        Material.broadcast_media_updated(media_id)
-
         {:ok, new_version}
       rescue
         val ->
@@ -113,13 +110,6 @@ defmodule Platform.Workers.Archiver do
           Logger.error(Exception.format_stacktrace())
 
           Auditor.log(:archive_failed, %{error: inspect(val), version: version})
-
-          {:ok, _} =
-            Updates.change_from_comment(media, Accounts.get_auto_account(), %{
-              "explanation" =>
-                "🛑 Unable to automatically process the media from #{version.source_url}. Consider retrying using manual upload."
-            })
-            |> Updates.create_update_from_changeset()
 
           # Update the media version.
           version_map = %{
@@ -139,6 +129,9 @@ defmodule Platform.Workers.Archiver do
 
           {:ok, new_version}
       end
+
+    # Push update to viewers
+    Material.broadcast_media_updated(media_id)
 
     Temp.cleanup()
     result

@@ -47,30 +47,30 @@ defmodule Platform.Material.Attribute do
   def attributes() do
     [
       %Attribute{
-        schema_field: :attr_sensitive,
-        type: :multi_select,
+        schema_field: :attr_status,
+        type: :select,
         options: [
-          "Personal Information Visible",
-          "Graphic Violence",
-          "Deleted by Source",
-          "Deceptive or Misleading"
+          "Unclaimed",
+          "In Progress",
+          "Help Needed",
+          "Ready for Review",
+          "Completed",
+          "Cancelled"
         ],
-        option_descriptions: %{
-          "Personal Information Visible" => "Could identify individuals or their location",
-          "Graphic Violence" => "Media contains violence or other graphic imagery",
-          "Deleted by Source" => "The media has been deleted from its original location",
-          "Deceptive or Misleading" =>
-            "The media is a hoax, misinformation, or otherwise deceptive",
-          "Not Sensitive" => "The media is not sensitive"
-        },
-        label: "Sensitivity",
-        min_length: 1,
+        label: "Status",
         pane: :metadata,
         required: true,
-        name: :sensitive,
-        add_none: "Not Sensitive",
-        description:
-          "Is this incident sensitive? This information helps us keep our community safe."
+        name: :status,
+        description: "Use the status to help coordinate and track work on Atlos.",
+        privileged_values: ["Completed", "Cancelled"],
+        option_descriptions: %{
+          "Unclaimed" => "Not actively being worked on",
+          "In Progress" => "Actively being worked on",
+          "Help Needed" => "Stuck, or second opinion needed",
+          "Ready for Review" => "Ready for a moderator's verification",
+          "Completed" => "Investigation complete",
+          "Cancelled" => "Will not be completed (out of scope, etc.)"
+        }
       },
       %Attribute{
         schema_field: :attr_description,
@@ -81,6 +81,17 @@ defmodule Platform.Material.Attribute do
         pane: :not_shown,
         required: true,
         name: :description
+      },
+      %Attribute{
+        schema_field: :attr_tags,
+        type: :multi_select,
+        label: "Tags",
+        pane: :metadata,
+        required: false,
+        name: :tags,
+        required_roles: [:admin, :trusted, :coordinator],
+        allow_user_defined_options: true,
+        description: "Use tags to help organize incidents on Atlos."
       },
       %Attribute{
         schema_field: :attr_type,
@@ -382,41 +393,30 @@ defmodule Platform.Material.Attribute do
         required_roles: [:admin]
       },
       %Attribute{
-        schema_field: :attr_status,
-        type: :select,
+        schema_field: :attr_sensitive,
+        type: :multi_select,
         options: [
-          "Unclaimed",
-          "In Progress",
-          "Help Needed",
-          "Ready for Review",
-          "Completed",
-          "Cancelled"
+          "Personal Information Visible",
+          "Graphic Violence",
+          "Deleted by Source",
+          "Deceptive or Misleading"
         ],
-        label: "Status",
+        option_descriptions: %{
+          "Personal Information Visible" => "Could identify individuals or their location",
+          "Graphic Violence" => "Media contains violence or other graphic imagery",
+          "Deleted by Source" => "The media has been deleted from its original location",
+          "Deceptive or Misleading" =>
+            "The media is a hoax, misinformation, or otherwise deceptive",
+          "Not Sensitive" => "The media is not sensitive"
+        },
+        label: "Sensitivity",
+        min_length: 1,
         pane: :metadata,
         required: true,
-        name: :status,
-        description: "Use the status to help coordinate and track work on Atlos.",
-        privileged_values: ["Completed", "Cancelled"],
-        option_descriptions: %{
-          "Unclaimed" => "Not actively being worked on",
-          "In Progress" => "Actively being worked on",
-          "Help Needed" => "Stuck, or second opinion needed",
-          "Ready for Review" => "Ready for a moderator's verification",
-          "Completed" => "Investigation complete",
-          "Cancelled" => "Will not be completed (out of scope, etc.)"
-        }
-      },
-      %Attribute{
-        schema_field: :attr_tags,
-        type: :multi_select,
-        label: "Tags",
-        pane: :metadata,
-        required: false,
-        name: :tags,
-        required_roles: [:admin, :trusted, :coordinator],
-        allow_user_defined_options: true,
-        description: "Use tags to help organize incidents on Atlos."
+        name: :sensitive,
+        add_none: "Not Sensitive",
+        description:
+          "Is this incident sensitive? This information helps us keep our community safe."
       }
     ]
   end
@@ -660,7 +660,7 @@ defmodule Platform.Material.Attribute do
     end
   end
 
-  def validate_attribute(changeset, %Attribute{} = attribute, user \\ nil) do
+  def validate_attribute(changeset, %Attribute{} = attribute, user \\ nil, required \\ true) do
     validations =
       case attribute.type do
         :multi_select ->
@@ -719,7 +719,7 @@ defmodule Platform.Material.Attribute do
         validations
       end
 
-    if attribute.required do
+    if attribute.required and required do
       custom |> validate_required([attribute.schema_field])
     else
       custom
@@ -823,15 +823,18 @@ defmodule Platform.Material.Attribute do
   def attr_color(name, value) do
     case name do
       :sensitive ->
-        "~critical"
+        case value do
+          ["Not Sensitive"] -> "~neutral"
+          _ -> "~critical"
+        end
 
       :status ->
         case value do
           "Unclaimed" -> "~positive"
-          "In Progress" -> "~urge"
+          "In Progress" -> "~purple"
           "Cancelled" -> "~neutral"
           "Ready for Review" -> "~cyan"
-          "Completed" -> "~purple"
+          "Completed" -> "~urge"
           "Needs Upload" -> "~purple"
           _ -> "~warning"
         end

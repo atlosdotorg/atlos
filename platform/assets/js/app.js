@@ -25,6 +25,7 @@ import topbar from "../vendor/topbar"
 import mapboxgl from 'mapbox-gl'
 import Alpine from 'alpinejs'
 import tippy from 'tippy.js';
+import Mark from 'mark.js';
 
 mapboxgl.accessToken = 'pk.eyJ1IjoibWlsZXNtY2MiLCJhIjoiY2t6ZzdzZmY0MDRobjJvbXBydWVmaXBpNSJ9.-aHM8bjOOsSrGI0VvZenAQ';
 
@@ -43,6 +44,9 @@ let liveSocket = new LiveSocket("/live", Socket, {
         onBeforeElUpdated(from, to) {
             if (from._x_dataStack) {
                 window.Alpine.clone(from, to);
+            }
+            if (from._tippy) {
+                from._tippy.destroy();
             }
         },
     },
@@ -87,32 +91,50 @@ let lockIcon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 m-px mb-1
 
 // Logic specifically for the <.popover> component
 function initializePopovers() {
-    document.querySelectorAll("[data-popover]:not(.popover-initialized)").forEach(s => {
-        let popover = s.querySelector("template[role=\"popover\"]");
-
+    document.querySelectorAll("[data-popover]").forEach(s => {
+        if (s._tippy) {
+            return;
+        }
         tippy(s, {
             interactive: true,
             allowHTML: true,
-            content: popover.innerHTML,
+            content: "",
+            onShow(ref) {
+                // Replace `dynamic-src` tags with `src` tags; this is to prevent things from being
+                // loaded and rendered until we want to show the popover. We can't use <template>
+                // tags because Phoenix won't update those.
+                let content = ref.reference.querySelector("section[role=\"popover\"]");
+                for (let elem of content.querySelectorAll("[dynamic-src]")) {
+                    elem.setAttribute("src", elem.getAttribute("dynamic-src"));
+                }
+                ref.setContent(content.innerHTML);
+            },
             theme: "light",
-            appendTo: document.body,
-            delay: [1000, 0]
+            delay: [250, 0],
+            appendTo: document.querySelector("#tooltips")
         });
-
-        s.classList.add("popover-initialized");
     })
 
     document.querySelectorAll("[data-tooltip]:not(.tooltip-initialized)").forEach(s => {
+        if (s._tippy) {
+            return;
+        }
+
         tippy(s, {
             allowHTML: true,
             content: s.getAttribute("data-tooltip"),
-            appendTo: document.body,
-            delay: [1000, 0]
+            delay: [250, 0],
+            appendTo: document.querySelector("#tooltips")
         });
-
-        s.classList.add("tooltip-initialized");
     });
 }
+
+function triggerSubmitEvent(element) {
+    console.log(element);
+    element.dispatchEvent(new Event("submit", { bubbles: true }));
+    topbar.show();
+}
+window.triggerSubmitEvent = triggerSubmitEvent;
 
 function initializeSmartSelects() {
     // Make smart-selects interactive
@@ -127,6 +149,7 @@ function initializeSmartSelects() {
         }
         let descriptions = JSON.parse(s.getAttribute("data-descriptions")) || {};
         let privileged = JSON.parse(s.getAttribute("data-privileged")) || [];
+        let indent = JSON.parse(s.getAttribute("data-indent")) || false;
 
         let x = new TomSelect(`#${s.id}`, {
             maxOptions: null,
@@ -150,23 +173,25 @@ function initializeSmartSelects() {
                     }
                     let requiresPrivilege = privileged.indexOf(data.text) >= 0;
 
-                    let rawDepth = data.text.split("/").length - 1;
-                    let effectiveDepth = rawDepth > 4 ? 4 : rawDepth;
+                    // let rawDepth = data.text.split("/").length - 1;
+                    // let effectiveDepth = rawDepth > 4 ? 4 : rawDepth;
+                    let effectiveDepth = 0; // TODO: Smart indents currently disabled
                     let nestingDepth = ["ml-0", "ml-[25px]", "ml-[50px]", "ml-[75px]", "ml-[100px]"][effectiveDepth];
 
-                    let lastComponentIndex = data.text.lastIndexOf('/');
-                    let before = lastComponentIndex >= 0 ? data.text.slice(0, lastComponentIndex + 1) : "";
-                    let after = data.text.slice(lastComponentIndex + 1);
+                    // let lastComponentIndex = data.text.lastIndexOf('/');
+                    // let before = lastComponentIndex >= 0 ? data.text.slice(0, lastComponentIndex + 1) : "";
+                    let before = "";
+                    let after = data.text;
 
                     return '<div class="flex rounded ' + nestingDepth + '"><div><span class="opacity-50">' + escape(before) + '</span><span>' + escape(after) + '</span><span class="text-gray-400">' + (requiresPrivilege ? lockIcon : '') + '&nbsp;' + escape(desc) + '</span></div></div>';
                 },
-                item: function (data, escape) {
-                    let lastComponentIndex = data.text.lastIndexOf('/');
-                    let before = lastComponentIndex >= 0 ? data.text.slice(0, lastComponentIndex + 1) : "";
-                    let after = data.text.slice(lastComponentIndex + 1);
+                // item: function (data, escape) {
+                //     let lastComponentIndex = data.text.lastIndexOf('/');
+                //     let before = lastComponentIndex >= 0 ? data.text.slice(0, lastComponentIndex + 1) : "";
+                //     let after = data.text.slice(lastComponentIndex + 1);
 
-                    return '<div><div><span class="opacity-[60%]">' + escape(before) + '</span><span>' + escape(after) + '</span></div></div>';
-                }
+                //     return '<div><div><span class="opacity-[60%]">' + escape(before) + '</span><span>' + escape(after) + '</span></div></div>';
+                // }
             }
         });
         x.control_input.setAttribute("phx-debounce", "blur");
@@ -198,7 +223,9 @@ function initializeMaps() {
     });
 
     document.querySelectorAll("map-events").forEach(s => {
-        if (s.classList.contains("mapboxgl-map") || s.classList.contains("map-initialized")) {
+        let containerID = s.getAttribute("container-id");
+        let container = document.getElementById(containerID);
+        if (container.classList.contains("mapboxgl-map") || container.classList.contains("map-initialized")) {
             return;
         }
 
@@ -207,22 +234,31 @@ function initializeMaps() {
         let zoom = parseFloat(s.getAttribute("zoom") || 6);
 
         let map = new mapboxgl.Map({
-            container: s.id,
+            container: containerID,
             style: 'mapbox://styles/milesmcc/cl89ukz84000514oebbd92bjm',
             center: [lon, lat],
             zoom: zoom
         });
 
-        map.on('load', function () {
-            map.resize();
-        });
+        let initializeLayers = () => {
+            if (!map.loaded()) {
+                return;
+            }
+            let elem = document.getElementById(s.id); // 's' might have changed, but its ID hasn't
 
-        window.addEventListener("resize", () => {
-            map.resize();
-        });
+            if (map.getLayer('incidents')) {
+                map.removeLayer('incidents');
+            }
 
-        map.on("load", () => {
-            let data = JSON.parse(s.getAttribute("data"));
+            if (map.getSource('incidents')) {
+                map.removeSource('incidents');
+            }
+
+            if (elem === null) {
+                return; // The map has been removed from the page
+            }
+
+            let data = JSON.parse(elem.getAttribute("data"));
 
             let geojson = {
                 "type": "geojson",
@@ -231,10 +267,10 @@ function initializeMaps() {
                     "features": data.map(incident => {
                         let colorForType = (type) => {
                             switch (type) {
-                                case "policing": return '#14b8a6';
-                                case "military": return '#60a5fa';
-                                case "civilian": return '#ec4899';
-                                case "weather": return '#22c55e';
+                                case "Completed": return '#60a5fa';
+                                case "Ready for Review": return '#06b6d4';
+                                case "Cancelled": return '#888888';
+                                case "In Progress": return '#6d28d9';
                                 default: return '#0f172a';
                             }
                         };
@@ -309,10 +345,29 @@ function initializeMaps() {
             map.on('mouseleave', 'incidents', () => {
                 map.getCanvas().style.cursor = '';
             });
+        };
+
+        map.on("load", initializeLayers);
+        window.addEventListener("phx:update", initializeLayers);
+
+        window.addEventListener("resize", () => {
+            map.resize();
         });
 
         s.classList.add("map-initialized");
     });
+}
+
+let _searchHighlighter = null;
+function applySearchHighlighting() {
+    if (_searchHighlighter !== null) {
+        _searchHighlighter.unmark();
+    }
+    let query = new URLSearchParams(window.location.search).get("query");
+    if (query !== null) {
+        _searchHighlighter = new Mark(document.querySelectorAll(".search-highlighting"), { accuracy: "exactly" });
+        _searchHighlighter.mark(query)
+    }
 }
 
 function debounce(func, timeout = 25) {
@@ -338,6 +393,8 @@ window.toggleClass = (id, classname) => {
     elem.classList.toggle(classname);
 }
 
+document.addEventListener("phx:update", () => topbar.hide())
+
 document.addEventListener("phx:update", initializeSmartSelects);
 document.addEventListener("load", initializeSmartSelects);
 
@@ -346,6 +403,9 @@ document.addEventListener("load", initializeMaps);
 
 document.addEventListener("phx:update", initializePopovers);
 document.addEventListener("load", initializePopovers);
+
+document.addEventListener("phx:update", applySearchHighlighting);
+document.addEventListener("load", applySearchHighlighting);
 
 // Used to set the clipboard when copying hash information
 window.setClipboard = (text) => {

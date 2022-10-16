@@ -111,7 +111,10 @@ defmodule PlatformWeb.Router do
   scope "/", PlatformWeb do
     pipe_through([:browser, :require_authenticated_user, :app])
 
+    # Redirect /map to avoid breaking old links
+    get("/map", PageController, :index)
     get("/", PageController, :index)
+
     get("/users/settings", UserSettingsController, :edit)
     put("/users/settings", UserSettingsController, :update)
     get("/users/settings/confirm_email/:token", UserSettingsController, :confirm_email)
@@ -123,12 +126,12 @@ defmodule PlatformWeb.Router do
       live("/settings/mfa", SettingsLive.MFALive)
 
       live("/new", NewLive)
-      live("/map", MapLive.Index)
 
       live("/queue", MediaLive.Queue)
       live("/queue/:which", MediaLive.Queue)
 
       live("/incidents", MediaLive.Index)
+
       live("/incidents/:slug", MediaLive.Show, :show)
       live("/incidents/:slug/card", MediaLive.Card)
       live("/incidents/:slug/update/:attribute", MediaLive.Show, :edit)

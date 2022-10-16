@@ -1,6 +1,7 @@
 defmodule Platform.Material.Media do
   use Ecto.Schema
   import Ecto.Changeset
+  import Ecto.Query
   alias Platform.Utils
   alias Platform.Material.Attribute
   alias Platform.Material.MediaSubscription
@@ -44,6 +45,10 @@ defmodule Platform.Material.Media do
     field :explanation, :string, virtual: true
     field :location, :string, virtual: true
 
+    # Virtual attributes for population during querying
+    field :has_unread_notification, :boolean, virtual: true
+    field :has_subscription, :boolean, virtual: true
+
     # Metadata
     timestamps()
 
@@ -54,28 +59,37 @@ defmodule Platform.Material.Media do
   end
 
   @doc false
-  def changeset(media, attrs) do
+  def changeset(media, attrs, user \\ nil) do
     media
-    |> cast(attrs, [:attr_description, :attr_sensitive, :attr_status, :attr_type])
-    |> validate_required([:attr_description],
-      message: "Please add a short description."
-    )
-    |> validate_length(:attr_description,
-      min: 8,
-      max: 240,
-      message: "Descriptions should be 8-240 characters."
-    )
-    |> validate_required([:attr_sensitive],
-      message:
-        "Sensitivity must be set. If this incident doesn't include sensitive media, choose 'Not Sensitive.'"
-    )
-    |> validate_required([:attr_type],
-      message: "The incident type must be set."
-    )
+    |> cast(attrs, [
+      :attr_description,
+      :attr_sensitive,
+      :attr_status,
+      :attr_type,
+      :attr_equipment,
+      :attr_impact,
+      :attr_date
+    ])
 
     # These are special attributes, since we define it at creation time. Eventually, it'd be nice to unify this logic with the attribute-specific editing logic.
-    |> Attribute.validate_attribute(Attribute.get_attribute(:sensitive))
-    |> Attribute.validate_attribute(Attribute.get_attribute(:type))
+    |> Attribute.validate_attribute(Attribute.get_attribute(:description), user, true)
+    |> Attribute.validate_attribute(Attribute.get_attribute(:type), user, true)
+    |> Attribute.validate_attribute(Attribute.get_attribute(:sensitive), user, true)
+    |> Attribute.validate_attribute(Attribute.get_attribute(:equipment), user, false)
+    |> Attribute.validate_attribute(Attribute.get_attribute(:impact), user, false)
+    |> Attribute.validate_attribute(Attribute.get_attribute(:date), user, false)
+    |> then(fn cs ->
+      attr = Attribute.get_attribute(:tags)
+
+      if !is_nil(user) && Attribute.can_user_edit(attr, user, media) do
+        cs
+        # TODO: This is a good refactoring opportunity with the logic above
+        |> cast(attrs, [:attr_tags])
+        |> Attribute.validate_attribute(Attribute.get_attribute(:tags), user, false)
+      else
+        cs
+      end
+    end)
   end
 
   @doc """
@@ -225,8 +239,25 @@ defmodule Platform.Material.Media do
     Enum.member?(media.attr_sensitive || [], "Graphic Violence")
   end
 
+  @doc """
+  Perform a text search on the given queryable. Will also query associated media versions.
+  """
   def text_search(search_terms, queryable \\ Media) do
-    Utils.text_search(search_terms, queryable)
+    media_via_associated_media_versions =
+      from version in subquery(
+             Utils.text_search(search_terms, Platform.Material.MediaVersion, literal: true)
+           ),
+           where: version.visibility == :visible,
+           join: media in assoc(version, :media),
+           select: media
+
+    from u in subquery(
+           Ecto.Query.union(
+             Utils.text_search(search_terms, queryable),
+             ^media_via_associated_media_versions
+           )
+         ),
+         select: u
   end
 end
 

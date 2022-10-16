@@ -52,7 +52,7 @@ def run(civharm, outfile):
                 location = f"Reported near {location}."
 
             more_info = (
-                f"Corresponds to **{identifier}**. {location} {comments}"
+                f"Corresponds to **{identifier}**. {location}"
             )
 
             if len(more_info) >= 2750:
@@ -88,7 +88,7 @@ def run(civharm, outfile):
             type = ["Civilian Harm"]
 
             try:
-                date = date_parse(row["Reported Date"]).strftime("%Y-%m-%d")
+                date = date_parse(row["Reported Date"], dayfirst=True).strftime("%Y-%m-%d")
             except:
                 date = ""
 
@@ -126,3 +126,9 @@ def run(civharm, outfile):
 
 if __name__ == "__main__":
     run()
+
+# delete from media_versions using media where media_versions.media_id = media.id and media.attr_description like 'CIV%';
+# truncate table notifications;
+# delete from updates using media where updates.media_id = media.id and media.attr_description like 'CIV%';
+# delete from media where media.attr_description like 'CIV%';
+#

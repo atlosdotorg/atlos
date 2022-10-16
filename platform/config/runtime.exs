@@ -85,7 +85,7 @@ if config_env() == :prod do
   # See https://hexdocs.pm/swoosh/Swoosh.html#module-installation for details.
   config :platform, Platform.Mailer,
     adapter: Swoosh.Adapters.AmazonSES,
-    region: System.get_env("AWS_REGION"),
+    region: System.get_env("AWS_MAILER_REGION", "us-east-1"),
     access_key: System.get_env("AWS_ACCESS_KEY_ID"),
     secret: System.get_env("AWS_SECRET_ACCESS_KEY")
 

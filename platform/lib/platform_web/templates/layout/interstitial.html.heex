@@ -4,6 +4,13 @@
       <span class="px-1 py-px rounded-sm font-mono bg-neutral-200 text-neutral-600 font-bold text-3xl uppercase">
         Atlos
       </span>
+      <br />
+      <% name = Platform.Utils.get_instance_name() %>
+      <%= if not is_nil(name) do %>
+        <span class="font-mono md:text-sm uppercase font-medium text-white text-xl md:mt-1">
+          <%= name %>
+        </span>
+      <% end %>
     </p>
     <.card header_class="bg-neutral-100" class="overflow-hidden">
       <:header>

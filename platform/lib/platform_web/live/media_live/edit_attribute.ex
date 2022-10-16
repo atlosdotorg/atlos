@@ -5,7 +5,7 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
   alias Platform.Auditor
 
   def update(assigns, socket) do
-    attr = Attribute.get_attribute(String.to_atom(assigns.name))
+    attr = Attribute.get_attribute(String.to_existing_atom(assigns.name))
     attributes = [attr] ++ Attribute.get_children(attr.name)
 
     {:ok,
@@ -18,8 +18,13 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
      )}
   end
 
-  def close(socket) do
-    socket |> push_patch(to: Routes.media_show_path(socket, :show, socket.assigns.media.slug))
+  def close(socket, updated_media \\ nil) do
+    if Map.get(socket.assigns, :target) do
+      send(socket.assigns.target, {:end_attribute_edit, updated_media})
+      socket
+    else
+      socket |> push_patch(to: Routes.media_show_path(socket, :show, socket.assigns.media.slug))
+    end
   end
 
   defp inject_attr_fields_if_missing(params, attrs) do
@@ -49,7 +54,7 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
           socket
         )
 
-        {:noreply, socket |> put_flash(:info, "Your update has been saved.") |> close()}
+        {:noreply, socket |> put_flash(:info, "Your update has been saved.") |> close(media)}
 
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign(socket, :changeset, changeset |> Map.put(:action, :validate))}
@@ -79,20 +84,13 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
     disabled = !assigns.changeset.valid?
 
     ~H"""
-    <article x-data="{user_loc: null}">
+    <article>
       <.modal target={@myself} close_confirmation={confirm_prompt}>
         <div class="md:flex justify-between">
           <div>
             <p class="support font-mono"><%= @media.slug %></p>
             <h3 class="sec-head">Edit: <%= hd(@attrs).label %></h3>
             <p class="sec-subhead"><%= hd(@attrs).description %></p>
-          </div>
-          <div class="sm:mr-8">
-            <%= live_patch("History",
-              class: "base-button",
-              data_confirm: confirm_prompt,
-              to: Routes.media_show_path(@socket, :history, @media.slug, hd(@attrs).name)
-            ) %>
           </div>
         </div>
         <hr class="h-8 sep" />
@@ -107,96 +105,7 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
         >
           <div class="space-y-6">
             <%= for attr <- @attrs do %>
-              <div>
-                <%= case attr.type do %>
-                  <% :text -> %>
-                    <%= label(f, attr.schema_field, attr.label) %>
-                    <%= textarea(f, attr.schema_field, rows: 5) %>
-                    <%= error_tag(f, attr.schema_field) %>
-                  <% :select -> %>
-                    <%= label(f, attr.schema_field, attr.label) %>
-                    <%= error_tag(f, attr.schema_field) %>
-                    <div phx-update="ignore" id={"attr_select_#{@media.slug}_#{attr.schema_field}"}>
-                      <%= select(
-                        f,
-                        attr.schema_field,
-                        if(attr.required, do: [], else: ["[Unset]": nil]) ++
-                          Attribute.options(attr),
-                        data_descriptions: Jason.encode!(attr.option_descriptions || %{}),
-                        data_privileged: Jason.encode!(attr.privileged_values || [])
-                      ) %>
-                    </div>
-                  <% :multi_select -> %>
-                    <%= label(f, attr.schema_field, attr.label) %>
-                    <%= error_tag(f, attr.schema_field) %>
-                    <div
-                      phx-update="ignore"
-                      id={"attr_multi_select_#{@media.slug}_#{attr.schema_field}"}
-                    >
-                      <%= multiple_select(
-                        f,
-                        attr.schema_field,
-                        Attribute.options(attr, Map.get(@media, attr.schema_field)),
-                        data_descriptions: Jason.encode!(attr.option_descriptions || %{}),
-                        data_privileged: Jason.encode!(attr.privileged_values || []),
-                        data_allow_user_defined_options: Attribute.allow_user_defined_options(attr)
-                      ) %>
-                    </div>
-                  <% :location -> %>
-                    <div class="space-y-4">
-                      <div>
-                        <%= label(f, :location, "Location (latitude, longitude)") %>
-                        <%= text_input(f, :location,
-                          placeholder: "Comma-separated coordinates (lat, lon).",
-                          novalidate: true,
-                          phx_debounce: 500,
-                          "x-on:input": "user_loc = $event.target.value"
-                        ) %>
-                        <%= error_tag(f, :location) %>
-                      </div>
-                      <%= error_tag(f, attr.schema_field) %>
-                    </div>
-                  <% :time -> %>
-                    <%= label(f, attr.schema_field, attr.label) %>
-                    <div class="flex items-center gap-2 ts-ignore sm:w-64 apply-a17t-fields">
-                      <%= time_select(f, attr.schema_field,
-                        hour: [prompt: "[Unset]"],
-                        minute: [prompt: "[Unset]"],
-                        class: "select",
-                        phx_debounce: 500
-                      ) %>
-                    </div>
-                    <p class="support">
-                      To unset this attribute, set both the hour and minute fields to [Unset].
-                    </p>
-                    <%= error_tag(f, attr.schema_field) %>
-                  <% :date -> %>
-                    <%= label(f, attr.schema_field, attr.label) %>
-                    <div class="flex items-center gap-2 ts-ignore apply-a17t-fields">
-                      <%= date_select(f, attr.schema_field,
-                        year: [prompt: "[Unset]", options: DateTime.utc_now().year..1990],
-                        month: [prompt: "[Unset]"],
-                        day: [prompt: "[Unset]"],
-                        class: "select",
-                        phx_debounce: 500
-                      ) %>
-                    </div>
-                    <p class="support">
-                      To unset this attribute, set the day, month, and year fields to [Unset].
-                    </p>
-                    <%= error_tag(f, attr.schema_field) %>
-                <% end %>
-                <%= if attr.type == :location do %>
-                  <a
-                    class="support text-urge-700 underline mt-4"
-                    target="_blank"
-                    x-show="user_loc != null && user_loc.length > 0"
-                    x-bind:href="'https://maps.google.com/maps?q=' + (user_loc || '').replace(' ', '')"
-                  >
-                    Preview <span class="font-bold" x-text="user_loc"></span> on Google Maps
-                  </a>
-                <% end %>
-              </div>
+              <.edit_attribute attr={attr} form={f} media_slug={@media.slug} media={@media} />
             <% end %>
             <div>
               <%= label(f, :explanation, "Briefly Explain Your Change") %>

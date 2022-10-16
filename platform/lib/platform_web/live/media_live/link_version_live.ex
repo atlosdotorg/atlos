@@ -46,12 +46,6 @@ defmodule PlatformWeb.MediaLive.LinkVersionLive do
 
   defp apply_changeset(version, params) do
     Material.change_media_version(version, params)
-    |> Ecto.Changeset.validate_format(
-      :source_url,
-      ~r/(https:\/\/)(www.)?(youtube.com|twitter.com|youtu.be|t.co|tiktok.com)/iu,
-      message:
-        "Only videos on Twitter, YouTube, and TikTok are currently supported. Should start with 'https://...'"
-    )
   end
 
   def handle_event("validate", %{"media_version" => params}, socket) do
@@ -118,8 +112,7 @@ defmodule PlatformWeb.MediaLive.LinkVersionLive do
             <%= label(f, :source_url, "What is the link to the media you would like to upload?") %>
             <%= url_input(f, :source_url, placeholder: "https://twitter.com/...", phx_debounce: "250") %>
             <p class="support">
-              We support automatically archiving <strong>videos</strong>
-              from YouTube, Twitter, and TikTok. To upload from other platforms, or to upload images, use manual uploading.
+              Add a link and Atlos will add it to the incident and attempt to archive it automatically.
             </p>
             <%= error_tag(f, :source_url) %>
             <%= if length(@url_duplicate_of) > 0 do %>

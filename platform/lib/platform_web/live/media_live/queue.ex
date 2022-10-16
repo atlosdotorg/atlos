@@ -11,7 +11,6 @@ defmodule PlatformWeb.MediaLive.Queue do
     {:noreply,
      socket
      |> assign(:title, "Queue")
-     |> assign(:full_width, which == "overview")
      |> assign(:tab, which)
      |> assign(:query, query_for_which(which))}
   end
@@ -41,7 +40,7 @@ defmodule PlatformWeb.MediaLive.Queue do
 
   def render(assigns) do
     ~H"""
-    <article class={"w-full max-w-screen-2xl 2xl:mx-auto ml-4 md:ml-8" <> (if @tab != "overview", do: " mr-4 md:mr-8", else: "")}>
+    <article class="w-full px-4 md:px-8">
       <%= if @tab != "overview" do %>
         <div class="mb-8">
           <h1 class={"text-3xl font-medium heading mb-2 " <> Platform.Material.Attribute.attr_color(:status, which_to_title(@tab))}>

@@ -34,12 +34,16 @@ defmodule PlatformWeb.MediaLive.GroupedMediaList do
 
     query
     |> Material.MediaSearch.filter_viewable(socket.assigns.current_user)
-    |> Material.query_media_paginated(Keyword.merge(pagination_options, pagination_opts))
+    |> Material.query_media_paginated(
+      Keyword.merge(Keyword.merge(pagination_options, pagination_opts),
+        for_user: socket.assigns.current_user
+      )
+    )
   end
 
   def render(assigns) do
     ~H"""
-    <section class="flex flex-col mx-auto gap-8 w-full pr-8 md:pr-16">
+    <section class="flex flex-col mx-auto gap-8 w-full">
       <%= for {label, link, _params, media} <- @groups do %>
         <div class="rounded-lg border bg-neutral-100 p-4">
           <div>
