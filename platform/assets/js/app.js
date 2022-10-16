@@ -129,6 +129,13 @@ function initializePopovers() {
     });
 }
 
+function triggerSubmitEvent(element) {
+    console.log(element);
+    element.dispatchEvent(new Event("submit", { bubbles: true }));
+    topbar.show();
+}
+window.triggerSubmitEvent = triggerSubmitEvent;
+
 function initializeSmartSelects() {
     // Make smart-selects interactive
     document.querySelectorAll("select:not(.ts-ignore *)").forEach(s => {
@@ -385,6 +392,8 @@ window.toggleClass = (id, classname) => {
     let elem = document.getElementById(id);
     elem.classList.toggle(classname);
 }
+
+document.addEventListener("phx:update", () => topbar.hide())
 
 document.addEventListener("phx:update", initializeSmartSelects);
 document.addEventListener("load", initializeSmartSelects);

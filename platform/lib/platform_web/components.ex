@@ -1375,7 +1375,10 @@ defmodule PlatformWeb.Components do
                   <div class={"cursor-pointer transition-all px-3 py-2 font-medium text-sm rounded-md " <> (if @display == "map", do: "bg-neutral-200 text-neutral-700", else: "text-neutral-700 hover:bg-neutral-100")}>
                     Map
                   </div>
-                  <%= radio_button(f, :display, "map", class: "fixed opacity-0 pointer-events-none") %>
+                  <%= radio_button(f, :display, "map",
+                    class: "fixed opacity-0 pointer-events-none",
+                    "x-on:change": "window.triggerSubmitEvent($event.target)"
+                  ) %>
                 <% end %>
 
                 <%= label do %>
@@ -1383,7 +1386,8 @@ defmodule PlatformWeb.Components do
                     Previews
                   </div>
                   <%= radio_button(f, :display, "previews",
-                    class: "fixed opacity-0 pointer-events-none"
+                    class: "fixed opacity-0 pointer-events-none",
+                    "x-on:change": "window.triggerSubmitEvent($event.target)"
                   ) %>
                 <% end %>
 
@@ -1391,7 +1395,10 @@ defmodule PlatformWeb.Components do
                   <div class={"cursor-pointer transition-all px-3 py-2 font-medium text-sm rounded-md " <> (if @display == "table", do: "bg-neutral-200 text-neutral-700", else: "text-neutral-700 hover:bg-neutral-100")}>
                     Table
                   </div>
-                  <%= radio_button(f, :display, "table", class: "fixed opacity-0 pointer-events-none") %>
+                  <%= radio_button(f, :display, "table",
+                    class: "fixed opacity-0 pointer-events-none",
+                    "x-on:change": "window.triggerSubmitEvent($event.target)"
+                  ) %>
                 <% end %>
               </nav>
             </div>
