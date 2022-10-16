@@ -247,6 +247,10 @@ function initializeMaps() {
                 map.removeSource('incidents');
             }
 
+            if (elem === null) {
+                return; // The map has been removed from the page
+            }
+
             let data = JSON.parse(elem.getAttribute("data"));
 
             let geojson = {
