@@ -1336,150 +1336,174 @@ defmodule PlatformWeb.Components do
     assigns = assign_new(assigns, :exclude, fn -> [] end)
 
     ~H"""
-    <.form
-      :let={f}
-      as={:search}
-      for={@changeset}
-      id="search-form"
-      phx-change="validate"
-      phx-submit="save"
-      class="mb-8"
-    >
-      <section class="md:flex w-full max-w-7xl mx-auto flex-wrap md:flex-nowrap gap-4 items-center">
-        <div class="flex flex-col flex-grow md:flex-row gap-2 rounded-xl p-1 lg:p-4 bg-white shadow">
-          <%= if not Enum.member?(@exclude, :query) do %>
-            <div class="flex-grow">
-              <div class="border border-gray-300 bg-white rounded-md px-3 py-2 shadow-sm focus-within:ring-1 focus-within:ring-urge-600 focus-within:border-urge-600">
-                <%= label(f, :query, "Search", class: "block text-xs font-medium text-gray-900") %>
-                <%= text_input(f, :query,
-                  placeholder: "Enter a query...",
-                  phx_debounce: "1000",
-                  class:
-                    "block w-full border-0 p-0 text-gray-900 placeholder-gray-500 focus:ring-0 sm:text-sm"
-                ) %>
+    <div x-data="{ open: window.innerWidth >= 768 }">
+      <button
+        x-on:click="open = !open"
+        class="-mt-2 md:hidden bg-white hover:shadow-lg hover:bg-neutral-100 focus:ring-urge-400 transition-all rounded-full gap-1 px-2 py-1 text-sm flex items-center shadow text-neutral-700 justify-around mb-4"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="currentColor"
+          class="w-5 h-5 text-neutral-500"
+        >
+          <path
+            fill-rule="evenodd"
+            d="M11.078 2.25c-.917 0-1.699.663-1.85 1.567L9.05 4.889c-.02.12-.115.26-.297.348a7.493 7.493 0 00-.986.57c-.166.115-.334.126-.45.083L6.3 5.508a1.875 1.875 0 00-2.282.819l-.922 1.597a1.875 1.875 0 00.432 2.385l.84.692c.095.078.17.229.154.43a7.598 7.598 0 000 1.139c.015.2-.059.352-.153.43l-.841.692a1.875 1.875 0 00-.432 2.385l.922 1.597a1.875 1.875 0 002.282.818l1.019-.382c.115-.043.283-.031.45.082.312.214.641.405.985.57.182.088.277.228.297.35l.178 1.071c.151.904.933 1.567 1.85 1.567h1.844c.916 0 1.699-.663 1.85-1.567l.178-1.072c.02-.12.114-.26.297-.349.344-.165.673-.356.985-.57.167-.114.335-.125.45-.082l1.02.382a1.875 1.875 0 002.28-.819l.923-1.597a1.875 1.875 0 00-.432-2.385l-.84-.692c-.095-.078-.17-.229-.154-.43a7.614 7.614 0 000-1.139c-.016-.2.059-.352.153-.43l.84-.692c.708-.582.891-1.59.433-2.385l-.922-1.597a1.875 1.875 0 00-2.282-.818l-1.02.382c-.114.043-.282.031-.449-.083a7.49 7.49 0 00-.985-.57c-.183-.087-.277-.227-.297-.348l-.179-1.072a1.875 1.875 0 00-1.85-1.567h-1.843zM12 15.75a3.75 3.75 0 100-7.5 3.75 3.75 0 000 7.5z"
+            clip-rule="evenodd"
+          />
+        </svg>
+        View Options
+      </button>
+      <.form
+        :let={f}
+        as={:search}
+        for={@changeset}
+        id="search-form"
+        phx-change="validate"
+        phx-submit="save"
+        class="mb-8"
+        x-show="open"
+        x-transition
+      >
+        <section class="md:flex w-full max-w-7xl mx-auto flex-wrap md:flex-nowrap gap-4 items-center">
+          <div class="flex flex-col flex-grow md:flex-row gap-2 rounded-xl p-2 lg:p-4 bg-white shadow">
+            <%= if not Enum.member?(@exclude, :query) do %>
+              <div class="flex-grow">
+                <div class="border border-gray-300 bg-white rounded-md px-3 py-2 shadow-sm focus-within:ring-1 focus-within:ring-urge-600 focus-within:border-urge-600">
+                  <%= label(f, :query, "Search", class: "block text-xs font-medium text-gray-900") %>
+                  <%= text_input(f, :query,
+                    placeholder: "Enter a query...",
+                    phx_debounce: "1000",
+                    class:
+                      "block w-full border-0 p-0 text-gray-900 placeholder-gray-500 focus:ring-0 sm:text-sm"
+                  ) %>
+                </div>
+                <%= error_tag(f, :query) %>
               </div>
-              <%= error_tag(f, :query) %>
-            </div>
-          <% end %>
-          <%= if not Enum.member?(@exclude, :status) do %>
-            <div>
-              <div class="ts-ignore border border-gray-300 bg-white rounded-md pl-3 py-2 shadow-sm focus-within:ring-1 focus-within:ring-urge-600 focus-within:border-urge-600">
-                <%= label(f, :attr_status, "Status", class: "block text-xs font-medium text-gray-900") %>
-                <%= select(
-                  f,
-                  :attr_status,
-                  ["Any"] ++ Attribute.options(Attribute.get_attribute(:status)),
-                  class:
-                    "block w-full border-0 py-0 pl-0 pr-7 text-gray-900 placeholder-gray-500 focus:ring-0 sm:text-sm"
-                ) %>
+            <% end %>
+            <%= if not Enum.member?(@exclude, :status) do %>
+              <div>
+                <div class="ts-ignore border border-gray-300 bg-white rounded-md pl-3 py-2 shadow-sm focus-within:ring-1 focus-within:ring-urge-600 focus-within:border-urge-600">
+                  <%= label(f, :attr_status, "Status",
+                    class: "block text-xs font-medium text-gray-900"
+                  ) %>
+                  <%= select(
+                    f,
+                    :attr_status,
+                    ["Any"] ++ Attribute.options(Attribute.get_attribute(:status)),
+                    class:
+                      "block w-full border-0 py-0 pl-0 pr-7 text-gray-900 placeholder-gray-500 focus:ring-0 sm:text-sm"
+                  ) %>
+                </div>
+                <%= error_tag(f, :status) %>
               </div>
-              <%= error_tag(f, :status) %>
-            </div>
-          <% end %>
-          <%= if not Enum.member?(@exclude, :sort) do %>
-            <div>
-              <div class="ts-ignore border border-gray-300 bg-white rounded-md pl-3 py-2 shadow-sm focus-within:ring-1 focus-within:ring-urge-600 focus-within:border-urge-600">
-                <%= label(f, :sort, "Sort", class: "block text-xs font-medium text-gray-900") %>
-                <%= select(
-                  f,
-                  :sort,
-                  [
-                    "Newest Added": :uploaded_desc,
-                    "Oldest Added": :uploaded_asc,
-                    "Recently Modified": :modified_desc,
-                    "Least Recently Modified": :modified_asc
-                  ],
-                  class:
-                    "block w-full border-0 py-0 pl-0 pr-7 text-gray-900 placeholder-gray-500 focus:ring-0 sm:text-sm"
-                ) %>
+            <% end %>
+            <%= if not Enum.member?(@exclude, :sort) do %>
+              <div>
+                <div class="ts-ignore border border-gray-300 bg-white rounded-md pl-3 py-2 shadow-sm focus-within:ring-1 focus-within:ring-urge-600 focus-within:border-urge-600">
+                  <%= label(f, :sort, "Sort", class: "block text-xs font-medium text-gray-900") %>
+                  <%= select(
+                    f,
+                    :sort,
+                    [
+                      "Newest Added": :uploaded_desc,
+                      "Oldest Added": :uploaded_asc,
+                      "Recently Modified": :modified_desc,
+                      "Least Recently Modified": :modified_asc
+                    ],
+                    class:
+                      "block w-full border-0 py-0 pl-0 pr-7 text-gray-900 placeholder-gray-500 focus:ring-0 sm:text-sm"
+                  ) %>
+                </div>
+                <%= error_tag(f, :sort) %>
               </div>
-              <%= error_tag(f, :sort) %>
-            </div>
-          <% end %>
-          <%= if not Enum.member?(@exclude, :display) do %>
-            <div>
-              <div class="ts-ignore border border-gray-300 bg-white rounded-md pl-3 py-2 shadow-sm focus-within:ring-1 focus-within:ring-urge-600 focus-within:border-urge-600">
-                <%= label(f, :display, "Display",
-                  class: "block text-xs pr-4 font-medium text-gray-900"
-                ) %>
-                <%= select(
-                  f,
-                  :display,
-                  [
-                    Map: :map,
-                    Cards: :cards,
-                    Table: :table
-                  ],
-                  class:
-                    "block w-full border-0 py-0 pl-0 pr-7 text-gray-900 placeholder-gray-500 focus:ring-0 sm:text-sm"
-                ) %>
+            <% end %>
+            <%= if not Enum.member?(@exclude, :display) do %>
+              <div>
+                <div class="ts-ignore border border-gray-300 bg-white rounded-md pl-3 py-2 shadow-sm focus-within:ring-1 focus-within:ring-urge-600 focus-within:border-urge-600">
+                  <%= label(f, :display, "Display",
+                    class: "block text-xs pr-4 font-medium text-gray-900"
+                  ) %>
+                  <%= select(
+                    f,
+                    :display,
+                    [
+                      Map: :map,
+                      Cards: :cards,
+                      Table: :table
+                    ],
+                    class:
+                      "block w-full border-0 py-0 pl-0 pr-7 text-gray-900 placeholder-gray-500 focus:ring-0 sm:text-sm"
+                  ) %>
+                </div>
+                <%= error_tag(f, :display) %>
               </div>
-              <%= error_tag(f, :display) %>
-            </div>
-          <% end %>
-          <div class="place-self-center" x-data="{open: false}">
-            <div class="relative text-left z-10">
-              <div class="h-full">
-                <button
-                  x-on:click="open = !open"
-                  type="button"
-                  class="rounded-full flex items-center align-center text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-urge-500"
-                  id="menu-button"
-                  aria-expanded="true"
-                  aria-haspopup="true"
-                >
-                  <span class="sr-only">Open options</span>
-                  <!-- Heroicon name: solid/dots-vertical -->
-                  <svg
-                    class="h-5 w-5"
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                    aria-hidden="true"
+            <% end %>
+            <div class="place-self-center -mr-1" x-data="{open: false}">
+              <div class="relative text-left z-10">
+                <div class="h-full">
+                  <button
+                    x-on:click="open = !open"
+                    type="button"
+                    class="rounded-full flex items-center align-center text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-urge-500"
+                    id="menu-button"
+                    aria-expanded="true"
+                    aria-haspopup="true"
                   >
-                    <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
-                  </svg>
-                </button>
-              </div>
+                    <span class="sr-only">Open options</span>
+                    <!-- Heroicon name: solid/dots-vertical -->
+                    <svg
+                      class="h-5 w-5"
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                      aria-hidden="true"
+                    >
+                      <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
+                    </svg>
+                  </button>
+                </div>
 
-              <div
-                x-show="open"
-                x-on:click.outside="open = false"
-                x-transition
-                x-cloak
-                class="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none"
-                role="menu"
-                aria-orientation="vertical"
-                aria-labelledby="menu-button"
-                tabindex="-1"
-              >
-                <div class="py-1" role="none">
-                  <%= button type: "button", to: Routes.export_path(@socket, :create, @query_params),
+                <div
+                  x-show="open"
+                  x-on:click.outside="open = false"
+                  x-transition
+                  x-cloak
+                  class="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none"
+                  role="menu"
+                  aria-orientation="vertical"
+                  aria-labelledby="menu-button"
+                  tabindex="-1"
+                >
+                  <div class="py-1" role="none">
+                    <%= button type: "button", to: Routes.export_path(@socket, :create, @query_params),
                   class: "text-gray-700 group w-full hover:bg-gray-100 flex items-center px-4 py-2 text-sm",
                   role: "menuitem",
                   method: :post
                    do %>
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      class="mr-3 h-5 w-5 text-gray-400 group-hover:text-gray-500"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                    >
-                      <path
-                        fill-rule="evenodd"
-                        d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"
-                        clip-rule="evenodd"
-                      />
-                    </svg>
-                    Export Results
-                  <% end %>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="mr-3 h-5 w-5 text-gray-400 group-hover:text-gray-500"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
+                        <path
+                          fill-rule="evenodd"
+                          d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"
+                          clip-rule="evenodd"
+                        />
+                      </svg>
+                      Export Results
+                    <% end %>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-      </section>
-    </.form>
+        </section>
+      </.form>
+    </div>
     """
   end
 
