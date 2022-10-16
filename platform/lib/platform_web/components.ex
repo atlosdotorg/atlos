@@ -1386,6 +1386,7 @@ defmodule PlatformWeb.Components do
                     Previews
                   </div>
                   <%= radio_button(f, :display, "previews",
+                    id: "search-form-previews-button",
                     class: "fixed opacity-0 pointer-events-none",
                     "x-on:change": "window.triggerSubmitEvent($event.target)"
                   ) %>
