@@ -20,11 +20,16 @@ defmodule Platform.Material do
   alias Platform.Uploads
   alias Platform.Accounts
 
-  defp hydrate_media_query(query, for_user \\ nil) do
+  defp hydrate_media_query(query, opts \\ []) do
     query
     |> preload_media_versions()
     |> preload_media_updates()
-    |> populate_user_fields(for_user)
+    |> then(fn x ->
+      case Keyword.get(opts, :for_user) do
+        nil -> x
+        user -> populate_user_fields(x, user)
+      end
+    end)
   end
 
   @doc """
@@ -43,28 +48,28 @@ defmodule Platform.Material do
     |> Repo.all()
   end
 
-  defp _query_media(query, for_user \\ nil) do
+  defp _query_media(query, opts \\ []) do
     # Helper function used to abstract behavior of the `query_media` functions.
     query
-    |> hydrate_media_query(for_user)
+    |> hydrate_media_query(opts)
     |> order_by(desc: :updated_at)
   end
 
   @doc """
   Query the list of media. Will preload the versions and updates.
   """
-  def query_media(query \\ Media, for_user \\ nil) do
-    _query_media(query, for_user)
+  def query_media(query \\ Media, opts \\ []) do
+    _query_media(query, [])
     |> Repo.all()
   end
 
   @doc """
   Query the list of media, paginated. Will preload the versions and updates. Behavior otherwise the same as query_media/1.
   """
-  def query_media_paginated(query \\ Media, opts \\ [], for_user \\ nil) do
+  def query_media_paginated(query \\ Media, opts \\ []) do
     applied_options = Keyword.merge([cursor_fields: [{:updated_at, :desc}], limit: 30], opts)
 
-    _query_media(query, for_user)
+    _query_media(query, applied_options)
     |> Repo.paginate(applied_options)
   end
 

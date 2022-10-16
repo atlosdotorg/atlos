@@ -40,8 +40,9 @@ defmodule PlatformWeb.MediaLive.Index do
     query
     |> Material.MediaSearch.filter_viewable(socket.assigns.current_user)
     |> Material.query_media_paginated(
-      Keyword.merge(pagination_options, pagination_opts),
-      socket.assigns.current_user
+      Keyword.merge(Keyword.merge(pagination_options, pagination_opts),
+        for_user: socket.assigns.current_user
+      )
     )
   end
 
