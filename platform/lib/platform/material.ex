@@ -51,7 +51,9 @@ defmodule Platform.Material do
   defp _query_media(query, opts \\ []) do
     # Helper function used to abstract behavior of the `query_media` functions.
     query
-    |> hydrate_media_query(opts)
+    |> then(fn q ->
+      if Keyword.get(opts, :hydrate, true), do: hydrate_media_query(q, opts), else: q
+    end)
     |> order_by(desc: :updated_at)
   end
 
@@ -764,13 +766,10 @@ defmodule Platform.Material do
     "#{media.slug}/#{version.scoped_id}"
   end
 
+  @doc """
+  Get the categorization group for the media. Currently, this is just its status.
+  """
   def get_media_organization_type(%Media{} = media) do
-    case media.attr_type do
-      ["Military Activity" <> _ | _] -> :military
-      ["Civilian Activity" <> _ | _] -> :civilian
-      ["Policing" <> _ | _] -> :policing
-      ["Weather" <> _ | _] -> :weather
-      _ -> :other
-    end
+    media.attr_status
   end
 end

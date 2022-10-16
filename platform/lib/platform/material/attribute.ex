@@ -831,10 +831,10 @@ defmodule Platform.Material.Attribute do
       :status ->
         case value do
           "Unclaimed" -> "~positive"
-          "In Progress" -> "~urge"
+          "In Progress" -> "~purple"
           "Cancelled" -> "~neutral"
           "Ready for Review" -> "~cyan"
-          "Completed" -> "~purple"
+          "Completed" -> "~urge"
           "Needs Upload" -> "~purple"
           _ -> "~warning"
         end

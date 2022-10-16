@@ -10,9 +10,16 @@ defmodule PlatformWeb.MediaLive.Index do
   end
 
   def handle_params(params, _uri, socket) do
-    display = Map.get(params, "display", "cards")
+    display = Map.get(params, "display", "map")
 
-    results = search_media(socket, Material.MediaSearch.changeset(params))
+    results =
+      search_media(socket, Material.MediaSearch.changeset(params),
+        # Ideally we would put these params in search_media, but since this is map-specific logic, it'll only be called here (it's not possible to "load more" on the map)
+        limit: if(display == "map", do: 100_000, else: 50),
+        hydrate: display != "map"
+      )
+
+    IO.puts("Results: #{length(results.entries)}")
 
     {:noreply,
      socket
@@ -28,10 +35,16 @@ defmodule PlatformWeb.MediaLive.Index do
      |> assign(:editing, nil)
      |> assign(:media, results.entries)
      |> assign(:attributes, Attribute.active_attributes() |> Enum.filter(&is_nil(&1.parent)))
-     |> assign(
-       :source_cols,
-       Enum.max(results.entries |> Enum.map(&length(&1.versions)), &>=/2, fn -> 0 end)
-     )}
+     |> then(fn s ->
+       if display == "table",
+         do:
+           assign(
+             s,
+             :source_cols,
+             Enum.max(results.entries |> Enum.map(&length(&1.versions)), &>=/2, fn -> 0 end)
+           ),
+         else: s
+     end)}
   end
 
   defp search_media(socket, c, pagination_opts \\ []) do

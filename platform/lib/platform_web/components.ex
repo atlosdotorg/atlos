@@ -1350,6 +1350,8 @@ defmodule PlatformWeb.Components do
   end
 
   def search_form(%{changeset: _, query_params: _, socket: _} = assigns) do
+    assigns = assign_new(assigns, :exclude, fn -> [] end)
+
     ~H"""
     <.form
       :let={f}
@@ -1361,67 +1363,77 @@ defmodule PlatformWeb.Components do
       class="mb-8"
     >
       <section class="md:flex w-full max-w-7xl mx-auto flex-wrap md:flex-nowrap gap-4 items-center">
-        <h1 class="header mb-4 md:mb-0 text-3xl font-medium md:mr-8">All Incidents</h1>
-        <div class="flex flex-col flex-grow md:flex-row gap-2 rounded-lg p-2 lg:p-4 bg-neutral-50">
-          <div class="flex-grow">
-            <div class="border border-gray-300 bg-white rounded-md px-3 py-2 shadow-sm focus-within:ring-1 focus-within:ring-urge-600 focus-within:border-urge-600">
-              <%= label(f, :query, "Search", class: "block text-xs font-medium text-gray-900") %>
-              <%= text_input(f, :query,
-                placeholder: "Enter a query...",
-                phx_debounce: "1000",
-                class:
-                  "block w-full border-0 p-0 text-gray-900 placeholder-gray-500 focus:ring-0 sm:text-sm"
-              ) %>
+        <div class="flex flex-col flex-grow md:flex-row gap-2 rounded-xl p-1 lg:p-4 bg-white shadow">
+          <%= if not Enum.member?(@exclude, :query) do %>
+            <div class="flex-grow">
+              <div class="border border-gray-300 bg-white rounded-md px-3 py-2 shadow-sm focus-within:ring-1 focus-within:ring-urge-600 focus-within:border-urge-600">
+                <%= label(f, :query, "Search", class: "block text-xs font-medium text-gray-900") %>
+                <%= text_input(f, :query,
+                  placeholder: "Enter a query...",
+                  phx_debounce: "1000",
+                  class:
+                    "block w-full border-0 p-0 text-gray-900 placeholder-gray-500 focus:ring-0 sm:text-sm"
+                ) %>
+              </div>
+              <%= error_tag(f, :query) %>
             </div>
-            <%= error_tag(f, :query) %>
-          </div>
-          <div>
-            <div class="ts-ignore border border-gray-300 bg-white rounded-md pl-3 py-2 shadow-sm focus-within:ring-1 focus-within:ring-urge-600 focus-within:border-urge-600">
-              <%= label(f, :attr_status, "Status", class: "block text-xs font-medium text-gray-900") %>
-              <%= select(
-                f,
-                :attr_status,
-                ["Any"] ++ Attribute.options(Attribute.get_attribute(:status)),
-                class:
-                  "block w-full border-0 py-0 pl-0 pr-7 text-gray-900 placeholder-gray-500 focus:ring-0 sm:text-sm"
-              ) %>
+          <% end %>
+          <%= if not Enum.member?(@exclude, :status) do %>
+            <div>
+              <div class="ts-ignore border border-gray-300 bg-white rounded-md pl-3 py-2 shadow-sm focus-within:ring-1 focus-within:ring-urge-600 focus-within:border-urge-600">
+                <%= label(f, :attr_status, "Status", class: "block text-xs font-medium text-gray-900") %>
+                <%= select(
+                  f,
+                  :attr_status,
+                  ["Any"] ++ Attribute.options(Attribute.get_attribute(:status)),
+                  class:
+                    "block w-full border-0 py-0 pl-0 pr-7 text-gray-900 placeholder-gray-500 focus:ring-0 sm:text-sm"
+                ) %>
+              </div>
+              <%= error_tag(f, :status) %>
             </div>
-            <%= error_tag(f, :status) %>
-          </div>
-          <div>
-            <div class="ts-ignore border border-gray-300 bg-white rounded-md pl-3 py-2 shadow-sm focus-within:ring-1 focus-within:ring-urge-600 focus-within:border-urge-600">
-              <%= label(f, :sort, "Sort", class: "block text-xs font-medium text-gray-900") %>
-              <%= select(
-                f,
-                :sort,
-                [
-                  "Newest Added": :uploaded_desc,
-                  "Oldest Added": :uploaded_asc,
-                  "Recently Modified": :modified_desc,
-                  "Least Recently Modified": :modified_asc
-                ],
-                class:
-                  "block w-full border-0 py-0 pl-0 pr-7 text-gray-900 placeholder-gray-500 focus:ring-0 sm:text-sm"
-              ) %>
+          <% end %>
+          <%= if not Enum.member?(@exclude, :sort) do %>
+            <div>
+              <div class="ts-ignore border border-gray-300 bg-white rounded-md pl-3 py-2 shadow-sm focus-within:ring-1 focus-within:ring-urge-600 focus-within:border-urge-600">
+                <%= label(f, :sort, "Sort", class: "block text-xs font-medium text-gray-900") %>
+                <%= select(
+                  f,
+                  :sort,
+                  [
+                    "Newest Added": :uploaded_desc,
+                    "Oldest Added": :uploaded_asc,
+                    "Recently Modified": :modified_desc,
+                    "Least Recently Modified": :modified_asc
+                  ],
+                  class:
+                    "block w-full border-0 py-0 pl-0 pr-7 text-gray-900 placeholder-gray-500 focus:ring-0 sm:text-sm"
+                ) %>
+              </div>
+              <%= error_tag(f, :sort) %>
             </div>
-            <%= error_tag(f, :sort) %>
-          </div>
-          <div>
-            <div class="ts-ignore border border-gray-300 bg-white rounded-md pl-3 py-2 shadow-sm focus-within:ring-1 focus-within:ring-urge-600 focus-within:border-urge-600">
-              <%= label(f, :display, "Display", class: "block text-xs pr-4 font-medium text-gray-900") %>
-              <%= select(
-                f,
-                :display,
-                [
-                  Cards: :cards,
-                  Table: :table
-                ],
-                class:
-                  "block w-full border-0 py-0 pl-0 pr-7 text-gray-900 placeholder-gray-500 focus:ring-0 sm:text-sm"
-              ) %>
+          <% end %>
+          <%= if not Enum.member?(@exclude, :display) do %>
+            <div>
+              <div class="ts-ignore border border-gray-300 bg-white rounded-md pl-3 py-2 shadow-sm focus-within:ring-1 focus-within:ring-urge-600 focus-within:border-urge-600">
+                <%= label(f, :display, "Display",
+                  class: "block text-xs pr-4 font-medium text-gray-900"
+                ) %>
+                <%= select(
+                  f,
+                  :display,
+                  [
+                    Map: :map,
+                    Cards: :cards,
+                    Table: :table
+                  ],
+                  class:
+                    "block w-full border-0 py-0 pl-0 pr-7 text-gray-900 placeholder-gray-500 focus:ring-0 sm:text-sm"
+                ) %>
+              </div>
+              <%= error_tag(f, :display) %>
             </div>
-            <%= error_tag(f, :display) %>
-          </div>
+          <% end %>
           <div class="place-self-center" x-data="{open: false}">
             <div class="relative text-left z-10">
               <div class="h-full">

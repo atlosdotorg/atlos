@@ -216,7 +216,9 @@ function initializeMaps() {
     });
 
     document.querySelectorAll("map-events").forEach(s => {
-        if (s.classList.contains("mapboxgl-map") || s.classList.contains("map-initialized")) {
+        let containerID = s.getAttribute("container-id");
+        let container = document.getElementById(containerID);
+        if (container.classList.contains("mapboxgl-map") || container.classList.contains("map-initialized")) {
             return;
         }
 
@@ -225,22 +227,27 @@ function initializeMaps() {
         let zoom = parseFloat(s.getAttribute("zoom") || 6);
 
         let map = new mapboxgl.Map({
-            container: s.id,
+            container: containerID,
             style: 'mapbox://styles/milesmcc/cl89ukz84000514oebbd92bjm',
             center: [lon, lat],
             zoom: zoom
         });
 
-        map.on('load', function () {
-            map.resize();
-        });
+        let initializeLayers = () => {
+            if (!map.loaded()) {
+                return;
+            }
+            let elem = document.getElementById(s.id); // 's' might have changed, but its ID hasn't
 
-        window.addEventListener("resize", () => {
-            map.resize();
-        });
+            if (map.getLayer('incidents')) {
+                map.removeLayer('incidents');
+            }
 
-        map.on("load", () => {
-            let data = JSON.parse(s.getAttribute("data"));
+            if (map.getSource('incidents')) {
+                map.removeSource('incidents');
+            }
+
+            let data = JSON.parse(elem.getAttribute("data"));
 
             let geojson = {
                 "type": "geojson",
@@ -249,10 +256,10 @@ function initializeMaps() {
                     "features": data.map(incident => {
                         let colorForType = (type) => {
                             switch (type) {
-                                case "policing": return '#14b8a6';
-                                case "military": return '#60a5fa';
-                                case "civilian": return '#ec4899';
-                                case "weather": return '#22c55e';
+                                case "Completed": return '#60a5fa';
+                                case "Ready for Review": return '#06b6d4';
+                                case "Cancelled": return '#888888';
+                                case "In Progress": return '#6d28d9';
                                 default: return '#0f172a';
                             }
                         };
@@ -327,6 +334,13 @@ function initializeMaps() {
             map.on('mouseleave', 'incidents', () => {
                 map.getCanvas().style.cursor = '';
             });
+        };
+
+        map.on("load", initializeLayers);
+        window.addEventListener("phx:update", initializeLayers);
+
+        window.addEventListener("resize", () => {
+            map.resize();
         });
 
         s.classList.add("map-initialized");
