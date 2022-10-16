@@ -111,7 +111,10 @@ defmodule PlatformWeb.Router do
   scope "/", PlatformWeb do
     pipe_through([:browser, :require_authenticated_user, :app])
 
+    # Redirect /map to avoid breaking old links
+    get("/map", PageController, :index)
     get("/", PageController, :index)
+
     get("/users/settings", UserSettingsController, :edit)
     put("/users/settings", UserSettingsController, :update)
     get("/users/settings/confirm_email/:token", UserSettingsController, :confirm_email)

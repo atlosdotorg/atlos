@@ -1,5 +1,5 @@
 <article class="w-full px-4 md:px-8">
-  <div class="relative z-[1000] 2xl:max-w-[1210px] mx-auto">
+  <div class="relative z-[1000] 2xl:max-w-[1210px] mx-auto mb-4">
     <.search_form
       changeset={@changeset}
       exclude={if @display == "map", do: [:sort], else: []}
@@ -29,7 +29,7 @@
           <% nongeolocated_length = length(@media) - length(map_data) %>
           <div class="flex justify-around">
             <%= if Ecto.Changeset.get_change(@changeset, :query) != nil and nongeolocated_length > 0 do %>
-              <div class="relative text-sm shadow -mt-4 z-[1000] bg-white py-2 px-4 rounded-full text-center mx-auto text-neutral-600">
+              <div class="relative text-sm shadow md:-mt-4 z-[1000] bg-white py-2 px-4 rounded-full text-center mx-auto text-neutral-600">
                 <span class="font-medium text-neutral-800">
                   <%= nongeolocated_length |> Formatter.format_number() %>
                 </span>
@@ -37,7 +37,7 @@
               </div>
             <% end %>
             <%= if Enum.empty?(@media) do %>
-              <div class="relative text-sm shadow -mt-4 z-[1000] bg-white py-2 px-4 rounded-full text-center mx-auto text-neutral-600">
+              <div class="relative text-sm shadow md:-mt-4 z-[1000] bg-white py-2 px-4 rounded-full text-center mx-auto text-neutral-600">
                 No results found
               </div>
             <% end %>
