@@ -10,7 +10,7 @@ defmodule PlatformWeb.MediaLive.Index do
   end
 
   def handle_params(params, _uri, socket) do
-    changeset = Material.MediaSearch.changeset(params) |> dbg()
+    changeset = Material.MediaSearch.changeset(params)
     display = Ecto.Changeset.get_field(changeset, :display, "map")
 
     results =
@@ -19,8 +19,6 @@ defmodule PlatformWeb.MediaLive.Index do
         limit: if(display == "map", do: 100_000, else: 50),
         hydrate: display != "map"
       )
-
-    IO.puts("Results: #{length(results.entries)}")
 
     {:noreply,
      socket
