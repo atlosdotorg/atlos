@@ -34,7 +34,7 @@ defmodule PlatformWeb.UserSessionControllerTest do
       # Now do a logged in request and verify they are redirected to /map
       conn = get(conn, "/")
       response = html_response(conn, 302)
-      assert response =~ "/map"
+      assert response =~ "/incidents"
     end
 
     test "logs the user in with return to", %{conn: conn, user: user} do
