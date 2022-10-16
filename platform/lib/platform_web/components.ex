@@ -256,7 +256,7 @@ defmodule PlatformWeb.Components do
             </svg>
           </.navlink>
 
-          <.navlink to="/map" label="Map" request_path={@path}>
+          <.navlink to="/incidents" label="Incidents" request_path={@path}>
             <svg
               xmlns="http://www.w3.org/2000/svg"
               class="text-neutral-300 group-hover:text-white h-6 w-6"
@@ -268,7 +268,7 @@ defmodule PlatformWeb.Components do
               <path
                 stroke-linecap="round"
                 stroke-linejoin="round"
-                d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"
+                d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
               />
             </svg>
           </.navlink>
@@ -287,23 +287,6 @@ defmodule PlatformWeb.Components do
                 stroke-linejoin="round"
                 stroke-width="2"
                 d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"
-              />
-            </svg>
-          </.navlink>
-
-          <.navlink to="/incidents" label="All Incidents" request_path={@path}>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="text-neutral-300 group-hover:text-white h-6 w-6"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
               />
             </svg>
           </.navlink>

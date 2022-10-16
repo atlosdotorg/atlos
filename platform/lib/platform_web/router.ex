@@ -123,7 +123,6 @@ defmodule PlatformWeb.Router do
       live("/settings/mfa", SettingsLive.MFALive)
 
       live("/new", NewLive)
-      live("/map", MapLive.Index)
 
       live("/queue", MediaLive.Queue)
       live("/queue/:which", MediaLive.Queue)
