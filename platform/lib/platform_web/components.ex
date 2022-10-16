@@ -1911,6 +1911,8 @@ defmodule PlatformWeb.Components do
     # Whether to show controls for hiding, adding media (requires that the caller be able to handle the events)
     show_controls = Map.get(assigns, :show_controls, true)
 
+    assigns = assign_new(assigns, :dynamic_src, fn -> false end)
+
     ~H"""
     <section
       id={"version-#{version.id}"}
@@ -1925,11 +1927,21 @@ defmodule PlatformWeb.Components do
           <div id={media_id} x-bind:class="hidden ? 'invisible' : ''">
             <div x-bind:class="grayscale ? 'grayscale' : ''">
               <%= if String.starts_with?(version.mime_type, "image/") do %>
-                <img src={loc} class="w-full" />
+                <%= if @dynamic_src do %>
+                  <img dynamic-src={loc} class="w-full" />
+                <% else %>
+                  <img src={loc} class="w-full" />
+                <% end %>
               <% else %>
-                <video controls preload="none" poster={thumbnail} muted>
-                  <source src={loc} class="w-full" />
-                </video>
+                <%= if @dynamic_src do %>
+                  <video controls preload="auto" muted>
+                    <source dynamic-src={loc} class="w-full" />
+                  </video>
+                <% else %>
+                  <video controls preload="auto" poster={thumbnail} muted>
+                    <source src={loc} class="w-full" />
+                  </video>
+                <% end %>
               <% end %>
             </div>
           </div>
