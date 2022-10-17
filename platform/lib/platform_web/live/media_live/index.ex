@@ -31,6 +31,7 @@ defmodule PlatformWeb.MediaLive.Index do
      |> assign(:query_params, params)
      |> assign(:results, results)
      |> assign(:myself, self())
+     |> assign(:pagination_index, 0)
      |> assign(:editing, nil)
      |> assign(:media, results.entries)
      |> assign(:attributes, Attribute.active_attributes() |> Enum.filter(&is_nil(&1.parent)))
@@ -70,6 +71,7 @@ defmodule PlatformWeb.MediaLive.Index do
     new_socket =
       socket
       |> assign(:results, results)
+      |> assign(:pagination_index, socket.assigns.pagination_index + 1)
       |> assign(:media, socket.assigns.media ++ results.entries)
 
     {:noreply, new_socket}

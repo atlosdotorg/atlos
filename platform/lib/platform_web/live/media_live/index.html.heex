@@ -272,17 +272,20 @@
                       <% end %>
                     </tbody>
                   </table>
-                  <div class="h-[40px] flex items-center sticky left-0 w-[100vw] relative z-[100] bg-neutral-100 border-t text-sm p-2">
+                  <div class="h-[40px] flex items-center sticky left-0 w-[100vw] relative z-[100] bg-neutral-50 border-t text-sm p-2">
                     <div class="text-neutral-600">
-                      Showing <%= Formatter.format_number(length(@media)) %> results.
+                      <span class="font-medium">
+                        Showing <%= Formatter.format_number(length(@media)) %> results.
+                      </span>
                       <%= if !is_nil(@results.metadata.after) do %>
-                        <button
-                          type="button"
-                          phx-click="load_more"
-                          phx-disable-with="Loading more..."
+                        <span
+                          phx-hook="InfiniteScroll"
+                          id="table-load-more"
+                          data-page={@pagination_index}
+                          class="animate-pulse"
                         >
-                          <span class="text-urge-600 font-medium">Load more &rarr;</span>
-                        </button>
+                          Loading more...
+                        </span>
                       <% end %>
                     </div>
                   </div>
@@ -294,17 +297,17 @@
     <% else %>
       <.no_media_results />
     <% end %>
-    <%= if @display != "table" do %>
+    <%= if @display == "cards" do %>
       <div class="mx-auto mt-8 text-center text-xs">
         <%= if !is_nil(@results.metadata.after) do %>
-          <button
-            type="button"
-            class="text-button"
-            phx-click="load_more"
-            phx-disable-with="Loading..."
+          <span
+            phx-hook="InfiniteScroll"
+            id="table-load-more"
+            data-page={@pagination_index}
+            class="animate-pulse"
           >
-            Load More
-          </button>
+            Loading more...
+          </span>
         <% end %>
       </div>
     <% end %>
