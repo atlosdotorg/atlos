@@ -1,5 +1,5 @@
-<article class="w-full px-4 md:px-8">
-  <div class="relative z-[1000] 2xl:max-w-[1210px] mx-auto mb-4">
+<article class={"w-full px-4 md:px-8 " <> (if @full_width, do: "mt-8", else: "")}>
+  <div class="relative z-[1000] 2xl:max-w-[1210px] mx-auto h-[5.5rem]">
     <.search_form
       changeset={@changeset}
       exclude={if @display == "map", do: [:sort], else: []}
@@ -68,29 +68,29 @@
             <% end %>
           </div>
         <% "table" -> %>
-          <section class="max-w-full">
-            <div class="overflow-x-auto -mx-8 rounded-lg">
-              <div class="inline-block py-2 align-middle rounded-lg">
-                <div class="shadow-sm rounded ring-1 ring-black ring-opacity-5">
-                  <table class="border-separate relative" style="border-spacing: 0">
+          <section class="-mx-4 md:-mx-8">
+            <div class="overflow-x-auto">
+              <div class="inline-block align-middle">
+                <div class="!shadow-inner ring-1 ring-black ring-opacity-5 max-h-[calc(100vh-10rem)]">
+                  <table class="border-separate sticky-headers" style="border-spacing: 0">
                     <thead class="bg-gray-200 whitespace-nowrap">
                       <tr>
                         <th
                           scope="col"
-                          class="md:sticky left-0 z-[101] top-0 border-b border-gray-300 bg-neutral-100 px-4 py-4 font-medium text-sm text-left"
+                          class="md:sticky left-0 z-[101] top-0 border-b border-t border-neutral-200 bg-neutral-100 px-4 py-4 font-medium text-sm text-left"
                         >
                           ID
                         </th>
                         <th
                           scope="col"
-                          class="md:sticky z-[100] top-0 border-b border-gray-300 bg-neutral-100 bg-opacity-75 px-4 py-4 font-medium text-sm text-left"
+                          class="md:sticky z-[100] top-0 border-b border-t border-neutral-200 bg-neutral-100 bg-opacity-[95%] px-4 py-4 font-medium text-sm text-left"
                         >
                           Updated
                         </th>
                         <%= for attr <- @attributes do %>
                           <th
                             scope="col"
-                            class="md:sticky z-[100] top-0 border-b border-gray-300 bg-neutral-100 bg-opacity-75 px-4 py-4 font-medium text-sm text-left"
+                            class="md:sticky z-[100] top-0 border-b border-t border-neutral-200 bg-neutral-100 bg-opacity-[95%] px-4 py-4 font-medium text-sm text-left"
                           >
                             <%= attr.label %>
                           </th>
@@ -98,7 +98,7 @@
                         <%= for idx <- 0..@source_cols do %>
                           <th
                             scope="col"
-                            class="md:sticky z-[100] top-0 border-b border-gray-300 bg-neutral-100 bg-opacity-75 px-4 py-4 font-medium text-sm text-left"
+                            class="md:sticky z-[100] top-0 border-b border-t border-neutral-200 bg-neutral-100 bg-opacity-[95%] px-4 py-4 font-medium text-sm text-left"
                           >
                             Source <%= idx + 1 %>
                           </th>
@@ -110,10 +110,10 @@
                         <% is_subscribed = media.has_subscription %>
                         <% has_unread_notification = media.has_unread_notification %>
                         <tr class="search-highlighting bg-white group hover:bg-neutral-50 transition-all">
-                          <td class="md:sticky left-0 z-[100] pl-4 pr-1 shadow font-mono whitespace-nowrap border-b border-gray-200 h-10 bg-white group-hover:bg-neutral-50 transition-all">
+                          <td class="md:sticky left-0 z-[100] pl-4 pr-1 border-r font-mono whitespace-nowrap border-b border-gray-200 h-10 bg-white group-hover:bg-neutral-50 transition-all">
                             <.link
                               href={"/incidents/#{media.slug}"}
-                              class="text-button text-sm flex items-center gap-1"
+                              class="text-button text-sm flex items-center gap-1 mr-px"
                             >
                               <%= media.slug %>
                               <%= if is_subscribed do %>
@@ -275,23 +275,35 @@
                 </div>
               </div>
             </div>
+            <div class="h-[40px] flex items-center fixed left-0 bottom-0 w-[100vw] relative z-[100] bg-neutral-100 border-t text-sm p-2">
+              <div class="text-neutral-600">
+                Showing <%= Formatter.format_number(length(@media)) %> results.
+                <%= if !is_nil(@results.metadata.after) do %>
+                  <button type="button" phx-click="load_more" phx-disable-with="Loading more...">
+                    <span class="text-urge-600 font-medium">Load more &rarr;</span>
+                  </button>
+                <% end %>
+              </div>
+            </div>
           </section>
       <% end %>
     <% else %>
       <.no_media_results />
     <% end %>
-    <div class="mx-auto mt-8 text-center text-xs">
-      <%= if !is_nil(@results.metadata.after) do %>
-        <button
-          type="button"
-          class="text-button"
-          phx-click="load_more"
-          phx-disable-with="Loading..."
-        >
-          Load More
-        </button>
-      <% end %>
-    </div>
+    <%= if @display != "table" do %>
+      <div class="mx-auto mt-8 text-center text-xs">
+        <%= if !is_nil(@results.metadata.after) do %>
+          <button
+            type="button"
+            class="text-button"
+            phx-click="load_more"
+            phx-disable-with="Loading..."
+          >
+            Load More
+          </button>
+        <% end %>
+      </div>
+    <% end %>
   </section>
   <%= with {media, attribute_name} <- @editing do %>
     <.live_component

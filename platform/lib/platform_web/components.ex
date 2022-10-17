@@ -1339,7 +1339,7 @@ defmodule PlatformWeb.Components do
     <div x-data="{ open: window.innerWidth >= 768 }">
       <button
         x-on:click="open = !open"
-        class="mx-auto md:hidden bg-white hover:shadow-lg hover:bg-neutral-100 focus:ring-urge-400 transition-all rounded-full gap-1 px-4 py-2 mb-4 text-sm flex items-center shadow text-neutral-700 justify-around mb-4"
+        class="mx-auto md:hidden bg-white hover:shadow-lg hover:bg-neutral-100 focus:ring-urge-400 transition-all rounded-full gap-1 px-4 py-2 text-sm flex items-center shadow text-neutral-700 justify-around mb-4"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -1362,7 +1362,6 @@ defmodule PlatformWeb.Components do
         id="search-form"
         phx-change="validate"
         phx-submit="save"
-        class="mb-8"
         x-show="open"
         x-transition
         x-ref="form"
