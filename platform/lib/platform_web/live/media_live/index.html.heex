@@ -71,7 +71,7 @@
           <section class="-mx-4 md:-mx-8">
             <div class="overflow-x-auto">
               <div class="inline-block align-middle">
-                <div class="!shadow-inner ring-1 ring-black ring-opacity-5 max-h-[calc(100vh-10rem)]">
+                <div class="!shadow-inner ring-1 ring-black ring-opacity-5 max-h-[calc(100vh-10rem+40px)]">
                   <table class="border-separate sticky-headers" style="border-spacing: 0">
                     <thead class="bg-gray-200 whitespace-nowrap">
                       <tr>
@@ -272,17 +272,21 @@
                       <% end %>
                     </tbody>
                   </table>
+                  <div class="h-[40px] flex items-center sticky left-0 w-[100vw] relative z-[100] bg-neutral-100 border-t text-sm p-2">
+                    <div class="text-neutral-600">
+                      Showing <%= Formatter.format_number(length(@media)) %> results.
+                      <%= if !is_nil(@results.metadata.after) do %>
+                        <button
+                          type="button"
+                          phx-click="load_more"
+                          phx-disable-with="Loading more..."
+                        >
+                          <span class="text-urge-600 font-medium">Load more &rarr;</span>
+                        </button>
+                      <% end %>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
-            <div class="h-[40px] flex items-center fixed left-0 bottom-0 w-[100vw] relative z-[100] bg-neutral-100 border-t text-sm p-2">
-              <div class="text-neutral-600">
-                Showing <%= Formatter.format_number(length(@media)) %> results.
-                <%= if !is_nil(@results.metadata.after) do %>
-                  <button type="button" phx-click="load_more" phx-disable-with="Loading more...">
-                    <span class="text-urge-600 font-medium">Load more &rarr;</span>
-                  </button>
-                <% end %>
               </div>
             </div>
           </section>
