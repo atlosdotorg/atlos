@@ -1392,15 +1392,17 @@ defmodule PlatformWeb.Components do
                   ) %>
                 <% end %>
 
-                <%= label do %>
-                  <div class={"cursor-pointer transition-all px-3 py-2 font-medium text-sm rounded-md " <> (if @display == "table", do: "bg-neutral-200 text-neutral-700", else: "text-neutral-700 hover:bg-neutral-100")}>
-                    Table
-                  </div>
-                  <%= radio_button(f, :display, "table",
-                    class: "fixed opacity-0 pointer-events-none",
-                    "x-on:change": "window.triggerSubmitEvent($event.target)"
-                  ) %>
-                <% end %>
+                <div class="hidden">
+                  <%= label do %>
+                    <div class={"cursor-pointer transition-all px-3 py-2 font-medium text-sm rounded-md " <> (if @display == "table", do: "bg-neutral-200 text-neutral-700", else: "text-neutral-700 hover:bg-neutral-100")}>
+                      Table
+                    </div>
+                    <%= radio_button(f, :display, "table",
+                      class: "fixed opacity-0 pointer-events-none",
+                      "x-on:change": "window.triggerSubmitEvent($event.target)"
+                    ) %>
+                  <% end %>
+                </div>
               </nav>
             </div>
             <div class={"flex-grow " <> (if Enum.member?(@exclude, :query), do: "hidden", else: "")}>
