@@ -119,14 +119,15 @@
                   <div class="h-[40px] flex items-center sticky left-0 w-[100vw] relative z-[100] bg-neutral-50 border-t text-sm p-2">
                     <div class="text-neutral-600">
                       <%= if !is_nil(@results.metadata.after) do %>
-                        <span
-                          phx-hook="InfiniteScroll"
+                        Showing <%= length(@media) |> Formatter.format_number() %> results.
+                        <button
                           id="table-load-more"
-                          data-page={@pagination_index}
-                          class="animate-pulse"
+                          phx-click="load_more"
+                          phx-disable-with="Loading..."
+                          class="text-button"
                         >
-                          Loading more...
-                        </span>
+                          Load more &rarr;
+                        </button>
                       <% else %>
                         No more results to show.
                       <% end %>
