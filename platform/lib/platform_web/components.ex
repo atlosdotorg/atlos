@@ -1332,6 +1332,181 @@ defmodule PlatformWeb.Components do
     """
   end
 
+  def media_table_row(%{media: _, current_user: _, attributes: _, source_cols: _} = assigns) do
+    ~H"""
+    <% is_subscribed = @media.has_subscription %>
+    <% has_unread_notification = @media.has_unread_notification %>
+    <tr
+      class="search-highlighting bg-white group hover:bg-neutral-50 transition-all"
+      id={"table-row-" <> @media.slug}
+    >
+      <td
+        id={"table-row-" <> @media.slug <> "-slug"}
+        class="md:sticky left-0 z-[100] pl-4 pr-1 border-r font-mono whitespace-nowrap border-b border-gray-200 h-10 bg-white group-hover:bg-neutral-50 transition-all"
+      >
+        <.link
+          href={"/incidents/#{@media.slug}"}
+          class="text-button text-sm flex items-center gap-1 mr-px"
+        >
+          <%= @media.slug %>
+          <%= if is_subscribed do %>
+            <span data-tooltip="You are subscribed" class="text-neutral-400">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+                class="w-3 h-3"
+              >
+                <path d="M10 12.5a2.5 2.5 0 100-5 2.5 2.5 0 000 5z" />
+                <path
+                  fill-rule="evenodd"
+                  d="M.664 10.59a1.651 1.651 0 010-1.186A10.004 10.004 0 0110 3c4.257 0 7.893 2.66 9.336 6.41.147.381.146.804 0 1.186A10.004 10.004 0 0110 17c-4.257 0-7.893-2.66-9.336-6.41zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+              <span class="sr-only">
+                You are subscribed
+              </span>
+            </span>
+          <% end %>
+          <%= if has_unread_notification do %>
+            <span data-tooltip="Unread notification">
+              <svg
+                viewBox="0 0 100 100"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="currentColor"
+                class="h-2 w-2"
+              >
+                <circle cx="50" cy="50" r="50" />
+              </svg>
+              <span class="sr-only">
+                Unread notification
+              </span>
+            </span>
+          <% end %>
+        </.link>
+      </td>
+      <td
+        id={"table-row-" <> @media.slug <> "-updated"}
+        class="border-b cursor-pointer p-0 text-sm text-neutral-600"
+      >
+        <.link href={"/incidents/#{@media.slug}"}>
+          <div class="mx-2 flex w-[7rem] relative z-0 items-center">
+            <div class="flex-shrink-0 w-5 mr-1">
+              <.user_stack users={@media.updates |> Enum.take(1) |> Enum.map(& &1.user)} />
+            </div>
+            <div class="flex-shrink-0">
+              <.rel_time time={@media.updated_at} />
+            </div>
+          </div>
+        </.link>
+      </td>
+      <%= for attr <- @attributes do %>
+        <td
+          class="border-b cursor-pointer p-0"
+          id={"table-row-" <> @media.slug <> "-" <> to_string(attr.name)}
+        >
+          <div class="text-sm text-gray-900 px-4 overflow-hidden h-6 max-w-[36rem] truncate">
+            <.popover class="font-base p-0 inline">
+              <.link href={"/incidents/#{@media.slug}"} class="truncate inline">
+                <.attr_display_compact
+                  color={true}
+                  truncate={true}
+                  attr={attr}
+                  media={@media}
+                  current_user={@current_user}
+                />
+              </.link>
+              <:display>
+                <% update =
+                  @media.updates
+                  |> Enum.filter(
+                    &(&1.modified_attribute == attr.name ||
+                        &1.type == :create)
+                  )
+                  |> Enum.sort_by(& &1.inserted_at)
+                  |> Enum.reverse()
+                  |> hd() %>
+                <div class="py-2 flex flex-col gap-2 word-breaks">
+                  <div class="md:flex gap-4 items-center justify-between">
+                    <%= if not is_nil(update) do %>
+                      <div class="text-sm text-neutral-600">
+                        <.user_text user={update.user} /> changed
+                        <.rel_time time={update.inserted_at} />
+                      </div>
+                    <% end %>
+                    <%= if Platform.Material.Attribute.can_user_edit(attr, @current_user, @media) do %>
+                      <button
+                        class="button ~urge @high inline !rounded !text-xs !px-2 !py-1"
+                        phx-click="edit_attribute"
+                        phx-value-attribute={attr.name}
+                        phx-value-media-id={@media.id}
+                      >
+                        Edit
+                      </button>
+                    <% end %>
+                  </div>
+                  <div class="border p-2 rounded shadow-sm max-w-full">
+                    <.attr_display_compact
+                      color={true}
+                      attr={attr}
+                      truncate={false}
+                      media={@media}
+                      current_user={@current_user}
+                    />
+                  </div>
+                </div>
+              </:display>
+            </.popover>
+          </div>
+        </td>
+      <% end %>
+      <% versions =
+        @media.versions
+        |> Enum.filter(&Material.MediaVersion.can_user_view(&1, @current_user)) %>
+      <%= for idx <- 0..@source_cols do %>
+        <td
+          class="border-b cursor-pointer p-0"
+          id={"table-row-" <> @media.slug <> "-source-" <> to_string(idx)}
+        >
+          <% version = Enum.at(versions, idx) %>
+          <%= if not is_nil(version) do %>
+            <.popover class="inline">
+              <div class="text-sm flex items-center text-gray-900 px-4 whitespace-nowrap text-ellipsis overflow-hidden h-6 w-[12rem]">
+                <a
+                  href={version.source_url}
+                  target="_blank"
+                  rel="nofollow"
+                  class="truncate"
+                  data-confirm="This will open the source media in a new tab. Are you sure?"
+                >
+                  <.url_icon url={version.source_url} class="h-4 w-4 inline mb-px" />
+                  <%= version.source_url %>
+                </a>
+              </div>
+              <:display>
+                <div class="min-w-[20rem]">
+                  <.media_version_display
+                    version={version}
+                    current_user={@current_user}
+                    media={@media}
+                    show_controls={false}
+                    dynamic_src={true}
+                  />
+                </div>
+              </:display>
+            </.popover>
+          <% else %>
+            <span class="text-neutral-400 px-4">
+              &mdash;
+            </span>
+          <% end %>
+        </td>
+      <% end %>
+    </tr>
+    """
+  end
+
   def search_form(%{changeset: _, query_params: _, socket: _, display: _} = assigns) do
     assigns = assign_new(assigns, :exclude, fn -> [] end)
 

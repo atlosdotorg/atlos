@@ -350,9 +350,9 @@ function initializeMaps() {
         };
 
         map.on("load", initializeLayers);
-        window.addEventListener("phx:update", initializeLayers);
+        document.addEventListener("phx:update", initializeLayers);
 
-        window.addEventListener("resize", () => {
+        document.addEventListener("resize", () => {
             map.resize();
         });
 
