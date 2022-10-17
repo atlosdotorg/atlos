@@ -1399,7 +1399,7 @@ defmodule PlatformWeb.Components do
                 <%= label do %>
                   <div
                     data-tooltip="Card view"
-                    class={"cursor-pointer transition-all px-2 py-[0.38rem] font-medium text-sm rounded-md " <> (if @display == "previews", do: "bg-neutral-200 text-neutral-700", else: "text-neutral-700 hover:bg-neutral-100")}
+                    class={"cursor-pointer transition-all px-2 py-[0.38rem] font-medium text-sm rounded-md " <> (if @display == "cards", do: "bg-neutral-200 text-neutral-700", else: "text-neutral-700 hover:bg-neutral-100")}
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -1416,8 +1416,8 @@ defmodule PlatformWeb.Components do
                       />
                     </svg>
                   </div>
-                  <%= radio_button(f, :display, "previews",
-                    id: "search-form-previews-button",
+                  <%= radio_button(f, :display, "cards",
+                    id: "search-form-cards-button",
                     class: "fixed opacity-0 pointer-events-none",
                     "x-on:change": "window.triggerSubmitEvent($event.target)"
                   ) %>
