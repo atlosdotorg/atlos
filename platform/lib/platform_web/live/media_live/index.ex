@@ -13,6 +13,10 @@ defmodule PlatformWeb.MediaLive.Index do
     changeset = Material.MediaSearch.changeset(params)
     display = Ecto.Changeset.get_field(changeset, :display, "map")
 
+    if not Enum.member?(["map", "cards", "table"], display) do
+      raise PlatformWeb.Errors.NotFound, "Display type not found"
+    end
+
     results =
       search_media(socket, changeset,
         # Ideally we would put these params in search_media, but since this is map-specific logic, it'll only be called here (it's not possible to "load more" on the map)
