@@ -5,7 +5,19 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
   alias Platform.Auditor
 
   def update(assigns, socket) do
-    attr = Attribute.get_attribute(String.to_existing_atom(assigns.name))
+    atom_name =
+      try do
+        String.to_existing_atom(assigns.name)
+      rescue
+        _ -> nil
+      end
+
+    attr = Attribute.get_attribute(atom_name)
+
+    if is_nil(attr) do
+      raise PlatformWeb.Errors.NotFound, "Attribute not found"
+    end
+
     attributes = [attr] ++ Attribute.get_children(attr.name)
 
     {:ok,
@@ -89,7 +101,7 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
         <div class="md:flex justify-between">
           <div>
             <p class="support font-mono"><%= @media.slug %></p>
-            <h3 class="sec-head">Edit: <%= hd(@attrs).label %></h3>
+            <h3 class="sec-head">Update: <%= hd(@attrs).label %></h3>
             <p class="sec-subhead"><%= hd(@attrs).description %></p>
           </div>
         </div>

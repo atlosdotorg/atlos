@@ -69,7 +69,7 @@ defmodule Platform.Material do
   Query the list of media, paginated. Will preload the versions and updates. Behavior otherwise the same as query_media/1.
   """
   def query_media_paginated(query \\ Media, opts \\ []) do
-    applied_options = Keyword.merge([cursor_fields: [{:updated_at, :desc}], limit: 30], opts)
+    applied_options = Keyword.merge([cursor_fields: [{:updated_at, :desc}], limit: 50], opts)
 
     _query_media(query, applied_options)
     |> Repo.paginate(applied_options)
@@ -348,7 +348,7 @@ defmodule Platform.Material do
   Query the list of media versions, paginated. Will preload the associated media.
   """
   def query_media_versions_paginated(query \\ MediaVersion, opts \\ []) do
-    applied_options = Keyword.merge([cursor_fields: [{:updated_at, :desc}], limit: 30], opts)
+    applied_options = Keyword.merge([cursor_fields: [{:updated_at, :desc}], limit: 50], opts)
 
     query
     |> preload(:media)

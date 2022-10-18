@@ -7,6 +7,16 @@
     @apply inline-flex items-center px-1 py-px rounded !font-medium;
   }
 
+  .sticky-headers {
+    text-align: left;
+    position: relative;
+  }
+
+  .sticky-headers th {
+    position: sticky;
+    top: 0;
+  }
+
   .word-breaks {
     overflow-wrap: break-word;
     word-wrap: break-word;

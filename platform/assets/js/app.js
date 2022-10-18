@@ -26,6 +26,7 @@ import mapboxgl from 'mapbox-gl'
 import Alpine from 'alpinejs'
 import tippy from 'tippy.js';
 import Mark from 'mark.js';
+import { InfiniteScroll } from "./infinite_scroll";
 
 mapboxgl.accessToken = 'pk.eyJ1IjoibWlsZXNtY2MiLCJhIjoiY2t6ZzdzZmY0MDRobjJvbXBydWVmaXBpNSJ9.-aHM8bjOOsSrGI0VvZenAQ';
 
@@ -37,6 +38,7 @@ Hooks.Modal = {
         })
     }
 }
+Hooks.InfiniteScroll = InfiniteScroll;
 
 let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content");
 let liveSocket = new LiveSocket("/live", Socket, {
@@ -348,9 +350,9 @@ function initializeMaps() {
         };
 
         map.on("load", initializeLayers);
-        window.addEventListener("phx:update", initializeLayers);
+        document.addEventListener("phx:update", initializeLayers);
 
-        window.addEventListener("resize", () => {
+        document.addEventListener("resize", () => {
             map.resize();
         });
 

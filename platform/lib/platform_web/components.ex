@@ -555,144 +555,156 @@ defmodule PlatformWeb.Components do
       """
     else
       ~H"""
-      <li class={if update.hidden, do: "opacity-50", else: ""}>
+      <% can_user_view = Platform.Updates.Update.can_user_view(update, @current_user) %>
+      <li class={if update.hidden and can_user_view, do: "opacity-50", else: ""}>
         <div class="relative pb-8 group word-breaks">
           <%= if show_line do %>
             <span class="absolute top-5 left-5 -ml-px h-full w-0.5 bg-gray-200" aria-hidden="true">
             </span>
           <% end %>
           <div class="relative flex items-start space-x-2">
-            <%= case indicator do %>
-              <% :profile -> %>
-                <div class="relative">
-                  <a href={"/profile/#{update.user.username}"}>
-                    <img
-                      class={"h-10 w-10 rounded-full bg-gray-400 flex items-center justify-center " <> profile_ring_classes}
-                      src={Accounts.get_profile_photo_path(update.user)}
-                      alt={"Profile photo for #{update.user.username}"}
-                    />
-                  </a>
-                </div>
-              <% :dot -> %>
-                <div class="relative ml-[0.90em] mt-3 mr-4">
-                  <svg viewBox="0 0 100 100" class="h-3 w-3 bg-white text-gray-400">
-                    <circle cx="50" cy="50" r="40" stroke-width="3" fill="currentColor" />
-                  </svg>
-                </div>
-              <% _ -> %>
-            <% end %>
-            <div class="min-w-0 flex-1 flex flex-col flex-grow pl-1">
-              <div>
-                <div class="text-sm text-gray-600 mt-2">
-                  <%= if show_media do %>
-                    <.media_text media={update.media} />
-                  <% end %>
-                  <.user_text user={update.user} />
-                  <%= case update.type do %>
-                    <% :update_attribute -> %>
-                      <% attr = Attribute.get_attribute(update.modified_attribute) %> updated
-                      <%= live_patch class: "text-button text-gray-800 inline-block", to: Routes.media_show_path(socket, :history, update.media.slug, attr.name) do %>
-                        <%= attr.label %> &nearr;
-                      <% end %>
-                    <% :create -> %>
-                      added <span class="font-medium text-gray-900"><%= update.media.slug %></span>
-                    <% :upload_version -> %>
-                      added
-                      <a
-                        href={
+            <%= if can_user_view do %>
+              <%= case indicator do %>
+                <% :profile -> %>
+                  <div class="relative">
+                    <a href={"/profile/#{update.user.username}"}>
+                      <img
+                        class={"h-10 w-10 rounded-full bg-gray-400 flex items-center justify-center " <> profile_ring_classes}
+                        src={Accounts.get_profile_photo_path(update.user)}
+                        alt={"Profile photo for #{update.user.username}"}
+                      />
+                    </a>
+                  </div>
+                <% :dot -> %>
+                  <div class="relative ml-[0.90em] mt-3 mr-4">
+                    <svg viewBox="0 0 100 100" class="h-3 w-3 bg-white text-gray-400">
+                      <circle cx="50" cy="50" r="40" stroke-width="3" fill="currentColor" />
+                    </svg>
+                  </div>
+                <% _ -> %>
+              <% end %>
+              <div class="min-w-0 flex-1 flex flex-col flex-grow pl-1">
+                <div>
+                  <div class="text-sm text-gray-600 mt-2">
+                    <%= if show_media do %>
+                      <.media_text media={update.media} />
+                    <% end %>
+                    <.user_text user={update.user} />
+                    <%= case update.type do %>
+                      <% :update_attribute -> %>
+                        <% attr = Attribute.get_attribute(update.modified_attribute) %> updated
+                        <%= live_patch class: "text-button text-gray-800 inline-block", to: Routes.media_show_path(socket, :history, update.media.slug, attr.name) do %>
+                          <%= attr.label %> &nearr;
+                        <% end %>
+                      <% :create -> %>
+                        added <span class="font-medium text-gray-900"><%= update.media.slug %></span>
+                      <% :upload_version -> %>
+                        added
+                        <a
+                          href={
                           Routes.media_show_path(socket, :show, update.media.slug) <>
                             "#version-#{update.media_version.id}"
                         }
-                        class="text-button text-gray-800"
-                      >
-                        Media &nearr;
-                      </a>
-                    <% :comment -> %>
-                      commented
-                  <% end %>
-                  <.rel_time time={update.inserted_at} />
-                  <%= if update.hidden do %>
-                    <span class="badge ~neutral">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        class="h-3 w-3 mr-1"
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
-                      >
-                        <path
-                          fill-rule="evenodd"
-                          d="M3.707 2.293a1 1 0 00-1.414 1.414l14 14a1 1 0 001.414-1.414l-1.473-1.473A10.014 10.014 0 0019.542 10C18.268 5.943 14.478 3 10 3a9.958 9.958 0 00-4.512 1.074l-1.78-1.781zm4.261 4.26l1.514 1.515a2.003 2.003 0 012.45 2.45l1.514 1.514a4 4 0 00-5.478-5.478z"
-                          clip-rule="evenodd"
-                        />
-                        <path d="M12.454 16.697L9.75 13.992a4 4 0 01-3.742-3.741L2.335 6.578A9.98 9.98 0 00.458 10c1.274 4.057 5.065 7 9.542 7 .847 0 1.669-.105 2.454-.303z" />
-                      </svg>
-                      Hidden
-                    </span>
-                  <% end %>
-                  <%= if can_user_change_visibility do %>
-                    <button
-                      type="button"
-                      phx-target={target}
-                      phx-click="change_visibility"
-                      phx-value-update={update.id}
-                      class="opacity-0 group-hover:opacity-100 text-critical-700 transition text-xs ml-2"
-                      data-confirm="Are you sure you want to change the visibility of this update?"
-                    >
-                      <%= if update.hidden, do: "Show", else: "Hide" %>
-                    </button>
-                  <% end %>
-                </div>
-              </div>
-
-              <%= if update.type == :update_attribute || update.explanation do %>
-                <div class="mt-1 text-sm text-gray-700 border border-gray-300 rounded-lg shadow-sm overflow-hidden flex flex-col divide-y">
-                  <!-- Update detail section -->
-                  <%= if update.type == :update_attribute do %>
-                    <div class="bg-gray-50 p-2 flex">
-                      <div class="flex-grow">
-                        <.attr_diff
-                          name={update.modified_attribute}
-                          old={Jason.decode!(update.old_value)}
-                          new={Jason.decode!(update.new_value)}
-                        />
-                      </div>
-                    </div>
-                  <% end %>
-                  <!-- Text comment section -->
-                  <%= if update.explanation do %>
-                    <article class="prose text-sm p-2 w-full max-w-full bg-white">
-                      <%= raw(update.explanation |> Platform.Utils.render_markdown()) %>
-                    </article>
-                  <% end %>
-
-                  <%= if not Enum.empty?(update.attachments) do %>
-                    <div class="p-2 grid grid-cols-2 md:grid-cols-3 gap-2">
-                      <%= for {attachment, idx} <- update.attachments |> Enum.with_index() do %>
-                        <% url =
-                          Uploads.UpdateAttachment.url({attachment, update.media}, :original,
-                            signed: true,
-                            expires_in: 60 * 60 * 6
-                          ) %>
-                        <a
-                          class="rounded overflow-hidden max-h-64 cursor-zoom-in"
-                          href={url}
-                          target="_blank"
+                          class="text-button text-gray-800"
                         >
-                          <%= if String.ends_with?(attachment, ".jpg") || String.ends_with?(attachment, ".jpeg") || String.ends_with?(attachment, ".png") do %>
-                            <img src={url} />
-                          <% else %>
-                            <.document_preview
-                              file_name={"Attachment #" <> to_string(idx + 1)}
-                              description="PDF Document"
-                            />
-                          <% end %>
+                          Media &nearr;
                         </a>
-                      <% end %>
-                    </div>
-                  <% end %>
+                      <% :comment -> %>
+                        commented
+                    <% end %>
+                    <.rel_time time={update.inserted_at} />
+                    <%= if update.hidden do %>
+                      <span class="badge ~neutral">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          class="h-3 w-3 mr-1"
+                          viewBox="0 0 20 20"
+                          fill="currentColor"
+                        >
+                          <path
+                            fill-rule="evenodd"
+                            d="M3.707 2.293a1 1 0 00-1.414 1.414l14 14a1 1 0 001.414-1.414l-1.473-1.473A10.014 10.014 0 0019.542 10C18.268 5.943 14.478 3 10 3a9.958 9.958 0 00-4.512 1.074l-1.78-1.781zm4.261 4.26l1.514 1.515a2.003 2.003 0 012.45 2.45l1.514 1.514a4 4 0 00-5.478-5.478z"
+                            clip-rule="evenodd"
+                          />
+                          <path d="M12.454 16.697L9.75 13.992a4 4 0 01-3.742-3.741L2.335 6.578A9.98 9.98 0 00.458 10c1.274 4.057 5.065 7 9.542 7 .847 0 1.669-.105 2.454-.303z" />
+                        </svg>
+                        Hidden
+                      </span>
+                    <% end %>
+                    <%= if can_user_change_visibility do %>
+                      <button
+                        type="button"
+                        phx-target={target}
+                        phx-click="change_visibility"
+                        phx-value-update={update.id}
+                        class="opacity-0 group-hover:opacity-100 text-critical-700 transition text-xs ml-2"
+                        data-confirm="Are you sure you want to change the visibility of this update?"
+                      >
+                        <%= if update.hidden, do: "Show", else: "Hide" %>
+                      </button>
+                    <% end %>
+                  </div>
                 </div>
-              <% end %>
-            </div>
+
+                <%= if update.type == :update_attribute || update.explanation do %>
+                  <div class="mt-1 text-sm text-gray-700 border border-gray-300 rounded-lg shadow-sm overflow-hidden flex flex-col divide-y">
+                    <!-- Update detail section -->
+                    <%= if update.type == :update_attribute do %>
+                      <div class="bg-gray-50 p-2 flex">
+                        <div class="flex-grow">
+                          <.attr_diff
+                            name={update.modified_attribute}
+                            old={Jason.decode!(update.old_value)}
+                            new={Jason.decode!(update.new_value)}
+                          />
+                        </div>
+                      </div>
+                    <% end %>
+                    <!-- Text comment section -->
+                    <%= if update.explanation do %>
+                      <article class="prose text-sm p-2 w-full max-w-full bg-white">
+                        <%= raw(update.explanation |> Platform.Utils.render_markdown()) %>
+                      </article>
+                    <% end %>
+
+                    <%= if not Enum.empty?(update.attachments) do %>
+                      <div class="p-2 grid grid-cols-2 md:grid-cols-3 gap-2">
+                        <%= for {attachment, idx} <- update.attachments |> Enum.with_index() do %>
+                          <% url =
+                            Uploads.UpdateAttachment.url({attachment, update.media}, :original,
+                              signed: true,
+                              expires_in: 60 * 60 * 6
+                            ) %>
+                          <a
+                            class="rounded overflow-hidden max-h-64 cursor-zoom-in"
+                            href={url}
+                            target="_blank"
+                          >
+                            <%= if String.ends_with?(attachment, ".jpg") || String.ends_with?(attachment, ".jpeg") || String.ends_with?(attachment, ".png") do %>
+                              <img src={url} />
+                            <% else %>
+                              <.document_preview
+                                file_name={"Attachment #" <> to_string(idx + 1)}
+                                description="PDF Document"
+                              />
+                            <% end %>
+                          </a>
+                        <% end %>
+                      </div>
+                    <% end %>
+                  </div>
+                <% end %>
+              </div>
+            <% else %>
+              <div class="text-sm flex items-center mt-2 border-2 border-dashed border-neutral-300 text-neutral-600 p-2 rounded">
+                <p>
+                  <span class="font-medium text-gray-800">
+                    You do not have permission to see this update.
+                  </span>
+                  The incident may have been removed, or the update may have been hidden.
+                </p>
+              </div>
+            <% end %>
           </div>
         </div>
       </li>
@@ -1332,6 +1344,207 @@ defmodule PlatformWeb.Components do
     """
   end
 
+  def loading_spinner(assigns) do
+    ~H"""
+    <div class="flex items-center">
+      <div role="status">
+        <svg
+          class="inline mr-2 w-4 h-4 text-neutral-200 animate-spin fill-neutral-700"
+          viewBox="0 0 100 101"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
+            fill="currentColor"
+          />
+          <path
+            d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z"
+            fill="currentFill"
+          />
+        </svg>
+      </div>
+      Loading more...
+    </div>
+    """
+  end
+
+  def media_table_row(%{media: _, current_user: _, attributes: _, source_cols: _} = assigns) do
+    ~H"""
+    <% is_subscribed = @media.has_subscription %>
+    <% has_unread_notification = @media.has_unread_notification %>
+    <tr
+      class="search-highlighting bg-white group hover:bg-neutral-50 transition-all"
+      id={"table-row-" <> @media.slug}
+    >
+      <td
+        id={"table-row-" <> @media.slug <> "-slug"}
+        class="md:sticky left-0 z-[100] pl-4 pr-1 border-r font-mono whitespace-nowrap border-b border-gray-200 h-10 bg-white group-hover:bg-neutral-50 transition-all"
+      >
+        <.link
+          href={"/incidents/#{@media.slug}"}
+          class="text-button text-sm flex items-center gap-1 mr-px"
+        >
+          <%= @media.slug %>
+          <%= if is_subscribed do %>
+            <span data-tooltip="You are subscribed" class="text-neutral-400">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+                class="w-3 h-3"
+              >
+                <path d="M10 12.5a2.5 2.5 0 100-5 2.5 2.5 0 000 5z" />
+                <path
+                  fill-rule="evenodd"
+                  d="M.664 10.59a1.651 1.651 0 010-1.186A10.004 10.004 0 0110 3c4.257 0 7.893 2.66 9.336 6.41.147.381.146.804 0 1.186A10.004 10.004 0 0110 17c-4.257 0-7.893-2.66-9.336-6.41zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+              <span class="sr-only">
+                You are subscribed
+              </span>
+            </span>
+          <% end %>
+          <%= if has_unread_notification do %>
+            <span data-tooltip="Unread notification">
+              <svg
+                viewBox="0 0 100 100"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="currentColor"
+                class="h-2 w-2"
+              >
+                <circle cx="50" cy="50" r="50" />
+              </svg>
+              <span class="sr-only">
+                Unread notification
+              </span>
+            </span>
+          <% end %>
+        </.link>
+      </td>
+      <td
+        id={"table-row-" <> @media.slug <> "-updated"}
+        class="border-b cursor-pointer p-0 text-sm text-neutral-600"
+      >
+        <.link href={"/incidents/#{@media.slug}"}>
+          <div class="mx-2 flex w-[7rem] relative z-0 items-center">
+            <div class="flex-shrink-0 w-5 mr-1">
+              <.user_stack users={@media.updates |> Enum.take(1) |> Enum.map(& &1.user)} />
+            </div>
+            <div class="flex-shrink-0">
+              <.rel_time time={@media.updated_at} />
+            </div>
+          </div>
+        </.link>
+      </td>
+      <%= for attr <- @attributes do %>
+        <td
+          class="border-b cursor-pointer p-0"
+          id={"table-row-" <> @media.slug <> "-" <> to_string(attr.name)}
+        >
+          <div class="text-sm text-gray-900 px-4 overflow-hidden h-6 max-w-[36rem] truncate">
+            <.popover class="font-base p-0 inline">
+              <.link href={"/incidents/#{@media.slug}"} class="truncate inline">
+                <.attr_display_compact
+                  color={true}
+                  truncate={true}
+                  attr={attr}
+                  media={@media}
+                  current_user={@current_user}
+                />
+              </.link>
+              <:display>
+                <% update =
+                  @media.updates
+                  |> Enum.filter(
+                    &(&1.modified_attribute == attr.name ||
+                        &1.type == :create)
+                  )
+                  |> Enum.sort_by(& &1.inserted_at)
+                  |> Enum.reverse()
+                  |> hd() %>
+                <div class="py-2 flex flex-col gap-2 word-breaks">
+                  <div class="md:flex gap-4 items-center justify-between">
+                    <%= if not is_nil(update) do %>
+                      <div class="text-sm text-neutral-600">
+                        <.user_text user={update.user} /> changed
+                        <.rel_time time={update.inserted_at} />
+                      </div>
+                    <% end %>
+                    <%= if Platform.Material.Attribute.can_user_edit(attr, @current_user, @media) do %>
+                      <button
+                        class="button ~urge @high inline !rounded !text-xs !px-2 !py-1"
+                        phx-click="edit_attribute"
+                        phx-value-attribute={attr.name}
+                        phx-value-media-id={@media.id}
+                        phx-disable-with="Opening..."
+                      >
+                        Update
+                      </button>
+                    <% end %>
+                  </div>
+                  <div class="border p-2 rounded shadow-sm max-w-full">
+                    <.attr_display_compact
+                      color={true}
+                      attr={attr}
+                      truncate={false}
+                      media={@media}
+                      current_user={@current_user}
+                    />
+                  </div>
+                </div>
+              </:display>
+            </.popover>
+          </div>
+        </td>
+      <% end %>
+      <% versions =
+        @media.versions
+        |> Enum.filter(&Material.MediaVersion.can_user_view(&1, @current_user)) %>
+      <%= for idx <- 0..@source_cols do %>
+        <td
+          class="border-b cursor-pointer p-0"
+          id={"table-row-" <> @media.slug <> "-source-" <> to_string(idx)}
+        >
+          <% version = Enum.at(versions, idx) %>
+          <%= if not is_nil(version) do %>
+            <.popover class="inline">
+              <div class="text-sm flex items-center text-gray-900 px-4 whitespace-nowrap text-ellipsis overflow-hidden h-6 w-[12rem]">
+                <a
+                  href={version.source_url}
+                  target="_blank"
+                  rel="nofollow"
+                  class="truncate"
+                  data-confirm="This will open the source media in a new tab. Are you sure?"
+                >
+                  <.url_icon url={version.source_url} class="h-4 w-4 inline mb-px" />
+                  <%= version.source_url %>
+                </a>
+              </div>
+              <:display>
+                <div class="min-w-[20rem]">
+                  <.media_version_display
+                    version={version}
+                    current_user={@current_user}
+                    media={@media}
+                    show_controls={false}
+                    dynamic_src={true}
+                  />
+                </div>
+              </:display>
+            </.popover>
+          <% else %>
+            <span class="text-neutral-400 px-4">
+              &mdash;
+            </span>
+          <% end %>
+        </td>
+      <% end %>
+    </tr>
+    """
+  end
+
   def search_form(%{changeset: _, query_params: _, socket: _, display: _} = assigns) do
     assigns = assign_new(assigns, :exclude, fn -> [] end)
 
@@ -1339,7 +1552,7 @@ defmodule PlatformWeb.Components do
     <div x-data="{ open: window.innerWidth >= 768 }">
       <button
         x-on:click="open = !open"
-        class="mx-auto md:hidden bg-white hover:shadow-lg hover:bg-neutral-100 focus:ring-urge-400 transition-all rounded-full gap-1 px-4 py-2 mb-4 text-sm flex items-center shadow text-neutral-700 justify-around mb-4"
+        class="mx-auto md:hidden bg-white hover:shadow-lg hover:bg-neutral-100 focus:ring-urge-400 transition-all rounded-full gap-1 px-4 py-2 text-sm flex items-center shadow text-neutral-700 justify-around mb-4"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -1362,18 +1575,33 @@ defmodule PlatformWeb.Components do
         id="search-form"
         phx-change="validate"
         phx-submit="save"
-        class="mb-8"
         x-show="open"
         x-transition
         x-ref="form"
       >
         <section class="md:flex w-full max-w-7xl mx-auto flex-wrap md:flex-nowrap gap-2 items-center">
           <div class="flex divide-y md:divide-y-0 md:divide-x flex-col flex-grow md:flex-row rounded-lg bg-white shadow border">
-            <div class={"flex px-2 py-2 pd:my-0 " <> (if Enum.member?(@exclude, :query), do: "hidden", else: "")}>
+            <div class={"flex px-2 py-1 pd:my-0 " <> (if Enum.member?(@exclude, :display), do: "hidden", else: "")}>
               <nav class="flex items-center gap-px" aria-label="Tabs">
                 <%= label do %>
-                  <div class={"cursor-pointer transition-all px-3 py-2 font-medium text-sm rounded-md " <> (if @display == "map", do: "bg-neutral-200 text-neutral-700", else: "text-neutral-700 hover:bg-neutral-100")}>
-                    Map
+                  <div
+                    data-tooltip="Map view"
+                    class={"cursor-pointer transition-all px-2 py-[0.38rem] font-medium text-sm rounded-md " <> (if @display == "map", do: "bg-neutral-200 text-neutral-700", else: "text-neutral-700 hover:bg-neutral-100")}
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke-width="1.5"
+                      stroke="currentColor"
+                      class="w-6 h-6"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M9 6.75V15m6-6v8.25m.503 3.498l4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 00-1.006 0L3.622 5.689C3.24 5.88 3 6.27 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c.317-.159.69-.159 1.006 0l4.994 2.497c.317.158.69.158 1.006 0z"
+                      />
+                    </svg>
                   </div>
                   <%= radio_button(f, :display, "map",
                     class: "fixed opacity-0 pointer-events-none",
@@ -1382,25 +1610,59 @@ defmodule PlatformWeb.Components do
                 <% end %>
 
                 <%= label do %>
-                  <div class={"cursor-pointer transition-all px-3 py-2 font-medium text-sm rounded-md " <> (if @display == "previews", do: "bg-neutral-200 text-neutral-700", else: "text-neutral-700 hover:bg-neutral-100")}>
-                    Previews
+                  <div
+                    data-tooltip="Card view"
+                    class={"cursor-pointer transition-all px-2 py-[0.38rem] font-medium text-sm rounded-md " <> (if @display == "cards", do: "bg-neutral-200 text-neutral-700", else: "text-neutral-700 hover:bg-neutral-100")}
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke-width="1.5"
+                      stroke="currentColor"
+                      class="w-6 h-6"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z"
+                      />
+                    </svg>
                   </div>
-                  <%= radio_button(f, :display, "previews",
-                    id: "search-form-previews-button",
+                  <%= radio_button(f, :display, "cards",
+                    id: "search-form-cards-button",
                     class: "fixed opacity-0 pointer-events-none",
                     "x-on:change": "window.triggerSubmitEvent($event.target)"
                   ) %>
                 <% end %>
 
-                <%= label do %>
-                  <div class={"cursor-pointer transition-all px-3 py-2 font-medium text-sm rounded-md " <> (if @display == "table", do: "bg-neutral-200 text-neutral-700", else: "text-neutral-700 hover:bg-neutral-100")}>
-                    Table
-                  </div>
-                  <%= radio_button(f, :display, "table",
-                    class: "fixed opacity-0 pointer-events-none",
-                    "x-on:change": "window.triggerSubmitEvent($event.target)"
-                  ) %>
-                <% end %>
+                <div class="hidden">
+                  <%= label do %>
+                    <div
+                      data-tooltip="Table view"
+                      class={"cursor-pointer transition-all px-2 py-[0.38rem] font-medium text-sm rounded-md " <> (if @display == "table", do: "bg-neutral-200 text-neutral-700", else: "text-neutral-700 hover:bg-neutral-100")}
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke-width="1.5"
+                        stroke="currentColor"
+                        class="w-6 h-6"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM3.75 12h.007v.008H3.75V12zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm-.375 5.25h.007v.008H3.75v-.008zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"
+                        />
+                      </svg>
+                    </div>
+                    <%= radio_button(f, :display, "table",
+                      class: "fixed opacity-0 pointer-events-none",
+                      "x-on:change": "window.triggerSubmitEvent($event.target)"
+                    ) %>
+                  <% end %>
+                </div>
               </nav>
             </div>
             <div class={"flex-grow " <> (if Enum.member?(@exclude, :query), do: "hidden", else: "")}>
