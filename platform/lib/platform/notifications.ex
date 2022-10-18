@@ -51,7 +51,7 @@ defmodule Platform.Notifications do
         preload: [update: [:user, :media, :media_version]],
         order_by: [desc: :inserted_at, desc: :id]
       ),
-      Keyword.merge([cursor_fields: [{:inserted_at, :desc}, {:id, :desc}], limit: 30], options)
+      Keyword.merge([cursor_fields: [{:inserted_at, :desc}, {:id, :desc}], limit: 50], options)
     )
   end
 
