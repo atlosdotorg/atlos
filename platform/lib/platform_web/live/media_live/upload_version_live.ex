@@ -10,7 +10,7 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
      socket
      |> assign(:form_id, Utils.generate_random_sequence(10))
      |> allow_upload(:media_upload,
-       accept: ~w(.png .jpg .jpeg .avi .mp4 .webm),
+       accept: ~w(.png .jpg .jpeg .gif .avi .mp4 .webm),
        max_entries: 1,
        max_file_size: 250_000_000,
        auto_upload: false,

@@ -11,7 +11,7 @@ defmodule PlatformWeb.MediaLive.CommentBox do
     {:ok,
      socket
      |> allow_upload(:attachments,
-       accept: ~w(.png .jpg .jpeg .pdf),
+       accept: ~w(.png .jpg .jpeg .pdf .gif),
        max_entries: 9,
        max_file_size: 10_000_000,
        auto_upload: false,

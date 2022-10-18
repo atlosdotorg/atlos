@@ -34,7 +34,7 @@ defmodule PlatformWeb.Components do
   def modal(assigns) do
     ~H"""
     <div
-      class="fixed z-[100] inset-0 overflow-y-auto"
+      class="fixed z-[10000] inset-0 overflow-y-auto"
       aria-labelledby="modal-title"
       role="dialog"
       aria-modal="true"
@@ -256,7 +256,7 @@ defmodule PlatformWeb.Components do
             </svg>
           </.navlink>
 
-          <.navlink to="/map" label="Map" request_path={@path}>
+          <.navlink to="/incidents" label="Incidents" request_path={@path}>
             <svg
               xmlns="http://www.w3.org/2000/svg"
               class="text-neutral-300 group-hover:text-white h-6 w-6"
@@ -268,7 +268,7 @@ defmodule PlatformWeb.Components do
               <path
                 stroke-linecap="round"
                 stroke-linejoin="round"
-                d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"
+                d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
               />
             </svg>
           </.navlink>
@@ -287,23 +287,6 @@ defmodule PlatformWeb.Components do
                 stroke-linejoin="round"
                 stroke-width="2"
                 d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"
-              />
-            </svg>
-          </.navlink>
-
-          <.navlink to="/incidents" label="All Incidents" request_path={@path}>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="text-neutral-300 group-hover:text-white h-6 w-6"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
               />
             </svg>
           </.navlink>
@@ -572,144 +555,156 @@ defmodule PlatformWeb.Components do
       """
     else
       ~H"""
-      <li class={if update.hidden, do: "opacity-50", else: ""}>
+      <% can_user_view = Platform.Updates.Update.can_user_view(update, @current_user) %>
+      <li class={if update.hidden and can_user_view, do: "opacity-50", else: ""}>
         <div class="relative pb-8 group word-breaks">
           <%= if show_line do %>
             <span class="absolute top-5 left-5 -ml-px h-full w-0.5 bg-gray-200" aria-hidden="true">
             </span>
           <% end %>
           <div class="relative flex items-start space-x-2">
-            <%= case indicator do %>
-              <% :profile -> %>
-                <div class="relative">
-                  <a href={"/profile/#{update.user.username}"}>
-                    <img
-                      class={"h-10 w-10 rounded-full bg-gray-400 flex items-center justify-center " <> profile_ring_classes}
-                      src={Accounts.get_profile_photo_path(update.user)}
-                      alt={"Profile photo for #{update.user.username}"}
-                    />
-                  </a>
-                </div>
-              <% :dot -> %>
-                <div class="relative ml-[0.90em] mt-3 mr-4">
-                  <svg viewBox="0 0 100 100" class="h-3 w-3 bg-white text-gray-400">
-                    <circle cx="50" cy="50" r="40" stroke-width="3" fill="currentColor" />
-                  </svg>
-                </div>
-              <% _ -> %>
-            <% end %>
-            <div class="min-w-0 flex-1 flex flex-col flex-grow pl-1">
-              <div>
-                <div class="text-sm text-gray-600 mt-2">
-                  <%= if show_media do %>
-                    <.media_text media={update.media} />
-                  <% end %>
-                  <.user_text user={update.user} />
-                  <%= case update.type do %>
-                    <% :update_attribute -> %>
-                      <% attr = Attribute.get_attribute(update.modified_attribute) %> updated
-                      <%= live_patch class: "text-button text-gray-800 inline-block", to: Routes.media_show_path(socket, :history, update.media.slug, attr.name) do %>
-                        <%= attr.label %> &nearr;
-                      <% end %>
-                    <% :create -> %>
-                      added <span class="font-medium text-gray-900"><%= update.media.slug %></span>
-                    <% :upload_version -> %>
-                      added
-                      <a
-                        href={
+            <%= if can_user_view do %>
+              <%= case indicator do %>
+                <% :profile -> %>
+                  <div class="relative">
+                    <a href={"/profile/#{update.user.username}"}>
+                      <img
+                        class={"h-10 w-10 rounded-full bg-gray-400 flex items-center justify-center " <> profile_ring_classes}
+                        src={Accounts.get_profile_photo_path(update.user)}
+                        alt={"Profile photo for #{update.user.username}"}
+                      />
+                    </a>
+                  </div>
+                <% :dot -> %>
+                  <div class="relative ml-[0.90em] mt-3 mr-4">
+                    <svg viewBox="0 0 100 100" class="h-3 w-3 bg-white text-gray-400">
+                      <circle cx="50" cy="50" r="40" stroke-width="3" fill="currentColor" />
+                    </svg>
+                  </div>
+                <% _ -> %>
+              <% end %>
+              <div class="min-w-0 flex-1 flex flex-col flex-grow pl-1">
+                <div>
+                  <div class="text-sm text-gray-600 mt-2">
+                    <%= if show_media do %>
+                      <.media_text media={update.media} />
+                    <% end %>
+                    <.user_text user={update.user} />
+                    <%= case update.type do %>
+                      <% :update_attribute -> %>
+                        <% attr = Attribute.get_attribute(update.modified_attribute) %> updated
+                        <%= live_patch class: "text-button text-gray-800 inline-block", to: Routes.media_show_path(socket, :history, update.media.slug, attr.name) do %>
+                          <%= attr.label %> &nearr;
+                        <% end %>
+                      <% :create -> %>
+                        added <span class="font-medium text-gray-900"><%= update.media.slug %></span>
+                      <% :upload_version -> %>
+                        added
+                        <a
+                          href={
                           Routes.media_show_path(socket, :show, update.media.slug) <>
                             "#version-#{update.media_version.id}"
                         }
-                        class="text-button text-gray-800"
-                      >
-                        Media &nearr;
-                      </a>
-                    <% :comment -> %>
-                      commented
-                  <% end %>
-                  <.rel_time time={update.inserted_at} />
-                  <%= if update.hidden do %>
-                    <span class="badge ~neutral">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        class="h-3 w-3 mr-1"
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
-                      >
-                        <path
-                          fill-rule="evenodd"
-                          d="M3.707 2.293a1 1 0 00-1.414 1.414l14 14a1 1 0 001.414-1.414l-1.473-1.473A10.014 10.014 0 0019.542 10C18.268 5.943 14.478 3 10 3a9.958 9.958 0 00-4.512 1.074l-1.78-1.781zm4.261 4.26l1.514 1.515a2.003 2.003 0 012.45 2.45l1.514 1.514a4 4 0 00-5.478-5.478z"
-                          clip-rule="evenodd"
-                        />
-                        <path d="M12.454 16.697L9.75 13.992a4 4 0 01-3.742-3.741L2.335 6.578A9.98 9.98 0 00.458 10c1.274 4.057 5.065 7 9.542 7 .847 0 1.669-.105 2.454-.303z" />
-                      </svg>
-                      Hidden
-                    </span>
-                  <% end %>
-                  <%= if can_user_change_visibility do %>
-                    <button
-                      type="button"
-                      phx-target={target}
-                      phx-click="change_visibility"
-                      phx-value-update={update.id}
-                      class="opacity-0 group-hover:opacity-100 text-critical-700 transition text-xs ml-2"
-                      data-confirm="Are you sure you want to change the visibility of this update?"
-                    >
-                      <%= if update.hidden, do: "Show", else: "Hide" %>
-                    </button>
-                  <% end %>
-                </div>
-              </div>
-
-              <%= if update.type == :update_attribute || update.explanation do %>
-                <div class="mt-1 text-sm text-gray-700 border border-gray-300 rounded-lg shadow-sm overflow-hidden flex flex-col divide-y">
-                  <!-- Update detail section -->
-                  <%= if update.type == :update_attribute do %>
-                    <div class="bg-gray-50 p-2 flex">
-                      <div class="flex-grow">
-                        <.attr_diff
-                          name={update.modified_attribute}
-                          old={Jason.decode!(update.old_value)}
-                          new={Jason.decode!(update.new_value)}
-                        />
-                      </div>
-                    </div>
-                  <% end %>
-                  <!-- Text comment section -->
-                  <%= if update.explanation do %>
-                    <article class="prose text-sm p-2 w-full max-w-full bg-white">
-                      <%= raw(update.explanation |> Platform.Utils.render_markdown()) %>
-                    </article>
-                  <% end %>
-
-                  <%= if not Enum.empty?(update.attachments) do %>
-                    <div class="p-2 grid grid-cols-2 md:grid-cols-3 gap-2">
-                      <%= for {attachment, idx} <- update.attachments |> Enum.with_index() do %>
-                        <% url =
-                          Uploads.UpdateAttachment.url({attachment, update.media}, :original,
-                            signed: true,
-                            expires_in: 60 * 60 * 6
-                          ) %>
-                        <a
-                          class="rounded overflow-hidden max-h-64 cursor-zoom-in"
-                          href={url}
-                          target="_blank"
+                          class="text-button text-gray-800"
                         >
-                          <%= if String.ends_with?(attachment, ".jpg") || String.ends_with?(attachment, ".jpeg") || String.ends_with?(attachment, ".png") do %>
-                            <img src={url} />
-                          <% else %>
-                            <.document_preview
-                              file_name={"Attachment #" <> to_string(idx + 1)}
-                              description="PDF Document"
-                            />
-                          <% end %>
+                          Media &nearr;
                         </a>
-                      <% end %>
-                    </div>
-                  <% end %>
+                      <% :comment -> %>
+                        commented
+                    <% end %>
+                    <.rel_time time={update.inserted_at} />
+                    <%= if update.hidden do %>
+                      <span class="badge ~neutral">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          class="h-3 w-3 mr-1"
+                          viewBox="0 0 20 20"
+                          fill="currentColor"
+                        >
+                          <path
+                            fill-rule="evenodd"
+                            d="M3.707 2.293a1 1 0 00-1.414 1.414l14 14a1 1 0 001.414-1.414l-1.473-1.473A10.014 10.014 0 0019.542 10C18.268 5.943 14.478 3 10 3a9.958 9.958 0 00-4.512 1.074l-1.78-1.781zm4.261 4.26l1.514 1.515a2.003 2.003 0 012.45 2.45l1.514 1.514a4 4 0 00-5.478-5.478z"
+                            clip-rule="evenodd"
+                          />
+                          <path d="M12.454 16.697L9.75 13.992a4 4 0 01-3.742-3.741L2.335 6.578A9.98 9.98 0 00.458 10c1.274 4.057 5.065 7 9.542 7 .847 0 1.669-.105 2.454-.303z" />
+                        </svg>
+                        Hidden
+                      </span>
+                    <% end %>
+                    <%= if can_user_change_visibility do %>
+                      <button
+                        type="button"
+                        phx-target={target}
+                        phx-click="change_visibility"
+                        phx-value-update={update.id}
+                        class="opacity-0 group-hover:opacity-100 text-critical-700 transition text-xs ml-2"
+                        data-confirm="Are you sure you want to change the visibility of this update?"
+                      >
+                        <%= if update.hidden, do: "Show", else: "Hide" %>
+                      </button>
+                    <% end %>
+                  </div>
                 </div>
-              <% end %>
-            </div>
+
+                <%= if update.type == :update_attribute || update.explanation do %>
+                  <div class="mt-1 text-sm text-gray-700 border border-gray-300 rounded-lg shadow-sm overflow-hidden flex flex-col divide-y">
+                    <!-- Update detail section -->
+                    <%= if update.type == :update_attribute do %>
+                      <div class="bg-gray-50 p-2 flex">
+                        <div class="flex-grow">
+                          <.attr_diff
+                            name={update.modified_attribute}
+                            old={Jason.decode!(update.old_value)}
+                            new={Jason.decode!(update.new_value)}
+                          />
+                        </div>
+                      </div>
+                    <% end %>
+                    <!-- Text comment section -->
+                    <%= if update.explanation do %>
+                      <article class="prose text-sm p-2 w-full max-w-full bg-white">
+                        <%= raw(update.explanation |> Platform.Utils.render_markdown()) %>
+                      </article>
+                    <% end %>
+
+                    <%= if not Enum.empty?(update.attachments) do %>
+                      <div class="p-2 grid grid-cols-2 md:grid-cols-3 gap-2">
+                        <%= for {attachment, idx} <- update.attachments |> Enum.with_index() do %>
+                          <% url =
+                            Uploads.UpdateAttachment.url({attachment, update.media}, :original,
+                              signed: true,
+                              expires_in: 60 * 60 * 6
+                            ) %>
+                          <a
+                            class="rounded overflow-hidden max-h-64 cursor-zoom-in"
+                            href={url}
+                            target="_blank"
+                          >
+                            <%= if String.ends_with?(attachment, ".jpg") || String.ends_with?(attachment, ".jpeg") || String.ends_with?(attachment, ".png") do %>
+                              <img src={url} />
+                            <% else %>
+                              <.document_preview
+                                file_name={"Attachment #" <> to_string(idx + 1)}
+                                description="PDF Document"
+                              />
+                            <% end %>
+                          </a>
+                        <% end %>
+                      </div>
+                    <% end %>
+                  </div>
+                <% end %>
+              </div>
+            <% else %>
+              <div class="text-sm flex items-center mt-2 border-2 border-dashed border-neutral-300 text-neutral-600 p-2 rounded">
+                <p>
+                  <span class="font-medium text-gray-800">
+                    You do not have permission to see this update.
+                  </span>
+                  The incident may have been removed, or the update may have been hidden.
+                </p>
+              </div>
+            <% end %>
           </div>
         </div>
       </li>
@@ -769,13 +764,17 @@ defmodule PlatformWeb.Components do
       12 => "Dec"
     }
 
+    full_display_time = Calendar.strftime(time, "%d %B %Y at %H:%M UTC")
+
     if ago > 7 * 24 * 60 * 60 do
       ~H"""
-      <span data-tooltip={@time}><%= months[@time.month] %> <%= @time.day %> <%= @time.year %></span>
+      <span data-tooltip={full_display_time}>
+        <%= months[@time.month] %> <%= @time.day %> <%= @time.year %>
+      </span>
       """
     else
       ~H"""
-      <span data-tooltip={@time}><%= ago |> time_ago_in_words() %></span>
+      <span data-tooltip={full_display_time}><%= ago |> time_ago_in_words() %></span>
       """
     end
   end
@@ -838,58 +837,34 @@ defmodule PlatformWeb.Components do
         %{
           attr: %Attribute{} = attr,
           media: %Media{} = media,
-          updates: updates,
-          socket: socket
+          current_user: current_user
         } = assigns
       ) do
     children = Attribute.get_children(attr.name)
 
     ~H"""
-    <div>
-      <%= if not is_nil(Map.get(media, attr.schema_field)) do %>
-        <% update =
-          updates
-          |> Enum.filter(&(&1.modified_attribute == attr.name || &1.type == :create))
-          |> Enum.sort_by(& &1.inserted_at)
-          |> Enum.reverse()
-          |> hd() %>
-        <div class="flex flex-wrap text-xs">
-          <.popover class="font-base p-0">
-            <div class="truncate max-w-full">
-              <.attr_entry
-                color={true}
-                compact={true}
-                name={attr.name}
-                value={Map.get(media, attr.schema_field)}
-              />
-            </div>
-            <:display>
-              <div class="py-2">
-                <%= if not is_nil(update) do %>
-                  <div class="text-sm text-neutral-600 mb-2 border-b pb-1">
-                    <.user_text user={update.user} /> &mdash; <.rel_time time={update.inserted_at} />
-                  </div>
-                <% end %>
-                <div class="text-ellipsis overflow-hidden max-w-full">
-                  <.attr_entry
-                    color={true}
-                    name={attr.name}
-                    value={Map.get(media, attr.schema_field)}
-                  />
-                  <%= for child <- children do %>
-                    <%= if not is_nil(Map.get(media, child.schema_field)) do %>
-                      <.attr_entry
-                        color={true}
-                        name={child.name}
-                        value={Map.get(media, child.schema_field)}
-                        label={child.label}
-                      />
-                    <% end %>
-                  <% end %>
-                </div>
-              </div>
-            </:display>
-          </.popover>
+    <div class="inline">
+      <%= if not is_nil(Map.get(media, attr.schema_field)) and Map.get(media, attr.schema_field) != [] and Map.get(media, attr.schema_field) != "" do %>
+        <div class="inline-flex flex-wrap text-xs">
+          <div class="break-word max-w-full text-ellipsis overflow-hidden">
+            <.attr_entry
+              color={true}
+              compact={Map.get(assigns, :truncate, true)}
+              name={attr.name}
+              value={Map.get(media, attr.schema_field)}
+            />
+            <%= for child <- children do %>
+              <%= if not is_nil(Map.get(media, child.schema_field)) do %>
+                <.attr_entry
+                  color={true}
+                  compact={Map.get(assigns, :truncate, true)}
+                  name={child.name}
+                  value={Map.get(media, child.schema_field)}
+                  label={child.label}
+                />
+              <% end %>
+            <% end %>
+          </div>
         </div>
       <% else %>
         <span class="text-neutral-400">&mdash;</span>
@@ -946,14 +921,16 @@ defmodule PlatformWeb.Components do
       </dt>
       <dd class="mt-1 flex items-center text-sm text-gray-900 sm:mt-0 sm:col-span-2">
         <span class="flex-grow gap-1 flex flex-wrap">
-          <.attr_entry name={attr.name} value={Map.get(media, attr.schema_field)} />
-          <%= for child <- children do %>
-            <%= if not is_nil(Map.get(media, child.schema_field)) do %>
-              <.attr_entry
-                name={child.name}
-                value={Map.get(media, child.schema_field)}
-                label={child.label}
-              />
+          <%= if not is_nil(Map.get(media, attr.schema_field)) do %>
+            <.attr_entry name={attr.name} value={Map.get(media, attr.schema_field)} />
+            <%= for child <- children do %>
+              <%= if not is_nil(Map.get(media, child.schema_field)) do %>
+                <.attr_entry
+                  name={child.name}
+                  value={Map.get(media, child.schema_field)}
+                  label={child.label}
+                />
+              <% end %>
             <% end %>
           <% end %>
         </span>
@@ -1008,15 +985,17 @@ defmodule PlatformWeb.Components do
       <%= case attr.type do %>
         <% :text -> %>
           <%= if compact do %>
-            <div class="inline-block truncate prose prose-sm my-px">
+            <div class="inline-block prose prose-sm my-px word-breaks">
               <.attr_label label={label} />
               <%= raw(
                 value
+                |> String.replace("\n", "")
+                |> Utils.truncate(80)
                 |> Utils.render_markdown()
               ) %>
             </div>
           <% else %>
-            <div class="inline-block text-ellipsis overflow-hidden prose prose-sm my-px">
+            <div class="inline-block prose prose-sm my-px word-breaks">
               <.attr_label label={label} />
               <%= raw(
                 value
@@ -1033,10 +1012,15 @@ defmodule PlatformWeb.Components do
           </div>
         <% :multi_select -> %>
           <.attr_label label={label} />
-          <%= for item <- value do %>
+          <%= for item <- (if compact, do: value |> Enum.take(1), else: value) do %>
             <div class={"chip #{tone} inline-block self-start break-all xl:break-normal"}>
               <%= item %>
             </div>
+            <%= if compact and length(value) > 1 do %>
+              <div class="text-xs mt-1 text-neutral-500">
+                + <%= length(value) - 1 %>
+              </div>
+            <% end %>
           <% end %>
         <% :location -> %>
           <div class="inline-block">
@@ -1360,6 +1344,452 @@ defmodule PlatformWeb.Components do
     """
   end
 
+  def loading_spinner(assigns) do
+    ~H"""
+    <div class="flex items-center">
+      <div role="status">
+        <svg
+          class="inline mr-2 w-4 h-4 text-neutral-200 animate-spin fill-neutral-700"
+          viewBox="0 0 100 101"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
+            fill="currentColor"
+          />
+          <path
+            d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z"
+            fill="currentFill"
+          />
+        </svg>
+      </div>
+      Loading more...
+    </div>
+    """
+  end
+
+  def media_table_row(%{media: _, current_user: _, attributes: _, source_cols: _} = assigns) do
+    ~H"""
+    <% is_subscribed = @media.has_subscription %>
+    <% has_unread_notification = @media.has_unread_notification %>
+    <tr
+      class="search-highlighting bg-white group hover:bg-neutral-50 transition-all"
+      id={"table-row-" <> @media.slug}
+    >
+      <td
+        id={"table-row-" <> @media.slug <> "-slug"}
+        class="md:sticky left-0 z-[100] pl-4 pr-1 border-r font-mono whitespace-nowrap border-b border-gray-200 h-10 bg-white group-hover:bg-neutral-50 transition-all"
+      >
+        <.link
+          href={"/incidents/#{@media.slug}"}
+          class="text-button text-sm flex items-center gap-1 mr-px"
+        >
+          <%= @media.slug %>
+          <%= if is_subscribed do %>
+            <span data-tooltip="You are subscribed" class="text-neutral-400">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+                class="w-3 h-3"
+              >
+                <path d="M10 12.5a2.5 2.5 0 100-5 2.5 2.5 0 000 5z" />
+                <path
+                  fill-rule="evenodd"
+                  d="M.664 10.59a1.651 1.651 0 010-1.186A10.004 10.004 0 0110 3c4.257 0 7.893 2.66 9.336 6.41.147.381.146.804 0 1.186A10.004 10.004 0 0110 17c-4.257 0-7.893-2.66-9.336-6.41zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+              <span class="sr-only">
+                You are subscribed
+              </span>
+            </span>
+          <% end %>
+          <%= if has_unread_notification do %>
+            <span data-tooltip="Unread notification">
+              <svg
+                viewBox="0 0 100 100"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="currentColor"
+                class="h-2 w-2"
+              >
+                <circle cx="50" cy="50" r="50" />
+              </svg>
+              <span class="sr-only">
+                Unread notification
+              </span>
+            </span>
+          <% end %>
+        </.link>
+      </td>
+      <td
+        id={"table-row-" <> @media.slug <> "-updated"}
+        class="border-b cursor-pointer p-0 text-sm text-neutral-600"
+      >
+        <.link href={"/incidents/#{@media.slug}"}>
+          <div class="mx-2 flex w-[7rem] relative z-0 items-center">
+            <div class="flex-shrink-0 w-5 mr-1">
+              <.user_stack users={@media.updates |> Enum.take(1) |> Enum.map(& &1.user)} />
+            </div>
+            <div class="flex-shrink-0">
+              <.rel_time time={@media.updated_at} />
+            </div>
+          </div>
+        </.link>
+      </td>
+      <%= for attr <- @attributes do %>
+        <td
+          class="border-b cursor-pointer p-0"
+          id={"table-row-" <> @media.slug <> "-" <> to_string(attr.name)}
+        >
+          <div class="text-sm text-gray-900 px-4 overflow-hidden h-6 max-w-[36rem] truncate">
+            <.popover class="font-base p-0 inline">
+              <.link href={"/incidents/#{@media.slug}"} class="truncate inline">
+                <.attr_display_compact
+                  color={true}
+                  truncate={true}
+                  attr={attr}
+                  media={@media}
+                  current_user={@current_user}
+                />
+              </.link>
+              <:display>
+                <% update =
+                  @media.updates
+                  |> Enum.filter(
+                    &(&1.modified_attribute == attr.name ||
+                        &1.type == :create)
+                  )
+                  |> Enum.sort_by(& &1.inserted_at)
+                  |> Enum.reverse()
+                  |> hd() %>
+                <div class="py-2 flex flex-col gap-2 word-breaks">
+                  <div class="md:flex gap-4 items-center justify-between">
+                    <%= if not is_nil(update) do %>
+                      <div class="text-sm text-neutral-600">
+                        <.user_text user={update.user} /> changed
+                        <.rel_time time={update.inserted_at} />
+                      </div>
+                    <% end %>
+                    <%= if Platform.Material.Attribute.can_user_edit(attr, @current_user, @media) do %>
+                      <button
+                        class="button ~urge @high inline !rounded !text-xs !px-2 !py-1"
+                        phx-click="edit_attribute"
+                        phx-value-attribute={attr.name}
+                        phx-value-media-id={@media.id}
+                        phx-disable-with="Opening..."
+                      >
+                        Update
+                      </button>
+                    <% end %>
+                  </div>
+                  <div class="border p-2 rounded shadow-sm max-w-full">
+                    <.attr_display_compact
+                      color={true}
+                      attr={attr}
+                      truncate={false}
+                      media={@media}
+                      current_user={@current_user}
+                    />
+                  </div>
+                </div>
+              </:display>
+            </.popover>
+          </div>
+        </td>
+      <% end %>
+      <% versions =
+        @media.versions
+        |> Enum.filter(&Material.MediaVersion.can_user_view(&1, @current_user)) %>
+      <%= for idx <- 0..@source_cols do %>
+        <td
+          class="border-b cursor-pointer p-0"
+          id={"table-row-" <> @media.slug <> "-source-" <> to_string(idx)}
+        >
+          <% version = Enum.at(versions, idx) %>
+          <%= if not is_nil(version) do %>
+            <.popover class="inline">
+              <div class="text-sm flex items-center text-gray-900 px-4 whitespace-nowrap text-ellipsis overflow-hidden h-6 w-[12rem]">
+                <a
+                  href={version.source_url}
+                  target="_blank"
+                  rel="nofollow"
+                  class="truncate"
+                  data-confirm="This will open the source media in a new tab. Are you sure?"
+                >
+                  <.url_icon url={version.source_url} class="h-4 w-4 inline mb-px" />
+                  <%= version.source_url %>
+                </a>
+              </div>
+              <:display>
+                <div class="min-w-[20rem]">
+                  <.media_version_display
+                    version={version}
+                    current_user={@current_user}
+                    media={@media}
+                    show_controls={false}
+                    dynamic_src={true}
+                  />
+                </div>
+              </:display>
+            </.popover>
+          <% else %>
+            <span class="text-neutral-400 px-4">
+              &mdash;
+            </span>
+          <% end %>
+        </td>
+      <% end %>
+    </tr>
+    """
+  end
+
+  def search_form(%{changeset: _, query_params: _, socket: _, display: _} = assigns) do
+    assigns = assign_new(assigns, :exclude, fn -> [] end)
+
+    ~H"""
+    <div x-data="{ open: window.innerWidth >= 768 }">
+      <button
+        x-on:click="open = !open"
+        class="mx-auto md:hidden bg-white hover:shadow-lg hover:bg-neutral-100 focus:ring-urge-400 transition-all rounded-full gap-1 px-4 py-2 text-sm flex items-center shadow text-neutral-700 justify-around mb-4"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="currentColor"
+          class="w-5 h-5 text-neutral-500"
+        >
+          <path
+            fill-rule="evenodd"
+            d="M11.078 2.25c-.917 0-1.699.663-1.85 1.567L9.05 4.889c-.02.12-.115.26-.297.348a7.493 7.493 0 00-.986.57c-.166.115-.334.126-.45.083L6.3 5.508a1.875 1.875 0 00-2.282.819l-.922 1.597a1.875 1.875 0 00.432 2.385l.84.692c.095.078.17.229.154.43a7.598 7.598 0 000 1.139c.015.2-.059.352-.153.43l-.841.692a1.875 1.875 0 00-.432 2.385l.922 1.597a1.875 1.875 0 002.282.818l1.019-.382c.115-.043.283-.031.45.082.312.214.641.405.985.57.182.088.277.228.297.35l.178 1.071c.151.904.933 1.567 1.85 1.567h1.844c.916 0 1.699-.663 1.85-1.567l.178-1.072c.02-.12.114-.26.297-.349.344-.165.673-.356.985-.57.167-.114.335-.125.45-.082l1.02.382a1.875 1.875 0 002.28-.819l.923-1.597a1.875 1.875 0 00-.432-2.385l-.84-.692c-.095-.078-.17-.229-.154-.43a7.614 7.614 0 000-1.139c-.016-.2.059-.352.153-.43l.84-.692c.708-.582.891-1.59.433-2.385l-.922-1.597a1.875 1.875 0 00-2.282-.818l-1.02.382c-.114.043-.282.031-.449-.083a7.49 7.49 0 00-.985-.57c-.183-.087-.277-.227-.297-.348l-.179-1.072a1.875 1.875 0 00-1.85-1.567h-1.843zM12 15.75a3.75 3.75 0 100-7.5 3.75 3.75 0 000 7.5z"
+            clip-rule="evenodd"
+          />
+        </svg>
+        View Options
+      </button>
+      <.form
+        :let={f}
+        as={:search}
+        for={@changeset}
+        id="search-form"
+        phx-change="validate"
+        phx-submit="save"
+        x-show="open"
+        x-transition
+        x-ref="form"
+      >
+        <section class="md:flex w-full max-w-7xl mx-auto flex-wrap md:flex-nowrap gap-2 items-center">
+          <div class="flex divide-y md:divide-y-0 md:divide-x flex-col flex-grow md:flex-row rounded-lg bg-white shadow border">
+            <div class={"flex px-2 py-1 pd:my-0 " <> (if Enum.member?(@exclude, :display), do: "hidden", else: "")}>
+              <nav class="flex items-center gap-px" aria-label="Tabs">
+                <%= label do %>
+                  <div
+                    data-tooltip="Map view"
+                    class={"cursor-pointer transition-all px-2 py-[0.38rem] font-medium text-sm rounded-md " <> (if @display == "map", do: "bg-neutral-200 text-neutral-700", else: "text-neutral-700 hover:bg-neutral-100")}
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke-width="1.5"
+                      stroke="currentColor"
+                      class="w-6 h-6"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M9 6.75V15m6-6v8.25m.503 3.498l4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 00-1.006 0L3.622 5.689C3.24 5.88 3 6.27 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c.317-.159.69-.159 1.006 0l4.994 2.497c.317.158.69.158 1.006 0z"
+                      />
+                    </svg>
+                  </div>
+                  <%= radio_button(f, :display, "map",
+                    class: "fixed opacity-0 pointer-events-none",
+                    "x-on:change": "window.triggerSubmitEvent($event.target)"
+                  ) %>
+                <% end %>
+
+                <%= label do %>
+                  <div
+                    data-tooltip="Card view"
+                    class={"cursor-pointer transition-all px-2 py-[0.38rem] font-medium text-sm rounded-md " <> (if @display == "cards", do: "bg-neutral-200 text-neutral-700", else: "text-neutral-700 hover:bg-neutral-100")}
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke-width="1.5"
+                      stroke="currentColor"
+                      class="w-6 h-6"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z"
+                      />
+                    </svg>
+                  </div>
+                  <%= radio_button(f, :display, "cards",
+                    id: "search-form-cards-button",
+                    class: "fixed opacity-0 pointer-events-none",
+                    "x-on:change": "window.triggerSubmitEvent($event.target)"
+                  ) %>
+                <% end %>
+
+                <div class="hidden">
+                  <%= label do %>
+                    <div
+                      data-tooltip="Table view"
+                      class={"cursor-pointer transition-all px-2 py-[0.38rem] font-medium text-sm rounded-md " <> (if @display == "table", do: "bg-neutral-200 text-neutral-700", else: "text-neutral-700 hover:bg-neutral-100")}
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke-width="1.5"
+                        stroke="currentColor"
+                        class="w-6 h-6"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM3.75 12h.007v.008H3.75V12zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm-.375 5.25h.007v.008H3.75v-.008zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"
+                        />
+                      </svg>
+                    </div>
+                    <%= radio_button(f, :display, "table",
+                      class: "fixed opacity-0 pointer-events-none",
+                      "x-on:change": "window.triggerSubmitEvent($event.target)"
+                    ) %>
+                  <% end %>
+                </div>
+              </nav>
+            </div>
+            <div class={"flex-grow " <> (if Enum.member?(@exclude, :query), do: "hidden", else: "")}>
+              <div class="px-3 h-full group flex flex-col md:flex-row py-2 items-center focus-within:bg-neutral-50">
+                <%= label(f, :query, "Search",
+                  class:
+                    "block w-full md:hidden text-xs font-medium text-gray-900 group-focus-within:text-urge-600"
+                ) %>
+                <%= text_input(f, :query,
+                  placeholder: "Enter a query...",
+                  phx_debounce: "1000",
+                  class:
+                    "block w-full border-0 p-0 bg-transparent text-gray-900 placeholder-gray-500 focus:ring-0 sm:text-sm"
+                ) %>
+              </div>
+              <%= error_tag(f, :query) %>
+            </div>
+            <div class={if Enum.member?(@exclude, :status), do: "hidden", else: ""}>
+              <div class="ts-ignore pl-3 py-2 group focus-within:bg-neutral-50">
+                <%= label(f, :attr_status, "Status",
+                  class: "block text-xs font-medium text-gray-900 group-focus-within:text-urge-600"
+                ) %>
+                <%= select(
+                  f,
+                  :attr_status,
+                  ["Any"] ++ Attribute.options(Attribute.get_attribute(:status)),
+                  class:
+                    "block bg-transparent w-full border-0 py-0 pl-0 pr-7 text-gray-900 placeholder-gray-500 focus:ring-0 sm:text-sm"
+                ) %>
+              </div>
+              <%= error_tag(f, :status) %>
+            </div>
+            <div class={if Enum.member?(@exclude, :sort), do: "hidden", else: ""}>
+              <div class="ts-ignore pl-3 py-2 group focus-within:bg-neutral-50">
+                <%= label(f, :sort, "Sort",
+                  class: "block text-xs font-medium text-gray-900 group-focus-within:text-urge-600"
+                ) %>
+                <%= select(
+                  f,
+                  :sort,
+                  [
+                    "Newest Added": :uploaded_desc,
+                    "Oldest Added": :uploaded_asc,
+                    "Recently Modified": :modified_desc,
+                    "Least Recently Modified": :modified_asc
+                  ],
+                  class:
+                    "block bg-transparent w-full border-0 py-0 pl-0 pr-7 text-gray-900 placeholder-gray-500 focus:ring-0 sm:text-sm"
+                ) %>
+              </div>
+              <%= error_tag(f, :sort) %>
+            </div>
+            <div
+              class="flex place-self-center w-full md:w-auto h-full px-2 text-sm md:py-[14px] py-4"
+              x-data="{open: false}"
+            >
+              <div class="text-left z-10">
+                <div class="h-full">
+                  <button
+                    x-on:click="open = !open"
+                    type="button"
+                    class="rounded-full flex items-center align-center text-gray-600 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-urge-500"
+                    id="menu-button"
+                    aria-expanded="true"
+                    aria-haspopup="true"
+                  >
+                    <span class="sr-only">Open options</span>
+                    <!-- Heroicon name: solid/dots-vertical -->
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                      class="w-6 h-6"
+                    >
+                      <path
+                        fill-rule="evenodd"
+                        d="M10.5 6a1.5 1.5 0 113 0 1.5 1.5 0 01-3 0zm0 6a1.5 1.5 0 113 0 1.5 1.5 0 01-3 0zm0 6a1.5 1.5 0 113 0 1.5 1.5 0 01-3 0z"
+                        clip-rule="evenodd"
+                      />
+                    </svg>
+
+                    <span class="md:hidden text-neutral-800 ml-1">Additional options</span>
+                  </button>
+                </div>
+
+                <div
+                  x-show="open"
+                  x-on:click.outside="open = false"
+                  x-transition
+                  x-cloak
+                  class="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none"
+                  role="menu"
+                  aria-orientation="vertical"
+                  aria-labelledby="menu-button"
+                  tabindex="-1"
+                >
+                  <div class="py-1" role="none">
+                    <%= button type: "button", to: Routes.export_path(@socket, :create, @query_params),
+                  class: "text-gray-700 group w-full hover:bg-gray-100 flex items-center px-4 py-2 text-sm",
+                  role: "menuitem",
+                  method: :post
+                   do %>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="mr-3 h-5 w-5 text-gray-400 group-hover:text-gray-500"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
+                        <path
+                          fill-rule="evenodd"
+                          d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"
+                          clip-rule="evenodd"
+                        />
+                      </svg>
+                      Export Results
+                    <% end %>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </.form>
+    </div>
+    """
+  end
+
   def media_card_lazy(%{media: %Media{} = media} = assigns) do
     ~H"""
     <div>
@@ -1368,7 +1798,7 @@ defmodule PlatformWeb.Components do
           <span class="animate-pulse">Loading...</span>
         </div>
       </div>
-      <iframe src={"/incidents/#{media.slug}/card"} width="350px" height="190px" />
+      <iframe dynamic-src={"/incidents/#{media.slug}/card"} width="350px" height="190px" />
     </div>
     """
   end
@@ -1391,7 +1821,44 @@ defmodule PlatformWeb.Components do
       <%= if Media.can_user_view(media, user) do %>
         <div class="p-2 flex flex-col w-3/4 gap-2 relative">
           <section>
-            <p class="font-mono text-xs text-gray-500"><%= media.slug %></p>
+            <p class="font-mono text-xs text-gray-500 flex items-center gap-1">
+              <%= media.slug %>
+              <%= if media.has_subscription do %>
+                <span data-tooltip="You are subscribed" class="text-neutral-400">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                    class="w-3 h-3"
+                  >
+                    <path d="M10 12.5a2.5 2.5 0 100-5 2.5 2.5 0 000 5z" />
+                    <path
+                      fill-rule="evenodd"
+                      d="M.664 10.59a1.651 1.651 0 010-1.186A10.004 10.004 0 0110 3c4.257 0 7.893 2.66 9.336 6.41.147.381.146.804 0 1.186A10.004 10.004 0 0110 17c-4.257 0-7.893-2.66-9.336-6.41zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
+                      clip-rule="evenodd"
+                    />
+                  </svg>
+                  <span class="sr-only">
+                    You are subscribed
+                  </span>
+                </span>
+              <% end %>
+              <%= if media.has_unread_notification do %>
+                <span data-tooltip="Unread notification" class="text-urge-600">
+                  <svg
+                    viewBox="0 0 100 100"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="currentColor"
+                    class="h-2 w-2"
+                  >
+                    <circle cx="50" cy="50" r="50" />
+                  </svg>
+                  <span class="sr-only">
+                    Unread notification
+                  </span>
+                </span>
+              <% end %>
+            </p>
             <p class="text-gray-900 group-hover:text-gray-900">
               <%= media.attr_description |> Utils.truncate(60) %>
             </p>
@@ -1608,11 +2075,40 @@ defmodule PlatformWeb.Components do
     """
   end
 
+  def no_media_results(assigns) do
+    ~H"""
+    <div class="text-center mt-12 mx-auto w-full">
+      <svg
+        class="mx-auto h-16 w-16 text-gray-400"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+        aria-hidden="true"
+      >
+        <path
+          vector-effect="non-scaling-stroke"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"
+        />
+      </svg>
+      <h3 class="mt-2 font-medium text-gray-900">No results</h3>
+      <p class="mt-1 text-gray-500">No incidents matched this criteria</p>
+      <div class="mt-6">
+        <a href="/incidents" class="button ~urge @high">
+          View All &rarr;
+        </a>
+      </div>
+    </div>
+    """
+  end
+
   def user_stack(assigns) do
     max = Map.get(assigns, :max, 5)
 
     ~H"""
-    <div class="flex -space-x-1 relative z-0 overflow-hidden items-center">
+    <div class="flex -space-x-1 relative z-0 items-center">
       <%= for user <- @users |> Enum.take(5) do %>
         <.popover class="inline">
           <img
@@ -1674,6 +2170,11 @@ defmodule PlatformWeb.Components do
     media_to_show = version.status == :complete && !is_nil(version.mime_type)
     should_blur_js_bool = if Media.is_graphic(media), do: "true", else: "false"
 
+    # Whether to show controls for hiding, adding media (requires that the caller be able to handle the events)
+    show_controls = Map.get(assigns, :show_controls, true)
+
+    assigns = assign_new(assigns, :dynamic_src, fn -> false end)
+
     ~H"""
     <section
       id={"version-#{version.id}"}
@@ -1688,11 +2189,21 @@ defmodule PlatformWeb.Components do
           <div id={media_id} x-bind:class="hidden ? 'invisible' : ''">
             <div x-bind:class="grayscale ? 'grayscale' : ''">
               <%= if String.starts_with?(version.mime_type, "image/") do %>
-                <img src={loc} class="w-full" />
+                <%= if @dynamic_src do %>
+                  <img dynamic-src={loc} class="w-full" />
+                <% else %>
+                  <img src={loc} class="w-full" />
+                <% end %>
               <% else %>
-                <video controls preload="auto" poster={thumbnail} muted>
-                  <source src={loc} class="w-full" />
-                </video>
+                <%= if @dynamic_src do %>
+                  <video controls preload="auto" muted>
+                    <source dynamic-src={loc} class="w-full" />
+                  </video>
+                <% else %>
+                  <video controls preload="auto" poster={thumbnail} muted>
+                    <source src={loc} class="w-full" />
+                  </video>
+                <% end %>
               <% end %>
             </div>
           </div>
@@ -1815,7 +2326,7 @@ defmodule PlatformWeb.Components do
           <%= if version.upload_type == :user_provided do %>
             <span class="badge ~neutral self-start">User Upload</span>
           <% end %>
-          <%= if version.status == :error do %>
+          <%= if version.status == :error and show_controls do %>
             <div
               class="text-gray-400"
               data-tooltip="Atlos could not archive this URL automatically, but you can view it directly."
@@ -1835,105 +2346,106 @@ defmodule PlatformWeb.Components do
             </div>
           <% end %>
         </span>
-        <div class="flex gap-1 items-center">
-          <div class="relative inline-block text-left" x-data="{open: false}">
-            <div>
-              <button
-                type="button"
-                class="flex items-center rounded-full text-gray-500 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-urge-500 focus:ring-offset-2 focus:ring-offset-gray-100"
-                aria-expanded="true"
-                aria-haspopup="true"
-                x-on:click.prevent="open = !open"
-                x-on:click.outside="open = false"
-              >
-                <span class="sr-only">Open options</span>
-                <!-- Heroicon name: mini/ellipsis-vertical -->
-                <svg
-                  class="h-5 w-5"
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                  aria-hidden="true"
+        <%= if media_to_show or show_controls do %>
+          <div class="flex gap-1 items-center">
+            <div class="relative inline-block text-left" x-data="{open: false}">
+              <div>
+                <button
+                  type="button"
+                  class="flex items-center rounded-full text-gray-500 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-urge-500 focus:ring-offset-2 focus:ring-offset-gray-100"
+                  aria-expanded="true"
+                  aria-haspopup="true"
+                  x-on:click.prevent="open = !open"
+                  x-on:click.outside="open = false"
                 >
-                  <path d="M10 3a1.5 1.5 0 110 3 1.5 1.5 0 010-3zM10 8.5a1.5 1.5 0 110 3 1.5 1.5 0 010-3zM11.5 15.5a1.5 1.5 0 10-3 0 1.5 1.5 0 003 0z" />
-                </svg>
-              </button>
-            </div>
-            <div
-              class="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none overflow-visible z-[100]"
-              role="menu"
-              aria-orientation="vertical"
-              aria-labelledby="menu-button"
-              x-show="open"
-              x-transition
-            >
-              <div class="py-1" role="none">
-                <%= if media_to_show do %>
-                  <button
-                    type="button"
-                    rel="nofollow"
-                    title="Toggle Color"
-                    x-on:click="grayscale = !grayscale"
-                    class="text-gray-700 px-2 py-2 text-sm flex items-center gap-2 hover:bg-gray-100 w-full"
+                  <span class="sr-only">Open options</span>
+                  <!-- Heroicon name: mini/ellipsis-vertical -->
+                  <svg
+                    class="h-5 w-5"
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                    aria-hidden="true"
                   >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 24 24"
-                      class="h-5 w-5 text-neutral-500"
-                      fill="currentColor"
+                    <path d="M10 3a1.5 1.5 0 110 3 1.5 1.5 0 010-3zM10 8.5a1.5 1.5 0 110 3 1.5 1.5 0 010-3zM11.5 15.5a1.5 1.5 0 10-3 0 1.5 1.5 0 003 0z" />
+                  </svg>
+                </button>
+              </div>
+              <div
+                class="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none overflow-visible z-[100]"
+                role="menu"
+                aria-orientation="vertical"
+                aria-labelledby="menu-button"
+                x-show="open"
+                x-transition
+              >
+                <div class="py-1" role="none">
+                  <%= if media_to_show do %>
+                    <button
+                      type="button"
+                      rel="nofollow"
+                      title="Toggle Color"
+                      x-on:click="grayscale = !grayscale"
+                      class="text-gray-700 px-2 py-2 text-sm flex items-center gap-2 hover:bg-gray-100 w-full"
                     >
-                      <path fill="none" d="M0 0h24v24H0z" /><path d="M12 2c5.522 0 10 3.978 10 8.889a5.558 5.558 0 0 1-5.556 5.555h-1.966c-.922 0-1.667.745-1.667 1.667 0 .422.167.811.422 1.1.267.3.434.689.434 1.122C13.667 21.256 12.9 22 12 22 6.478 22 2 17.522 2 12S6.478 2 12 2zM7.5 12a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3zm9 0a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3zM12 9a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z" />
-                    </svg>
-                    Toggle Color
-                  </button>
-                  <a
-                    target="_blank"
-                    href={version.source_url}
-                    rel="nofollow"
-                    title="Source"
-                    role="menuitem"
-                    class="text-gray-700 px-2 py-2 text-sm flex items-center gap-2 hover:bg-gray-100"
-                    data-confirm="This link will open an external site in a new tab. Are you sure?"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 24 24"
-                      fill="currentColor"
-                      class="w-5 h-5 text-neutral-500"
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        class="h-5 w-5 text-neutral-500"
+                        fill="currentColor"
+                      >
+                        <path fill="none" d="M0 0h24v24H0z" /><path d="M12 2c5.522 0 10 3.978 10 8.889a5.558 5.558 0 0 1-5.556 5.555h-1.966c-.922 0-1.667.745-1.667 1.667 0 .422.167.811.422 1.1.267.3.434.689.434 1.122C13.667 21.256 12.9 22 12 22 6.478 22 2 17.522 2 12S6.478 2 12 2zM7.5 12a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3zm9 0a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3zM12 9a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z" />
+                      </svg>
+                      Toggle Color
+                    </button>
+                    <a
+                      target="_blank"
+                      href={version.source_url}
+                      rel="nofollow"
+                      title="Source"
+                      role="menuitem"
+                      class="text-gray-700 px-2 py-2 text-sm flex items-center gap-2 hover:bg-gray-100"
+                      data-confirm="This link will open an external site in a new tab. Are you sure?"
                     >
-                      <path d="M11.47 1.72a.75.75 0 011.06 0l3 3a.75.75 0 01-1.06 1.06l-1.72-1.72V7.5h-1.5V4.06L9.53 5.78a.75.75 0 01-1.06-1.06l3-3zM11.25 7.5V15a.75.75 0 001.5 0V7.5h3.75a3 3 0 013 3v9a3 3 0 01-3 3h-9a3 3 0 01-3-3v-9a3 3 0 013-3h3.75z" />
-                    </svg>
-                    View Source
-                  </a>
-                  <a
-                    target="_blank"
-                    href={loc}
-                    rel="nofollow"
-                    role="menuitem"
-                    title="Download"
-                    class="text-gray-700 px-2 py-2 text-sm flex items-center gap-2 hover:bg-gray-100 w-full"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 24 24"
-                      fill="currentColor"
-                      class="h-5 w-5 text-neutral-500"
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                        class="w-5 h-5 text-neutral-500"
+                      >
+                        <path d="M11.47 1.72a.75.75 0 011.06 0l3 3a.75.75 0 01-1.06 1.06l-1.72-1.72V7.5h-1.5V4.06L9.53 5.78a.75.75 0 01-1.06-1.06l3-3zM11.25 7.5V15a.75.75 0 001.5 0V7.5h3.75a3 3 0 013 3v9a3 3 0 01-3 3h-9a3 3 0 01-3-3v-9a3 3 0 013-3h3.75z" />
+                      </svg>
+                      View Source
+                    </a>
+                    <a
+                      target="_blank"
+                      href={loc}
+                      rel="nofollow"
+                      role="menuitem"
+                      title="Download"
+                      class="text-gray-700 px-2 py-2 text-sm flex items-center gap-2 hover:bg-gray-100 w-full"
                     >
-                      <path
-                        fill-rule="evenodd"
-                        d="M19.5 21a3 3 0 003-3V9a3 3 0 00-3-3h-5.379a.75.75 0 01-.53-.22L11.47 3.66A2.25 2.25 0 009.879 3H4.5a3 3 0 00-3 3v12a3 3 0 003 3h15zm-6.75-10.5a.75.75 0 00-1.5 0v4.19l-1.72-1.72a.75.75 0 00-1.06 1.06l3 3a.75.75 0 001.06 0l3-3a.75.75 0 10-1.06-1.06l-1.72 1.72V10.5z"
-                        clip-rule="evenodd"
-                      />
-                    </svg>
-                    Download
-                  </a>
-                  <button
-                    type="button"
-                    rel="nofollow"
-                    role="menuitem"
-                    title="Copy Hash Information"
-                    class="text-gray-700 px-2 py-2 text-sm flex items-center gap-2 hover:bg-gray-100 w-full"
-                    onclick={
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                        class="h-5 w-5 text-neutral-500"
+                      >
+                        <path
+                          fill-rule="evenodd"
+                          d="M19.5 21a3 3 0 003-3V9a3 3 0 00-3-3h-5.379a.75.75 0 01-.53-.22L11.47 3.66A2.25 2.25 0 009.879 3H4.5a3 3 0 00-3 3v12a3 3 0 003 3h15zm-6.75-10.5a.75.75 0 00-1.5 0v4.19l-1.72-1.72a.75.75 0 00-1.06 1.06l3 3a.75.75 0 001.06 0l3-3a.75.75 0 10-1.06-1.06l-1.72 1.72V10.5z"
+                          clip-rule="evenodd"
+                        />
+                      </svg>
+                      Download
+                    </a>
+                    <button
+                      type="button"
+                      rel="nofollow"
+                      role="menuitem"
+                      title="Copy Hash Information"
+                      class="text-gray-700 px-2 py-2 text-sm flex items-center gap-2 hover:bg-gray-100 w-full"
+                      onclick={
                       "window.setClipboard(JSON.stringify(" <>
                         Jason.encode!(
                           if version.hashes == %{},
@@ -1942,108 +2454,109 @@ defmodule PlatformWeb.Components do
                         ) <>
                         ", null, 4))"
                     }
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 24 24"
-                      fill="currentColor"
-                      class="w-5 h-5 text-neutral-500"
                     >
-                      <path
-                        fill-rule="evenodd"
-                        d="M7.502 6h7.128A3.375 3.375 0 0118 9.375v9.375a3 3 0 003-3V6.108c0-1.505-1.125-2.811-2.664-2.94a48.972 48.972 0 00-.673-.05A3 3 0 0015 1.5h-1.5a3 3 0 00-2.663 1.618c-.225.015-.45.032-.673.05C8.662 3.295 7.554 4.542 7.502 6zM13.5 3A1.5 1.5 0 0012 4.5h4.5A1.5 1.5 0 0015 3h-1.5z"
-                        clip-rule="evenodd"
-                      />
-                      <path
-                        fill-rule="evenodd"
-                        d="M3 9.375C3 8.339 3.84 7.5 4.875 7.5h9.75c1.036 0 1.875.84 1.875 1.875v11.25c0 1.035-.84 1.875-1.875 1.875h-9.75A1.875 1.875 0 013 20.625V9.375zm9.586 4.594a.75.75 0 00-1.172-.938l-2.476 3.096-.908-.907a.75.75 0 00-1.06 1.06l1.5 1.5a.75.75 0 001.116-.062l3-3.75z"
-                        clip-rule="evenodd"
-                      />
-                    </svg>
-                    Copy Hash Info
-                  </button>
-                <% end %>
-                <%= if version.visibility == :visible do %>
-                  <button
-                    type="button"
-                    data-confirm="Are you sure you want to change the visibility of this media for all users on Atlos?"
-                    phx-click="set_media_visibility"
-                    phx-value-version={version.id}
-                    phx-value-state="hidden"
-                    class="text-gray-700 px-2 py-2 text-sm flex items-center gap-2 hover:bg-gray-100 w-full"
-                    title="Hide"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      class="h-5 w-5 text-neutral-500"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                        class="w-5 h-5 text-neutral-500"
+                      >
+                        <path
+                          fill-rule="evenodd"
+                          d="M7.502 6h7.128A3.375 3.375 0 0118 9.375v9.375a3 3 0 003-3V6.108c0-1.505-1.125-2.811-2.664-2.94a48.972 48.972 0 00-.673-.05A3 3 0 0015 1.5h-1.5a3 3 0 00-2.663 1.618c-.225.015-.45.032-.673.05C8.662 3.295 7.554 4.542 7.502 6zM13.5 3A1.5 1.5 0 0012 4.5h4.5A1.5 1.5 0 0015 3h-1.5z"
+                          clip-rule="evenodd"
+                        />
+                        <path
+                          fill-rule="evenodd"
+                          d="M3 9.375C3 8.339 3.84 7.5 4.875 7.5h9.75c1.036 0 1.875.84 1.875 1.875v11.25c0 1.035-.84 1.875-1.875 1.875h-9.75A1.875 1.875 0 013 20.625V9.375zm9.586 4.594a.75.75 0 00-1.172-.938l-2.476 3.096-.908-.907a.75.75 0 00-1.06 1.06l1.5 1.5a.75.75 0 001.116-.062l3-3.75z"
+                          clip-rule="evenodd"
+                        />
+                      </svg>
+                      Copy Hash Info
+                    </button>
+                  <% end %>
+                  <%= if version.visibility == :visible and show_controls do %>
+                    <button
+                      type="button"
+                      data-confirm="Are you sure you want to change the visibility of this media for all users on Atlos?"
+                      phx-click="set_media_visibility"
+                      phx-value-version={version.id}
+                      phx-value-state="hidden"
+                      class="text-gray-700 px-2 py-2 text-sm flex items-center gap-2 hover:bg-gray-100 w-full"
+                      title="Hide"
                     >
-                      <path
-                        fill-rule="evenodd"
-                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM7 9a1 1 0 000 2h6a1 1 0 100-2H7z"
-                        clip-rule="evenodd"
-                      />
-                    </svg>
-                    Hide
-                  </button>
-                <% end %>
-                <%= if version.visibility == :hidden do %>
-                  <button
-                    type="button"
-                    data-confirm="Are you sure you want to change the visibility of this media version?"
-                    phx-click="set_media_visibility"
-                    phx-value-version={version.id}
-                    phx-value-state="visible"
-                    class="text-gray-700 px-2 py-2 text-sm flex items-center gap-2 hover:bg-gray-100 w-full"
-                    title="Unhide"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      class="h-5 w-5 text-neutral-500"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-5 w-5 text-neutral-500"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
+                        <path
+                          fill-rule="evenodd"
+                          d="M10 18a8 8 0 100-16 8 8 0 000 16zM7 9a1 1 0 000 2h6a1 1 0 100-2H7z"
+                          clip-rule="evenodd"
+                        />
+                      </svg>
+                      Hide
+                    </button>
+                  <% end %>
+                  <%= if version.visibility == :hidden and show_controls do %>
+                    <button
+                      type="button"
+                      data-confirm="Are you sure you want to change the visibility of this media version?"
+                      phx-click="set_media_visibility"
+                      phx-value-version={version.id}
+                      phx-value-state="visible"
+                      class="text-gray-700 px-2 py-2 text-sm flex items-center gap-2 hover:bg-gray-100 w-full"
+                      title="Unhide"
                     >
-                      <path
-                        fill-rule="evenodd"
-                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z"
-                        clip-rule="evenodd"
-                      />
-                    </svg>
-                    Unhide
-                  </button>
-                <% end %>
-                <%= if Accounts.is_privileged(current_user) do %>
-                  <button
-                    type="button"
-                    data-confirm="Are you sure you want to change the visibility of this media version?"
-                    phx-click="set_media_visibility"
-                    phx-value-version={version.id}
-                    phx-value-state={
-                      if version.visibility == :removed, do: "visible", else: "removed"
-                    }
-                    title={if version.visibility == :removed, do: "Undo Removal", else: "Remove"}
-                    class="text-gray-700 px-2 py-2 text-sm flex items-center gap-2 hover:bg-gray-100 w-full"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      class="h-5 w-5 text-neutral-500"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-5 w-5 text-neutral-500"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
+                        <path
+                          fill-rule="evenodd"
+                          d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z"
+                          clip-rule="evenodd"
+                        />
+                      </svg>
+                      Unhide
+                    </button>
+                  <% end %>
+                  <%= if Accounts.is_privileged(current_user) and show_controls do %>
+                    <button
+                      type="button"
+                      data-confirm="Are you sure you want to change the visibility of this media version?"
+                      phx-click="set_media_visibility"
+                      phx-value-version={version.id}
+                      phx-value-state={
+                        if version.visibility == :removed, do: "visible", else: "removed"
+                      }
+                      title={if version.visibility == :removed, do: "Undo Removal", else: "Remove"}
+                      class="text-gray-700 px-2 py-2 text-sm flex items-center gap-2 hover:bg-gray-100 w-full"
                     >
-                      <path
-                        fill-rule="evenodd"
-                        d="M13.477 14.89A6 6 0 015.11 6.524l8.367 8.368zm1.414-1.414L6.524 5.11a6 6 0 018.367 8.367zM18 10a8 8 0 11-16 0 8 8 0 0116 0z"
-                        clip-rule="evenodd"
-                      />
-                    </svg>
-                    <%= if version.visibility == :removed, do: "Undo Removal", else: "Remove" %>
-                  </button>
-                <% end %>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-5 w-5 text-neutral-500"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
+                        <path
+                          fill-rule="evenodd"
+                          d="M13.477 14.89A6 6 0 015.11 6.524l8.367 8.368zm1.414-1.414L6.524 5.11a6 6 0 018.367 8.367zM18 10a8 8 0 11-16 0 8 8 0 0116 0z"
+                          clip-rule="evenodd"
+                        />
+                      </svg>
+                      <%= if version.visibility == :removed, do: "Undo Removal", else: "Remove" %>
+                    </button>
+                  <% end %>
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        <% end %>
       </div>
     </section>
     """
@@ -2150,12 +2663,16 @@ defmodule PlatformWeb.Components do
 
   def popover(assigns) do
     ~H"""
-    <div class={Map.get(assigns, :class, "")} data-popover>
-      <%= render_slot(@inner_block) %>
-      <template role="popover">
-        <%= render_slot(@display) %>
-      </template>
-    </div>
+    <span>
+      <div class={Map.get(assigns, :class, "")} data-popover>
+        <%= render_slot(@inner_block) %>
+        <section role="popover" class="hidden">
+          <object>
+            <%= render_slot(@display) %>
+          </object>
+        </section>
+      </div>
+    </span>
     """
   end
 

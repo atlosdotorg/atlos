@@ -469,8 +469,8 @@ defmodule Platform.MaterialTest do
 
       Enum.map(1..100, fn _ -> media_fixture() end)
 
-      assert length(Material.query_media_paginated().entries) == 30
-      assert length(Material.query_media_paginated(Material.Media, limit: 50).entries) == 50
+      assert length(Material.query_media_paginated().entries) == 50
+      assert length(Material.query_media_paginated(Material.Media, limit: 100).entries) == 100
     end
 
     test "values_of_attribute/1 gets all values of the attribute" do

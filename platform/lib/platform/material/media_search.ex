@@ -8,7 +8,14 @@ defmodule Platform.Material.MediaSearch do
   #   - Date
   #   - Status
   #   - Sort by
-  @types %{query: :string, sort: :string, attr_status: :string, no_media_versions: :boolean}
+  #   - Display (used by views)
+  @types %{
+    query: :string,
+    sort: :string,
+    attr_status: :string,
+    no_media_versions: :boolean,
+    display: :string
+  }
 
   def changeset(params \\ %{}) do
     data = %{}
@@ -68,16 +75,18 @@ defmodule Platform.Material.MediaSearch do
 
   defp apply_sort(queryable, changeset) do
     # Returns a {queryable, pagination_opts} tuple.
+    uploaded_desc =
+      {queryable |> Ecto.Query.order_by([i], desc: i.inserted_at),
+       [cursor_fields: [{:inserted_at, :desc}]]}
 
     case Map.get(changeset.changes, :sort) do
       nil ->
-        {queryable, []}
+        uploaded_desc
 
       query ->
         case query do
           "uploaded_desc" ->
-            {queryable |> Ecto.Query.order_by([i], desc: i.inserted_at),
-             [cursor_fields: [{:inserted_at, :desc}]]}
+            uploaded_desc
 
           "uploaded_asc" ->
             {queryable |> Ecto.Query.order_by([i], asc: i.inserted_at),

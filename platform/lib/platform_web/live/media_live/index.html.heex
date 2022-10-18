@@ -1,126 +1,169 @@
-<article class="w-full px-4 md:px-8">
-  <.form
-    :let={f}
-    as={:search}
-    for={@changeset}
-    id="search-form"
-    phx-change="validate"
-    phx-submit="save"
-    class="mb-8"
-  >
-    <section class="md:flex w-full max-w-7xl mx-auto flex-wrap md:flex-nowrap gap-4 items-center">
-      <h1 class="header mb-4 md:mb-0 text-3xl font-medium md:mr-8">All Incidents</h1>
-      <div class="flex flex-col flex-grow md:flex-row gap-2 rounded-lg p-2 lg:p-4 bg-neutral-50">
-        <div class="flex-grow">
-          <div class="border border-gray-300 bg-white rounded-md px-3 py-2 shadow-sm focus-within:ring-1 focus-within:ring-urge-600 focus-within:border-urge-600">
-            <%= label(f, :query, "Search", class: "block text-xs font-medium text-gray-900") %>
-            <%= text_input(f, :query,
-              placeholder: "Enter a query...",
-              phx_debounce: "1000",
-              class:
-                "block w-full border-0 p-0 text-gray-900 placeholder-gray-500 focus:ring-0 sm:text-sm"
-            ) %>
-          </div>
-          <%= error_tag(f, :query) %>
-        </div>
-        <div>
-          <div class="ts-ignore border border-gray-300 bg-white rounded-md pl-3 py-2 shadow-sm focus-within:ring-1 focus-within:ring-urge-600 focus-within:border-urge-600">
-            <%= label(f, :attr_status, "Status", class: "block text-xs font-medium text-gray-900") %>
-            <%= select(
-              f,
-              :attr_status,
-              ["Any"] ++ Attribute.options(Attribute.get_attribute(:status)),
-              class:
-                "block w-full border-0 py-0 pl-0 pr-7 text-gray-900 placeholder-gray-500 focus:ring-0 sm:text-sm"
-            ) %>
-          </div>
-          <%= error_tag(f, :status) %>
-        </div>
-        <div>
-          <div class="ts-ignore border border-gray-300 bg-white rounded-md pl-3 py-2 shadow-sm focus-within:ring-1 focus-within:ring-urge-600 focus-within:border-urge-600">
-            <%= label(f, :sort, "Sort", class: "block text-xs font-medium text-gray-900") %>
-            <%= select(
-              f,
-              :sort,
-              [
-                "Recently Modified": :modified_desc,
-                "Least Recently Modified": :modified_asc,
-                "Newest Added": :uploaded_desc,
-                "Oldest Added": :uploaded_asc
-              ],
-              class:
-                "block w-full border-0 py-0 pl-0 pr-7 text-gray-900 placeholder-gray-500 focus:ring-0 sm:text-sm"
-            ) %>
-          </div>
-          <%= error_tag(f, :sort) %>
-        </div>
-        <div class="place-self-center" x-data="{open: false}">
-          <div class="relative text-left z-10">
-            <div class="h-full">
-              <button
-                x-on:click="open = !open"
-                type="button"
-                class="rounded-full flex items-center align-center text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-urge-500"
-                id="menu-button"
-                aria-expanded="true"
-                aria-haspopup="true"
-              >
-                <span class="sr-only">Open options</span>
-                <!-- Heroicon name: solid/dots-vertical -->
-                <svg
-                  class="h-5 w-5"
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                  aria-hidden="true"
-                >
-                  <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
-                </svg>
-              </button>
-            </div>
+<article class={"w-full px-4 md:px-8 " <> (if @full_width, do: "mt-8", else: "")}>
+  <div class="relative z-[1000] 2xl:max-w-[1210px] mx-auto h-[5.5rem]">
+    <.search_form
+      changeset={@changeset}
+      exclude={if @display == "map", do: [:sort], else: []}
+      query_params={@query_params}
+      socket={@socket}
+      display={@display}
+    />
+  </div>
+  <section>
+    <%= if (not Enum.empty?(@media)) or @display == "map" do %>
+      <%= case @display do %>
+        <% "map" -> %>
+          <% map_data =
+            @media
+            |> Enum.filter(&(not is_nil(&1.attr_geolocation)))
+            |> Enum.map(fn item ->
+              {lon, lat} = item.attr_geolocation.coordinates
 
-            <div
-              x-show="open"
-              x-on:click.outside="open = false"
-              x-transition
-              x-cloak
-              class="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none"
-              role="menu"
-              aria-orientation="vertical"
-              aria-labelledby="menu-button"
-              tabindex="-1"
-            >
-              <div class="py-1" role="none">
-                <%= button type: "button", to: Routes.export_path(@socket, :create, @query_params),
-                  class: "text-gray-700 group w-full hover:bg-gray-100 flex items-center px-4 py-2 text-sm",
-                  role: "menuitem",
-                  method: :post
-                   do %>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="mr-3 h-5 w-5 text-gray-400 group-hover:text-gray-500"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                  >
-                    <path
-                      fill-rule="evenodd"
-                      d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"
-                      clip-rule="evenodd"
-                    />
-                  </svg>
-                  Export Results
-                <% end %>
+              %{
+                slug: item.slug,
+                # Stringify to avoid floating point issues
+                lat: "#{lat}",
+                lon: "#{lon}",
+                type: Material.get_media_organization_type(item)
+              }
+            end) %>
+          <% nongeolocated_length = length(@media) - length(map_data) %>
+          <div class="flex justify-around">
+            <%= if Ecto.Changeset.get_change(@changeset, :query) != nil and nongeolocated_length > 0 do %>
+              <button
+                class="relative text-sm focus:outline shadow md:-mt-4 z-[1000] bg-white py-2 px-4 rounded-full text-center mx-auto text-neutral-600"
+                type="button"
+                x-on:click="document.getElementById('search-form-cards-button').click()"
+              >
+                <span class="font-medium text-neutral-800">
+                  <%= nongeolocated_length |> Formatter.format_number() %>
+                </span>
+                ungeolocated incidents also match &rarr;
+              </button>
+            <% end %>
+            <%= if Enum.empty?(@media) do %>
+              <div class="relative text-sm shadow md:-mt-4 z-[1000] bg-white py-2 px-4 rounded-full text-center mx-auto text-neutral-600">
+                No results found
+              </div>
+            <% end %>
+          </div>
+          <map-events
+            lat="35"
+            lon="35"
+            zoom="3"
+            id="map_events"
+            container-id="map_events_container"
+            data={Jason.encode!(map_data)}
+          />
+          <section
+            class="fixed h-screen w-screen left-0 top-0 bottom-0"
+            id="map"
+            phx-update="ignore"
+          >
+            <map-container id="map_events_container" />
+          </section>
+        <% "cards" -> %>
+          <div class="grid gap-4 grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 search-highlighting">
+            <%= for media <- @media do %>
+              <.media_card media={media} current_user={@current_user} />
+            <% end %>
+          </div>
+        <% "table" -> %>
+          <section class="-mx-4 md:-mx-8">
+            <div class="overflow-x-auto">
+              <div class="inline-block align-middle">
+                <div class="!shadow-inner ring-1 ring-black ring-opacity-5 max-h-[calc(100vh-10rem+40px)]">
+                  <table class="border-separate sticky-headers" style="border-spacing: 0">
+                    <thead class="bg-gray-200 whitespace-nowrap">
+                      <tr>
+                        <th
+                          scope="col"
+                          class="md:sticky left-0 z-[101] top-0 border-b border-t border-neutral-200 bg-neutral-100 px-4 py-4 font-medium text-sm text-left"
+                        >
+                          ID
+                        </th>
+                        <th
+                          scope="col"
+                          class="md:sticky z-[100] top-0 border-b border-t border-neutral-200 bg-neutral-100 bg-opacity-[95%] px-4 py-4 font-medium text-sm text-left"
+                        >
+                          Updated
+                        </th>
+                        <%= for attr <- @attributes do %>
+                          <th
+                            scope="col"
+                            class="md:sticky z-[100] top-0 border-b border-t border-neutral-200 bg-neutral-100 bg-opacity-[95%] px-4 py-4 font-medium text-sm text-left"
+                          >
+                            <%= attr.label %>
+                          </th>
+                        <% end %>
+                        <%= for idx <- 0..@source_cols do %>
+                          <th
+                            scope="col"
+                            class="md:sticky z-[100] top-0 border-b border-t border-neutral-200 bg-neutral-100 bg-opacity-[95%] px-4 py-4 font-medium text-sm text-left"
+                          >
+                            Source <%= idx + 1 %>
+                          </th>
+                        <% end %>
+                      </tr>
+                    </thead>
+                    <tbody class="bg-white" id="table-body">
+                      <%= for media <- @media do %>
+                        <.media_table_row
+                          media={media}
+                          current_user={@current_user}
+                          attributes={@attributes}
+                          source_cols={@source_cols}
+                        />
+                      <% end %>
+                    </tbody>
+                  </table>
+                  <div class="h-[40px] flex items-center sticky left-0 w-[100vw] relative z-[100] bg-neutral-50 border-t text-sm p-2">
+                    <div class="text-neutral-600">
+                      <%= if !is_nil(@results.metadata.after) do %>
+                        Showing <%= length(@media) |> Formatter.format_number() %> results.
+                        <button
+                          id="table-load-more"
+                          phx-click="load_more"
+                          phx-disable-with="Loading..."
+                          class="text-button"
+                        >
+                          Load more &rarr;
+                        </button>
+                      <% else %>
+                        No more results to show.
+                      <% end %>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
+          </section>
+      <% end %>
+    <% else %>
+      <.no_media_results />
+    <% end %>
+    <%= if @display == "cards" do %>
+      <div class="mx-auto mt-8 text-center text-xs">
+        <%= if !is_nil(@results.metadata.after) do %>
+          <div
+            phx-hook="InfiniteScroll"
+            id="table-load-more"
+            data-page={@pagination_index}
+            class="flex items-center justify-around"
+          >
+            <.loading_spinner />
           </div>
-        </div>
+        <% end %>
       </div>
-    </section>
-  </.form>
-  <.live_component
-    module={PlatformWeb.MediaLive.PaginatedMediaList}
-    id="media-list"
-    current_user={@current_user}
-    query_params={@query_params}
-  />
+    <% end %>
+  </section>
+  <%= with {media, attribute_name} <- @editing do %>
+    <.live_component
+      module={PlatformWeb.MediaLive.EditAttribute}
+      id="edit-attribute"
+      media={media}
+      name={attribute_name}
+      target={@myself}
+      current_user={@current_user}
+    />
+  <% end %>
 </article>

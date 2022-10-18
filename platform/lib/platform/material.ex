@@ -20,10 +20,16 @@ defmodule Platform.Material do
   alias Platform.Uploads
   alias Platform.Accounts
 
-  defp hydrate_media_query(query) do
+  defp hydrate_media_query(query, opts \\ []) do
     query
     |> preload_media_versions()
     |> preload_media_updates()
+    |> then(fn x ->
+      case Keyword.get(opts, :for_user) do
+        nil -> x
+        user -> populate_user_fields(x, user)
+      end
+    end)
   end
 
   @doc """
@@ -42,18 +48,20 @@ defmodule Platform.Material do
     |> Repo.all()
   end
 
-  defp _query_media(query) do
+  defp _query_media(query, opts \\ []) do
     # Helper function used to abstract behavior of the `query_media` functions.
     query
-    |> hydrate_media_query()
+    |> then(fn q ->
+      if Keyword.get(opts, :hydrate, true), do: hydrate_media_query(q, opts), else: q
+    end)
     |> order_by(desc: :updated_at)
   end
 
   @doc """
   Query the list of media. Will preload the versions and updates.
   """
-  def query_media(query \\ Media) do
-    _query_media(query)
+  def query_media(query \\ Media, opts \\ []) do
+    _query_media(query, [])
     |> Repo.all()
   end
 
@@ -61,9 +69,9 @@ defmodule Platform.Material do
   Query the list of media, paginated. Will preload the versions and updates. Behavior otherwise the same as query_media/1.
   """
   def query_media_paginated(query \\ Media, opts \\ []) do
-    applied_options = Keyword.merge([cursor_fields: [{:updated_at, :desc}], limit: 30], opts)
+    applied_options = Keyword.merge([cursor_fields: [{:updated_at, :desc}], limit: 50], opts)
 
-    _query_media(query)
+    _query_media(query, applied_options)
     |> Repo.paginate(applied_options)
   end
 
@@ -107,6 +115,25 @@ defmodule Platform.Material do
   defp preload_media_updates(query) do
     # TODO: should this be pulled into the Updates context somehow?
     query |> preload(updates: [:user, :media, :media_version])
+  end
+
+  defp populate_user_fields(query, nil) do
+    query
+  end
+
+  defp populate_user_fields(media_query, %User{} = user) do
+    media_query
+    |> join(:left, [m], n in Platform.Notifications.Notification,
+      on: n.media_id == m.id and n.user_id == ^user.id and not n.read
+    )
+    |> join(:left, [m, _n], s in Platform.Material.MediaSubscription,
+      on: s.media_id == m.id and s.user_id == ^user.id
+    )
+    |> select_merge([_m, n, s], %{
+      has_unread_notification: not is_nil(n),
+      has_subscription: not is_nil(s)
+    })
+    |> distinct(true)
   end
 
   @doc """
@@ -321,7 +348,7 @@ defmodule Platform.Material do
   Query the list of media versions, paginated. Will preload the associated media.
   """
   def query_media_versions_paginated(query \\ MediaVersion, opts \\ []) do
-    applied_options = Keyword.merge([cursor_fields: [{:updated_at, :desc}], limit: 30], opts)
+    applied_options = Keyword.merge([cursor_fields: [{:updated_at, :desc}], limit: 50], opts)
 
     query
     |> preload(:media)
@@ -739,13 +766,10 @@ defmodule Platform.Material do
     "#{media.slug}/#{version.scoped_id}"
   end
 
+  @doc """
+  Get the categorization group for the media. Currently, this is just its status.
+  """
   def get_media_organization_type(%Media{} = media) do
-    case media.attr_type do
-      ["Military Activity" <> _ | _] -> :military
-      ["Civilian Activity" <> _ | _] -> :civilian
-      ["Policing" <> _ | _] -> :policing
-      ["Weather" <> _ | _] -> :weather
-      _ -> :other
-    end
+    media.attr_status
   end
 end

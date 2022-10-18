@@ -5,7 +5,19 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
   alias Platform.Auditor
 
   def update(assigns, socket) do
-    attr = Attribute.get_attribute(String.to_atom(assigns.name))
+    atom_name =
+      try do
+        String.to_existing_atom(assigns.name)
+      rescue
+        _ -> nil
+      end
+
+    attr = Attribute.get_attribute(atom_name)
+
+    if is_nil(attr) do
+      raise PlatformWeb.Errors.NotFound, "Attribute not found"
+    end
+
     attributes = [attr] ++ Attribute.get_children(attr.name)
 
     {:ok,
@@ -18,8 +30,13 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
      )}
   end
 
-  def close(socket) do
-    socket |> push_patch(to: Routes.media_show_path(socket, :show, socket.assigns.media.slug))
+  def close(socket, updated_media \\ nil) do
+    if Map.get(socket.assigns, :target) do
+      send(socket.assigns.target, {:end_attribute_edit, updated_media})
+      socket
+    else
+      socket |> push_patch(to: Routes.media_show_path(socket, :show, socket.assigns.media.slug))
+    end
   end
 
   defp inject_attr_fields_if_missing(params, attrs) do
@@ -49,7 +66,7 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
           socket
         )
 
-        {:noreply, socket |> put_flash(:info, "Your update has been saved.") |> close()}
+        {:noreply, socket |> put_flash(:info, "Your update has been saved.") |> close(media)}
 
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign(socket, :changeset, changeset |> Map.put(:action, :validate))}
@@ -84,15 +101,8 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
         <div class="md:flex justify-between">
           <div>
             <p class="support font-mono"><%= @media.slug %></p>
-            <h3 class="sec-head">Edit: <%= hd(@attrs).label %></h3>
+            <h3 class="sec-head">Update: <%= hd(@attrs).label %></h3>
             <p class="sec-subhead"><%= hd(@attrs).description %></p>
-          </div>
-          <div class="sm:mr-8">
-            <%= live_patch("History",
-              class: "base-button",
-              data_confirm: confirm_prompt,
-              to: Routes.media_show_path(@socket, :history, @media.slug, hd(@attrs).name)
-            ) %>
           </div>
         </div>
         <hr class="h-8 sep" />
