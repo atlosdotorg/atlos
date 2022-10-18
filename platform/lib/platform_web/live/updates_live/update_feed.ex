@@ -21,7 +21,8 @@ defmodule PlatformWeb.UpdatesLive.UpdateFeed do
 
   defp can_combine(old_update, new_update) do
     old_update.user == new_update.user and
-      NaiveDateTime.diff(old_update.inserted_at, new_update.inserted_at) < 15 * 60 and
+      old_update.media_id == new_update.media_id and
+      NaiveDateTime.diff(new_update.inserted_at, old_update.inserted_at) < 15 * 60 and
       is_nil(old_update.explanation) and is_nil(new_update.explanation) and
       ((old_update.type == :update_attribute and new_update.type == :update_attribute) or
          (old_update.type == :upload_version and new_update.type == :upload_version))
