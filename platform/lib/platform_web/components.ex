@@ -1466,8 +1466,9 @@ defmodule PlatformWeb.Components do
                         phx-click="edit_attribute"
                         phx-value-attribute={attr.name}
                         phx-value-media-id={@media.id}
+                        phx-disable-with="Opening..."
                       >
-                        Edit
+                        Update
                       </button>
                     <% end %>
                   </div>

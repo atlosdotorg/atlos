@@ -101,7 +101,7 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
         <div class="md:flex justify-between">
           <div>
             <p class="support font-mono"><%= @media.slug %></p>
-            <h3 class="sec-head">Edit: <%= hd(@attrs).label %></h3>
+            <h3 class="sec-head">Update: <%= hd(@attrs).label %></h3>
             <p class="sec-subhead"><%= hd(@attrs).description %></p>
           </div>
         </div>
