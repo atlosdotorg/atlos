@@ -144,14 +144,14 @@
     <%= if @display == "cards" do %>
       <div class="mx-auto mt-8 text-center text-xs">
         <%= if !is_nil(@results.metadata.after) do %>
-          <span
+          <div
             phx-hook="InfiniteScroll"
             id="table-load-more"
             data-page={@pagination_index}
-            class="animate-pulse"
+            class="flex items-center justify-around"
           >
-            Loading more...
-          </span>
+            <.loading_spinner />
+          </div>
         <% end %>
       </div>
     <% end %>
