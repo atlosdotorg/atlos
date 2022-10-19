@@ -40,7 +40,7 @@ Because our services are used by people all over the world, personal information
 
 ## 4\. Refraining from Certain Activities
 
-The Atlos catalog only exists because of the vibrant community of users like you who collaborate to write, edit, and curate the content. We happily welcome your participation in this community. We encourage you to be civil and polite in your interactions with others in the community, to act in good faith, and to make edits and contributions aimed at furthering the mission of the shared project. To maintain a healthy community, we require all users to abide by the [Atlos Rules](https://github.com/milesmcc/atlos/blob/main/policy/RULES.md).
+The Atlos catalog only exists because of the vibrant community of users like you who collaborate to write, edit, and curate the content. We happily welcome your participation in this community. We encourage you to be civil and polite in your interactions with others in the community, to act in good faith, and to make edits and contributions aimed at furthering the mission of the shared project.
 
 Certain activities, whether legal or illegal, may be harmful to other users and violate our rules, and some activities may also subject you to liability. Therefore, for your own protection and for that of other users, you may not engage in such activities on our sites. These activities include, but are not limited to:
 
@@ -172,7 +172,7 @@ You are solely responsible for your use of any third-party websites or resources
 
 The community has the primary role in enforcing Atlos policies. We rarely intervene in community decisions about policy and its enforcement. In an unusual case, the need may arise, or the community may ask us, to address an especially problematic user because of significant disturbance or dangerous behavior. In such cases, we reserve the right, but do not have the obligation to:
 
-- Investigate your use of the service (a) to determine whether a violation of these Terms of Use, the Atlos Rules, or other applicable law or policy has occurred, or (b) to comply with any applicable law, legal process, or appropriate governmental request;
+- Investigate your use of the service (a) to determine whether a violation of these Terms of Use or other applicable law or policy has occurred, or (b) to comply with any applicable law, legal process, or appropriate governmental request;
 
 - Detect, prevent, or otherwise address fraud, security, or technical issues or respond to user support requests;
 
@@ -186,7 +186,7 @@ The community has the primary role in enforcing Atlos policies. We rarely interv
 
 In the interests of our users and the Atlos catalog, in the extreme circumstance that any individual has had his or her account or access blocked under this provision, he or she is prohibited from creating or using another account on or seeking access to Atlos, unless we provide explicit permission.
 
-The Atlos community and its members may also take action when so allowed by Atlos policies, including but not limited to warning, investigating, blocking, or banning users who violate those policies. You agree to comply with the final decisions of dispute resolution bodies that are established by the community; these decisions may include sanctions as set out by the Atlos Rules.
+The Atlos community and its members may also take action when so allowed by Atlos policies, including but not limited to warning, investigating, blocking, or banning users who violate those policies. You agree to comply with the final decisions of dispute resolution bodies that are established by the community.
 
 The blocking of an account or access or the banning of a user under this provision shall be in accordance with Section 11 of these Terms of Use.
 
