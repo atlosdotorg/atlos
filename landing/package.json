@@ -8,6 +8,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@fontsource/iosevka": "^4.5.4",
     "@netlify/plugin-nextjs": "^4.18.0",
     "a17t": "^0.10.1",
     "mapbox-gl": "^2.7.0",
