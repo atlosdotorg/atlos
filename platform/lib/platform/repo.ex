@@ -3,7 +3,7 @@ defmodule Platform.Repo do
     otp_app: :platform,
     adapter: Ecto.Adapters.Postgres
 
-  use Paginator,
+  use Quarto,
     maximum_limit: :infinity
 
   Postgrex.Types.define(

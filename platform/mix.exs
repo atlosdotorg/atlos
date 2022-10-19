@@ -54,7 +54,7 @@ defmodule Platform.MixProject do
       {:ffmpex, "~> 0.10.0"},
       {:temp, "~> 0.4"},
       {:geo_postgis, "~> 3.4"},
-      {:paginator, "~> 1.1.0"},
+      {:quarto, "~> 1.1.7"},
       {:faker, "~> 0.17", only: [:dev, :test]},
       {:ex_aws, "~> 2.4"},
       {:ex_aws_s3, "~> 2.3"},
