@@ -42,8 +42,16 @@ defmodule PlatformWeb.APIV1Controller do
 
       json(conn, %{
         results: results.entries,
-        next: sign_value(results.metadata.after, token),
-        previous: sign_value(results.metadata.before, token)
+        next:
+          if(is_nil(results.metadata.after),
+            do: nil,
+            else: sign_value(results.metadata.after, token)
+          ),
+        previous:
+          if(is_nil(results.metadata.before),
+            do: nil,
+            else: sign_value(results.metadata.before, token)
+          )
       })
     else
       {:error, message} -> json(conn, %{error: message})
@@ -54,7 +62,7 @@ defmodule PlatformWeb.APIV1Controller do
     pagination_api(conn, params, fn opts ->
       Material.query_media_versions_paginated(
         Material.MediaVersion
-        |> Ecto.Query.order_by(desc: :updated_at),
+        |> Ecto.Query.order_by(desc: :inserted_at),
         opts
       )
     end)
@@ -64,7 +72,7 @@ defmodule PlatformWeb.APIV1Controller do
     pagination_api(conn, params, fn opts ->
       Material.query_media_paginated(
         Material.Media
-        |> Ecto.Query.order_by(desc: :updated_at),
+        |> Ecto.Query.order_by(desc: :inserted_at),
         opts
       )
     end)

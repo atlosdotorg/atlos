@@ -75,9 +75,7 @@ defmodule Platform.Material.MediaSearch do
 
   defp apply_sort(queryable, changeset) do
     # Returns a {queryable, pagination_opts} tuple.
-    uploaded_desc =
-      {queryable |> Ecto.Query.order_by([i], desc: i.inserted_at),
-       [cursor_fields: [{:inserted_at, :desc}]]}
+    uploaded_desc = {queryable |> Ecto.Query.order_by([i], desc: i.inserted_at), []}
 
     case Map.get(changeset.changes, :sort) do
       nil ->
@@ -89,16 +87,13 @@ defmodule Platform.Material.MediaSearch do
             uploaded_desc
 
           "uploaded_asc" ->
-            {queryable |> Ecto.Query.order_by([i], asc: i.inserted_at),
-             [cursor_fields: [{:inserted_at, :asc}]]}
+            {queryable |> Ecto.Query.order_by([i], asc: i.inserted_at), []}
 
           "modified_desc" ->
-            {queryable |> Ecto.Query.order_by([i], desc: i.updated_at),
-             [cursor_fields: [{:updated_at, :desc}]]}
+            {queryable |> Ecto.Query.order_by([i], desc: i.updated_at), []}
 
           "modified_asc" ->
-            {queryable |> Ecto.Query.order_by([i], asc: i.updated_at),
-             [cursor_fields: [{:updated_at, :asc}]]}
+            {queryable |> Ecto.Query.order_by([i], asc: i.updated_at), []}
         end
     end
   end

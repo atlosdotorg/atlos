@@ -45,9 +45,14 @@ defmodule Platform.Updates do
   Query the updates, paginated. Preloads user, media, and media_version.
   """
   def query_updates_paginated(query \\ Update, opts \\ []) do
-    applied_options = Keyword.merge([cursor_fields: [{:inserted_at, :desc}], limit: 50], opts)
+    applied_options = Keyword.merge([limit: 50], opts)
 
-    query |> preload_fields() |> order_by(desc: :inserted_at) |> Repo.paginate(applied_options)
+    query
+    |> preload_fields()
+    |> order_by(desc: :inserted_at)
+    # Fallback for null/equal values
+    |> order_by(desc: :id)
+    |> Repo.paginate(applied_options)
   end
 
   @doc """
