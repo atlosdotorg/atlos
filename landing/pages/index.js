@@ -44,31 +44,33 @@ export default function Home() {
         </div>
         <section className='relative z-10 flex flex-col space-y-6 top-0 mx-auto p-6 md:m-12 lg:m-36 md:max-w-lg'>
           <p className='text-5xl'>
-            <span className="bg-white rounded-sm font-mono text-slate-900 py-1 px-2 font-bold">ATLOS</span>
+            <span className="bg-white rounded font-mono text-slate-900 py-1 px-2 font-bold">ATLOS</span>
           </p>
           <p className="text-2xl font-semibold md:text-3xl text-white pt-2">
             The open source platform for visual investigations
           </p>
           <div className='text-white text-md flex flex-col space-y-3'>
             <p>
-              Geolocate media, build on other researchers&apos; findings, and double-check everyone&apos;s work. Search our catalog to piece together the bigger picture.
+              Geolocate media, build on other researchers&apos; findings, and double-check everyone&apos;s work. Search your catalog to piece together the bigger picture.
             </p>
             <p>
-              We help OSINT researchers and organizations collaborate so they can focus on content, not coordination. <a href="https://atlos.notion.site/Platform-Overview-46d4723f22ef420fb5ad0e07feba8d79" className='link'>Preview our platform.</a>
+              Investigators still rely on spreadsheets to organize their investigations. But Google Sheets wasn't built for video &mdash; or for deliberation and consensus.
             </p>
             <p>
-              We take safety seriously. Atlos puts researchers&apos; resilience and mental health first. <a href="https://atlos.notion.site/Our-Approach-to-Safety-3c1b9842128a4149b3c60c32773c8e5a" className='link'>Learn about our approach to safety.</a>
+              Atlos is purpose-built for collaborative cataloguing and geolocation of eyewitness media. <a href="https://atlos.notion.site/Platform-Overview-46d4723f22ef420fb5ad0e07feba8d79" className="link">Preview our platform.</a>
             </p>
             <p>
-              If you or your organization is interested in working with us, please <a href="mailto:contact@atlos.org" className='link'>reach out</a> or <a href="https://mailchi.mp/a1de52cd4614/atlos" className='link'>sign up to receive updates</a>. An invite is required to join the community.
+              Visual investigations can be taxing; Atlos puts investigators' safety and mental health first. <a href="https://atlos.notion.site/Our-Approach-to-Safety-3c1b9842128a4149b3c60c32773c8e5a" className='link'>Learn about our approach to safety.</a>
             </p>
             <p>
-              Atlos is an open source initiative; <a href="https://github.com/milesmcc/atlos" className='link'>view the code on GitHub</a>.
+              If your organization works with eyewitness media, please <a href="mailto:contact@atlos.org" className='link'>reach out</a> or <a href="https://mailchi.mp/a1de52cd4614/atlos" className='link'>sign up to receive updates</a>.
+            </p>
+            <p>
+              Atlos is a non-profit, open source platform; <a href="https://github.com/milesmcc/atlos" className='link'>view the code on GitHub</a>.
             </p>
           </div>
-          <div className="flex gap-2 font-mono text-white text-sm items-center">
-            <a href="/waitlist" className="button ~neutral text-sm uppercase font-mono">Join the waitlist</a>
-            <a href="https://platform.atlos.org" className="button ~neutral @high text-sm uppercase font-mono">Log in</a>
+          <div className="flex gap-2 items-center">
+            <a href="/waitlist" className="button ~neutral">Join the waitlist &rarr;</a>
           </div>
         </section>
       </main>

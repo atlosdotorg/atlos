@@ -44,7 +44,7 @@ defmodule Platform.Material do
   def list_media do
     Media
     |> hydrate_media_query()
-    |> order_by(desc: :updated_at)
+    |> order_by(desc: :inserted_at)
     |> Repo.all()
   end
 
@@ -54,7 +54,7 @@ defmodule Platform.Material do
     |> then(fn q ->
       if Keyword.get(opts, :hydrate, true), do: hydrate_media_query(q, opts), else: q
     end)
-    |> order_by(desc: :updated_at)
+    |> order_by(desc: :inserted_at)
   end
 
   @doc """
@@ -69,10 +69,10 @@ defmodule Platform.Material do
   Query the list of media, paginated. Will preload the versions and updates. Behavior otherwise the same as query_media/1.
   """
   def query_media_paginated(query \\ Media, opts \\ []) do
-    applied_options = Keyword.merge([cursor_fields: [{:updated_at, :desc}], limit: 50], opts)
-
-    _query_media(query, applied_options)
-    |> Repo.paginate(applied_options)
+    _query_media(query, opts)
+    # Fallback for null/equal values
+    |> order_by(desc: :id)
+    |> Repo.paginate(opts)
   end
 
   @doc """
@@ -81,7 +81,7 @@ defmodule Platform.Material do
   def list_subscribed_media(%User{} = user) do
     user
     |> Ecto.assoc(:subscribed_media)
-    |> order_by(desc: :updated_at)
+    |> order_by(desc: :inserted_at)
     |> hydrate_media_query()
     |> Repo.all()
   end
@@ -348,10 +348,12 @@ defmodule Platform.Material do
   Query the list of media versions, paginated. Will preload the associated media.
   """
   def query_media_versions_paginated(query \\ MediaVersion, opts \\ []) do
-    applied_options = Keyword.merge([cursor_fields: [{:updated_at, :desc}], limit: 50], opts)
+    applied_options = Keyword.merge([limit: 50], opts)
 
     query
     |> preload(:media)
+    # Fallback for null/equal values
+    |> order_by(desc: :id)
     |> Repo.paginate(applied_options)
   end
 
@@ -680,7 +682,7 @@ defmodule Platform.Material do
 
   def media_thumbnail(%Media{} = media) do
     case Enum.find(
-           media.versions |> Enum.sort_by(& &1.updated_at) |> Enum.reverse(),
+           media.versions |> Enum.sort_by(& &1.inserted_at) |> Enum.reverse(),
            &(!(&1.visibility != :visible or is_nil(&1.file_location)))
          ) do
       nil ->
