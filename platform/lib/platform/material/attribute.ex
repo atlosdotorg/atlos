@@ -168,10 +168,10 @@ defmodule Platform.Material.Attribute do
           "Sea Vehicle/Aircraft Carrier",
           "Injury",
           "Injury/Civilian",
-          "Injury/Soldier",
+          "Injury/Combatant",
           "Death",
           "Death/Civilian",
-          "Death/Soldier"
+          "Death/Combatant"
         ],
         label: "Impact",
         description: "What is damaged, harmed, or lost in this incident?",
