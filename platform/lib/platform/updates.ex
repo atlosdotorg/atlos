@@ -275,10 +275,11 @@ defmodule Platform.Updates do
   interactions with the media yet.
   """
   def subscribe_if_first_interaction(%Media{} = media, %User{} = user) do
-    if Enum.empty?(media.updates |> Enum.filter(&(&1.user_id == user.id))) do
-      _ = Material.subscribe_user(media, user)
+    if is_list(media.updates) and
+         Enum.empty?(media.updates |> Enum.filter(&(&1.user_id == user.id))) do
+      Material.subscribe_user(media, user)
+    else
+      :no_action
     end
-
-    :ok
   end
 end

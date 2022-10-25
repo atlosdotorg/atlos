@@ -621,7 +621,7 @@ defmodule Platform.Material do
         Repo.transaction(fn ->
           {:ok, _} = Updates.create_update_from_changeset(update_changeset)
           {:ok, res} = update_media_attributes(media, attributes, attrs, user)
-          Updates.subscribe_if_first_interaction(media, user) |> dbg()
+          Updates.subscribe_if_first_interaction(media, user)
           res
         end)
     end
