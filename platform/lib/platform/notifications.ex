@@ -162,4 +162,13 @@ defmodule Platform.Notifications do
   def change_notification(%Notification{} = notification, attrs \\ %{}) do
     Notification.changeset(notification, attrs)
   end
+
+  def send_message_notification(message) do
+    Task.start(fn ->
+      Accounts.get_all_users()
+      |> Enum.map(fn user ->
+        create_notification(%{content: message, type: :message, user_id: user.id})
+      end)
+    end)
+  end
 end

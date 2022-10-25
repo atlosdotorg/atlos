@@ -5,7 +5,7 @@ defmodule Platform.Notifications.Notification do
   schema "notifications" do
     field :content, :string
     field :read, :boolean, default: false
-    field :type, Ecto.Enum, values: [:update]
+    field :type, Ecto.Enum, values: [:update, :message]
 
     belongs_to :user, Platform.Accounts.User
     belongs_to :media, Platform.Material.Media
