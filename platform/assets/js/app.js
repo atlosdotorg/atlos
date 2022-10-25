@@ -26,8 +26,8 @@ import mapboxgl from 'mapbox-gl'
 import Alpine from 'alpinejs'
 import tippy from 'tippy.js';
 import Mark from 'mark.js';
-import Tribute from "tributejs";
 import { InfiniteScroll } from "./infinite_scroll";
+import { setupMentions } from "./mentions";
 
 mapboxgl.accessToken = 'pk.eyJ1IjoibWlsZXNtY2MiLCJhIjoiY2t6ZzdzZmY0MDRobjJvbXBydWVmaXBpNSJ9.-aHM8bjOOsSrGI0VvZenAQ';
 
@@ -56,6 +56,9 @@ let liveSocket = new LiveSocket("/live", Socket, {
     params: { _csrf_token: csrfToken },
     hooks: Hooks
 })
+
+// Setup mentions
+setupMentions();
 
 /**
  * https://stackoverflow.com/questions/494143/creating-a-new-dom-element-from-an-html-string-using-built-in-dom-methods-or-pro
@@ -91,18 +94,6 @@ window.liveSocket = liveSocket
 let lockIcon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 m-px mb-1 inline" viewBox="0 0 20 20" fill="currentColor">
 <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
 </svg>`;
-
-// Initialize tribute (@mention engine)
-var tribute = new Tribute({
-    values: [
-        { key: "Phil Heartman", value: "pheartman" },
-        { key: "Gordon Ramsey", value: "gramsey" }
-    ],
-    noMatchTemplate: "<div class='px-1'>No matches found!</div>"
-});
-function initializeTribute() {
-    tribute.attach(document.querySelectorAll(".mentionable"));
-}
 
 // Logic specifically for the <.popover> component
 function initializePopovers() {
@@ -418,9 +409,6 @@ document.addEventListener("load", initializeMaps);
 
 document.addEventListener("phx:update", initializePopovers);
 document.addEventListener("load", initializePopovers);
-
-document.addEventListener("phx:update", initializeTribute);
-document.addEventListener("load", initializeTribute);
 
 document.addEventListener("phx:update", applySearchHighlighting);
 document.addEventListener("load", applySearchHighlighting);
