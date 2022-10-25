@@ -675,11 +675,7 @@ defmodule PlatformWeb.Components do
                               signed: true,
                               expires_in: 60 * 60 * 6
                             ) %>
-                          <a
-                            class="rounded overflow-hidden max-h-64 cursor-zoom-in"
-                            href={url}
-                            target="_blank"
-                          >
+                          <a class="rounded overflow-hidden max-h-64 cursor" href={url} target="_blank">
                             <%= if String.ends_with?(attachment, ".jpg") || String.ends_with?(attachment, ".jpeg") || String.ends_with?(attachment, ".png") do %>
                               <img src={url} />
                             <% else %>
