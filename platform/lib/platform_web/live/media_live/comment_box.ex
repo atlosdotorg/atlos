@@ -92,6 +92,8 @@ defmodule PlatformWeb.MediaLive.CommentBox do
           socket
         )
 
+        Updates.subscribe_if_first_interaction(socket.assigns.media, socket.assigns.current_user)
+
         {:noreply,
          socket
          |> put_flash(:info, "Your comment has been posted.")

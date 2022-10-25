@@ -36,7 +36,6 @@ defmodule PlatformWeb.NewLive.BasicInfoLive do
   def handle_event("save", %{"media" => media_params}, socket) do
     case Material.create_media_audited(socket.assigns.current_user, media_params) do
       {:ok, media} ->
-        {:ok, _} = Material.subscribe_user(media, socket.assigns.current_user)
         # We log here, rather than in the context, because we have access to the socket.
         # TODO: We should do the audit logging inside the context. We just need to sort out
         # the socket issue.

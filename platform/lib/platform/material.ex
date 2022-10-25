@@ -61,7 +61,7 @@ defmodule Platform.Material do
   Query the list of media. Will preload the versions and updates.
   """
   def query_media(query \\ Media, opts \\ []) do
-    _query_media(query, [])
+    _query_media(query, opts)
     |> Repo.all()
   end
 
@@ -208,6 +208,8 @@ defmodule Platform.Material do
             else
               _ -> {:ok, media}
             end
+
+          Updates.subscribe_if_first_interaction(media, user)
 
           media
         end)
@@ -441,6 +443,7 @@ defmodule Platform.Material do
         with {:ok, version} <- create_media_version(media, attrs),
              update_changeset <- Updates.change_from_media_version_upload(media, user, version),
              {:ok, _} <- Updates.create_update_from_changeset(update_changeset) do
+          Updates.subscribe_if_first_interaction(media, user)
           version
         else
           _ -> {:error, change_media_version(%MediaVersion{}, attrs)}
@@ -618,6 +621,7 @@ defmodule Platform.Material do
         Repo.transaction(fn ->
           {:ok, _} = Updates.create_update_from_changeset(update_changeset)
           {:ok, res} = update_media_attributes(media, attributes, attrs, user)
+          Updates.subscribe_if_first_interaction(media, user) |> dbg()
           res
         end)
     end
@@ -644,7 +648,7 @@ defmodule Platform.Material do
 
   def subscribe_user(%Media{} = media, %User{} = user) do
     MediaSubscription.changeset(%MediaSubscription{}, %{media_id: media.id, user_id: user.id})
-    |> Repo.insert()
+    |> Repo.insert(on_conflict: :nothing)
   end
 
   def unsubscribe_user(%Media{} = media, %User{} = user) do
