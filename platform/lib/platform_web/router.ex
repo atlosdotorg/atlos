@@ -69,6 +69,12 @@ defmodule PlatformWeb.Router do
     end
   end
 
+  scope "/spi", PlatformWeb do
+    pipe_through([:browser, :require_authenticated_user])
+
+    get("/users", SPIController, :user_search)
+  end
+
   scope "/", PlatformWeb do
     pipe_through([:browser, :interstitial])
     get("/users/suspended", UserRegistrationController, :suspended)
