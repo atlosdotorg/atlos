@@ -217,8 +217,7 @@ defmodule Platform.Material.Attribute do
           "What equipment — weapon, military infrastructure, etc. — is used in the incident?",
         pane: :attributes,
         required: false,
-        name: :equipment,
-        add_none: "None"
+        name: :equipment
       },
       %Attribute{
         schema_field: :attr_time_of_day,
