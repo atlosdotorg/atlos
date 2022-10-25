@@ -145,7 +145,8 @@ defmodule PlatformWeb.MediaLive.CommentBox do
                       do: "Commenting has been disabled",
                       else: "Add your comment. You can @tag others by their username."
                     ),
-                  class: "block w-full py-3 border-0 resize-none focus:ring-0 sm:text-sm shadow-none",
+                  class:
+                    "mentionable block w-full py-3 border-0 resize-none focus:ring-0 sm:text-sm shadow-none",
                   required: true,
                   disabled: @disabled,
                   id: "comment-input"
