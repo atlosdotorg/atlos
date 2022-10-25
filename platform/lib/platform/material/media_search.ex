@@ -27,7 +27,9 @@ defmodule Platform.Material.MediaSearch do
       "uploaded_desc",
       "uploaded_asc",
       "modified_desc",
-      "modified_asc"
+      "modified_asc",
+      "description_desc",
+      "description_asc"
     ])
   end
 
@@ -94,6 +96,12 @@ defmodule Platform.Material.MediaSearch do
 
           "modified_asc" ->
             {queryable |> Ecto.Query.order_by([i], asc: i.updated_at), []}
+
+          "description_desc" ->
+            {queryable |> Ecto.Query.order_by([i], desc: i.attr_description), []}
+
+          "description_asc" ->
+            {queryable |> Ecto.Query.order_by([i], asc: i.attr_description), []}
         end
     end
   end
