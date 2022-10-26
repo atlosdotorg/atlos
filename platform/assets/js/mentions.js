@@ -24,6 +24,7 @@ function initialize() {
             mapValueTo: v => {
                 return v;
             },
+            enforceWhitelist: true,
             dropdown: {
                 enabled: 1,
                 position: 'text',
@@ -52,11 +53,14 @@ function initialize() {
             var prefix = e.detail.prefix;
 
             if (prefix) {
+                tagify.loading = true;
                 let results = await searchForUser(e.detail.value);
+                tagify.loading = false;
                 tagify.whitelist = results;
 
                 if (results.length > 0 && e.detail.value.length > 0) {
                     tagify.dropdown.show();
+                    console.log(tagify);
                 }
             }
         })
