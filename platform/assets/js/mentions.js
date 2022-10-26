@@ -6,8 +6,6 @@ async function searchForUser(prefix) {
         query: prefix
     }))).json())["results"].map(e => e.username);
 
-    console.log(results);
-
     return results;
 }
 
@@ -24,7 +22,6 @@ function initialize() {
             whitelist: [],
             originalInputValueFormat: v => v.prefix + v.value,
             mapValueTo: v => {
-                console.log(v);
                 return v;
             },
             dropdown: {
@@ -62,8 +59,6 @@ function initialize() {
                     tagify.dropdown.show();
                 }
             }
-
-            console.log('mix-mode "input" event value: ', e.detail)
         })
     })
 }

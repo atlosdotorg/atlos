@@ -139,32 +139,21 @@ defmodule PlatformWeb.MediaLive.CommentBox do
             <div class="relative">
               <div class="-ml-1 border border-gray-300 rounded-lg shadow-sm overflow-hidden focus-within:border-urge-500 focus-within:ring-1 focus-within:ring-urge-500">
                 <label for="comment" class="sr-only">Add a comment...</label>
-                <div
-                  id={"comment-input-parent-#{@render_id}"}
-                  class="pt-2 px-2"
-                  x-data="{content: ''}"
-                >
-                  <%= textarea(f, :explanation,
-                    required: true,
-                    disabled: @disabled,
-                    class: "hidden",
-                    "x-model": "content"
-                  ) %>
-                  <.interactive_textarea
-                    disabled={@disabled}
-                    model="content"
-                    required={true}
-                    placeholder={
-                      if(@disabled,
-                        do: "Commenting has been disabled",
-                        else: "Add your comment. You can @tag others by their username."
-                      )
-                    }
-                    id={"comment-parent-input-#{@render_id}"}
-                    rows={4}
-                    class="block w-full !border-0 resize-none focus:ring-0 sm:text-sm shadow-none"
-                  />
-                </div>
+                <.interactive_textarea
+                  disabled={@disabled}
+                  form={f}
+                  name={:explanation}
+                  model="content"
+                  placeholder={
+                    if(@disabled,
+                      do: "Commenting has been disabled",
+                      else: "Add your comment. You can @tag others by their username."
+                    )
+                  }
+                  id={"comment-parent-input-#{@render_id}"}
+                  rows={4}
+                  class="block w-full !border-0 resize-none focus:ring-0 sm:text-sm shadow-none"
+                />
 
                 <section class="grid grid-cols-2 md:grid-cols-3 gap-2 p-2">
                   <%= for entry <- @uploads.attachments.entries do %>

@@ -177,6 +177,8 @@ defmodule Platform.Updates do
       attrs
       |> Map.put("type", :comment)
     )
+    |> Ecto.Changeset.validate_required([:explanation])
+    |> Ecto.Changeset.validate_length(:explanation, min: 1, max: 10000)
   end
 
   @doc """
