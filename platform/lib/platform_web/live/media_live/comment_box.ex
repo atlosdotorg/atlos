@@ -17,7 +17,8 @@ defmodule PlatformWeb.MediaLive.CommentBox do
        auto_upload: false,
        progress: &handle_progress/3
      )
-     |> assign_new(:disabled, fn -> false end)}
+     |> assign_new(:disabled, fn -> false end)
+     |> assign_new(:render_id, fn -> Platform.Utils.generate_random_sequence(5) end)}
   end
 
   def update(assigns, socket) do
@@ -37,6 +38,7 @@ defmodule PlatformWeb.MediaLive.CommentBox do
       :changeset,
       Updates.change_from_comment(socket.assigns.media, socket.assigns.current_user)
     )
+    |> assign(:render_id, Platform.Utils.generate_random_sequence(5))
   end
 
   defp assign_changeset(socket) do
@@ -137,20 +139,32 @@ defmodule PlatformWeb.MediaLive.CommentBox do
             <div class="relative">
               <div class="-ml-1 border border-gray-300 rounded-lg shadow-sm overflow-hidden focus-within:border-urge-500 focus-within:ring-1 focus-within:ring-urge-500">
                 <label for="comment" class="sr-only">Add a comment...</label>
-                <%= textarea(f, :explanation,
-                  phx_debounce: 300,
-                  rows: 4,
-                  placeholder:
-                    if(@disabled,
-                      do: "Commenting has been disabled",
-                      else: "Add your comment. You can @tag others by their username."
-                    ),
-                  class:
-                    "mentionable block w-full py-3 border-0 resize-none focus:ring-0 sm:text-sm shadow-none",
-                  required: true,
-                  disabled: @disabled,
-                  id: "comment-input"
-                ) %>
+                <div
+                  id={"comment-input-parent-#{@render_id}"}
+                  class="pt-2 px-2"
+                  x-data="{content: ''}"
+                >
+                  <%= textarea(f, :explanation,
+                    required: true,
+                    disabled: @disabled,
+                    class: "hidden",
+                    "x-model": "content"
+                  ) %>
+                  <.interactive_textarea
+                    disabled={@disabled}
+                    model="content"
+                    required={true}
+                    placeholder={
+                      if(@disabled,
+                        do: "Commenting has been disabled",
+                        else: "Add your comment. You can @tag others by their username."
+                      )
+                    }
+                    id={"comment-parent-input-#{@render_id}"}
+                    rows={4}
+                    class="block w-full !border-0 resize-none focus:ring-0 sm:text-sm shadow-none"
+                  />
+                </div>
 
                 <section class="grid grid-cols-2 md:grid-cols-3 gap-2 p-2">
                   <%= for entry <- @uploads.attachments.entries do %>

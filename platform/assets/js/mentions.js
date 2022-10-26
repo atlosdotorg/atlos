@@ -1,41 +1,74 @@
-import Tribute from "tributejs";
+import Tagify from '@yaireo/tagify'
+import "@yaireo/tagify/dist/tagify.css"
 
-// Initialize tribute (@mention engine)
-var tribute = new Tribute({
-    values: function (text, cb) {
-        remoteSearch(text, users => cb(users));
-    },
-    lookup: 'username',
-    fillAttr: 'username',
-    noMatchTemplate: "<div class='px-1'>No matches found!</div>",
-    menuItemTemplate: function (item) {
-        return "@" + item.string;
-    },
-});
+async function searchForUser(prefix) {
+    let results = (await (await fetch("/spi/users?" + new URLSearchParams({
+        query: prefix
+    }))).json())["results"].map(e => e.username);
 
-function initializeTribute() {
-    tribute.attach(document.querySelectorAll(".mentionable:not([data-tribute])"));
+    console.log(results);
+
+    return results;
 }
 
-function remoteSearch(text, cb) {
-    var url = "/spi/users";
-    xhr = new XMLHttpRequest();
-    xhr.onreadystatechange = function () {
-        if (xhr.readyState === 4) {
-            if (xhr.status === 200) {
-                var data = JSON.parse(xhr.responseText);
-                console.log(data.results);
-                cb(data.results);
-            } else if (xhr.status === 403) {
-                cb([]);
-            }
+function initialize() {
+    document.querySelectorAll("textarea[interactive]").forEach(input => {
+        if (input.parentElement.querySelector("tags")) {
+            return;
         }
-    };
-    xhr.open("GET", url + "?query=" + text, true);
-    xhr.send();
+
+        let tagify = new Tagify(input, {
+            mode: 'mix',
+            pattern: /@/,
+            tagTextProp: 'text',
+            whitelist: [],
+            originalInputValueFormat: v => v.prefix + v.value,
+            mapValueTo: v => {
+                console.log(v);
+                return v;
+            },
+            dropdown: {
+                enabled: 1,
+                position: 'text',
+                mapValueTo: 'text',
+                highlightFirst: true
+            },
+            templates: {
+                tag(tagData, { settings: _s }) {
+                    return `<tag title="${(tagData.title || tagData.value)}"
+                                contenteditable='false'
+                                spellcheck='false'
+                                tabIndex="${_s.a11y.focusableTags ? 0 : -1}"
+                                class="${_s.classNames.tag} font-medium"
+                                ${this.getAttributes(tagData)}>
+                        <div>
+                            <span class="${_s.classNames.tagText}">${tagData.prefix}${tagData[_s.tagTextProp] || tagData.value}</span>
+                        </div>
+                    </tag>`
+                },
+            }
+        })
+
+
+        // A good place to pull server suggestion list accoring to the prefix/value
+        tagify.on('input', async function (e) {
+            var prefix = e.detail.prefix;
+
+            if (prefix) {
+                let results = await searchForUser(e.detail.value);
+                tagify.whitelist = results;
+
+                if (results.length > 0 && e.detail.value.length > 0) {
+                    tagify.dropdown.show();
+                }
+            }
+
+            console.log('mix-mode "input" event value: ', e.detail)
+        })
+    })
 }
 
 export function setupMentions() {
-    document.addEventListener("phx:update", initializeTribute);
-    document.addEventListener("load", initializeTribute);
+    document.addEventListener("phx:update", initialize);
+    document.addEventListener("load", initialize);
 }

@@ -2564,6 +2564,21 @@ defmodule PlatformWeb.Components do
     """
   end
 
+  def interactive_textarea(%{model: _, id: _} = assigns) do
+    ~H"""
+    <div id={@id} phx-update="ignore" x-on:input="content = $event.target.textContent">
+      <textarea
+        interactive
+        rows={@rows}
+        placeholder={@placeholder}
+        class={@class}
+        required={@required}
+        disabled={@disabled}
+      />
+    </div>
+    """
+  end
+
   def edit_attribute(%{attr: attr, form: form, media_slug: slug, media: _} = assigns) do
     assigns =
       assigns
