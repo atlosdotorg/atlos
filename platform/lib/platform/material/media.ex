@@ -12,6 +12,7 @@ defmodule Platform.Material.Media do
   schema "media" do
     # Core uneditable data
     field :slug, :string, autogenerate: {Utils, :generate_media_slug, []}
+    field :deleted, :boolean, default: false
 
     # Core Attributes
     field :attr_description, :string
@@ -68,7 +69,8 @@ defmodule Platform.Material.Media do
       :attr_type,
       :attr_equipment,
       :attr_impact,
-      :attr_date
+      :attr_date,
+      :deleted
     ])
 
     # These are special attributes, since we define it at creation time. Eventually, it'd be nice to unify this logic with the attribute-specific editing logic.
@@ -151,11 +153,14 @@ defmodule Platform.Material.Media do
   Can the user view the media? Currently this is true for all media *except* media for which the "Hidden" restriction is present and the user is not an admin.
   """
   def can_user_view(%Media{} = media, %User{} = user) do
-    case media.attr_restrictions do
-      nil ->
+    case {media.attr_restrictions, media.deleted} do
+      {nil, false} ->
         true
 
-      values ->
+      {_, true} ->
+        Enum.member?(user.roles || [], :admin)
+
+      {values, false} ->
         # Restrictions are present.
         if Enum.member?(values, "Hidden") do
           Enum.member?(user.roles || [], :admin)
@@ -281,6 +286,7 @@ defimpl Jason.Encoder, for: Platform.Material.Media do
         :versions,
         :inserted_at,
         :updated_at,
+        :deleted,
         :id
       ])
       |> Enum.into(%{}, fn

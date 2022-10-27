@@ -54,6 +54,13 @@ defmodule Platform.Material do
     |> then(fn q ->
       if Keyword.get(opts, :hydrate, true), do: hydrate_media_query(q, opts), else: q
     end)
+    |> then(fn q ->
+      if not Keyword.get(opts, :include_deleted, false) do
+        q |> where([m], not m.deleted)
+      else
+        q
+      end
+    end)
     |> order_by(desc: :inserted_at)
   end
 
@@ -318,6 +325,56 @@ defmodule Platform.Material do
   """
   def delete_media(%Media{} = media) do
     Repo.delete(media)
+  end
+
+  @doc """
+  Soft deletes a media.
+  """
+  def soft_delete_media_audited(%Media{} = media, %User{} = user) do
+    cs = change_media(media, %{deleted: true})
+
+    if Accounts.is_admin(user) do
+      Repo.transaction(fn ->
+        with {:ok, media} <- Repo.update(cs),
+             update_changeset <- Updates.change_from_media_deletion(media, user),
+             {:ok, _} <- Updates.create_update_from_changeset(update_changeset) do
+          media
+        else
+          val ->
+            dbg(val)
+            {:error, cs}
+        end
+      end)
+    else
+      IO.puts("not admin")
+
+      {:error,
+       cs
+       |> Ecto.Changeset.add_error(:deleted, "You cannot mark an incident as deleted.")}
+    end
+  end
+
+  @doc """
+  Soft deletes a media.
+  """
+  def soft_undelete_media_audited(%Media{} = media, %User{} = user) do
+    cs = change_media(media, %{deleted: false})
+
+    if Accounts.is_admin(user) do
+      Repo.transaction(fn ->
+        with {:ok, media} <- Repo.update(cs),
+             update_changeset <- Updates.change_from_media_undeletion(media, user),
+             {:ok, _} <- Updates.create_update_from_changeset(update_changeset) do
+          media
+        else
+          _ -> {:error, cs}
+        end
+      end)
+    else
+      {:error,
+       cs
+       |> Ecto.Changeset.add_error(:deleted, "You cannot undelete an incident.")}
+    end
   end
 
   @doc """

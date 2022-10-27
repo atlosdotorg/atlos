@@ -14,7 +14,8 @@ defmodule Platform.Material.MediaSearch do
     sort: :string,
     attr_status: :string,
     no_media_versions: :boolean,
-    display: :string
+    display: :string,
+    deleted: :boolean
   }
 
   def changeset(params \\ %{}) do
@@ -106,6 +107,17 @@ defmodule Platform.Material.MediaSearch do
     end
   end
 
+  defp apply_deleted({queryable, options}, changeset) do
+    # Returns a {queryable, pagination_opts} tuple.
+    if Map.get(changeset.changes, :deleted, false) do
+      {queryable |> Ecto.Query.where([u], u.deleted),
+       Keyword.merge(options, include_deleted: true)}
+    else
+      {queryable |> Ecto.Query.where([u], not u.deleted),
+       Keyword.merge(options, include_deleted: false)}
+    end
+  end
+
   @doc """
   Builds a composeable query given the search changeset. Returns a {queryable, pagination_opts} tuple.
   """
@@ -115,6 +127,7 @@ defmodule Platform.Material.MediaSearch do
     |> apply_query_component(cs, :attr_status)
     |> apply_query_component(cs, :no_media_versions)
     |> apply_sort(cs)
+    |> apply_deleted(cs)
   end
 
   @doc """

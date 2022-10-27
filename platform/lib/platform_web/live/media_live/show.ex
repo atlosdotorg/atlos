@@ -108,6 +108,32 @@ defmodule PlatformWeb.MediaLive.Show do
     end
   end
 
+  def handle_event(
+        "toggle_deleted",
+        _params,
+        socket
+      ) do
+    media = socket.assigns.media
+
+    if !Accounts.is_admin(socket.assigns.current_user) do
+      {:noreply,
+       socket |> put_flash(:error, "You cannot change this incident's deletion status.")}
+    else
+      {:ok, media} =
+        if media.deleted do
+          Material.soft_undelete_media_audited(media, socket.assigns.current_user)
+        else
+          Material.soft_delete_media_audited(media, socket.assigns.current_user)
+        end
+
+      {:noreply,
+       socket
+       |> assign_media_and_updates()
+       |> put_flash(:info, "Media deletion status changed successfully.")
+       |> assign(:media, media)}
+    end
+  end
+
   def handle_info({:version_created, _version}, socket) do
     {:noreply,
      socket

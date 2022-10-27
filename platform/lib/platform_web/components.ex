@@ -556,7 +556,7 @@ defmodule PlatformWeb.Components do
     else
       ~H"""
       <% can_user_view = Platform.Updates.Update.can_user_view(update, @current_user) %>
-      <li class={if update.hidden and can_user_view, do: "opacity-50", else: ""}>
+      <li class={"transition-all " <> (if update.hidden and can_user_view, do: "opacity-50", else: "")}>
         <div class="relative pb-8 group word-breaks">
           <%= if show_line do %>
             <span class="absolute top-5 left-5 -ml-px h-full w-0.5 bg-gray-200" aria-hidden="true">
@@ -598,6 +598,10 @@ defmodule PlatformWeb.Components do
                         <% end %>
                       <% :create -> %>
                         added <span class="font-medium text-gray-900"><%= update.media.slug %></span>
+                      <% :delete -> %>
+                        deleted this incident
+                      <% :undelete -> %>
+                        restored this incident
                       <% :upload_version -> %>
                         added
                         <a
@@ -692,7 +696,7 @@ defmodule PlatformWeb.Components do
                 <% end %>
               </div>
             <% else %>
-              <div class="text-sm flex items-center mt-2 border-2 border-dashed border-neutral-300 text-neutral-600 p-2 rounded">
+              <div class="text-sm flex items-center border-2 border-dashed border-neutral-300 text-neutral-600 p-2 rounded">
                 <p>
                   <span class="font-medium text-gray-800">
                     You do not have permission to see this update.
@@ -1861,6 +1865,9 @@ defmodule PlatformWeb.Components do
                   </span>
                 </span>
               <% end %>
+              <%= if @media.deleted do %>
+                <span class="badge ~critical @high uppercase">Deleted</span>
+              <% end %>
             </p>
             <p class="text-gray-900 group-hover:text-gray-900">
               <%= @media.attr_description |> Utils.truncate(60) %>
@@ -2782,9 +2789,17 @@ defmodule PlatformWeb.Components do
     """
   end
 
+  def floating_bottom(assigns) do
+    ~H"""
+    <section class="fixed bottom-0 inset-x-0 pb-2 sm:pb-5 z-50 flex flex-col flex-reverse">
+      <%= render_slot(@inner_block) %>
+    </section>
+    """
+  end
+
   def floating_warning(assigns) do
     ~H"""
-    <section class="fixed bottom-0 inset-x-0 pb-2 sm:pb-5 z-50">
+    <section class="inset-x-0 pb-2 sm:pb-5 z-50">
       <div class="max-w-7xl mx-auto md:pl-36 px-2 sm:px-6 md:px-8">
         <div class="p-2 rounded-lg bg-critical-600 shadow-lg sm:p-3">
           <div class="flex items-center justify-between flex-wrap">
@@ -2818,7 +2833,7 @@ defmodule PlatformWeb.Components do
 
   def floating_info(assigns) do
     ~H"""
-    <section class="fixed bottom-0 inset-x-0 pb-2 sm:pb-5 z-50">
+    <section class="inset-x-0 pb-2 sm:pb-5 z-50">
       <div class="max-w-7xl mx-auto md:pl-36 px-2 sm:px-6 md:px-8">
         <div class="p-2 rounded-lg bg-neutral-600 shadow-lg sm:p-3">
           <div class="flex items-center justify-between flex-wrap">

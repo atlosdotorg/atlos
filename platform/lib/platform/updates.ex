@@ -196,6 +196,34 @@ defmodule Platform.Updates do
   end
 
   @doc """
+  Helper API function that takes attribute change information and uses it to create an Update changeset.
+  """
+  def change_from_media_deletion(%Media{} = media, %User{} = user) do
+    change_update(
+      %Update{},
+      media,
+      user,
+      %{
+        "type" => :delete
+      }
+    )
+  end
+
+  @doc """
+  Helper API function that takes attribute change information and uses it to create an Update changeset.
+  """
+  def change_from_media_undeletion(%Media{} = media, %User{} = user) do
+    change_update(
+      %Update{},
+      media,
+      user,
+      %{
+        "type" => :undelete
+      }
+    )
+  end
+
+  @doc """
   Helper API function that takes attribute change information and uses it to create an Update changeset. Requires 'explanation' to be in attrs.
   """
   def change_from_media_version_upload(
