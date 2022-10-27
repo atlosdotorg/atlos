@@ -938,7 +938,8 @@ defmodule PlatformWeb.Components do
           <%= if Attribute.can_user_edit(attr, current_user, media) and not (Map.get(assigns, :immutable, false)) do %>
             <%= live_patch("Update",
               class: "text-button mt-1 inline-block",
-              to: Routes.media_show_path(@socket, :edit, media.slug, attr.name)
+              to: Routes.media_show_path(@socket, :edit, media.slug, attr.name),
+              replace: true
             ) %>
           <% end %>
         </span>

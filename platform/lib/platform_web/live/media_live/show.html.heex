@@ -9,7 +9,8 @@
       ) do %>
       <%= live_patch(class: title_classes <> "hover:bg-neutral-200 focus:bg-neutral-200",
               to: Routes.media_show_path(@socket, :edit, @media.slug, :description),
-              "data-tooltip": "Edit description"
+              "data-tooltip": "Edit description",
+              replace: true
             ) do %>
         <%= @media.attr_description %>
         <% end %>
@@ -63,7 +64,7 @@
         </div>
         <%= if @media.attr_status do %>
           <%= live_patch(class: "chip @high inline-block mt-2 flex gap-1 " <> Attribute.attr_color(:status, @media.attr_status),
-                      to: Routes.media_show_path(@socket, :edit, @media.slug, :status)
+                      to: Routes.media_show_path(@socket, :edit, @media.slug, :status), replace: true
                     ) do %>
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -83,7 +84,7 @@
         <%= if Media.is_sensitive(@media) do %>
           <%= for item <- @media.attr_sensitive || [] do %>
             <%= live_patch(class: "chip @high inline-block mt-2 flex gap-1 " <> Attribute.attr_color(:sensitive, @media.attr_sensitive),
-                    to: Routes.media_show_path(@socket, :edit, @media.slug, :sensitive)
+                    to: Routes.media_show_path(@socket, :edit, @media.slug, :sensitive), replace: true
                     ) do %>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -432,7 +433,7 @@
             <span class="mt-2 block text-sm font-medium text-gray-700">Not yet geolocated</span>
             <%= live_patch("+ Geolocation",
               class: "text-button mt-1 text-sm inline-block",
-              to: Routes.media_show_path(@socket, :edit, @media.slug, :geolocation)
+              to: Routes.media_show_path(@socket, :edit, @media.slug, :geolocation), replace: true
             ) %>
           </div>
         <% end %>
@@ -485,7 +486,7 @@
             <%= if Attribute.can_user_edit(attr, @current_user, @media) do %>
               <%= live_patch("Edit",
                 class: "base-button",
-                to: Routes.media_show_path(@socket, :edit, @media.slug, attr.name)
+                to: Routes.media_show_path(@socket, :edit, @media.slug, attr.name), replace: true
               ) %>
             <% end %>
           </div>
