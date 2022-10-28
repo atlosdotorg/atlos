@@ -188,9 +188,10 @@ defmodule Platform.Material do
 
       true ->
         Repo.transaction(fn ->
+          changeset = change_media(%Media{}, attrs, user)
+
           {:ok, media} =
-            %Media{}
-            |> Media.changeset(attrs, user)
+            changeset
             |> Repo.insert()
 
           {:ok, _} =
@@ -216,7 +217,19 @@ defmodule Platform.Material do
               _ -> {:ok, media}
             end
 
+          # Subscribe the creator
           Updates.subscribe_if_first_interaction(media, user)
+
+          # Upload media, if provided
+          for url <- Ecto.Changeset.get_field(changeset, :urls_parsed) do
+            {:ok, _} =
+              create_media_version_audited(media, user, %{
+                upload_type: :direct,
+                status: :pending,
+                source_url: url,
+                media_id: media.id
+              })
+          end
 
           media
         end)

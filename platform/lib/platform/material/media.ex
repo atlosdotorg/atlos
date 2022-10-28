@@ -45,7 +45,10 @@ defmodule Platform.Material.Media do
     # Virtual attributes for updates + multi-part attributes
     field :explanation, :string, virtual: true
     field :location, :string, virtual: true
+    # For the input value from the client (JSON array)
     field :urls, :string, virtual: true
+    # For the internal, parsed representation
+    field :urls_parsed, {:array, :string}, virtual: true
 
     # Virtual attributes for population during querying
     field :has_unread_notification, :boolean, virtual: true
@@ -82,7 +85,7 @@ defmodule Platform.Material.Media do
     |> Attribute.validate_attribute(Attribute.get_attribute(:equipment), user, false)
     |> Attribute.validate_attribute(Attribute.get_attribute(:impact), user, false)
     |> Attribute.validate_attribute(Attribute.get_attribute(:date), user, false)
-    |> validate_json_array(:urls)
+    |> parse_and_validate_validate_json_array(:urls, :urls_parsed)
     |> then(fn cs ->
       attr = Attribute.get_attribute(:tags)
 
@@ -97,17 +100,37 @@ defmodule Platform.Material.Media do
     end)
   end
 
-  def validate_json_array(changeset, field) when is_atom(field) do
-    validate_change(changeset, field, fn field, value ->
-      if not is_nil(value) do
-        with {:ok, parsed_val} <- Jason.decode(value),
-            true <- is_list(parsed_val) do
-          []
-        else
-          _ -> [{field, "Invalid list"}]
+  def parse_and_validate_validate_json_array(changeset, field, dest) when is_atom(field) do
+    # Validate
+    changeset =
+      validate_change(changeset, field, fn field, value ->
+        if not is_nil(value) do
+          with {:ok, parsed_val} <- Jason.decode(value),
+               true <- is_list(parsed_val) do
+            []
+          else
+            _ -> [{field, "Invalid list"}]
+          end
         end
-      end
-    end)
+      end)
+
+    # Parse
+    value = Ecto.Changeset.get_change(changeset, field)
+
+    changeset =
+      Ecto.Changeset.put_change(
+        changeset,
+        dest,
+        with false <- is_nil(value),
+             {:ok, parsed_val} <- Jason.decode(value),
+             true <- is_list(parsed_val) do
+          parsed_val
+        else
+          _ -> []
+        end
+      )
+
+    changeset
   end
 
   @doc """

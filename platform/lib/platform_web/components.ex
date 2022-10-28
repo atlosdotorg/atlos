@@ -1352,6 +1352,73 @@ defmodule PlatformWeb.Components do
     """
   end
 
+  @doc """
+  Like deconfliction_warning, except used when we have multiple URLs and potential media.
+  """
+  def multi_deconfliction_warning(%{url_media_pairs: pairs, current_user: _} = assigns) do
+    assigns =
+      assigns
+      |> assign(:has_dupes, Enum.any?(pairs, fn {_url, media} -> not Enum.empty?(media) end))
+
+    ~H"""
+    <div>
+      <%= if @has_dupes do %>
+        <div class="rounded-md bg-yellow-50 px-4 py-3 border-yellow-300 border">
+          <div class="grid grid-cols-1 gap-8">
+            <%= for {url, dupes} <- @url_media_pairs do %>
+              <%= if not Enum.empty?(dupes) do %>
+                <div>
+                  <div class="text-yellow-800 text-sm">
+                    <.url_icon url={url} class="h-4 w-4 inline mb-px" />
+                    <a href={url} target="_blank" class="font-medium"><%= url %></a>
+                    has already been added to Atlos
+                  </div>
+                  <div class="grid grid-cols-1 gap-4 mt-2">
+                    <%= for dupe <- dupes do %>
+                      <div data-confirm="Open the incident in a new tab? Your current tab won't be affected.">
+                        <.media_card media={dupe} current_user={@current_user} target="_blank" />
+                      </div>
+                    <% end %>
+                  </div>
+                </div>
+              <% end %>
+            <% end %>
+          </div>
+        </div>
+      <% else %>
+        <div class="rounded-md bg-green-50 p-4">
+          <div class="flex">
+            <div class="flex-shrink-0">
+              <!-- Heroicon name: mini/check-circle -->
+              <svg
+                class="h-5 w-5 text-green-400"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+                aria-hidden="true"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+            </div>
+            <div class="ml-3">
+              <h3 class="text-sm font-medium text-green-800">No duplicates detected</h3>
+              <div class="mt-2 text-sm text-green-700">
+                <p>
+                  These URLs have not been previously uploaded to Atlos.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+    """
+  end
+
   def loading_spinner(assigns) do
     ~H"""
     <div class="flex items-center">

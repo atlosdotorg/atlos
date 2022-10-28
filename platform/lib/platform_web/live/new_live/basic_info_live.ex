@@ -11,6 +11,7 @@ defmodule PlatformWeb.NewLive.BasicInfoLive do
      |> assign(assigns)
      |> assign_media()
      |> assign(:disabled, false)
+     |> assign(:url_deconfliction, [])
      |> assign_changeset()}
   end
 
@@ -18,19 +19,39 @@ defmodule PlatformWeb.NewLive.BasicInfoLive do
     socket |> assign(:media, %Material.Media{})
   end
 
-  defp assign_changeset(socket) do
+  defp assign_changeset(socket, params \\ %{}, opts \\ []) do
+    cs = Material.change_media(socket.assigns.media, params, socket.assigns.current_user)
+
+    cs =
+      if Keyword.get(opts, :validate, false) do
+        cs |> Map.put(:action, :validate)
+      else
+        cs
+      end
+
+    # If available, assign the URLs
+    url_deconfliction =
+      Ecto.Changeset.get_field(cs, :urls_parsed, "")
+      |> Enum.map(fn url ->
+        {url, Material.get_media_by_source_url(url)}
+      end)
+
     socket
     |> assign(
       :changeset,
-      Material.change_media(socket.assigns.media, %{}, socket.assigns.current_user)
+      cs
+    )
+    |> assign(
+      :url_deconfliction,
+      url_deconfliction
     )
   end
 
-  def handle_event("validate", %{"media" => _media_params}, socket) do
+  def handle_event("validate", %{"media" => media_params}, socket) do
     # TODO: We don't currently do live validation because it causes the multiselect panel to jump around.
     # Given the time, it'd be nice to fix this.
 
-    {:noreply, socket}
+    {:noreply, socket |> assign_changeset(media_params, validate: true)}
   end
 
   def handle_event("save", %{"media" => media_params}, socket) do
@@ -67,6 +88,7 @@ defmodule PlatformWeb.NewLive.BasicInfoLive do
         id="media-form"
         phx-target={@myself}
         phx-submit="save"
+        phx-change="validate"
         class="phx-form"
       >
         <div class="space-y-6">
@@ -101,7 +123,7 @@ defmodule PlatformWeb.NewLive.BasicInfoLive do
           </div>
 
           <div class="flex flex-col gap-1">
-            <label>Source Material</label>
+            <label>Source Material <span class="badge ~neutral inline text-xs">Optional</span></label>
             <.interactive_urldrop
               form={f}
               id="urldrop"
@@ -110,6 +132,14 @@ defmodule PlatformWeb.NewLive.BasicInfoLive do
               class="input-base"
             />
             <p class="support">Atlos will attempt to archive these URLs automatically.</p>
+            <%= if not Enum.empty?(@url_deconfliction) do %>
+              <div class="mt-4">
+                <.multi_deconfliction_warning
+                  url_media_pairs={@url_deconfliction}
+                  current_user={@current_user}
+                />
+              </div>
+            <% end %>
           </div>
 
           <details class="p-4 rounded bg-neutral-100 mt-2">

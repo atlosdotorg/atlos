@@ -58,6 +58,7 @@ function initialize() {
 
         tagify.on("change", event => {
             feedbackElem.value = JSON.stringify(event.detail.tagify.value.map(x => x.value));
+            feedbackElem.dispatchEvent(new Event("input", { bubbles: true }));
         })
     })
 
