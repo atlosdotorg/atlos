@@ -28,7 +28,6 @@ function iconURL(url) {
 
 function initialize() {
     document.querySelectorAll("textarea[interactive-urls]").forEach(input => {
-        console.log(input);
         if (input.parentElement.querySelector("tags")) {
             return;
         }
@@ -63,6 +62,8 @@ function initialize() {
     })
 
     document.querySelectorAll("textarea[interactive-mentions]").forEach(input => {
+        let feedbackElem = document.getElementById(input.getAttribute("data-feedback"));
+
         if (input.parentElement.querySelector("tags")) {
             return;
         }
@@ -72,6 +73,7 @@ function initialize() {
             pattern: /@/,
             tagTextProp: 'text',
             whitelist: [],
+            editTags: false,
             originalInputValueFormat: v => v.prefix + v.value,
             mapValueTo: v => {
                 return v;
@@ -92,7 +94,7 @@ function initialize() {
                                 class="${_s.classNames.tag} font-medium"
                                 ${this.getAttributes(tagData)}>
                         <div>
-                            <span class="${_s.classNames.tagText}">${tagData.prefix}${tagData[_s.tagTextProp] || tagData.value}</span>
+                            <span class="${_s.classNames.tagText}">${tagData.prefix || "@"}${tagData[_s.tagTextProp] || tagData.value}</span>
                         </div>
                     </tag>`
                 },
@@ -103,18 +105,23 @@ function initialize() {
         // A good place to pull server suggestion list accoring to the prefix/value
         tagify.on('input', async function (e) {
             var prefix = e.detail.prefix;
+            console.log(tagify);
 
             if (prefix) {
-                tagify.loading = true;
+                // tagify.loading(true);
                 let results = await searchForUser(e.detail.value);
-                tagify.loading = false;
+                // tagify.loading(false);
                 tagify.whitelist = results;
 
-                if (results.length > 0 && e.detail.value.length > 0) {
-                    tagify.dropdown.show();
-                    console.log(tagify);
+                if (e.detail.value.length > 1) {
+                    tagify.dropdown.show.call(tagify, e.detail.value);
                 }
             }
+        });
+
+        tagify.on("change", _event => {
+            feedbackElem.value = input.value;
+            feedbackElem.dispatchEvent(new Event("input", { bubbles: true }));
         })
     })
 }

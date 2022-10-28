@@ -7,6 +7,10 @@
     @apply inline-flex items-center px-1 py-px rounded !font-medium;
   }
 
+  a[user-tag] {
+    @apply badge ~neutral text-sm font-medium no-underline;
+  }
+
   .sticky-headers {
     text-align: left;
     position: relative;

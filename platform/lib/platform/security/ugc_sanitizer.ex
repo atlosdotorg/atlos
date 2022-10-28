@@ -19,7 +19,7 @@ defmodule Platform.Security.UgcSanitizer do
   Meta.strip_comments()
 
   Meta.allow_tag_with_uri_attributes("a", ["href"], @valid_schemes)
-  Meta.allow_tag_with_these_attributes("a", ["name", "title", "target", "rel"])
+  Meta.allow_tag_with_these_attributes("a", ["name", "title", "target", "rel", "user-tag"])
 
   Meta.allow_tag_with_these_attributes("b", [])
   Meta.allow_tag_with_these_attributes("blockquote", [])

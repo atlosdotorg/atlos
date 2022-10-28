@@ -2648,13 +2648,14 @@ defmodule PlatformWeb.Components do
           class: "hidden",
           id: "textarea-#{@id}"
         ) %>
-        <div x-on:input={"document.getElementById('#{"textarea-#{@id}"}').value = $event.target.textContent"}>
+        <div>
           <textarea
             interactive-mentions
             rows={@rows}
             placeholder={@placeholder}
             class={@class}
             disabled={@disabled}
+            data-feedback={"textarea-#{@id}"}
           />
         </div>
       </div>
