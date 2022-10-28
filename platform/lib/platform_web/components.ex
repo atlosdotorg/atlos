@@ -906,8 +906,11 @@ defmodule PlatformWeb.Components do
             </span>
           <% end %>
         </span>
-        <%= live_patch(class: "text-button inline-block",
-            to: Routes.media_show_path(socket, :history, media.slug, attr.name)
+      </dt>
+      <dd class="mt-1 flex items-center text-sm text-gray-900 sm:mt-0 sm:col-span-2" x-data id={"attr-block-#{@media.slug}-#{@attr.name}"}>
+        <%= live_patch(class: "text-button inline-block mr-2",
+            to: Routes.media_show_path(socket, :history, media.slug, attr.name),
+            replace: true
           ) do %>
           <.user_stack users={
             updates
@@ -918,9 +921,8 @@ defmodule PlatformWeb.Components do
             |> Enum.take(1)
           } />
         <% end %>
-      </dt>
-      <dd class="mt-1 flex items-center text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-        <span class="flex-grow gap-1 flex flex-wrap">
+        <% can_edit = Attribute.can_user_edit(attr, current_user, media) and not (Map.get(assigns, :immutable, false)) %>
+        <button x-on:click={if can_edit, do: "$refs.updateButton.click()", else: ""} class={"gap-1 flex flex-wrap hover:bg-neutral-100 transition rounded p-1 " <> (if can_edit, do: "hover:bg-neutral-100")}>
           <%= if not is_nil(Map.get(media, attr.schema_field)) do %>
             <.attr_entry name={attr.name} value={Map.get(media, attr.schema_field)} />
             <%= for child <- children do %>
@@ -933,16 +935,13 @@ defmodule PlatformWeb.Components do
               <% end %>
             <% end %>
           <% end %>
-        </span>
-        <span class="ml-4 flex-shrink-0">
-          <%= if Attribute.can_user_edit(attr, current_user, media) and not (Map.get(assigns, :immutable, false)) do %>
-            <%= live_patch("Update",
-              class: "text-button mt-1 inline-block",
-              to: Routes.media_show_path(@socket, :edit, media.slug, attr.name),
-              replace: true
-            ) %>
-          <% end %>
-        </span>
+        </button>
+        <%= live_patch("Update",
+          class: "text-button mt-1 inline-block hidden",
+          to: Routes.media_show_path(@socket, :edit, media.slug, attr.name),
+          replace: true,
+          "x-ref": "updateButton"
+        ) %>
       </dd>
     </div>
     """
