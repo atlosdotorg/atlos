@@ -2,7 +2,7 @@
   <div class="lg:flex lg:items-center lg:justify-between">
     <div class="flex-1 min-w-0 max-w-full">
       <% title_classes =
-        "text-xl font-medium leading-7 text-gray-700 sm:text-3xl inline transition-all p-1 rounded " <>
+        "text-xl font-medium leading-7 text-gray-700 sm:text-3xl block transition-all p-1 rounded " <>
           if @media.deleted, do: "line-through ", else: "" %>
       <%= if(
         Attribute.can_user_edit(Attribute.get_attribute(:description), @current_user, @media)
