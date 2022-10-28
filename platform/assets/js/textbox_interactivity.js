@@ -9,8 +9,59 @@ async function searchForUser(prefix) {
     return results;
 }
 
+function truncateString(str, num) {
+    if (str.length > num) {
+        return str.slice(0, num) + "...";
+    } else {
+        return str;
+    }
+}
+
+function iconURL(url) {
+    try {
+        let u = new URL(url);
+        return `https://s2.googleusercontent.com/s2/favicons?domain=${u.hostname}&sz=64`;
+    } catch {
+        return "";
+    }
+}
+
 function initialize() {
-    document.querySelectorAll("textarea[interactive]").forEach(input => {
+    document.querySelectorAll("textarea[interactive-urls]").forEach(input => {
+        console.log(input);
+        if (input.parentElement.querySelector("tags")) {
+            return;
+        }
+
+        let feedbackElem = document.getElementById(input.getAttribute("data-feedback"));
+
+        let tagify = new Tagify(input, {
+            pasteAsTags: true,
+            delimiters: ",|\n|\r",
+            keepInvalidTags: true,
+            templates: {
+                tag(tagData, { settings: _s }) {
+                    let text = tagData[_s.tagTextProp] || tagData.value;
+                    return `<tag title="${(tagData.title || tagData.value)}"
+                                contenteditable='false'
+                                spellcheck='false'
+                                tabIndex="${_s.a11y.focusableTags ? 0 : -1}"
+                                class="${_s.classNames.tag} ${tagData.class}"
+                                ${this.getAttributes(tagData)}>
+                        <div>
+                            <span class="${_s.classNames.tagText}">${text}</span>
+                        </div>
+                    </tag>`
+                },
+            }
+        });
+
+        tagify.on("change", event => {
+            feedbackElem.value = JSON.stringify(event.detail.tagify.value.map(x => x.value));
+        })
+    })
+
+    document.querySelectorAll("textarea[interactive-mentions]").forEach(input => {
         if (input.parentElement.querySelector("tags")) {
             return;
         }
@@ -67,7 +118,7 @@ function initialize() {
     })
 }
 
-export function setupMentions() {
+export function setupTextboxInteractivity() {
     document.addEventListener("phx:update", initialize);
     document.addEventListener("load", initialize);
 }

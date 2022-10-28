@@ -45,6 +45,7 @@ defmodule Platform.Material.Media do
     # Virtual attributes for updates + multi-part attributes
     field :explanation, :string, virtual: true
     field :location, :string, virtual: true
+    field :urls, :string, virtual: true
 
     # Virtual attributes for population during querying
     field :has_unread_notification, :boolean, virtual: true
@@ -70,7 +71,8 @@ defmodule Platform.Material.Media do
       :attr_equipment,
       :attr_impact,
       :attr_date,
-      :deleted
+      :deleted,
+      :urls
     ])
 
     # These are special attributes, since we define it at creation time. Eventually, it'd be nice to unify this logic with the attribute-specific editing logic.
@@ -80,6 +82,7 @@ defmodule Platform.Material.Media do
     |> Attribute.validate_attribute(Attribute.get_attribute(:equipment), user, false)
     |> Attribute.validate_attribute(Attribute.get_attribute(:impact), user, false)
     |> Attribute.validate_attribute(Attribute.get_attribute(:date), user, false)
+    |> validate_json_array(:urls)
     |> then(fn cs ->
       attr = Attribute.get_attribute(:tags)
 
@@ -90,6 +93,19 @@ defmodule Platform.Material.Media do
         |> Attribute.validate_attribute(Attribute.get_attribute(:tags), user, false)
       else
         cs
+      end
+    end)
+  end
+
+  def validate_json_array(changeset, field) when is_atom(field) do
+    validate_change(changeset, field, fn field, value ->
+      if not is_nil(value) do
+        with {:ok, parsed_val} <- Jason.decode(value),
+            true <- is_list(parsed_val) do
+          []
+        else
+          _ -> [{field, "Invalid list"}]
+        end
       end
     end)
   end

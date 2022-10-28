@@ -7,12 +7,12 @@
       <%= if(
         Attribute.can_user_edit(Attribute.get_attribute(:description), @current_user, @media)
       ) do %>
-      <%= live_patch(class: title_classes <> "hover:bg-neutral-200 focus:bg-neutral-200",
+        <%= live_patch(class: title_classes <> "hover:bg-neutral-200 focus:bg-neutral-200",
               to: Routes.media_show_path(@socket, :edit, @media.slug, :description),
               "data-tooltip": "Edit description",
               replace: true
             ) do %>
-        <%= @media.attr_description %>
+          <%= @media.attr_description %>
         <% end %>
       <% else %>
         <div class={title_classes}>
@@ -433,7 +433,8 @@
             <span class="mt-2 block text-sm font-medium text-gray-700">Not yet geolocated</span>
             <%= live_patch("+ Geolocation",
               class: "text-button mt-1 text-sm inline-block",
-              to: Routes.media_show_path(@socket, :edit, @media.slug, :geolocation), replace: true
+              to: Routes.media_show_path(@socket, :edit, @media.slug, :geolocation),
+              replace: true
             ) %>
           </div>
         <% end %>
@@ -486,7 +487,8 @@
             <%= if Attribute.can_user_edit(attr, @current_user, @media) do %>
               <%= live_patch("Edit",
                 class: "base-button",
-                to: Routes.media_show_path(@socket, :edit, @media.slug, attr.name), replace: true
+                to: Routes.media_show_path(@socket, :edit, @media.slug, attr.name),
+                replace: true
               ) %>
             <% end %>
           </div>

@@ -35,7 +35,11 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
       send(socket.assigns.target, {:end_attribute_edit, updated_media})
       socket
     else
-      socket |> push_patch(to: Routes.media_show_path(socket, :show, socket.assigns.media.slug), replace: true)
+      socket
+      |> push_patch(
+        to: Routes.media_show_path(socket, :show, socket.assigns.media.slug),
+        replace: true
+      )
     end
   end
 

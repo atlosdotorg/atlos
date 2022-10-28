@@ -27,7 +27,7 @@ import Alpine from 'alpinejs'
 import tippy from 'tippy.js';
 import Mark from 'mark.js';
 import { InfiniteScroll } from "./infinite_scroll";
-import { setupMentions } from "./mentions";
+import { setupTextboxInteractivity } from "./textbox_interactivity";
 
 mapboxgl.accessToken = 'pk.eyJ1IjoibWlsZXNtY2MiLCJhIjoiY2t6ZzdzZmY0MDRobjJvbXBydWVmaXBpNSJ9.-aHM8bjOOsSrGI0VvZenAQ';
 
@@ -57,8 +57,8 @@ let liveSocket = new LiveSocket("/live", Socket, {
     hooks: Hooks
 })
 
-// Setup mentions
-setupMentions();
+// Setup textboxes
+setupTextboxInteractivity();
 
 /**
  * https://stackoverflow.com/questions/494143/creating-a-new-dom-element-from-an-html-string-using-built-in-dom-methods-or-pro

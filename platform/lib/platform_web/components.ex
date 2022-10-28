@@ -2575,7 +2575,7 @@ defmodule PlatformWeb.Components do
   def interactive_textarea(%{model: _, id: _} = assigns) do
     ~H"""
     <div id={@id} class="mt-2 px-2" phx-update="ignore">
-      <div id={"child-#{@id}"} x-data="{content: ''}">
+      <div id={"child-#{@id}"} x-data>
         <%= textarea(@form, @name,
           disabled: @disabled,
           class: "hidden",
@@ -2583,11 +2583,32 @@ defmodule PlatformWeb.Components do
         ) %>
         <div x-on:input={"document.getElementById('#{"textarea-#{@id}"}').value = $event.target.textContent"}>
           <textarea
-            interactive
+            interactive-mentions
             rows={@rows}
             placeholder={@placeholder}
             class={@class}
             disabled={@disabled}
+          />
+        </div>
+      </div>
+    </div>
+    """
+  end
+
+  def interactive_urldrop(assigns) do
+    ~H"""
+    <div id={@id} phx-update="ignore">
+      <div id={"child-#{@id}"} x-data>
+        <%= textarea(@form, @name,
+          class: "!hidden",
+          id: "textarea-#{@id}"
+        ) %>
+        <div>
+          <textarea
+            interactive-urls
+            placeholder={@placeholder}
+            class={(@class) <> " overflow-hidden break-all !pr-1"}
+            data-feedback={"textarea-#{@id}"}
           />
         </div>
       </div>

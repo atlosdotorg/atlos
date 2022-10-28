@@ -94,15 +94,16 @@
   }
 
   .phx-form textarea {
-    @apply shadow-sm focus:ring-urge-500 focus:border-urge-500 block w-full sm:text-sm border-gray-300 rounded-md;
+    @apply shadow-sm focus:!ring-urge-500 focus:!border-urge-500 block w-full sm:text-sm !border-gray-300 rounded;
   }
 
   .phx-form input[type="email"],
   .phx-form input[type="password"],
   .phx-form input[type="url"],
   .phx-form input[type="number"],
-  .phx-form input[type="text"] {
-    @apply field ~neutral;
+  .phx-form input[type="text"],
+  .input-base {
+    @apply shadow-sm focus:!ring-urge-500 focus-within:ring-1 focus-within:!border-urge-500 focus-within:!ring-urge-500 block w-full sm:text-sm !border-gray-300 rounded;
   }
 
   .phx-only-during-submit {
@@ -963,12 +964,12 @@ select:not(.ts-ignore *) {
 }
 .tagify {
   --tags-disabled-bg: #f1f1f1;
-  --tags-border-color: #ddd;
-  --tags-hover-border-color: #ccc;
-  --tags-focus-border-color: #ddd;
+  --tags-border-color: #e5e5e5;
+  --tags-hover-border-color: #e5e5e5;
+  --tags-focus-border-color: #e5e5e5;
   --tag-border-radius: 3px;
   --tag-bg: #e5e5e5;
-  --tag-hover: #ccc;
+  --tag-hover: #e5e5e5;
   --tag-text-color: black;
   --tag-text-color--edit: black;
   --tag-pad: 0.3em 0.5em;
@@ -1001,7 +1002,7 @@ select:not(.ts-ignore *) {
 }
 @keyframes tags--bump {
   30% {
-    transform: scale(1.2);
+    transform: scale(1.05);
   }
 }
 @keyframes rotateLoader {
@@ -1106,6 +1107,8 @@ select:not(.ts-ignore *) {
   line-height: normal;
   cursor: default;
   transition: 0.13s ease-out;
+  background-color: var(--tag-bg);
+  border-radius: var(--tag-border-radius);
 }
 .tagify__tag > div {
   vertical-align: top;
@@ -1135,7 +1138,6 @@ select:not(.ts-ignore *) {
   cursor: text;
   margin: -2px;
   padding: 2px;
-  max-width: 350px;
 }
 .tagify__tag > div::before {
   content: "";
@@ -1239,7 +1241,7 @@ select:not(.ts-ignore *) {
   transform: translateX(100%) translateX(5px);
 }
 .tagify__tag--editable.tagify--invalid > div::before {
-  box-shadow: 0 0 0 2px var(--tag-invalid-color) inset !important;
+  box-shadow: 0 0 0 6px var(--tag-invalid-color) inset !important;
 }
 .tagify__tag__removeBtn {
   order: 5;

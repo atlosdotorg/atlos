@@ -34,6 +34,8 @@ defmodule PlatformWeb.NewLive.BasicInfoLive do
   end
 
   def handle_event("save", %{"media" => media_params}, socket) do
+    dbg(media_params)
+
     case Material.create_media_audited(socket.assigns.current_user, media_params) do
       {:ok, media} ->
         # We log here, rather than in the context, because we have access to the socket.
@@ -96,6 +98,18 @@ defmodule PlatformWeb.NewLive.BasicInfoLive do
               media_slug="NEW"
               media={nil}
             />
+          </div>
+
+          <div class="flex flex-col gap-1">
+            <label>Source Material</label>
+            <.interactive_urldrop
+              form={f}
+              id="urldrop"
+              name={:urls}
+              placeholder="Drop URLs here..."
+              class="input-base"
+            />
+            <p class="support">Atlos will attempt to archive these URLs automatically.</p>
           </div>
 
           <details class="p-4 rounded bg-neutral-100 mt-2">

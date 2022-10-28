@@ -91,8 +91,11 @@ defmodule Platform.Utils do
 
     # Setup to open external links in a new tab + add nofollow/noopener
     add_target = fn node ->
-      if not is_nil(Earmark.AstTools.find_att_in_node(node, "href", "")), do:
-      Earmark.AstTools.merge_atts_in_node(node, target: "_blank", rel: "nofollow noopener"), else: node end
+      if not is_nil(Earmark.AstTools.find_att_in_node(node, "href", "")),
+        do: Earmark.AstTools.merge_atts_in_node(node, target: "_blank", rel: "nofollow noopener"),
+        else: node
+    end
+
     options = [registered_processors: [{"a", add_target}]]
 
     # Strip all tags and render markdown
