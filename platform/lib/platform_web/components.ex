@@ -48,7 +48,7 @@ defmodule PlatformWeb.Components do
         phx-target={@target}
       >
         <div
-          class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
+          class="fixed inset-0 bg-gray-500/75 transition"
           aria-hidden="true"
           x-on:click="window.closeModal($event)"
           phx-target={@target}
