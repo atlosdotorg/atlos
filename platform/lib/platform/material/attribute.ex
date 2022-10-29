@@ -834,7 +834,7 @@ defmodule Platform.Material.Attribute do
           "Cancelled" -> "~neutral"
           "Ready for Review" -> "~cyan"
           "Completed" -> "~urge"
-          "Needs Upload" -> "~purple"
+          "Needs Upload" -> "~neutral"
           _ -> "~warning"
         end
 
