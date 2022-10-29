@@ -8,7 +8,7 @@ defmodule Platform.Accounts.User do
     # General metadata
     field :email, :string
     field :username, :string
-    field :roles, {:array, Ecto.Enum}, values: [:trusted, :admin]
+    field :roles, {:array, Ecto.Enum}, values: [:trusted, :admin, :coordinator]
     field :restrictions, {:array, Ecto.Enum}, values: [:suspended, :muted]
     field :bio, :string, default: ""
     field :profile_photo_file, :string, default: ""

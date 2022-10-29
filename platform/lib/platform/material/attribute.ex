@@ -389,7 +389,7 @@ defmodule Platform.Material.Attribute do
         name: :restrictions,
         # NOTE: Editing these values also requires editing the perm checks in `media.ex`
         options: ["Frozen", "Hidden"],
-        required_roles: [:admin]
+        required_roles: [:admin, :trusted]
       },
       %Attribute{
         schema_field: :attr_sensitive,

@@ -288,7 +288,7 @@ defmodule Platform.Updates do
   Is the given user able to view the given update?
   """
   def can_user_view(%Update{} = update, %User{} = user) do
-    case Platform.Accounts.is_admin(user) do
+    case Platform.Accounts.is_privileged(user) do
       true ->
         true
 

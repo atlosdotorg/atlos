@@ -202,7 +202,7 @@ defmodule Platform.Material.Media do
       {values, false} ->
         # Restrictions are present.
         if Enum.member?(values, "Hidden") do
-          Enum.member?(user.roles || [], :admin)
+          Accounts.is_privileged(user)
         else
           true
         end
