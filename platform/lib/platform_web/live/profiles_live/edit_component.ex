@@ -86,7 +86,9 @@ defmodule PlatformWeb.ProfilesLive.EditComponent do
     <article>
       <.modal target={@myself} close_confirmation={confirm_prompt}>
         <h3 class="sec-head">Editing <%= @user.username %></h3>
-        <p class="sec-subhead">These changes will affect this user's account.</p>
+        <p class="sec-subhead">
+          These changes will affect this user's account.
+        </p>
         <hr class="h-8 sep" />
         <.form
           :let={f}
@@ -103,6 +105,13 @@ defmodule PlatformWeb.ProfilesLive.EditComponent do
               <div phx-update="ignore" id="ignore-user-roles">
                 <%= multiple_select(f, :roles, [:trusted, :admin], id: "user-roles-input") %>
               </div>
+              <p class="support">
+                For more information about roles on Atlos, view our <a
+                  href="https://github.com/atlosdotorg/atlos/blob/main/policy/ROLES.md"
+                  class="underline"
+                  target="blank"
+                >role documentation</a>.
+              </p>
               <%= error_tag(f, :roles) %>
             </div>
             <div>
