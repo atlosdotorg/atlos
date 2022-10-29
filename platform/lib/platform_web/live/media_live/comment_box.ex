@@ -137,7 +137,7 @@ defmodule PlatformWeb.MediaLive.CommentBox do
           </div>
           <div class="min-w-0 flex-1">
             <div class="relative">
-              <div class="-ml-1 border border-gray-300 rounded-lg shadow-sm overflow-hidden focus-within:border-urge-500 focus-within:ring-1 focus-within:ring-urge-500">
+              <div class="-ml-1 border border-gray-300 rounded-lg shadow-sm overflow-hidden focus-within:border-urge-500 focus-within:ring-1 focus-within:ring-urge-500 transition">
                 <label for="comment" class="sr-only">Add a comment...</label>
                 <.interactive_textarea
                   disabled={@disabled}

@@ -98,7 +98,7 @@
   }
 
   .phx-form textarea {
-    @apply shadow-sm focus:!ring-urge-500 focus:!border-urge-500 block w-full sm:text-sm !border-gray-300 rounded;
+    @apply shadow-sm focus:!ring-urge-500 focus:!border-urge-500 block w-full sm:text-sm !border-gray-300 rounded transition;
   }
 
   .phx-form input[type="email"],
@@ -107,7 +107,7 @@
   .phx-form input[type="number"],
   .phx-form input[type="text"],
   .input-base {
-    @apply shadow-sm focus:!ring-urge-500 focus-within:ring-1 focus-within:!border-urge-500 focus-within:!ring-urge-500 block w-full sm:text-sm !border-gray-300 rounded;
+    @apply shadow-sm focus:!ring-urge-500 focus-within:ring-1 focus-within:!border-urge-500 focus-within:!ring-urge-500 block w-full sm:text-sm !border-gray-300 rounded transition;
   }
 
   .phx-only-during-submit {
