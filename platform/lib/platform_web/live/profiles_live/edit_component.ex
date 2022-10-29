@@ -101,9 +101,7 @@ defmodule PlatformWeb.ProfilesLive.EditComponent do
             <div>
               <%= label(f, :roles, "Roles") %>
               <div phx-update="ignore" id="ignore-user-roles">
-                <%= multiple_select(f, :roles, [:coordinator, :trusted, :admin],
-                  id: "user-roles-input"
-                ) %>
+                <%= multiple_select(f, :roles, [:trusted, :admin], id: "user-roles-input") %>
               </div>
               <%= error_tag(f, :roles) %>
             </div>

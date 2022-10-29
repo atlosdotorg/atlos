@@ -89,7 +89,7 @@ defmodule Platform.Material.Attribute do
         pane: :metadata,
         required: false,
         name: :tags,
-        required_roles: [:admin, :trusted, :coordinator],
+        required_roles: [:admin, :trusted],
         allow_user_defined_options: true,
         description: "Use tags to help organize incidents on Atlos."
       },
