@@ -108,12 +108,9 @@ function initialize() {
             console.log(tagify);
 
             if (prefix) {
-                // tagify.loading(true);
-                let results = await searchForUser(e.detail.value);
-                // tagify.loading(false);
-                tagify.whitelist = results;
-
-                if (e.detail.value.length > 1) {
+                if (e.detail.value.length > 0) {
+                    let results = await searchForUser(e.detail.value);
+                    tagify.whitelist = results;
                     tagify.dropdown.show.call(tagify, e.detail.value);
                 }
             }

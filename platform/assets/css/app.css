@@ -8,7 +8,7 @@
   }
 
   a[user-tag] {
-    @apply badge ~neutral text-sm font-medium no-underline;
+    @apply badge ~neutral text-sm font-medium no-underline align-baseline;
   }
 
   .sticky-headers {
@@ -1425,7 +1425,6 @@ select:not(.ts-ignore *) {
   position: absolute;
   z-index: 9999;
   transform: translateY(1px);
-  overflow: hidden;
 }
 .tagify__dropdown[placement="top"] {
   margin-top: 0;
@@ -1448,11 +1447,12 @@ select:not(.ts-ignore *) {
   overflow-x: hidden;
   background: var(--tagify-dd-bg-color);
   border: 3px solid;
-  border-color: var(--tagify-dd-color-primary);
+  border-color: white;
   border-bottom-width: 1.5px;
   border-top-width: 0;
   transition: 0.25s cubic-bezier(0, 1, 0.5, 1);
   border-radius: 6px;
+  box-shadow: rgba(0, 0, 0, 0.16) 0px 1px 4px;
 }
 .tagify__dropdown__header:empty {
   display: none;
