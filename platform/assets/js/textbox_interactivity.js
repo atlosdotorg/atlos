@@ -4,7 +4,7 @@ import "@yaireo/tagify/dist/tagify.css"
 async function searchForUser(prefix) {
     let results = (await (await fetch("/spi/users?" + new URLSearchParams({
         query: prefix
-    }))).json())["results"].map(e => e.username);
+    }))).json())["results"].map(e => "@" + e.username);
 
     return results;
 }
@@ -68,13 +68,17 @@ function initialize() {
             return;
         }
 
+        // Initialize whitelist with tags currently in the comment (necessary for proper form recovery)
+        let whitelist = [...(feedbackElem.value || "").matchAll("@[A-Za-z0-9]+")].map(x => x[0]);
+        console.log(whitelist)
+
         let tagify = new Tagify(input, {
             mode: 'mix',
             pattern: /@/,
             tagTextProp: 'text',
-            whitelist: [],
+            whitelist,
             editTags: false,
-            originalInputValueFormat: v => v.prefix + v.value,
+            originalInputValueFormat: v => v.value,
             mapValueTo: v => {
                 return v;
             },
@@ -94,7 +98,7 @@ function initialize() {
                                 class="${_s.classNames.tag} font-medium"
                                 ${this.getAttributes(tagData)}>
                         <div>
-                            <span class="${_s.classNames.tagText}">${tagData.prefix || "@"}${tagData[_s.tagTextProp] || tagData.value}</span>
+                            <span class="${_s.classNames.tagText}">${tagData[_s.tagTextProp] || tagData.value}</span>
                         </div>
                     </tag>`
                 },

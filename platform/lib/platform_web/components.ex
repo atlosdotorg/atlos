@@ -2656,7 +2656,7 @@ defmodule PlatformWeb.Components do
             class={@class}
             disabled={@disabled}
             data-feedback={"textarea-#{@id}"}
-          />
+          ><%= Ecto.Changeset.get_field(@form.source, :explanation) %></textarea>
         </div>
       </div>
     </div>

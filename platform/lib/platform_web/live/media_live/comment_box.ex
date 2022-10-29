@@ -107,12 +107,26 @@ defmodule PlatformWeb.MediaLive.CommentBox do
     end
   end
 
+  def handle_event("recover", %{"update" => _params} = input, socket) do
+    dbg("RECOVERED")
+    dbg(input)
+    handle_event("validate", input, socket)
+  end
+
   def handle_event("validate", %{"update" => params} = _input, socket) do
+    # If they are reconnecting, we want to preserve the old content — and not rerender
+    render_id = Map.get(params, "render_id", socket.assigns.render_id)
+    dbg(params)
+
     changeset =
-      Updates.change_from_comment(socket.assigns.media, socket.assigns.current_user, params)
+      Updates.change_from_comment(
+        socket.assigns.media,
+        socket.assigns.current_user,
+        params
+      )
       |> Map.put(:action, :validate)
 
-    {:noreply, socket |> assign(:changeset, changeset)}
+    {:noreply, socket |> assign(:changeset, changeset) |> assign(:render_id, render_id)}
   end
 
   def handle_event("cancel_upload", %{"ref" => ref}, socket) do
@@ -126,7 +140,17 @@ defmodule PlatformWeb.MediaLive.CommentBox do
       id={"#{@id}"}
       phx-drop-target={@uploads.attachments.ref}
     >
-      <.form :let={f} for={@changeset} phx-target={@myself} phx-change="validate" phx-submit="save">
+      <.form
+        :let={f}
+        for={@changeset}
+        phx-target={@myself}
+        phx-change="validate"
+        phx-submit="save"
+        id="comment-box-form"
+        phx-auto-recover="recover"
+      >
+        <%!-- For form recovery --%>
+        <%= hidden_input(f, :render_id, value: @render_id) %>
         <div class="flex items-start space-x-4">
           <div class="flex-shrink-0" phx-update="ignore" id="comment-box-profile-photo">
             <img
