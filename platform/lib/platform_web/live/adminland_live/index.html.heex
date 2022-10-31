@@ -1,14 +1,12 @@
-<article class="w-full xl:max-w-screen-xl px-4 md:px-8">
+<article class="flex flex-col md:flex-row w-full xl:max-w-screen-xl px-4 md:px-8">
   <div>
-    <div class="border-b border-gray-200 flex flex-col md:flex-row mb-8 items-baseline">
-      <h1 class="text-3xl flex-grow font-medium md:mr-8">
-        Adminland
-      </h1>
-      <nav class="-mb-px flex space-x-8 overflow-x-auto max-w-full" aria-label="Tabs">
+    <div class="flex flex-col mb-8 items-center md:justify-around flex-wrap w-full">
+      <nav class="flex flex-col space-y-1 max-w-full md:mr-8" aria-label="Tabs">
+        <h3 class="mb-4 font-medium text-4xl ml-3">Adminland</h3>
         <% active_classes =
-          "flex gap-1 items-center border-urge-500 text-urge-600 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" %>
+          "rounded transition flex gap-1 items-center bg-urge-100 text-urge-600 whitespace-nowrap px-3 py-2 font-medium text-sm" %>
         <% inactive_classes =
-          "flex gap-1 items-center border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" %>
+          "rounded transition flex gap-1 items-center hover:bg-neutral-200 text-neutral-600 hover:text-neutral-700 whitespace-nowrap px-3 py-2 font-medium text-sm" %>
         <%= live_patch(
               class: if(@live_action == :activity, do: active_classes, else: inactive_classes),
               to: "/adminland/activity"
@@ -35,7 +33,7 @@
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 24 24"
             fill="currentColor"
-            class="w-4 h-4 opacity-75"
+            class="h-4 w-4 opacity-75"
           >
             <path d="M16.881 4.346A23.112 23.112 0 018.25 6H7.5a5.25 5.25 0 00-.88 10.427 21.593 21.593 0 001.378 3.94c.464 1.004 1.674 1.32 2.582.796l.657-.379c.88-.508 1.165-1.592.772-2.468a17.116 17.116 0 01-.628-1.607c1.918.258 3.76.75 5.5 1.446A21.727 21.727 0 0018 11.25c0-2.413-.393-4.735-1.119-6.904zM18.26 3.74a23.22 23.22 0 011.24 7.51 23.22 23.22 0 01-1.24 7.51c-.055.161-.111.322-.17.482a.75.75 0 101.409.516 24.555 24.555 0 001.415-6.43 2.992 2.992 0 00.836-2.078c0-.806-.319-1.54-.836-2.078a24.65 24.65 0 00-1.415-6.43.75.75 0 10-1.409.516c.059.16.116.321.17.483z" />
           </svg>
@@ -49,7 +47,7 @@
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 24 24"
             fill="currentColor"
-            class="w-4 h-4 opacity-75"
+            class="h-4 w-4 opacity-75"
           >
             <path
               fill-rule="evenodd"
@@ -67,7 +65,7 @@
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 24 24"
             fill="currentColor"
-            class="w-4 h-4 opacity-75"
+            class="h-4 w-4 opacity-75"
           >
             <path
               fill-rule="evenodd"
@@ -127,7 +125,7 @@
       </nav>
     </div>
   </div>
-  <div>
+  <div class="flex-grow">
     <%= case @live_action do %>
       <% :users -> %>
         <.live_component module={PlatformWeb.AdminlandLive.UserListLive} id="user-list" />
