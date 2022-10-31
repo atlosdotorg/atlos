@@ -108,15 +108,12 @@ defmodule PlatformWeb.MediaLive.CommentBox do
   end
 
   def handle_event("recover", %{"update" => _params} = input, socket) do
-    dbg("RECOVERED")
-    dbg(input)
     handle_event("validate", input, socket)
   end
 
   def handle_event("validate", %{"update" => params} = _input, socket) do
     # If they are reconnecting, we want to preserve the old content — and not rerender
     render_id = Map.get(params, "render_id", socket.assigns.render_id)
-    dbg(params)
 
     changeset =
       Updates.change_from_comment(

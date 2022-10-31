@@ -295,17 +295,16 @@ defmodule Platform.Material do
         |> Enum.map(fn {_k, v} -> v end)
 
       {:ok, _} =
-        Updates.change_from_comment(media, bot_account, %{
-          "explanation" =>
-            "This incident was created via **bulk import**, so some attributes are pre-filled." <>
-              if(length(sources) > 0,
-                do:
-                  "\n\nSource media for this incident is available at the following URLs, which Atlos will attempt to automatically archive:\n\n" <>
-                    Enum.join(sources |> Enum.map(&("- " <> &1)), "\n"),
-                else: ""
-              )
-        })
-        |> Updates.create_update_from_changeset()
+        Updates.post_bot_comment(
+          media,
+          "This incident was created via **bulk import**, so some attributes are pre-filled." <>
+            if(length(sources) > 0,
+              do:
+                "\n\nSource media for this incident is available at the following URLs, which Atlos will attempt to automatically archive:\n\n" <>
+                  Enum.join(sources |> Enum.map(&("- " <> &1)), "\n"),
+              else: ""
+            )
+        )
 
       # Attempt to archive all media versions
       for source <- sources do
@@ -354,7 +353,6 @@ defmodule Platform.Material do
           media
         else
           val ->
-            dbg(val)
             {:error, cs}
         end
       end)
@@ -482,6 +480,13 @@ defmodule Platform.Material do
     |> Enum.dedup_by(& &1.media.id)
   end
 
+  def get_media_versions_by_media(%Media{} = media) do
+    Repo.all(
+      from v in MediaVersion,
+        where: v.media_id == ^media.id
+    )
+  end
+
   def get_media_by_source_url(source_url) do
     get_media_versions_by_source_url(source_url)
     |> Enum.map(& &1.media)
@@ -525,6 +530,51 @@ defmodule Platform.Material do
        change_media_version(%MediaVersion{}, attrs)
        |> Ecto.Changeset.add_error(:source_url, "This media has been locked.")}
     end
+  end
+
+  @doc """
+  Duplicate (and re-process) the given media version to the new media.
+  """
+  def copy_media_version_to_new_media_audited(
+        %MediaVersion{} = media_version,
+        %Media{} = destination,
+        %User{} = user
+      ) do
+    {:ok, new_version} =
+      create_media_version_audited(
+        destination,
+        user,
+        Map.merge(Map.from_struct(media_version), %{
+          status: :pending,
+          hashes: nil
+        })
+      )
+
+    archive_media_version(new_version, clone_from: media_version.id)
+
+    {:ok, new_version}
+  end
+
+  @doc """
+  Merges the source media versions into the destination media.
+  """
+  def merge_media_versions_audited(%Media{} = source, %Media{} = destination, %User{} = user) do
+    Repo.transaction(fn ->
+      for version <-
+            get_media_versions_by_media(source) |> Enum.filter(&(&1.visibility == :visible)) do
+        {:ok, _} = copy_media_version_to_new_media_audited(version, destination, user)
+      end
+
+      Updates.post_bot_comment(
+        source,
+        "[[@#{user.username}]] merged this incident's media into [[#{destination.slug}]]."
+      )
+
+      Updates.post_bot_comment(
+        destination,
+        "[[@#{user.username}]] merged [[#{destination.slug}]]'s media into this incident."
+      )
+    end)
   end
 
   @doc """
@@ -582,12 +632,13 @@ defmodule Platform.Material do
   - hide_version_on_failure: true/false, whether to hide versions that failed
   """
   def archive_media_version(
-        %MediaVersion{status: :pending, media_id: _media_id, id: id} = _version,
+        %MediaVersion{status: :pending, id: id} = _version,
         opts \\ []
       ) do
     %{
       "media_version_id" => id,
-      "hide_version_on_failure" => Keyword.get(opts, :hide_version_on_failure, false)
+      "hide_version_on_failure" => Keyword.get(opts, :hide_version_on_failure, false),
+      "clone_from_media_version_id" => Keyword.get(opts, :clone_from, nil)
     }
     |> Platform.Workers.Archiver.new(priority: Keyword.get(opts, :priority, 1))
     |> Oban.insert!()

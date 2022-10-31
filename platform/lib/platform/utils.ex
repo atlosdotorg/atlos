@@ -98,9 +98,10 @@ defmodule Platform.Utils do
     detect_tags = fn node ->
       link = Earmark.AstTools.find_att_in_node(node, "href", "")
 
-      if not is_nil(link) and String.starts_with?(link, "/profile/"),
-        do: Earmark.AstTools.merge_atts_in_node(node, "user-tag": "true"),
-        else: node
+      if not is_nil(link) and
+           (String.starts_with?(link, "/profile/") or String.starts_with?(link, "/incidents/")),
+         do: Earmark.AstTools.merge_atts_in_node(node, "internal-tag": "true"),
+         else: node
     end
 
     options = [registered_processors: [{"a", add_target}, {"a", detect_tags}]]

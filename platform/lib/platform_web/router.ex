@@ -143,6 +143,7 @@ defmodule PlatformWeb.Router do
       live("/incidents/:slug/update/:attribute", MediaLive.Show, :edit)
       live("/incidents/:slug/history/:attribute", MediaLive.Show, :history)
       live("/incidents/:slug/upload", MediaLive.Show, :upload)
+      live("/incidents/:slug/upload/merge", MediaLive.Show, :merge)
 
       live("/profile/:username", ProfilesLive.Show, :show)
       live("/profile/:username/edit", ProfilesLive.Show, :edit)

@@ -12,6 +12,7 @@ defmodule Platform.Updates do
   alias Platform.Material.MediaVersion
   alias Platform.Accounts.User
   alias Platform.Material
+  alias Platform.Accounts
 
   @doc """
   Returns the list of updates.
@@ -311,5 +312,17 @@ defmodule Platform.Updates do
     else
       :no_action
     end
+  end
+
+  @doc """
+  Helper function to easily post comments from the bot account.
+  """
+  def post_bot_comment(%Media{} = media, message) do
+    bot_account = Accounts.get_auto_account()
+
+    change_from_comment(media, bot_account, %{
+      "explanation" => message
+    })
+    |> create_update_from_changeset()
   end
 end

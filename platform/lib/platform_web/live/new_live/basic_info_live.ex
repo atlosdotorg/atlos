@@ -55,8 +55,6 @@ defmodule PlatformWeb.NewLive.BasicInfoLive do
   end
 
   def handle_event("save", %{"media" => media_params}, socket) do
-    dbg(media_params)
-
     case Material.create_media_audited(socket.assigns.current_user, media_params) do
       {:ok, media} ->
         # We log here, rather than in the context, because we have access to the socket.
