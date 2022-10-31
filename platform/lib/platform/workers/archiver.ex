@@ -95,6 +95,7 @@ defmodule Platform.Workers.Archiver do
             {_, 0} = download_file(url, Path.join(temp_dir, version.file_location))
 
           :direct ->
+            # When merging media we pulled from the source, we just re-pull, hence why there are no additional conditions here
             {_, 0} = extract_media_from_url(version.source_url, temp_dir)
         end
 
