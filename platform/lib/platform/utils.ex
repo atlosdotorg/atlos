@@ -5,7 +5,7 @@ defmodule Platform.Utils do
   import Ecto.Query, warn: false
 
   @tag_regex ~r/((?:\[\[))(@([A-Za-z0-9_]+)(?:\]\]))/
-  @identifier_regex ~r/(\s|^)(ATL-[A-Z0-9]{6})/
+  @identifier_regex ~r/(?:\[\[)(ATL-[A-Z0-9]{6})(?:\]\])/
 
   def get_tag_regex(), do: @tag_regex
 
@@ -83,7 +83,7 @@ defmodule Platform.Utils do
     markdown = Regex.replace(~r"!*\[", markdown, "[")
 
     # Second, link ATL identifiers.
-    markdown = Regex.replace(@identifier_regex, markdown, " [\\0](/incidents/\\2)")
+    markdown = Regex.replace(@identifier_regex, markdown, " [\\1](/incidents/\\1)")
 
     # Third, turn @'s into links.
     markdown = Regex.replace(@tag_regex, markdown, " [@\\3](/profile/\\3)")
