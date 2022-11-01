@@ -70,7 +70,6 @@ function initialize() {
 
         // Initialize whitelist with tags currently in the comment (necessary for proper form recovery)
         let whitelist = [...(feedbackElem.value || "").matchAll("@[A-Za-z0-9]+")].map(x => x[0]);
-        console.log(whitelist)
 
         let tagify = new Tagify(input, {
             mode: 'mix',
@@ -78,6 +77,7 @@ function initialize() {
             tagTextProp: 'text',
             whitelist,
             editTags: false,
+            duplicates: true,
             originalInputValueFormat: v => v.value,
             mapValueTo: v => {
                 return v;
@@ -87,7 +87,7 @@ function initialize() {
                 enabled: 1,
                 position: 'text',
                 mapValueTo: 'text',
-                highlightFirst: true
+                highlightFirst: true,
             },
             templates: {
                 tag(tagData, { settings: _s }) {
@@ -109,7 +109,6 @@ function initialize() {
         // A good place to pull server suggestion list accoring to the prefix/value
         tagify.on('input', async function (e) {
             var prefix = e.detail.prefix;
-            console.log(tagify);
 
             if (prefix) {
                 if (e.detail.value.length > 0) {
