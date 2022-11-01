@@ -2228,7 +2228,7 @@ defmodule PlatformWeb.Components do
         <% end %>
         <%= if @version.status != :pending do %>
           <div
-            class="w-full z-[100] h-full absolute bg-neutral-50 border rounded-lg flex items-center justify-around top-0"
+            class="w-full z-[2] h-full absolute bg-neutral-50 border rounded-lg flex items-center justify-around top-0"
             x-show="hidden"
           >
             <!-- Overlay for potentially graphic content -->
