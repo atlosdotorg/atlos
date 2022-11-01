@@ -814,7 +814,8 @@ defmodule PlatformWeb.Components do
             <%= for attr <- @unset_attrs do %>
               <%= live_patch("+ #{attr.label}",
                 class: "button original",
-                to: Routes.media_show_path(socket, :edit, @media.slug, attr.name)
+                to: Routes.media_show_path(socket, :edit, @media.slug, attr.name),
+                replace: true
               ) %>
             <% end %>
           </dd>
