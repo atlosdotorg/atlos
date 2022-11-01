@@ -2204,7 +2204,7 @@ defmodule PlatformWeb.Components do
       <% media_id = "version-#{@version.id}-media" %>
       <div class="relative">
         <%= if @media_to_show do %>
-          <div id={media_id} x-bind:class="hidden ? 'invisible' : ''">
+          <div id={media_id} x-bind:class="hidden ? 'min-h-[10rem] invisible' : 'min-h-[10rem]'">
             <div x-bind:class="grayscale ? 'grayscale' : ''">
               <%= if String.starts_with?(@version.mime_type, "image/") do %>
                 <%= if @dynamic_src do %>
@@ -2228,7 +2228,7 @@ defmodule PlatformWeb.Components do
         <% end %>
         <%= if @version.status != :pending do %>
           <div
-            class="w-full z-[100] h-full min-h-[50px] absolute bg-neutral-50 border rounded-lg flex items-center justify-around top-0"
+            class="w-full z-[100] h-full absolute bg-neutral-50 border rounded-lg flex items-center justify-around top-0"
             x-show="hidden"
           >
             <!-- Overlay for potentially graphic content -->
