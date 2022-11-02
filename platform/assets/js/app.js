@@ -28,6 +28,7 @@ import tippy from 'tippy.js';
 import Mark from 'mark.js';
 import { InfiniteScroll } from "./infinite_scroll";
 import { setupTextboxInteractivity } from "./textbox_interactivity";
+import { initialize as initializeKeyboardFormSubmits } from "./keyboard_form_submit";
 
 mapboxgl.accessToken = 'pk.eyJ1IjoibWlsZXNtY2MiLCJhIjoiY2t6ZzdzZmY0MDRobjJvbXBydWVmaXBpNSJ9.-aHM8bjOOsSrGI0VvZenAQ';
 
@@ -412,6 +413,8 @@ document.addEventListener("load", initializePopovers);
 
 document.addEventListener("phx:update", applySearchHighlighting);
 document.addEventListener("load", applySearchHighlighting);
+
+initializeKeyboardFormSubmits();
 
 // Used to set the clipboard when copying hash information
 window.setClipboard = (text) => {
