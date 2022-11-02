@@ -2592,7 +2592,7 @@ defmodule PlatformWeb.Components do
         <div>
           <textarea
             interactive-mentions
-            rows={@rows |> dbg()}
+            rows={@rows}
             placeholder={@placeholder}
             class={@class}
             disabled={@disabled}

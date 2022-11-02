@@ -137,7 +137,6 @@ function initializePopovers() {
 }
 
 function triggerSubmitEvent(element) {
-    console.log(element);
     element.dispatchEvent(new Event("submit", { bubbles: true }));
     topbar.show();
 }
@@ -225,8 +224,6 @@ function initializeMaps() {
         new mapboxgl.Marker({ color: "#60a5fa" })
             .setLngLat([lon, lat])
             .addTo(map);
-
-        console.log(map);
     });
 
     document.querySelectorAll("map-events").forEach(s => {
