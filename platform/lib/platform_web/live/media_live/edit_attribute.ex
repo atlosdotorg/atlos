@@ -125,13 +125,19 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
             <% end %>
             <div>
               <%= label(f, :explanation, "Briefly Explain Your Change") %>
-              <%= textarea(f, :explanation,
-                phx_debounce: "200",
-                placeholder:
-                  "Recommended for all non-trivial changes. You can @tag others by their username.",
-                rows: "5",
-                class: "my-1"
-              ) %>
+              <div class="border border-gray-300 rounded shadow-sm overflow-hidden focus-within:border-urge-500 focus-within:ring-1 focus-within:ring-urge-500 transition">
+                <.interactive_textarea
+                    form={f}
+                    disabled={false}
+                    name={:explanation}
+                    placeholder={
+                      "Recommended for all non-trivial changes."
+                    }
+                    id={"comment-box-parent-input"}
+                    rows={1}
+                    class="block w-full !border-0 resize-none focus:ring-0 sm:text-sm shadow-none"
+                  />
+                </div>
               <%= error_tag(f, :explanation) %>
             </div>
             <div class="flex md:justify-between">

@@ -2580,19 +2580,19 @@ defmodule PlatformWeb.Components do
     """
   end
 
-  def interactive_textarea(%{model: _, id: _} = assigns) do
+  def interactive_textarea(assigns) do
     ~H"""
-    <div id={@id} class="mt-2 px-2" phx-update="ignore">
+    <div id={@id} class="my-[2px] px-2" phx-update="ignore">
       <div id={"child-#{@id}"} x-data>
         <%= textarea(@form, @name,
           disabled: @disabled,
-          class: "hidden",
+          class: "!hidden",
           id: "textarea-#{@id}"
         ) %>
         <div>
           <textarea
             interactive-mentions
-            rows={@rows}
+            rows={@rows |> dbg()}
             placeholder={@placeholder}
             class={@class}
             disabled={@disabled}

@@ -97,7 +97,7 @@
     @apply animate-pulse;
   }
 
-  .phx-form textarea {
+  .phx-form textarea, .textarea-base {
     @apply shadow-sm focus:!ring-urge-500 focus:!border-urge-500 block w-full sm:text-sm !border-gray-300 rounded transition;
   }
 
@@ -997,7 +997,7 @@ select:not(.ts-ignore *) {
   flex-wrap: wrap;
   border: 1px solid var(--tags-border-color);
   padding: 0;
-  line-height: 0;
+  line-height: 0 !important;
   cursor: text;
   outline: 0;
   position: relative;
