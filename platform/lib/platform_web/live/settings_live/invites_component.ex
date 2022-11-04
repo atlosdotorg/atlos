@@ -6,7 +6,7 @@ defmodule PlatformWeb.SettingsLive.InvitesComponent do
   def update(%{current_user: current_user} = assigns, socket) do
     # Double check permissions
     if not Accounts.is_privileged(current_user) do
-      raise "no permission"
+      raise PlatformWeb.Errors.Unauthorized, "No permission"
     end
 
     {:ok,
@@ -29,7 +29,7 @@ defmodule PlatformWeb.SettingsLive.InvitesComponent do
   def handle_event("generate_invite", _params, socket) do
     # Triple check permissions
     if not Accounts.is_privileged(socket.assigns.current_user) do
-      raise "no permission"
+      raise PlatformWeb.Errors.Unauthorized, "No permission"
     end
 
     # First, invalidate all existing invite codes

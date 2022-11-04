@@ -101,7 +101,7 @@ defmodule PlatformWeb.MediaLive.Show do
             if Accounts.is_privileged(socket.assigns.current_user) do
               Material.update_media_version(version, %{visibility: value})
             else
-              raise "no permission"
+              raise PlatformWeb.Errors.Unauthorized, "No permission"
             end
         end
 

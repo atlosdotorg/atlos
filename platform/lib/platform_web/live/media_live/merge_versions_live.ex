@@ -12,7 +12,7 @@ defmodule PlatformWeb.MediaLive.MergeVersionsLive do
        |> assign_new(:destination, fn -> nil end)
        |> assign_new(:changeset, fn -> changeset(%{}, assigns.source) end)}
     else
-      raise "no permission"
+      raise PlatformWeb.Errors.Unauthorized, "No permission"
     end
   end
 
