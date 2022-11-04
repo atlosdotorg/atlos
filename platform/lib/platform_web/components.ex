@@ -913,7 +913,7 @@ defmodule PlatformWeb.Components do
           <.user_stack users={
             updates
             |> Enum.filter(&(&1.modified_attribute == attr.name || &1.type == :create))
-            |> Enum.filter(&!(&1.hidden))
+            |> Enum.filter(&(!&1.hidden))
             |> Enum.sort_by(& &1.inserted_at)
             |> Enum.map(& &1.user)
             |> Enum.reverse()
@@ -1990,21 +1990,21 @@ defmodule PlatformWeb.Components do
             <% end %>
 
             <%= if is_list(@media.attr_type) and not Enum.empty?(@media.attr_type) do %>
-            <span class="self-start badge ~neutral">
-              <%= hd(@media.attr_type) %>
-            </span>
+              <span class="self-start badge ~neutral">
+                <%= hd(@media.attr_type) %>
+              </span>
             <% end %>
 
             <%= if is_list(@media.attr_equipment) and not Enum.empty?(@media.attr_equipment) do %>
-            <span class="self-start badge ~neutral">
-              <%= hd(@media.attr_equipment) %>
-            </span>
+              <span class="self-start badge ~neutral">
+                <%= hd(@media.attr_equipment) %>
+              </span>
             <% end %>
 
             <%= if is_list(@media.attr_impact) and not Enum.empty?(@media.attr_impact) do %>
-            <span class="self-start badge ~neutral">
-              <%= hd(@media.attr_impact) %>
-            </span>
+              <span class="self-start badge ~neutral">
+                <%= hd(@media.attr_impact) %>
+              </span>
             <% end %>
           </section>
           <section class="mb-2 h-4" />

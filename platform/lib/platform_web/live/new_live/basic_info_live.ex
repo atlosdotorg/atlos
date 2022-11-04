@@ -130,6 +130,8 @@ defmodule PlatformWeb.NewLive.BasicInfoLive do
               class="input-base"
             />
             <p class="support">Atlos will attempt to archive these URLs automatically.</p>
+            <%= error_tag(f, :urls) %>
+            <%= error_tag(f, :urls_parsed) %>
             <%= if not Enum.empty?(@url_deconfliction) do %>
               <div class="mt-4">
                 <.multi_deconfliction_warning
