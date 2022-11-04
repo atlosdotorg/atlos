@@ -19,6 +19,37 @@ defmodule Platform.Workers.Archiver do
     |> Base.encode16(case: :lower)
   end
 
+  defp download_file(from_url, into_file) do
+    {_, 0} =
+      System.cmd(
+        "curl",
+        [
+          "-L",
+          from_url,
+          "-o",
+          into_file
+        ],
+        into: IO.stream()
+      )
+  end
+
+  defp extract_media_from_url(from_url, into_folder) do
+    {_, 0} =
+      System.cmd(
+        "yt-dlp",
+        [
+          from_url,
+          "-o",
+          Path.join(into_folder, "out.%(ext)s"),
+          "--max-filesize",
+          "500m",
+          "--merge-output-format",
+          "mp4"
+        ],
+        into: IO.stream()
+      )
+  end
+
   @impl Oban.Worker
   def perform(%Oban.Job{args: %{"media_version_id" => id} = args}) do
     %MediaVersion{status: :pending, media_id: media_id} =
@@ -41,38 +72,31 @@ defmodule Platform.Workers.Archiver do
         # Setup tempfiles for media download
         temp_dir = Temp.mkdir!()
 
-        # Download the media (either from S3 for user-provided files, or from the original source)
+        # Download the media (either from S3 for user-provided files, from the original source, or, if we're cloning from an existing media version, then from that media version)
         case version.upload_type do
           :user_provided ->
-            url = Uploads.OriginalMediaVersion.url({version.file_location, media}, signed: true)
+            # If we're merging, grab the original version from the source rather than from the given media version
+            url =
+              case Map.get(args, "clone_from_media_version_id") do
+                nil ->
+                  Uploads.OriginalMediaVersion.url({version.file_location, media},
+                    signed: true
+                  )
 
-            {_, 0} =
-              System.cmd(
-                "curl",
-                [
-                  "-L",
-                  url,
-                  "-o",
-                  Path.join(temp_dir, version.file_location)
-                ],
-                into: IO.stream()
-              )
+                id ->
+                  source_version = Material.get_media_version!(id)
+
+                  Uploads.OriginalMediaVersion.url(
+                    {source_version.file_location, Material.get_media!(source_version.media_id)},
+                    signed: true
+                  )
+              end
+
+            {_, 0} = download_file(url, Path.join(temp_dir, version.file_location))
 
           :direct ->
-            {_, 0} =
-              System.cmd(
-                "yt-dlp",
-                [
-                  version.source_url,
-                  "-o",
-                  Path.join(temp_dir, "out.%(ext)s"),
-                  "--max-filesize",
-                  "500m",
-                  "--merge-output-format",
-                  "mp4"
-                ],
-                into: IO.stream()
-              )
+            # When merging media we pulled from the source, we just re-pull, hence why there are no additional conditions here
+            {_, 0} = extract_media_from_url(version.source_url, temp_dir)
         end
 
         # Figure out what we downloaded
@@ -80,9 +104,16 @@ defmodule Platform.Workers.Archiver do
         file_path = Path.join(temp_dir, file_name)
         mime = MIME.from_path(file_path)
 
-        # Process + upload it (only store original if upload_type is direct/not user provided)
+        # Process + upload it (only store original if upload_type is direct/not user provided, *or* we're cloning)
         {:ok, identifier, duration, size, watermarked_hash, original_hash} =
-          process_uploaded_media(file_path, mime, media, version, version.upload_type == :direct)
+          process_uploaded_media(
+            file_path,
+            mime,
+            media,
+            version,
+            version.upload_type == :direct or
+              not is_nil(Map.get(args, "clone_from_media_version_id"))
+          )
 
         # Update the media version to reflect the change
         {:ok, new_version} =
@@ -184,7 +215,7 @@ defmodule Platform.Workers.Archiver do
     {:ok, new_path} = Uploads.WatermarkedMediaVersion.store({media_path, media})
 
     if store_original do
-      {:ok, _original_path} = Uploads.OriginalMediaVersion.store({path, media})
+      {:ok, _original_path} = Uploads.OriginalMediaVersion.store({media_path, media})
     end
 
     {:ok, new_path, duration, size, watermarked_hash, original_hash}

@@ -12,6 +12,7 @@ defmodule Platform.Updates do
   alias Platform.Material.MediaVersion
   alias Platform.Accounts.User
   alias Platform.Material
+  alias Platform.Accounts
 
   @doc """
   Returns the list of updates.
@@ -177,6 +178,8 @@ defmodule Platform.Updates do
       attrs
       |> Map.put("type", :comment)
     )
+    |> Ecto.Changeset.validate_required([:explanation])
+    |> Ecto.Changeset.validate_length(:explanation, min: 1, max: 10000)
   end
 
   @doc """
@@ -189,6 +192,34 @@ defmodule Platform.Updates do
       user,
       %{
         "type" => :create
+      }
+    )
+  end
+
+  @doc """
+  Helper API function that takes attribute change information and uses it to create an Update changeset.
+  """
+  def change_from_media_deletion(%Media{} = media, %User{} = user) do
+    change_update(
+      %Update{},
+      media,
+      user,
+      %{
+        "type" => :delete
+      }
+    )
+  end
+
+  @doc """
+  Helper API function that takes attribute change information and uses it to create an Update changeset.
+  """
+  def change_from_media_undeletion(%Media{} = media, %User{} = user) do
+    change_update(
+      %Update{},
+      media,
+      user,
+      %{
+        "type" => :undelete
       }
     )
   end
@@ -258,7 +289,7 @@ defmodule Platform.Updates do
   Is the given user able to view the given update?
   """
   def can_user_view(%Update{} = update, %User{} = user) do
-    case Platform.Accounts.is_admin(user) do
+    case Platform.Accounts.is_privileged(user) do
       true ->
         true
 
@@ -268,5 +299,30 @@ defmodule Platform.Updates do
           false -> Media.can_user_view(update.media, user)
         end
     end
+  end
+
+  @doc """
+  Optimistically subscribe the given user to the media if the user has no
+  interactions with the media yet.
+  """
+  def subscribe_if_first_interaction(%Media{} = media, %User{} = user) do
+    if is_list(media.updates) and
+         Enum.empty?(media.updates |> Enum.filter(&(&1.user_id == user.id))) do
+      Material.subscribe_user(media, user)
+    else
+      :no_action
+    end
+  end
+
+  @doc """
+  Helper function to easily post comments from the bot account.
+  """
+  def post_bot_comment(%Media{} = media, message) do
+    bot_account = Accounts.get_auto_account()
+
+    change_from_comment(media, bot_account, %{
+      "explanation" => message
+    })
+    |> create_update_from_changeset()
   end
 end

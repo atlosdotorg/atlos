@@ -14,7 +14,8 @@ defmodule Platform.Material.MediaSearch do
     sort: :string,
     attr_status: :string,
     no_media_versions: :boolean,
-    display: :string
+    display: :string,
+    deleted: :boolean
   }
 
   def changeset(params \\ %{}) do
@@ -27,7 +28,9 @@ defmodule Platform.Material.MediaSearch do
       "uploaded_desc",
       "uploaded_asc",
       "modified_desc",
-      "modified_asc"
+      "modified_asc",
+      "description_desc",
+      "description_asc"
     ])
   end
 
@@ -94,7 +97,24 @@ defmodule Platform.Material.MediaSearch do
 
           "modified_asc" ->
             {queryable |> Ecto.Query.order_by([i], asc: i.updated_at), []}
+
+          "description_desc" ->
+            {queryable |> Ecto.Query.order_by([i], desc: i.attr_description), []}
+
+          "description_asc" ->
+            {queryable |> Ecto.Query.order_by([i], asc: i.attr_description), []}
         end
+    end
+  end
+
+  defp apply_deleted({queryable, options}, changeset) do
+    # Returns a {queryable, pagination_opts} tuple.
+    if Map.get(changeset.changes, :deleted, false) do
+      {queryable |> Ecto.Query.where([u], u.deleted),
+       Keyword.merge(options, include_deleted: true)}
+    else
+      {queryable |> Ecto.Query.where([u], not u.deleted),
+       Keyword.merge(options, include_deleted: false)}
     end
   end
 
@@ -107,6 +127,7 @@ defmodule Platform.Material.MediaSearch do
     |> apply_query_component(cs, :attr_status)
     |> apply_query_component(cs, :no_media_versions)
     |> apply_sort(cs)
+    |> apply_deleted(cs)
   end
 
   @doc """

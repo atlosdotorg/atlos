@@ -16,5 +16,9 @@ defmodule Platform.Material.MediaSubscription do
     item
     |> cast(attrs, [:user_id, :media_id])
     |> validate_required([:user_id, :media_id])
+    |> unique_constraint(:media_id,
+      name: :media_subscriptions_media_id_user_id_index,
+      message: "Already subscribed"
+    )
   end
 end

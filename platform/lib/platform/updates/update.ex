@@ -11,7 +11,9 @@ defmodule Platform.Updates.Update do
     field :search_metadata, :string, default: ""
     field :explanation, :string
     field :attachments, {:array, :string}
-    field :type, Ecto.Enum, values: [:update_attribute, :create, :upload_version, :comment]
+
+    field :type, Ecto.Enum,
+      values: [:update_attribute, :create, :upload_version, :comment, :delete, :undelete]
 
     # Used for attribute updates
     field :modified_attribute, Ecto.Enum, nullable: true, values: Attribute.attribute_names()

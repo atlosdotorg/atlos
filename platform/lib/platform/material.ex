@@ -54,6 +54,13 @@ defmodule Platform.Material do
     |> then(fn q ->
       if Keyword.get(opts, :hydrate, true), do: hydrate_media_query(q, opts), else: q
     end)
+    |> then(fn q ->
+      if not Keyword.get(opts, :include_deleted, false) do
+        q |> where([m], not m.deleted)
+      else
+        q
+      end
+    end)
     |> order_by(desc: :inserted_at)
   end
 
@@ -61,7 +68,7 @@ defmodule Platform.Material do
   Query the list of media. Will preload the versions and updates.
   """
   def query_media(query \\ Media, opts \\ []) do
-    _query_media(query, [])
+    _query_media(query, opts)
     |> Repo.all()
   end
 
@@ -181,9 +188,10 @@ defmodule Platform.Material do
 
       true ->
         Repo.transaction(fn ->
+          changeset = change_media(%Media{}, attrs, user)
+
           {:ok, media} =
-            %Media{}
-            |> Media.changeset(attrs, user)
+            changeset
             |> Repo.insert()
 
           {:ok, _} =
@@ -208,6 +216,20 @@ defmodule Platform.Material do
             else
               _ -> {:ok, media}
             end
+
+          # Subscribe the creator
+          Updates.subscribe_if_first_interaction(media, user)
+
+          # Upload media, if provided
+          for url <- Ecto.Changeset.get_field(changeset, :urls_parsed) do
+            {:ok, _} =
+              create_media_version_audited(media, user, %{
+                upload_type: :direct,
+                status: :pending,
+                source_url: url,
+                media_id: media.id
+              })
+          end
 
           media
         end)
@@ -273,17 +295,16 @@ defmodule Platform.Material do
         |> Enum.map(fn {_k, v} -> v end)
 
       {:ok, _} =
-        Updates.change_from_comment(media, bot_account, %{
-          "explanation" =>
-            "This incident was created via **bulk import**, so some attributes are pre-filled." <>
-              if(length(sources) > 0,
-                do:
-                  "\n\nSource media for this incident is available at the following URLs, which Atlos will attempt to automatically archive:\n\n" <>
-                    Enum.join(sources |> Enum.map(&("- " <> &1)), "\n"),
-                else: ""
-              )
-        })
-        |> Updates.create_update_from_changeset()
+        Updates.post_bot_comment(
+          media,
+          "This incident was created via **bulk import**, so some attributes are pre-filled." <>
+            if(length(sources) > 0,
+              do:
+                "\n\nSource media for this incident is available at the following URLs, which Atlos will attempt to automatically archive:\n\n" <>
+                  Enum.join(sources |> Enum.map(&("- " <> &1)), "\n"),
+              else: ""
+            )
+        )
 
       # Attempt to archive all media versions
       for source <- sources do
@@ -316,6 +337,55 @@ defmodule Platform.Material do
   """
   def delete_media(%Media{} = media) do
     Repo.delete(media)
+  end
+
+  @doc """
+  Soft deletes a media.
+  """
+  def soft_delete_media_audited(%Media{} = media, %User{} = user) do
+    cs = change_media(media, %{deleted: true})
+
+    if Accounts.is_admin(user) do
+      Repo.transaction(fn ->
+        with {:ok, media} <- Repo.update(cs),
+             update_changeset <- Updates.change_from_media_deletion(media, user),
+             {:ok, _} <- Updates.create_update_from_changeset(update_changeset) do
+          media
+        else
+          val ->
+            {:error, cs}
+        end
+      end)
+    else
+      IO.puts("not admin")
+
+      {:error,
+       cs
+       |> Ecto.Changeset.add_error(:deleted, "You cannot mark an incident as deleted.")}
+    end
+  end
+
+  @doc """
+  Soft deletes a media.
+  """
+  def soft_undelete_media_audited(%Media{} = media, %User{} = user) do
+    cs = change_media(media, %{deleted: false})
+
+    if Accounts.is_admin(user) do
+      Repo.transaction(fn ->
+        with {:ok, media} <- Repo.update(cs),
+             update_changeset <- Updates.change_from_media_undeletion(media, user),
+             {:ok, _} <- Updates.create_update_from_changeset(update_changeset) do
+          media
+        else
+          _ -> {:error, cs}
+        end
+      end)
+    else
+      {:error,
+       cs
+       |> Ecto.Changeset.add_error(:deleted, "You cannot undelete an incident.")}
+    end
   end
 
   @doc """
@@ -410,6 +480,13 @@ defmodule Platform.Material do
     |> Enum.dedup_by(& &1.media.id)
   end
 
+  def get_media_versions_by_media(%Media{} = media) do
+    Repo.all(
+      from v in MediaVersion,
+        where: v.media_id == ^media.id
+    )
+  end
+
   def get_media_by_source_url(source_url) do
     get_media_versions_by_source_url(source_url)
     |> Enum.map(& &1.media)
@@ -441,6 +518,7 @@ defmodule Platform.Material do
         with {:ok, version} <- create_media_version(media, attrs),
              update_changeset <- Updates.change_from_media_version_upload(media, user, version),
              {:ok, _} <- Updates.create_update_from_changeset(update_changeset) do
+          Updates.subscribe_if_first_interaction(media, user)
           version
         else
           _ -> {:error, change_media_version(%MediaVersion{}, attrs)}
@@ -452,6 +530,51 @@ defmodule Platform.Material do
        change_media_version(%MediaVersion{}, attrs)
        |> Ecto.Changeset.add_error(:source_url, "This media has been locked.")}
     end
+  end
+
+  @doc """
+  Duplicate (and re-process) the given media version to the new media.
+  """
+  def copy_media_version_to_new_media_audited(
+        %MediaVersion{} = media_version,
+        %Media{} = destination,
+        %User{} = user
+      ) do
+    {:ok, new_version} =
+      create_media_version_audited(
+        destination,
+        user,
+        Map.merge(Map.from_struct(media_version), %{
+          status: :pending,
+          hashes: nil
+        })
+      )
+
+    archive_media_version(new_version, clone_from: media_version.id)
+
+    {:ok, new_version}
+  end
+
+  @doc """
+  Merges the source media versions into the destination media.
+  """
+  def merge_media_versions_audited(%Media{} = source, %Media{} = destination, %User{} = user) do
+    Repo.transaction(fn ->
+      for version <-
+            get_media_versions_by_media(source) |> Enum.filter(&(&1.visibility == :visible)) do
+        {:ok, _} = copy_media_version_to_new_media_audited(version, destination, user)
+      end
+
+      Updates.post_bot_comment(
+        source,
+        "[[@#{user.username}]] merged this incident's media into [[#{destination.slug}]]."
+      )
+
+      Updates.post_bot_comment(
+        destination,
+        "[[@#{user.username}]] merged [[#{destination.slug}]]'s media into this incident."
+      )
+    end)
   end
 
   @doc """
@@ -509,12 +632,13 @@ defmodule Platform.Material do
   - hide_version_on_failure: true/false, whether to hide versions that failed
   """
   def archive_media_version(
-        %MediaVersion{status: :pending, media_id: _media_id, id: id} = _version,
+        %MediaVersion{status: :pending, id: id} = _version,
         opts \\ []
       ) do
     %{
       "media_version_id" => id,
-      "hide_version_on_failure" => Keyword.get(opts, :hide_version_on_failure, false)
+      "hide_version_on_failure" => Keyword.get(opts, :hide_version_on_failure, false),
+      "clone_from_media_version_id" => Keyword.get(opts, :clone_from, nil)
     }
     |> Platform.Workers.Archiver.new(priority: Keyword.get(opts, :priority, 1))
     |> Oban.insert!()
@@ -618,6 +742,7 @@ defmodule Platform.Material do
         Repo.transaction(fn ->
           {:ok, _} = Updates.create_update_from_changeset(update_changeset)
           {:ok, res} = update_media_attributes(media, attributes, attrs, user)
+          Updates.subscribe_if_first_interaction(media, user)
           res
         end)
     end
@@ -644,7 +769,7 @@ defmodule Platform.Material do
 
   def subscribe_user(%Media{} = media, %User{} = user) do
     MediaSubscription.changeset(%MediaSubscription{}, %{media_id: media.id, user_id: user.id})
-    |> Repo.insert()
+    |> Repo.insert(on_conflict: :nothing)
   end
 
   def unsubscribe_user(%Media{} = media, %User{} = user) do

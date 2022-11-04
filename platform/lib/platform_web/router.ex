@@ -69,6 +69,12 @@ defmodule PlatformWeb.Router do
     end
   end
 
+  scope "/spi", PlatformWeb do
+    pipe_through([:browser, :require_authenticated_user])
+
+    get("/users", SPIController, :user_search)
+  end
+
   scope "/", PlatformWeb do
     pipe_through([:browser, :interstitial])
     get("/users/suspended", UserRegistrationController, :suspended)
@@ -137,6 +143,7 @@ defmodule PlatformWeb.Router do
       live("/incidents/:slug/update/:attribute", MediaLive.Show, :edit)
       live("/incidents/:slug/history/:attribute", MediaLive.Show, :history)
       live("/incidents/:slug/upload", MediaLive.Show, :upload)
+      live("/incidents/:slug/upload/merge", MediaLive.Show, :merge)
 
       live("/profile/:username", ProfilesLive.Show, :show)
       live("/profile/:username/edit", ProfilesLive.Show, :edit)
@@ -147,7 +154,9 @@ defmodule PlatformWeb.Router do
     live_session :admin, on_mount: {MountHelperLive, :admin} do
       live("/adminland/", AdminlandLive.Index, :activity)
       live("/adminland/users", AdminlandLive.Index, :users)
+      live("/adminland/deleted", AdminlandLive.Index, :deleted)
       live("/adminland/activity", AdminlandLive.Index, :activity)
+      live("/adminland/announcements", AdminlandLive.Index, :announcements)
       live("/adminland/security", AdminlandLive.Index, :security)
       live("/adminland/security/update", AdminlandLive.Index, :security_mode_create)
       live("/adminland/upload", AdminlandLive.Index, :upload)

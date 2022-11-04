@@ -27,6 +27,8 @@ import Alpine from 'alpinejs'
 import tippy from 'tippy.js';
 import Mark from 'mark.js';
 import { InfiniteScroll } from "./infinite_scroll";
+import { setupTextboxInteractivity } from "./textbox_interactivity";
+import { initialize as initializeKeyboardFormSubmits } from "./keyboard_form_submit";
 
 mapboxgl.accessToken = 'pk.eyJ1IjoibWlsZXNtY2MiLCJhIjoiY2t6ZzdzZmY0MDRobjJvbXBydWVmaXBpNSJ9.-aHM8bjOOsSrGI0VvZenAQ';
 
@@ -55,6 +57,9 @@ let liveSocket = new LiveSocket("/live", Socket, {
     params: { _csrf_token: csrfToken },
     hooks: Hooks
 })
+
+// Setup textboxes
+setupTextboxInteractivity();
 
 /**
  * https://stackoverflow.com/questions/494143/creating-a-new-dom-element-from-an-html-string-using-built-in-dom-methods-or-pro
@@ -132,7 +137,6 @@ function initializePopovers() {
 }
 
 function triggerSubmitEvent(element) {
-    console.log(element);
     element.dispatchEvent(new Event("submit", { bubbles: true }));
     topbar.show();
 }
@@ -220,8 +224,6 @@ function initializeMaps() {
         new mapboxgl.Marker({ color: "#60a5fa" })
             .setLngLat([lon, lat])
             .addTo(map);
-
-        console.log(map);
     });
 
     document.querySelectorAll("map-events").forEach(s => {
@@ -408,6 +410,8 @@ document.addEventListener("load", initializePopovers);
 
 document.addEventListener("phx:update", applySearchHighlighting);
 document.addEventListener("load", applySearchHighlighting);
+
+initializeKeyboardFormSubmits();
 
 // Used to set the clipboard when copying hash information
 window.setClipboard = (text) => {

@@ -65,7 +65,7 @@ defmodule Platform.MixProject do
       {:appsignal, "~> 2.3"},
       {:appsignal_phoenix, "~> 2.1"},
       {:earmark, "~> 1.4"},
-      {:csv, "~> 2.5"},
+      {:csv, "~> 3.0"},
       {:oban, "~> 2.13"},
       {:html_sanitize_ex, "~> 1.4"},
       {:eqrcode, "~> 0.1.10"},
