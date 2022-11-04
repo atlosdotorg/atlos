@@ -5,6 +5,7 @@ defmodule Platform.Invites do
 
   import Ecto.Query, warn: false
   alias Platform.Repo
+  alias Platform.Accounts
 
   alias Platform.Invites.Invite
 
@@ -40,7 +41,14 @@ defmodule Platform.Invites do
   @doc """
   Gets an invite by its code.
   """
-  def get_invite_by_code(code), do: Repo.get_by(Invite, code: code)
+  def get_invite_by_code(code) do
+    # When in test environment, "TESTING" is a valid invite code
+    with true <- Mix.env() in [:dev, :test], "TESTING" <- code do
+      Repo.get_by(Invite, code: Accounts.get_valid_invite_code())
+    else
+      _ -> Repo.get_by(Invite, code: code)
+    end
+  end
 
   @doc """
   Gets an invite by its user.
