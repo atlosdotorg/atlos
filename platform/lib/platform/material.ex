@@ -572,7 +572,7 @@ defmodule Platform.Material do
 
       Updates.post_bot_comment(
         destination,
-        "[[@#{user.username}]] merged [[#{destination.slug}]]'s media into this incident."
+        "[[@#{user.username}]] merged [[#{source.slug}]]'s media into this incident."
       )
     end)
   end
