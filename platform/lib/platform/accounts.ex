@@ -37,7 +37,7 @@ defmodule Platform.Accounts do
             password: Utils.generate_secure_code()
           })
 
-        {:ok, user} = update_user_admin(user, %{roles: [:trusted, :coordinator], flair: "Bot"})
+        {:ok, user} = update_user_admin(user, %{roles: [:trusted], flair: "Bot"})
 
         user
 

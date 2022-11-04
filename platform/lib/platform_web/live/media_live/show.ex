@@ -70,7 +70,11 @@ defmodule PlatformWeb.MediaLive.Show do
 
   def handle_event("close_modal", _params, socket) do
     {:noreply,
-     socket |> push_patch(to: Routes.media_show_path(socket, :show, socket.assigns.media.slug))}
+     socket
+     |> push_patch(
+       to: Routes.media_show_path(socket, :show, socket.assigns.media.slug),
+       replace: true
+     )}
   end
 
   def handle_event(
@@ -108,6 +112,32 @@ defmodule PlatformWeb.MediaLive.Show do
     end
   end
 
+  def handle_event(
+        "toggle_deleted",
+        _params,
+        socket
+      ) do
+    media = socket.assigns.media
+
+    if !Accounts.is_admin(socket.assigns.current_user) do
+      {:noreply,
+       socket |> put_flash(:error, "You cannot change this incident's deletion status.")}
+    else
+      {:ok, media} =
+        if media.deleted do
+          Material.soft_undelete_media_audited(media, socket.assigns.current_user)
+        else
+          Material.soft_delete_media_audited(media, socket.assigns.current_user)
+        end
+
+      {:noreply,
+       socket
+       |> assign_media_and_updates()
+       |> put_flash(:info, "Media deletion status changed successfully.")
+       |> assign(:media, media)}
+    end
+  end
+
   def handle_info({:version_created, _version}, socket) do
     {:noreply,
      socket
@@ -115,14 +145,33 @@ defmodule PlatformWeb.MediaLive.Show do
        :info,
        "Added media successfully. Atlos will archive and process it in the background."
      )
-     |> push_patch(to: Routes.media_show_path(socket, :show, socket.assigns.media.slug))}
+     |> push_patch(
+       to: Routes.media_show_path(socket, :show, socket.assigns.media.slug),
+       replace: true
+     )}
+  end
+
+  def handle_info({:merge_completed, _version}, socket) do
+    {:noreply,
+     socket
+     |> put_flash(
+       :info,
+       "Merge initiated! The media will continue to merge in the background."
+     )
+     |> push_patch(
+       to: Routes.media_show_path(socket, :show, socket.assigns.media.slug),
+       replace: true
+     )}
   end
 
   def handle_info({:version_creation_failed, _changeset}, socket) do
     {:noreply,
      socket
      |> put_flash(:error, "Unable to process the given media. Please try again.")
-     |> push_patch(to: Routes.media_show_path(socket, :show, socket.assigns.media.slug))}
+     |> push_patch(
+       to: Routes.media_show_path(socket, :show, socket.assigns.media.slug),
+       replace: true
+     )}
   end
 
   def handle_info({:media_updated}, socket) do

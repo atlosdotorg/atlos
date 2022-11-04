@@ -17,7 +17,8 @@ defmodule PlatformWeb.MediaLive.CommentBox do
        auto_upload: false,
        progress: &handle_progress/3
      )
-     |> assign_new(:disabled, fn -> false end)}
+     |> assign_new(:disabled, fn -> false end)
+     |> assign_new(:render_id, fn -> Platform.Utils.generate_random_sequence(5) end)}
   end
 
   def update(assigns, socket) do
@@ -37,6 +38,7 @@ defmodule PlatformWeb.MediaLive.CommentBox do
       :changeset,
       Updates.change_from_comment(socket.assigns.media, socket.assigns.current_user)
     )
+    |> assign(:render_id, Platform.Utils.generate_random_sequence(5))
   end
 
   defp assign_changeset(socket) do
@@ -92,6 +94,8 @@ defmodule PlatformWeb.MediaLive.CommentBox do
           socket
         )
 
+        Updates.subscribe_if_first_interaction(socket.assigns.media, socket.assigns.current_user)
+
         {:noreply,
          socket
          |> put_flash(:info, "Your comment has been posted.")
@@ -103,12 +107,23 @@ defmodule PlatformWeb.MediaLive.CommentBox do
     end
   end
 
+  def handle_event("recover", %{"update" => _params} = input, socket) do
+    handle_event("validate", input, socket)
+  end
+
   def handle_event("validate", %{"update" => params} = _input, socket) do
+    # If they are reconnecting, we want to preserve the old content — and not rerender
+    render_id = Map.get(params, "render_id", socket.assigns.render_id)
+
     changeset =
-      Updates.change_from_comment(socket.assigns.media, socket.assigns.current_user, params)
+      Updates.change_from_comment(
+        socket.assigns.media,
+        socket.assigns.current_user,
+        params
+      )
       |> Map.put(:action, :validate)
 
-    {:noreply, socket |> assign(:changeset, changeset)}
+    {:noreply, socket |> assign(:changeset, changeset) |> assign(:render_id, render_id)}
   end
 
   def handle_event("cancel_upload", %{"ref" => ref}, socket) do
@@ -122,7 +137,17 @@ defmodule PlatformWeb.MediaLive.CommentBox do
       id={"#{@id}"}
       phx-drop-target={@uploads.attachments.ref}
     >
-      <.form :let={f} for={@changeset} phx-target={@myself} phx-change="validate" phx-submit="save">
+      <.form
+        :let={f}
+        for={@changeset}
+        phx-target={@myself}
+        phx-change="validate"
+        phx-submit="save"
+        id="comment-box-form"
+        phx-auto-recover="recover"
+      >
+        <%!-- For form recovery --%>
+        <%= hidden_input(f, :render_id, value: @render_id) %>
         <div class="flex items-start space-x-4">
           <div class="flex-shrink-0" phx-update="ignore" id="comment-box-profile-photo">
             <img
@@ -133,21 +158,23 @@ defmodule PlatformWeb.MediaLive.CommentBox do
           </div>
           <div class="min-w-0 flex-1">
             <div class="relative">
-              <div class="-ml-1 border border-gray-300 rounded-lg shadow-sm overflow-hidden focus-within:border-urge-500 focus-within:ring-1 focus-within:ring-urge-500">
+              <div class="-ml-1 border border-gray-300 rounded-lg shadow-sm overflow-hidden focus-within:border-urge-500 focus-within:ring-1 focus-within:ring-urge-500 transition pt-1">
                 <label for="comment" class="sr-only">Add a comment...</label>
-                <%= textarea(f, :explanation,
-                  phx_debounce: 300,
-                  rows: 4,
-                  placeholder:
+                <.interactive_textarea
+                  disabled={@disabled}
+                  form={f}
+                  name={:explanation}
+                  model="content"
+                  placeholder={
                     if(@disabled,
                       do: "Commenting has been disabled",
                       else: "Add your comment. You can @tag others by their username."
-                    ),
-                  class: "block w-full py-3 border-0 resize-none focus:ring-0 sm:text-sm shadow-none",
-                  required: true,
-                  disabled: @disabled,
-                  id: "comment-input"
-                ) %>
+                    )
+                  }
+                  id={"comment-parent-input-#{@render_id}"}
+                  rows={4}
+                  class="block w-full !border-0 resize-none focus:ring-0 sm:text-sm shadow-none"
+                />
 
                 <section class="grid grid-cols-2 md:grid-cols-3 gap-2 p-2">
                   <%= for entry <- @uploads.attachments.entries do %>

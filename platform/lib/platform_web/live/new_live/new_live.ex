@@ -18,7 +18,7 @@ defmodule PlatformWeb.NewLive do
     {:noreply,
      socket
      |> put_flash(:info, "Incident created successfully.")
-     |> redirect(to: "/incidents/#{media.slug}/upload")}
+     |> redirect(to: "/incidents/#{media.slug}")}
   end
 
   def render(assigns) do

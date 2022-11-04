@@ -89,7 +89,7 @@ defmodule Platform.Material.Attribute do
         pane: :metadata,
         required: false,
         name: :tags,
-        required_roles: [:admin, :trusted, :coordinator],
+        required_roles: [:admin, :trusted],
         allow_user_defined_options: true,
         description: "Use tags to help organize incidents on Atlos."
       },
@@ -217,8 +217,7 @@ defmodule Platform.Material.Attribute do
           "What equipment — weapon, military infrastructure, etc. — is used in the incident?",
         pane: :attributes,
         required: false,
-        name: :equipment,
-        add_none: "None"
+        name: :equipment
       },
       %Attribute{
         schema_field: :attr_time_of_day,
@@ -390,7 +389,7 @@ defmodule Platform.Material.Attribute do
         name: :restrictions,
         # NOTE: Editing these values also requires editing the perm checks in `media.ex`
         options: ["Frozen", "Hidden"],
-        required_roles: [:admin]
+        required_roles: [:admin, :trusted]
       },
       %Attribute{
         schema_field: :attr_sensitive,
@@ -835,7 +834,7 @@ defmodule Platform.Material.Attribute do
           "Cancelled" -> "~neutral"
           "Ready for Review" -> "~cyan"
           "Completed" -> "~urge"
-          "Needs Upload" -> "~purple"
+          "Needs Upload" -> "~neutral"
           _ -> "~warning"
         end
 

@@ -9,6 +9,8 @@ defmodule Platform.Repo.Migrations.AddSubscriptions do
       timestamps()
     end
 
-    create unique_index(:media_subscriptions, [:media_id, :user_id])
+    create unique_index(:media_subscriptions, [:media_id, :user_id],
+             name: :media_subscriptions_media_id_user_id_index
+           )
   end
 end

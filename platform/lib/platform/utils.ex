@@ -4,8 +4,8 @@ defmodule Platform.Utils do
   """
   import Ecto.Query, warn: false
 
-  @tag_regex ~r/(\s|^)(@([A-Za-z0-9_]+))/
-  @identifier_regex ~r/(\s|^)(ATL-[A-Z0-9]{6})/
+  @tag_regex ~r/((?:\[\[))(@([A-Za-z0-9_]+)(?:\]\]))/
+  @identifier_regex ~r/(?:\[\[)(ATL-[A-Z0-9]{6})(?:\]\])/
 
   def get_tag_regex(), do: @tag_regex
 
@@ -80,22 +80,39 @@ defmodule Platform.Utils do
     # Safe markdown rendering. No images or headers.
 
     # First, strip images and turn them into links. Primitive.
-    stripped_images = Regex.replace(~r"!*\[", markdown, "[")
+    markdown = Regex.replace(~r"!*\[", markdown, "[")
 
     # Second, link ATL identifiers.
-    identifiers_linked =
-      Regex.replace(@identifier_regex, stripped_images, " [\\0](/incidents/\\2)")
+    markdown = Regex.replace(@identifier_regex, markdown, " [\\1](/incidents/\\1)")
 
     # Third, turn @'s into links.
-    tags_linked = Regex.replace(@tag_regex, identifiers_linked, " [\\0](/profile/\\3)")
+    markdown = Regex.replace(@tag_regex, markdown, " [@\\3](/profile/\\3)")
+
+    # Setup to open external links in a new tab + add nofollow/noopener
+    add_target = fn node ->
+      if not is_nil(Earmark.AstTools.find_att_in_node(node, "href", "")),
+        do: Earmark.AstTools.merge_atts_in_node(node, target: "_blank", rel: "nofollow noopener"),
+        else: node
+    end
+
+    detect_tags = fn node ->
+      link = Earmark.AstTools.find_att_in_node(node, "href", "")
+
+      if not is_nil(link) and
+           (String.starts_with?(link, "/profile/") or String.starts_with?(link, "/incidents/")),
+         do: Earmark.AstTools.merge_atts_in_node(node, "internal-tag": "true"),
+         else: node
+    end
+
+    options = [registered_processors: [{"a", add_target}, {"a", detect_tags}]]
 
     # Strip all tags and render markdown
-    rendered = tags_linked |> HtmlSanitizeEx.strip_tags() |> Earmark.as_html!()
+    markdown = markdown |> Earmark.as_html!(options)
 
     # Perform another round of cleaning (images will be stripped here too)
-    sanitized = rendered |> HtmlSanitizeEx.Scrubber.scrub(Platform.Security.UgcSanitizer)
+    markdown = markdown |> HtmlSanitizeEx.Scrubber.scrub(Platform.Security.UgcSanitizer)
 
-    sanitized
+    markdown
   end
 
   def generate_qrcode(uri) do

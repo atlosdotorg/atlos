@@ -113,29 +113,43 @@ defmodule PlatformWeb.AdminlandLive.BulkUploadLive do
   end
 
   def render(assigns) do
-    uploads = Enum.filter(assigns.uploads.bulk_upload.entries, &(!&1.cancelled?))
-    is_uploading = length(uploads) > 0
+    active_uploads = Enum.filter(assigns.uploads.bulk_upload.entries, &(!&1.cancelled?))
 
-    is_invalid =
-      Enum.any?(assigns.uploads.bulk_upload.entries, &(!&1.valid?)) or
-        assigns.media_processing_error
+    assigns =
+      assigns
+      |> assign(
+        :active_uploads,
+        active_uploads
+      )
 
-    is_complete = Enum.any?(uploads, & &1.done?)
-
-    cancel_upload =
-      if is_uploading do
-        ~H"""
-        <button
-          phx-click="cancel_upload"
-          phx-target={@myself}
-          phx-value-ref={hd(uploads).ref}
-          class="text-sm label ~neutral"
-          type="button"
-        >
-          Cancel Upload
-        </button>
-        """
-      end
+    assigns =
+      assigns
+      |> assign(
+        :is_uploading,
+        not Enum.empty?(active_uploads)
+      )
+      |> assign(
+        :is_invalid,
+        Enum.any?(assigns.uploads.bulk_upload.entries, &(!&1.valid?)) or
+          assigns.media_processing_error
+      )
+      |> assign(:is_complete, Enum.any?(active_uploads, & &1.done?))
+      |> assign(
+        :cancel_upload,
+        if not Enum.empty?(active_uploads) do
+          ~H"""
+          <button
+            phx-click="cancel_upload"
+            phx-target={@myself}
+            phx-value-ref={hd(@active_uploads).ref}
+            class="text-sm label ~neutral"
+            type="button"
+          >
+            Cancel Upload
+          </button>
+          """
+        end
+      )
 
     ~H"""
     <section class="max-w-3xl mx-auto">
@@ -245,7 +259,7 @@ defmodule PlatformWeb.AdminlandLive.BulkUploadLive do
                   </div>
                 <% else %>
                   <%= cond do %>
-                    <% is_complete -> %>
+                    <% @is_complete -> %>
                       <div class="space-y-1 text-center phx-only-during-reg">
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
@@ -269,10 +283,10 @@ defmodule PlatformWeb.AdminlandLive.BulkUploadLive do
                           <% end %>
                         </div>
                         <div>
-                          <%= cancel_upload %>
+                          <%= @cancel_upload %>
                         </div>
                       </div>
-                    <% is_invalid -> %>
+                    <% @is_invalid -> %>
                       <div class="space-y-1 text-center phx-only-during-reg">
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
@@ -303,7 +317,7 @@ defmodule PlatformWeb.AdminlandLive.BulkUploadLive do
                           </label>
                         </div>
                       </div>
-                    <% is_uploading -> %>
+                    <% @is_uploading -> %>
                       <div class="space-y-1 text-center w-full phx-only-during-reg">
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
@@ -333,7 +347,7 @@ defmodule PlatformWeb.AdminlandLive.BulkUploadLive do
                           <% end %>
                         </div>
                         <div>
-                          <%= cancel_upload %>
+                          <%= @cancel_upload %>
                         </div>
                       </div>
                     <% true -> %>
