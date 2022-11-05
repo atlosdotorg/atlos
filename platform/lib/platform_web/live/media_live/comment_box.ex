@@ -104,6 +104,11 @@ defmodule PlatformWeb.MediaLive.CommentBox do
 
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, socket |> assign(:changeset, changeset)}
+
+      _ ->
+        {:noreply,
+         socket
+         |> put_flash(:error, "Unable to post your comment.")}
     end
   end
 

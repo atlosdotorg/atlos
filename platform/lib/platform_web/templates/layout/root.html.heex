@@ -28,12 +28,24 @@
     >
     </script>
     <link href="https://api.mapbox.com/mapbox-gl-js/v2.8.0/mapbox-gl.css" rel="stylesheet" />
-    <%= if assigns[:_base_parent] do %>
+    <%= if assigns[:iframe_mode] do %>
       <base target="_parent" />
     <% end %>
   </head>
   <body>
     <div id="tooltips"></div>
     <%= @inner_content %>
+    <%= if not is_nil(System.get_env("HIGHLIGHT_CODE")) and (assigns[:iframe_mode] != true) do %>
+      <script src="https://cdn.jsdelivr.net/npm/highlight.run@latest">
+      </script>
+      <script>
+        window.H.init("<%= System.get_env("HIGHLIGHT_CODE") %>")
+        window.H.identify("<%= (Map.get(assigns, :current_user) || %{username: "[anonymous]"}).username %>", {
+          instance_name: "<%= Platform.Utils.get_instance_name() %>",
+          instance_version: "<%= Platform.Utils.get_instance_version() %>",
+          runtime: "<%= Platform.Utils.get_runtime_information() %>"
+        });
+      </script>
+    <% end %>
   </body>
 </html>
