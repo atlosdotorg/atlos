@@ -35,5 +35,17 @@
   <body>
     <div id="tooltips"></div>
     <%= @inner_content %>
+    <%= if System.get_env("HIGHLIGHT_CODE") do %>
+      <script src="https://cdn.jsdelivr.net/npm/highlight.run@latest">
+      </script>
+      <script>
+        window.H.init("<%= System.get_env("HIGHLIGHT_CODE") %>")
+        window.H.identify("<%= Map.get(assigns, :current_user, %{username: "[anonymous]"}).username %>", {
+          instance_name: "<%= Platform.Utils.get_instance_name() %>",
+          instance_version: "<%= Platform.Utils.get_instance_version() %>",
+          runtime: "<%= Platform.Utils.get_runtime_information() %>"
+        });
+      </script>
+    <% end %>
   </body>
 </html>
