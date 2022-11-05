@@ -132,3 +132,4 @@ System.put_env(
 )
 
 System.put_env("AUTOTAG_USER_INCIDENTS", "[\"Volunteer\", \"User Created\"]")
+System.put_env("DEVELOPMENT_MODE", "true")

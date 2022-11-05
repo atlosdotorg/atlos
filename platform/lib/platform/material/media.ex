@@ -86,6 +86,7 @@ defmodule Platform.Material.Media do
     |> Attribute.validate_attribute(Attribute.get_attribute(:impact), user, false)
     |> Attribute.validate_attribute(Attribute.get_attribute(:date), user, false)
     |> parse_and_validate_validate_json_array(:urls, :urls_parsed)
+    |> validate_url_list(:urls_parsed)
     |> then(fn cs ->
       attr = Attribute.get_attribute(:tags)
 
@@ -131,6 +132,27 @@ defmodule Platform.Material.Media do
       )
 
     changeset
+  end
+
+  def validate_url_list(changeset, field) do
+    valid? = fn url ->
+      uri = URI.parse(url)
+      uri.scheme != nil && uri.host =~ "."
+    end
+
+    validate_change(changeset, field, fn field, value ->
+      if is_list(value |> dbg()) do
+        if Enum.all?(value, valid?) do
+          []
+        else
+          [
+            {field,
+             "The following entries are not valid urls: " <>
+               (Enum.filter(value, &(not valid?.(&1))) |> Enum.join(", "))}
+          ]
+        end
+      end
+    end)
   end
 
   @doc """

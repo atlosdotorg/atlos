@@ -54,13 +54,13 @@ export default function Home() {
               Geolocate media, build on other researchers&apos; findings, and double-check everyone&apos;s work. Search your catalog to piece together the bigger picture.
             </p>
             <p>
-              Investigators still rely on spreadsheets to organize their investigations. But Google Sheets wasn't built for video &mdash; or for deliberation and consensus.
+              Investigators still rely on spreadsheets to organize their investigations. But Google Sheets wasn&apos;t built for video &mdash; or for deliberation and consensus.
             </p>
             <p>
               Atlos is purpose-built for collaborative cataloguing and geolocation of eyewitness media. <a href="https://atlos.notion.site/Platform-Overview-46d4723f22ef420fb5ad0e07feba8d79" className="link">Preview our platform.</a>
             </p>
             <p>
-              Visual investigations can be taxing; Atlos puts investigators' safety and mental health first. <a href="https://atlos.notion.site/Our-Approach-to-Safety-3c1b9842128a4149b3c60c32773c8e5a" className='link'>Learn about our approach to safety.</a>
+              Visual investigations can be taxing; Atlos puts investigators&apos; safety and mental health first. <a href="https://atlos.notion.site/Our-Approach-to-Safety-3c1b9842128a4149b3c60c32773c8e5a" className='link'>Learn about our approach to safety.</a>
             </p>
             <p>
               If your organization works with eyewitness media, please <a href="mailto:contact@atlos.org" className='link'>reach out</a> or <a href="https://mailchi.mp/a1de52cd4614/atlos" className='link'>sign up to receive updates</a>.

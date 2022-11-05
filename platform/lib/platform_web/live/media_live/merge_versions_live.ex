@@ -10,9 +10,9 @@ defmodule PlatformWeb.MediaLive.MergeVersionsLive do
        socket
        |> assign(assigns)
        |> assign_new(:destination, fn -> nil end)
-       |> assign_new(:changeset, fn -> changeset() end)}
+       |> assign_new(:changeset, fn -> changeset(%{}, assigns.source) end)}
     else
-      raise "no permission"
+      raise PlatformWeb.Errors.Unauthorized, "No permission"
     end
   end
 
@@ -20,16 +20,16 @@ defmodule PlatformWeb.MediaLive.MergeVersionsLive do
     destination: :string
   }
 
-  def changeset(params \\ %{}) do
+  def changeset(params, source) do
     data = %{}
 
     {data, @types}
     |> Ecto.Changeset.cast(params, Map.keys(@types))
     |> Ecto.Changeset.validate_required([:destination])
-    |> validate_slug(:destination)
+    |> validate_slug(:destination, source)
   end
 
-  def validate_slug(changeset, field) when is_atom(field) do
+  def validate_slug(changeset, field, source) when is_atom(field) do
     Ecto.Changeset.validate_change(changeset, field, fn field, value ->
       case value do
         nil ->
@@ -37,8 +37,15 @@ defmodule PlatformWeb.MediaLive.MergeVersionsLive do
 
         slug ->
           case Material.get_full_media_by_slug(slug) do
-            nil -> [{field, "This incident doesn't seem to exist. Is the ATL code correct?"}]
-            _ -> []
+            nil ->
+              [{field, "This incident doesn't seem to exist. Is the ATL code correct?"}]
+
+            media ->
+              if media.id == source.id do
+                [{field, "You cannot merge media into itself."}]
+              else
+                []
+              end
           end
       end
     end)
@@ -46,7 +53,7 @@ defmodule PlatformWeb.MediaLive.MergeVersionsLive do
 
   def handle_event("validate", %{"merge" => params}, socket) do
     cs =
-      changeset(params)
+      changeset(params, socket.assigns.source)
       |> Map.put(:action, :validate)
 
     destination_code = Ecto.Changeset.get_field(cs, :destination)
@@ -58,7 +65,7 @@ defmodule PlatformWeb.MediaLive.MergeVersionsLive do
   end
 
   def handle_event("save", %{"merge" => params}, socket) do
-    cs = changeset(params)
+    cs = changeset(params, socket.assigns.source)
 
     if cs.valid? do
       case Material.merge_media_versions_audited(

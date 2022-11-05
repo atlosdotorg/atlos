@@ -49,7 +49,7 @@ defmodule PlatformWeb.ProfilesLive.EditComponent do
     # Just to be sure, we check authorization again. It would be nice if this were
     # done more centrally.
     if not Accounts.is_admin(socket.assigns.current_user) do
-      raise "no permission"
+      raise PlatformWeb.Errors.Unauthorized, "No permission"
     end
 
     case Accounts.update_user_admin(

@@ -130,6 +130,8 @@ defmodule PlatformWeb.NewLive.BasicInfoLive do
               class="input-base"
             />
             <p class="support">Atlos will attempt to archive these URLs automatically.</p>
+            <%= error_tag(f, :urls) %>
+            <%= error_tag(f, :urls_parsed) %>
             <%= if not Enum.empty?(@url_deconfliction) do %>
               <div class="mt-4">
                 <.multi_deconfliction_warning
@@ -140,9 +142,41 @@ defmodule PlatformWeb.NewLive.BasicInfoLive do
             <% end %>
           </div>
 
-          <details class="p-4 rounded bg-neutral-100 mt-2">
-            <summary class="text-button cursor-pointer transition-all">Additional attributes</summary>
-            <div class="space-y-6 mt-4">
+          <div class="p-4 rounded bg-neutral-100 mt-2" x-data="{open: false}">
+            <button
+              type="button"
+              class="text-button w-full block flex gap-1 items-center justify-between cursor-pointer transition-all"
+              x-on:click="open = !open"
+            >
+              Additional attributes
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                class="w-6 h-6"
+                x-show="!open"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M12 5.25a.75.75 0 01.75.75v5.25H18a.75.75 0 010 1.5h-5.25V18a.75.75 0 01-1.5 0v-5.25H6a.75.75 0 010-1.5h5.25V6a.75.75 0 01.75-.75z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                class="w-6 h-6"
+                x-show="open"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M5.25 12a.75.75 0 01.75-.75h12a.75.75 0 010 1.5H6a.75.75 0 01-.75-.75z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+            </button>
+            <div class="space-y-6 mt-4" x-transition x-show="open">
               <hr />
               <div>
                 <.edit_attribute
@@ -186,7 +220,7 @@ defmodule PlatformWeb.NewLive.BasicInfoLive do
                 </div>
               <% end %>
             </div>
-          </details>
+          </div>
 
           <div class="rounded-md bg-neutral-100 p-4">
             <div class="flex">
