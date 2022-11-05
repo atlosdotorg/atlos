@@ -43,7 +43,7 @@ defmodule Platform.Invites do
   """
   def get_invite_by_code(code) do
     # When in test environment, "TESTING" is a valid invite code
-    with true <- Mix.env() in [:dev, :test], "TESTING" <- code do
+    with "true" <- System.get_env("DEVELOPMENT_MODE", "false"), "TESTING" <- code do
       Repo.get_by(Invite, code: Accounts.get_valid_invite_code())
     else
       _ -> Repo.get_by(Invite, code: code)
