@@ -40,7 +40,7 @@
       </script>
       <script>
         window.H.init("<%= System.get_env("HIGHLIGHT_CODE") %>")
-        window.H.identify("<%= Map.get(assigns, :current_user, %{username: "[anonymous]"}).username %>", {
+        window.H.identify("<%= (Map.get(assigns, :current_user) || %{username: "[anonymous]"}).username %>", {
           instance_name: "<%= Platform.Utils.get_instance_name() %>",
           instance_version: "<%= Platform.Utils.get_instance_version() %>",
           runtime: "<%= Platform.Utils.get_runtime_information() %>"
