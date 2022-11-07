@@ -141,7 +141,7 @@ defmodule Platform.Material.Media do
     end
 
     validate_change(changeset, field, fn field, value ->
-      if is_list(value |> dbg()) do
+      if is_list(value) do
         if Enum.all?(value, valid?) do
           []
         else
