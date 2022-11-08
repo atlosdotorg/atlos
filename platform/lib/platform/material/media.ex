@@ -42,6 +42,9 @@ defmodule Platform.Material.Media do
     field :attr_status, :string
     field :attr_tags, {:array, :string}
 
+    # Automatically-generated Metadata
+    field :auto_metadata, :map, default: %{}
+
     # Virtual attributes for updates + multi-part attributes
     field :explanation, :string, virtual: true
     field :location, :string, virtual: true
@@ -74,8 +77,7 @@ defmodule Platform.Material.Media do
       :attr_equipment,
       :attr_impact,
       :attr_date,
-      :deleted,
-      :urls
+      :deleted
     ])
 
     # These are special attributes, since we define it at creation time. Eventually, it'd be nice to unify this logic with the attribute-specific editing logic.

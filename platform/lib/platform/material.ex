@@ -231,6 +231,9 @@ defmodule Platform.Material do
               })
           end
 
+          # Schedule metadata generation
+          schedule_media_auto_metadata_update(media)
+
           media
         end)
     end
@@ -494,6 +497,18 @@ defmodule Platform.Material do
     |> Enum.dedup()
   end
 
+  @doc """
+  Updates the auto metadata for the given media. Auto metadata is a JSONB object
+  that is automatically generated to help index and organize media. (E.g., it contains
+  geocoding information used for search.)
+
+  This is an internal action and does not use a changeset. It does not update the `updated_at`
+  field on the given media.
+  """
+  def update_media_auto_metadata(%Media{} = media, metadata) do
+    Repo.update_all(from(m in Media, where: m.id == ^media.id), set: [auto_metadata: metadata])
+  end
+
   def create_media_version(%Media{} = media, attrs \\ %{}) do
     result =
       %MediaVersion{}
@@ -645,6 +660,20 @@ defmodule Platform.Material do
   end
 
   @doc """
+  Schedules the given media to have its auto-metadata updated.
+
+  Options:
+  - priority: 0-3, the priority (default 1)
+  """
+  def schedule_media_auto_metadata_update(%Media{id: id} = _media, opts \\ []) do
+    %{
+      "media_id" => id
+    }
+    |> Platform.Workers.AutoMetadata.new(priority: Keyword.get(opts, :priority, 1))
+    |> Oban.insert!()
+  end
+
+  @doc """
   Get a signed URL for the media version. Type can be :original or :thumb (defaults to :original).
   """
   def media_version_location(version, media, type \\ :original) do
@@ -739,12 +768,18 @@ defmodule Platform.Material do
         {:error, media_changeset}
 
       true ->
-        Repo.transaction(fn ->
-          {:ok, _} = Updates.create_update_from_changeset(update_changeset)
-          {:ok, res} = update_media_attributes(media, attributes, attrs, user)
-          Updates.subscribe_if_first_interaction(media, user)
-          res
-        end)
+        res =
+          Repo.transaction(fn ->
+            {:ok, _} = Updates.create_update_from_changeset(update_changeset)
+            {:ok, res} = update_media_attributes(media, attributes, attrs, user)
+            Updates.subscribe_if_first_interaction(media, user)
+            res
+          end)
+
+        # Schedule the media to have its auto-metadata regenerated
+        schedule_media_auto_metadata_update(media)
+
+        res
     end
   end
 

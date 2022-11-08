@@ -73,4 +73,4 @@ config :platform, Oban,
   repo: Platform.Repo,
   plugins: [Oban.Plugins.Pruner],
   # We only want one instance of ffmpeg running on the server at a time...
-  queues: [media_archival: 1]
+  queues: [media_archival: 1, auto_metadata: 1]
