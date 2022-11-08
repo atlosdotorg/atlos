@@ -218,7 +218,7 @@ defmodule Platform.Material do
             end
 
           # Subscribe the creator
-          Updates.subscribe_if_first_interaction(media, user)
+          {:ok, _} = subscribe_user(media, user)
 
           # Upload media, if provided
           for url <- Ecto.Changeset.get_field(changeset, :urls_parsed) do
