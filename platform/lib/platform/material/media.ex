@@ -77,7 +77,8 @@ defmodule Platform.Material.Media do
       :attr_equipment,
       :attr_impact,
       :attr_date,
-      :deleted
+      :deleted,
+      :urls
     ])
 
     # These are special attributes, since we define it at creation time. Eventually, it'd be nice to unify this logic with the attribute-specific editing logic.
