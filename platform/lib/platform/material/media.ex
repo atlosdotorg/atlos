@@ -42,6 +42,9 @@ defmodule Platform.Material.Media do
     field :attr_status, :string
     field :attr_tags, {:array, :string}
 
+    # Automatically-generated Metadata
+    field :auto_metadata, :map, default: %{}
+
     # Virtual attributes for updates + multi-part attributes
     field :explanation, :string, virtual: true
     field :location, :string, virtual: true

@@ -14,7 +14,7 @@ processes = []
   AWS_REGION = "us-east-1"
   APPSIGNAL_APP_ENV = "staging"
   ENVIRONMENT = "staging"
-  ENABLE_CAPTCHAS = "true"
+  ENABLE_CAPTCHAS = "false"
   INSTANCE_NAME = "staging"
   ATTRIBUTE_OPTIONS = """
     {
