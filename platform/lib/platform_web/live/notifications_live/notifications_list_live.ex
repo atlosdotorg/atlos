@@ -142,7 +142,7 @@ defmodule PlatformWeb.NotificationsLive.NotificationsList do
                       />
                     <% :message -> %>
                       <div class="flex mb-6 gap-3 w-full">
-                        <div class="rounded-full bg-neutral-200 -mt-px h-10 w-10 text-neutral-500 flex items-center justify-around">
+                        <div class="rounded-full flex-shrink-0 bg-neutral-200 -mt-px h-10 w-10 text-neutral-500 flex items-center justify-around">
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
                             viewBox="0 0 24 24"
