@@ -275,6 +275,8 @@ function initializeMaps() {
                                 case "Ready for Review": return '#06b6d4';
                                 case "Cancelled": return '#888888';
                                 case "In Progress": return '#6d28d9';
+                                case "Unclaimed": return '#4ade80';
+                                case "Help Needed": return '#eab308';
                                 default: return '#0f172a';
                             }
                         };
