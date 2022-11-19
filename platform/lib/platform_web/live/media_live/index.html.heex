@@ -1,5 +1,5 @@
 <article class={"w-full px-4 md:px-8 " <> (if @full_width, do: "mt-8", else: "")}>
-  <div class="relative z-[1000] 2xl:max-w-[1210px] mx-auto h-[5.5rem]">
+  <div class="relative z-[1000] 2xl:max-w-[1210px] mx-auto h-[5.5rem] overflow-hidden">
     <.search_form
       changeset={@changeset}
       exclude={if @display == "map", do: [:sort], else: []}

@@ -56,6 +56,7 @@ defmodule Platform.Material.Media do
     # Virtual attributes for population during querying
     field :has_unread_notification, :boolean, virtual: true
     field :has_subscription, :boolean, virtual: true
+    field :last_update_time, :utc_datetime, virtual: true
 
     # Metadata
     timestamps()

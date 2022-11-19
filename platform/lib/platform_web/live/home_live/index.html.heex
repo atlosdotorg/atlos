@@ -1,0 +1,161 @@
+<div>
+  <div class="mx-auto px-8 max-w-[1280px] mt-8">
+    <section>
+      <div class="border-b border-gray-200 mb-4">
+        <nav class="mb-px">
+          <div
+            class="text-neutral-600 group inline-flex items-center py-2 px-1 font-medium text-sm"
+            aria-current="page"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+              class="text-neutral-400 -ml-0.5 mr-2 h-5 w-5"
+            >
+              <path
+                fill-rule="evenodd"
+                d="M9.293 2.293a1 1 0 011.414 0l7 7A1 1 0 0117 11h-1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-3a1 1 0 00-1-1H9a1 1 0 00-1 1v3a1 1 0 01-1 1H5a1 1 0 01-1-1v-6H3a1 1 0 01-.707-1.707l7-7z"
+                clip-rule="evenodd"
+              />
+            </svg>
+
+            <span>Home</span>
+          </div>
+        </nav>
+      </div>
+      <div class="grid md:grid-cols-4 gap-4">
+        <%= for incident <- @overview_media do %>
+          <.media_card media={incident} current_user={@current_user} />
+        <% end %>
+      </div>
+    </section>
+    <section class="flex flex-col md:flex-row gap-8 max-w-full mt-24">
+      <div class="md:w-2/3">
+        <div class="border-b border-gray-200 mb-4">
+          <nav class="-mb-px flex space-x-8" aria-label="Tabs">
+            <a
+              href="#"
+              class="border-urge-500 text-urge-600 group inline-flex items-center py-2 px-1 border-b-2 font-medium text-sm"
+              aria-current="page"
+            >
+              <!-- Heroicon name: mini/building-office -->
+              <svg
+                class="text-urge-500 group-hover:text-urge-600 -ml-0.5 mr-2 h-5 w-5"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+                aria-hidden="true"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M4 16.5v-13h-.25a.75.75 0 010-1.5h12.5a.75.75 0 010 1.5H16v13h.25a.75.75 0 010 1.5h-3.5a.75.75 0 01-.75-.75v-2.5a.75.75 0 00-.75-.75h-2.5a.75.75 0 00-.75.75v2.5a.75.75 0 01-.75.75h-3.5a.75.75 0 010-1.5H4zm3-11a.5.5 0 01.5-.5h1a.5.5 0 01.5.5v1a.5.5 0 01-.5.5h-1a.5.5 0 01-.5-.5v-1zM7.5 9a.5.5 0 00-.5.5v1a.5.5 0 00.5.5h1a.5.5 0 00.5-.5v-1a.5.5 0 00-.5-.5h-1zM11 5.5a.5.5 0 01.5-.5h1a.5.5 0 01.5.5v1a.5.5 0 01-.5.5h-1a.5.5 0 01-.5-.5v-1zm.5 3.5a.5.5 0 00-.5.5v1a.5.5 0 00.5.5h1a.5.5 0 00.5-.5v-1a.5.5 0 00-.5-.5h-1z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+              <span>All Updates</span>
+            </a>
+
+            <a
+              href="#"
+              class="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 group inline-flex items-center py-2 px-1 border-b-2 font-medium text-sm"
+            >
+              <svg
+                class="text-gray-400 group-hover:text-gray-500 -ml-0.5 mr-2 h-5 w-5"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+                aria-hidden="true"
+              >
+                <path d="M10 8a3 3 0 100-6 3 3 0 000 6zM3.465 14.493a1.23 1.23 0 00.41 1.412A9.957 9.957 0 0010 18c2.31 0 4.438-.784 6.131-2.1.43-.333.604-.903.408-1.41a7.002 7.002 0 00-13.074.003z" />
+              </svg>
+              <span>My Activity</span>
+            </a>
+          </nav>
+        </div>
+        <div class="flex flex-col gap-16">
+          <%= for incident <- @media do %>
+            <div class="w-full">
+              <.media_line_preview media={incident} />
+              <ul class="card border border-gray-200 mt-2">
+                <% len = min(5, length(incident.updates)) %>
+                <%= if length(incident.updates) > 5 do %>
+                  <div class="relative group word-breaks">
+                    <span
+                      class="absolute top-5 -mt-10 pb-10 left-5 -ml-px h-full w-0.5 border border-dashed border-gray-300"
+                      aria-hidden="true"
+                    >
+                    </span>
+                  </div>
+                <% end %>
+                <%= for {update, idx} <- incident.updates |> Enum.reverse() |> Enum.take(5) |> Enum.reverse() |> Enum.with_index() do %>
+                  <.update_entry
+                    update={update}
+                    show_line={idx != len - 1}
+                    show_media={false}
+                    can_user_change_visibility={false}
+                    target={@myself}
+                    socket={@socket}
+                    profile_ring={false}
+                    left_indicator={:profile}
+                    current_user={@current_user}
+                  />
+                <% end %>
+              </ul>
+            </div>
+          <% end %>
+          <div class="mx-auto mt-4 mb-8 text-center text-xs">
+            <%= if !is_nil(@results.metadata.after) do %>
+              <div
+                phx-hook="InfiniteScroll"
+                id="feed-load-more"
+                data-page={@pagination_index}
+                class="flex items-center justify-around"
+              >
+                <.loading_spinner />
+              </div>
+            <% end %>
+          </div>
+        </div>
+      </div>
+      <div class="md:w-1/3 self-start top-0 sticky min-h-0">
+        <div class="border-b border-gray-200 mb-4">
+          <nav class="mb-px">
+            <div
+              class="text-neutral-600 group inline-flex items-center py-2 px-1 font-medium text-sm"
+              aria-current="page"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+                class="text-neutral-400 -ml-0.5 mr-2 h-5 w-5"
+              >
+                <path d="M15.5 2A1.5 1.5 0 0014 3.5v13a1.5 1.5 0 001.5 1.5h1a1.5 1.5 0 001.5-1.5v-13A1.5 1.5 0 0016.5 2h-1zM9.5 6A1.5 1.5 0 008 7.5v9A1.5 1.5 0 009.5 18h1a1.5 1.5 0 001.5-1.5v-9A1.5 1.5 0 0010.5 6h-1zM3.5 10A1.5 1.5 0 002 11.5v5A1.5 1.5 0 003.5 18h1A1.5 1.5 0 006 16.5v-5A1.5 1.5 0 004.5 10h-1z" />
+              </svg>
+              <span>Overview</span>
+            </div>
+          </nav>
+        </div>
+        <div>
+          <dl class="mt-15 grid grid-cols-1 gap-5">
+            <div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6">
+              <dt class="truncate text-sm font-medium text-gray-500">Total Subscribers</dt>
+              <dd class="mt-1 text-3xl font-medium tracking-tight text-gray-900">71,897</dd>
+            </div>
+
+            <div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6">
+              <dt class="truncate text-sm font-medium text-gray-500">Avg. Open Rate</dt>
+              <dd class="mt-1 text-3xl font-medium tracking-tight text-gray-900">58.16%</dd>
+            </div>
+
+            <div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6">
+              <dt class="truncate text-sm font-medium text-gray-500">Avg. Click Rate</dt>
+              <dd class="mt-1 text-3xl font-medium tracking-tight text-gray-900">24.57%</dd>
+            </div>
+          </dl>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>

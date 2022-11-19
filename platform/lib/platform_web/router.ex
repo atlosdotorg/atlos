@@ -131,6 +131,9 @@ defmodule PlatformWeb.Router do
       live("/settings", SettingsLive)
       live("/settings/mfa", SettingsLive.MFALive)
 
+      live("/home", HomeLive.Index, :recommended)
+      live("/home/history", HomeLive.Index, :history)
+
       live("/new", NewLive)
 
       live("/queue", MediaLive.Queue)
