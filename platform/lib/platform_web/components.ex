@@ -445,6 +445,25 @@ defmodule PlatformWeb.Components do
     end
   end
 
+  def media_line_preview(%{media: %Media{}} = assigns) do
+    ~H"""
+    <article class="md:flex w-full gap-1 justify-between text-sm items-center max-w-full">
+      <div class="flex-shrink-0">
+        <.media_text class="text-neutral-500" media={@media} />
+      </div>
+      <h4 class="font-medium flex items-center max-w-full gap-2 grow truncate min-w-0">
+        <span class="truncate"><%= @media.attr_description %></span>
+      </h4>
+      <div class="flex items-center text-xs items-center flex-shrink-0 gap-1 overflow-hidden justify-right">
+        <.media_badges media={@media} />
+      </div>
+      <div class="flex text-neutral-500 gap-1 flex-shrink-0 items-center">
+        <.user_stack users={Material.contributors(@media)} ring_class="ring-neutral-50" />
+      </div>
+    </article>
+    """
+  end
+
   def update_entry(
         %{
           update: update,
@@ -478,7 +497,7 @@ defmodule PlatformWeb.Components do
       ~H"""
       <li x-data="{expanded: false}" id={"collapsed-update-#{head.id}"}>
         <div
-          class="relative pb-8 group word-breaks cursor-pointer"
+          class={"relative group word-breaks cursor-pointer " <> (if @show_line, do: "pb-8", else: "")}
           x-on:click="expanded = !expanded"
           class="group"
         >
@@ -557,7 +576,7 @@ defmodule PlatformWeb.Components do
       ~H"""
       <% can_user_view = Platform.Updates.Update.can_user_view(update, @current_user) %>
       <li class={"transition-all " <> (if update.hidden and can_user_view, do: "opacity-50", else: "")}>
-        <div class="relative pb-8 group word-breaks">
+        <div class={"relative group word-breaks " <> (if @show_line, do: "pb-8", else: "")}>
           <%= if show_line do %>
             <span class="absolute top-5 left-5 -ml-px h-full w-0.5 bg-gray-200" aria-hidden="true">
             </span>
@@ -1879,6 +1898,75 @@ defmodule PlatformWeb.Components do
     """
   end
 
+  def media_badges(%{media: %Media{} = media} = assigns) do
+    assigns = assigns |> assign(:sensitive, Media.is_sensitive(media))
+
+    ~H"""
+    <%= if not is_nil(@media.attr_status) and Map.get(assigns, :show_status, true) do %>
+      <span class={"self-start badge " <> Attribute.attr_color(:status, @media.attr_status)}>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-3 w-3 mr-px"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+        >
+          <path
+            fill-rule="evenodd"
+            d="M3 6a3 3 0 013-3h10a1 1 0 01.8 1.6L14.25 8l2.55 3.4A1 1 0 0116 13H6a1 1 0 00-1 1v3a1 1 0 11-2 0V6z"
+            clip-rule="evenodd"
+          />
+        </svg>
+        <%= @media.attr_status %>
+      </span>
+    <% end %>
+
+    <%= if @sensitive do %>
+      <%= for item <- @media.attr_sensitive || [] do %>
+        <span class={"self-start badge " <> Attribute.attr_color(:sensitive, @media.attr_sensitive)}>
+          <%= item %>
+        </span>
+      <% end %>
+    <% end %>
+
+    <%= for item <- @media.attr_restrictions || [] do %>
+      <!-- TODO: make this use Attribute.attr_color/2 -->
+      <span class="self-start badge ~warning">
+        <%= item %>
+      </span>
+    <% end %>
+
+    <%= if @media.attr_geolocation do %>
+      <span class="self-start badge ~neutral">
+        Geolocated
+      </span>
+    <% end %>
+
+    <%= if @media.attr_date do %>
+      <span class="self-start badge ~neutral">
+        <%= @media.attr_date |> Calendar.strftime("%d %B %Y") %>
+      </span>
+    <% end %>
+
+    <%= if is_list(@media.attr_type) and not Enum.empty?(@media.attr_type) do %>
+      <span class="self-start badge ~neutral">
+        <%= hd(@media.attr_type) %>
+      </span>
+    <% end %>
+
+    <%= if is_list(@media.attr_equipment) and not Enum.empty?(@media.attr_equipment) do %>
+      <span class="self-start badge ~neutral">
+        <%= hd(@media.attr_equipment) %>
+      </span>
+    <% end %>
+
+    <%= if is_list(@media.attr_impact) and not Enum.empty?(@media.attr_impact) do %>
+      <span class="self-start badge ~neutral">
+        <%= hd(@media.attr_impact) %>
+      </span>
+    <% end %>
+    """
+  end
+
   def media_card(%{media: %Media{} = media, current_user: %Accounts.User{} = user} = assigns) do
     assigns =
       assigns
@@ -1944,68 +2032,7 @@ defmodule PlatformWeb.Components do
             </p>
           </section>
           <section class="flex flex-wrap gap-1 self-start align-top">
-            <%= if @media.attr_status do %>
-              <span class={"self-start badge " <> Attribute.attr_color(:status, @media.attr_status)}>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="h-3 w-3 mr-px"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fill-rule="evenodd"
-                    d="M3 6a3 3 0 013-3h10a1 1 0 01.8 1.6L14.25 8l2.55 3.4A1 1 0 0116 13H6a1 1 0 00-1 1v3a1 1 0 11-2 0V6z"
-                    clip-rule="evenodd"
-                  />
-                </svg>
-                <%= @media.attr_status %>
-              </span>
-            <% end %>
-
-            <%= if @sensitive do %>
-              <%= for item <- @media.attr_sensitive || [] do %>
-                <span class={"self-start badge " <> Attribute.attr_color(:sensitive, @media.attr_sensitive)}>
-                  <%= item %>
-                </span>
-              <% end %>
-            <% end %>
-
-            <%= for item <- @media.attr_restrictions || [] do %>
-              <!-- TODO: make this use Attribute.attr_color/2 -->
-              <span class="self-start badge ~warning">
-                <%= item %>
-              </span>
-            <% end %>
-
-            <%= if @media.attr_geolocation do %>
-              <span class="self-start badge ~neutral">
-                Geolocated
-              </span>
-            <% end %>
-
-            <%= if @media.attr_date do %>
-              <span class="self-start badge ~neutral">
-                <%= @media.attr_date |> Calendar.strftime("%d %B %Y") %>
-              </span>
-            <% end %>
-
-            <%= if is_list(@media.attr_type) and not Enum.empty?(@media.attr_type) do %>
-              <span class="self-start badge ~neutral">
-                <%= hd(@media.attr_type) %>
-              </span>
-            <% end %>
-
-            <%= if is_list(@media.attr_equipment) and not Enum.empty?(@media.attr_equipment) do %>
-              <span class="self-start badge ~neutral">
-                <%= hd(@media.attr_equipment) %>
-              </span>
-            <% end %>
-
-            <%= if is_list(@media.attr_impact) and not Enum.empty?(@media.attr_impact) do %>
-              <span class="self-start badge ~neutral">
-                <%= hd(@media.attr_impact) %>
-              </span>
-            <% end %>
+            <.media_badges media={@media} />
           </section>
           <section class="mb-2 h-4" />
           <section class="bottom-0 mb-2 pr-4 w-full absolute flex gap-2 justify-between items-center">
@@ -2132,7 +2159,7 @@ defmodule PlatformWeb.Components do
       <%= for user <- @users |> Enum.take(5) do %>
         <.popover class="inline">
           <img
-            class="relative z-30 inline-block h-5 w-5 rounded-full ring-2 ring-white"
+            class={"relative z-30 inline-block h-5 w-5 rounded-full ring-2 " <> Map.get(assigns, :ring_class, "ring-white")}
             src={Accounts.get_profile_photo_path(user)}
             alt={"Profile photo for #{user.username}"}
           />
@@ -2142,7 +2169,7 @@ defmodule PlatformWeb.Components do
         </.popover>
       <% end %>
       <%= if length(@users) > max do %>
-        <div class="bg-gray-300 text-gray-700 text-xl rounded-full mt-1 h-5 w-5 z-30 ring-2 ring-white flex items-center justify-center">
+        <div class={"bg-gray-300 text-gray-700 text-xl rounded-full mt-1 h-5 w-5 z-30 ring-2 flex items-center justify-center"  <> Map.get(assigns, :ring_class, "ring-white")}>
           <svg
             xmlns="http://www.w3.org/2000/svg"
             class="h-3 w-3"
@@ -2809,7 +2836,7 @@ defmodule PlatformWeb.Components do
   def media_text(%{media: %Media{} = media} = assigns) do
     ~H"""
     <.popover class="inline overflow-hidden" no_pad={true}>
-      <span class="text-button text-gray-800 inline-block mr-2">
+      <span class={"text-button transition inline-block mr-2 " <> Map.get(assigns, :class, "text-gray-800")}>
         <.link navigate={"/incidents/" <> media.slug}><%= media.slug %> &nearr;</.link>
       </span>
       <:display>
