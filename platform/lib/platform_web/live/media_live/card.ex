@@ -1,6 +1,6 @@
 defmodule PlatformWeb.MediaLive.Card do
   use Phoenix.LiveView,
-    layout: {PlatformWeb.LayoutView, "live_iframe.html"}
+    layout: {PlatformWeb.LayoutView, :live_iframe}
 
   import PlatformWeb.Components
   alias Platform.Material
