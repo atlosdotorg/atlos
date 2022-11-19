@@ -2929,15 +2929,8 @@ defmodule PlatformWeb.Components do
           href="https://github.com/milesmcc/atlos/blob/main/policy/TERMS_OF_USE.md"
           class="underline"
         >
-          Terms of Use</a>&nbsp;and our <a
-          href={
-            System.get_env(
-              "RULES_LINK",
-              "https://github.com/milesmcc/atlos/blob/main/policy/RULES.md"
-            )
-          }
-          class="underline"
-        >Rules</a>.
+          Terms of Use
+        </a>.
       </p>
     </div>
     """
@@ -2948,17 +2941,6 @@ defmodule PlatformWeb.Components do
     <footer class="place-self-center max-w-lg mx-auto mt-8 text-gray-500 text-xs">
       <div class="grid grid-cols-3 text-center gap-4 md:flex md:justify-between">
         <a href="https://github.com/milesmcc/atlos" class="hover:text-gray-600">Source Code</a>
-        <a
-          href={
-            System.get_env(
-              "RULES_LINK",
-              "https://github.com/milesmcc/atlos/blob/main/policy/RULES.md"
-            )
-          }
-          class="hover:text-gray-600 transition"
-        >
-          Rules
-        </a>
         <a
           href="https://github.com/milesmcc/atlos/blob/main/policy/TERMS_OF_USE.md"
           class="hover:text-gray-600 transition"
