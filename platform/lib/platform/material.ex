@@ -962,4 +962,16 @@ defmodule Platform.Material do
   def get_media_organization_type(%Media{} = media) do
     media.attr_status
   end
+
+  @doc """
+  Return summary statistics about the number of incidents by status.
+  """
+  def status_overview_statistics() do
+    Repo.all(
+      from m in Media,
+        where: not m.deleted,
+        group_by: m.attr_status,
+        select: {m.attr_status, count(m.id)}
+    )
+  end
 end

@@ -2,7 +2,12 @@
   <header class="bg-neutral-200 shadow border-b">
     <div class="mx-auto px-8 max-w-[1280px] pt-12 pb-44">
       <div class="flex flex-col md:flex-row md:items-center md:justify-between">
-        <h1 class="font-medium text-3xl">Dashboard</h1>
+        <div class="flex items-center gap-1">
+          <div class="font-medium text-3xl">Dashboard</div>
+          <p class="text-neutral-500 text-sm border border-2 border-neutral-500 px-1 py-px rounded">
+            Beta
+          </p>
+        </div>
         <div class="flex">
           <.link
             href={"/profile/#{@current_user.username}"}
@@ -16,7 +21,7 @@
                 alt="Your profile photo"
               />
             </div>
-            <span><%= @current_user.username %></span>
+            <span><%= @current_user.username %> &rarr;</span>
           </.link>
         </div>
       </div>
@@ -43,14 +48,14 @@
           </div>
         </nav>
       </div>
-      <div class="grid md:grid-cols-4 gap-4">
+      <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
         <%= for incident <- @overview_media |> Enum.take(8) do %>
           <.media_card media={incident} current_user={@current_user} />
         <% end %>
       </div>
     </section>
-    <section class="flex flex-col md:flex-row gap-8 max-w-full mt-24">
-      <div class="md:w-2/3">
+    <section class="flex flex-col-reverse lg:flex-row gap-8 max-w-full mt-24">
+      <div class="lg:w-2/3">
         <div class="border-b border-gray-200 mb-4">
           <nav class="-mb-px flex space-x-8" aria-label="Tabs">
             <% inactive_classes =
@@ -146,41 +151,46 @@
           </div>
         </div>
       </div>
-      <div class="md:w-1/3 self-start top-0 sticky min-h-0">
+      <div class="lg:w-1/3 w-full self-start top-0 sticky min-h-0">
         <div class="border-b border-gray-200 mb-4">
           <nav class="mb-px">
             <div
               class="text-neutral-600 group inline-flex items-center py-2 px-1 font-medium text-sm"
               aria-current="page"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-                class="text-neutral-400 -ml-0.5 mr-2 h-5 w-5"
-              >
-                <path d="M15.5 2A1.5 1.5 0 0014 3.5v13a1.5 1.5 0 001.5 1.5h1a1.5 1.5 0 001.5-1.5v-13A1.5 1.5 0 0016.5 2h-1zM9.5 6A1.5 1.5 0 008 7.5v9A1.5 1.5 0 009.5 18h1a1.5 1.5 0 001.5-1.5v-9A1.5 1.5 0 0010.5 6h-1zM3.5 10A1.5 1.5 0 002 11.5v5A1.5 1.5 0 003.5 18h1A1.5 1.5 0 006 16.5v-5A1.5 1.5 0 004.5 10h-1z" />
-              </svg>
-              <span>Overview</span>
+              <Heroicons.squares_2x2 solid class="text-neutral-400 -ml-0.5 mr-2 h-5 w-5" />
+              <span>Queue</span>
             </div>
           </nav>
         </div>
         <div>
-          <dl class="mt-15 grid grid-cols-1 gap-5">
-            <div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6">
-              <dt class="truncate text-sm font-medium text-gray-500">Total Subscribers</dt>
-              <dd class="mt-1 text-3xl font-medium tracking-tight text-gray-900">71,897</dd>
-            </div>
-
-            <div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6">
-              <dt class="truncate text-sm font-medium text-gray-500">Avg. Open Rate</dt>
-              <dd class="mt-1 text-3xl font-medium tracking-tight text-gray-900">58.16%</dd>
-            </div>
-
-            <div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6">
-              <dt class="truncate text-sm font-medium text-gray-500">Avg. Click Rate</dt>
-              <dd class="mt-1 text-3xl font-medium tracking-tight text-gray-900">24.57%</dd>
-            </div>
+          <dl class="mt-5 grid w-full grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-4">
+            <%= for {status, count} <- @status_statistics do %>
+              <% status_color = Platform.Material.Attribute.attr_color(:status, status) %>
+              <.link
+                href={
+                  Routes.live_path(@socket, PlatformWeb.MediaLive.Index, %{
+                    attr_status: status,
+                    display: :cards
+                  })
+                }
+                class="relative overflow-hidden rounded-lg group p-2 hover:bg-neutral-100 transition"
+              >
+                <dt>
+                  <div class={"absolute rounded-md p-3 section @high opacity-50 " <> status_color}>
+                    <.attribute_icon name={:status} value={status} />
+                  </div>
+                  <p class="ml-16 truncate text-sm font-medium text-gray-500">
+                    <%= status %>
+                  </p>
+                </dt>
+                <dd class="ml-16 flex items-baseline">
+                  <p class="text-2xl font-medium text-gray-900">
+                    <%= count |> Formatter.format_number() %>
+                  </p>
+                </dd>
+              </.link>
+            <% end %>
           </dl>
         </div>
       </div>
