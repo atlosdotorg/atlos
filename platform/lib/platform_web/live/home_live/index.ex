@@ -25,7 +25,12 @@ defmodule PlatformWeb.HomeLive.Index do
     Material.get_recently_updated_media_paginated(
       Keyword.merge(opts,
         limit: 10,
-        for_user: socket.assigns.current_user
+        for_user: socket.assigns.current_user,
+        restrict_to_user:
+          if(socket.assigns.live_action == :my_activity,
+            do: socket.assigns.current_user,
+            else: nil
+          )
       )
     )
   end

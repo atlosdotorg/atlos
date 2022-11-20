@@ -30,14 +30,17 @@
       <div class="md:w-2/3">
         <div class="border-b border-gray-200 mb-4">
           <nav class="-mb-px flex space-x-8" aria-label="Tabs">
-            <a
-              href="#"
-              class="border-urge-500 text-urge-600 group inline-flex items-center py-2 px-1 border-b-2 font-medium text-sm"
+            <% inactive_classes =
+              "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 group inline-flex items-center py-2 px-1 border-b-2 font-medium text-sm" %>
+            <% active_classes =
+              "border-urge-500 text-urge-600 group inline-flex items-center py-2 px-1 border-b-2 font-medium text-sm" %>
+            <.link
+              patch="/home"
+              class={if @live_action == :all_activity, do: active_classes, else: inactive_classes}
               aria-current="page"
             >
-              <!-- Heroicon name: mini/building-office -->
               <svg
-                class="text-urge-500 group-hover:text-urge-600 -ml-0.5 mr-2 h-5 w-5"
+                class="opacity-[60%] group-hover:opacity-[80%] transition-all -ml-0.5 mr-2 h-5 w-5"
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 20 20"
                 fill="currentColor"
@@ -50,14 +53,14 @@
                 />
               </svg>
               <span>Everything</span>
-            </a>
+            </.link>
 
-            <a
-              href="#"
-              class="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 group inline-flex items-center py-2 px-1 border-b-2 font-medium text-sm"
+            <.link
+              patch="/home/my_activity"
+              class={if @live_action == :my_activity, do: active_classes, else: inactive_classes}
             >
               <svg
-                class="text-gray-400 group-hover:text-gray-500 -ml-0.5 mr-2 h-5 w-5"
+                class="opacity-[60%] group-hover:opacity-[80%] transition-all -ml-0.5 mr-2 h-5 w-5"
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 20 20"
                 fill="currentColor"
@@ -66,7 +69,7 @@
                 <path d="M10 8a3 3 0 100-6 3 3 0 000 6zM3.465 14.493a1.23 1.23 0 00.41 1.412A9.957 9.957 0 0010 18c2.31 0 4.438-.784 6.131-2.1.43-.333.604-.903.408-1.41a7.002 7.002 0 00-13.074.003z" />
               </svg>
               <span>My Activity</span>
-            </a>
+            </.link>
           </nav>
         </div>
         <div class="flex flex-col gap-8">
