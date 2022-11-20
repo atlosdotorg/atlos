@@ -13,19 +13,15 @@
               fill="currentColor"
               class="text-neutral-400 -ml-0.5 mr-2 h-5 w-5"
             >
-              <path
-                fill-rule="evenodd"
-                d="M9.293 2.293a1 1 0 011.414 0l7 7A1 1 0 0117 11h-1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-3a1 1 0 00-1-1H9a1 1 0 00-1 1v3a1 1 0 01-1 1H5a1 1 0 01-1-1v-6H3a1 1 0 01-.707-1.707l7-7z"
-                clip-rule="evenodd"
-              />
+              <path d="M15.98 1.804a1 1 0 00-1.96 0l-.24 1.192a1 1 0 01-.784.785l-1.192.238a1 1 0 000 1.962l1.192.238a1 1 0 01.785.785l.238 1.192a1 1 0 001.962 0l.238-1.192a1 1 0 01.785-.785l1.192-.238a1 1 0 000-1.962l-1.192-.238a1 1 0 01-.785-.785l-.238-1.192zM6.949 5.684a1 1 0 00-1.898 0l-.683 2.051a1 1 0 01-.633.633l-2.051.683a1 1 0 000 1.898l2.051.684a1 1 0 01.633.632l.683 2.051a1 1 0 001.898 0l.683-2.051a1 1 0 01.633-.633l2.051-.683a1 1 0 000-1.898l-2.051-.683a1 1 0 01-.633-.633L6.95 5.684zM13.949 13.684a1 1 0 00-1.898 0l-.184.551a1 1 0 01-.632.633l-.551.183a1 1 0 000 1.898l.551.183a1 1 0 01.633.633l.183.551a1 1 0 001.898 0l.184-.551a1 1 0 01.632-.633l.551-.183a1 1 0 000-1.898l-.551-.184a1 1 0 01-.633-.632l-.183-.551z" />
             </svg>
 
-            <span>Home</span>
+            <span>Quick Access</span>
           </div>
         </nav>
       </div>
       <div class="grid md:grid-cols-4 gap-4">
-        <%= for incident <- @overview_media do %>
+        <%= for incident <- @overview_media |> Enum.take(8) do %>
           <.media_card media={incident} current_user={@current_user} />
         <% end %>
       </div>
@@ -53,7 +49,7 @@
                   clip-rule="evenodd"
                 />
               </svg>
-              <span>All Updates</span>
+              <span>Everything</span>
             </a>
 
             <a
@@ -73,11 +69,11 @@
             </a>
           </nav>
         </div>
-        <div class="flex flex-col gap-16">
+        <div class="flex flex-col gap-8">
           <%= for incident <- @media do %>
-            <div class="w-full">
+            <div class="w-full group">
               <.media_line_preview media={incident} />
-              <ul class="card border border-gray-200 mt-2">
+              <ul class="card shadow border border-gray-200 mt-2">
                 <% len = min(5, length(incident.updates)) %>
                 <%= if length(incident.updates) > 5 do %>
                   <div class="relative group word-breaks">
@@ -88,7 +84,7 @@
                     </span>
                   </div>
                 <% end %>
-                <%= for {update, idx} <- incident.updates |> Enum.reverse() |> Enum.take(5) |> Enum.reverse() |> Enum.with_index() do %>
+                <%= for {update, idx} <- incident.updates |> Enum.sort_by(& &1.inserted_at, NaiveDateTime) |> Enum.take(5) |> Enum.with_index() do %>
                   <.update_entry
                     update={update}
                     show_line={idx != len - 1}
@@ -102,6 +98,12 @@
                   />
                 <% end %>
               </ul>
+              <.link
+                href={"/incidents/#{incident.slug}#comment-box"}
+                class="text-xs text-neutral-500 mt-2 transition-all hover:text-urge-600 font-medium opacity-0 group-hover:opacity-100"
+              >
+                Open incident &rarr;
+              </.link>
             </div>
           <% end %>
           <div class="mx-auto mt-4 mb-8 text-center text-xs">

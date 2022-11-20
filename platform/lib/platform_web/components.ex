@@ -245,14 +245,12 @@ defmodule PlatformWeb.Components do
         >
           <.navlink to="/new" label="New" request_path={@path}>
             <svg
-              class="text-white group-hover:text-white h-6 w-6"
               xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              aria-hidden="true"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+              class="text-neutral-300 group-hover:text-white h-6 w-6"
             >
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+              <path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
             </svg>
           </.navlink>
 
