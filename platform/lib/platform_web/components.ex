@@ -446,23 +446,27 @@ defmodule PlatformWeb.Components do
   def media_line_preview(%{media: %Media{}} = assigns) do
     ~H"""
     <article class="md:flex w-full gap-1 justify-between text-sm items-center max-w-full">
-      <div class="flex-shrink-0">
-        <.media_text class="text-neutral-500" media={@media} />
+      <div class="flex items-center flex-shrink-1">
+        <div class="flex-shrink-0">
+          <.media_text class="text-neutral-500" media={@media} />
+        </div>
+        <.link
+          href={"/incidents/#{@media.slug}"}
+          class="font-medium hover:text-urge-600 transition flex items-center max-w-full gap-2 grow truncate min-w-0"
+        >
+          <span class="truncate"><%= @media.attr_description %></span>
+        </.link>
       </div>
-      <.link
-        href={"/incidents/#{@media.slug}"}
-        class="font-medium hover:text-urge-600 transition flex items-center max-w-full gap-2 grow truncate min-w-0"
-      >
-        <span class="truncate"><%= @media.attr_description %></span>
-      </.link>
-      <.link
-        href={"/incidents/#{@media.slug}"}
-        class="flex items-center text-xs items-center flex-shrink-0 gap-1 overflow-hidden justify-right"
-      >
-        <.media_badges media={@media} />
-      </.link>
-      <div class="flex text-neutral-500 gap-1 flex-shrink-0 items-center">
-        <.user_stack users={Material.contributors(@media)} ring_class="ring-neutral-50" />
+      <div class="flex md:max-w-[20rem] justify-between md:justify-right items-center gap-1">
+        <.link
+          href={"/incidents/#{@media.slug}"}
+          class="flex items-center text-xs items-center flex-shrink-1 gap-1 overflow-auto justify-right"
+        >
+          <.media_badges media={@media} />
+        </.link>
+        <div class="flex text-neutral-500 gap-1 flex-shrink-0 items-center">
+          <.user_stack users={Material.contributors(@media)} ring_class="ring-neutral-50" />
+        </div>
       </div>
     </article>
     """
@@ -1934,7 +1938,7 @@ defmodule PlatformWeb.Components do
 
     ~H"""
     <%= if not is_nil(@media.attr_status) and Map.get(assigns, :show_status, true) do %>
-      <span class={"self-start badge " <> Attribute.attr_color(:status, @media.attr_status)}>
+      <span class={"self-start badge whitespace-nowrap " <> Attribute.attr_color(:status, @media.attr_status)}>
         <svg
           xmlns="http://www.w3.org/2000/svg"
           class="h-3 w-3 mr-px"
@@ -1953,7 +1957,7 @@ defmodule PlatformWeb.Components do
 
     <%= if @sensitive do %>
       <%= for item <- @media.attr_sensitive || [] do %>
-        <span class={"self-start badge " <> Attribute.attr_color(:sensitive, @media.attr_sensitive)}>
+        <span class={"self-start badge whitespace-nowrap " <> Attribute.attr_color(:sensitive, @media.attr_sensitive)}>
           <%= item %>
         </span>
       <% end %>
@@ -1961,37 +1965,37 @@ defmodule PlatformWeb.Components do
 
     <%= for item <- @media.attr_restrictions || [] do %>
       <!-- TODO: make this use Attribute.attr_color/2 -->
-      <span class="self-start badge ~warning">
+      <span class="self-start badge whitespace-nowrap ~warning">
         <%= item %>
       </span>
     <% end %>
 
     <%= if @media.attr_geolocation do %>
-      <span class="self-start badge ~neutral">
+      <span class="self-start badge whitespace-nowrap ~neutral">
         Geolocated
       </span>
     <% end %>
 
     <%= if @media.attr_date do %>
-      <span class="self-start badge ~neutral">
+      <span class="self-start badge whitespace-nowrap ~neutral">
         <%= @media.attr_date |> Calendar.strftime("%d %B %Y") %>
       </span>
     <% end %>
 
     <%= if is_list(@media.attr_type) and not Enum.empty?(@media.attr_type) do %>
-      <span class="self-start badge ~neutral">
+      <span class="self-start badge whitespace-nowrap ~neutral">
         <%= hd(@media.attr_type) %>
       </span>
     <% end %>
 
     <%= if is_list(@media.attr_equipment) and not Enum.empty?(@media.attr_equipment) do %>
-      <span class="self-start badge ~neutral">
+      <span class="self-start badge whitespace-nowrap ~neutral">
         <%= hd(@media.attr_equipment) %>
       </span>
     <% end %>
 
     <%= if is_list(@media.attr_impact) and not Enum.empty?(@media.attr_impact) do %>
-      <span class="self-start badge ~neutral">
+      <span class="self-start badge whitespace-nowrap ~neutral">
         <%= hd(@media.attr_impact) %>
       </span>
     <% end %>

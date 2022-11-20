@@ -104,7 +104,7 @@ defmodule Platform.Material do
 
     _query_media(query, opts)
     # Fallback for null/equal values
-    |> order_by([m, _u], m.id)
+    |> order_by([m], m.id)
     |> Repo.paginate(opts)
   end
 

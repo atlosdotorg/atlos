@@ -19,14 +19,13 @@ defmodule PlatformWeb.HomeLive.Index do
      |> assign(:status_statistics, Material.status_overview_statistics())
      |> assign(:media, results.entries)
      |> assign(:overview_media, get_overview_media(socket))
-     |> assign(:results, results)
+     |> assign(:results, results |> dbg())
      |> assign(:full_width, true)}
   end
 
   defp get_feed_media(socket, opts \\ []) do
     Material.get_recently_updated_media_paginated(
       Keyword.merge(opts,
-        limit: 10,
         for_user: socket.assigns.current_user,
         restrict_to_user:
           if(socket.assigns.live_action == :my_activity,
