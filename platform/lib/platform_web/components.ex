@@ -468,6 +468,33 @@ defmodule PlatformWeb.Components do
     """
   end
 
+  def attribute_icon(assigns) do
+    assigns = assigns |> assign_new(:class, fn -> Map.get(assigns, :class, "h-6 w-6") end)
+
+    ~H"""
+    <%= case @name do %>
+      <% :status -> %>
+        <%= case @value do %>
+          <% "Completed" -> %>
+            <Heroicons.check class={@class} />
+          <% "Ready for Review" -> %>
+            <Heroicons.shield_check class={@class} />
+          <% "In Progress" -> %>
+            <Heroicons.clock class={@class} />
+          <% "Unclaimed" -> %>
+            <Heroicons.flag class={@class} />
+          <% "Cancelled" -> %>
+            <Heroicons.x_mark class={@class} />
+          <% "Help Needed" -> %>
+            <Heroicons.chat_bubble_oval_left_ellipsis class={@class} />
+          <% _ -> %>
+            <Heroicons.flag class={@class} />
+        <% end %>
+      <% _ -> %>
+    <% end %>
+    """
+  end
+
   def update_entry(
         %{
           update: update,

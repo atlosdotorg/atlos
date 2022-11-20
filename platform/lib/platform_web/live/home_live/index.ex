@@ -16,6 +16,7 @@ defmodule PlatformWeb.HomeLive.Index do
      socket
      |> assign(:myself, self())
      |> assign(:pagination_index, 0)
+     |> assign(:status_statistics, Material.status_overview_statistics())
      |> assign(:media, results.entries)
      |> assign(:overview_media, get_overview_media(socket))
      |> assign(:results, results)
