@@ -102,7 +102,7 @@
         </div>
         <div class="flex flex-col gap-8">
           <%= for incident <- @media do %>
-            <div class="w-full group">
+            <div class="w-full max-w-full overflow-hidden group">
               <.media_line_preview media={incident} />
               <ul class="card shadow border border-gray-200 mt-2">
                 <% len = min(5, length(incident.updates)) %>
@@ -115,7 +115,7 @@
                     </span>
                   </div>
                 <% end %>
-                <%= for {update, idx} <- incident.updates |> Enum.sort_by(& &1.inserted_at, NaiveDateTime) |> Enum.take(5) |> Enum.with_index() do %>
+                <%= for {update, idx} <- incident.updates |> Enum.sort_by(& &1.inserted_at, {:desc, NaiveDateTime}) |> Enum.take(5) |> Enum.reverse() |> Enum.with_index() do %>
                   <.update_entry
                     update={update}
                     show_line={idx != len - 1}

@@ -97,8 +97,9 @@ defmodule Platform.Material do
         inner_join: u in assoc(m, :updates),
         on: u.media_id == m.id,
         order_by: [desc: u.inserted_at],
-        preload: [updates: u],
-        select_merge: %{last_update_time: u.inserted_at}
+        preload: [updates: u]
+
+    # select_merge: %{last_update_time: u.inserted_at}
 
     query = if is_nil(user), do: query, else: where(query, [_m, u], u.user_id == ^user.id)
 

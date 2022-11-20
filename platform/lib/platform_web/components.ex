@@ -445,7 +445,7 @@ defmodule PlatformWeb.Components do
 
   def media_line_preview(%{media: %Media{}} = assigns) do
     ~H"""
-    <article class="md:flex w-full gap-1 justify-between text-sm items-center max-w-full">
+    <article class="flex flex-col xl:flex-row w-full gap-1 xl:justify-between text-sm xl:items-center max-w-full">
       <div class="flex items-center flex-shrink-1">
         <div class="flex-shrink-0">
           <.media_text class="text-neutral-500" media={@media} />
@@ -457,16 +457,13 @@ defmodule PlatformWeb.Components do
           <span class="truncate"><%= @media.attr_description %></span>
         </.link>
       </div>
-      <div class="flex md:max-w-[20rem] justify-between md:justify-right items-center gap-1">
+      <div>
         <.link
           href={"/incidents/#{@media.slug}"}
-          class="flex items-center text-xs items-center flex-shrink-1 gap-1 overflow-auto justify-right"
+          class="flex items-center text-xs items-center flex-shrink-1 gap-1 overflow-auto justify-right xl:max-w-[20rem] "
         >
           <.media_badges media={@media} />
         </.link>
-        <div class="flex text-neutral-500 gap-1 flex-shrink-0 items-center">
-          <.user_stack users={Material.contributors(@media)} ring_class="ring-neutral-50" />
-        </div>
       </div>
     </article>
     """
