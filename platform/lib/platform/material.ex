@@ -90,18 +90,24 @@ defmodule Platform.Material do
   Get recently updated media, based on the most recent Update (including comments).
   """
   def get_recently_updated_media_paginated(opts \\ []) do
-    user = Keyword.get(opts, :restrict_to_user, nil)
+    user = Keyword.get(opts, :restrict_to_user)
+
+    filter_user =
+      if not is_nil(user) do
+        dynamic([_m, u], u.user_id == ^user.id)
+      else
+        true
+      end
 
     query =
       from m in Media,
         inner_join: u in assoc(m, :updates),
         on: u.media_id == m.id,
+        preload: [updates: u],
+        select_merge: %{last_update_time: u.inserted_at},
         order_by: [desc: u.inserted_at],
-        preload: [updates: u]
-
-    # select_merge: %{last_update_time: u.inserted_at}
-
-    query = if is_nil(user), do: query, else: where(query, [_m, u], u.user_id == ^user.id)
+        order_by: [desc: m.id],
+        where: ^filter_user
 
     _query_media(query, opts)
     # Fallback for null/equal values
