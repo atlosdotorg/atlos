@@ -54,8 +54,8 @@ defmodule Platform.Material.Media do
     field :urls_parsed, {:array, :string}, virtual: true
 
     # Virtual attributes for population during querying
-    field :has_unread_notification, :boolean, virtual: true
-    field :has_subscription, :boolean, virtual: true
+    field :has_unread_notification, :boolean, virtual: true, default: false
+    field :has_subscription, :boolean, virtual: true, default: false
     field :last_update_time, :utc_datetime, virtual: true
 
     # Metadata
