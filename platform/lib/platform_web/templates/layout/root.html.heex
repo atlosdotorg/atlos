@@ -31,6 +31,13 @@
     <%= if assigns[:iframe_mode] do %>
       <base target="_parent" />
     <% end %>
+    <%= if assigns[:current_user] do %>
+      <style>
+        [data-tag-target="<%= @current_user.username %>"] {
+          background-color: #fde68a !important;
+        }
+      </style>
+    <% end %>
   </head>
   <body>
     <div id="tooltips"></div>
