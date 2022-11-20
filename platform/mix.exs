@@ -72,6 +72,7 @@ defmodule Platform.MixProject do
       {:nimble_totp, "~> 0.2.0"},
       {:memoize, "~> 1.4"},
       {:libcluster, "~> 3.3"},
+      {:heroicons, "~> 0.5.1"},
       {:credo, "~> 1.6", only: [:dev, :test], runtime: false}
     ]
   end

@@ -449,12 +449,18 @@ defmodule PlatformWeb.Components do
       <div class="flex-shrink-0">
         <.media_text class="text-neutral-500" media={@media} />
       </div>
-      <h4 class="font-medium flex items-center max-w-full gap-2 grow truncate min-w-0">
+      <.link
+        href={"/incidents/#{@media.slug}"}
+        class="font-medium hover:text-urge-600 transition flex items-center max-w-full gap-2 grow truncate min-w-0"
+      >
         <span class="truncate"><%= @media.attr_description %></span>
-      </h4>
-      <div class="flex items-center text-xs items-center flex-shrink-0 gap-1 overflow-hidden justify-right">
+      </.link>
+      <.link
+        href={"/incidents/#{@media.slug}"}
+        class="flex items-center text-xs items-center flex-shrink-0 gap-1 overflow-hidden justify-right"
+      >
         <.media_badges media={@media} />
-      </div>
+      </.link>
       <div class="flex text-neutral-500 gap-1 flex-shrink-0 items-center">
         <.user_stack users={Material.contributors(@media)} ring_class="ring-neutral-50" />
       </div>

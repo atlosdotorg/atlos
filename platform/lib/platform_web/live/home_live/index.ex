@@ -1,6 +1,7 @@
 defmodule PlatformWeb.HomeLive.Index do
   use PlatformWeb, :live_view
   alias Platform.Material
+  alias Platform.Accounts
 
   def mount(_params, _session, socket) do
     {:ok,
@@ -69,7 +70,7 @@ defmodule PlatformWeb.HomeLive.Index do
        recently_modified_with_notification ++ recently_modified_subscriptions)
     |> Enum.sort_by(& &1.updated_at, {:desc, NaiveDateTime})
     |> Enum.uniq_by(& &1.id)
-    |> Enum.take(8)
+    |> Enum.take(4)
   end
 
   def handle_event("load_more", _params, socket) do
