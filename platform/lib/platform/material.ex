@@ -106,12 +106,11 @@ defmodule Platform.Material do
         preload: [updates: u],
         select_merge: %{last_update_time: u.inserted_at},
         order_by: [desc: u.inserted_at],
-        order_by: [desc: m.id],
+        order_by: m.id,
+        order_by: u.id,
         where: ^filter_user
 
     _query_media(query, opts)
-    # Fallback for null/equal values
-    |> order_by([m], m.id)
     |> Repo.paginate(opts)
   end
 

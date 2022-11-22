@@ -69,7 +69,7 @@ defmodule PlatformWeb.HomeLive.Index do
 
     (recently_modified_by_user ++
        recently_modified_with_notification ++ recently_modified_subscriptions)
-    |> Enum.sort_by(& &1.updated_at, {:desc, NaiveDateTime})
+    |> Enum.sort_by(& &1.last_update_time, {:desc, NaiveDateTime})
     |> Enum.uniq_by(& &1.id)
     |> Enum.take(4)
   end

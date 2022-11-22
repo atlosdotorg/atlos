@@ -98,7 +98,7 @@
             <div class="w-full max-w-full overflow-hidden group">
               <.media_line_preview media={incident} />
               <ul class="card shadow border border-gray-200 mt-2">
-                <% len = min(5, length(incident.updates)) %>
+                <% len = min(3, length(incident.updates)) %>
                 <%= if length(incident.updates) > 5 do %>
                   <div class="relative group word-breaks">
                     <span
@@ -108,7 +108,7 @@
                     </span>
                   </div>
                 <% end %>
-                <%= for {update, idx} <- incident.updates |> Enum.sort_by(& &1.inserted_at, {:desc, NaiveDateTime}) |> Enum.take(5) |> Enum.reverse() |> Enum.with_index() do %>
+                <%= for {update, idx} <- incident.updates |> Enum.sort_by(& &1.inserted_at, {:desc, NaiveDateTime}) |> Enum.take(3) |> Enum.reverse() |> Enum.with_index() do %>
                   <.update_entry
                     update={update}
                     show_line={idx != len - 1}
