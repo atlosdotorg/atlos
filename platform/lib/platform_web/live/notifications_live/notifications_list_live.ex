@@ -92,7 +92,7 @@ defmodule PlatformWeb.NotificationsLive.NotificationsList do
         <% else %>
           <ul class="flex flex-col overflow-hidden divide-y">
             <%= for notification <- @notifications do %>
-              <div class="block px-2 pb-2 pt-4 -mb-6 flex group relative hover:bg-urge-50 focus-within:bg-urge-50 bg-white">
+              <div class="block px-2 pb-4 pt-4 flex group relative hover:bg-urge-50 focus-within:bg-urge-50 bg-white">
                 <%= if not notification.read do %>
                   <div
                     phx-click="toggle_notification_read"
