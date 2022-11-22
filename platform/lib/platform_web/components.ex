@@ -451,7 +451,7 @@ defmodule PlatformWeb.Components do
       </div>
       <.link
         href={"/incidents/#{@media.slug}"}
-        class="md:hidden flex items-center flex-shrink-0 text-xs items-center flex-shrink-1 gap-1 overflow-auto justify-right"
+        class="md:hidden flex items-center flex-shrink-0 text-xs items-center flex-shrink-1 gap-1 justify-right"
       >
         <.media_badges media={@media} only_status={true} />
       </.link>
@@ -463,7 +463,7 @@ defmodule PlatformWeb.Components do
       </.link>
       <.link
         href={"/incidents/#{@media.slug}"}
-        class="hidden md:block flex items-center flex-shrink-0 text-xs items-center flex-shrink-1 gap-1 overflow-auto justify-right"
+        class="hidden md:block flex items-center flex-shrink-0 text-xs items-center flex-shrink-1 gap-1 justify-right"
       >
         <.media_badges media={@media} only_status={true} />
       </.link>
