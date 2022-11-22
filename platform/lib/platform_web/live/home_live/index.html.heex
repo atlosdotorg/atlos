@@ -97,7 +97,11 @@
           <%= for incident <- @media do %>
             <div class="w-full max-w-full overflow-hidden group">
               <.media_line_preview media={incident} />
-              <ul class="card shadow border border-gray-200 mt-2">
+              <ul
+                class="card shadow border border-gray-200 mt-2 cursor-pointer"
+                x-data
+                x-on:click={"window.location = '/incidents/#{incident.slug}'"}
+              >
                 <% len = min(3, length(incident.updates)) %>
                 <%= if length(incident.updates) > 5 do %>
                   <div class="relative group word-breaks">
@@ -126,7 +130,7 @@
                 href={"/incidents/#{incident.slug}#comment-box"}
                 class="text-xs text-neutral-500 mt-2 transition-all hover:text-urge-600 font-medium opacity-0 group-hover:opacity-100 group-focus-within:opacity-100"
               >
-                Open incident &rarr;
+                <span x-ref="link">Open incident &rarr;</span>
               </.link>
             </div>
           <% end %>
