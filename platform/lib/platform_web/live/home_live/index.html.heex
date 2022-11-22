@@ -85,8 +85,7 @@
               <.media_line_preview media={incident} />
               <ul
                 class="card shadow border border-gray-200 mt-2 cursor-pointer"
-                x-data
-                x-on:click={"window.location = '/incidents/#{incident.slug}'"}
+                onclick={"window.location = '/incidents/#{incident.slug}'"}
               >
                 <% len = min(3, length(incident.updates)) %>
                 <%= if length(incident.updates) > 5 do %>

@@ -87,22 +87,14 @@ defmodule Platform.Material do
   end
 
   @doc """
-  Get recently updated media, based on the most recent Update (including comments). Supports pagination via the `before_date` option.
+  Get recently updated media, based on the most recent Update (including comments). Supports pagination via the `offset` and `limit` options.
   """
   def get_recently_updated_media_paginated(opts \\ []) do
     user = Keyword.get(opts, :restrict_to_user)
-    before_date = Keyword.get(opts, :before_date)
 
     filter_user =
       if not is_nil(user) do
-        dynamic([_m, u], u.user_id == ^user.id)
-      else
-        true
-      end
-
-    filter_date =
-      if not is_nil(before_date) do
-        dynamic([_m, u], u.inserted_at <= ^before_date)
+        dynamic([m, u], u.user_id == ^user.id)
       else
         true
       end
@@ -111,12 +103,12 @@ defmodule Platform.Material do
       Media
       |> join(:left, [m], u in assoc(m, :updates))
       |> where([m, u], ^filter_user)
-      |> where([m, u], ^filter_date)
       |> order_by([m, u], desc: u.inserted_at)
-      |> preload([m, u], most_recent_update: u)
+      |> preload([m, u], updates: u)
       |> select_merge([m, u], %{last_update_time: u.inserted_at})
-      |> order_by(desc: :id)
-      |> limit(10)
+      |> order_by([m, u], desc: m.id)
+      |> limit(^Keyword.get(opts, :limit, 25))
+      |> offset(^Keyword.get(opts, :offset, 0))
 
     _query_media(query, opts)
     |> Repo.all()
@@ -180,7 +172,6 @@ defmodule Platform.Material do
         has_unread_notification: not is_nil(n),
         has_subscription: not is_nil(s)
       },
-      distinct: true,
       where: ^(not Keyword.get(opts, :limit_to_unread_notifications, false)) or not is_nil(n),
       where: ^(not Keyword.get(opts, :limit_to_subscriptions, false)) or not is_nil(s)
   end

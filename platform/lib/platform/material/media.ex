@@ -60,7 +60,6 @@ defmodule Platform.Material.Media do
 
     # Refers to the post date of the most recent associated update -- this is distinct from `updated_at`
     field :last_update_time, :utc_datetime, virtual: true
-    has_one :most_recent_update, Update
 
     # Metadata
     timestamps()

@@ -14,7 +14,7 @@ defmodule PlatformWeb.HomeLive.Index do
      |> assign(:myself, self())
      |> assign(:pagination_index, 0)
      |> assign(:status_statistics, Material.status_overview_statistics())
-     |> assign(:media, get_feed_media(socket))
+     |> assign(:media, get_feed_media(socket, limit: 50))
      |> assign(:additional_results_available, true)
      |> assign(:overview_media, get_overview_media(socket))
      |> assign(:full_width, true)
@@ -90,10 +90,11 @@ defmodule PlatformWeb.HomeLive.Index do
      )}
   end
 
-  def handle_event("load_more", _params, socket) do
-    cursor_after = List.last(socket.assigns.media).inserted_at
+  def handle_event("load_more", _params, socket, depth \\ 10) do
+    results =
+      get_feed_media(socket, offset: 10 * (socket.assigns.pagination_index + 1), limit: 50)
 
-    results = get_feed_media(socket, before_date: cursor_after)
+    old_media = socket.assigns.media
 
     media =
       (socket.assigns.media ++ results)
@@ -107,8 +108,20 @@ defmodule PlatformWeb.HomeLive.Index do
         :media,
         media
       )
-      |> assign(:additional_results_available, length(media) != length(socket.assigns.media))
+      |> assign(
+        :additional_results_available,
+        not Enum.empty?(results) or socket.assigns.pagination_index > 10
+      )
 
-    {:noreply, new_socket}
+    # Automatically recurse up to 10 times to try to get more results
+    if length(old_media) == length(media) do
+      if depth > 0 do
+        handle_event("load_more", %{}, new_socket, depth - 1)
+      else
+        {:noreply, new_socket}
+      end
+    else
+      {:noreply, new_socket}
+    end
   end
 end
