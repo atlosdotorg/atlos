@@ -83,7 +83,7 @@ defmodule PlatformWeb.HomeLive.Index do
     # For the search bar
     {:noreply,
      socket
-     |> push_redirect(
+     |> redirect(
        to:
          Routes.live_path(
            socket,
