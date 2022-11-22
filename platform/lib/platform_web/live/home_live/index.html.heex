@@ -131,7 +131,7 @@
             </div>
           <% end %>
           <div class="mx-auto mt-4 mb-8 text-center text-xs">
-            <%= if !is_nil(@results.metadata.after) do %>
+            <%= if @additional_results_available do %>
               <div
                 phx-hook="InfiniteScroll"
                 id="feed-load-more"

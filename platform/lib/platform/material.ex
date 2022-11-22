@@ -87,10 +87,11 @@ defmodule Platform.Material do
   end
 
   @doc """
-  Get recently updated media, based on the most recent Update (including comments).
+  Get recently updated media, based on the most recent Update (including comments). Supports pagination via the `before_date` option.
   """
   def get_recently_updated_media_paginated(opts \\ []) do
     user = Keyword.get(opts, :restrict_to_user)
+    before_date = Keyword.get(opts, :before_date)
 
     filter_user =
       if not is_nil(user) do
@@ -99,19 +100,26 @@ defmodule Platform.Material do
         true
       end
 
+    filter_date =
+      if not is_nil(before_date) do
+        dynamic([_m, u], u.inserted_at <= ^before_date)
+      else
+        true
+      end
+
     query =
-      from m in Media,
-        inner_join: u in assoc(m, :updates),
-        on: u.media_id == m.id,
-        preload: [updates: u],
-        select_merge: %{last_update_time: u.inserted_at},
-        order_by: [desc: u.inserted_at],
-        order_by: m.id,
-        order_by: u.id,
-        where: ^filter_user
+      Media
+      |> join(:left, [m], u in assoc(m, :updates))
+      |> where([m, u], ^filter_user)
+      |> where([m, u], ^filter_date)
+      |> order_by([m, u], desc: u.inserted_at)
+      |> preload([m, u], most_recent_update: u)
+      |> select_merge([m, u], %{last_update_time: u.inserted_at})
+      |> order_by(desc: :id)
+      |> limit(10)
 
     _query_media(query, opts)
-    |> Repo.paginate(opts)
+    |> Repo.all()
   end
 
   @doc """

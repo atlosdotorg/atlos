@@ -2,6 +2,7 @@ defmodule Platform.Material.Media do
   use Ecto.Schema
   import Ecto.Changeset
   import Ecto.Query
+  alias Ecto.Query.Builder.Update
   alias Platform.Utils
   alias Platform.Material.Attribute
   alias Platform.Material.MediaSubscription
@@ -59,6 +60,7 @@ defmodule Platform.Material.Media do
 
     # Refers to the post date of the most recent associated update -- this is distinct from `updated_at`
     field :last_update_time, :utc_datetime, virtual: true
+    has_one :most_recent_update, Update
 
     # Metadata
     timestamps()

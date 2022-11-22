@@ -1,7 +1,6 @@
 defmodule PlatformWeb.HomeLive.Index do
   use PlatformWeb, :live_view
   alias Platform.Material
-  alias Platform.Accounts
 
   def mount(_params, _session, socket) do
     {:ok,
@@ -10,16 +9,14 @@ defmodule PlatformWeb.HomeLive.Index do
   end
 
   def handle_params(_params, _uri, socket) do
-    results = get_feed_media(socket)
-
     {:noreply,
      socket
      |> assign(:myself, self())
      |> assign(:pagination_index, 0)
      |> assign(:status_statistics, Material.status_overview_statistics())
-     |> assign(:media, results.entries)
+     |> assign(:media, get_feed_media(socket))
+     |> assign(:additional_results_available, true)
      |> assign(:overview_media, get_overview_media(socket))
-     |> assign(:results, results |> dbg())
      |> assign(:full_width, true)
      |> assign(:search_changeset, Material.MediaSearch.changeset())}
   end
@@ -45,7 +42,7 @@ defmodule PlatformWeb.HomeLive.Index do
           restrict_to_user: socket.assigns.current_user,
           for_user: socket.assigns.current_user
         )
-      ).entries
+      )
 
     recently_modified_with_notification =
       Material.get_recently_updated_media_paginated(
@@ -55,7 +52,7 @@ defmodule PlatformWeb.HomeLive.Index do
           for_user: socket.assigns.current_user,
           limit_to_unread_notifications: true
         )
-      ).entries
+      )
 
     recently_modified_subscriptions =
       Material.get_recently_updated_media_paginated(
@@ -65,7 +62,7 @@ defmodule PlatformWeb.HomeLive.Index do
           for_user: socket.assigns.current_user,
           limit_to_subscriptions: true
         )
-      ).entries
+      )
 
     (recently_modified_by_user ++
        recently_modified_with_notification ++ recently_modified_subscriptions)
@@ -94,15 +91,23 @@ defmodule PlatformWeb.HomeLive.Index do
   end
 
   def handle_event("load_more", _params, socket) do
-    cursor_after = socket.assigns.results.metadata.after
+    cursor_after = List.last(socket.assigns.media).inserted_at
 
-    results = get_feed_media(socket, after: cursor_after)
+    results = get_feed_media(socket, before_date: cursor_after)
+
+    media =
+      (socket.assigns.media ++ results)
+      |> Enum.uniq_by(& &1.id)
+      |> Enum.sort_by(& &1.last_update_time, {:desc, NaiveDateTime})
 
     new_socket =
       socket
-      |> assign(:results, results)
       |> assign(:pagination_index, socket.assigns.pagination_index + 1)
-      |> assign(:media, socket.assigns.media ++ results.entries)
+      |> assign(
+        :media,
+        media
+      )
+      |> assign(:additional_results_available, length(media) != length(socket.assigns.media))
 
     {:noreply, new_socket}
   end
