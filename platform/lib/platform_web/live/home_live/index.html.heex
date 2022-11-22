@@ -1,33 +1,26 @@
 <div>
-  <header class="bg-neutral-200 shadow border-b">
-    <div class="mx-auto px-8 max-w-[1280px] pt-12 pb-44">
-      <div class="flex flex-col md:flex-row md:items-center md:justify-between">
-        <div class="flex items-center gap-1">
+  <header class="border-b bg-white">
+    <div class="mx-auto px-8 max-w-[1280px] py-8">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between max-w-full gap-8">
+        <div class="flex items-center gap-1 md:flex-shrink-1">
           <div class="font-medium text-3xl">Dashboard</div>
           <p class="text-neutral-500 text-sm border border-2 border-neutral-500 px-1 py-px rounded">
             Beta
           </p>
         </div>
-        <div class="flex">
-          <.link
-            href={"/profile/#{@current_user.username}"}
-            data-tooltip="Profile"
-            class="flex gap-1 items-center font-medium"
-          >
-            <div class="w-6">
-              <img
-                class="relative z-30 inline-block h-6 w-6 rounded-full"
-                src={Accounts.get_profile_photo_path(@current_user)}
-                alt="Your profile photo"
-              />
-            </div>
-            <span><%= @current_user.username %> &rarr;</span>
-          </.link>
+        <div class="w-full">
+          <.search_form
+            changeset={@search_changeset}
+            exclude={[:display]}
+            query_params={%{display: "cards"}}
+            socket={@socket}
+            display={:cards}
+          />
         </div>
       </div>
     </div>
   </header>
-  <div class="mx-auto px-8 max-w-[1280px] -mt-36">
+  <div class="mx-auto px-8 max-w-[1280px] mt-8">
     <section>
       <div class="mb-2">
         <nav class="mb-px">
@@ -54,7 +47,7 @@
         <% end %>
       </div>
     </section>
-    <section class="flex flex-col-reverse lg:flex-row gap-8 max-w-full mt-24">
+    <section class="flex flex-col-reverse lg:flex-row gap-8 max-w-full mt-14">
       <div class="lg:w-2/3">
         <div class="border-b border-gray-200 mb-4">
           <nav class="-mb-px flex space-x-8" aria-label="Tabs">

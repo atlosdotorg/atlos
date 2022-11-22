@@ -20,7 +20,8 @@ defmodule PlatformWeb.HomeLive.Index do
      |> assign(:media, results.entries)
      |> assign(:overview_media, get_overview_media(socket))
      |> assign(:results, results |> dbg())
-     |> assign(:full_width, true)}
+     |> assign(:full_width, true)
+     |> assign(:search_changeset, Material.MediaSearch.changeset())}
   end
 
   defp get_feed_media(socket, opts \\ []) do
@@ -71,6 +72,25 @@ defmodule PlatformWeb.HomeLive.Index do
     |> Enum.sort_by(& &1.updated_at, {:desc, NaiveDateTime})
     |> Enum.uniq_by(& &1.id)
     |> Enum.take(4)
+  end
+
+  def handle_event("validate", params, socket) do
+    # For the search bar
+    handle_event("save", params, socket)
+  end
+
+  def handle_event("save", %{"search" => params}, socket) do
+    # For the search bar
+    {:noreply,
+     socket
+     |> push_redirect(
+       to:
+         Routes.live_path(
+           socket,
+           PlatformWeb.MediaLive.Index,
+           params |> Map.put("display", "cards")
+         )
+     )}
   end
 
   def handle_event("load_more", _params, socket) do
