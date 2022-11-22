@@ -48,7 +48,6 @@ defmodule PlatformWeb.HomeLive.Index do
       Material.get_recently_updated_media_paginated(
         Keyword.merge(opts,
           limit: 25,
-          restrict_to_user: socket.assigns.current_user,
           for_user: socket.assigns.current_user,
           limit_to_unread_notifications: true
         )
