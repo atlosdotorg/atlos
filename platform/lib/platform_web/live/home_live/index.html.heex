@@ -132,6 +132,13 @@
           </nav>
         </div>
         <div class="flex flex-col gap-8">
+          <%= if Enum.empty?(@media) do %>
+            <div class="text-center mt-8">
+              <Heroicons.archive_box class="mx-auto h-12 w-12 text-gray-400" />
+              <h3 class="mt-2 text-sm font-medium text-gray-900">No activity to display</h3>
+              <p class="mt-1 text-sm text-gray-500">Get started by working on an incident!</p>
+            </div>
+          <% end %>
           <%= for incident <- @media do %>
             <div class="w-full max-w-full overflow-hidden group">
               <.media_line_preview media={incident} />
@@ -199,6 +206,13 @@
         </div>
         <div>
           <dl class="mt-5 grid w-full grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-4">
+            <%= if Enum.empty?(@status_statistics) do %>
+              <div class="text-center mt-8">
+                <Heroicons.chart_pie class="mx-auto h-12 w-12 text-gray-400" />
+                <h3 class="mt-2 text-sm font-medium text-gray-900">No data to display</h3>
+                <p class="mt-1 text-sm text-gray-500">Get started by creating an incident</p>
+              </div>
+            <% end %>
             <%= for {status, count} <- @status_statistics do %>
               <% status_color = Platform.Material.Attribute.attr_color(:status, status) %>
               <.link
