@@ -749,7 +749,7 @@ defmodule PlatformWeb.Components do
                 <% end %>
               </div>
             <% else %>
-              <div class="text-sm flex items-center border-2 border-dashed border-neutral-300 text-neutral-600 p-2 rounded">
+              <div class="text-sm bg-white flex items-center border-2 border-dashed border-neutral-300 text-neutral-600 p-2 rounded">
                 <p>
                   <span class="font-medium text-gray-800">
                     You do not have permission to see this update.
