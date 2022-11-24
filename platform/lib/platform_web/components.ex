@@ -49,7 +49,12 @@ defmodule PlatformWeb.Components do
         phx-target={@target}
       >
         <div
-          class="fixed inset-0 bg-gray-500/75 transition"
+          class="fixed inset-0 bg-gray-500/50 transition opacity-0"
+          phx-mounted={
+            JS.transition({"ease-in duration-75", "opacity-0", "opacity-100"},
+              time: 75
+            )
+          }
           aria-hidden="true"
           x-on:click="window.closeModal($event)"
           phx-target={@target}
@@ -62,14 +67,14 @@ defmodule PlatformWeb.Components do
         </span>
 
         <div
-          class="relative inline-block opacity-0 scale-80 align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-xl sm:w-full sm:p-6"
+          class="relative inline-block opacity-0 scale-75 align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-xl sm:w-full sm:p-6"
           phx-mounted={
             JS.transition({"ease-out duration-75", "opacity-0 scale-75", "opacity-100 scale-100"},
-              time: 50
+              time: 75
             )
           }
           phx-remove={
-            JS.transition({"ease-in duration-75", "opacity-100 scale-100", "opacity-0 scale-75"},
+            JS.transition({"ease-out duration-75", "opacity-100 scale-100", "opacity-0 scale-75"},
               time: 50
             )
           }
