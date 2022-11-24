@@ -4,6 +4,7 @@ defmodule PlatformWeb.Components do
   import Phoenix.View
   import PlatformWeb.ErrorHelpers
 
+  alias Phoenix.LiveView.JS
   alias Platform.Accounts
   alias Platform.Material.Attribute
   alias Platform.Material.Media
@@ -52,6 +53,7 @@ defmodule PlatformWeb.Components do
           aria-hidden="true"
           x-on:click="window.closeModal($event)"
           phx-target={@target}
+          id="modal-overlay"
         >
         </div>
         <!-- This element is to trick the browser into centering the modal contents. -->
@@ -59,7 +61,19 @@ defmodule PlatformWeb.Components do
           &#8203;
         </span>
 
-        <div class="relative inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-xl sm:w-full sm:p-6">
+        <div
+          class="relative inline-block opacity-0 scale-80 align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-xl sm:w-full sm:p-6"
+          phx-mounted={
+            JS.transition({"ease-out duration-75", "opacity-0 scale-75", "opacity-100 scale-100"},
+              time: 50
+            )
+          }
+          phx-remove={
+            JS.transition({"ease-in duration-75", "opacity-100 scale-100", "opacity-0 scale-75"},
+              time: 50
+            )
+          }
+        >
           <div class="hidden sm:block absolute z-50 top-0 right-0 pt-4 pr-4">
             <button
               type="button"
