@@ -909,8 +909,7 @@ defmodule PlatformWeb.Components do
   def attr_display_compact(
         %{
           attr: %Attribute{} = attr,
-          media: %Media{} = media,
-          current_user: current_user
+          media: %Media{} = media
         } = assigns
       ) do
     children = Attribute.get_children(attr.name)
@@ -919,7 +918,7 @@ defmodule PlatformWeb.Components do
     <div class="inline">
       <%= if not is_nil(Map.get(media, attr.schema_field)) and Map.get(media, attr.schema_field) != [] and Map.get(media, attr.schema_field) != "" do %>
         <div class="inline-flex flex-wrap text-xs">
-          <div class="break-word max-w-full text-ellipsis overflow-hidden">
+          <div class="break-word max-w-full text-ellipsis">
             <.attr_entry
               color={true}
               compact={Map.get(assigns, :truncate, true)}
@@ -1056,7 +1055,7 @@ defmodule PlatformWeb.Components do
       if Map.get(assigns, :color, false), do: Attribute.attr_color(name, value), else: "~neutral"
 
     ~H"""
-    <span class="inline-flex flex-wrap gap-1 max-w-full">
+    <span class={"inline-flex gap-1 max-w-full " <> (if compact, do: "", else: "flex-wrap")}>
       <%= case attr.type do %>
         <% :text -> %>
           <%= if compact do %>
@@ -1523,18 +1522,23 @@ defmodule PlatformWeb.Components do
     <% is_subscribed = @media.has_subscription %>
     <% has_unread_notification = @media.has_unread_notification %>
     <tr
-      class="search-highlighting bg-white group hover:bg-neutral-50 transition-all"
+      class={"search-highlighting group hover:bg-neutral-50 transition-all " <> (if Media.is_sensitive(@media), do: "bg-red-50", else: "bg-white")}
       id={"table-row-" <> @media.slug}
     >
       <td
         id={"table-row-" <> @media.slug <> "-slug"}
-        class="md:sticky left-0 z-[100] pl-4 pr-1 border-r font-mono whitespace-nowrap border-b border-gray-200 h-10 bg-white group-hover:bg-neutral-50 transition-all"
+        class={"md:sticky left-0 z-[100] pl-4 pr-1 border-r font-mono whitespace-nowrap border-b border-gray-200 h-10 group-hover:bg-neutral-50 transition-all " <> (if Media.is_sensitive(@media), do: "bg-red-50", else: "bg-white")}
       >
         <.link
           href={"/incidents/#{@media.slug}"}
           class="text-button text-sm flex items-center gap-1 mr-px"
         >
           <%= @media.slug %>
+          <%!-- <%= if Media.is_sensitive(@media) do %>
+            <span data-tooltip="Incident is sensitive" class="text-critical-400">
+              <Heroicons.shield_exclamation mini class="h-4 w-4" />
+            </span>
+          <% end %> --%>
           <%= if is_subscribed do %>
             <span data-tooltip="You are subscribed" class="text-neutral-400">
               <svg
@@ -1594,7 +1598,7 @@ defmodule PlatformWeb.Components do
         >
           <div class="text-sm text-gray-900 px-4 overflow-hidden h-6 max-w-[36rem] truncate">
             <.popover class="font-base p-0 inline">
-              <.link href={"/incidents/#{@media.slug}"} class="truncate inline">
+              <.link href={"/incidents/#{@media.slug}"} class="inline">
                 <.attr_display_compact
                   color={true}
                   truncate={true}
