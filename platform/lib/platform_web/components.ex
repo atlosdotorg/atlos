@@ -1522,23 +1522,23 @@ defmodule PlatformWeb.Components do
     <% is_subscribed = @media.has_subscription %>
     <% has_unread_notification = @media.has_unread_notification %>
     <tr
-      class={"search-highlighting group hover:bg-neutral-50 transition-all " <> (if Media.is_sensitive(@media), do: "bg-red-50", else: "bg-white")}
+      class="search-highlighting group hover:bg-neutral-50 transition-all"
       id={"table-row-" <> @media.slug}
     >
       <td
         id={"table-row-" <> @media.slug <> "-slug"}
-        class={"md:sticky left-0 z-[100] pl-4 pr-1 border-r font-mono whitespace-nowrap border-b border-gray-200 h-10 group-hover:bg-neutral-50 transition-all " <> (if Media.is_sensitive(@media), do: "bg-red-50", else: "bg-white")}
+        class="md:sticky left-0 z-[100] pl-4 pr-1 border-r font-mono whitespace-nowrap border-b border-gray-200 h-10 group-hover:bg-neutral-50 transition-all"
       >
         <.link
           href={"/incidents/#{@media.slug}"}
           class="text-button text-sm flex items-center gap-1 mr-px"
         >
           <%= @media.slug %>
-          <%!-- <%= if Media.is_sensitive(@media) do %>
+          <%= if Media.is_sensitive(@media) do %>
             <span data-tooltip="Incident is sensitive" class="text-critical-400">
               <Heroicons.shield_exclamation mini class="h-4 w-4" />
             </span>
-          <% end %> --%>
+          <% end %>
           <%= if is_subscribed do %>
             <span data-tooltip="You are subscribed" class="text-neutral-400">
               <svg
