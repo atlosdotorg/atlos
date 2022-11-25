@@ -31,10 +31,10 @@ defmodule PlatformWeb.UserSessionControllerTest do
       assert get_session(conn, :user_token)
       assert redirected_to(conn) == "/"
 
-      # Now do a logged in request and verify they are redirected to /map
+      # Now do a logged in request and verify they are redirected to /incidents
       conn = get(conn, "/")
       response = html_response(conn, 302)
-      assert response =~ "/home"
+      assert response =~ "/incidents"
     end
 
     test "logs the user in with return to", %{conn: conn, user: user} do
