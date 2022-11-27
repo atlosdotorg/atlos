@@ -491,26 +491,29 @@ defmodule PlatformWeb.Components do
   end
 
   def attribute_icon(assigns) do
-    assigns = assigns |> assign_new(:class, fn -> Map.get(assigns, :class, "h-6 w-6") end)
+    assigns =
+      assigns
+      |> assign_new(:class, fn -> Map.get(assigns, :class, "h-6 w-6") end)
+      |> assign_new(:type, fn -> :outline end)
 
     ~H"""
     <%= case @name do %>
       <% :status -> %>
         <%= case @value do %>
           <% "Completed" -> %>
-            <Heroicons.check class={@class} />
+            <Heroicons.check {%{@type => true}} class={@class} />
           <% "Ready for Review" -> %>
-            <Heroicons.shield_check class={@class} />
+            <Heroicons.shield_check {%{@type => true}} class={@class} />
           <% "In Progress" -> %>
-            <Heroicons.clock class={@class} />
+            <Heroicons.clock {%{@type => true}} class={@class} />
           <% "Unclaimed" -> %>
-            <Heroicons.flag class={@class} />
+            <Heroicons.flag {%{@type => true}} class={@class} />
           <% "Cancelled" -> %>
-            <Heroicons.x_mark class={@class} />
+            <Heroicons.x_mark {%{@type => true}} class={@class} />
           <% "Help Needed" -> %>
-            <Heroicons.chat_bubble_oval_left_ellipsis class={@class} />
+            <Heroicons.chat_bubble_oval_left_ellipsis {%{@type => true}} class={@class} />
           <% _ -> %>
-            <Heroicons.flag class={@class} />
+            <Heroicons.flag {%{@type => true}} class={@class} />
         <% end %>
       <% _ -> %>
     <% end %>
@@ -995,11 +998,12 @@ defmodule PlatformWeb.Components do
       <dd class="mt-1 flex items-center text-sm text-gray-900 sm:mt-0 sm:col-span-2">
         <span class="flex-grow gap-1 flex flex-wrap">
           <%= if not is_nil(Map.get(media, attr.schema_field)) do %>
-            <.attr_entry name={attr.name} value={Map.get(media, attr.schema_field)} />
+            <.attr_entry name={attr.name} color={true} value={Map.get(media, attr.schema_field)} />
             <%= for child <- children do %>
               <%= if not is_nil(Map.get(media, child.schema_field)) do %>
                 <.attr_entry
                   name={child.name}
+                  color={true}
                   value={Map.get(media, child.schema_field)}
                   label={child.label}
                 />
@@ -1079,16 +1083,18 @@ defmodule PlatformWeb.Components do
           <% end %>
         <% :select -> %>
           <div class="inline-block">
-            <div class={"chip #{tone} inline-block self-start break-all xl:break-normal"}>
+            <div class={"chip #{tone} flex items-center gap-1 inline-block self-start break-all xl:break-normal"}>
+              <.attribute_icon name={@name} type={:solid} value={@value} class="h-3 w-3" />
               <.attr_label label={label} />
-              <%= value %>
+              <span><%= value %></span>
             </div>
           </div>
         <% :multi_select -> %>
           <.attr_label label={label} />
           <%= for item <- (if compact, do: value |> Enum.take(1), else: value) do %>
-            <div class={"chip #{tone} inline-block self-start break-all xl:break-normal"}>
-              <%= item %>
+            <div class={"chip #{tone} flex items-center gap-1 inline-block self-start break-all xl:break-normal"}>
+              <.attribute_icon name={@name} type={:solid} value={@value} class="h-3 w-3" />
+              <span><%= item %></span>
             </div>
             <%= if compact and length(value) > 1 do %>
               <div class="text-xs mt-1 text-neutral-500">
@@ -1100,24 +1106,27 @@ defmodule PlatformWeb.Components do
           <div class="inline-block">
             <% {lon, lat} = value.coordinates %>
             <a
-              class={"chip #{tone} inline-block flex gap-1 self-start break-all xl:break-normal"}
+              class={"chip #{tone} inline-block flex gap-1 items-center self-start break-all xl:break-normal"}
               target="_blank"
               href={"https://maps.google.com/maps?q=#{lat},#{lon}"}
             >
+              <.attribute_icon name={@name} type={:solid} value={@value} class="h-3 w-3" />
               <.attr_label label={label} />
               <.location lat={lat} lon={lon} />
             </a>
           </div>
         <% :time -> %>
           <div class="inline-block">
-            <div class={"chip #{tone} inline-block self-start break-all xl:break-normal"}>
+            <div class={"chip #{tone} flex items-center gap-1 inline-block self-start break-all xl:break-normal"}>
+              <.attribute_icon name={@name} type={:solid} value={@value} class="h-3 w-3" />
               <.attr_label label={label} />
               <%= value %>
             </div>
           </div>
         <% :date -> %>
           <div class="inline-block">
-            <div class={"chip #{tone} inline-block self-start break-all xl:break-normal"}>
+            <div class={"chip #{tone} flex items-center gap-1 inline-block self-start break-all xl:break-normal"}>
+              <.attribute_icon name={@name} type={:solid} value={@value} class="h-3 w-3" />
               <.attr_label label={label} />
               <%= value |> Calendar.strftime("%d %B %Y") %>
             </div>
