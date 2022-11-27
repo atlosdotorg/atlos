@@ -2296,6 +2296,9 @@ defmodule PlatformWeb.Components do
       <% thumbnail = Material.media_version_location(@version, @media, :thumb) %>
       <% media_id = "version-#{@version.id}-media" %>
       <div class="relative">
+        <span class="font-mono text-sm">
+          <%= Material.get_human_readable_media_version_name(@media, @version) %>
+        </span>
         <%= if @media_to_show do %>
           <div id={media_id} x-bind:class="hidden ? 'min-h-[10rem] invisible' : 'min-h-[10rem]'">
             <div x-bind:class="grayscale ? 'grayscale' : ''">
@@ -2404,11 +2407,7 @@ defmodule PlatformWeb.Components do
                 data-confirm="This link will open an external site in a new tab. Are you sure?"
               >
                 <.url_icon url={@version.source_url} class="mx-auto h-10 w-10 shadow-sm" />
-                <% display =
-                  if String.length(@version.source_url) > 50,
-                    do: String.slice(@version.source_url, 0..50) <> "...",
-                    else: @version.source_url %>
-                <h3 class="mt-2 break-all font-medium text-gray-900 text-sm"><%= display %></h3>
+                <h3 class="mt-2 break-all font-medium text-gray-900 text-sm">External Media</h3>
                 <span class="button mt-1 original py-1 px-2 text-xs">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -2431,9 +2430,14 @@ defmodule PlatformWeb.Components do
           <%= if @version.status != :error do %>
             <.url_icon url={@version.source_url} class="h-6" />
           <% end %>
-          <span class="font-mono">
-            <%= Material.get_human_readable_media_version_name(@media, @version) %>
-          </span>
+          <a
+            class="text-neutral-600 truncate"
+            href={@version.source_url}
+            target="_blank"
+            data-confirm="This link will open an external site in a new tab. Are you sure?"
+          >
+            <%= @version.source_url %>
+          </a>
           <%= if @version.upload_type == :user_provided do %>
             <span class="badge ~neutral self-start">User Upload</span>
           <% end %>
