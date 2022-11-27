@@ -2440,8 +2440,8 @@ defmodule PlatformWeb.Components do
           </div>
         <% end %>
       </div>
-      <div class="flex gap-1 mt-1 text-sm max-w-full flex-wrap items-center justify-between">
-        <span class="flex items-center gap-2 flex-wrap">
+      <div class="flex gap-1 mt-1 text-sm max-w-full items-center justify-between">
+        <span class="flex items-center gap-2 overflow-hidden">
           <%= if @version.status != :error do %>
             <.url_icon url={@version.source_url} class="h-6" />
           <% end %>
