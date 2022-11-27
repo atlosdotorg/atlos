@@ -496,6 +496,8 @@ defmodule PlatformWeb.Components do
       |> assign_new(:class, fn -> Map.get(assigns, :class, "h-6 w-6") end)
       |> assign_new(:type, fn -> :outline end)
 
+    # Note that this function assumes that @value is the value of each individual value in multi-selects, and not the value of the overall multiselect
+
     ~H"""
     <%= case @name do %>
       <% :status -> %>
@@ -516,8 +518,9 @@ defmodule PlatformWeb.Components do
             <Heroicons.flag {%{@type => true}} class={@class} />
         <% end %>
       <% :sensitive -> %>
-        <%= case @value do %>
+        <%= case @value |> dbg() do %>
           <% "Not Sensitive" -> %>
+            <span></span>
           <% _ -> %>
             <Heroicons.shield_exclamation {%{@type => true}} class={@class} />
         <% end %>
@@ -1099,7 +1102,7 @@ defmodule PlatformWeb.Components do
           <.attr_label label={label} />
           <%= for item <- (if compact, do: value |> Enum.take(1), else: value) do %>
             <div class={"chip #{tone} flex items-center gap-1 inline-block self-start break-all xl:break-normal"}>
-              <.attribute_icon name={@name} type={:solid} value={@value} class="h-4 w-4" />
+              <.attribute_icon name={@name} type={:solid} value={item} class="h-4 w-4" />
               <span><%= item %></span>
             </div>
             <%= if compact and length(value) > 1 do %>
