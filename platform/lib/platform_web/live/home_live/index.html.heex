@@ -41,6 +41,7 @@
             aria-labelledby="menu-button"
             x-show="open"
             x-transition
+            x-cloak
           >
             <div class="py-1" role="none">
               <.link
@@ -53,7 +54,7 @@
                 href="/settings"
                 class="text-gray-700 px-2 py-2 text-sm flex items-center gap-2 hover:bg-gray-100 w-full"
               >
-                <Heroicons.cog_6_tooth mini class="h-5 w-5 text-neutral-500" /> Settings
+                <Heroicons.cog_6_tooth mini class="h-5 w-5 text-neutral-500" /> Manage Account
               </.link>
               <%= link(
                 to: Routes.user_session_path(@socket, :delete),
