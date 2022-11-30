@@ -2317,10 +2317,10 @@ defmodule PlatformWeb.Components do
       <% loc = Material.media_version_location(@version, @media) %>
       <% thumbnail = Material.media_version_location(@version, @media, :thumb) %>
       <% media_id = "version-#{@version.id}-media" %>
+      <span class="font-mono text-sm">
+        <%= Material.get_human_readable_media_version_name(@media, @version) %>
+      </span>
       <div class="relative">
-        <span class="font-mono text-sm">
-          <%= Material.get_human_readable_media_version_name(@media, @version) %>
-        </span>
         <%= if @media_to_show do %>
           <div id={media_id} x-bind:class="hidden ? 'min-h-[10rem] invisible' : 'min-h-[10rem]'">
             <div x-bind:class="grayscale ? 'grayscale' : ''">
@@ -2461,7 +2461,7 @@ defmodule PlatformWeb.Components do
             <%= @version.source_url %>
           </a>
           <%= if @version.upload_type == :user_provided do %>
-            <span class="badge ~neutral self-start">User Upload</span>
+            <span class="badge ~neutral self-start shrink-0">User Upload</span>
           <% end %>
           <%= if @version.status == :error and @show_controls do %>
             <div
