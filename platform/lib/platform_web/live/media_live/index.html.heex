@@ -77,20 +77,14 @@
                       <tr>
                         <th
                           scope="col"
-                          class="md:sticky left-0 z-[101] top-0 border-b border-t border-neutral-200 bg-neutral-100 px-4 py-4 font-medium text-sm text-left"
+                          class="md:sticky left-0 z-[101] top-0 border-b border-t border-neutral-200 bg-neutral-100 px-2 py-4 font-medium text-sm text-left"
                         >
-                          ID
-                        </th>
-                        <th
-                          scope="col"
-                          class="md:sticky z-[100] top-0 border-b border-t border-neutral-200 bg-neutral-100 bg-opacity-[95%] px-4 py-4 font-medium text-sm text-left"
-                        >
-                          Updated
+                          Incident
                         </th>
                         <%= for attr <- @attributes do %>
                           <th
                             scope="col"
-                            class="md:sticky z-[100] top-0 border-b border-t border-neutral-200 bg-neutral-100 bg-opacity-[95%] px-4 py-4 font-medium text-sm text-left"
+                            class="md:sticky z-[100] top-0 border-b border-t border-neutral-200 bg-neutral-100 bg-opacity-[95%] px-2 py-4 font-medium text-sm text-left"
                           >
                             <%= attr.label %>
                           </th>

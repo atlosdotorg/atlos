@@ -83,6 +83,15 @@ defmodule Platform.Material.Attribute do
         name: :description
       },
       %Attribute{
+        schema_field: :attr_date,
+        type: :date,
+        label: "Date",
+        pane: :attributes,
+        required: false,
+        name: :date,
+        description: "On what date did the incident take place?"
+      },
+      %Attribute{
         schema_field: :attr_tags,
         type: :multi_select,
         label: "Tags",
@@ -370,15 +379,6 @@ defmodule Platform.Material.Attribute do
         name: :time_recorded,
         deprecated: true,
         description: "What time of day was the incident? Use the local timezone, if possible."
-      },
-      %Attribute{
-        schema_field: :attr_date,
-        type: :date,
-        label: "Date",
-        pane: :attributes,
-        required: false,
-        name: :date,
-        description: "On what date did the incident take place?"
       },
       %Attribute{
         schema_field: :attr_restrictions,

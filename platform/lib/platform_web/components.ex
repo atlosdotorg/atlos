@@ -1551,6 +1551,16 @@ defmodule PlatformWeb.Components do
           href={"/incidents/#{@media.slug}"}
           class="text-button text-sm flex items-center gap-1 mr-px"
         >
+          <div
+            class="flex-shrink-0 w-5 mr-1"
+            data-tooltip={"Last modified by #{List.last(@media.updates).user.username}"}
+          >
+            <.user_stack
+              users={@media.updates |> Enum.take(1) |> Enum.map(& &1.user)}
+              dynamic={false}
+              ring_class="ring-transparent"
+            />
+          </div>
           <%= @media.slug %>
           <%= if is_sensitive do %>
             <span data-tooltip="Incident is sensitive" class="text-critical-400">
@@ -1592,21 +1602,6 @@ defmodule PlatformWeb.Components do
               </span>
             </span>
           <% end %>
-        </.link>
-      </td>
-      <td
-        id={"table-row-" <> @media.slug <> "-updated"}
-        class="border-b cursor-pointer p-0 text-sm text-neutral-600"
-      >
-        <.link href={"/incidents/#{@media.slug}"}>
-          <div class="mx-2 flex w-[7rem] relative z-0 items-center">
-            <div class="flex-shrink-0 w-5 mr-1">
-              <.user_stack users={@media.updates |> Enum.take(1) |> Enum.map(& &1.user)} />
-            </div>
-            <div class="flex-shrink-0">
-              <.rel_time time={@media.updated_at} />
-            </div>
-          </div>
         </.link>
       </td>
       <%= for attr <- @attributes do %>
@@ -2236,20 +2231,29 @@ defmodule PlatformWeb.Components do
 
   def user_stack(assigns) do
     max = Map.get(assigns, :max, 5)
+    assigns = assign_new(assigns, :dynamic, fn -> true end)
 
     ~H"""
     <div class="flex -space-x-1 relative z-0 items-center">
       <%= for user <- @users |> Enum.take(5) do %>
-        <.popover class="inline">
+        <%= if @dynamic do %>
+          <.popover class="inline">
+            <img
+              class={"relative z-30 inline-block h-5 w-5 rounded-full ring-2 " <> Map.get(assigns, :ring_class, "ring-white")}
+              src={Accounts.get_profile_photo_path(user)}
+              alt={"Profile photo for #{user.username}"}
+            />
+            <:display>
+              <.user_card user={user} />
+            </:display>
+          </.popover>
+        <% else %>
           <img
             class={"relative z-30 inline-block h-5 w-5 rounded-full ring-2 " <> Map.get(assigns, :ring_class, "ring-white")}
             src={Accounts.get_profile_photo_path(user)}
             alt={"Profile photo for #{user.username}"}
           />
-          <:display>
-            <.user_card user={user} />
-          </:display>
-        </.popover>
+        <% end %>
       <% end %>
       <%= if length(@users) > max do %>
         <div class={"bg-gray-300 text-gray-700 text-xl rounded-full mt-1 h-5 w-5 z-30 ring-2 flex items-center justify-center"  <> Map.get(assigns, :ring_class, "ring-white")}>
