@@ -1006,12 +1006,12 @@ defmodule PlatformWeb.Components do
       <dd class="mt-1 flex items-center text-sm text-gray-900 sm:mt-0 sm:col-span-2">
         <span class="flex-grow gap-1 flex flex-wrap">
           <%= if not is_nil(Map.get(media, attr.schema_field)) do %>
-            <.attr_entry name={attr.name} color={true} value={Map.get(media, attr.schema_field)} />
+            <.attr_entry name={attr.name} color={false} value={Map.get(media, attr.schema_field)} />
             <%= for child <- children do %>
               <%= if not is_nil(Map.get(media, child.schema_field)) do %>
                 <.attr_entry
                   name={child.name}
-                  color={true}
+                  color={false}
                   value={Map.get(media, child.schema_field)}
                   label={child.label}
                 />
