@@ -1540,12 +1540,12 @@ defmodule PlatformWeb.Components do
     <% has_unread_notification = @media.has_unread_notification %>
     <% is_sensitive = Material.Media.is_sensitive(@media) %>
     <tr
-      class={"search-highlighting group hover:bg-neutral-50 transition-all " <> if is_sensitive, do: "bg-red-50", else: "bg-white"}
+      class={"search-highlighting group transition-all " <> if is_sensitive, do: "bg-red-50", else: "bg-white hover:bg-neutral-50 "}
       id={"table-row-" <> @media.slug}
     >
       <td
         id={"table-row-" <> @media.slug <> "-slug"}
-        class={"md:sticky left-0 z-[100] pl-4 pr-1 border-r font-mono whitespace-nowrap border-b border-gray-200 h-10 group-hover:bg-neutral-50 transition-all " <> if is_sensitive, do: "bg-red-50", else: "bg-white"}
+        class={"md:sticky left-0 z-[100] pl-4 pr-1 border-r font-mono whitespace-nowrap border-b border-gray-200 h-10 transition-all " <> if is_sensitive, do: "bg-red-50", else: "bg-white group-hover:bg-neutral-50 "}
       >
         <.link
           href={"/incidents/#{@media.slug}"}
