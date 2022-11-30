@@ -20,6 +20,7 @@ defmodule Platform.Material.Media do
     field :attr_geolocation, Geo.PostGIS.Geometry
     field :attr_geolocation_resolution, :string
     field :attr_more_info, :string
+    field :attr_general_location, :string
     field :attr_date, :date
     field :attr_type, {:array, :string}
     field :attr_impact, {:array, :string}

@@ -92,6 +92,16 @@ defmodule Platform.Material.Attribute do
         description: "On what date did the incident take place?"
       },
       %Attribute{
+        schema_field: :attr_general_location,
+        type: :text,
+        max_length: 240,
+        min_length: 2,
+        label: "Reported Near",
+        pane: :attributes,
+        required: false,
+        name: :general_location
+      },
+      %Attribute{
         schema_field: :attr_tags,
         type: :multi_select,
         label: "Tags",
