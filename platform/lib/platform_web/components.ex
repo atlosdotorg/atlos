@@ -518,7 +518,7 @@ defmodule PlatformWeb.Components do
             <Heroicons.flag {%{@type => true}} class={@class} />
         <% end %>
       <% :sensitive -> %>
-        <%= case @value |> dbg() do %>
+        <%= case @value do %>
           <% "Not Sensitive" -> %>
           <% _ -> %>
             <Heroicons.shield_exclamation {%{@type => true}} class={@class} />
