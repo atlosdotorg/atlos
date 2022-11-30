@@ -17,6 +17,8 @@ defmodule Platform.Material.Attribute do
     :max_length,
     :min_length,
     :pane,
+    # Allows :text to be input as :short_text or :textarea (default)
+    :input_type,
     :required,
     :custom_validation,
     :name,
@@ -94,6 +96,7 @@ defmodule Platform.Material.Attribute do
       %Attribute{
         schema_field: :attr_general_location,
         type: :text,
+        input_type: :short_text,
         max_length: 240,
         min_length: 2,
         label: "Reported Near",

@@ -2760,7 +2760,12 @@ defmodule PlatformWeb.Components do
       <%= case @attr.type do %>
         <% :text -> %>
           <%= label(@f, @attr.schema_field, @label) %>
-          <%= textarea(@f, @attr.schema_field, rows: 3) %>
+          <%= case @attr.input_type || :textarea do %>
+            <% :textarea -> %>
+              <%= textarea(@f, @attr.schema_field, rows: 3) %>
+            <% :short_text -> %>
+              <%= text_input(@f, @attr.schema_field) %>
+          <% end %>
           <%= error_tag(@f, @attr.schema_field) %>
         <% :select -> %>
           <%= label(@f, @attr.schema_field, @label) %>
