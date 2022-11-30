@@ -208,6 +208,16 @@ defmodule PlatformWeb.NewLive.BasicInfoLive do
                 />
               </div>
 
+              <div>
+                <.edit_attribute
+                  attr={Attribute.get_attribute(:general_location)}
+                  form={f}
+                  media_slug="NEW"
+                  media={nil}
+                  optional={true}
+                />
+              </div>
+
               <%= if Accounts.is_privileged(@current_user) do %>
                 <div>
                   <.edit_attribute

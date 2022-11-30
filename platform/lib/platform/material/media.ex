@@ -82,6 +82,7 @@ defmodule Platform.Material.Media do
       :attr_equipment,
       :attr_impact,
       :attr_date,
+      :attr_general_location,
       :deleted,
       :urls
     ])
@@ -93,6 +94,7 @@ defmodule Platform.Material.Media do
     |> Attribute.validate_attribute(Attribute.get_attribute(:equipment), user, false)
     |> Attribute.validate_attribute(Attribute.get_attribute(:impact), user, false)
     |> Attribute.validate_attribute(Attribute.get_attribute(:date), user, false)
+    |> Attribute.validate_attribute(Attribute.get_attribute(:general_location), user, false)
     |> parse_and_validate_validate_json_array(:urls, :urls_parsed)
     |> validate_url_list(:urls_parsed)
     |> then(fn cs ->
