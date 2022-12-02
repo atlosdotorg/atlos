@@ -24,7 +24,6 @@ Ready to run in production? Please [check our deployment guides](https://hexdocs
 - `HCAPTCHA_SECRET` — hCaptcha secret
 - `ENABLE_CAPTCHAS` — captchas are _checked_ if `true` (default false for development)
 - `WATERMARK_FONT_PATH` — path to the font to use in watermarks
-- `RULES_LINK` — link to use for the rules (note that the ToS are not configurable)
 - `INSTANCE_NAME` — user-facing instance name (appears in footer and below logo; not shown if empty)
 - `SPN_ARCHIVE_API_KEY` — API key for the Internet Archive [SPN API](https://docs.google.com/document/d/1Nsv52MvSjbLb2PCpHlat0gkzw0EvtSgpKHu4mk0MnrA/edit#) (if provided, Atlos will submit all links to the Internet Archive for persistent archival; key expected in the form `myaccesskey:mysecret`)
 - `COMMUNITY_DISCORD_LINK` — link to the community Discord server (shown in onboarding and in Settings)

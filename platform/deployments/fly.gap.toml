@@ -15,7 +15,6 @@ processes = []
   APPSIGNAL_APP_ENV = "prod-bellingcat"
   ENVIRONMENT = "prod-bellingcat"
   ENABLE_CAPTCHAS = "true"
-  RULES_LINK = "https://bit.ly/3AKpytQ"
   INSTANCE_NAME = "GAP"
   ATTRIBUTE_OPTIONS = """
     {

@@ -6,8 +6,7 @@ defmodule PlatformWeb.MediaLive.GroupedMediaList do
     [
       {"Unclaimed", "/queue/unclaimed", %{"attr_status" => "Unclaimed"}},
       {"In Progress", "/queue/in_progress", %{"attr_status" => "In Progress"}},
-      {"Help Needed", "/queue/help_needed", %{"attr_status" => "Help Needed"}},
-      {"Needs Upload", "/queue/needs_upload", %{"no_media_versions" => true}}
+      {"Help Needed", "/queue/help_needed", %{"attr_status" => "Help Needed"}}
     ] ++
       if Platform.Accounts.is_privileged(user),
         do: [{"Ready for Review", "/queue/review", %{"attr_status" => "Ready for Review"}}],

@@ -81,6 +81,18 @@
           <.security_mode_notifications />
         </div>
       </div>
+      <.floating_bottom>
+        <div
+          id="connection_status"
+          class="hidden"
+          phx-disconnected={Phoenix.LiveView.JS.show()}
+          phx-connected={Phoenix.LiveView.JS.hide()}
+        >
+          <.floating_warning>
+            Temporary connection loss. Trying to reconnect...
+          </.floating_warning>
+        </div>
+      </.floating_bottom>
     </div>
   </div>
 </main>

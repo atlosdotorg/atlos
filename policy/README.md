@@ -5,5 +5,4 @@ This directory contains Atlos' policy documents. By using any official version o
 ### Documents
 
 - [Atlos Terms of Use](TERMS_OF_USE.md)
-- [Atlos Rules](RULES.md)
 - [Atlos Researcher Resilience](RESILIENCE.md)

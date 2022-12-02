@@ -1,0 +1,248 @@
+<div>
+  <header class="border-b bg-white">
+    <div class="mx-auto px-8 max-w-[1280px] py-6">
+      <div class="flex items-center gap-8">
+        <div class="font-medium text-2xl">Dashboard</div>
+        <div class="grow">
+          <.search_form
+            changeset={@search_changeset}
+            exclude={[:display, :sort]}
+            query_params={%{display: "cards"}}
+            socket={@socket}
+            display={:cards}
+          />
+        </div>
+        <div class="relative inline-block text-left" x-data="{open: false}">
+          <div>
+            <button
+              type="button"
+              class="font-medium block p-2 flex gap-1 items-center transition text-neutral-600 hover:text-neutral-900 focus:text-neutral-900"
+              aria-expanded="true"
+              aria-haspopup="true"
+              x-on:click.prevent="open = !open"
+              x-on:click.outside="open = false"
+            >
+              <img
+                class="relative z-30 inline-block h-5 w-5 rounded-full mr-px"
+                src={Platform.Accounts.get_profile_photo_path(@current_user)}
+                title="Your profile photo"
+                alt={"Profile photo for #{@current_user.username} (you)"}
+              />
+              <span>
+                <%= @current_user.username %>
+              </span>
+              <Heroicons.chevron_down mini class="h-5 w-5 -ml-1" />
+            </button>
+          </div>
+          <div
+            class="absolute right-0 z-10 w-48 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none overflow-visible z-[100]"
+            role="menu"
+            aria-orientation="vertical"
+            aria-labelledby="menu-button"
+            x-show="open"
+            x-transition
+            x-cloak
+          >
+            <div class="py-1" role="none">
+              <.link
+                href={"/profile/#{@current_user.username}"}
+                class="text-gray-700 px-2 py-2 text-sm flex items-center gap-2 hover:bg-gray-100 w-full"
+              >
+                <Heroicons.user mini class="h-5 w-5 text-neutral-500" /> View Profile
+              </.link>
+              <.link
+                href="/settings"
+                class="text-gray-700 px-2 py-2 text-sm flex items-center gap-2 hover:bg-gray-100 w-full"
+              >
+                <Heroicons.cog_6_tooth mini class="h-5 w-5 text-neutral-500" /> Manage Account
+              </.link>
+              <%= link(
+                to: Routes.user_session_path(@socket, :delete),
+                method: :delete,
+                class:
+                  "text-gray-700 px-2 py-2 text-sm flex items-center gap-2 hover:bg-gray-100 w-full"
+              ) do %>
+                <Heroicons.arrow_right_on_rectangle mini class="h-5 w-5 text-neutral-500" />
+                Log Out
+              <% end %>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+  <div class="mx-auto px-8 max-w-[1280px] mt-8">
+    <%= if not Enum.empty?(@overview_media) do %>
+      <section>
+        <div class="mb-2">
+          <nav class="mb-px">
+            <div
+              class="text-neutral-600 group inline-flex items-center py-2 px-1 font-medium text-sm"
+              aria-current="page"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+                class="text-neutral-400 -ml-0.5 mr-2 h-5 w-5"
+              >
+                <path d="M15.98 1.804a1 1 0 00-1.96 0l-.24 1.192a1 1 0 01-.784.785l-1.192.238a1 1 0 000 1.962l1.192.238a1 1 0 01.785.785l.238 1.192a1 1 0 001.962 0l.238-1.192a1 1 0 01.785-.785l1.192-.238a1 1 0 000-1.962l-1.192-.238a1 1 0 01-.785-.785l-.238-1.192zM6.949 5.684a1 1 0 00-1.898 0l-.683 2.051a1 1 0 01-.633.633l-2.051.683a1 1 0 000 1.898l2.051.684a1 1 0 01.633.632l.683 2.051a1 1 0 001.898 0l.683-2.051a1 1 0 01.633-.633l2.051-.683a1 1 0 000-1.898l-2.051-.683a1 1 0 01-.633-.633L6.95 5.684zM13.949 13.684a1 1 0 00-1.898 0l-.184.551a1 1 0 01-.632.633l-.551.183a1 1 0 000 1.898l.551.183a1 1 0 01.633.633l.183.551a1 1 0 001.898 0l.184-.551a1 1 0 01.632-.633l.551-.183a1 1 0 000-1.898l-.551-.184a1 1 0 01-.633-.632l-.183-.551z" />
+              </svg>
+
+              <span>Quick Access</span>
+            </div>
+          </nav>
+        </div>
+        <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <%= for incident <- @overview_media |> Enum.take(8) do %>
+            <.media_card media={incident} current_user={@current_user} />
+          <% end %>
+        </div>
+      </section>
+    <% end %>
+    <section class="flex flex-col-reverse lg:flex-row gap-8 max-w-full mt-14">
+      <div class="lg:w-2/3">
+        <div class="border-b border-gray-200 mb-4">
+          <nav class="-mb-px flex space-x-8" aria-label="Tabs">
+            <% inactive_classes =
+              "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 group inline-flex items-center py-2 px-1 border-b-2 font-medium text-sm" %>
+            <% active_classes =
+              "border-urge-500 text-urge-600 group inline-flex items-center py-2 px-1 border-b-2 font-medium text-sm" %>
+            <.link
+              patch="/home"
+              class={if @live_action == :all_activity, do: active_classes, else: inactive_classes}
+              aria-current="page"
+            >
+              <Heroicons.clock
+                mini
+                class="opacity-[60%] group-hover:opacity-[80%] transition-all -ml-0.5 mr-2 h-5 w-5"
+              />
+              <span>Recent</span>
+            </.link>
+
+            <.link
+              patch="/home/my_activity"
+              class={if @live_action == :my_activity, do: active_classes, else: inactive_classes}
+            >
+              <Heroicons.user
+                mini
+                class="opacity-[60%] group-hover:opacity-[80%] transition-all -ml-0.5 mr-2 h-5 w-5"
+              />
+              <span>My Activity</span>
+            </.link>
+          </nav>
+        </div>
+        <div class="flex flex-col gap-8">
+          <%= if Enum.empty?(@media) do %>
+            <div class="text-center mt-8">
+              <Heroicons.archive_box class="mx-auto h-12 w-12 text-gray-400" />
+              <h3 class="mt-2 text-sm font-medium text-gray-900">No activity to display</h3>
+              <p class="mt-1 text-sm text-gray-500">Get started by working on an incident!</p>
+            </div>
+          <% end %>
+          <%= for incident <- @media do %>
+            <div class="w-full max-w-full overflow-hidden group">
+              <.media_line_preview media={incident} />
+              <ul
+                class="card shadow border border-gray-200 mt-2 cursor-pointer"
+                onclick={"window.location = '/incidents/#{incident.slug}'"}
+              >
+                <% len = min(3, length(incident.updates)) %>
+                <%= if length(incident.updates) > 5 do %>
+                  <div class="relative group word-breaks">
+                    <span
+                      class="absolute top-5 -mt-10 pb-10 left-5 -ml-px h-full w-0.5 border border-dashed border-gray-300"
+                      aria-hidden="true"
+                    >
+                    </span>
+                  </div>
+                <% end %>
+                <%= for {update, idx} <- incident.updates |> Enum.sort_by(& &1.inserted_at, {:desc, NaiveDateTime}) |> Enum.take(3) |> Enum.reverse() |> Enum.with_index() do %>
+                  <.update_entry
+                    update={update}
+                    show_line={idx != len - 1}
+                    show_media={false}
+                    can_user_change_visibility={false}
+                    target={@myself}
+                    socket={@socket}
+                    profile_ring={false}
+                    left_indicator={:profile}
+                    current_user={@current_user}
+                  />
+                <% end %>
+              </ul>
+              <.link
+                href={"/incidents/#{incident.slug}#comment-box"}
+                class="text-xs text-neutral-500 mt-2 transition-all hover:text-urge-600 font-medium opacity-0 group-hover:opacity-100 group-focus-within:opacity-100"
+              >
+                <span x-ref="link">Open incident &rarr;</span>
+              </.link>
+            </div>
+          <% end %>
+          <div class="mx-auto mt-4 mb-8 text-center text-xs">
+            <%= if @additional_results_available do %>
+              <div
+                phx-hook="InfiniteScroll"
+                id="feed-load-more"
+                data-page={@pagination_index}
+                class="flex items-center justify-around"
+              >
+                <.loading_spinner />
+              </div>
+            <% end %>
+          </div>
+        </div>
+      </div>
+      <div class="lg:w-1/3 w-full self-start top-0 sticky min-h-0">
+        <div class="border-b border-gray-200 mb-4">
+          <nav class="mb-px">
+            <div
+              class="text-neutral-600 group inline-flex items-center py-2 px-1 font-medium text-sm"
+              aria-current="page"
+            >
+              <Heroicons.squares_2x2 solid class="text-neutral-400 -ml-0.5 mr-2 h-5 w-5" />
+              <span>Queue</span>
+            </div>
+          </nav>
+        </div>
+        <div>
+          <dl class="mt-5 grid w-full grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-4">
+            <%= if Enum.empty?(@status_statistics) do %>
+              <div class="text-center mt-8">
+                <Heroicons.chart_pie class="mx-auto h-12 w-12 text-gray-400" />
+                <h3 class="mt-2 text-sm font-medium text-gray-900">No data to display</h3>
+                <p class="mt-1 text-sm text-gray-500">Get started by creating an incident</p>
+              </div>
+            <% end %>
+            <%= for {status, count} <- @status_statistics do %>
+              <% status_color = Platform.Material.Attribute.attr_color(:status, status) %>
+              <.link
+                href={
+                  Routes.live_path(@socket, PlatformWeb.MediaLive.Index, %{
+                    attr_status: status,
+                    display: :cards
+                  })
+                }
+                class="relative overflow-hidden rounded-lg group p-2 hover:bg-neutral-100 transition"
+              >
+                <dt>
+                  <div class={"absolute rounded-md p-3 mt-[2px] section @high opacity-50 " <> status_color}>
+                    <.attribute_icon name={:status} value={status} />
+                  </div>
+                  <p class="ml-16 truncate text-sm font-medium text-gray-500">
+                    <%= status %>
+                  </p>
+                </dt>
+                <dd class="ml-16 flex items-baseline">
+                  <p class="text-2xl font-medium text-gray-900">
+                    <%= count |> Formatter.format_number() %>
+                  </p>
+                </dd>
+              </.link>
+            <% end %>
+          </dl>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>

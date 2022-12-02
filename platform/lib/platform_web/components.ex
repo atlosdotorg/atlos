@@ -4,6 +4,7 @@ defmodule PlatformWeb.Components do
   import Phoenix.View
   import PlatformWeb.ErrorHelpers
 
+  alias Phoenix.LiveView.JS
   alias Platform.Accounts
   alias Platform.Material.Attribute
   alias Platform.Material.Media
@@ -48,10 +49,16 @@ defmodule PlatformWeb.Components do
         phx-target={@target}
       >
         <div
-          class="fixed inset-0 bg-gray-500/75 transition"
+          class="fixed inset-0 bg-gray-500/50 transition opacity-0"
+          phx-mounted={
+            JS.transition({"ease-in duration-75", "opacity-0", "opacity-100"},
+              time: 75
+            )
+          }
           aria-hidden="true"
           x-on:click="window.closeModal($event)"
           phx-target={@target}
+          id="modal-overlay"
         >
         </div>
         <!-- This element is to trick the browser into centering the modal contents. -->
@@ -59,7 +66,19 @@ defmodule PlatformWeb.Components do
           &#8203;
         </span>
 
-        <div class="relative inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-xl sm:w-full sm:p-6">
+        <div
+          class="relative inline-block opacity-0 scale-75 align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-xl sm:w-full sm:p-6"
+          phx-mounted={
+            JS.transition({"ease-out duration-75", "opacity-0 scale-75", "opacity-100 scale-100"},
+              time: 75
+            )
+          }
+          phx-remove={
+            JS.transition({"ease-out duration-75", "opacity-100 scale-100", "opacity-0 scale-75"},
+              time: 50
+            )
+          }
+        >
           <div class="hidden sm:block absolute z-50 top-0 right-0 pt-4 pr-4">
             <button
               type="button"
@@ -245,14 +264,12 @@ defmodule PlatformWeb.Components do
         >
           <.navlink to="/new" label="New" request_path={@path}>
             <svg
-              class="text-white group-hover:text-white h-6 w-6"
               xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              aria-hidden="true"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+              class="text-neutral-300 group-hover:text-white h-6 w-6"
             >
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+              <path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
             </svg>
           </.navlink>
 
@@ -445,6 +462,72 @@ defmodule PlatformWeb.Components do
     end
   end
 
+  def media_line_preview(%{media: %Media{}} = assigns) do
+    ~H"""
+    <article class="flex flex-wrap md:flex-nowrap w-full gap-1 justify-between text-sm md:items-center max-w-full">
+      <div class="flex-shrink-0">
+        <.media_text class="text-neutral-500" media={@media} />
+      </div>
+      <.link
+        href={"/incidents/#{@media.slug}"}
+        class="md:hidden flex items-center flex-shrink-0 text-xs items-center flex-shrink-1 gap-1 justify-right"
+      >
+        <.media_badges media={@media} only_status={true} />
+      </.link>
+      <.link
+        href={"/incidents/#{@media.slug}"}
+        class="font-medium flex-grow-1 hover:text-urge-600 transition flex items-center max-w-full gap-2 grow truncate min-w-0"
+      >
+        <span class="truncate"><%= @media.attr_description %></span>
+      </.link>
+      <.link
+        href={"/incidents/#{@media.slug}"}
+        class="hidden md:block flex items-center flex-shrink-0 text-xs items-center flex-shrink-1 gap-1 justify-right"
+      >
+        <.media_badges media={@media} only_status={true} />
+      </.link>
+    </article>
+    """
+  end
+
+  def attribute_icon(assigns) do
+    assigns =
+      assigns
+      |> assign_new(:class, fn -> Map.get(assigns, :class, "h-6 w-6") end)
+      |> assign_new(:type, fn -> :outline end)
+
+    # Note that this function assumes that @value is the value of each individual value in multi-selects, and not the value of the overall multiselect
+
+    ~H"""
+    <%= case @name do %>
+      <% :status -> %>
+        <%= case @value do %>
+          <% "Completed" -> %>
+            <Heroicons.check {%{@type => true}} class={@class} />
+          <% "Ready for Review" -> %>
+            <Heroicons.shield_check {%{@type => true}} class={@class} />
+          <% "In Progress" -> %>
+            <Heroicons.clock {%{@type => true}} class={@class} />
+          <% "Unclaimed" -> %>
+            <Heroicons.flag {%{@type => true}} class={@class} />
+          <% "Cancelled" -> %>
+            <Heroicons.x_mark {%{@type => true}} class={@class} />
+          <% "Help Needed" -> %>
+            <Heroicons.chat_bubble_oval_left_ellipsis {%{@type => true}} class={@class} />
+          <% _ -> %>
+            <Heroicons.flag {%{@type => true}} class={@class} />
+        <% end %>
+      <% :sensitive -> %>
+        <%= case @value do %>
+          <% "Not Sensitive" -> %>
+          <% _ -> %>
+            <Heroicons.shield_exclamation {%{@type => true}} class={@class} />
+        <% end %>
+      <% _ -> %>
+    <% end %>
+    """
+  end
+
   def update_entry(
         %{
           update: update,
@@ -478,7 +561,7 @@ defmodule PlatformWeb.Components do
       ~H"""
       <li x-data="{expanded: false}" id={"collapsed-update-#{head.id}"}>
         <div
-          class="relative pb-8 group word-breaks cursor-pointer"
+          class={"relative group word-breaks cursor-pointer " <> (if @show_line, do: "pb-8", else: "")}
           x-on:click="expanded = !expanded"
           class="group"
         >
@@ -557,7 +640,7 @@ defmodule PlatformWeb.Components do
       ~H"""
       <% can_user_view = Platform.Updates.Update.can_user_view(update, @current_user) %>
       <li class={"transition-all " <> (if update.hidden and can_user_view, do: "opacity-50", else: "")}>
-        <div class="relative pb-8 group word-breaks">
+        <div class={"relative group word-breaks " <> (if @show_line, do: "pb-8", else: "")}>
           <%= if show_line do %>
             <span class="absolute top-5 left-5 -ml-px h-full w-0.5 bg-gray-200" aria-hidden="true">
             </span>
@@ -696,7 +779,7 @@ defmodule PlatformWeb.Components do
                 <% end %>
               </div>
             <% else %>
-              <div class="text-sm flex items-center border-2 border-dashed border-neutral-300 text-neutral-600 p-2 rounded">
+              <div class="text-sm bg-white flex items-center border-2 border-dashed border-neutral-300 text-neutral-600 p-2 rounded">
                 <p>
                   <span class="font-medium text-gray-800">
                     You do not have permission to see this update.
@@ -837,8 +920,7 @@ defmodule PlatformWeb.Components do
   def attr_display_compact(
         %{
           attr: %Attribute{} = attr,
-          media: %Media{} = media,
-          current_user: current_user
+          media: %Media{} = media
         } = assigns
       ) do
     children = Attribute.get_children(attr.name)
@@ -847,7 +929,7 @@ defmodule PlatformWeb.Components do
     <div class="inline">
       <%= if not is_nil(Map.get(media, attr.schema_field)) and Map.get(media, attr.schema_field) != [] and Map.get(media, attr.schema_field) != "" do %>
         <div class="inline-flex flex-wrap text-xs">
-          <div class="break-word max-w-full text-ellipsis overflow-hidden">
+          <div class="break-word max-w-full text-ellipsis">
             <.attr_entry
               color={true}
               compact={Map.get(assigns, :truncate, true)}
@@ -924,11 +1006,12 @@ defmodule PlatformWeb.Components do
       <dd class="mt-1 flex items-center text-sm text-gray-900 sm:mt-0 sm:col-span-2">
         <span class="flex-grow gap-1 flex flex-wrap">
           <%= if not is_nil(Map.get(media, attr.schema_field)) do %>
-            <.attr_entry name={attr.name} value={Map.get(media, attr.schema_field)} />
+            <.attr_entry name={attr.name} color={false} value={Map.get(media, attr.schema_field)} />
             <%= for child <- children do %>
               <%= if not is_nil(Map.get(media, child.schema_field)) do %>
                 <.attr_entry
                   name={child.name}
+                  color={false}
                   value={Map.get(media, child.schema_field)}
                   label={child.label}
                 />
@@ -984,7 +1067,7 @@ defmodule PlatformWeb.Components do
       if Map.get(assigns, :color, false), do: Attribute.attr_color(name, value), else: "~neutral"
 
     ~H"""
-    <span class="inline-flex flex-wrap gap-1 max-w-full">
+    <span class={"inline-flex gap-1 max-w-full " <> (if compact, do: "", else: "flex-wrap")}>
       <%= case attr.type do %>
         <% :text -> %>
           <%= if compact do %>
@@ -1008,16 +1091,18 @@ defmodule PlatformWeb.Components do
           <% end %>
         <% :select -> %>
           <div class="inline-block">
-            <div class={"chip #{tone} inline-block self-start break-all xl:break-normal"}>
+            <div class={"chip #{tone} flex items-center gap-1 inline-block self-start break-all xl:break-normal"}>
+              <.attribute_icon name={@name} type={:solid} value={@value} class="h-4 w-4 shrink-0" />
               <.attr_label label={label} />
-              <%= value %>
+              <span><%= value %></span>
             </div>
           </div>
         <% :multi_select -> %>
           <.attr_label label={label} />
           <%= for item <- (if compact, do: value |> Enum.take(1), else: value) do %>
-            <div class={"chip #{tone} inline-block self-start break-all xl:break-normal"}>
-              <%= item %>
+            <div class={"chip #{tone} flex items-center gap-1 inline-block self-start break-all xl:break-normal"}>
+              <.attribute_icon name={@name} type={:solid} value={item} class="h-4 w-4 shrink-0" />
+              <span><%= item %></span>
             </div>
             <%= if compact and length(value) > 1 do %>
               <div class="text-xs mt-1 text-neutral-500">
@@ -1029,24 +1114,27 @@ defmodule PlatformWeb.Components do
           <div class="inline-block">
             <% {lon, lat} = value.coordinates %>
             <a
-              class={"chip #{tone} inline-block flex gap-1 self-start break-all xl:break-normal"}
+              class={"chip #{tone} inline-block flex gap-1 items-center self-start break-all xl:break-normal"}
               target="_blank"
               href={"https://maps.google.com/maps?q=#{lat},#{lon}"}
             >
+              <.attribute_icon name={@name} type={:solid} value={@value} class="h-4 w-4 shrink-0" />
               <.attr_label label={label} />
               <.location lat={lat} lon={lon} />
             </a>
           </div>
         <% :time -> %>
           <div class="inline-block">
-            <div class={"chip #{tone} inline-block self-start break-all xl:break-normal"}>
+            <div class={"chip #{tone} flex items-center gap-1 inline-block self-start break-all xl:break-normal"}>
+              <.attribute_icon name={@name} type={:solid} value={@value} class="h-4 w-4 shrink-0" />
               <.attr_label label={label} />
               <%= value %>
             </div>
           </div>
         <% :date -> %>
           <div class="inline-block">
-            <div class={"chip #{tone} inline-block self-start break-all xl:break-normal"}>
+            <div class={"chip #{tone} flex items-center gap-1 inline-block self-start break-all xl:break-normal"}>
+              <.attribute_icon name={@name} type={:solid} value={@value} class="h-4 w-4 shrink-0" />
               <.attr_label label={label} />
               <%= value |> Calendar.strftime("%d %B %Y") %>
             </div>
@@ -1450,19 +1538,35 @@ defmodule PlatformWeb.Components do
     ~H"""
     <% is_subscribed = @media.has_subscription %>
     <% has_unread_notification = @media.has_unread_notification %>
+    <% is_sensitive = Material.Media.is_sensitive(@media) %>
     <tr
-      class="search-highlighting bg-white group hover:bg-neutral-50 transition-all"
+      class={"search-highlighting group transition-all " <> if is_sensitive, do: "bg-red-50", else: "bg-white hover:bg-neutral-50 "}
       id={"table-row-" <> @media.slug}
     >
       <td
         id={"table-row-" <> @media.slug <> "-slug"}
-        class="md:sticky left-0 z-[100] pl-4 pr-1 border-r font-mono whitespace-nowrap border-b border-gray-200 h-10 bg-white group-hover:bg-neutral-50 transition-all"
+        class={"md:sticky left-0 z-[100] pl-4 pr-1 border-r font-mono whitespace-nowrap border-b border-gray-200 h-10 transition-all " <> if is_sensitive, do: "bg-red-50", else: "bg-white group-hover:bg-neutral-50 "}
       >
         <.link
           href={"/incidents/#{@media.slug}"}
           class="text-button text-sm flex items-center gap-1 mr-px"
         >
+          <div
+            class="flex-shrink-0 w-5 mr-1"
+            data-tooltip={"Last modified by #{List.last(@media.updates).user.username}"}
+          >
+            <.user_stack
+              users={@media.updates |> Enum.take(1) |> Enum.map(& &1.user)}
+              dynamic={false}
+              ring_class="ring-transparent"
+            />
+          </div>
           <%= @media.slug %>
+          <%= if is_sensitive do %>
+            <span data-tooltip="Incident is sensitive" class="text-critical-400">
+              <Heroicons.shield_exclamation mini class="h-4 w-4" />
+            </span>
+          <% end %>
           <%= if is_subscribed do %>
             <span data-tooltip="You are subscribed" class="text-neutral-400">
               <svg
@@ -1500,21 +1604,6 @@ defmodule PlatformWeb.Components do
           <% end %>
         </.link>
       </td>
-      <td
-        id={"table-row-" <> @media.slug <> "-updated"}
-        class="border-b cursor-pointer p-0 text-sm text-neutral-600"
-      >
-        <.link href={"/incidents/#{@media.slug}"}>
-          <div class="mx-2 flex w-[7rem] relative z-0 items-center">
-            <div class="flex-shrink-0 w-5 mr-1">
-              <.user_stack users={@media.updates |> Enum.take(1) |> Enum.map(& &1.user)} />
-            </div>
-            <div class="flex-shrink-0">
-              <.rel_time time={@media.updated_at} />
-            </div>
-          </div>
-        </.link>
-      </td>
       <%= for attr <- @attributes do %>
         <td
           class="border-b cursor-pointer p-0"
@@ -1522,7 +1611,7 @@ defmodule PlatformWeb.Components do
         >
           <div class="text-sm text-gray-900 px-4 overflow-hidden h-6 max-w-[36rem] truncate">
             <.popover class="font-base p-0 inline">
-              <.link href={"/incidents/#{@media.slug}"} class="truncate inline">
+              <.link href={"/incidents/#{@media.slug}"} class="inline">
                 <.attr_display_compact
                   color={true}
                   truncate={true}
@@ -1655,89 +1744,91 @@ defmodule PlatformWeb.Components do
           phx-submit="save"
         >
           <section class="md:flex w-full max-w-7xl mx-auto flex-wrap md:flex-nowrap gap-2 items-center">
-            <div class="flex divide-y md:divide-y-0 md:divide-x flex-col flex-grow md:flex-row rounded-lg bg-white shadow border">
-              <div class={"flex px-2 py-1 pd:my-0 " <> (if Enum.member?(@exclude, :display), do: "hidden", else: "")}>
-                <nav class="flex items-center gap-px" aria-label="Tabs">
-                  <%= label do %>
-                    <div
-                      data-tooltip="Map view"
-                      class={"cursor-pointer transition-all px-2 py-[0.38rem] font-medium text-sm rounded-md " <> (if @display == "map", do: "bg-neutral-200 text-neutral-700", else: "text-neutral-700 hover:bg-neutral-100")}
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke-width="1.5"
-                        stroke="currentColor"
-                        class="w-6 h-6"
+            <div class="flex divide-y md:divide-y-0 md:divide-x flex-col flex-grow md:flex-row rounded-lg bg-white shadow-sm border overflow-hidden">
+              <%= if not Enum.member?(@exclude, :display) do %>
+                <div class="flex px-2 py-1 pd:my-0 ">
+                  <nav class="flex items-center gap-px" aria-label="Tabs">
+                    <%= label do %>
+                      <div
+                        data-tooltip="Map view"
+                        class={"cursor-pointer transition-all px-2 py-[0.38rem] font-medium text-sm rounded-md " <> (if @display == "map", do: "bg-neutral-200 text-neutral-700", else: "text-neutral-700 hover:bg-neutral-100")}
                       >
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          d="M9 6.75V15m6-6v8.25m.503 3.498l4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 00-1.006 0L3.622 5.689C3.24 5.88 3 6.27 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c.317-.159.69-.159 1.006 0l4.994 2.497c.317.158.69.158 1.006 0z"
-                        />
-                      </svg>
-                    </div>
-                    <%= radio_button(f, :display, "map",
-                      class: "fixed opacity-0 pointer-events-none",
-                      "x-on:change": "window.triggerSubmitEvent($event.target)"
-                    ) %>
-                  <% end %>
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke-width="1.5"
+                          stroke="currentColor"
+                          class="w-6 h-6"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M9 6.75V15m6-6v8.25m.503 3.498l4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 00-1.006 0L3.622 5.689C3.24 5.88 3 6.27 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c.317-.159.69-.159 1.006 0l4.994 2.497c.317.158.69.158 1.006 0z"
+                          />
+                        </svg>
+                      </div>
+                      <%= radio_button(f, :display, "map",
+                        class: "fixed opacity-0 pointer-events-none",
+                        "x-on:change": "window.triggerSubmitEvent($event.target)"
+                      ) %>
+                    <% end %>
 
-                  <%= label do %>
-                    <div
-                      data-tooltip="Card view"
-                      class={"cursor-pointer transition-all px-2 py-[0.38rem] font-medium text-sm rounded-md " <> (if @display == "cards", do: "bg-neutral-200 text-neutral-700", else: "text-neutral-700 hover:bg-neutral-100")}
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke-width="1.5"
-                        stroke="currentColor"
-                        class="w-6 h-6"
+                    <%= label do %>
+                      <div
+                        data-tooltip="Card view"
+                        class={"cursor-pointer transition-all px-2 py-[0.38rem] font-medium text-sm rounded-md " <> (if @display == "cards", do: "bg-neutral-200 text-neutral-700", else: "text-neutral-700 hover:bg-neutral-100")}
                       >
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z"
-                        />
-                      </svg>
-                    </div>
-                    <%= radio_button(f, :display, "cards",
-                      id: "search-form-cards-button",
-                      class: "fixed opacity-0 pointer-events-none",
-                      "x-on:change": "window.triggerSubmitEvent($event.target)"
-                    ) %>
-                  <% end %>
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke-width="1.5"
+                          stroke="currentColor"
+                          class="w-6 h-6"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z"
+                          />
+                        </svg>
+                      </div>
+                      <%= radio_button(f, :display, "cards",
+                        id: "search-form-cards-button",
+                        class: "fixed opacity-0 pointer-events-none",
+                        "x-on:change": "window.triggerSubmitEvent($event.target)"
+                      ) %>
+                    <% end %>
 
-                  <%= label do %>
-                    <div
-                      data-tooltip="Table view"
-                      class={"cursor-pointer transition-all px-2 py-[0.38rem] font-medium text-sm rounded-md " <> (if @display == "table", do: "bg-neutral-200 text-neutral-700", else: "text-neutral-700 hover:bg-neutral-100")}
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke-width="1.5"
-                        stroke="currentColor"
-                        class="w-6 h-6"
+                    <%= label do %>
+                      <div
+                        data-tooltip="Table view"
+                        class={"cursor-pointer transition-all px-2 py-[0.38rem] font-medium text-sm rounded-md " <> (if @display == "table", do: "bg-neutral-200 text-neutral-700", else: "text-neutral-700 hover:bg-neutral-100")}
                       >
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM3.75 12h.007v.008H3.75V12zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm-.375 5.25h.007v.008H3.75v-.008zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"
-                        />
-                      </svg>
-                    </div>
-                    <%= radio_button(f, :display, "table",
-                      class: "fixed opacity-0 pointer-events-none",
-                      "x-on:change": "window.triggerSubmitEvent($event.target)"
-                    ) %>
-                  <% end %>
-                </nav>
-              </div>
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke-width="1.5"
+                          stroke="currentColor"
+                          class="w-6 h-6"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM3.75 12h.007v.008H3.75V12zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm-.375 5.25h.007v.008H3.75v-.008zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"
+                          />
+                        </svg>
+                      </div>
+                      <%= radio_button(f, :display, "table",
+                        class: "fixed opacity-0 pointer-events-none",
+                        "x-on:change": "window.triggerSubmitEvent($event.target)"
+                      ) %>
+                    <% end %>
+                  </nav>
+                </div>
+              <% end %>
               <div class={"flex-grow " <> (if Enum.member?(@exclude, :query), do: "hidden", else: "")}>
                 <div class="px-3 h-full group flex flex-col md:flex-row py-2 items-center focus-within:bg-neutral-50">
                   <%= label(f, :query, "Search",
@@ -1745,8 +1836,9 @@ defmodule PlatformWeb.Components do
                       "block w-full md:hidden text-xs font-medium text-gray-900 group-focus-within:text-urge-600"
                   ) %>
                   <%= text_input(f, :query,
-                    placeholder: "Enter a query...",
+                    placeholder: "Search for anything...",
                     phx_debounce: "1000",
+                    id: "search-form-query-input",
                     class:
                       "block w-full border-0 p-0 bg-transparent text-gray-900 placeholder-gray-500 focus:ring-0 sm:text-sm"
                   ) %>
@@ -1879,6 +1971,80 @@ defmodule PlatformWeb.Components do
     """
   end
 
+  def media_badges(%{media: %Media{} = media} = assigns) do
+    assigns =
+      assigns
+      |> assign(:sensitive, Media.is_sensitive(media))
+      |> assign_new(:only_status, fn -> false end)
+
+    ~H"""
+    <%= if not is_nil(@media.attr_status) and Map.get(assigns, :show_status, true) do %>
+      <span class={"self-start badge whitespace-nowrap " <> Attribute.attr_color(:status, @media.attr_status)}>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-3 w-3 mr-px"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+        >
+          <path
+            fill-rule="evenodd"
+            d="M3 6a3 3 0 013-3h10a1 1 0 01.8 1.6L14.25 8l2.55 3.4A1 1 0 0116 13H6a1 1 0 00-1 1v3a1 1 0 11-2 0V6z"
+            clip-rule="evenodd"
+          />
+        </svg>
+        <%= @media.attr_status %>
+      </span>
+    <% end %>
+
+    <%= if not @only_status do %>
+      <%= if @sensitive do %>
+        <%= for item <- @media.attr_sensitive || [] do %>
+          <span class={"self-start badge whitespace-nowrap " <> Attribute.attr_color(:sensitive, @media.attr_sensitive)}>
+            <%= item %>
+          </span>
+        <% end %>
+      <% end %>
+
+      <%= for item <- @media.attr_restrictions || [] do %>
+        <!-- TODO: make this use Attribute.attr_color/2 -->
+        <span class="self-start badge whitespace-nowrap ~warning">
+          <%= item %>
+        </span>
+      <% end %>
+
+      <%= if @media.attr_geolocation do %>
+        <span class="self-start badge whitespace-nowrap ~neutral">
+          Geolocated
+        </span>
+      <% end %>
+
+      <%= if @media.attr_date do %>
+        <span class="self-start badge whitespace-nowrap ~neutral">
+          <%= @media.attr_date |> Calendar.strftime("%d %B %Y") %>
+        </span>
+      <% end %>
+
+      <%= if is_list(@media.attr_type) and not Enum.empty?(@media.attr_type) do %>
+        <span class="self-start badge whitespace-nowrap ~neutral">
+          <%= hd(@media.attr_type) %>
+        </span>
+      <% end %>
+
+      <%= if is_list(@media.attr_equipment) and not Enum.empty?(@media.attr_equipment) do %>
+        <span class="self-start badge whitespace-nowrap ~neutral">
+          <%= hd(@media.attr_equipment) %>
+        </span>
+      <% end %>
+
+      <%= if is_list(@media.attr_impact) and not Enum.empty?(@media.attr_impact) do %>
+        <span class="self-start badge whitespace-nowrap ~neutral">
+          <%= hd(@media.attr_impact) %>
+        </span>
+      <% end %>
+    <% end %>
+    """
+  end
+
   def media_card(%{media: %Media{} = media, current_user: %Accounts.User{} = user} = assigns) do
     assigns =
       assigns
@@ -1944,68 +2110,7 @@ defmodule PlatformWeb.Components do
             </p>
           </section>
           <section class="flex flex-wrap gap-1 self-start align-top">
-            <%= if @media.attr_status do %>
-              <span class={"self-start badge " <> Attribute.attr_color(:status, @media.attr_status)}>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="h-3 w-3 mr-px"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fill-rule="evenodd"
-                    d="M3 6a3 3 0 013-3h10a1 1 0 01.8 1.6L14.25 8l2.55 3.4A1 1 0 0116 13H6a1 1 0 00-1 1v3a1 1 0 11-2 0V6z"
-                    clip-rule="evenodd"
-                  />
-                </svg>
-                <%= @media.attr_status %>
-              </span>
-            <% end %>
-
-            <%= if @sensitive do %>
-              <%= for item <- @media.attr_sensitive || [] do %>
-                <span class={"self-start badge " <> Attribute.attr_color(:sensitive, @media.attr_sensitive)}>
-                  <%= item %>
-                </span>
-              <% end %>
-            <% end %>
-
-            <%= for item <- @media.attr_restrictions || [] do %>
-              <!-- TODO: make this use Attribute.attr_color/2 -->
-              <span class="self-start badge ~warning">
-                <%= item %>
-              </span>
-            <% end %>
-
-            <%= if @media.attr_geolocation do %>
-              <span class="self-start badge ~neutral">
-                Geolocated
-              </span>
-            <% end %>
-
-            <%= if @media.attr_date do %>
-              <span class="self-start badge ~neutral">
-                <%= @media.attr_date |> Calendar.strftime("%d %B %Y") %>
-              </span>
-            <% end %>
-
-            <%= if is_list(@media.attr_type) and not Enum.empty?(@media.attr_type) do %>
-              <span class="self-start badge ~neutral">
-                <%= hd(@media.attr_type) %>
-              </span>
-            <% end %>
-
-            <%= if is_list(@media.attr_equipment) and not Enum.empty?(@media.attr_equipment) do %>
-              <span class="self-start badge ~neutral">
-                <%= hd(@media.attr_equipment) %>
-              </span>
-            <% end %>
-
-            <%= if is_list(@media.attr_impact) and not Enum.empty?(@media.attr_impact) do %>
-              <span class="self-start badge ~neutral">
-                <%= hd(@media.attr_impact) %>
-              </span>
-            <% end %>
+            <.media_badges media={@media} />
           </section>
           <section class="mb-2 h-4" />
           <section class="bottom-0 mb-2 pr-4 w-full absolute flex gap-2 justify-between items-center">
@@ -2126,23 +2231,32 @@ defmodule PlatformWeb.Components do
 
   def user_stack(assigns) do
     max = Map.get(assigns, :max, 5)
+    assigns = assign_new(assigns, :dynamic, fn -> true end)
 
     ~H"""
     <div class="flex -space-x-1 relative z-0 items-center">
       <%= for user <- @users |> Enum.take(5) do %>
-        <.popover class="inline">
+        <%= if @dynamic do %>
+          <.popover class="inline">
+            <img
+              class={"relative z-30 inline-block h-5 w-5 rounded-full ring-2 " <> Map.get(assigns, :ring_class, "ring-white")}
+              src={Accounts.get_profile_photo_path(user)}
+              alt={"Profile photo for #{user.username}"}
+            />
+            <:display>
+              <.user_card user={user} />
+            </:display>
+          </.popover>
+        <% else %>
           <img
-            class="relative z-30 inline-block h-5 w-5 rounded-full ring-2 ring-white"
+            class={"relative z-30 inline-block h-5 w-5 rounded-full ring-2 " <> Map.get(assigns, :ring_class, "ring-white")}
             src={Accounts.get_profile_photo_path(user)}
             alt={"Profile photo for #{user.username}"}
           />
-          <:display>
-            <.user_card user={user} />
-          </:display>
-        </.popover>
+        <% end %>
       <% end %>
       <%= if length(@users) > max do %>
-        <div class="bg-gray-300 text-gray-700 text-xl rounded-full mt-1 h-5 w-5 z-30 ring-2 ring-white flex items-center justify-center">
+        <div class={"bg-gray-300 text-gray-700 text-xl rounded-full mt-1 h-5 w-5 z-30 ring-2 flex items-center justify-center"  <> Map.get(assigns, :ring_class, "ring-white")}>
           <svg
             xmlns="http://www.w3.org/2000/svg"
             class="h-3 w-3"
@@ -2203,6 +2317,9 @@ defmodule PlatformWeb.Components do
       <% loc = Material.media_version_location(@version, @media) %>
       <% thumbnail = Material.media_version_location(@version, @media, :thumb) %>
       <% media_id = "version-#{@version.id}-media" %>
+      <span class="font-mono text-sm">
+        <%= Material.get_human_readable_media_version_name(@media, @version) %>
+      </span>
       <div class="relative">
         <%= if @media_to_show do %>
           <div id={media_id} x-bind:class="hidden ? 'min-h-[10rem] invisible' : 'min-h-[10rem]'">
@@ -2312,11 +2429,7 @@ defmodule PlatformWeb.Components do
                 data-confirm="This link will open an external site in a new tab. Are you sure?"
               >
                 <.url_icon url={@version.source_url} class="mx-auto h-10 w-10 shadow-sm" />
-                <% display =
-                  if String.length(@version.source_url) > 50,
-                    do: String.slice(@version.source_url, 0..50) <> "...",
-                    else: @version.source_url %>
-                <h3 class="mt-2 break-all font-medium text-gray-900 text-sm"><%= display %></h3>
+                <h3 class="mt-2 break-all font-medium text-gray-900 text-sm">External Media</h3>
                 <span class="button mt-1 original py-1 px-2 text-xs">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -2334,16 +2447,21 @@ defmodule PlatformWeb.Components do
           </div>
         <% end %>
       </div>
-      <div class="flex gap-1 mt-1 text-sm max-w-full flex-wrap items-center justify-between">
-        <span class="flex items-center gap-2 flex-wrap">
+      <div class="flex gap-1 mt-1 text-sm max-w-full items-center justify-between">
+        <span class="flex items-center gap-2 overflow-hidden">
           <%= if @version.status != :error do %>
             <.url_icon url={@version.source_url} class="h-6" />
           <% end %>
-          <span class="font-mono">
-            <%= Material.get_human_readable_media_version_name(@media, @version) %>
-          </span>
+          <a
+            class="text-neutral-600 truncate"
+            href={@version.source_url}
+            target="_blank"
+            data-confirm="This link will open an external site in a new tab. Are you sure?"
+          >
+            <%= @version.source_url %>
+          </a>
           <%= if @version.upload_type == :user_provided do %>
-            <span class="badge ~neutral self-start">User Upload</span>
+            <span class="badge ~neutral self-start shrink-0">User Upload</span>
           <% end %>
           <%= if @version.status == :error and @show_controls do %>
             <div
@@ -2642,7 +2760,12 @@ defmodule PlatformWeb.Components do
       <%= case @attr.type do %>
         <% :text -> %>
           <%= label(@f, @attr.schema_field, @label) %>
-          <%= textarea(@f, @attr.schema_field, rows: 3) %>
+          <%= case @attr.input_type || :textarea do %>
+            <% :textarea -> %>
+              <%= textarea(@f, @attr.schema_field, rows: 3) %>
+            <% :short_text -> %>
+              <%= text_input(@f, @attr.schema_field) %>
+          <% end %>
           <%= error_tag(@f, @attr.schema_field) %>
         <% :select -> %>
           <%= label(@f, @attr.schema_field, @label) %>
@@ -2809,7 +2932,7 @@ defmodule PlatformWeb.Components do
   def media_text(%{media: %Media{} = media} = assigns) do
     ~H"""
     <.popover class="inline overflow-hidden" no_pad={true}>
-      <span class="text-button text-gray-800 inline-block mr-2">
+      <span class={"text-button transition inline-block mr-2 " <> Map.get(assigns, :class, "text-gray-800")}>
         <.link navigate={"/incidents/" <> media.slug}><%= media.slug %> &nearr;</.link>
       </span>
       <:display>
@@ -2929,15 +3052,8 @@ defmodule PlatformWeb.Components do
           href="https://github.com/milesmcc/atlos/blob/main/policy/TERMS_OF_USE.md"
           class="underline"
         >
-          Terms of Use</a>&nbsp;and our <a
-          href={
-            System.get_env(
-              "RULES_LINK",
-              "https://github.com/milesmcc/atlos/blob/main/policy/RULES.md"
-            )
-          }
-          class="underline"
-        >Rules</a>.
+          Terms of Use
+        </a>.
       </p>
     </div>
     """
@@ -2948,17 +3064,6 @@ defmodule PlatformWeb.Components do
     <footer class="place-self-center max-w-lg mx-auto mt-8 text-gray-500 text-xs">
       <div class="grid grid-cols-3 text-center gap-4 md:flex md:justify-between">
         <a href="https://github.com/milesmcc/atlos" class="hover:text-gray-600">Source Code</a>
-        <a
-          href={
-            System.get_env(
-              "RULES_LINK",
-              "https://github.com/milesmcc/atlos/blob/main/policy/RULES.md"
-            )
-          }
-          class="hover:text-gray-600 transition"
-        >
-          Rules
-        </a>
         <a
           href="https://github.com/milesmcc/atlos/blob/main/policy/TERMS_OF_USE.md"
           class="hover:text-gray-600 transition"
