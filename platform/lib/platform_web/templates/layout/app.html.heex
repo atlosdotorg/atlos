@@ -1,7 +1,7 @@
 <main class="h-full flex flex-col md:flex-row">
   <.nav path={@conn.request_path} current_user={@current_user} />
 
-  <div class="flex-1 flex flex-col overflow-hidden z-0">
+  <div class="flex-1 flex flex-col z-0">
     <div class="my-8 w-full">
       <div class="mx-auto w-full 2xl:w-[1280px] min-h-[85vh]">
         <%= @inner_content %>

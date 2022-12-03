@@ -27,7 +27,7 @@ defmodule Platform.Material do
     |> then(fn x ->
       case Keyword.get(opts, :for_user) do
         nil -> x
-        user -> populate_user_fields(x, user)
+        user -> apply_user_fields(x, user, opts)
       end
     end)
   end
@@ -48,8 +48,12 @@ defmodule Platform.Material do
     |> Repo.all()
   end
 
-  defp _query_media(query, opts \\ []) do
-    # Helper function used to abstract behavior of the `query_media` functions.
+  defp _query_media(query, opts) do
+    # Helper function used to abstract behavior of the `query_media` functions. Options:
+    # - for_user -- populate this user's data into the response object (e.g., whether there is an unread notification, the user is subscribed, etc)
+    # - limit_to_unread_notifications -- restrict to incidents with unread notifications
+    # - limit_to_subscriptions -- restrict to incidents the user is subscribed to
+
     query
     |> then(fn q ->
       if Keyword.get(opts, :hydrate, true), do: hydrate_media_query(q, opts), else: q
@@ -80,6 +84,34 @@ defmodule Platform.Material do
     # Fallback for null/equal values
     |> order_by(desc: :id)
     |> Repo.paginate(opts)
+  end
+
+  @doc """
+  Get recently updated media, based on the most recent Update (including comments). Supports pagination via the `offset` and `limit` options.
+  """
+  def get_recently_updated_media_paginated(opts \\ []) do
+    user = Keyword.get(opts, :restrict_to_user)
+
+    filter_user =
+      if not is_nil(user) do
+        dynamic([m, u], u.user_id == ^user.id)
+      else
+        true
+      end
+
+    query =
+      Media
+      |> join(:left, [m], u in assoc(m, :updates))
+      |> where([m, u], ^filter_user)
+      |> order_by([m, u], desc: u.inserted_at)
+      |> preload([m, u], updates: u)
+      |> select_merge([m, u], %{last_update_time: u.inserted_at})
+      |> order_by([m, u], desc: m.id)
+      |> limit(^Keyword.get(opts, :limit, 25))
+      |> offset(^Keyword.get(opts, :offset, 0))
+
+    _query_media(query, opts)
+    |> Repo.all()
   end
 
   @doc """
@@ -124,23 +156,24 @@ defmodule Platform.Material do
     query |> preload(updates: [:user, :media, :media_version])
   end
 
-  defp populate_user_fields(query, nil) do
+  defp apply_user_fields(query, user, opts \\ [])
+
+  defp apply_user_fields(query, nil, _opts) do
     query
   end
 
-  defp populate_user_fields(media_query, %User{} = user) do
-    media_query
-    |> join(:left, [m], n in Platform.Notifications.Notification,
-      on: n.media_id == m.id and n.user_id == ^user.id and not n.read
-    )
-    |> join(:left, [m, _n], s in Platform.Material.MediaSubscription,
-      on: s.media_id == m.id and s.user_id == ^user.id
-    )
-    |> select_merge([_m, n, s], %{
-      has_unread_notification: not is_nil(n),
-      has_subscription: not is_nil(s)
-    })
-    |> distinct(true)
+  defp apply_user_fields(media_query, %User{} = user, opts) do
+    from m in media_query,
+      left_join: n in Platform.Notifications.Notification,
+      on: n.media_id == m.id and n.user_id == ^user.id and not n.read,
+      left_join: s in Platform.Material.MediaSubscription,
+      on: s.media_id == m.id and s.user_id == ^user.id,
+      select_merge: %{
+        has_unread_notification: not is_nil(n),
+        has_subscription: not is_nil(s)
+      },
+      where: ^(not Keyword.get(opts, :limit_to_unread_notifications, false)) or not is_nil(n),
+      where: ^(not Keyword.get(opts, :limit_to_subscriptions, false)) or not is_nil(s)
   end
 
   @doc """
@@ -933,5 +966,17 @@ defmodule Platform.Material do
   """
   def get_media_organization_type(%Media{} = media) do
     media.attr_status
+  end
+
+  @doc """
+  Return summary statistics about the number of incidents by status.
+  """
+  def status_overview_statistics() do
+    Repo.all(
+      from m in Media,
+        where: not m.deleted,
+        group_by: m.attr_status,
+        select: {m.attr_status, count(m.id)}
+    )
   end
 end

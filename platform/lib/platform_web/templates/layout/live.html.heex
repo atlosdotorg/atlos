@@ -71,6 +71,17 @@
               </:right>
             </.notification>
           <% end %>
+
+          <div
+            id="connection_status"
+            class="hidden max-w-sm w-full"
+            phx-disconnected={Phoenix.LiveView.JS.show()}
+            phx-connected={Phoenix.LiveView.JS.hide()}
+          >
+            <.notification type="loading">
+              Temporary connection loss. Trying to reconnect...
+            </.notification>
+          </div>
         </div>
       </div>
       <div

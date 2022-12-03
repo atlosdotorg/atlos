@@ -22,7 +22,6 @@ defmodule PlatformWeb.MediaLive.Queue do
       "in_progress" -> "In Progress"
       "help_needed" -> "Help Needed"
       "review" -> "Ready for Review"
-      "needs_upload" -> "Needs Media Upload"
     end
   end
 
@@ -34,7 +33,6 @@ defmodule PlatformWeb.MediaLive.Queue do
       "in_progress" -> %{"attr_status" => "In Progress"}
       "help_needed" -> %{"attr_status" => "Help Needed"}
       "review" -> %{"attr_status" => "Ready for Review"}
-      "needs_upload" -> %{"no_media_versions" => true}
     end
   end
 

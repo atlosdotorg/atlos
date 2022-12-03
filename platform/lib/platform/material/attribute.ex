@@ -17,6 +17,8 @@ defmodule Platform.Material.Attribute do
     :max_length,
     :min_length,
     :pane,
+    # Allows :text to be input as :short_text or :textarea (default)
+    :input_type,
     :required,
     :custom_validation,
     :name,
@@ -81,6 +83,26 @@ defmodule Platform.Material.Attribute do
         pane: :not_shown,
         required: true,
         name: :description
+      },
+      %Attribute{
+        schema_field: :attr_date,
+        type: :date,
+        label: "Date",
+        pane: :attributes,
+        required: false,
+        name: :date,
+        description: "On what date did the incident take place?"
+      },
+      %Attribute{
+        schema_field: :attr_general_location,
+        type: :text,
+        input_type: :short_text,
+        max_length: 240,
+        min_length: 2,
+        label: "Reported Near",
+        pane: :attributes,
+        required: false,
+        name: :general_location
       },
       %Attribute{
         schema_field: :attr_tags,
@@ -168,10 +190,10 @@ defmodule Platform.Material.Attribute do
           "Sea Vehicle/Aircraft Carrier",
           "Injury",
           "Injury/Civilian",
-          "Injury/Soldier",
+          "Injury/Combatant",
           "Death",
           "Death/Civilian",
-          "Death/Soldier"
+          "Death/Combatant"
         ],
         label: "Impact",
         description: "What is damaged, harmed, or lost in this incident?",
@@ -370,15 +392,6 @@ defmodule Platform.Material.Attribute do
         name: :time_recorded,
         deprecated: true,
         description: "What time of day was the incident? Use the local timezone, if possible."
-      },
-      %Attribute{
-        schema_field: :attr_date,
-        type: :date,
-        label: "Date",
-        pane: :attributes,
-        required: false,
-        name: :date,
-        description: "On what date did the incident take place?"
       },
       %Attribute{
         schema_field: :attr_restrictions,

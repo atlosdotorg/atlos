@@ -100,7 +100,11 @@ defmodule Platform.Utils do
 
       if not is_nil(link) and
            (String.starts_with?(link, "/profile/") or String.starts_with?(link, "/incidents/")),
-         do: Earmark.AstTools.merge_atts_in_node(node, "internal-tag": "true"),
+         do:
+           Earmark.AstTools.merge_atts_in_node(node,
+             "internal-tag": "true",
+             "data-tag-target": String.split(link, "/") |> List.last()
+           ),
          else: node
     end
 

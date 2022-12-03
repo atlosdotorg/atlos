@@ -2,6 +2,7 @@ defmodule Platform.Material.Media do
   use Ecto.Schema
   import Ecto.Changeset
   import Ecto.Query
+  alias Ecto.Query.Builder.Update
   alias Platform.Utils
   alias Platform.Material.Attribute
   alias Platform.Material.MediaSubscription
@@ -19,6 +20,7 @@ defmodule Platform.Material.Media do
     field :attr_geolocation, Geo.PostGIS.Geometry
     field :attr_geolocation_resolution, :string
     field :attr_more_info, :string
+    field :attr_general_location, :string
     field :attr_date, :date
     field :attr_type, {:array, :string}
     field :attr_impact, {:array, :string}
@@ -54,8 +56,11 @@ defmodule Platform.Material.Media do
     field :urls_parsed, {:array, :string}, virtual: true
 
     # Virtual attributes for population during querying
-    field :has_unread_notification, :boolean, virtual: true
-    field :has_subscription, :boolean, virtual: true
+    field :has_unread_notification, :boolean, virtual: true, default: false
+    field :has_subscription, :boolean, virtual: true, default: false
+
+    # Refers to the post date of the most recent associated update -- this is distinct from `updated_at`
+    field :last_update_time, :utc_datetime, virtual: true
 
     # Metadata
     timestamps()
@@ -77,6 +82,7 @@ defmodule Platform.Material.Media do
       :attr_equipment,
       :attr_impact,
       :attr_date,
+      :attr_general_location,
       :deleted,
       :urls
     ])
@@ -88,6 +94,7 @@ defmodule Platform.Material.Media do
     |> Attribute.validate_attribute(Attribute.get_attribute(:equipment), user, false)
     |> Attribute.validate_attribute(Attribute.get_attribute(:impact), user, false)
     |> Attribute.validate_attribute(Attribute.get_attribute(:date), user, false)
+    |> Attribute.validate_attribute(Attribute.get_attribute(:general_location), user, false)
     |> parse_and_validate_validate_json_array(:urls, :urls_parsed)
     |> validate_url_list(:urls_parsed)
     |> then(fn cs ->
