@@ -26,7 +26,7 @@
               do: " (#{Enum.join(@media.attr_sensitive, ", ")})",
               else: "" %>
         <button
-          @click={"setClipboard(#{Jason.encode!(title_for_copying)})"}
+          x-on:click={"setClipboard(#{Jason.encode!(title_for_copying)})"}
           x-data
           data-tooltip="Copy incident summary to your clipboard"
           class="mt-2 flex items-center text-sm text-gray-500"
