@@ -2720,13 +2720,18 @@ defmodule PlatformWeb.Components do
   end
 
   def interactive_textarea(assigns) do
+    assigns =
+      assigns
+      |> assign_new(:required, fn -> false end)
+
     ~H"""
     <div id={@id} class="my-[2px] px-2" phx-update="ignore">
       <div id={"child-#{@id}"} x-data>
         <%= textarea(@form, @name,
           disabled: @disabled,
           class: "!hidden",
-          id: "textarea-#{@id}"
+          id: "textarea-#{@id}",
+          required: @required
         ) %>
         <div>
           <textarea
@@ -2735,6 +2740,7 @@ defmodule PlatformWeb.Components do
             placeholder={@placeholder}
             class={@class}
             disabled={@disabled}
+            required={@required}
             data-feedback={"textarea-#{@id}"}
           ><%= Ecto.Changeset.get_field(@form.source, :explanation) %></textarea>
         </div>
