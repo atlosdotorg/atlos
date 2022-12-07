@@ -178,7 +178,7 @@ defmodule Platform.Updates do
       attrs
       |> Map.put("type", :comment)
     )
-    |> Ecto.Changeset.validate_required([:explanation])
+    |> Ecto.Changeset.validate_required([:explanation], message: "A comment is required to post")
     |> Ecto.Changeset.validate_length(:explanation, min: 1, max: 10000)
   end
 

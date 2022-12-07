@@ -32,6 +32,7 @@ defmodule PlatformWeb.HomeLive.Index do
           )
       )
     )
+    |> Enum.filter(&Material.Media.can_user_view(&1, socket.assigns.current_user))
   end
 
   defp get_overview_media(socket, opts \\ []) do
@@ -67,6 +68,7 @@ defmodule PlatformWeb.HomeLive.Index do
        recently_modified_with_notification ++ recently_modified_subscriptions)
     |> Enum.sort_by(& &1.last_update_time, {:desc, NaiveDateTime})
     |> Enum.uniq_by(& &1.id)
+    |> Enum.filter(&Material.Media.can_user_view(&1, socket.assigns.current_user))
     |> Enum.take(4)
   end
 
