@@ -64,10 +64,19 @@ defmodule PlatformWeb.HomeLive.Index do
         )
       )
 
+    {unclaimed_query, unclaimed_query_opts} =
+      Material.MediaSearch.search_query(
+        Material.MediaSearch.changeset(%{"attr_status" => "Unclaimed"})
+      )
+
+    unclaimed_for_backfill =
+      Material.query_media_paginated(unclaimed_query, unclaimed_query_opts).entries
+
     (recently_modified_by_user ++
        recently_modified_with_notification ++ recently_modified_subscriptions)
     |> Enum.sort_by(& &1.last_update_time, {:desc, NaiveDateTime})
     |> Enum.uniq_by(& &1.id)
+    |> Enum.concat(unclaimed_for_backfill)
     |> Enum.filter(&Material.Media.can_user_view(&1, socket.assigns.current_user))
     |> Enum.take(4)
   end
