@@ -1964,7 +1964,7 @@ defmodule PlatformWeb.Components do
                             clip-rule="evenodd"
                           />
                         </svg>
-                        Export Results
+                        Export Incidents
                       <% end %>
                     </div>
                   </div>
