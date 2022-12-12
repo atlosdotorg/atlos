@@ -714,7 +714,7 @@ defmodule Platform.Material do
   @doc """
   Get a signed URL for the media version. Type can be :original or :thumb (defaults to :original).
   """
-  def media_version_location(version, media, type \\ :original) do
+  defmemo media_version_location(version, media, type \\ :original), expires_in: 60 * 1000 do
     cond do
       is_nil(version.file_location) ->
         nil
