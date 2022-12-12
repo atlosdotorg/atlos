@@ -81,12 +81,12 @@ defmodule PlatformWeb.HomeLive.Index do
     # For the search bar
     {:noreply,
      socket
-     |> redirect(
+     |> push_navigate(
        to:
          Routes.live_path(
            socket,
            PlatformWeb.MediaLive.Index,
-           params |> Map.put("display", "cards")
+           params
          )
      )}
   end
