@@ -604,13 +604,18 @@ defmodule Platform.Material do
   end
 
   @doc """
-  Merges the source media versions into the destination media.
+  Merges the source media versions into the destination media. If a media version's URL is already present on a media version
+  in the destination, it will not be copied.
   """
   def merge_media_versions_audited(%Media{} = source, %Media{} = destination, %User{} = user) do
     Repo.transaction(fn ->
+      destination_urls = get_media_versions_by_media(destination) |> Enum.map(& &1.source_url)
+
       for version <-
             get_media_versions_by_media(source) |> Enum.filter(&(&1.visibility == :visible)) do
-        {:ok, _} = copy_media_version_to_new_media_audited(version, destination, user)
+        if not Enum.member?(destination_urls, version.source_url) do
+          {:ok, _} = copy_media_version_to_new_media_audited(version, destination, user)
+        end
       end
 
       Updates.post_bot_comment(
