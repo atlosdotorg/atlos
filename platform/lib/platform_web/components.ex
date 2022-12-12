@@ -282,6 +282,10 @@ defmodule PlatformWeb.Components do
           x-show="open"
           x-cloak
         >
+          <.navlink to="/home" label="Home" request_path={@path}>
+            <Heroicons.home solid class="text-neutral-300 group-hover:text-white h-6 w-6" />
+          </.navlink>
+
           <.navlink to="/new" label="New" request_path={@path}>
             <svg
               xmlns="http://www.w3.org/2000/svg"
