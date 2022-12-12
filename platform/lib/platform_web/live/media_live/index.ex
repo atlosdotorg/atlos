@@ -2,6 +2,7 @@ defmodule PlatformWeb.MediaLive.Index do
   use PlatformWeb, :live_view
   alias Platform.Material
   alias Platform.Material.Attribute
+  alias Platform.Accounts
 
   def mount(_params, _session, socket) do
     {:ok,
@@ -11,10 +12,23 @@ defmodule PlatformWeb.MediaLive.Index do
 
   def handle_params(params, _uri, socket) do
     changeset = Material.MediaSearch.changeset(params)
-    display = Ecto.Changeset.get_field(changeset, :display, "map")
+
+    display =
+      Ecto.Changeset.get_field(
+        changeset,
+        :display,
+        socket.assigns.current_user.active_incidents_tab
+      )
 
     if not Enum.member?(["map", "cards", "table"], display) do
       raise PlatformWeb.Errors.NotFound, "Display type not found"
+    end
+
+    # Update the user's prefered incident display, if necessary
+    if socket.assigns.current_user.active_incidents_tab != display do
+      Platform.Accounts.update_user_preferences(socket.assigns.current_user, %{
+        active_incidents_tab: display
+      })
     end
 
     results =
