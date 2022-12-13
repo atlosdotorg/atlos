@@ -20,6 +20,10 @@ defmodule Platform.Accounts.User do
     field :otp_secret, :binary, redact: true
     field :current_otp_code, :string, virtual: true, redact: true
 
+    # Platform settings and preferences
+    field :active_incidents_tab, :string, default: "map"
+
+    # Authentication, identity, and compliance
     field :invite_code, :string, virtual: true
     field :terms_agree, :boolean, virtual: true
     field :password, :string, virtual: true, redact: true
@@ -268,6 +272,11 @@ defmodule Platform.Accounts.User do
   def confirm_changeset(user) do
     now = NaiveDateTime.utc_now() |> NaiveDateTime.truncate(:second)
     change(user, confirmed_at: now)
+  end
+
+  def preferences_changeset(user, attrs) do
+    user
+    |> cast(attrs, [:active_incidents_tab])
   end
 
   @doc """

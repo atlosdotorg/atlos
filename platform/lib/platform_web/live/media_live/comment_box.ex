@@ -62,19 +62,33 @@ defmodule PlatformWeb.MediaLive.CommentBox do
   defp friendly_error(val), do: val
 
   def handle_event("save", %{"update" => params} = _input, socket) do
+    # First, we create a "dummy" changeset to make sure everything is valid, minus attachments
+    changeset =
+      Updates.change_from_comment(
+        socket.assigns.media,
+        socket.assigns.current_user,
+        params
+      )
+
+    # If it is valid, we consume the uploads as attachments
     attachments =
-      consume_uploaded_entries(socket, :attachments, fn %{path: path}, entry ->
-        # Copying it to _another_ temporary path helps ensure we remove the user's provided filename
-        to_path =
-          Temp.path!(
-            prefix: socket.assigns.current_user.username,
-            suffix: "." <> hd(MIME.extensions(entry.client_type))
-          )
+      if changeset.valid? do
+        consume_uploaded_entries(socket, :attachments, fn %{path: path}, entry ->
+          # Copying it to _another_ temporary path helps ensure we remove the user's provided filename
+          to_path =
+            Temp.path!(
+              prefix: socket.assigns.current_user.username,
+              suffix: "." <> hd(MIME.extensions(entry.client_type))
+            )
 
-        File.cp!(path, to_path)
-        Uploads.UpdateAttachment.store({to_path, socket.assigns.media})
-      end)
+          File.cp!(path, to_path)
+          Uploads.UpdateAttachment.store({to_path, socket.assigns.media})
+        end)
+      else
+        nil
+      end
 
+    # ...and then generate the final changeset, with attachments
     changeset =
       Updates.change_from_comment(
         socket.assigns.media,
@@ -169,6 +183,7 @@ defmodule PlatformWeb.MediaLive.CommentBox do
                   disabled={@disabled}
                   form={f}
                   name={:explanation}
+                  required={true}
                   model="content"
                   placeholder={
                     if(@disabled,

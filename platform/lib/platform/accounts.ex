@@ -145,6 +145,19 @@ defmodule Platform.Accounts do
     User.registration_changeset(user, attrs, hash_password: false)
   end
 
+  @doc """
+  Returns an `%Ecto.Changeset{}` for changing the user's preferences.
+
+  ## Examples
+
+      iex> change_user_preferences(user)
+      %Ecto.Changeset{data: %User{}}
+
+  """
+  def change_user_preferences(%User{} = user, attrs \\ %{}) do
+    User.preferences_changeset(user, attrs)
+  end
+
   ## Settings
 
   @doc """
@@ -453,6 +466,11 @@ defmodule Platform.Accounts do
 
   def update_user_profile(user, attrs) do
     change_user_profile(user, attrs)
+    |> Repo.update()
+  end
+
+  def update_user_preferences(user, attrs) do
+    change_user_preferences(user, attrs)
     |> Repo.update()
   end
 

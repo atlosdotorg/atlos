@@ -282,6 +282,10 @@ defmodule PlatformWeb.Components do
           x-show="open"
           x-cloak
         >
+          <.navlink to="/home" label="Home" request_path={@path}>
+            <Heroicons.home solid class="text-neutral-300 group-hover:text-white h-6 w-6" />
+          </.navlink>
+
           <.navlink to="/new" label="New" request_path={@path}>
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -1964,7 +1968,7 @@ defmodule PlatformWeb.Components do
                             clip-rule="evenodd"
                           />
                         </svg>
-                        Export Results
+                        Export Incidents
                       <% end %>
                     </div>
                   </div>
@@ -2720,13 +2724,18 @@ defmodule PlatformWeb.Components do
   end
 
   def interactive_textarea(assigns) do
+    assigns =
+      assigns
+      |> assign_new(:required, fn -> false end)
+
     ~H"""
     <div id={@id} class="my-[2px] px-2" phx-update="ignore">
       <div id={"child-#{@id}"} x-data>
         <%= textarea(@form, @name,
           disabled: @disabled,
           class: "!hidden",
-          id: "textarea-#{@id}"
+          id: "textarea-#{@id}",
+          required: @required
         ) %>
         <div>
           <textarea
@@ -2735,6 +2744,7 @@ defmodule PlatformWeb.Components do
             placeholder={@placeholder}
             class={@class}
             disabled={@disabled}
+            required={@required}
             data-feedback={"textarea-#{@id}"}
           ><%= Ecto.Changeset.get_field(@form.source, :explanation) %></textarea>
         </div>
