@@ -948,7 +948,7 @@ defmodule PlatformWeb.Components do
   end
 
   def attr_display_compact(assigns) do
-    attr = Map.get(assigns, :attr))
+    attr = Map.get(assigns, :attr)
 
     assigns =
       assign(assigns, :children, Attribute.get_children(attr.name))
