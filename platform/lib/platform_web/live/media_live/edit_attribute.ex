@@ -97,11 +97,14 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
 
   def render(assigns) do
     confirm_prompt = "This will discard your changes without saving. Are you sure?"
-    disabled = !assigns.changeset.valid?
+
+    assigns =
+      assign(assigns, :disabled, !assigns.changeset.valid?)
+      |> assign(:confirm_prompt, confirm_prompt)
 
     ~H"""
     <article>
-      <.modal target={@myself} close_confirmation={confirm_prompt}>
+      <.modal target={@myself} close_confirmation={@confirm_prompt}>
         <div class="md:flex justify-between">
           <div>
             <p class="support font-mono"><%= @media.slug %></p>
@@ -142,7 +145,7 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
               <%= submit("Post update →",
                 phx_disable_with: "Saving...",
                 class: "button ~urge @high transition-all mr-2",
-                disabled: disabled
+                disabled: @disabled
               ) %>
               <button x-on:click="closeModal($event)" type="button" class="base-button">
                 Cancel

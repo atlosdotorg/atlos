@@ -2,7 +2,6 @@ defmodule PlatformWeb.MediaLive.Index do
   use PlatformWeb, :live_view
   alias Platform.Material
   alias Platform.Material.Attribute
-  alias Platform.Accounts
 
   def mount(_params, _session, socket) do
     {:ok,
@@ -68,7 +67,7 @@ defmodule PlatformWeb.MediaLive.Index do
      end)}
   end
 
-  defp search_media(socket, c, pagination_opts \\ []) do
+  defp search_media(socket, c, pagination_opts) do
     {query, pagination_options} = Material.MediaSearch.search_query(c)
 
     query

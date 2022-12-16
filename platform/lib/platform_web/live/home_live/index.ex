@@ -21,7 +21,7 @@ defmodule PlatformWeb.HomeLive.Index do
      |> assign(:search_changeset, Material.MediaSearch.changeset())}
   end
 
-  defp get_feed_media(socket, opts \\ []) do
+  defp get_feed_media(socket, opts) do
     Material.get_recently_updated_media_paginated(
       Keyword.merge(opts,
         for_user: socket.assigns.current_user,

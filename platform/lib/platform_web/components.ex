@@ -440,7 +440,7 @@ defmodule PlatformWeb.Components do
               </div>
             <% end %>
 
-            <%= if index == active_index do %>
+            <%= if index == @active_index do %>
               <!-- Current Step -->
               <div class="px-6 py-4 flex items-center text-sm font-medium" aria-current="step">
                 <span class="flex-shrink-0 w-10 h-10 flex items-center justify-center border-2 border-urge-600 rounded-full">
@@ -450,7 +450,7 @@ defmodule PlatformWeb.Components do
               </div>
             <% end %>
 
-            <%= if index > active_index do %>
+            <%= if index > @active_index do %>
               <!-- Upcoming Step -->
               <div class="group flex items-center">
                 <span class="px-6 py-4 flex items-center text-sm font-medium">
@@ -462,7 +462,7 @@ defmodule PlatformWeb.Components do
               </div>
             <% end %>
 
-            <%= if index != length(options) - 1 do %>
+            <%= if index != length(@options) - 1 do %>
               <!-- Arrow separator for lg screens and up -->
               <div class="hidden md:block absolute top-0 right-0 h-full w-5" aria-hidden="true">
                 <svg
@@ -985,12 +985,9 @@ defmodule PlatformWeb.Components do
     """
   end
 
-  def attr_display_row(
-        %{
-          attr: %Attribute{} = attr,
-          media: %Media{} = media
-        } = assigns
-      ) do
+  def attr_display_row(assigns) do
+    attr = Map.get(assigns, :attr)
+
     children = Attribute.get_children(attr.name)
 
     assigns =
@@ -1080,10 +1077,10 @@ defmodule PlatformWeb.Components do
     """
   end
 
-  def attr_label(%{label: label} = assigns) do
+  def attr_label(assigns) do
     ~H"""
-    <%= if String.length(label) > 0 do %>
-      <span class="opacity-[70%]"><%= label %>:</span>
+    <%= if String.length(@label) > 0 do %>
+      <span class="opacity-[70%]"><%= @label %>:</span>
     <% end %>
     """
   end
@@ -1091,21 +1088,24 @@ defmodule PlatformWeb.Components do
   def attr_entry(%{name: name, value: value} = assigns) do
     attr = Attribute.get_attribute(name)
 
-    label = Map.get(assigns, :label, "")
-    compact = Map.get(assigns, :compact, false)
-
     tone =
       if Map.get(assigns, :color, false), do: Attribute.attr_color(name, value), else: "~neutral"
 
+    assigns =
+      assign(assigns, :attr, attr)
+      |> assign_new(:label, fn -> "" end)
+      |> assign_new(:compact, fn -> false end)
+      |> assign_new(:tone, fn -> tone end)
+
     ~H"""
-    <span class={"inline-flex gap-1 max-w-full " <> (if compact, do: "", else: "flex-wrap")}>
-      <%= case attr.type do %>
+    <span class={"inline-flex gap-1 max-w-full " <> (if @compact, do: "", else: "flex-wrap")}>
+      <%= case @attr.type do %>
         <% :text -> %>
-          <%= if compact do %>
+          <%= if @compact do %>
             <div class="inline-block prose prose-sm my-px word-breaks">
-              <.attr_label label={label} />
+              <.attr_label label={@label} />
               <%= raw(
-                value
+                @value
                 |> String.replace("\n", "")
                 |> Utils.truncate(80)
                 |> Utils.render_markdown()
@@ -1113,61 +1113,61 @@ defmodule PlatformWeb.Components do
             </div>
           <% else %>
             <div class="inline-block prose prose-sm my-px word-breaks">
-              <.attr_label label={label} />
+              <.attr_label label={@label} />
               <%= raw(
-                value
+                @value
                 |> Utils.render_markdown()
               ) %>
             </div>
           <% end %>
         <% :select -> %>
           <div class="inline-block">
-            <div class={"chip #{tone} flex items-center gap-1 inline-block self-start break-all xl:break-normal"}>
+            <div class={"chip #{@tone} flex items-center gap-1 inline-block self-start break-all xl:break-normal"}>
               <.attribute_icon name={@name} type={:solid} value={@value} class="h-4 w-4 shrink-0" />
-              <.attr_label label={label} />
-              <span><%= value %></span>
+              <.attr_label label={@label} />
+              <span><%= @value %></span>
             </div>
           </div>
         <% :multi_select -> %>
-          <.attr_label label={label} />
-          <%= for item <- (if compact, do: value |> Enum.take(1), else: value) do %>
-            <div class={"chip #{tone} flex items-center gap-1 inline-block self-start break-all xl:break-normal"}>
+          <.attr_label label={@label} />
+          <%= for item <- (if @compact, do: @value |> Enum.take(1), else: @value) do %>
+            <div class={"chip #{@tone} flex items-center gap-1 inline-block self-start break-all xl:break-normal"}>
               <.attribute_icon name={@name} type={:solid} value={item} class="h-4 w-4 shrink-0" />
               <span><%= item %></span>
             </div>
-            <%= if compact and length(value) > 1 do %>
+            <%= if @compact and length(@value) > 1 do %>
               <div class="text-xs mt-1 text-neutral-500">
-                + <%= length(value) - 1 %>
+                + <%= length(@value) - 1 %>
               </div>
             <% end %>
           <% end %>
         <% :location -> %>
           <div class="inline-block">
-            <% {lon, lat} = value.coordinates %>
+            <% {lon, lat} = @value.coordinates %>
             <a
-              class={"chip #{tone} inline-block flex gap-1 items-center self-start break-all xl:break-normal"}
+              class={"chip #{@tone} inline-block flex gap-1 items-center self-start break-all xl:break-normal"}
               target="_blank"
               href={"https://maps.google.com/maps?q=#{lat},#{lon}"}
             >
               <.attribute_icon name={@name} type={:solid} value={@value} class="h-4 w-4 shrink-0" />
-              <.attr_label label={label} />
+              <.attr_label label={@label} />
               <.location lat={lat} lon={lon} />
             </a>
           </div>
         <% :time -> %>
           <div class="inline-block">
-            <div class={"chip #{tone} flex items-center gap-1 inline-block self-start break-all xl:break-normal"}>
+            <div class={"chip #{@tone} flex items-center gap-1 inline-block self-start break-all xl:break-normal"}>
               <.attribute_icon name={@name} type={:solid} value={@value} class="h-4 w-4 shrink-0" />
-              <.attr_label label={label} />
-              <%= value %>
+              <.attr_label label={@label} />
+              <%= @value %>
             </div>
           </div>
         <% :date -> %>
           <div class="inline-block">
-            <div class={"chip #{tone} flex items-center gap-1 inline-block self-start break-all xl:break-normal"}>
+            <div class={"chip #{@tone} flex items-center gap-1 inline-block self-start break-all xl:break-normal"}>
               <.attribute_icon name={@name} type={:solid} value={@value} class="h-4 w-4 shrink-0" />
-              <.attr_label label={label} />
-              <%= value |> Calendar.strftime("%d %B %Y") %>
+              <.attr_label label={@label} />
+              <%= @value |> Calendar.strftime("%d %B %Y") %>
             </div>
           </div>
       <% end %>
@@ -1232,29 +1232,29 @@ defmodule PlatformWeb.Components do
   end
 
   def attr_explanation(%{name: name} = assigns) do
-    attr = Attribute.get_attribute(name)
+    assigns = assign(assigns, :attr, Attribute.get_attribute(name))
 
     ~H"""
     <span class="inline-flex flex-wrap gap-1">
       <span class="font-medium">
-        <%= attr.name |> to_string() %>
+        <%= @attr.name |> to_string() %>
       </span>
       &mdash;
-      <%= case attr.type do %>
+      <%= case @attr.type do %>
         <% :text -> %>
           freeform text
         <% :select -> %>
           one of
-          <%= for item <- Attribute.options(attr) do %>
+          <%= for item <- Attribute.options(@attr) do %>
             <div class="badge ~urge inline-block"><%= item %></div>
           <% end %>
         <% :multi_select -> %>
           a combination of
-          <%= for item <- Attribute.options(attr) do %>
+          <%= for item <- Attribute.options(@attr) do %>
             <div class="badge ~urge inline-block"><%= item %></div>
           <% end %>
           (comma separated)
-          <%= if Attribute.allow_user_defined_options(attr) do %>
+          <%= if Attribute.allow_user_defined_options(@attr) do %>
             (new values allowed)
           <% end %>
         <% :location -> %>
@@ -1270,7 +1270,7 @@ defmodule PlatformWeb.Components do
           date, in the format
           <div class="badge ~urge inline-block">YYYY-MM-DD</div>
       <% end %>
-      <%= if attr.required do %>
+      <%= if @attr.required do %>
         (required)
       <% end %>
     </span>
@@ -1282,10 +1282,12 @@ defmodule PlatformWeb.Components do
     new_words = String.split(new || "") |> Enum.map(&String.trim(&1))
     diff = List.myers_difference(old_words, new_words)
 
+    assigns = assign(assigns, :diff, diff)
+
     ~H"""
     <span class="text-sm">
       <.attr_label label={Map.get(assigns, :label, "")} />
-      <%= for {action, elem} <- diff do %>
+      <%= for {action, elem} <- @diff do %>
         <%= for val <- elem do %>
           <%= case action do %>
             <% :ins -> %>
@@ -1315,9 +1317,11 @@ defmodule PlatformWeb.Components do
 
     diff = List.myers_difference(clean.(old), clean.(new))
 
+    assigns = assign(assigns, :diff, diff)
+
     ~H"""
     <span class="flex flex-wrap gap-1">
-      <%= for {action, elem} <- diff do %>
+      <%= for {action, elem} <- @diff do %>
         <%= case action do %>
           <% :eq -> %>
             <%= for item <- elem do %>
@@ -1456,16 +1460,16 @@ defmodule PlatformWeb.Components do
     """
   end
 
-  def deconfliction_warning(%{duplicates: duplicates, current_user: current_user} = assigns) do
+  def deconfliction_warning(assigns) do
     ~H"""
     <div class="p-4 mt-4 rounded bg-gray-100 transition-all">
       <p class="text-sm">
         Note that media at this URL has already been uploaded. While you can still upload the media, take care to ensure it is not a duplicate.
       </p>
       <div class="grid grid-cols-1 gap-4 mt-4">
-        <%= for dupe <- duplicates do %>
+        <%= for dupe <- @duplicates do %>
           <div data-confirm="Open the incident in a new tab? Your current upload won't be affected.">
-            <.media_card media={dupe} current_user={current_user} target="_blank" />
+            <.media_card media={dupe} current_user={@current_user} target="_blank" />
           </div>
         <% end %>
       </div>
@@ -1989,7 +1993,7 @@ defmodule PlatformWeb.Components do
     """
   end
 
-  def media_card_lazy(%{media: %Media{} = media} = assigns) do
+  def media_card_lazy(assigns) do
     ~H"""
     <div>
       <div class="fixed w-[350px] h-[190px] flex rounded-lg shadow-lg items-center bg-white justify-around -z-50">
@@ -1997,7 +2001,7 @@ defmodule PlatformWeb.Components do
           <span class="animate-pulse">Loading...</span>
         </div>
       </div>
-      <iframe dynamic-src={"/incidents/#{media.slug}/card"} width="350px" height="190px" />
+      <iframe dynamic-src={"/incidents/#{@media.slug}/card"} width="350px" height="190px" />
     </div>
     """
   end
@@ -2076,7 +2080,7 @@ defmodule PlatformWeb.Components do
     """
   end
 
-  def media_card(%{media: %Media{} = media, current_user: %Accounts.User{} = user} = assigns) do
+  def media_card(%{media: %Media{} = media} = assigns) do
     assigns =
       assigns
       |> assign(:contributors, Material.contributors(media))
@@ -2261,8 +2265,7 @@ defmodule PlatformWeb.Components do
   end
 
   def user_stack(assigns) do
-    max = Map.get(assigns, :max, 5)
-    assigns = assign_new(assigns, :dynamic, fn -> true end)
+    assigns = assign_new(assigns, :dynamic, fn -> true end) |> assign_new(:max, fn -> 5 end)
 
     ~H"""
     <div class="flex -space-x-1 relative z-0 items-center">
@@ -2286,7 +2289,7 @@ defmodule PlatformWeb.Components do
           />
         <% end %>
       <% end %>
-      <%= if length(@users) > max do %>
+      <%= if length(@users) > @max do %>
         <div class={"bg-gray-300 text-gray-700 text-xl rounded-full mt-1 h-5 w-5 z-30 ring-2 flex items-center justify-center"  <> Map.get(assigns, :ring_class, "ring-white")}>
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -2306,7 +2309,9 @@ defmodule PlatformWeb.Components do
     """
   end
 
-  def document_preview(%{file_name: file_name} = assigns) do
+  def document_preview(assigns) do
+    assigns = assign_new(assigns, :description, fn -> "Document" end)
+
     ~H"""
     <div class="flex gap-2 flex-col items-center bg-neutral-100 border rounded p-2">
       <svg
@@ -2322,15 +2327,13 @@ defmodule PlatformWeb.Components do
         />
         <path d="M14.25 5.25a5.23 5.23 0 00-1.279-3.434 9.768 9.768 0 016.963 6.963A5.23 5.23 0 0016.5 7.5h-1.875a.375.375 0 01-.375-.375V5.25z" />
       </svg>
-      <p class="text-sm font-medium text-center"><%= file_name %></p>
-      <p class="text-xs text-center"><%= Map.get(assigns, :description, "Document") %></p>
+      <p class="text-sm font-medium text-center"><%= @file_name %></p>
+      <p class="text-xs text-center"><%= @description %></p>
     </div>
     """
   end
 
-  def media_version_display(
-        %{version: version, current_user: current_user, media: media} = assigns
-      ) do
+  def media_version_display(%{version: version, media: media} = assigns) do
     assigns =
       assign_new(assigns, :dynamic_src, fn -> false end)
       # Verify it was archived successfully
@@ -2434,7 +2437,7 @@ defmodule PlatformWeb.Components do
                 </p>
                 <a
                   target="_blank"
-                  href={version.source_url}
+                  href={@version.source_url}
                   rel="nofollow"
                   class="button mt-1 original py-1 px-2 text-xs"
                 >
@@ -2966,15 +2969,15 @@ defmodule PlatformWeb.Components do
     """
   end
 
-  def media_text(%{media: %Media{} = media} = assigns) do
+  def media_text(assigns) do
     ~H"""
     <.popover class="inline overflow-hidden" no_pad={true}>
       <span class={"text-button transition inline-block mr-2 " <> Map.get(assigns, :class, "text-gray-800")}>
-        <.link navigate={"/incidents/" <> media.slug}><%= media.slug %> &nearr;</.link>
+        <.link navigate={"/incidents/" <> @media.slug}><%= @media.slug %> &nearr;</.link>
       </span>
       <:display>
         <div class="-m-3 w-[350px] h-[190px] rounded">
-          <.media_card_lazy media={media} />
+          <.media_card_lazy media={@media} />
         </div>
       </:display>
     </.popover>
@@ -3060,12 +3063,14 @@ defmodule PlatformWeb.Components do
   def hcaptcha(assigns) do
     site_key = System.get_env("HCAPTCHA_SITE_KEY")
 
+    assigns = assign(assigns, :site_key, site_key)
+
     ~H"""
     <article>
       <div
         id="hcaptcha-demo"
         class="h-captcha"
-        data-sitekey={site_key}
+        data-sitekey={@site_key}
         data-callback="onSuccess"
         data-expired-callback="onExpire"
       >
