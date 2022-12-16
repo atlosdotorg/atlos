@@ -943,7 +943,7 @@ defmodule PlatformWeb.Components do
     assigns = assign(assigns, :loc, loc)
 
     ~H"""
-    <img src={@loc} class={"rounded " <> @classes} />
+    <img src={@loc} class={"rounded " <> @class} />
     """
   end
 
@@ -2976,7 +2976,7 @@ defmodule PlatformWeb.Components do
         <.link navigate={"/incidents/" <> @media.slug}><%= @media.slug %> &nearr;</.link>
       </span>
       <:display>
-        <div class="-m-3 w-[350px] h-[190px] rounded">
+        <div class="-m-3 w-[350px] h-[190px] rou@nded">
           <.media_card_lazy media={@media} />
         </div>
       </:display>
