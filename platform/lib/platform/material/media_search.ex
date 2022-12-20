@@ -134,7 +134,7 @@ defmodule Platform.Material.MediaSearch do
   Filters the query results so that they are viewable to the given user
   """
   def filter_viewable(queryable \\ Media, %Platform.Accounts.User{} = user) do
-    if Enum.member?(user.roles || [], :admin) do
+    if Enum.member?(user.roles || [], :admin) or Enum.member?(user.roles || [], :trusted) do
       queryable
     else
       queryable |> where([u], ^"Hidden" not in u.attr_restrictions or is_nil(u.attr_restrictions))
