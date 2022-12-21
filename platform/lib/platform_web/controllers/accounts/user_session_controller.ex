@@ -34,8 +34,10 @@ defmodule PlatformWeb.UserSessionController do
   end
 
   def new_mfa(conn, _params) do
-    with user = %Accounts.User{} <-
-           Accounts.get_user_by_username(get_session(conn, :prelim_authed_username)) do
+    with username <- get_session(conn, :prelim_authed_username),
+         false <- is_nil(username),
+         user = %Accounts.User{} <-
+           Accounts.get_user_by_username(username) do
       changeset = Accounts.confirm_user_mfa(user)
       render(conn, "mfa.html", title: "Multi-Factor Authentication", changeset: changeset)
     else
@@ -44,8 +46,9 @@ defmodule PlatformWeb.UserSessionController do
   end
 
   def create_mfa(conn, %{"mfa" => mfa_params} = _params) do
-    with user = %Accounts.User{} <-
-           Accounts.get_user_by_username(get_session(conn, :prelim_authed_username)) do
+    with username <- get_session(conn, :prelim_authed_username),
+         false <- is_nil(username),
+         user = %Accounts.User{} <- Accounts.get_user_by_username(username) do
       changeset = Accounts.confirm_user_mfa(user, mfa_params) |> Map.put(:action, :validate)
 
       if changeset.valid? do

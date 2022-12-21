@@ -1,9 +1,7 @@
 defmodule Platform.Workers.Archiver do
   alias Platform.Material
   alias Platform.Material.MediaVersion
-  alias Platform.Updates
   alias Platform.Auditor
-  alias Platform.Accounts
   alias Platform.Uploads
 
   require Logger

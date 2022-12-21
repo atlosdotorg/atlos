@@ -22,7 +22,7 @@ defmodule Platform.Security do
     Repo.all(SecurityMode |> preload(:user) |> order_by(desc: :id))
   end
 
-  defp clear_cache(passthrough \\ nil) do
+  defp clear_cache(passthrough) do
     Memoize.invalidate(Platform.Security)
     passthrough
   end

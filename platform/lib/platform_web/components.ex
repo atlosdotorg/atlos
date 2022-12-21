@@ -1,7 +1,6 @@
 defmodule PlatformWeb.Components do
   use Phoenix.Component
   use Phoenix.HTML
-  import Phoenix.View
   import PlatformWeb.ErrorHelpers
 
   alias Phoenix.LiveView.JS
@@ -24,8 +23,10 @@ defmodule PlatformWeb.Components do
         "self-start text-neutral-100 hover:bg-neutral-800 hover:text-white group w-full p-3 rounded-md flex flex-col items-center text-xs font-medium"
       end
 
+    assigns = assign(assigns, :classes, classes)
+
     ~H"""
-    <%= link to: @to, class: classes do %>
+    <%= link to: @to, class: @classes do %>
       <%= render_slot(@inner_block) %>
       <span class="mt-2"><%= @label %></span>
     <% end %>
@@ -202,6 +203,8 @@ defmodule PlatformWeb.Components do
           """
       end
 
+    assigns = assigns |> assign(:icon, icon)
+
     ~H"""
     <div
       class="max-w-sm w-full bg-white shadow-lg rounded-lg pointer-events-auto ring-1 ring-black ring-opacity-5 overflow-hidden"
@@ -210,7 +213,7 @@ defmodule PlatformWeb.Components do
       <div class="p-4">
         <div class="flex items-start">
           <div class="flex-shrink-0">
-            <%= icon %>
+            <%= @icon %>
           </div>
           <div class="ml-3 w-0 flex-1 pt-0.5">
             <%= if String.length(@title) > 0 do %>
@@ -230,6 +233,9 @@ defmodule PlatformWeb.Components do
     version = Utils.get_instance_version()
     runtime = Utils.get_runtime_information()
 
+    assigns =
+      assigns |> assign(:name, name) |> assign(:version, version) |> assign(:runtime, runtime)
+
     ~H"""
     <div class="md:w-28 h-20"></div>
     <div
@@ -239,13 +245,13 @@ defmodule PlatformWeb.Components do
     >
       <div class="w-full pt-6 flex flex-col items-center md:h-full">
         <div class="flex w-full px-4 md:px-0 border-b pb-6 md:pb-0 md:border-0 border-neutral-600 justify-between md:justify-center items-center">
-          <%= link to: "/", class: "flex gap-2 md:gap-0 md:flex-col items-center text-white", title: "Atlos version #{version} (runtime: #{runtime})" do %>
+          <%= link to: "/", class: "flex gap-2 md:gap-0 md:flex-col items-center text-white", title: "Atlos version #{@version} (runtime: #{@runtime})" do %>
             <span class="text-xl py-px px-1 rounded-sm bg-white text-neutral-700 uppercase font-extrabold font-mono">
               Atlos
             </span>
-            <%= if not is_nil(name) do %>
+            <%= if not is_nil(@name) do %>
               <span class="font-mono md:text-sm uppercase font-medium text-xl md:mt-1">
-                <%= name %>
+                <%= @name %>
               </span>
             <% end %>
           <% end %>
@@ -399,15 +405,17 @@ defmodule PlatformWeb.Components do
   def stepper(%{options: options, active: active} = assigns) do
     active_index = Enum.find_index(options, &String.equivalent?(&1, active))
 
+    assigns = assign(assigns, :active_index, active_index)
+
     ~H"""
     <nav aria-label="Progress">
       <ol
         role="list"
         class="border border-gray-300 rounded-md divide-y divide-gray-300 md:flex md:divide-y-0 bg-white"
       >
-        <%= for {item, index} <- Enum.with_index(options) do %>
+        <%= for {item, index} <- Enum.with_index(@options) do %>
           <li class="relative md:flex-1 md:flex">
-            <%= if index < active_index do %>
+            <%= if index < @active_index do %>
               <!-- Completed Step -->
               <div class="group flex items-center w-full">
                 <span class="px-6 py-4 flex items-center text-sm font-medium">
@@ -432,7 +440,7 @@ defmodule PlatformWeb.Components do
               </div>
             <% end %>
 
-            <%= if index == active_index do %>
+            <%= if index == @active_index do %>
               <!-- Current Step -->
               <div class="px-6 py-4 flex items-center text-sm font-medium" aria-current="step">
                 <span class="flex-shrink-0 w-10 h-10 flex items-center justify-center border-2 border-urge-600 rounded-full">
@@ -442,7 +450,7 @@ defmodule PlatformWeb.Components do
               </div>
             <% end %>
 
-            <%= if index > active_index do %>
+            <%= if index > @active_index do %>
               <!-- Upcoming Step -->
               <div class="group flex items-center">
                 <span class="px-6 py-4 flex items-center text-sm font-medium">
@@ -454,7 +462,7 @@ defmodule PlatformWeb.Components do
               </div>
             <% end %>
 
-            <%= if index != length(options) - 1 do %>
+            <%= if index != length(@options) - 1 do %>
               <!-- Arrow separator for lg screens and up -->
               <div class="hidden md:block absolute top-0 right-0 h-full w-5" aria-hidden="true">
                 <svg
@@ -552,24 +560,17 @@ defmodule PlatformWeb.Components do
     """
   end
 
-  def update_entry(
-        %{
-          update: update,
-          show_line: show_line,
-          show_media: show_media,
-          can_user_change_visibility: can_user_change_visibility,
-          target: target,
-          socket: socket,
-          left_indicator: indicator,
-          current_user: current_user
-        } = assigns
-      ) do
+  def update_entry(assigns) do
     profile_ring_classes =
       if Map.get(assigns, :profile_ring, true) do
         "ring-8 ring-white"
       else
         ""
       end
+
+    update = Map.get(assigns, :update)
+
+    assigns = assign(assigns, :profile_ring_classes, profile_ring_classes)
 
     if is_list(update) do
       [head | _] = update
@@ -582,25 +583,30 @@ defmodule PlatformWeb.Components do
 
       n_attributes = length(attributes)
 
+      assigns =
+        assign(assigns, :n_attributes, n_attributes)
+        |> assign(:attributes, attributes)
+        |> assign(:head, head)
+
       ~H"""
-      <li x-data="{expanded: false}" id={"collapsed-update-#{head.id}"}>
+      <li x-data="{expanded: false}" id={"collapsed-update-#{@head.id}"}>
         <div
           class={"relative group word-breaks cursor-pointer " <> (if @show_line, do: "pb-8", else: "")}
           x-on:click="expanded = !expanded"
           class="group"
         >
-          <%= if show_line do %>
+          <%= if @show_line do %>
             <span class="absolute top-5 left-5 -ml-px h-full w-0.5 bg-gray-200" aria-hidden="true">
             </span>
           <% end %>
           <div class="relative flex items-start space-x-2">
-            <%= if indicator == :profile do %>
+            <%= if @left_indicator == :profile do %>
               <div class="relative">
-                <a href={"/profile/#{head.user.username}"}>
+                <a href={"/profile/#{@head.user.username}"}>
                   <img
-                    class={"h-10 w-10 rounded-full bg-gray-400 flex items-center justify-center shadow " <> profile_ring_classes}
-                    src={Accounts.get_profile_photo_path(head.user)}
-                    alt={"Profile photo for #{head.user.username}"}
+                    class={"h-10 w-10 rounded-full bg-gray-400 flex items-center justify-center shadow " <> @profile_ring_classes}
+                    src={Accounts.get_profile_photo_path(@head.user)}
+                    alt={"Profile photo for #{@head.user.username}"}
                   />
                 </a>
               </div>
@@ -608,25 +614,25 @@ defmodule PlatformWeb.Components do
             <div class="min-w-0 flex-1 flex flex-col flex-grow group-hover:bg-gray-100 focus-within:bg-gray-100 rounded px-1 py-2 transition-all mt-1">
               <div class="flex flex-wrap items-center">
                 <div class="text-sm text-gray-600 flex-grow">
-                  <%= if show_media do %>
-                    <.media_text media={head.media} />
+                  <%= if @show_media do %>
+                    <.media_text media={@head.media} />
                   <% end %>
-                  <.user_text user={head.user} />
-                  <%= case head.type do %>
+                  <.user_text user={@head.user} />
+                  <%= case @head.type do %>
                     <% :update_attribute -> %>
-                      made <%= length(update) %> updates to
-                      <%= for {attr, idx} <- attributes |> Enum.with_index() do %>
+                      made <%= length(@update) %> updates to
+                      <%= for {attr, idx} <- @attributes |> Enum.with_index() do %>
                         <span class="font-medium text-gray-800">
-                          <%= attr.label <> connector_language(idx, n_attributes) %>
+                          <%= attr.label <> connector_language(idx, @n_attributes) %>
                         </span>
                       <% end %>
                     <% :upload_version -> %>
                       added
                       <span class="font-medium text-gray-800">
-                        <%= length(update) %> pieces of media
+                        <%= length(@update) %> pieces of media
                       </span>
                   <% end %>
-                  <.rel_time time={head.inserted_at} />
+                  <.rel_time time={@head.inserted_at} />
                 </div>
                 <button
                   class="text-sm absolute right-0 text-urge-600 opacity-0 font-medium group-hover:opacity-100 focus:opacity-100 group-focus:opacity-100 transition-all px-2 py-1 bg-gray-100 shadow shadow-gray-100 shadow-xl rounded"
@@ -645,16 +651,16 @@ defmodule PlatformWeb.Components do
           x-show="expanded"
           x-cloak
         >
-          <%= for sub_update <- update |> Enum.reverse() do %>
+          <%= for sub_update <- @update |> Enum.reverse() do %>
             <.update_entry
               update={sub_update}
               show_line={true}
               show_media={false}
-              can_user_change_visibility={can_user_change_visibility}
-              target={target}
-              socket={socket}
+              can_user_change_visibility={@can_user_change_visibility}
+              target={@target}
+              socket={@socket}
               left_indicator={:dot}
-              current_user={current_user}
+              current_user={@current_user}
             />
           <% end %>
         </ul>
@@ -662,23 +668,23 @@ defmodule PlatformWeb.Components do
       """
     else
       ~H"""
-      <% can_user_view = Platform.Updates.Update.can_user_view(update, @current_user) %>
-      <li class={"transition-all " <> (if update.hidden and can_user_view, do: "opacity-50", else: "")}>
+      <% can_user_view = Platform.Updates.Update.can_user_view(@update, @current_user) %>
+      <li class={"transition-all " <> (if @update.hidden and can_user_view, do: "opacity-50", else: "")}>
         <div class={"relative group word-breaks " <> (if @show_line, do: "pb-8", else: "")}>
-          <%= if show_line do %>
+          <%= if @show_line do %>
             <span class="absolute top-5 left-5 -ml-px h-full w-0.5 bg-gray-200" aria-hidden="true">
             </span>
           <% end %>
           <div class="relative flex items-start space-x-2">
             <%= if can_user_view do %>
-              <%= case indicator do %>
+              <%= case @left_indicator do %>
                 <% :profile -> %>
                   <div class="relative">
-                    <a href={"/profile/#{update.user.username}"}>
+                    <a href={"/profile/#{@update.user.username}"}>
                       <img
-                        class={"h-10 w-10 rounded-full bg-gray-400 flex items-center justify-center " <> profile_ring_classes}
-                        src={Accounts.get_profile_photo_path(update.user)}
-                        alt={"Profile photo for #{update.user.username}"}
+                        class={"h-10 w-10 rounded-full bg-gray-400 flex items-center justify-center " <> @profile_ring_classes}
+                        src={Accounts.get_profile_photo_path(@update.user)}
+                        alt={"Profile photo for #{@update.user.username}"}
                       />
                     </a>
                   </div>
@@ -693,18 +699,18 @@ defmodule PlatformWeb.Components do
               <div class="min-w-0 flex-1 flex flex-col flex-grow pl-1">
                 <div>
                   <div class="text-sm text-gray-600 mt-2">
-                    <%= if show_media do %>
-                      <.media_text media={update.media} />
+                    <%= if @show_media do %>
+                      <.media_text media={@update.media} />
                     <% end %>
-                    <.user_text user={update.user} />
-                    <%= case update.type do %>
+                    <.user_text user={@update.user} />
+                    <%= case @update.type do %>
                       <% :update_attribute -> %>
-                        <% attr = Attribute.get_attribute(update.modified_attribute) %> updated
-                        <%= live_patch class: "text-button text-gray-800 inline-block", to: Routes.media_show_path(socket, :history, update.media.slug, attr.name) do %>
+                        <% attr = Attribute.get_attribute(@update.modified_attribute) %> updated
+                        <%= live_patch class: "text-button text-gray-800 inline-block", to: Routes.media_show_path(@socket, :history, @update.media.slug, attr.name) do %>
                           <%= attr.label %> &nearr;
                         <% end %>
                       <% :create -> %>
-                        added <span class="font-medium text-gray-900"><%= update.media.slug %></span>
+                        added <span class="font-medium text-gray-900"><%= @update.media.slug %></span>
                       <% :delete -> %>
                         deleted this incident
                       <% :undelete -> %>
@@ -713,8 +719,8 @@ defmodule PlatformWeb.Components do
                         added
                         <a
                           href={
-                          Routes.media_show_path(socket, :show, update.media.slug) <>
-                            "#version-#{update.media_version.id}"
+                          Routes.media_show_path(@socket, :show, @update.media.slug) <>
+                            "#version-#{@update.media_version.id}"
                         }
                           class="text-button text-gray-800"
                         >
@@ -723,8 +729,8 @@ defmodule PlatformWeb.Components do
                       <% :comment -> %>
                         commented
                     <% end %>
-                    <.rel_time time={update.inserted_at} />
-                    <%= if update.hidden do %>
+                    <.rel_time time={@update.inserted_at} />
+                    <%= if @update.hidden do %>
                       <span class="badge ~neutral">
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
@@ -742,47 +748,47 @@ defmodule PlatformWeb.Components do
                         Hidden
                       </span>
                     <% end %>
-                    <%= if can_user_change_visibility do %>
+                    <%= if @can_user_change_visibility do %>
                       <button
                         type="button"
-                        phx-target={target}
+                        phx-target={@target}
                         phx-click="change_visibility"
-                        phx-value-update={update.id}
+                        phx-value-update={@update.id}
                         class="opacity-0 group-hover:opacity-100 text-critical-700 transition text-xs ml-2"
                         data-confirm="Are you sure you want to change the visibility of this update?"
                       >
-                        <%= if update.hidden, do: "Show", else: "Hide" %>
+                        <%= if @update.hidden, do: "Show", else: "Hide" %>
                       </button>
                     <% end %>
                   </div>
                 </div>
 
-                <%= if update.type == :update_attribute || update.explanation do %>
+                <%= if @update.type == :update_attribute || @update.explanation do %>
                   <div class="mt-1 text-sm text-gray-700 border border-gray-300 rounded-lg shadow-sm overflow-hidden flex flex-col divide-y">
                     <!-- Update detail section -->
-                    <%= if update.type == :update_attribute do %>
+                    <%= if @update.type == :update_attribute do %>
                       <div class="bg-gray-50 p-2 flex">
                         <div class="flex-grow">
                           <.attr_diff
-                            name={update.modified_attribute}
-                            old={Jason.decode!(update.old_value)}
-                            new={Jason.decode!(update.new_value)}
+                            name={@update.modified_attribute}
+                            old={Jason.decode!(@update.old_value)}
+                            new={Jason.decode!(@update.new_value)}
                           />
                         </div>
                       </div>
                     <% end %>
                     <!-- Text comment section -->
-                    <%= if update.explanation do %>
+                    <%= if @update.explanation do %>
                       <article class="prose text-sm p-2 w-full max-w-full bg-white">
-                        <%= raw(update.explanation |> Platform.Utils.render_markdown()) %>
+                        <%= raw(@update.explanation |> Platform.Utils.render_markdown()) %>
                       </article>
                     <% end %>
 
-                    <%= if not Enum.empty?(update.attachments) do %>
+                    <%= if not Enum.empty?(@update.attachments) do %>
                       <div class="p-2 grid grid-cols-2 md:grid-cols-3 gap-2">
-                        <%= for {attachment, idx} <- update.attachments |> Enum.with_index() do %>
+                        <%= for {attachment, idx} <- @update.attachments |> Enum.with_index() do %>
                           <% url =
-                            Uploads.UpdateAttachment.url({attachment, update.media}, :original,
+                            Uploads.UpdateAttachment.url({attachment, @update.media}, :original,
                               signed: true,
                               expires_in: 60 * 60 * 6
                             ) %>
@@ -873,45 +879,43 @@ defmodule PlatformWeb.Components do
 
     full_display_time = Calendar.strftime(time, "%d %B %Y at %H:%M UTC")
 
+    assigns =
+      assign(assigns, :full_display_time, full_display_time)
+      |> assign(:ago, ago)
+      |> assign(:months, months)
+
     if ago > 7 * 24 * 60 * 60 do
       ~H"""
-      <span data-tooltip={full_display_time}>
-        <%= months[@time.month] %> <%= @time.day %> <%= @time.year %>
+      <span data-tooltip={@full_display_time}>
+        <%= @months[@time.month] %> <%= @time.day %> <%= @time.year %>
       </span>
       """
     else
       ~H"""
-      <span data-tooltip={full_display_time}><%= ago |> time_ago_in_words() %></span>
+      <span data-tooltip={@full_display_time}><%= @ago |> time_ago_in_words() %></span>
       """
     end
   end
 
-  def location(%{lat: lat, lon: lon} = assigns) do
+  def location(assigns) do
     ~H"""
-    <%= lat %>, <%= lon %> &nearr;
+    <%= @lat %>, <%= @lon %> &nearr;
     """
   end
 
-  def attr_display_block(
-        %{
-          set_attrs: set_attrs,
-          unset_attrs: _unset_attrs,
-          media: %Media{} = media,
-          updates: updates,
-          socket: socket,
-          current_user: current_user
-        } = assigns
-      ) do
+  def attr_display_block(assigns) do
+    assigns = assign_new(assigns, :immutable, fn -> false end)
+
     ~H"""
     <dl class="divide-y divide-dashed divide-gray-200 -mt-5 -mb-3 overflow-hidden">
-      <%= for attr <- set_attrs do %>
+      <%= for attr <- @set_attrs do %>
         <.attr_display_row
           attr={attr}
-          updates={updates}
-          media={media}
-          socket={socket}
-          current_user={current_user}
-          immutable={Map.get(assigns, :immutable, false)}
+          updates={@updates}
+          media={@media}
+          socket={@socket}
+          current_user={@current_user}
+          immutable={@immutable}
         />
       <% end %>
       <%= if length(@unset_attrs) > 0 do %>
@@ -921,7 +925,7 @@ defmodule PlatformWeb.Components do
             <%= for attr <- @unset_attrs do %>
               <%= live_patch("+ #{attr.label}",
                 class: "button original",
-                to: Routes.media_show_path(socket, :edit, @media.slug, attr.name),
+                to: Routes.media_show_path(@socket, :edit, @media.slug, attr.name),
                 replace: true
               ) %>
             <% end %>
@@ -932,41 +936,42 @@ defmodule PlatformWeb.Components do
     """
   end
 
-  def url_icon(%{url: url, class: classes} = assigns) do
+  def url_icon(%{url: url} = assigns) do
     parsed = URI.parse(url)
     loc = "https://s2.googleusercontent.com/s2/favicons?domain=#{parsed.host}&sz=256"
 
+    assigns = assign(assigns, :loc, loc)
+
     ~H"""
-    <img src={loc} class={"rounded " <> classes} />
+    <img src={@loc} class={"rounded " <> @class} />
     """
   end
 
-  def attr_display_compact(
-        %{
-          attr: %Attribute{} = attr,
-          media: %Media{} = media
-        } = assigns
-      ) do
-    children = Attribute.get_children(attr.name)
+  def attr_display_compact(assigns) do
+    attr = Map.get(assigns, :attr)
+
+    assigns =
+      assign(assigns, :children, Attribute.get_children(attr.name))
+      |> assign_new(:truncate, fn -> true end)
 
     ~H"""
     <div class="inline">
-      <%= if not is_nil(Map.get(media, attr.schema_field)) and Map.get(media, attr.schema_field) != [] and Map.get(media, attr.schema_field) != "" do %>
+      <%= if not is_nil(Map.get(@media, @attr.schema_field)) and Map.get(@media, @attr.schema_field) != [] and Map.get(@media, @attr.schema_field) != "" do %>
         <div class="inline-flex flex-wrap text-xs">
           <div class="break-word max-w-full text-ellipsis">
             <.attr_entry
               color={true}
-              compact={Map.get(assigns, :truncate, true)}
-              name={attr.name}
-              value={Map.get(media, attr.schema_field)}
+              compact={@truncate}
+              name={@attr.name}
+              value={Map.get(@media, @attr.schema_field)}
             />
-            <%= for child <- children do %>
-              <%= if not is_nil(Map.get(media, child.schema_field)) do %>
+            <%= for child <- @children do %>
+              <%= if not is_nil(Map.get(@media, child.schema_field)) do %>
                 <.attr_entry
                   color={true}
-                  compact={Map.get(assigns, :truncate, true)}
+                  compact={@truncate}
                   name={child.name}
-                  value={Map.get(media, child.schema_field)}
+                  value={Map.get(@media, child.schema_field)}
                   label={child.label}
                 />
               <% end %>
@@ -980,23 +985,22 @@ defmodule PlatformWeb.Components do
     """
   end
 
-  def attr_display_row(
-        %{
-          attr: %Attribute{} = attr,
-          media: %Media{} = media,
-          updates: updates,
-          socket: socket,
-          current_user: current_user
-        } = assigns
-      ) do
+  def attr_display_row(assigns) do
+    attr = Map.get(assigns, :attr)
+
     children = Attribute.get_children(attr.name)
+
+    assigns =
+      assign(assigns, :children, children)
+      |> assign_new(:truncate, fn -> false end)
+      |> assign_new(:immutable, fn -> false end)
 
     ~H"""
     <div class="py-2 sm:grid sm:grid-cols-3 sm:gap-2">
       <dt class="text-sm font-medium text-gray-500 mt-1 flex justify-between items-center flex-wrap">
         <span class="flex items-center gap-1">
-          <%= attr.label %>
-          <%= if Platform.Material.Attribute.requires_privileges_to_edit(attr) do %>
+          <%= @attr.label %>
+          <%= if Platform.Material.Attribute.requires_privileges_to_edit(@attr) do %>
             <span title="Special privileges are required to update this attribute.">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -1014,11 +1018,11 @@ defmodule PlatformWeb.Components do
           <% end %>
         </span>
         <%= live_patch(class: "text-button inline-block",
-            to: Routes.media_show_path(socket, :history, media.slug, attr.name)
+            to: Routes.media_show_path(@socket, :history, @media.slug, @attr.name)
           ) do %>
           <.user_stack users={
-            updates
-            |> Enum.filter(&(&1.modified_attribute == attr.name || &1.type == :create))
+            @updates
+            |> Enum.filter(&(&1.modified_attribute == @attr.name || &1.type == :create))
             |> Enum.filter(&(!&1.hidden))
             |> Enum.sort_by(& &1.inserted_at)
             |> Enum.map(& &1.user)
@@ -1029,14 +1033,14 @@ defmodule PlatformWeb.Components do
       </dt>
       <dd class="mt-1 flex items-center text-sm text-gray-900 sm:mt-0 sm:col-span-2">
         <span class="flex-grow gap-1 flex flex-wrap">
-          <%= if not is_nil(Map.get(media, attr.schema_field)) do %>
-            <.attr_entry name={attr.name} color={false} value={Map.get(media, attr.schema_field)} />
-            <%= for child <- children do %>
-              <%= if not is_nil(Map.get(media, child.schema_field)) do %>
+          <%= if not is_nil(Map.get(@media, @attr.schema_field)) do %>
+            <.attr_entry name={@attr.name} color={false} value={Map.get(@media, @attr.schema_field)} />
+            <%= for child <- @children do %>
+              <%= if not is_nil(Map.get(@media, child.schema_field)) do %>
                 <.attr_entry
                   name={child.name}
                   color={false}
-                  value={Map.get(media, child.schema_field)}
+                  value={Map.get(@media, child.schema_field)}
                   label={child.label}
                 />
               <% end %>
@@ -1044,10 +1048,10 @@ defmodule PlatformWeb.Components do
           <% end %>
         </span>
         <span class="ml-4 flex-shrink-0">
-          <%= if Attribute.can_user_edit(attr, current_user, media) and not (Map.get(assigns, :immutable, false)) do %>
+          <%= if Attribute.can_user_edit(@attr, @current_user, @media) and not @immutable do %>
             <%= live_patch("Update",
               class: "text-button mt-1 inline-block",
-              to: Routes.media_show_path(@socket, :edit, media.slug, attr.name),
+              to: Routes.media_show_path(@socket, :edit, @media.slug, @attr.name),
               replace: true
             ) %>
           <% end %>
@@ -1073,10 +1077,10 @@ defmodule PlatformWeb.Components do
     """
   end
 
-  def attr_label(%{label: label} = assigns) do
+  def attr_label(assigns) do
     ~H"""
-    <%= if String.length(label) > 0 do %>
-      <span class="opacity-[70%]"><%= label %>:</span>
+    <%= if String.length(@label) > 0 do %>
+      <span class="opacity-[70%]"><%= @label %>:</span>
     <% end %>
     """
   end
@@ -1084,21 +1088,24 @@ defmodule PlatformWeb.Components do
   def attr_entry(%{name: name, value: value} = assigns) do
     attr = Attribute.get_attribute(name)
 
-    label = Map.get(assigns, :label, "")
-    compact = Map.get(assigns, :compact, false)
-
     tone =
       if Map.get(assigns, :color, false), do: Attribute.attr_color(name, value), else: "~neutral"
 
+    assigns =
+      assign(assigns, :attr, attr)
+      |> assign_new(:label, fn -> "" end)
+      |> assign_new(:compact, fn -> false end)
+      |> assign_new(:tone, fn -> tone end)
+
     ~H"""
-    <span class={"inline-flex gap-1 max-w-full " <> (if compact, do: "", else: "flex-wrap")}>
-      <%= case attr.type do %>
+    <span class={"inline-flex gap-1 max-w-full " <> (if @compact, do: "", else: "flex-wrap")}>
+      <%= case @attr.type do %>
         <% :text -> %>
-          <%= if compact do %>
+          <%= if @compact do %>
             <div class="inline-block prose prose-sm my-px word-breaks">
-              <.attr_label label={label} />
+              <.attr_label label={@label} />
               <%= raw(
-                value
+                @value
                 |> String.replace("\n", "")
                 |> Utils.truncate(80)
                 |> Utils.render_markdown()
@@ -1106,61 +1113,61 @@ defmodule PlatformWeb.Components do
             </div>
           <% else %>
             <div class="inline-block prose prose-sm my-px word-breaks">
-              <.attr_label label={label} />
+              <.attr_label label={@label} />
               <%= raw(
-                value
+                @value
                 |> Utils.render_markdown()
               ) %>
             </div>
           <% end %>
         <% :select -> %>
           <div class="inline-block">
-            <div class={"chip #{tone} flex items-center gap-1 inline-block self-start break-all xl:break-normal"}>
+            <div class={"chip #{@tone} flex items-center gap-1 inline-block self-start break-all xl:break-normal"}>
               <.attribute_icon name={@name} type={:solid} value={@value} class="h-4 w-4 shrink-0" />
-              <.attr_label label={label} />
-              <span><%= value %></span>
+              <.attr_label label={@label} />
+              <span><%= @value %></span>
             </div>
           </div>
         <% :multi_select -> %>
-          <.attr_label label={label} />
-          <%= for item <- (if compact, do: value |> Enum.take(1), else: value) do %>
-            <div class={"chip #{tone} flex items-center gap-1 inline-block self-start break-all xl:break-normal"}>
+          <.attr_label label={@label} />
+          <%= for item <- (if @compact, do: @value |> Enum.take(1), else: @value) do %>
+            <div class={"chip #{@tone} flex items-center gap-1 inline-block self-start break-all xl:break-normal"}>
               <.attribute_icon name={@name} type={:solid} value={item} class="h-4 w-4 shrink-0" />
               <span><%= item %></span>
             </div>
-            <%= if compact and length(value) > 1 do %>
+            <%= if @compact and length(@value) > 1 do %>
               <div class="text-xs mt-1 text-neutral-500">
-                + <%= length(value) - 1 %>
+                + <%= length(@value) - 1 %>
               </div>
             <% end %>
           <% end %>
         <% :location -> %>
           <div class="inline-block">
-            <% {lon, lat} = value.coordinates %>
+            <% {lon, lat} = @value.coordinates %>
             <a
-              class={"chip #{tone} inline-block flex gap-1 items-center self-start break-all xl:break-normal"}
+              class={"chip #{@tone} inline-block flex gap-1 items-center self-start break-all xl:break-normal"}
               target="_blank"
               href={"https://maps.google.com/maps?q=#{lat},#{lon}"}
             >
               <.attribute_icon name={@name} type={:solid} value={@value} class="h-4 w-4 shrink-0" />
-              <.attr_label label={label} />
+              <.attr_label label={@label} />
               <.location lat={lat} lon={lon} />
             </a>
           </div>
         <% :time -> %>
           <div class="inline-block">
-            <div class={"chip #{tone} flex items-center gap-1 inline-block self-start break-all xl:break-normal"}>
+            <div class={"chip #{@tone} flex items-center gap-1 inline-block self-start break-all xl:break-normal"}>
               <.attribute_icon name={@name} type={:solid} value={@value} class="h-4 w-4 shrink-0" />
-              <.attr_label label={label} />
-              <%= value %>
+              <.attr_label label={@label} />
+              <%= @value %>
             </div>
           </div>
         <% :date -> %>
           <div class="inline-block">
-            <div class={"chip #{tone} flex items-center gap-1 inline-block self-start break-all xl:break-normal"}>
+            <div class={"chip #{@tone} flex items-center gap-1 inline-block self-start break-all xl:break-normal"}>
               <.attribute_icon name={@name} type={:solid} value={@value} class="h-4 w-4 shrink-0" />
-              <.attr_label label={label} />
-              <%= value |> Calendar.strftime("%d %B %Y") %>
+              <.attr_label label={@label} />
+              <%= @value |> Calendar.strftime("%d %B %Y") %>
             </div>
           </div>
       <% end %>
@@ -1225,29 +1232,29 @@ defmodule PlatformWeb.Components do
   end
 
   def attr_explanation(%{name: name} = assigns) do
-    attr = Attribute.get_attribute(name)
+    assigns = assign(assigns, :attr, Attribute.get_attribute(name))
 
     ~H"""
     <span class="inline-flex flex-wrap gap-1">
       <span class="font-medium">
-        <%= attr.name |> to_string() %>
+        <%= @attr.name |> to_string() %>
       </span>
       &mdash;
-      <%= case attr.type do %>
+      <%= case @attr.type do %>
         <% :text -> %>
           freeform text
         <% :select -> %>
           one of
-          <%= for item <- Attribute.options(attr) do %>
+          <%= for item <- Attribute.options(@attr) do %>
             <div class="badge ~urge inline-block"><%= item %></div>
           <% end %>
         <% :multi_select -> %>
           a combination of
-          <%= for item <- Attribute.options(attr) do %>
+          <%= for item <- Attribute.options(@attr) do %>
             <div class="badge ~urge inline-block"><%= item %></div>
           <% end %>
           (comma separated)
-          <%= if Attribute.allow_user_defined_options(attr) do %>
+          <%= if Attribute.allow_user_defined_options(@attr) do %>
             (new values allowed)
           <% end %>
         <% :location -> %>
@@ -1263,7 +1270,7 @@ defmodule PlatformWeb.Components do
           date, in the format
           <div class="badge ~urge inline-block">YYYY-MM-DD</div>
       <% end %>
-      <%= if attr.required do %>
+      <%= if @attr.required do %>
         (required)
       <% end %>
     </span>
@@ -1275,10 +1282,12 @@ defmodule PlatformWeb.Components do
     new_words = String.split(new || "") |> Enum.map(&String.trim(&1))
     diff = List.myers_difference(old_words, new_words)
 
+    assigns = assign(assigns, :diff, diff)
+
     ~H"""
     <span class="text-sm">
       <.attr_label label={Map.get(assigns, :label, "")} />
-      <%= for {action, elem} <- diff do %>
+      <%= for {action, elem} <- @diff do %>
         <%= for val <- elem do %>
           <%= case action do %>
             <% :ins -> %>
@@ -1308,9 +1317,11 @@ defmodule PlatformWeb.Components do
 
     diff = List.myers_difference(clean.(old), clean.(new))
 
+    assigns = assign(assigns, :diff, diff)
+
     ~H"""
     <span class="flex flex-wrap gap-1">
-      <%= for {action, elem} <- diff do %>
+      <%= for {action, elem} <- @diff do %>
         <%= case action do %>
           <% :eq -> %>
             <%= for item <- elem do %>
@@ -1449,16 +1460,16 @@ defmodule PlatformWeb.Components do
     """
   end
 
-  def deconfliction_warning(%{duplicates: duplicates, current_user: current_user} = assigns) do
+  def deconfliction_warning(assigns) do
     ~H"""
     <div class="p-4 mt-4 rounded bg-gray-100 transition-all">
       <p class="text-sm">
         Note that media at this URL has already been uploaded. While you can still upload the media, take care to ensure it is not a duplicate.
       </p>
       <div class="grid grid-cols-1 gap-4 mt-4">
-        <%= for dupe <- duplicates do %>
+        <%= for dupe <- @duplicates do %>
           <div data-confirm="Open the incident in a new tab? Your current upload won't be affected.">
-            <.media_card media={dupe} current_user={current_user} target="_blank" />
+            <.media_card media={dupe} current_user={@current_user} target="_blank" />
           </div>
         <% end %>
       </div>
@@ -1982,7 +1993,7 @@ defmodule PlatformWeb.Components do
     """
   end
 
-  def media_card_lazy(%{media: %Media{} = media} = assigns) do
+  def media_card_lazy(assigns) do
     ~H"""
     <div>
       <div class="fixed w-[350px] h-[190px] flex rounded-lg shadow-lg items-center bg-white justify-around -z-50">
@@ -1990,7 +2001,7 @@ defmodule PlatformWeb.Components do
           <span class="animate-pulse">Loading...</span>
         </div>
       </div>
-      <iframe dynamic-src={"/incidents/#{media.slug}/card"} width="350px" height="190px" />
+      <iframe dynamic-src={"/incidents/#{@media.slug}/card"} width="350px" height="190px" />
     </div>
     """
   end
@@ -2069,7 +2080,7 @@ defmodule PlatformWeb.Components do
     """
   end
 
-  def media_card(%{media: %Media{} = media, current_user: %Accounts.User{} = user} = assigns) do
+  def media_card(%{media: %Media{} = media} = assigns) do
     assigns =
       assigns
       |> assign(:contributors, Material.contributors(media))
@@ -2254,8 +2265,7 @@ defmodule PlatformWeb.Components do
   end
 
   def user_stack(assigns) do
-    max = Map.get(assigns, :max, 5)
-    assigns = assign_new(assigns, :dynamic, fn -> true end)
+    assigns = assign_new(assigns, :dynamic, fn -> true end) |> assign_new(:max, fn -> 5 end)
 
     ~H"""
     <div class="flex -space-x-1 relative z-0 items-center">
@@ -2279,7 +2289,7 @@ defmodule PlatformWeb.Components do
           />
         <% end %>
       <% end %>
-      <%= if length(@users) > max do %>
+      <%= if length(@users) > @max do %>
         <div class={"bg-gray-300 text-gray-700 text-xl rounded-full mt-1 h-5 w-5 z-30 ring-2 flex items-center justify-center"  <> Map.get(assigns, :ring_class, "ring-white")}>
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -2299,7 +2309,9 @@ defmodule PlatformWeb.Components do
     """
   end
 
-  def document_preview(%{file_name: file_name} = assigns) do
+  def document_preview(assigns) do
+    assigns = assign_new(assigns, :description, fn -> "Document" end)
+
     ~H"""
     <div class="flex gap-2 flex-col items-center bg-neutral-100 border rounded p-2">
       <svg
@@ -2315,15 +2327,13 @@ defmodule PlatformWeb.Components do
         />
         <path d="M14.25 5.25a5.23 5.23 0 00-1.279-3.434 9.768 9.768 0 016.963 6.963A5.23 5.23 0 0016.5 7.5h-1.875a.375.375 0 01-.375-.375V5.25z" />
       </svg>
-      <p class="text-sm font-medium text-center"><%= file_name %></p>
-      <p class="text-xs text-center"><%= Map.get(assigns, :description, "Document") %></p>
+      <p class="text-sm font-medium text-center"><%= @file_name %></p>
+      <p class="text-xs text-center"><%= @description %></p>
     </div>
     """
   end
 
-  def media_version_display(
-        %{version: version, current_user: current_user, media: media} = assigns
-      ) do
+  def media_version_display(%{version: version, media: media} = assigns) do
     assigns =
       assign_new(assigns, :dynamic_src, fn -> false end)
       # Verify it was archived successfully
@@ -2427,7 +2437,7 @@ defmodule PlatformWeb.Components do
                 </p>
                 <a
                   target="_blank"
-                  href={version.source_url}
+                  href={@version.source_url}
                   rel="nofollow"
                   class="button mt-1 original py-1 px-2 text-xs"
                 >
@@ -2959,15 +2969,15 @@ defmodule PlatformWeb.Components do
     """
   end
 
-  def media_text(%{media: %Media{} = media} = assigns) do
+  def media_text(assigns) do
     ~H"""
     <.popover class="inline overflow-hidden" no_pad={true}>
       <span class={"text-button transition inline-block mr-2 " <> Map.get(assigns, :class, "text-gray-800")}>
-        <.link navigate={"/incidents/" <> media.slug}><%= media.slug %> &nearr;</.link>
+        <.link navigate={"/incidents/" <> @media.slug}><%= @media.slug %> &nearr;</.link>
       </span>
       <:display>
-        <div class="-m-3 w-[350px] h-[190px] rounded">
-          <.media_card_lazy media={media} />
+        <div class="-m-3 w-[350px] h-[190px] rou@nded">
+          <.media_card_lazy media={@media} />
         </div>
       </:display>
     </.popover>
@@ -3053,12 +3063,14 @@ defmodule PlatformWeb.Components do
   def hcaptcha(assigns) do
     site_key = System.get_env("HCAPTCHA_SITE_KEY")
 
+    assigns = assign(assigns, :site_key, site_key)
+
     ~H"""
     <article>
       <div
         id="hcaptcha-demo"
         class="h-captcha"
-        data-sitekey={site_key}
+        data-sitekey={@site_key}
         data-callback="onSuccess"
         data-expired-callback="onExpire"
       >

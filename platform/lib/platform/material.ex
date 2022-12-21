@@ -156,7 +156,7 @@ defmodule Platform.Material do
     query |> preload(updates: [:user, :media, :media_version])
   end
 
-  defp apply_user_fields(query, user, opts \\ [])
+  defp apply_user_fields(query, user, opts)
 
   defp apply_user_fields(query, nil, _opts) do
     query
@@ -388,7 +388,7 @@ defmodule Platform.Material do
              {:ok, _} <- Updates.create_update_from_changeset(update_changeset) do
           media
         else
-          val ->
+          _val ->
             {:error, cs}
         end
       end)

@@ -93,17 +93,19 @@ defmodule PlatformWeb.UpdatesLive.UpdateFeed do
       |> reorder(assigns.reverse)
       |> Enum.with_index()
 
+    assigns = assign(assigns, :to_show, to_show)
+
     ~H"""
     <div class="flow-root">
       <ul role="list" class="-mb-8">
-        <%= if length(to_show) == 0 do %>
+        <%= if length(@to_show) == 0 do %>
           <p class="mb-8 text-gray-600">There are no updates to show.</p>
         <% end %>
-        <%= for {update, idx} <- to_show do %>
+        <%= for {update, idx} <- @to_show do %>
           <.update_entry
             update={update}
             current_user={@current_user}
-            show_line={idx != length(to_show) - 1 || @show_final_line}
+            show_line={idx != length(@to_show) - 1 || @show_final_line}
             show_media={@show_media}
             can_user_change_visibility={can_user_change_visibility(@current_user)}
             target={@myself}
