@@ -175,7 +175,7 @@ defmodule PlatformWeb.MediaLive.CommentBox do
               alt="Your profile photo"
             />
           </div>
-          <div class="min-w-0 flex-1">
+          <div class="min-w-0 grow">
             <div class="relative">
               <div class="-ml-1 border border-gray-300 rounded-lg shadow-sm overflow-hidden focus-within:border-urge-500 focus-within:ring-1 focus-within:ring-urge-500 transition pt-1">
                 <label for="comment" class="sr-only">Add a comment...</label>
@@ -188,12 +188,12 @@ defmodule PlatformWeb.MediaLive.CommentBox do
                   placeholder={
                     if(@disabled,
                       do: "Commenting has been disabled",
-                      else: "Add your comment. You can @tag others by their username."
+                      else: "Add a comment..."
                     )
                   }
                   id={"comment-parent-input-#{@render_id}"}
                   rows={4}
-                  class="block w-full !border-0 resize-none focus:ring-0 sm:text-sm shadow-none"
+                  class="!border-0 resize-none focus:ring-0 sm:text-sm shadow-none"
                 />
 
                 <section class="grid grid-cols-2 md:grid-cols-3 gap-2 p-2">

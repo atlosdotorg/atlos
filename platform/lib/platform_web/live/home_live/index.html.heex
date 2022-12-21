@@ -4,13 +4,15 @@
       <div class="flex items-center gap-8">
         <div class="font-medium text-2xl">Home</div>
         <div class="grow">
-          <.search_form
-            changeset={@search_changeset}
-            exclude={[:display, :sort]}
-            query_params={%{display: "cards"}}
-            socket={@socket}
-            display={:cards}
-          />
+          <div class="hidden md:block">
+            <.search_form
+              changeset={@search_changeset}
+              exclude={[:display, :sort]}
+              query_params={%{display: "cards"}}
+              socket={@socket}
+              display={:cards}
+            />
+          </div>
         </div>
         <div class="relative inline-block text-left" x-data="{open: false}">
           <div>

@@ -82,9 +82,11 @@ defmodule PlatformWeb.ProfilesLive.EditComponent do
   def render(assigns) do
     confirm_prompt = "This will discard your changes without saving. Are you sure?"
 
+    assigns = Map.put_new(assigns, :confirm_prompt, confirm_prompt)
+
     ~H"""
     <article>
-      <.modal target={@myself} close_confirmation={confirm_prompt}>
+      <.modal target={@myself} close_confirmation={@confirm_prompt}>
         <h3 class="sec-head">Editing <%= @user.username %></h3>
         <p class="sec-subhead">
           These changes will affect this user's account.

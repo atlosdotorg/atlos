@@ -178,25 +178,39 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
       "The file type you are uploading is not supported. Please contact us if you think this is an error."
 
   def render(assigns) do
-    uploads = Enum.filter(assigns.uploads.media_upload.entries, &(!&1.cancelled?))
-    is_uploading = length(uploads) > 0
+    active_uploads = Enum.filter(assigns.uploads.media_upload.entries, &(!&1.cancelled?))
+
+    assigns =
+      assign(
+        assigns,
+        :active_uploads,
+        active_uploads
+      )
+
+    is_uploading = length(active_uploads) > 0
 
     is_invalid = Enum.any?(assigns.uploads.media_upload.entries, &(!&1.valid?))
 
-    cancel_upload =
-      if is_uploading do
-        ~H"""
-        <button
-          phx-click="cancel_upload"
-          phx-target={@myself}
-          phx-value-ref={hd(uploads).ref}
-          class="text-sm label ~neutral"
-          type="button"
-        >
-          Cancel Upload
-        </button>
-        """
-      end
+    assigns =
+      assign(
+        assigns,
+        :cancel_upload,
+        if is_uploading do
+          ~H"""
+          <button
+            phx-click="cancel_upload"
+            phx-target={@myself}
+            phx-value-ref={hd(@active_uploads).ref}
+            class="text-sm label ~neutral"
+            type="button"
+          >
+            Cancel Upload
+          </button>
+          """
+        end
+      )
+      |> assign(:is_uploading, is_uploading)
+      |> assign(:is_invalid, is_invalid)
 
     ~H"""
     <article>
@@ -253,7 +267,7 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
             </div>
             <div class="phx-only-during-reg">
               <%= cond do %>
-                <% is_invalid -> %>
+                <% @is_invalid -> %>
                   <div class="space-y-1 text-center">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -284,7 +298,7 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
                       </label>
                     </div>
                   </div>
-                <% is_uploading -> %>
+                <% @is_uploading -> %>
                   <div class="space-y-1 text-center w-full">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -310,7 +324,7 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
                     </div>
                     <%= if not @processing do %>
                       <div>
-                        <%= cancel_upload %>
+                        <%= @cancel_upload %>
                       </div>
                     <% end %>
                   </div>
