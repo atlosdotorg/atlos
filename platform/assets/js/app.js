@@ -76,8 +76,10 @@ function htmlToElement(html) {
 
 // Show progress bar on live navigation and form submits
 topbar.config({ barColors: { 0: "#29d" }, shadowColor: "rgba(0, 0, 0, .3)" })
-window.addEventListener("phx:page-loading-start", info => topbar.show())
-window.addEventListener("phx:page-loading-stop", info => topbar.hide())
+window.addEventListener("phx:page-loading-start", () => topbar.show())
+window.addEventListener("phx:page-loading-stop", () => topbar.hide())
+window.addEventListener("atlos:updating", () => topbar.show())
+window.addEventListener("phx:update", () => topbar.hide())
 
 // Setup Alpine
 window.Alpine = Alpine
@@ -398,8 +400,6 @@ window.toggleClass = (id, classname) => {
     let elem = document.getElementById(id);
     elem.classList.toggle(classname);
 }
-
-document.addEventListener("phx:update", () => topbar.hide())
 
 document.addEventListener("phx:update", initializeSmartSelects);
 document.addEventListener("load", initializeSmartSelects);

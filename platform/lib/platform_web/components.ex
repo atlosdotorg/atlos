@@ -1775,8 +1775,8 @@ defmodule PlatformWeb.Components do
           as={:search}
           for={@changeset}
           id="search-form"
-          phx-change="validate"
-          phx-submit="save"
+          phx-change={JS.push("validate") |> JS.dispatch("atlos:updating", to: "body")}
+          phx-submit={JS.push("save") |> JS.dispatch("atlos:updating", to: "body")}
         >
           <section class="md:flex w-full max-w-7xl mx-auto flex-wrap md:flex-nowrap gap-2 items-center">
             <div class="flex divide-y md:divide-y-0 md:divide-x flex-col flex-grow md:flex-row rounded-lg bg-white shadow-sm border overflow-hidden">

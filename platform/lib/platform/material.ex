@@ -66,6 +66,7 @@ defmodule Platform.Material do
       end
     end)
     |> order_by(desc: :inserted_at)
+    |> distinct(true)
   end
 
   @doc """
