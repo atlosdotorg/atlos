@@ -18,5 +18,7 @@ defmodule Platform.Projects.Project do
     project
     |> cast(attrs, [:name, :code])
     |> validate_required([:name, :code])
+    |> validate_length(:code, min: 1, max: 5)
+    |> validate_length(:name, min: 1, max: 100)
   end
 end
