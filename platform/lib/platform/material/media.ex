@@ -68,6 +68,7 @@ defmodule Platform.Material.Media do
     has_many :versions, Platform.Material.MediaVersion
     has_many :updates, Platform.Updates.Update
     has_many :subscriptions, MediaSubscription
+    belongs_to :project, Platform.Projects.Project
   end
 
   @doc false
