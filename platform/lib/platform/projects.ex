@@ -7,6 +7,7 @@ defmodule Platform.Projects do
   alias Platform.Repo
 
   alias Platform.Projects.Project
+  alias Platform.Accounts
 
   @doc """
   Returns the list of projects.
@@ -100,5 +101,13 @@ defmodule Platform.Projects do
   """
   def change_project(%Project{} = project, attrs \\ %{}) do
     Project.changeset(project, attrs)
+  end
+
+  @doc """
+  Returns whether the given user can edit a project's media.
+  """
+  def can_edit_media?(%Accounts.User{} = user, %Project{} = _project) do
+    # TODO: Eventually we will handle permissions on a per-project basis.
+    Accounts.is_privileged(user)
   end
 end

@@ -166,6 +166,48 @@ defmodule Platform.Material.Media do
   end
 
   @doc """
+  A changeset meant to be used with projects.
+  """
+  def project_changeset(media, attrs, user \\ nil) do
+    media
+    |> cast(attrs, [:project_id])
+
+    # Only continue if :project_id is in the changes
+    |> then(fn cs ->
+      if Ecto.Changeset.get_change(cs, :project_id, :no_change) != :no_change do
+        cs
+        |> validate_change(:project_id, fn _, value ->
+          if !is_nil(value) && is_nil(Platform.Projects.get_project!(value)) do
+            [{:project_id, "Project does not exist"}]
+          else
+            []
+          end
+        end)
+        |> validate_change(:project_id, fn _, value ->
+          if is_nil(user) do
+            []
+          else
+            case Platform.Projects.can_edit_media?(user, Platform.Projects.get_project!(value)) &&
+                   (is_nil(media.project_id) ||
+                      Platform.Projects.can_edit_media?(
+                        user,
+                        Platform.Projects.get_project!(media.project_id)
+                      )) do
+              true ->
+                []
+
+              false ->
+                [{:project_id, "You do not have permission to manage incidents in this project"}]
+            end
+          end
+        end)
+      else
+        cs
+      end
+    end)
+  end
+
+  @doc """
   A changeset meant to be paired with bulk uploads.
 
   The import changeset simply runs the media through *every* attribute's changeset.
