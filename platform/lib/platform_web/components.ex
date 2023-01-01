@@ -715,6 +715,15 @@ defmodule PlatformWeb.Components do
                         deleted this incident
                       <% :undelete -> %>
                         restored this incident
+                      <% :change_project -> %>
+                        <%= if @update.project do %>
+                          moved this incident into
+                          <a href={"/projects/#{@update.project.id}"} class="text-button text-gray-800">
+                            <%= @update.project.name %> &nearr;
+                          </a>
+                        <% else %>
+                          removed this incident's project
+                        <% end %>
                       <% :upload_version -> %>
                         added
                         <a

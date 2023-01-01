@@ -28,7 +28,7 @@ defmodule Platform.Updates do
   end
 
   defp preload_fields(queryable) do
-    queryable |> preload([:user, :media, :media_version])
+    queryable |> preload([:user, :media, :media_version, :project])
   end
 
   @doc """
@@ -225,7 +225,7 @@ defmodule Platform.Updates do
   end
 
   @doc """
-  Helper API function that takes attribute change information and uses it to create an Update changeset. Requires 'explanation' to be in attrs.
+  Helper API function that takes attribute change information and uses it to create an Update changeset.
   """
   def change_from_media_version_upload(
         %Media{} = media,
@@ -239,6 +239,21 @@ defmodule Platform.Updates do
       %{
         "type" => :upload_version,
         "media_version_id" => version.id
+      }
+    )
+  end
+
+  def change_from_media_project_change(
+        %Media{} = media,
+        %User{} = user
+      ) do
+    change_update(
+      %Update{},
+      media,
+      user,
+      %{
+        "type" => :change_project,
+        "project_id" => media.project_id
       }
     )
   end

@@ -22,6 +22,10 @@ defmodule Platform.Projects do
     Repo.all(Project)
   end
 
+  def list_projects_for_user(%Accounts.User{} = user) do
+    list_projects() |> Enum.filter(&can_view_project?(user, &1))
+  end
+
   @doc """
   Gets a single project.
 
@@ -49,6 +53,7 @@ defmodule Platform.Projects do
       iex> get_project(456)
       nil
   """
+  def get_project(nil), do: nil
   def get_project(id), do: Repo.get(Project, id)
 
   @doc """

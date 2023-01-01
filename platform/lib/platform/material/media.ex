@@ -69,7 +69,7 @@ defmodule Platform.Material.Media do
     has_many :versions, Platform.Material.MediaVersion
     has_many :updates, Platform.Updates.Update
     has_many :subscriptions, MediaSubscription
-    belongs_to :project, Platform.Projects.Project
+    belongs_to :project, Platform.Projects.Project, type: :binary_id
   end
 
   @doc false
@@ -164,11 +164,12 @@ defmodule Platform.Material.Media do
             changeset
             |> add_error(:project_id, "Project does not exist")
 
-          !is_nil(user) && !Projects.can_edit_media?(user, new_project) ->
+          !is_nil(user) && !is_nil(new_project) && !Projects.can_edit_media?(user, new_project) ->
             changeset
             |> add_error(:project_id, "You cannot add media to this project!")
 
-          !is_nil(user) && !Projects.can_edit_media?(user, original_project) ->
+          !is_nil(user) && !is_nil(original_project) &&
+              !Projects.can_edit_media?(user, original_project) ->
             changeset
             |> add_error(:project_id, "You cannot remove media from this project!")
 

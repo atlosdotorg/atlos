@@ -2,21 +2,25 @@
   <div class="lg:flex lg:items-center lg:justify-between">
     <div class="flex-1 min-w-0 max-w-full">
       <div>
-        <span class="text-sm pl-1 text-neutral-500 flex items-center gap-1">
+        <.link
+          class="text-sm pl-1 text-neutral-500 inline-flex px-1 py-px items-center gap-1 hover:bg-neutral-200 rounded transition"
+          patch={"/incidents/#{@media.slug}/project"}
+          data-tooltip="Manage this incident's project"
+        >
           <%= if @media.project do %>
             <svg
               viewBox="0 0 100 100"
               xmlns="http://www.w3.org/2000/svg"
-              fill={@project.color}
-              class="h-4 w-4"
+              fill={@media.project.color}
+              class="h-3 w-3"
             >
               <circle cx="50" cy="50" r="50" />
             </svg>
-            <%= @project.code %>-<%= @media.slug |> String.replace("ATL-", "") %>
+            <%= @media.project.code %>-<%= @media.slug |> String.replace("ATL-", "") %>
           <% else %>
             <span>+ Add to Project</span>
           <% end %>
-        </span>
+        </.link>
       </div>
       <% title_classes =
         "text-xl font-medium leading-7 text-gray-700 sm:text-3xl block transition-all p-1 rounded " <>
@@ -36,7 +40,7 @@
           <%= @media.attr_description %>
         </div>
       <% end %>
-      <div class="mt-1 flex flex-col sm:flex-row sm:flex-wrap sm:mt-0 sm:space-x-4">
+      <div class="mt-1 flex flex-col sm:flex-row sm:flex-wrap sm:mt-0 sm:space-x-4 ml-1">
         <%= if @media.attr_status do %>
           <%= live_patch(class: "chip @high inline-block mt-2 flex gap-1 " <> Attribute.attr_color(:status, @media.attr_status),
                       to: Routes.media_show_path(@socket, :edit, @media.slug, :status), replace: true
@@ -512,6 +516,27 @@
         id="merge-versions"
         current_user={@current_user}
         source={@media}
+      />
+    </.modal>
+  <% end %>
+  <%= if @live_action == :project do %>
+    <.modal target={} close_confirmation="">
+      <div class="mb-8">
+        <div>
+          <p class="support font-mono"><%= @media.slug %></p>
+          <p class="sec-head">
+            Change Project
+          </p>
+          <p class="sec-subhead">
+            Change the project this incident is associated with.
+          </p>
+        </div>
+      </div>
+      <.live_component
+        module={PlatformWeb.MediaLive.ManageProjectsLive}
+        id="manage-projects"
+        current_user={@current_user}
+        media={@media}
       />
     </.modal>
   <% end %>

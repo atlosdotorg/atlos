@@ -155,7 +155,7 @@ defmodule Platform.Material do
 
   defp preload_media_updates(query) do
     # TODO: should this be pulled into the Updates context somehow?
-    query |> preload(updates: [:user, :media, :media_version])
+    query |> preload(updates: [:user, :media, :media_version, :project])
   end
 
   defp preload_media_project(query) do
@@ -588,6 +588,32 @@ defmodule Platform.Material do
        change_media_version(%MediaVersion{}, attrs)
        |> Ecto.Changeset.add_error(:source_url, "This media has been locked.")}
     end
+  end
+
+  def change_media_project(%Media{} = media, attrs \\ %{}, user \\ nil) do
+    Media.project_changeset(media, attrs, user)
+  end
+
+  def update_media_project(%Media{} = media, attrs \\ %{}, user \\ nil) do
+    change_media_project(media, attrs, user)
+    |> Repo.update()
+  end
+
+  def update_media_project_audited(%Media{} = media, %User{} = user, attrs \\ %{}) do
+    unless Media.can_user_edit(media, user) do
+      raise "No permission"
+    end
+
+    Repo.transaction(fn ->
+      with {:ok, media} <- update_media_project(media, attrs, user),
+           update_changeset <- Updates.change_from_media_project_change(media, user),
+           {:ok, _} <- Updates.create_update_from_changeset(update_changeset) do
+        Updates.subscribe_if_first_interaction(media, user)
+        media
+      else
+        _ -> {:error, change_media_project(media, attrs, user)}
+      end
+    end)
   end
 
   @doc """
