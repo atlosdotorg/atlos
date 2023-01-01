@@ -24,6 +24,7 @@ defmodule Platform.Material do
     query
     |> preload_media_versions()
     |> preload_media_updates()
+    |> preload_media_project()
     |> then(fn x ->
       case Keyword.get(opts, :for_user) do
         nil -> x
@@ -157,6 +158,10 @@ defmodule Platform.Material do
     query |> preload(updates: [:user, :media, :media_version])
   end
 
+  defp preload_media_project(query) do
+    query |> preload([:project])
+  end
+
   defp apply_user_fields(query, user, opts)
 
   defp apply_user_fields(query, nil, _opts) do
@@ -274,7 +279,11 @@ defmodule Platform.Material do
   end
 
   def get_full_media_by_slug(slug) do
-    Media |> preload_media_versions() |> preload_media_updates() |> Repo.get_by(slug: slug)
+    Media
+    |> preload_media_versions()
+    |> preload_media_updates()
+    |> preload_media_project()
+    |> Repo.get_by(slug: slug)
   end
 
   @doc """

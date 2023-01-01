@@ -21,10 +21,10 @@ defmodule Platform.ProjectsTest do
     end
 
     test "create_project/1 with valid data creates a project" do
-      valid_attrs = %{code: "some code", name: "some name"}
+      valid_attrs = %{code: "code", name: "some name"}
 
       assert {:ok, %Project{} = project} = Projects.create_project(valid_attrs)
-      assert project.code == "some code"
+      assert project.code == "code"
       assert project.name == "some name"
     end
 
@@ -34,10 +34,10 @@ defmodule Platform.ProjectsTest do
 
     test "update_project/2 with valid data updates the project" do
       project = project_fixture()
-      update_attrs = %{code: "some updated code", name: "some updated name"}
+      update_attrs = %{code: "code2", name: "some updated name"}
 
       assert {:ok, %Project{} = project} = Projects.update_project(project, update_attrs)
-      assert project.code == "some updated code"
+      assert project.code == "code2"
       assert project.name == "some updated name"
     end
 

@@ -11,7 +11,7 @@ defmodule Platform.ProjectsFixtures do
     {:ok, project} =
       attrs
       |> Enum.into(%{
-        code: "some code",
+        code: "code1",
         name: "some name"
       })
       |> Platform.Projects.create_project()

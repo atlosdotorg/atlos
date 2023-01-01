@@ -250,7 +250,7 @@ defmodule Platform.Updates do
     query =
       from u in Update,
         where: u.media_id == ^media.id,
-        preload: [:user, :media, :media_version],
+        preload: [:user, :media_version, media: [:project]],
         order_by: [asc: u.inserted_at]
 
     Repo.all(if exclude_hidden, do: query |> where([u], not u.hidden), else: query)

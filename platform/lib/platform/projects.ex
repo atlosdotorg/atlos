@@ -39,6 +39,19 @@ defmodule Platform.Projects do
   def get_project!(id), do: Repo.get!(Project, id)
 
   @doc """
+  Gets a single project. Returns `nil` if the Project does not exist.
+
+  ## Examples
+
+      iex> get_project(123)
+      %Project{}
+
+      iex> get_project(456)
+      nil
+  """
+  def get_project(id), do: Repo.get(Project, id)
+
+  @doc """
   Creates a project.
 
   ## Examples
@@ -133,5 +146,12 @@ defmodule Platform.Projects do
   """
   def can_create_project?(%Accounts.User{} = user) do
     Accounts.is_privileged(user)
+  end
+
+  @doc """
+  Returns whether the given user can view the project.
+  """
+  def can_view_project?(%Accounts.User{} = user, %Project{} = _project) do
+    true
   end
 end

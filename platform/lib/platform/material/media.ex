@@ -7,6 +7,7 @@ defmodule Platform.Material.Media do
   alias Platform.Material.MediaSubscription
   alias Platform.Accounts.User
   alias Platform.Accounts
+  alias Platform.Projects
   alias __MODULE__
 
   schema "media" do
@@ -84,6 +85,7 @@ defmodule Platform.Material.Media do
       :attr_date,
       :attr_general_location,
       :deleted,
+      :project_id,
       :urls
     ])
 
@@ -95,6 +97,7 @@ defmodule Platform.Material.Media do
     |> Attribute.validate_attribute(Attribute.get_attribute(:impact), user, false)
     |> Attribute.validate_attribute(Attribute.get_attribute(:date), user, false)
     |> Attribute.validate_attribute(Attribute.get_attribute(:general_location), user, false)
+    |> validate_project(user)
     |> parse_and_validate_validate_json_array(:urls, :urls_parsed)
     |> validate_url_list(:urls_parsed)
     |> then(fn cs ->
@@ -144,6 +147,37 @@ defmodule Platform.Material.Media do
     changeset
   end
 
+  def validate_project(changeset, user \\ nil) do
+    project_id = Ecto.Changeset.get_change(changeset, :project_id, :no_change)
+    original_project_id = changeset.data.project_id
+
+    case project_id do
+      :no_change ->
+        changeset
+
+      new_project_id ->
+        new_project = Projects.get_project(new_project_id)
+        original_project = Projects.get_project(original_project_id)
+
+        cond do
+          !is_nil(project_id) && is_nil(new_project) ->
+            changeset
+            |> add_error(:project_id, "Project does not exist")
+
+          !is_nil(user) && !Projects.can_edit_media?(user, new_project) ->
+            changeset
+            |> add_error(:project_id, "You cannot add media to this project!")
+
+          !is_nil(user) && !Projects.can_edit_media?(user, original_project) ->
+            changeset
+            |> add_error(:project_id, "You cannot remove media from this project!")
+
+          true ->
+            changeset
+        end
+    end
+  end
+
   def validate_url_list(changeset, field) do
     valid? = fn url ->
       uri = URI.parse(url)
@@ -171,40 +205,7 @@ defmodule Platform.Material.Media do
   def project_changeset(media, attrs, user \\ nil) do
     media
     |> cast(attrs, [:project_id])
-
-    # Only continue if :project_id is in the changes
-    |> then(fn cs ->
-      if Ecto.Changeset.get_change(cs, :project_id, :no_change) != :no_change do
-        cs
-        |> validate_change(:project_id, fn _, value ->
-          if !is_nil(value) && is_nil(Platform.Projects.get_project!(value)) do
-            [{:project_id, "Project does not exist"}]
-          else
-            []
-          end
-        end)
-        |> validate_change(:project_id, fn _, value ->
-          if is_nil(user) do
-            []
-          else
-            case Platform.Projects.can_edit_media?(user, Platform.Projects.get_project!(value)) &&
-                   (is_nil(media.project_id) ||
-                      Platform.Projects.can_edit_media?(
-                        user,
-                        Platform.Projects.get_project!(media.project_id)
-                      )) do
-              true ->
-                []
-
-              false ->
-                [{:project_id, "You do not have permission to manage incidents in this project"}]
-            end
-          end
-        end)
-      else
-        cs
-      end
-    end)
+    |> validate_project(user)
   end
 
   @doc """
@@ -263,9 +264,16 @@ defmodule Platform.Material.Media do
   end
 
   @doc """
-  Can the user view the media? Currently this is true for all media *except* media for which the "Hidden" restriction is present and the user is not an admin.
+  Can the user view the media?
   """
   def can_user_view(%Media{} = media, %User{} = user) do
+    can_user_view_media_base(media, user) &&
+      (is_nil(media.project) ||
+         Platform.Projects.can_view_project?(user, media.project))
+  end
+
+  defp can_user_view_media_base(%Media{} = media, %User{} = user) do
+    # Can the user view the media, independent of which project it's a part of?
     case {media.attr_restrictions, media.deleted} do
       {nil, false} ->
         true
