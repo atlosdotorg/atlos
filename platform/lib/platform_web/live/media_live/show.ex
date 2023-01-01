@@ -151,7 +151,7 @@ defmodule PlatformWeb.MediaLive.Show do
      )}
   end
 
-  def handle_info({:project_changed, media}, socket) do
+  def handle_info({:project_changed, _media}, socket) do
     {:noreply,
      socket
      |> put_flash(

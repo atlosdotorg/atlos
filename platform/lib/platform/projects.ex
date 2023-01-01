@@ -156,7 +156,7 @@ defmodule Platform.Projects do
   @doc """
   Returns whether the given user can view the project.
   """
-  def can_view_project?(%Accounts.User{} = user, %Project{} = _project) do
+  def can_view_project?(%Accounts.User{} = _user, %Project{} = _project) do
     true
   end
 end
