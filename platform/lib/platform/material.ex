@@ -970,7 +970,7 @@ defmodule Platform.Material do
   end
 
   @doc """
-  Get the human-readable name of the media version (e.g., ATL-ABCDEF/1). The media must match the version.
+  Get the human-readable name of the media version (e.g., ABCDEF/1). The media must match the version.
   """
   def get_human_readable_media_version_name(%Media{} = media, %MediaVersion{} = version) do
     "#{media.slug}/#{version.scoped_id}"
