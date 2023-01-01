@@ -26,11 +26,16 @@ defmodule PlatformWeb.ProjectsLive.Index do
 
   def render(assigns) do
     ~H"""
-    <article class="w-full px-4 md:px-8">
-      <div class="mb-8">
+    <article class="w-full xl:max-w-screen-xl md:mx-auto px-4">
+      <div class="mb-8 flex flex-col md:flex-row md:justify-between gap-4 border-b pb-4">
         <h1 class="text-3xl font-medium heading">
           Projects
         </h1>
+        <%= if Projects.can_create_project?(@current_user) do %>
+          <.link patch="/projects/new" class="button ~urge @high">
+            New Project
+          </.link>
+        <% end %>
       </div>
       <div>
         <%= if Enum.empty?(@projects) do %>
@@ -71,6 +76,11 @@ defmodule PlatformWeb.ProjectsLive.Index do
             <% end %>
           </div>
         <% end %>
+        <div class="grid grid-cols-1 md:grid-cols-3">
+          <%= for project <- @projects do %>
+            <.project_card project={project} />
+          <% end %>
+        </div>
       </div>
       <%= if @live_action == :new do %>
         <.modal target={} close_confirmation="Your changes will be lost. Are you sure?">

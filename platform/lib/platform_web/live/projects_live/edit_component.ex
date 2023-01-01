@@ -78,6 +78,14 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
           </p>
         </div>
         <div>
+          <%= label(f, :color) %>
+          <%= color_input(f, :color) %>
+          <%= error_tag(f, :color) %>
+          <p class="support">
+            This color will help visually identify the project.
+          </p>
+        </div>
+        <div>
           <%= submit("Save", class: "button ~urge @high") %>
           <button phx-click="close" class="button ~neutral" type="button" phx-target={@myself}>
             Cancel

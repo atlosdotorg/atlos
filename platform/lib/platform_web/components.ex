@@ -3126,4 +3126,15 @@ defmodule PlatformWeb.Components do
     </footer>
     """
   end
+
+  def project_card(assigns) do
+    ~H"""
+    <.link class="bg-white rounded-lg shadow overflow-hidden" href={"/projects/#{@project.id}"}>
+      <div class="p-4 flex-col gap-2" style={"border-top: 4px solid #{@project.color}"}>
+        <p class="font-mono text-sm text-neutral-600"><%= @project.code %></p>
+        <p class="font-medium text-lg"><%= @project.name %></p>
+      </div>
+    </.link>
+    """
+  end
 end

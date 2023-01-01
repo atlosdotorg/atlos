@@ -26,11 +26,28 @@ defmodule PlatformWeb.ProjectsLive.Show do
 
   def render(assigns) do
     ~H"""
-    <article class="w-full px-4 md:px-8">
-      <div class="mb-8">
+    <article class="w-full xl:max-w-screen-xl md:mx-auto px-4">
+      <div class="mb-8 flex border shadow-sm rounded-xl p-4 bg-white flex-col md:flex-row md:justify-between gap-4 border-b pb-4 items-center">
         <h1 class="text-3xl font-medium heading">
+          <span class="font-mono text-neutral-500 text-lg flex items-center gap-2">
+            <svg
+              viewBox="0 0 100 100"
+              xmlns="http://www.w3.org/2000/svg"
+              fill={@project.color}
+              class="h-4 w-4"
+            >
+              <circle cx="50" cy="50" r="50" />
+            </svg>
+            <%= @project.code %>
+            <br />
+          </span>
           <%= @project.name %>
         </h1>
+        <%= if Projects.can_edit_project?(@current_user, @project) do %>
+          <.link patch={"/projects/#{@project.id}/edit"} class="button ~urge @high">
+            Manage Project
+          </.link>
+        <% end %>
       </div>
       <div>
         Page coming soon...
