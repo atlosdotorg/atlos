@@ -10,7 +10,7 @@ defmodule Platform.Utils do
   def get_tag_regex(), do: @tag_regex
 
   def generate_media_slug() do
-    slug = for _ <- 1..12, into: "", do: <<Enum.random('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ')>>
+    slug = for _ <- 1..7, into: "", do: <<Enum.random('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ')>>
 
     if !is_nil(Platform.Material.get_full_media_by_slug(slug)) do
       generate_media_slug()
