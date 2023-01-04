@@ -15,6 +15,7 @@ defmodule PlatformWeb.ProjectsLive.Show do
      socket
      |> assign(:title, project.name)
      |> assign(:project, project)
+     |> assign(:active_project, project)
      |> assign(:full_width, true)
      |> assign(:status_statistics, Material.status_overview_statistics(project_id: project.id))}
   end
@@ -30,10 +31,7 @@ defmodule PlatformWeb.ProjectsLive.Show do
   def render(assigns) do
     ~H"""
     <div>
-      <div
-        class="mb-8 py-6 shadow-sm border-b bg-white overflow-hidden"
-        style={"border-top: 4px solid #{@project.color}"}
-      >
+      <div class="mb-8 py-6 shadow-sm border-b bg-white overflow-hidden">
         <article class="w-full xl:max-w-screen-xl md:mx-auto px-4">
           <div class="p-4 w-full flex flex-col md:flex-row md:justify-between gap-4 pb-4 md:items-center">
             <div>

@@ -27,7 +27,7 @@ defmodule PlatformWeb.ProjectsLive.Index do
   def render(assigns) do
     ~H"""
     <article class="w-full xl:max-w-screen-xl md:mx-auto px-4">
-      <div class="mb-8 flex flex-col md:flex-row md:justify-between gap-4 border-b pb-4">
+      <div class="mb-8 flex flex-col md:flex-row md:justify-between gap-4 pb-4">
         <h1 class="text-3xl font-medium heading">
           Projects
         </h1>

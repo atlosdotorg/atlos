@@ -39,7 +39,8 @@ defmodule Platform.Notifications do
       ** (Ecto.NoResultsError)
 
   """
-  def get_notification!(id), do: Repo.get!(Notification |> preload(update: [:user, :media]), id)
+  def get_notification!(id),
+    do: Repo.get!(Notification |> preload(update: [:user, media: [:project]]), id)
 
   @doc """
   Gets all the notifications for a user.
@@ -47,7 +48,7 @@ defmodule Platform.Notifications do
   def get_notifications_by_user_paginated(%User{} = user, options \\ []) do
     from(n in Notification,
       where: n.user_id == ^user.id,
-      preload: [update: [:user, :media, :media_version]],
+      preload: [update: [:user, :media_version, media: [:project]]],
       order_by: [desc: :inserted_at]
     )
     # Fallback for null/equal values

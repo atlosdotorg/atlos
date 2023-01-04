@@ -710,10 +710,7 @@ defmodule PlatformWeb.Components do
                           <%= attr.label %> &nearr;
                         <% end %>
                       <% :create -> %>
-                        added
-                        <span class="font-medium text-gray-900">
-                          <%= Media.slug_to_display(@update.media) %>
-                        </span>
+                        added this incident
                       <% :delete -> %>
                         deleted this incident
                       <% :undelete -> %>

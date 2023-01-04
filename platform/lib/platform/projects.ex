@@ -53,6 +53,8 @@ defmodule Platform.Projects do
       iex> get_project(456)
       nil
   """
+  def get_project(""), do: nil
+  def get_project("unset"), do: nil
   def get_project(nil), do: nil
   def get_project(id), do: Repo.get(Project, id)
 

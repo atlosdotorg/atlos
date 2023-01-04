@@ -1,6 +1,9 @@
 <article class="w-full xl:max-w-screen-xl px-8">
   <div class="lg:flex lg:items-center lg:justify-between">
     <div class="flex-1 min-w-0 max-w-full">
+      <div class="font-mono text-sm ml-1 text-neutral-600">
+        <%= Media.slug_to_display(@media) %>
+      </div>
       <% title_classes =
         "text-xl font-medium leading-7 text-gray-700 sm:text-3xl block transition-all p-1 rounded " <>
           if @media.deleted, do: "line-through ", else: "" %>
@@ -77,21 +80,16 @@
       <span class="hidden sm:block">
         <.popover>
           <.link
-            class="border text-neutral-500 inline-flex py-2 px-3 items-center gap-1 hover:bg-neutral-200 rounded transition"
+            class="border text-neutral-700 inline-flex pb-1 pt-2 px-3 items-center gap-1 hover:bg-neutral-200 rounded transition"
             patch={"/incidents/#{@media.slug}/project"}
             data-tooltip="Manage this incident's project"
           >
             <%= if @media.project do %>
-              <svg
-                viewBox="0 0 100 100"
-                xmlns="http://www.w3.org/2000/svg"
-                fill={@media.project.color}
-                class="h-3 w-3 mr-1"
-              >
-                <circle cx="50" cy="50" r="50" />
-              </svg>
-              <%= @media.project.name %>
-              <Heroicons.chevron_down mini class="h-5 w-5" />
+              <div class="mr-px">
+                <p class="text-xs text-neutral-500">Project</p>
+                <p class="font-medium"><%= @media.project.name %></p>
+              </div>
+              <Heroicons.chevron_down mini class="h-5 w-5 text-neutral-500 mt-4" />
             <% else %>
               <span>+ Add to Project</span>
             <% end %>
