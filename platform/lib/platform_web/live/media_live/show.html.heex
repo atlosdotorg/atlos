@@ -77,41 +77,47 @@
       </div>
     </div>
     <div class="mt-5 flex lg:mt-0 lg:ml-4">
-      <span class="hidden sm:block">
-        <.popover>
-          <.link
-            class="border text-neutral-700 inline-flex pb-1 pt-2 px-3 items-center gap-1 hover:bg-neutral-200 rounded transition"
-            patch={"/incidents/#{@media.slug}/project"}
-            data-tooltip="Manage this incident's project"
-          >
-            <%= if @media.project do %>
+      <span>
+        <%= if @media.project do %>
+          <.popover>
+            <.link
+              class="border text-neutral-700 inline-flex pb-1 pt-2 px-3 items-center gap-1 hover:bg-neutral-200 rounded transition"
+              patch={"/incidents/#{@media.slug}/project"}
+              data-tooltip="Manage this incident's project"
+            >
               <div class="mr-px">
                 <p class="text-xs text-neutral-500">Project</p>
                 <p class="font-medium"><%= @media.project.name %></p>
               </div>
               <Heroicons.chevron_down mini class="h-5 w-5 text-neutral-500 mt-4" />
-            <% else %>
-              <span>+ Add to Project</span>
-            <% end %>
-          </.link>
-          <:display>
-            <%= if not is_nil(@media.project) do %>
-              <div class="-m-2 rounded overflow-hidden">
-                <.project_card project={@media.project} />
-                <hr />
-                <div class="p-4 bg-neutral-50">
-                  <.link
-                    class="text-button text-sm"
-                    patch={"/incidents/#{@media.slug}/project"}
-                    data-tooltip="Manage this incident's project"
-                  >
-                    Change project &rarr;
-                  </.link>
+            </.link>
+            <:display>
+              <%= if not is_nil(@media.project) do %>
+                <div class="-m-2 rounded overflow-hidden">
+                  <.project_card project={@media.project} />
+                  <hr />
+                  <div class="p-4 bg-neutral-50">
+                    <.link
+                      class="text-button text-sm"
+                      patch={"/incidents/#{@media.slug}/project"}
+                      data-tooltip="Manage this incident's project"
+                    >
+                      Change project &rarr;
+                    </.link>
+                  </div>
                 </div>
-              </div>
-            <% end %>
-          </:display>
-        </.popover>
+              <% end %>
+            </:display>
+          </.popover>
+        <% else %>
+          <.link
+            class="border text-neutral-700 inline-flex pb-2 pt-2 px-3 items-center gap-1 hover:bg-neutral-200 rounded transition"
+            patch={"/incidents/#{@media.slug}/project"}
+            data-tooltip="Manage this incident's project"
+          >
+            + Add to Project
+          </.link>
+        <% end %>
       </span>
       <%= if Accounts.is_privileged(@current_user) do %>
         <div
