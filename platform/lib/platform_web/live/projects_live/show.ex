@@ -113,7 +113,7 @@ defmodule PlatformWeb.ProjectsLive.Show do
                   aria-current="page"
                 >
                   <Heroicons.squares_2x2 solid class="text-neutral-400 -ml-0.5 mr-2 h-5 w-5" />
-                  <span>Project Overview</span>
+                  <span>Incidents</span>
                 </div>
               </nav>
             </div>

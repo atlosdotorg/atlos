@@ -24,11 +24,11 @@ defmodule Platform.Updates do
 
   """
   def list_updates do
-    Repo.all(Update)
+    Repo.all(Update |> preload_fields())
   end
 
   defp preload_fields(queryable) do
-    queryable |> preload([:user, :media, :media_version, :project])
+    queryable |> preload([:user, :media_version, :project, media: [:project]])
   end
 
   @doc """
