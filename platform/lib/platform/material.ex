@@ -5,6 +5,7 @@ defmodule Platform.Material do
 
   import Ecto.Query, warn: false
   alias Platform.Repo
+  alias Platform.Projects
   require Logger
   use Memoize
 
@@ -917,6 +918,17 @@ defmodule Platform.Material do
       Repo.all(
         from w in MediaSubscription,
           where: w.media_id == ^media.id,
+          select: count()
+      )
+
+    count
+  end
+
+  def total_media_in_project!(%Projects.Project{} = project) do
+    [count] =
+      Repo.all(
+        from m in Media,
+          where: m.project_id == ^project.id,
           select: count()
       )
 

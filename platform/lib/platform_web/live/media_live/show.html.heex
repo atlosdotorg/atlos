@@ -1,27 +1,6 @@
 <article class="w-full xl:max-w-screen-xl px-8">
   <div class="lg:flex lg:items-center lg:justify-between">
     <div class="flex-1 min-w-0 max-w-full">
-      <div>
-        <.link
-          class="text-sm pl-1 text-neutral-500 inline-flex px-1 py-px items-center gap-1 hover:bg-neutral-200 rounded transition"
-          patch={"/incidents/#{@media.slug}/project"}
-          data-tooltip="View this incident's project"
-        >
-          <%= if @media.project do %>
-            <svg
-              viewBox="0 0 100 100"
-              xmlns="http://www.w3.org/2000/svg"
-              fill={@media.project.color}
-              class="h-3 w-3"
-            >
-              <circle cx="50" cy="50" r="50" />
-            </svg>
-            <%= @media.project.code %>-<%= @media.slug |> String.replace("ATL-", "") %>
-          <% else %>
-            <span>+ Add to Project</span>
-          <% end %>
-        </.link>
-      </div>
       <% title_classes =
         "text-xl font-medium leading-7 text-gray-700 sm:text-3xl block transition-all p-1 rounded " <>
           if @media.deleted, do: "line-through ", else: "" %>
@@ -96,12 +75,34 @@
     </div>
     <div class="mt-5 flex lg:mt-0 lg:ml-4">
       <span class="hidden sm:block">
-        <.live_component
-          module={PlatformWeb.MediaLive.SubscribeButton}
-          id="subscribe_button"
-          current_user={@current_user}
-          media={@media}
-        />
+        <.popover>
+          <.link
+            class="text-lg border font-mono text-neutral-500 inline-flex py-2 px-3 items-center gap-1 hover:bg-neutral-200 rounded transition"
+            patch={"/incidents/#{@media.slug}/project"}
+            data-tooltip="View this incident's project"
+          >
+            <%= if @media.project do %>
+              <svg
+                viewBox="0 0 100 100"
+                xmlns="http://www.w3.org/2000/svg"
+                fill={@media.project.color}
+                class="h-3 w-3"
+              >
+                <circle cx="50" cy="50" r="50" />
+              </svg>
+              <%= @media.project.code %>-<%= @media.slug |> String.replace("ATL-", "") %>
+            <% else %>
+              <span>+ Add to Project</span>
+            <% end %>
+          </.link>
+          <:display>
+            <%= if not is_nil(@media.project) do %>
+              <div class="-m-2 rounded overflow-hidden">
+                <.project_card project={@media.project} />
+              </div>
+            <% end %>
+          </:display>
+        </.popover>
       </span>
       <%= if Accounts.is_privileged(@current_user) do %>
         <div
@@ -230,25 +231,14 @@
       </.card>
       <.card>
         <:header>
-          <div class="flex justify-between">
+          <div class="flex justify-between items-center">
             <h3 class="sec-head">Feed</h3>
-            <%= if length(@updates) > 5 do %>
-              <a class="text-button flex text-sm items-center" href="#feed-bottom">
-                Jump to Latest
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="h-4 w-4 ml-1"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fill-rule="evenodd"
-                    d="M15.707 4.293a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-5-5a1 1 0 011.414-1.414L10 8.586l4.293-4.293a1 1 0 011.414 0zm0 6a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-5-5a1 1 0 111.414-1.414L10 14.586l4.293-4.293a1 1 0 011.414 0z"
-                    clip-rule="evenodd"
-                  />
-                </svg>
-              </a>
-            <% end %>
+            <.live_component
+              module={PlatformWeb.MediaLive.SubscribeButton}
+              id="subscribe_button"
+              current_user={@current_user}
+              media={@media}
+            />
           </div>
         </:header>
         <.live_component
@@ -526,9 +516,6 @@
           <p class="support font-mono"><%= @media.slug %></p>
           <p class="sec-head">
             Project: <%= @media.attr_description %>
-          </p>
-          <p class="sec-subhead">
-            View the project this incident is associated with.
           </p>
         </div>
       </div>

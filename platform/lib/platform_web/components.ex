@@ -3140,8 +3140,14 @@ defmodule PlatformWeb.Components do
     ~H"""
     <.link class="bg-white rounded-lg shadow overflow-hidden" href={"/projects/#{@project.id}"}>
       <div class="p-4 flex-col gap-2" style={"border-top: 4px solid #{@project.color}"}>
-        <p class="font-mono text-sm text-neutral-600"><%= @project.code %></p>
+        <p class="font-mono text-xs text-neutral-600"><%= @project.code %></p>
         <p class="font-medium text-lg"><%= @project.name %></p>
+        <% total_incidents = Material.total_media_in_project!(@project) %>
+        <p class="support font-base text-neutral-600">
+          <%= total_incidents |> Formatter.format_number() %> <%= if total_incidents == 1,
+            do: "incident",
+            else: "incidents" %>
+        </p>
       </div>
     </.link>
     """
