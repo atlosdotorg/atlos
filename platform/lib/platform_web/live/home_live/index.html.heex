@@ -134,66 +134,12 @@
             </.link>
           </nav>
         </div>
-        <div class="flex flex-col gap-8">
-          <%= if Enum.empty?(@media) do %>
-            <div class="text-center mt-8">
-              <Heroicons.archive_box class="mx-auto h-12 w-12 text-gray-400" />
-              <h3 class="mt-2 text-sm font-medium text-gray-900">No activity to display</h3>
-              <p class="mt-1 text-sm text-gray-500">Get started by working on an incident!</p>
-            </div>
-          <% end %>
-          <%= for incident <- @media do %>
-            <div class="w-full max-w-full overflow-hidden group">
-              <.media_line_preview media={incident} />
-              <ul
-                class="card shadow border border-gray-200 mt-2 cursor-pointer"
-                onclick={"window.location = '/incidents/#{incident.slug}'"}
-              >
-                <% len = min(3, length(incident.updates)) %>
-                <%= if length(incident.updates) > 5 do %>
-                  <div class="relative group word-breaks">
-                    <span
-                      class="absolute top-5 -mt-10 pb-10 left-5 -ml-px h-full w-0.5 border border-dashed border-gray-300"
-                      aria-hidden="true"
-                    >
-                    </span>
-                  </div>
-                <% end %>
-                <%= for {update, idx} <- incident.updates |> Enum.sort_by(& &1.inserted_at, {:desc, NaiveDateTime}) |> Enum.take(3) |> Enum.reverse() |> Enum.with_index() do %>
-                  <.update_entry
-                    update={update}
-                    show_line={idx != len - 1}
-                    show_media={false}
-                    can_user_change_visibility={false}
-                    target={@myself}
-                    socket={@socket}
-                    profile_ring={false}
-                    left_indicator={:profile}
-                    current_user={@current_user}
-                  />
-                <% end %>
-              </ul>
-              <.link
-                href={"/incidents/#{incident.slug}#comment-box"}
-                class="text-xs text-neutral-500 mt-2 transition-all hover:text-urge-600 font-medium opacity-0 group-hover:opacity-100 group-focus-within:opacity-100"
-              >
-                <span x-ref="link">Open incident &rarr;</span>
-              </.link>
-            </div>
-          <% end %>
-          <div class="mx-auto mt-4 mb-8 text-center text-xs">
-            <%= if @additional_results_available do %>
-              <div
-                phx-hook="InfiniteScroll"
-                id="feed-load-more"
-                data-page={@pagination_index}
-                class="flex items-center justify-around"
-              >
-                <.loading_spinner />
-              </div>
-            <% end %>
-          </div>
-        </div>
+        <.live_component
+          module={PlatformWeb.UpdatesLive.PaginatedMediaUpdateFeed}
+          current_user={@current_user}
+          restrict_to_user={if @live_action == :my_activity, do: @current_user, else: nil}
+          id="project-updates-feed"
+        />
       </div>
       <div class="lg:w-1/3 w-full self-start top-0 sticky min-h-0">
         <div class="border-b border-gray-200 mb-4">

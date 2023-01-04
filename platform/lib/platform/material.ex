@@ -93,6 +93,7 @@ defmodule Platform.Material do
   """
   def get_recently_updated_media_paginated(opts \\ []) do
     user = Keyword.get(opts, :restrict_to_user)
+    project_id = Keyword.get(opts, :restrict_to_project_id)
 
     filter_user =
       if not is_nil(user) do
@@ -101,10 +102,18 @@ defmodule Platform.Material do
         true
       end
 
+    filter_project_id =
+      if not is_nil(project_id) do
+        dynamic([m, u], m.project_id == ^project_id)
+      else
+        true
+      end
+
     query =
       Media
       |> join(:left, [m], u in assoc(m, :updates))
       |> where([m, u], ^filter_user)
+      |> where([m, u], ^filter_project_id)
       |> order_by([m, u], desc: u.inserted_at)
       |> preload([m, u], updates: u)
       |> select_merge([m, u], %{last_update_time: u.inserted_at})
@@ -1011,13 +1020,24 @@ defmodule Platform.Material do
 
   @doc """
   Return summary statistics about the number of incidents by status.
+
+  Optionally include `project_id` to filter to a particular project.
   """
-  def status_overview_statistics() do
-    Repo.all(
-      from m in Media,
-        where: not m.deleted,
-        group_by: m.attr_status,
-        select: {m.attr_status, count(m.id)}
+  def status_overview_statistics(opts \\ []) do
+    from(m in Media,
+      where: not m.deleted,
+      group_by: m.attr_status,
+      select: {m.attr_status, count(m.id)}
     )
+    |> then(fn query ->
+      case Keyword.get(opts, :project_id) do
+        nil ->
+          query
+
+        project_id ->
+          from(m in query, where: m.project_id == ^project_id)
+      end
+    end)
+    |> Repo.all()
   end
 end

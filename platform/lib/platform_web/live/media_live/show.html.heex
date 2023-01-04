@@ -5,7 +5,7 @@
         <.link
           class="text-sm pl-1 text-neutral-500 inline-flex px-1 py-px items-center gap-1 hover:bg-neutral-200 rounded transition"
           patch={"/incidents/#{@media.slug}/project"}
-          data-tooltip="Manage this incident's project"
+          data-tooltip="View this incident's project"
         >
           <%= if @media.project do %>
             <svg
@@ -525,10 +525,10 @@
         <div>
           <p class="support font-mono"><%= @media.slug %></p>
           <p class="sec-head">
-            Change Project
+            Project: <%= @media.attr_description %>
           </p>
           <p class="sec-subhead">
-            Change the project this incident is associated with.
+            View the project this incident is associated with.
           </p>
         </div>
       </div>

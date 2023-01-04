@@ -76,7 +76,7 @@ defmodule PlatformWeb.MediaLive.ManageProjectsLive do
             <%= label(
               f,
               :project_id,
-              "Project"
+              "Change Project"
             ) %>
             <div phx-update="ignore" id={"project_select_#{@media.slug}"}>
               <%= select(
