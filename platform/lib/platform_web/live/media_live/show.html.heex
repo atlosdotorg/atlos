@@ -450,7 +450,7 @@
     >
       <div class="mb-8">
         <p class="sec-head">
-          <%= @media.slug %>: Upload Media
+          <%= Media.slug_to_display(@media) %>: Upload Media
         </p>
         <p class="sec-subhead">
           Note that additional media should document the same event.
@@ -470,7 +470,7 @@
       <div class="mb-8">
         <div class="sm:flex justify-between">
           <div>
-            <p class="support font-mono"><%= @media.slug %></p>
+            <p class="support font-mono"><%= Media.slug_to_display(@media) %></p>
             <p class="sec-head">
               History: <%= attr.label %>
             </p>
@@ -503,7 +503,7 @@
     <.modal target={} close_confirmation="">
       <div class="mb-8">
         <div>
-          <p class="support font-mono"><%= @media.slug %></p>
+          <p class="support font-mono"><%= Media.slug_to_display(@media) %></p>
           <p class="sec-head">
             Merge Media
           </p>
@@ -524,7 +524,7 @@
     <.modal target={} close_confirmation="">
       <div class="mb-8">
         <div>
-          <p class="support font-mono"><%= @media.slug %></p>
+          <p class="support font-mono"><%= Media.slug_to_display(@media) %></p>
           <p class="sec-head">
             Project: <%= @media.attr_description %>
           </p>
@@ -542,7 +542,7 @@
     <.modal target={} close_confirmation="">
       <div class="mb-8">
         <div>
-          <p class="support font-mono"><%= @media.slug %></p>
+          <p class="support font-mono"><%= Media.slug_to_display(@media) %></p>
           <p class="sec-head">
             Automatic Metadata
           </p>

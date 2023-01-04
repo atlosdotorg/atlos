@@ -710,7 +710,10 @@ defmodule PlatformWeb.Components do
                           <%= attr.label %> &nearr;
                         <% end %>
                       <% :create -> %>
-                        added <span class="font-medium text-gray-900"><%= @update.media.slug %></span>
+                        added
+                        <span class="font-medium text-gray-900">
+                          <%= Media.slug_to_display(@update.media) %>
+                        </span>
                       <% :delete -> %>
                         deleted this incident
                       <% :undelete -> %>
@@ -1605,7 +1608,7 @@ defmodule PlatformWeb.Components do
               ring_class="ring-transparent"
             />
           </div>
-          <%= @media.slug %>
+          <%= Media.slug_to_display(@media) %>
           <%= if is_sensitive do %>
             <span data-tooltip="Incident is sensitive" class="text-critical-400">
               <Heroicons.shield_exclamation mini class="h-4 w-4" />
@@ -2999,7 +3002,9 @@ defmodule PlatformWeb.Components do
     ~H"""
     <.popover class="inline overflow-hidden" no_pad={true}>
       <span class={"text-button transition inline-block mr-2 " <> Map.get(assigns, :class, "text-gray-800")}>
-        <.link navigate={"/incidents/" <> @media.slug}><%= @media.slug %> &nearr;</.link>
+        <.link navigate={"/incidents/" <> @media.slug}>
+          <%= Media.slug_to_display(@media) %> &nearr;
+        </.link>
       </span>
       <:display>
         <div class="-m-3 w-[350px] h-[190px] rou@nded">

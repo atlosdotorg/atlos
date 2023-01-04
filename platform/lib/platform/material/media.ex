@@ -388,7 +388,10 @@ defmodule Platform.Material.Media do
   end
 
   def slug_to_display(media) do
-    media.project.code <> "-" <> (media.slug |> String.replace("ATL-", ""))
+    case media.project do
+      nil -> media.slug |> String.replace("ATL-", "")
+      proj -> proj.code <> "-" <> (media.slug |> String.replace("ATL-", ""))
+    end
   end
 end
 

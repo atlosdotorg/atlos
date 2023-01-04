@@ -35,7 +35,7 @@ defmodule PlatformWeb.ProjectsLive.Show do
         style={"border-top: 4px solid #{@project.color}"}
       >
         <article class="w-full xl:max-w-screen-xl md:mx-auto px-4">
-          <div class="p-4 w-full flex flex-col md:flex-row md:justify-between gap-4 pb-4 items-center">
+          <div class="p-4 w-full flex flex-col md:flex-row md:justify-between gap-4 pb-4 md:items-center">
             <div>
               <h1 class="text-2xl font-medium heading">
                 <span class="text-neutral-500 text-base flex items-center gap-2">
