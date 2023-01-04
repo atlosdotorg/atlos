@@ -77,20 +77,21 @@
       <span class="hidden sm:block">
         <.popover>
           <.link
-            class="text-lg border font-mono text-neutral-500 inline-flex py-2 px-3 items-center gap-1 hover:bg-neutral-200 rounded transition"
+            class="border text-neutral-500 inline-flex py-2 px-3 items-center gap-1 hover:bg-neutral-200 rounded transition"
             patch={"/incidents/#{@media.slug}/project"}
-            data-tooltip="View this incident's project"
+            data-tooltip="Manage this incident's project"
           >
             <%= if @media.project do %>
               <svg
                 viewBox="0 0 100 100"
                 xmlns="http://www.w3.org/2000/svg"
                 fill={@media.project.color}
-                class="h-3 w-3"
+                class="h-3 w-3 mr-1"
               >
                 <circle cx="50" cy="50" r="50" />
               </svg>
-              <%= @media.project.code %>-<%= @media.slug |> String.replace("ATL-", "") %>
+              <%= @media.project.name %>
+              <Heroicons.chevron_down mini class="h-5 w-5" />
             <% else %>
               <span>+ Add to Project</span>
             <% end %>
@@ -99,6 +100,16 @@
             <%= if not is_nil(@media.project) do %>
               <div class="-m-2 rounded overflow-hidden">
                 <.project_card project={@media.project} />
+                <hr />
+                <div class="p-4 bg-neutral-50">
+                  <.link
+                    class="text-button text-sm"
+                    patch={"/incidents/#{@media.slug}/project"}
+                    data-tooltip="Manage this incident's project"
+                  >
+                    Change project &rarr;
+                  </.link>
+                </div>
               </div>
             <% end %>
           </:display>

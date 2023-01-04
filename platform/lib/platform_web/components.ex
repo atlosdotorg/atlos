@@ -1904,6 +1904,23 @@ defmodule PlatformWeb.Components do
                 </div>
                 <%= error_tag(f, :status) %>
               </div>
+              <div class={if Enum.member?(@exclude, :project), do: "hidden", else: ""}>
+                <div class="ts-ignore pl-3 py-2 group focus-within:bg-neutral-50">
+                  <%= label(f, :project_id, "Project",
+                    class: "block text-xs font-medium text-gray-900 group-focus-within:text-urge-600"
+                  ) %>
+                  <%= select(
+                    f,
+                    :project_id,
+                    [{"All", nil}, {"No Project", "unset"}] ++
+                      (Platform.Projects.list_projects_for_user(@current_user)
+                       |> Enum.map(fn p -> {p.name, p.id} end)),
+                    class:
+                      "block bg-transparent w-full border-0 py-0 pl-0 pr-7 text-gray-900 placeholder-gray-500 focus:ring-0 sm:text-sm"
+                  ) %>
+                </div>
+                <%= error_tag(f, :project_id) %>
+              </div>
               <div class={if Enum.member?(@exclude, :sort), do: "hidden", else: ""}>
                 <div class="ts-ignore pl-3 py-2 group focus-within:bg-neutral-50">
                   <%= label(f, :sort, "Sort",
@@ -2109,7 +2126,7 @@ defmodule PlatformWeb.Components do
         <div class="p-2 flex flex-col w-3/4 gap-2 relative">
           <section>
             <p class="font-mono text-xs text-gray-500 flex items-center gap-1">
-              <%= @media.slug %>
+              <%= Media.slug_to_display(@media) %>
               <%= if @media.has_subscription do %>
                 <span data-tooltip="You are subscribed" class="text-neutral-400">
                   <svg
@@ -3139,7 +3156,7 @@ defmodule PlatformWeb.Components do
   def project_card(assigns) do
     ~H"""
     <.link class="bg-white rounded-lg shadow overflow-hidden" href={"/projects/#{@project.id}"}>
-      <div class="p-4 flex-col gap-2" style={"border-top: 4px solid #{@project.color}"}>
+      <div class="p-4 flex-col gap-2 min-w-[15rem]" style={"border-top: 4px solid #{@project.color}"}>
         <p class="font-mono text-xs text-neutral-600"><%= @project.code %></p>
         <p class="font-medium text-lg"><%= @project.name %></p>
         <% total_incidents = Material.total_media_in_project!(@project) %>

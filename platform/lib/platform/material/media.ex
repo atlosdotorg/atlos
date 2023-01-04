@@ -386,6 +386,10 @@ defmodule Platform.Material.Media do
          ),
          select: u
   end
+
+  def slug_to_display(media) do
+    media.project.code <> "-" <> (media.slug |> String.replace("ATL-", ""))
+  end
 end
 
 defimpl Jason.Encoder, for: Platform.Material.Media do
