@@ -1,4 +1,5 @@
 import Head from 'next/head'
+import Image from 'next/image'
 import mapboxgl from 'mapbox-gl';
 import { useState, useEffect } from 'react';
 
@@ -70,7 +71,16 @@ export default function Home() {
             </p>
           </div>
           <div className="flex gap-2 items-center">
-            <a href="/waitlist" className="button ~neutral">Join the waitlist &rarr;</a>
+            <a href="/waitlist" className="button ~neutral @high">Join the waitlist &rarr;</a>
+          </div>
+          <hr className="sep" />
+          <div class="grid grid-cols-2 gap-4">
+            <section>
+              <p className="text-white text-xs uppercase font-medium text-neutral-400 ml-1">Supported By</p>
+              <a href='https://brown.stanford.edu'>
+                <Image src="/brown.png" height={141 / 3} width={520 / 3} />
+              </a>
+            </section>
           </div>
         </section>
       </main>
