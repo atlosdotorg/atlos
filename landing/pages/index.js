@@ -74,11 +74,11 @@ export default function Home() {
             <a href="/waitlist" className="button ~neutral @high">Join the waitlist &rarr;</a>
           </div>
           <hr className="sep" />
-          <div class="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-4">
             <section>
               <p className="text-white text-xs uppercase font-medium text-neutral-400 ml-1">Supported By</p>
               <a href='https://brown.stanford.edu'>
-                <Image src="/brown.png" height={141 / 3} width={520 / 3} />
+                <Image src="/brown.png" alt="The logo of the Brown Institute for Media Innovation at Stanford" height={141 / 3} width={520 / 3} />
               </a>
             </section>
           </div>
