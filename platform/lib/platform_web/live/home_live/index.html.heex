@@ -169,6 +169,64 @@
             <% end %>
           </dl>
         </div>
+        <div class="border-b border-gray-200 mb-4 mt-8">
+          <nav class="mb-px">
+            <div
+              class="text-neutral-600 group inline-flex items-center py-2 px-1 font-medium text-sm"
+              aria-current="page"
+            >
+              <Heroicons.chart_bar solid class="text-neutral-400 -ml-0.5 mr-2 h-5 w-5" />
+              <span>Statistics</span>
+            </div>
+          </nav>
+        </div>
+        <dl class="grid w-full grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-4">
+          <%= if Enum.empty?(@status_statistics) do %>
+            <div class="text-center mt-8">
+              <Heroicons.chart_pie class="mx-auto h-12 w-12 text-gray-400" />
+              <h3 class="mt-2 text-sm font-medium text-gray-900">No data to display</h3>
+              <p class="mt-1 text-sm text-gray-500">Get started by creating an incident</p>
+            </div>
+          <% end %>
+          <%= for {status, count} <- @status_statistics |> Enum.sort_by(fn {status, _count} -> Enum.find_index(["Unclaimed", "In Progress", "Help Needed", "Ready for Review", "Completed", "Cancelled"], fn x -> x == status end) || -1 end) do %>
+            <% status_color = Platform.Material.Attribute.attr_color(:status, status) %>
+            <.link
+              href={
+                Routes.live_path(@socket, PlatformWeb.MediaLive.Index, %{
+                  attr_status: status,
+                  display: :cards
+                })
+              }
+              class="relative overflow-hidden rounded-lg group p-2 hover:bg-neutral-100 transition"
+            >
+              <dt>
+                <div class={"absolute rounded-md p-3 mt-[2px] section @high opacity-50 " <> status_color}>
+                  <.attribute_icon name={:status} value={status} />
+                </div>
+                <p class="ml-16 truncate text-sm font-medium text-gray-500">
+                  <%= status %>
+                </p>
+              </dt>
+              <dd class="ml-16 flex items-baseline">
+                <p class="text-2xl font-medium text-gray-900">
+                  <%= count |> Formatter.format_number() %>
+                </p>
+              </dd>
+            </.link>
+          <% end %>
+          <%= if not Enum.empty?(@status_statistics) do %>
+            <.link
+              href={
+                Routes.live_path(@socket, PlatformWeb.MediaLive.Index, %{
+                  display: :cards
+                })
+              }
+              class="text-button text-sm text-neutral-600"
+            >
+              View all incidents &rarr;
+            </.link>
+          <% end %>
+        </dl>
       </div>
     </section>
   </div>

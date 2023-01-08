@@ -187,19 +187,6 @@ defmodule PlatformWeb.ProjectsLive.Show do
                       </dd>
                     </.link>
                   <% end %>
-                  <%= if not Enum.empty?(@status_statistics) do %>
-                    <.link
-                      href={
-                        Routes.live_path(@socket, PlatformWeb.MediaLive.Index, %{
-                          project_id: @project.id,
-                          display: :cards
-                        })
-                      }
-                      class="text-button text-sm text-neutral-600"
-                    >
-                      View all incidents &rarr;
-                    </.link>
-                  <% end %>
                 </dl>
               </div>
             </div>

@@ -15,6 +15,7 @@ defmodule PlatformWeb.HomeLive.Index do
      |> assign(:pagination_index, 0)
      |> assign(:projects, Platform.Projects.list_projects_for_user(socket.assigns.current_user))
      |> assign(:media, get_feed_media(socket, limit: 50))
+     |> assign(:status_statistics, Material.status_overview_statistics())
      |> assign(:additional_results_available, true)
      |> assign(:overview_media, get_overview_media(socket))
      |> assign(:full_width, true)

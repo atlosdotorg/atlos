@@ -73,10 +73,10 @@ defmodule PlatformWeb.UpdatesLive.PaginatedMediaUpdateFeed do
         </div>
       <% end %>
       <%= for incident <- @media do %>
-        <div class="w-full max-w-full overflow-hidden group">
+        <div class="w-full max-w-full group">
           <.media_line_preview media={incident} />
           <ul
-            class="card shadow border border-gray-200 mt-2 cursor-pointer"
+            class="card shadow mt-2 cursor-pointer"
             onclick={"window.location = '/incidents/#{incident.slug}'"}
           >
             <% len = min(3, length(incident.updates)) %>
