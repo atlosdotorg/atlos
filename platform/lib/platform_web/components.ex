@@ -1605,7 +1605,9 @@ defmodule PlatformWeb.Components do
               ring_class="ring-transparent"
             />
           </div>
-          <%= Media.slug_to_display(@media) %>
+          <span style={"color: #{if @media.project, do: @media.project.color, else: "unset"}"}>
+            <%= Media.slug_to_display(@media) %>
+          </span>
           <%= if is_sensitive do %>
             <span data-tooltip="Incident is sensitive" class="text-critical-400">
               <Heroicons.shield_exclamation mini class="h-4 w-4" />
