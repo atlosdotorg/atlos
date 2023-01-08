@@ -154,7 +154,6 @@ defmodule PlatformWeb.Router do
       live("/projects/new", ProjectsLive.Index, :new)
       live("/projects/:id", ProjectsLive.Show, :overview)
       live("/projects/:id/map", ProjectsLive.Show, :map)
-      live("/projects/:id/incidents", ProjectsLive.Show, :incidents)
       live("/projects/:id/edit", ProjectsLive.Show, :edit)
 
       live("/profile/:username", ProfilesLive.Show, :show)

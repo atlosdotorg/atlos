@@ -45,12 +45,12 @@ defmodule PlatformWeb.ProjectsLive.Show do
     <div>
       <div class="mb-8 pt-6 shadow-sm border-b bg-white overflow-hidden relative z-[1000]">
         <article class="w-full h-full xl:max-w-screen-xl md:mx-auto px-4">
-          <div class="pt-4 w-full flex flex-col md:flex-row md:justify-between gap-4 md:items-center">
+          <div class="pt-4 w-full flex flex-col md:flex-row md:justify-between gap-4">
             <div>
               <p class="text-neutral-500 text-sm font-base flex items-center gap-2">
                 Project
               </p>
-              <h1 class="text-3xl font-medium heading">
+              <h1 class="text-3xl font-semibold heading">
                 <div class="inline-flex items-center">
                   <%= @project.name %>
                   <span style={"color: #{@project.color}"}>
@@ -69,7 +69,7 @@ defmodule PlatformWeb.ProjectsLive.Show do
                 <%= @project.description |> Platform.Utils.render_markdown() |> raw() %>
               </div>
             </div>
-            <div class="flex items-center gap-2 flex-wrap">
+            <div class="flex self-start mt-4 gap-2 flex-wrap">
               <%= button type: "button", to: Routes.export_path(@socket, :create, %{"project_id" => @project.id}),
                   class: "base-button",
                   role: "menuitem",
@@ -104,14 +104,6 @@ defmodule PlatformWeb.ProjectsLive.Show do
             >
               <Heroicons.map mini class="opacity-75 -ml-0.5 mr-2 h-5 w-5" />
               <span>Map</span>
-            </.link>
-
-            <.link
-              patch={"/projects/#{@project.id}/incidents"}
-              class={if @live_action == :incidents, do: active_classes, else: inactive_classes}
-            >
-              <Heroicons.rectangle_stack mini class="opacity-75 -ml-0.5 mr-2 h-5 w-5" />
-              <span>Incidents</span>
             </.link>
 
             <%= if Projects.can_edit_project?(@current_user, @project) do %>
@@ -224,14 +216,6 @@ defmodule PlatformWeb.ProjectsLive.Show do
               <map-container id="map_events_container" />
             </section>
           </div>
-        <% end %>
-        <%= if @live_action == :incidents do %>
-          <.live_component
-            module={PlatformWeb.MediaLive.PaginatedMediaList}
-            id="media-list"
-            current_user={@current_user}
-            query_params={%{"project_id" => @project.id}}
-          />
         <% end %>
         <%= if @live_action == :edit do %>
           <div class="max-w-prose">
