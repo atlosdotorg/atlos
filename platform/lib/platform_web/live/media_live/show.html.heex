@@ -89,17 +89,17 @@
                 <p class="text-xs text-neutral-500">Project</p>
                 <p class="font-medium">
                   <div class="inline-flex items-center">
+                    <%= @media.project.name %>
                     <span style={"color: #{@media.project.color}"}>
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         viewBox="0 0 20 20"
                         fill="currentColor"
-                        class="w-5 h-5 mr-px -ml-1"
+                        class="w-5 h-5 ml-px"
                       >
                         <circle cx="10" cy="10" r="5" />
                       </svg>
                     </span>
-                    <%= @media.project.name %>
                   </div>
                 </p>
               </div>
