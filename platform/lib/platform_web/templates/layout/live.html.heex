@@ -2,17 +2,6 @@
   <.nav path={@path} current_user={@current_user} />
 
   <div class="flex-1 flex flex-col overflow-hidden z-0">
-    <%= if assigns[:active_project] do %>
-      <.link
-        href={"/projects/#{@active_project.id}"}
-        class="sep h-[4px] transition-all z-[1000]"
-        data-tooltip={"This information is part of #{@active_project.name}"}
-        style={"background-color: #{@active_project.color}"}
-      >
-      </.link>
-    <% else %>
-      <hr class="sep h-[4px] transition-all z-[1000]" />
-    <% end %>
     <div class={"mx-auto w-full " <> (if @full_width, do: "", else: "my-8")}>
       <div class={"mx-auto w-full " <> (if @full_width, do: "", else: "2xl:w-[1280px] min-h-[85vh]")}>
         <%= @inner_content %>

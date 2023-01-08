@@ -24,6 +24,11 @@ defmodule PlatformWeb.ProjectsLive.Show do
     {:noreply, socket |> push_patch(to: "/projects/#{socket.assigns.project.id}")}
   end
 
+  def handle_info({:project_deleted, _project}, socket) do
+    {:noreply,
+     socket |> push_redirect(to: "/projects") |> put_flash(:info, "Project deleted successfully.")}
+  end
+
   def handle_event("close_modal", _params, socket) do
     {:noreply, socket |> push_patch(to: "/projects/#{socket.assigns.project.id}")}
   end
@@ -39,11 +44,23 @@ defmodule PlatformWeb.ProjectsLive.Show do
                 <span class="text-neutral-500 text-base flex items-center gap-2">
                   Project <br />
                 </span>
-                <%= @project.name %>
-                <span class="text-neutral-500 font-mono ml-2">
-                  <%= @project.code %>
-                </span>
+                <div class="inline-flex items-center">
+                  <span style={"color: #{@project.color}"}>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                      class="w-5 h-5 mr-1"
+                    >
+                      <circle cx="10" cy="10" r="8" />
+                    </svg>
+                  </span>
+                  <%= @project.name %>
+                </div>
               </h1>
+              <p class="text-sm text-neutral-500 prose">
+                <%= @project.description %>
+              </p>
             </div>
             <div class="flex items-center gap-2 flex-wrap">
               <%= button type: "button", to: Routes.export_path(@socket, :create, %{"project_id" => @project.id}),
@@ -57,23 +74,12 @@ defmodule PlatformWeb.ProjectsLive.Show do
                 href={
                   Routes.live_path(@socket, PlatformWeb.MediaLive.Index, %{
                     project_id: @project.id,
-                    display: :map
-                  })
-                }
-                class="base-button"
-              >
-                View Map
-              </.link>
-              <.link
-                href={
-                  Routes.live_path(@socket, PlatformWeb.MediaLive.Index, %{
-                    project_id: @project.id,
                     display: :cards
                   })
                 }
                 class="base-button"
               >
-                View Incidents
+                Incidents
               </.link>
               <%= if Projects.can_edit_project?(@current_user, @project) do %>
                 <.link patch={"/projects/#{@project.id}/edit"} class="button ~urge @high">
@@ -153,6 +159,19 @@ defmodule PlatformWeb.ProjectsLive.Show do
                     </dd>
                   </.link>
                 <% end %>
+                <%= if not Enum.empty?(@status_statistics) do %>
+                  <.link
+                    href={
+                      Routes.live_path(@socket, PlatformWeb.MediaLive.Index, %{
+                        project_id: @project.id,
+                        display: :cards
+                      })
+                    }
+                    class="text-button text-sm text-neutral-600"
+                  >
+                    View all incidents &rarr;
+                  </.link>
+                <% end %>
               </dl>
             </div>
           </div>
@@ -163,7 +182,7 @@ defmodule PlatformWeb.ProjectsLive.Show do
           <div class="mb-8">
             <div class="md:flex justify-between">
               <div>
-                <p class="support font-mono uppercase">Manage Project</p>
+                <p class="support text-neutral-600">Manage Project</p>
                 <h3 class="sec-head"><%= @project.name %></h3>
               </div>
             </div>

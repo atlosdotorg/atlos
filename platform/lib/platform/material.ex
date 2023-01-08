@@ -117,6 +117,7 @@ defmodule Platform.Material do
       |> where([m, u], ^filter_project_id)
       |> order_by([m, u], desc: u.inserted_at)
       |> preload([m, u], updates: u)
+      |> preload([m, u], updates: [media: [:project]])
       |> select_merge([m, u], %{last_update_time: u.inserted_at})
       |> order_by([m, u], desc: m.id)
       |> limit(^Keyword.get(opts, :limit, 25))

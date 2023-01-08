@@ -1,6 +1,7 @@
 defmodule PlatformWeb.ProjectsLive.EditComponent do
   use PlatformWeb, :live_component
 
+  alias Platform.Auditor
   alias Platform.Projects
 
   def update(assigns, socket) do
@@ -18,6 +19,17 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
   def handle_event("close", _params, socket) do
     send(self(), {:close, nil})
     {:noreply, socket}
+  end
+
+  def handle_event("delete", _params, socket) do
+    if Projects.can_edit_project?(socket.assigns.current_user, socket.assigns.project) do
+      Projects.delete_project(socket.assigns.project)
+      Auditor.log(:project_deleted, %{project: socket.assigns.project}, socket)
+      send(self(), {:project_deleted, nil})
+      {:noreply, socket}
+    else
+      {:noreply, socket}
+    end
   end
 
   def handle_event("validate", %{"project" => project_params}, socket) do
@@ -78,6 +90,11 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
           </p>
         </div>
         <div>
+          <%= label(f, :description) %>
+          <%= textarea(f, :description, placeholder: "Provide a short description for the project...") %>
+          <%= error_tag(f, :description) %>
+        </div>
+        <div>
           <%= label(f, :color) %>
           <%= color_input(f, :color) %>
           <%= error_tag(f, :color) %>
@@ -85,11 +102,26 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
             This color will help visually identify the project.
           </p>
         </div>
-        <div>
-          <%= submit("Save", class: "button ~urge @high") %>
-          <button phx-click="close" class="button ~neutral" type="button" phx-target={@myself}>
-            Cancel
-          </button>
+        <div class="flex justify-between gap-4 flex-wrap">
+          <div>
+            <%= submit("Save", class: "button ~urge @high") %>
+            <button phx-click="close" class="button ~neutral" type="button" phx-target={@myself}>
+              Cancel
+            </button>
+          </div>
+          <%= if @project.id do %>
+            <div>
+              <button
+                phx-click="delete"
+                data-confirm="Are you sure you want to delete this project? This action cannot be undone. This will not delete the incidents that are part of this project."
+                class="button ~critical @high"
+                type="button"
+                phx-target={@myself}
+              >
+                Delete
+              </button>
+            </div>
+          <% end %>
         </div>
       </.form>
     </article>

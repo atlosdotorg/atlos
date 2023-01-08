@@ -69,7 +69,7 @@ defmodule PlatformWeb.UpdatesLive.PaginatedMediaUpdateFeed do
         <div class="text-center mt-8">
           <Heroicons.archive_box class="mx-auto h-12 w-12 text-gray-400" />
           <h3 class="mt-2 text-sm font-medium text-gray-900">No activity to display</h3>
-          <p class="mt-1 text-sm text-gray-500">Get started by working on an incident!</p>
+          <p class="mt-1 text-sm text-gray-500">Get started by working on an incident</p>
         </div>
       <% end %>
       <%= for incident <- @media do %>
