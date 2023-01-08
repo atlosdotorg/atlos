@@ -55,7 +55,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                socket.assigns.current_user
              ) do
           {:ok, project} ->
-            send(self(), {:close, project})
+            send(self(), {:project_saved, project})
             {:noreply, socket |> assign(project: project)}
 
           {:error, changeset} ->

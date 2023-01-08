@@ -76,7 +76,7 @@ defmodule PlatformWeb.ProjectsLive.Index do
             <% end %>
           </div>
         <% end %>
-        <div class="grid grid-cols-1 md:grid-cols-3">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <%= for project <- @projects do %>
             <.project_card project={project} />
           <% end %>
