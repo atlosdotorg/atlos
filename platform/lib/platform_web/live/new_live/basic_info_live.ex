@@ -12,7 +12,7 @@ defmodule PlatformWeb.NewLive.BasicInfoLive do
      |> assign_media()
      |> assign(:disabled, false)
      |> assign(:url_deconfliction, [])
-     |> assign_changeset()}
+     |> assign_changeset(%{"project_id" => assigns.project_id})}
   end
 
   defp assign_media(socket) do

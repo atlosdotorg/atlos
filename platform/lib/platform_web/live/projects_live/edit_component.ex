@@ -105,7 +105,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
         <div class="flex justify-between gap-4 flex-wrap">
           <div>
             <%= submit("Save", class: "button ~urge @high") %>
-            <button phx-click="close" class="button ~neutral" type="button" phx-target={@myself}>
+            <button phx-click="close" class="base-button" type="button" phx-target={@myself}>
               Cancel
             </button>
           </div>
