@@ -27,6 +27,8 @@ defmodule PlatformWeb.ProfilesLive.Show do
         # We don't show activity for bot accounts
         if(Accounts.is_bot(user), do: [], else: Updates.get_updates_by_user(user, limit: 100))
       )
+      |> assign(:most_recent_update, Updates.most_recent_update_by_user(user))
+      |> assign(:updates_over_time, Updates.total_updates_by_user_over_time(user) |> dbg())
     else
       _ ->
         socket

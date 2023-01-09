@@ -263,10 +263,11 @@ defmodule Platform.Updates do
   """
   def get_updates_for_media(media, exclude_hidden \\ false) do
     query =
-      from u in Update,
+      from(u in Update,
         where: u.media_id == ^media.id,
-        preload: [:user, :media_version, media: [:project]],
         order_by: [asc: u.inserted_at]
+      )
+      |> preload_fields()
 
     Repo.all(if exclude_hidden, do: query |> where([u], not u.hidden), else: query)
   end
@@ -280,17 +281,67 @@ defmodule Platform.Updates do
   """
   def get_updates_by_user(user, opts) do
     query =
-      from u in Update,
+      from(u in Update,
         where: u.user_id == ^user.id,
-        preload: [:user, :media, :media_version],
         order_by: [desc: u.inserted_at],
         limit: ^Keyword.get(opts, :limit, nil)
+      )
+      |> preload_fields()
 
     Repo.all(
       if Keyword.get(opts, :exclude_hidden, false),
         do: query |> where([u], not u.hidden),
         else: query
     )
+  end
+
+  @doc """
+  Gets most recent update for the given user, associated with media that is part of the optional provided project.
+
+  Options:
+  - %Project{} = project
+  """
+  def most_recent_update_by_user(%User{} = user, opts \\ []) do
+    query =
+      from(u in Update,
+        where: u.user_id == ^user.id,
+        join: m in assoc(u, :media),
+        order_by: [desc: u.inserted_at],
+        limit: 1
+      )
+      |> preload_fields()
+
+    query =
+      case Keyword.get(opts, :project) do
+        nil -> query
+        project -> query |> where([_u, m], m.project_id == ^project.id)
+      end
+
+    Repo.one(query)
+  end
+
+  @doc """
+  Gets the total number of updates by the given user in the past day, week, month, four months, and year.
+  Optionally filterable to a particular project.
+  """
+  def total_updates_by_user_over_time(%User{} = user, opts \\ []) do
+    query =
+      from(u in Update,
+        where: u.user_id == ^user.id,
+        join: m in assoc(u, :media)
+      )
+
+    query =
+      case Keyword.get(opts, :project) do
+        nil -> query
+        project -> query |> where([_u, m], m.project_id == ^project.id)
+      end
+
+    query
+    |> group_by([u], [fragment("date_trunc('day', ?)", u.inserted_at)])
+    |> select([u], %{date: fragment("date_trunc('day', ?)", u.inserted_at), count: count(u.id)})
+    |> order_by([u], asc: fragment("date_trunc('day', ?)", u.inserted_at))
+    |> Repo.all()
   end
 
   @doc """
