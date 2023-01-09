@@ -23,6 +23,14 @@
       </p>
     </div>
   </section>
+  <.card>
+    <:header>
+      <div>
+        <p class="sec-head">Activity</p>
+      </div>
+    </:header>
+    <div id="activity-indicator" class="w-full" data-vega={@activity_indicator_chart}></div>
+  </.card>
   <%= if Accounts.is_admin(@current_user) do %>
     <section>
       <.card>
@@ -102,7 +110,7 @@
   <section>
     <.card>
       <:header>
-        <p class="sec-head">Recent Activity</p>
+        <p class="sec-head">Recent Updates</p>
       </:header>
       <%= if Platform.Accounts.is_bot(@user) do %>
         <aside class="aside ~neutral">
@@ -110,15 +118,17 @@
           Its activity is entirely automated, so there's nothing to see here.
         </aside>
       <% else %>
-        <.live_component
-          module={PlatformWeb.UpdatesLive.UpdateFeed}
-          id="update-feed"
-          current_user={@current_user}
-          updates={@updates}
-          show_final_line={false}
-          show_media={true}
-          reverse={true}
-        />
+        <div class="mb-8">
+          <.live_component
+            module={PlatformWeb.UpdatesLive.UpdateFeed}
+            id="update-feed"
+            current_user={@current_user}
+            updates={@updates}
+            show_final_line={false}
+            show_media={true}
+            reverse={true}
+          />
+        </div>
       <% end %>
     </.card>
   </section>

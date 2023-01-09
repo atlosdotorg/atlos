@@ -4,6 +4,8 @@ defmodule PlatformWeb.ProfilesLive.Show do
   alias Platform.Updates
   alias PlatformWeb.ProfilesLive.EditComponent
 
+  alias VegaLite, as: Vl
+
   def mount(_params, _session, socket) do
     {:ok, socket}
   end
@@ -20,6 +22,40 @@ defmodule PlatformWeb.ProfilesLive.Show do
     with %Accounts.User{} = user <- Accounts.get_user_by_username(socket.assigns.username),
          false <-
            Accounts.is_suspended(user) && !Accounts.is_privileged(socket.assigns.current_user) do
+      updates_over_time = Updates.total_updates_by_user_over_time(user) |> dbg()
+
+      activity_indicator_chart =
+        Vl.new(height: 150, width: "container")
+        |> Vl.data_from_values(
+          count: updates_over_time |> Enum.map(fn %{count: count} -> count end),
+          count_displayed: updates_over_time |> Enum.map(fn %{count: count} -> count + 1 end),
+          date: updates_over_time |> Enum.map(fn %{date: date} -> date end)
+        )
+        |> Vl.mark(:rect)
+        |> Vl.encode_field(:x, "date",
+          type: :ordinal,
+          time_unit: :week,
+          title: "Week",
+          axis: %{format: "%b"}
+        )
+        |> Vl.encode_field(:y, "date",
+          type: :ordinal,
+          time_unit: :day,
+          title: "Day",
+          axis: %{format: "%a"}
+        )
+        |> Vl.encode_field(:color, "count_displayed",
+          type: :quantitative,
+          title: "Activity",
+          scale: %{type: :log, range: ["#ffffff", "#08306b"]}
+        )
+        |> Vl.encode_field(:tooltip, "count",
+          type: :quantitative,
+          title: "Activity"
+        )
+        |> Vl.to_spec()
+        |> Jason.encode!()
+
       socket
       |> assign(:user, user)
       |> assign(
@@ -28,7 +64,8 @@ defmodule PlatformWeb.ProfilesLive.Show do
         if(Accounts.is_bot(user), do: [], else: Updates.get_updates_by_user(user, limit: 100))
       )
       |> assign(:most_recent_update, Updates.most_recent_update_by_user(user))
-      |> assign(:updates_over_time, Updates.total_updates_by_user_over_time(user) |> dbg())
+      |> assign(:updates_over_time, updates_over_time)
+      |> assign(:activity_indicator_chart, activity_indicator_chart)
     else
       _ ->
         socket

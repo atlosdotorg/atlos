@@ -321,14 +321,15 @@ defmodule Platform.Updates do
   end
 
   @doc """
-  Gets the total number of updates by the given user in the past day, week, month, four months, and year.
+  Gets the total number of updates by the given user over the past year.
   Optionally filterable to a particular project.
   """
   def total_updates_by_user_over_time(%User{} = user, opts \\ []) do
     query =
       from(u in Update,
         where: u.user_id == ^user.id,
-        join: m in assoc(u, :media)
+        join: m in assoc(u, :media),
+        where: u.inserted_at >= fragment("now() - interval '1 year'")
       )
 
     query =
@@ -337,11 +338,25 @@ defmodule Platform.Updates do
         project -> query |> where([_u, m], m.project_id == ^project.id)
       end
 
-    query
-    |> group_by([u], [fragment("date_trunc('day', ?)", u.inserted_at)])
-    |> select([u], %{date: fragment("date_trunc('day', ?)", u.inserted_at), count: count(u.id)})
-    |> order_by([u], asc: fragment("date_trunc('day', ?)", u.inserted_at))
-    |> Repo.all()
+    data =
+      query
+      |> group_by([u], [fragment("date_trunc('day', ?)", u.inserted_at)])
+      |> select([u], %{date: fragment("date_trunc('day', ?)", u.inserted_at), count: count(u.id)})
+      |> order_by([u], asc: fragment("date_trunc('day', ?)", u.inserted_at))
+      |> Repo.all()
+
+    # Fill in all other dates in the past year as zeroes
+    now = DateTime.utc_now()
+    dates = Enum.map(0..365, fn date -> DateTime.add(now, -date, :day) end)
+
+    data =
+      Enum.reduce(dates, data, fn date, data ->
+        if Enum.any?(data, fn d -> d.date == date end) do
+          data
+        else
+          [%{date: date, count: 0} | data]
+        end
+      end)
   end
 
   @doc """

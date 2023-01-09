@@ -2029,7 +2029,7 @@ defmodule PlatformWeb.Components do
           <span class="animate-pulse">Loading...</span>
         </div>
       </div>
-      <iframe dynamic-src={"/incidents/#{@media.slug}/card"} width="350px" height="190px" />
+      <dynamic tag="iframe" src={"/incidents/#{@media.slug}/card"} width="350px" height="190px" />
     </div>
     """
   end
@@ -2388,14 +2388,14 @@ defmodule PlatformWeb.Components do
             <div x-bind:class="grayscale ? 'grayscale' : ''">
               <%= if String.starts_with?(@version.mime_type, "image/") do %>
                 <%= if @dynamic_src do %>
-                  <img dynamic-src={loc} class="w-full" />
+                  <dynamic tag="img" src={loc} class="w-full" />
                 <% else %>
                   <img src={loc} class="w-full" />
                 <% end %>
               <% else %>
                 <%= if @dynamic_src do %>
                   <video controls preload="auto" muted>
-                    <source dynamic-src={loc} class="w-full" />
+                    <dynamic tag="source" src={loc} class="w-full" />
                   </video>
                 <% else %>
                   <video controls preload="auto" poster={thumbnail} muted>

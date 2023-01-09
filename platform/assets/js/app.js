@@ -17,6 +17,9 @@
 
 // Include phoenix_html to handle method=PUT/DELETE in forms and buttons.
 import "phoenix_html"
+import * as vega from "vega";
+import "vega-lite"
+import vegaEmbed from "vega-embed"
 import TomSelect from "../node_modules/tom-select/dist/js/tom-select.complete"
 // Establish Phoenix Socket and LiveView configuration.
 import { Socket } from "phoenix"
@@ -109,12 +112,18 @@ function initializePopovers() {
             allowHTML: true,
             content: "",
             onShow(ref) {
-                // Replace `dynamic-src` tags with `src` tags; this is to prevent things from being
+                // Replace `dynamic` tags with their desired elements; this is to prevent things from being
                 // loaded and rendered until we want to show the popover. We can't use <template>
                 // tags because Phoenix won't update those.
                 let content = ref.reference.querySelector("section[role=\"popover\"]");
-                for (let elem of content.querySelectorAll("[dynamic-src]")) {
-                    elem.setAttribute("src", elem.getAttribute("dynamic-src"));
+                for (let elem of content.querySelectorAll("dynamic")) {
+                    let newNode = document.createElement(elem.getAttribute("tag"));
+                    for (let attr of elem.attributes) {
+                        newNode.setAttribute(attr.name, attr.value);
+                    }
+                    elem.parentElement.appendChild(newNode)
+                    console.log(elem)
+                    console.log(newNode)
                 }
                 ref.setContent(content.innerHTML);
             },
@@ -378,6 +387,13 @@ function applySearchHighlighting() {
     }
 }
 
+function applyVegaCharts() {
+    document.querySelectorAll("[data-vega]").forEach((elem) => {
+        let spec = JSON.parse(elem.getAttribute("data-vega"));
+        vegaEmbed(elem, spec, { actions: false });
+    })
+}
+
 function debounce(func, timeout = 25) {
     let timer;
     return (...args) => {
@@ -412,6 +428,9 @@ document.addEventListener("load", initializePopovers);
 
 document.addEventListener("phx:update", applySearchHighlighting);
 document.addEventListener("load", applySearchHighlighting);
+
+document.addEventListener("phx:update", applyVegaCharts);
+document.addEventListener("load", applyVegaCharts);
 
 initializeKeyboardFormSubmits();
 
