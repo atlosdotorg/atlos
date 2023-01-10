@@ -12,17 +12,11 @@
       <div>
         <h1 class="sec-head mt-4">Subscriptions</h1>
         <p class="sec-subhead">
-          <%= if length(@media) == 0 do %>
-            You are not yet subscribed to any incidents. To subscribe to an incident, click the "Subscribe" button on the incident's page.
-          <% else %>
-            You are subscribed to these incidents. When you unsubscribe from an incident, you'll no longer receive its notifications.
-          <% end %>
+          You'll receive a notification when an incident you're subscribed to changes.
         </p>
-      </div>
-      <div class="grid gap-4 grid-cols-1 mt-4 lg:mt-8">
-        <%= for media <- @media do %>
-          <.media_card media={media} current_user={@current_user} />
-        <% end %>
+        <.link href="/subscriptions" class="text-button text-sm mt-4 block">
+          Manage subscriptions &rarr;
+        </.link>
       </div>
     </div>
   </div>

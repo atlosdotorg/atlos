@@ -15,6 +15,7 @@ defmodule Platform.Material.MediaSearch do
     attr_status: :string,
     project_id: :string,
     no_media_versions: :boolean,
+    only_subscribed: :boolean,
     display: :string,
     deleted: :boolean
   }
@@ -85,6 +86,18 @@ defmodule Platform.Material.MediaSearch do
     end
   end
 
+  defp apply_query_component(queryable, changeset, :only_subscribed, current_user) do
+    case Map.get(changeset.changes, :only_subscribed, false) do
+      false ->
+        queryable
+
+      true ->
+        queryable
+        |> join(:inner, [m], s in assoc(m, :subscriptions))
+        |> where([m, s], s.user_id == ^current_user.id)
+    end
+  end
+
   defp apply_sort(queryable, changeset) do
     # Returns a {queryable, pagination_opts} tuple.
     uploaded_desc = {queryable |> Ecto.Query.order_by([i], desc: i.inserted_at), []}
@@ -130,12 +143,13 @@ defmodule Platform.Material.MediaSearch do
   @doc """
   Builds a composeable query given the search changeset. Returns a {queryable, pagination_opts} tuple.
   """
-  def search_query(queryable \\ Media, %Ecto.Changeset{} = cs) do
+  def search_query(queryable \\ Media, %Ecto.Changeset{} = cs, current_user \\ nil) do
     queryable
     |> apply_query_component(cs, :query)
     |> apply_query_component(cs, :attr_status)
     |> apply_query_component(cs, :no_media_versions)
     |> apply_query_component(cs, :project_id)
+    |> apply_query_component(cs, :only_subscribed, current_user)
     |> apply_sort(cs)
     |> apply_deleted(cs)
   end
