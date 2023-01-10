@@ -1,9 +1,19 @@
 <article class="w-full xl:max-w-screen-xl px-8">
   <div class="lg:flex lg:items-center lg:justify-between">
     <div class="flex-1 min-w-0 max-w-full">
-      <div class="font-mono text-sm ml-1 text-neutral-600">
+      <% title_for_copying =
+        "#{Media.slug_to_display(@media)} / #{@media.attr_description}" <>
+          if Platform.Material.Media.is_sensitive(@media),
+            do: " (#{Enum.join(@media.attr_sensitive, ", ")})",
+            else: "" %>
+      <button
+        class="font-mono text-sm ml-1 text-neutral-600 p-1 rounded hover:bg-neutral-100 transition"
+        data-tooltip="Copy information to your clipboard"
+        type="button"
+        onclick={"window.setClipboard(#{Jason.encode!(title_for_copying)})"}
+      >
         <%= Media.slug_to_display(@media) %>
-      </div>
+      </button>
       <% title_classes =
         "text-xl font-medium leading-7 text-gray-700 sm:text-3xl block transition-all p-1 rounded " <>
           if @media.deleted, do: "line-through ", else: "" %>
