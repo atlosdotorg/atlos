@@ -441,9 +441,7 @@ window.setClipboard = (text) => {
     const data = [new ClipboardItem({ [type]: blob })];
 
     navigator.clipboard.write(data).then(
-        () => {
-            alert("Copied to your clipboard!")
-        },
+        () => { },
         () => {
             alert("Unable to write to your clipboard.")
         }
