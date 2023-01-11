@@ -531,7 +531,7 @@ defmodule Platform.Material do
     Repo.all(
       from v in MediaVersion,
         where: v.source_url == ^url,
-        preload: [media: [[updates: :user], :versions]]
+        preload: [media: [[updates: :user], :versions, :project]]
     )
     |> Enum.sort_by(& &1.media.id)
     |> Enum.dedup_by(& &1.media.id)
