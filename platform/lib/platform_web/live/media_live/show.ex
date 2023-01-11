@@ -156,13 +156,19 @@ defmodule PlatformWeb.MediaLive.Show do
      )}
   end
 
-  def handle_info({:project_changed, _media}, socket) do
+  def handle_info({:project_change_complete, media}, socket) do
     {:noreply,
      socket
-     |> put_flash(
-       :info,
-       "Project changed successfully."
-     )
+     |> then(fn x ->
+       if is_nil(media),
+         do: x,
+         else:
+           put_flash(
+             x,
+             :info,
+             "Project changed successfully."
+           )
+     end)
      |> push_patch(
        to: Routes.media_show_path(socket, :show, socket.assigns.media.slug),
        replace: true

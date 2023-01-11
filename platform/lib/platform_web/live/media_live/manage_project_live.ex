@@ -48,7 +48,7 @@ defmodule PlatformWeb.MediaLive.ManageProjectsLive do
             socket
           )
 
-          send(self(), {:project_changed, media})
+          send(self(), {:project_change_complete, media})
           {:noreply, socket |> assign(:disabled, true)}
 
         {:error, %Ecto.Changeset{} = cs} ->
@@ -57,6 +57,11 @@ defmodule PlatformWeb.MediaLive.ManageProjectsLive do
     else
       {:noreply, assign(socket, :changeset, cs |> Map.put(:action, :validate))}
     end
+  end
+
+  def handle_event("close_modal", _params, socket) do
+    send(self(), {:project_change_complete, nil})
+    {:noreply, socket}
   end
 
   def render(assigns) do
