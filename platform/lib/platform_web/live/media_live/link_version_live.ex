@@ -84,7 +84,7 @@ defmodule PlatformWeb.MediaLive.LinkVersionLive do
           Material.archive_media_version(version)
 
           # Wrap up
-          send(self(), {:version_created, version})
+          send(self(), {:version_add_complete, version})
           {:noreply, socket |> assign(:disabled, true)}
 
         {:error, %Ecto.Changeset{} = changeset} ->
@@ -93,6 +93,11 @@ defmodule PlatformWeb.MediaLive.LinkVersionLive do
     else
       {:noreply, assign(socket, :changeset, changeset)}
     end
+  end
+
+  def handle_event("close_modal", _params, socket) do
+    send(self(), {:version_add_complete, nil})
+    {:noreply, socket}
   end
 
   def render(assigns) do

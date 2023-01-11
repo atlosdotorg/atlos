@@ -137,13 +137,19 @@ defmodule PlatformWeb.MediaLive.Show do
     end
   end
 
-  def handle_info({:version_created, _version}, socket) do
+  def handle_info({:version_add_complete, version}, socket) do
     {:noreply,
      socket
-     |> put_flash(
-       :info,
-       "Added media successfully. Atlos will archive and process it in the background."
-     )
+     |> then(fn x ->
+       if is_nil(version),
+         do: x,
+         else:
+           put_flash(
+             x,
+             :info,
+             "Added media successfully. Atlos will archive and process it in the background."
+           )
+     end)
      |> push_patch(
        to: Routes.media_show_path(socket, :show, socket.assigns.media.slug),
        replace: true

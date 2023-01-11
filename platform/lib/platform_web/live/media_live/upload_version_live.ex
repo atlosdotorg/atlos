@@ -145,7 +145,7 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
             socket
           )
 
-          send(pid, {:version_created, version})
+          send(pid, {:version_add_complete, version})
         rescue
           error ->
             Auditor.log(
@@ -160,6 +160,11 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
 
       {:noreply, socket |> assign(:processing, true)}
     end
+  end
+
+  def handle_event("close_modal", _params, socket) do
+    send(self(), {:version_add_complete, nil})
+    {:noreply, socket}
   end
 
   def handle_event("cancel_upload", %{"ref" => ref}, socket) do
