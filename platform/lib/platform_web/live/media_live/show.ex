@@ -132,7 +132,7 @@ defmodule PlatformWeb.MediaLive.Show do
       {:noreply,
        socket
        |> assign_media_and_updates()
-       |> put_flash(:info, "Media deletion status changed successfully.")
+       |> put_flash(:info, if(media.deleted, do: "Incident deleted.", else: "Incident restored."))
        |> assign(:media, media)}
     end
   end
