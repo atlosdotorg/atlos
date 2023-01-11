@@ -7,7 +7,7 @@
             do: " (#{Enum.join(@media.attr_sensitive, ", ")})",
             else: "" %>
       <button
-        class="font-mono text-sm ml-1 text-neutral-600 p-1 rounded hover:bg-neutral-100 transition"
+        class="font-mono text-sm text-neutral-600 p-1 rounded hover:bg-neutral-100 transition"
         data-tooltip="Copy information to your clipboard"
         type="button"
         onclick={"window.setClipboard(#{Jason.encode!(title_for_copying)})"}
