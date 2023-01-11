@@ -166,7 +166,7 @@ defmodule Platform.Material do
 
   defp preload_media_updates(query) do
     # TODO: should this be pulled into the Updates context somehow?
-    query |> preload(updates: [:user, :media, :media_version, :project])
+    query |> preload(updates: [:user, :media_version, :project, media: [:project]])
   end
 
   defp preload_media_project(query) do
