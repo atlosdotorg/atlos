@@ -26,3 +26,22 @@ defmodule Platform.Projects.Project do
     |> validate_format(:color, ~r/^#[0-9a-fA-F]{6}$/)
   end
 end
+
+defimpl Jason.Encoder, for: Platform.Projects.Project do
+  def encode(value, opts) do
+    Jason.Encode.map(
+      Map.take(value, [
+        :name,
+        :code,
+        :description,
+        :color,
+        :id
+      ])
+      |> Enum.into(%{}, fn
+        {key, %Ecto.Association.NotLoaded{}} -> {key, nil}
+        {key, value} -> {key, value}
+      end),
+      opts
+    )
+  end
+end

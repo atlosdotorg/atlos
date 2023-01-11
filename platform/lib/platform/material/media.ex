@@ -416,6 +416,7 @@ defimpl Jason.Encoder, for: Platform.Material.Media do
         :inserted_at,
         :updated_at,
         :deleted,
+        :project,
         :id
       ])
       |> Enum.into(%{}, fn
