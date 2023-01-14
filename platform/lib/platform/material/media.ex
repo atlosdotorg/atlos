@@ -97,7 +97,7 @@ defmodule Platform.Material.Media do
     |> Attribute.validate_attribute(Attribute.get_attribute(:impact), user, false)
     |> Attribute.validate_attribute(Attribute.get_attribute(:date), user, false)
     |> Attribute.validate_attribute(Attribute.get_attribute(:general_location), user, false)
-    |> validate_project(user)
+    |> validate_project(user, media)
     |> parse_and_validate_validate_json_array(:urls, :urls_parsed)
     |> validate_url_list(:urls_parsed)
     |> then(fn cs ->
@@ -147,7 +147,7 @@ defmodule Platform.Material.Media do
     changeset
   end
 
-  def validate_project(changeset, user \\ nil) do
+  def validate_project(changeset, user \\ nil, media \\ nil) do
     project_id = Ecto.Changeset.get_change(changeset, :project_id, :no_change)
     original_project_id = changeset.data.project_id
 
@@ -160,6 +160,10 @@ defmodule Platform.Material.Media do
         original_project = Projects.get_project(original_project_id)
 
         cond do
+          !is_nil(media) && !is_nil(user) && !can_user_edit(media, user) ->
+            changeset
+            |> add_error(:project_id, "You cannot edit this media")
+
           !is_nil(project_id) && is_nil(new_project) ->
             changeset
             |> add_error(:project_id, "Project does not exist")
@@ -206,7 +210,7 @@ defmodule Platform.Material.Media do
   def project_changeset(media, attrs, user \\ nil) do
     media
     |> cast(attrs, [:project_id])
-    |> validate_project(user)
+    |> validate_project(user, media)
   end
 
   @doc """
