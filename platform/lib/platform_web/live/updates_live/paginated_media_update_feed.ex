@@ -80,15 +80,6 @@ defmodule PlatformWeb.UpdatesLive.PaginatedMediaUpdateFeed do
             onclick={"window.location = '/incidents/#{incident.slug}'"}
           >
             <% len = min(3, length(incident.updates)) %>
-            <%= if length(incident.updates) > 5 do %>
-              <div class="relative group word-breaks">
-                <span
-                  class="absolute top-5 -mt-10 pb-10 left-5 -ml-px h-full w-0.5 border border-dashed border-gray-300"
-                  aria-hidden="true"
-                >
-                </span>
-              </div>
-            <% end %>
             <%= for {update, idx} <- incident.updates |> Enum.sort_by(& &1.inserted_at, {:desc, NaiveDateTime}) |> Enum.take(3) |> Enum.reverse() |> Enum.with_index() do %>
               <.update_entry
                 update={update}
