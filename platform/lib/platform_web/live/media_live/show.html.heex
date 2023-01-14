@@ -1,56 +1,96 @@
-<article class="w-full xl:max-w-screen-xl px-8">
-  <div class="lg:flex lg:items-center lg:justify-between">
-    <div class="flex-1 min-w-0 max-w-full">
-      <% title_for_copying =
-        "#{Media.slug_to_display(@media)} / #{@media.attr_description}" <>
-          if Platform.Material.Media.is_sensitive(@media),
-            do: " (#{Enum.join(@media.attr_sensitive, ", ")})",
-            else: "" %>
-      <button
-        class="font-mono text-sm text-neutral-600 p-1 rounded hover:bg-neutral-100 transition"
-        data-tooltip="Copy information to your clipboard"
-        type="button"
-        onclick={"window.setClipboard(#{Jason.encode!(title_for_copying)})"}
-      >
-        <%= Media.slug_to_display(@media) %>
-      </button>
-      <% title_classes =
-        "text-xl font-medium leading-7 text-gray-700 sm:text-3xl block transition p-1 rounded " <>
-          if @media.deleted, do: "line-through ", else: "" %>
-      <%= if(
+<div>
+  <.project_bar project={@media.project}>
+    <:actions>
+      <%= if is_nil(@media.project) do %>
+        <.link
+          patch={"/incidents/#{@media.slug}/project"}
+          class="text-button inline-flex items-center gap-2 text-sm py-1 px-2 rounded hover:bg-neutral-200 focus:bg-neutral-200 transition"
+        >
+          + Add to Project
+        </.link>
+      <% else %>
+        <%= if Platform.Projects.can_edit_media?(@current_user, @media.project) do %>
+          <.link
+            patch={"/incidents/#{@media.slug}/project"}
+            class="text-button inline-flex items-center gap-2 text-sm py-1 px-2 rounded hover:bg-neutral-200 focus:bg-neutral-200 transition"
+          >
+            Update
+          </.link>
+        <% end %>
+      <% end %>
+    </:actions>
+  </.project_bar>
+  <article class="w-full lg:max-w-screen-xl px-8 lg:mx-auto mt-8">
+    <div class="lg:flex lg:items-center lg:justify-between">
+      <div class="flex-1 min-w-0 max-w-full">
+        <% title_for_copying =
+          "#{Media.slug_to_display(@media)} / #{@media.attr_description}" <>
+            if Platform.Material.Media.is_sensitive(@media),
+              do: " (#{Enum.join(@media.attr_sensitive, ", ")})",
+              else: "" %>
+        <button
+          class="font-mono text-sm text-neutral-600 p-1 rounded hover:bg-neutral-100 transition"
+          data-tooltip="Copy information to your clipboard"
+          type="button"
+          onclick={"window.setClipboard(#{Jason.encode!(title_for_copying)})"}
+        >
+          <%= Media.slug_to_display(@media) %>
+        </button>
+        <% title_classes =
+          "text-xl font-medium leading-7 text-gray-700 sm:text-3xl block transition p-1 rounded " <>
+            if @media.deleted, do: "line-through ", else: "" %>
+        <%= if(
         Attribute.can_user_edit(Attribute.get_attribute(:description), @current_user, @media)
       ) do %>
-        <%= live_patch(class: title_classes <> "hover:bg-neutral-200 focus:bg-neutral-200",
+          <%= live_patch(class: title_classes <> "hover:bg-neutral-200 focus:bg-neutral-200",
               to: Routes.media_show_path(@socket, :edit, @media.slug, :description),
               "data-tooltip": "Edit description",
               replace: true
             ) do %>
-          <%= @media.attr_description %>
+            <%= @media.attr_description %>
+          <% end %>
+        <% else %>
+          <div class={title_classes}>
+            <%= @media.attr_description %>
+          </div>
         <% end %>
-      <% else %>
-        <div class={title_classes}>
-          <%= @media.attr_description %>
-        </div>
-      <% end %>
-      <div class="mt-1 flex flex-col sm:flex-row sm:flex-wrap sm:mt-0 sm:space-x-4 ml-1">
-        <%= if @media.attr_status do %>
-          <%= live_patch(class: "chip @high inline-block mt-2 flex gap-1 " <> Attribute.attr_color(:status, @media.attr_status),
+        <div class="mt-1 flex flex-col sm:flex-row sm:flex-wrap sm:mt-0 sm:space-x-4 ml-1">
+          <%= if @media.attr_status do %>
+            <%= live_patch(class: "chip @high inline-block mt-2 flex gap-1 " <> Attribute.attr_color(:status, @media.attr_status),
                       to: Routes.media_show_path(@socket, :edit, @media.slug, :status), replace: true
                     ) do %>
-            <.attribute_icon
-              name={:status}
-              value={@media.attr_status}
-              class="h-4 w-4"
-              type={:solid}
-            />
-            <%= @media.attr_status %>
+              <.attribute_icon
+                name={:status}
+                value={@media.attr_status}
+                class="h-4 w-4"
+                type={:solid}
+              />
+              <%= @media.attr_status %>
+            <% end %>
           <% end %>
-        <% end %>
-        <%= if Media.is_sensitive(@media) do %>
-          <%= for item <- @media.attr_sensitive || [] do %>
-            <%= live_patch(class: "chip @high inline-block mt-2 flex gap-1 " <> Attribute.attr_color(:sensitive, @media.attr_sensitive),
+          <%= if Media.is_sensitive(@media) do %>
+            <%= for item <- @media.attr_sensitive || [] do %>
+              <%= live_patch(class: "chip @high inline-block mt-2 flex gap-1 " <> Attribute.attr_color(:sensitive, @media.attr_sensitive),
                     to: Routes.media_show_path(@socket, :edit, @media.slug, :sensitive), replace: true
                     ) do %>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-4 w-4"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M10 1.944A11.954 11.954 0 012.166 5C2.056 5.649 2 6.319 2 7c0 5.225 3.34 9.67 8 11.317C14.66 16.67 18 12.225 18 7c0-.682-.057-1.35-.166-2.001A11.954 11.954 0 0110 1.944zM11 14a1 1 0 11-2 0 1 1 0 012 0zm0-7a1 1 0 10-2 0v3a1 1 0 102 0V7z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+                <%= item %>
+              <% end %>
+            <% end %>
+          <% end %>
+          <%= for item <- @media.attr_restrictions || [] do %>
+            <div class="chip ~warning @high inline-block mt-2 flex gap-1">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 class="h-4 w-4"
@@ -59,280 +99,311 @@
               >
                 <path
                   fill-rule="evenodd"
-                  d="M10 1.944A11.954 11.954 0 012.166 5C2.056 5.649 2 6.319 2 7c0 5.225 3.34 9.67 8 11.317C14.66 16.67 18 12.225 18 7c0-.682-.057-1.35-.166-2.001A11.954 11.954 0 0110 1.944zM11 14a1 1 0 11-2 0 1 1 0 012 0zm0-7a1 1 0 10-2 0v3a1 1 0 102 0V7z"
+                  d="M13.477 14.89A6 6 0 015.11 6.524l8.367 8.368zm1.414-1.414L6.524 5.11a6 6 0 018.367 8.367zM18 10a8 8 0 11-16 0 8 8 0 0116 0z"
                   clip-rule="evenodd"
                 />
               </svg>
               <%= item %>
-            <% end %>
-          <% end %>
-        <% end %>
-        <%= for item <- @media.attr_restrictions || [] do %>
-          <div class="chip ~warning @high inline-block mt-2 flex gap-1">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="h-4 w-4"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <path
-                fill-rule="evenodd"
-                d="M13.477 14.89A6 6 0 015.11 6.524l8.367 8.368zm1.414-1.414L6.524 5.11a6 6 0 018.367 8.367zM18 10a8 8 0 11-16 0 8 8 0 0116 0z"
-                clip-rule="evenodd"
-              />
-            </svg>
-            <%= item %>
-          </div>
-        <% end %>
-      </div>
-    </div>
-    <div class="mt-5 flex lg:mt-0 lg:ml-4">
-      <span>
-        <%= if @media.project do %>
-          <.popover>
-            <.link
-              class="border text-neutral-700 inline-flex pb-1 pt-2 px-3 items-center gap-1 hover:bg-neutral-200 rounded transition"
-              patch={"/incidents/#{@media.slug}/project"}
-              data-tooltip="Manage this incident's project"
-            >
-              <div class="mr-px">
-                <p class="text-xs text-neutral-500">Project</p>
-                <p class="font-medium">
-                  <div class="inline-flex items-center font-medium">
-                    <%= @media.project.name %>
-                    <span style={"color: #{@media.project.color}"}>
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
-                        class="w-5 h-5 ml-px"
-                      >
-                        <circle cx="10" cy="10" r="5" />
-                      </svg>
-                    </span>
-                  </div>
-                </p>
-              </div>
-              <Heroicons.chevron_down mini class="h-5 w-5 text-neutral-500 mt-4" />
-            </.link>
-            <:display>
-              <%= if not is_nil(@media.project) do %>
-                <div class="-m-2 rounded overflow-hidden">
-                  <.project_card project={@media.project} />
-                  <hr />
-                  <div class="p-4">
-                    <.link
-                      class="text-button text-sm"
-                      patch={"/incidents/#{@media.slug}/project"}
-                      data-tooltip="Manage this incident's project"
-                    >
-                      Change project &rarr;
-                    </.link>
-                  </div>
-                </div>
-              <% end %>
-            </:display>
-          </.popover>
-        <% else %>
-          <.link
-            class="border text-neutral-700 inline-flex pb-2 pt-2 px-3 items-center gap-1 hover:bg-neutral-200 rounded transition"
-            patch={"/incidents/#{@media.slug}/project"}
-            data-tooltip="Manage this incident's project"
-          >
-            + Add to Project
-          </.link>
-        <% end %>
-      </span>
-      <%= if Accounts.is_privileged(@current_user) do %>
-        <div
-          class="flex place-self-center w-full md:w-auto h-full px-2 text-sm relative"
-          x-data="{open: false}"
-        >
-          <div class="text-left z-10">
-            <div class="h-full">
-              <button
-                x-on:click="open = !open"
-                type="button"
-                class="rounded-full flex items-center align-center text-gray-600 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-urge-500"
-                id="menu-button"
-                aria-expanded="true"
-                aria-haspopup="true"
-              >
-                <span class="sr-only">Open options</span>
-                <!-- Heroicon name: solid/dots-vertical -->
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
-                  class="w-6 h-6"
-                >
-                  <path
-                    fill-rule="evenodd"
-                    d="M10.5 6a1.5 1.5 0 113 0 1.5 1.5 0 01-3 0zm0 6a1.5 1.5 0 113 0 1.5 1.5 0 01-3 0zm0 6a1.5 1.5 0 113 0 1.5 1.5 0 01-3 0z"
-                    clip-rule="evenodd"
-                  />
-                </svg>
-
-                <span class="md:hidden text-neutral-800 ml-1">Additional options</span>
-              </button>
             </div>
-
-            <div
-              x-show="open"
-              x-on:click.outside="open = false"
-              x-transition
-              x-cloak
-              class="origin-top-right absolute right-0 mt-4 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none"
-              role="menu"
-              aria-orientation="vertical"
-              aria-labelledby="menu-button"
-              tabindex="-1"
-            >
-              <div class="py-1" role="none">
+          <% end %>
+        </div>
+      </div>
+      <div class="mt-5 flex lg:mt-0 lg:ml-4">
+        <span></span>
+        <%= if Accounts.is_privileged(@current_user) do %>
+          <div
+            class="flex place-self-center w-full md:w-auto h-full px-2 text-sm relative"
+            x-data="{open: false}"
+          >
+            <div class="text-left z-10">
+              <div class="h-full">
                 <button
+                  x-on:click="open = !open"
                   type="button"
-                  class="text-gray-700 group w-full hover:bg-gray-100 flex items-center px-4 py-2 text-sm"
-                  role="menuitem"
-                  phx-click="toggle_deleted"
-                  x-on:click="open = false"
-                  data-confirm={
-                    if @media.deleted,
-                      do: "Are you sure you want to restore this incident?",
-                      else:
-                        "Are you sure you want to delete this incident? This action is reversible."
-                  }
+                  class="rounded-full flex items-center align-center text-gray-600 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-urge-500"
+                  id="menu-button"
+                  aria-expanded="true"
+                  aria-haspopup="true"
                 >
+                  <span class="sr-only">Open options</span>
+                  <!-- Heroicon name: solid/dots-vertical -->
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     viewBox="0 0 24 24"
                     fill="currentColor"
-                    class="mr-3 h-5 w-5 text-gray-400 group-hover:text-gray-500"
+                    class="w-6 h-6"
                   >
                     <path
                       fill-rule="evenodd"
-                      d="M16.5 4.478v.227a48.816 48.816 0 013.878.512.75.75 0 11-.256 1.478l-.209-.035-1.005 13.07a3 3 0 01-2.991 2.77H8.084a3 3 0 01-2.991-2.77L4.087 6.66l-.209.035a.75.75 0 01-.256-1.478A48.567 48.567 0 017.5 4.705v-.227c0-1.564 1.213-2.9 2.816-2.951a52.662 52.662 0 013.369 0c1.603.051 2.815 1.387 2.815 2.951zm-6.136-1.452a51.196 51.196 0 013.273 0C14.39 3.05 15 3.684 15 4.478v.113a49.488 49.488 0 00-6 0v-.113c0-.794.609-1.428 1.364-1.452zm-.355 5.945a.75.75 0 10-1.5.058l.347 9a.75.75 0 101.499-.058l-.346-9zm5.48.058a.75.75 0 10-1.498-.058l-.347 9a.75.75 0 001.5.058l.345-9z"
+                      d="M10.5 6a1.5 1.5 0 113 0 1.5 1.5 0 01-3 0zm0 6a1.5 1.5 0 113 0 1.5 1.5 0 01-3 0zm0 6a1.5 1.5 0 113 0 1.5 1.5 0 01-3 0z"
                       clip-rule="evenodd"
                     />
                   </svg>
 
-                  <%= if @media.deleted do %>
-                    Restore
-                  <% else %>
-                    Delete
-                  <% end %>
+                  <span class="md:hidden text-neutral-800 ml-1">Additional options</span>
                 </button>
-                <.link
-                  patch={Routes.media_show_path(@socket, :merge, @media.slug)}
-                  class="text-gray-700 group w-full hover:bg-gray-100 flex items-center px-4 py-2 text-sm"
-                  role="menuitem"
-                  replace={true}
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    fill="currentColor"
-                    class="mr-3 h-5 w-5 text-gray-400 group-hover:text-gray-500"
+              </div>
+
+              <div
+                x-show="open"
+                x-on:click.outside="open = false"
+                x-transition
+                x-cloak
+                class="origin-top-right absolute right-0 mt-4 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none"
+                role="menu"
+                aria-orientation="vertical"
+                aria-labelledby="menu-button"
+                tabindex="-1"
+              >
+                <div class="py-1" role="none">
+                  <button
+                    type="button"
+                    class="text-gray-700 group w-full hover:bg-gray-100 flex items-center px-4 py-2 text-sm"
+                    role="menuitem"
+                    phx-click="toggle_deleted"
+                    x-on:click="open = false"
+                    data-confirm={
+                      if @media.deleted,
+                        do: "Are you sure you want to restore this incident?",
+                        else:
+                          "Are you sure you want to delete this incident? This action is reversible."
+                    }
                   >
-                    <path d="M9.97.97a.75.75 0 011.06 0l3 3a.75.75 0 01-1.06 1.06l-1.72-1.72v3.44h-1.5V3.31L8.03 5.03a.75.75 0 01-1.06-1.06l3-3zM9.75 6.75v6a.75.75 0 001.5 0v-6h3a3 3 0 013 3v7.5a3 3 0 01-3 3h-7.5a3 3 0 01-3-3v-7.5a3 3 0 013-3h3z" />
-                    <path d="M7.151 21.75a2.999 2.999 0 002.599 1.5h7.5a3 3 0 003-3v-7.5c0-1.11-.603-2.08-1.5-2.599v7.099a4.5 4.5 0 01-4.5 4.5H7.151z" />
-                  </svg>
-                  Merge Media
-                </.link>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                      class="mr-3 h-5 w-5 text-gray-400 group-hover:text-gray-500"
+                    >
+                      <path
+                        fill-rule="evenodd"
+                        d="M16.5 4.478v.227a48.816 48.816 0 013.878.512.75.75 0 11-.256 1.478l-.209-.035-1.005 13.07a3 3 0 01-2.991 2.77H8.084a3 3 0 01-2.991-2.77L4.087 6.66l-.209.035a.75.75 0 01-.256-1.478A48.567 48.567 0 017.5 4.705v-.227c0-1.564 1.213-2.9 2.816-2.951a52.662 52.662 0 013.369 0c1.603.051 2.815 1.387 2.815 2.951zm-6.136-1.452a51.196 51.196 0 013.273 0C14.39 3.05 15 3.684 15 4.478v.113a49.488 49.488 0 00-6 0v-.113c0-.794.609-1.428 1.364-1.452zm-.355 5.945a.75.75 0 10-1.5.058l.347 9a.75.75 0 101.499-.058l-.346-9zm5.48.058a.75.75 0 10-1.498-.058l-.347 9a.75.75 0 001.5.058l.345-9z"
+                        clip-rule="evenodd"
+                      />
+                    </svg>
+
+                    <%= if @media.deleted do %>
+                      Restore
+                    <% else %>
+                      Delete
+                    <% end %>
+                  </button>
+                  <.link
+                    patch={Routes.media_show_path(@socket, :merge, @media.slug)}
+                    class="text-gray-700 group w-full hover:bg-gray-100 flex items-center px-4 py-2 text-sm"
+                    role="menuitem"
+                    replace={true}
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                      class="mr-3 h-5 w-5 text-gray-400 group-hover:text-gray-500"
+                    >
+                      <path d="M9.97.97a.75.75 0 011.06 0l3 3a.75.75 0 01-1.06 1.06l-1.72-1.72v3.44h-1.5V3.31L8.03 5.03a.75.75 0 01-1.06-1.06l3-3zM9.75 6.75v6a.75.75 0 001.5 0v-6h3a3 3 0 013 3v7.5a3 3 0 01-3 3h-7.5a3 3 0 01-3-3v-7.5a3 3 0 013-3h3z" />
+                      <path d="M7.151 21.75a2.999 2.999 0 002.599 1.5h7.5a3 3 0 003-3v-7.5c0-1.11-.603-2.08-1.5-2.599v7.099a4.5 4.5 0 01-4.5 4.5H7.151z" />
+                    </svg>
+                    Merge Media
+                  </.link>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      <% end %>
+        <% end %>
+      </div>
     </div>
-  </div>
-  <div class="grid lg:grid-cols-3 gap-8 mt-8">
-    <div class="lg:col-span-2 space-y-8">
-      <.card>
-        <:header>
-          <h3 class="sec-head">Attributes</h3>
-          <p class="sec-subhead">
-            This information is inferred based on the uploaded media, news reporting, and other public information.
-          </p>
-        </:header>
-        <div class="border-gray-200">
-          <.attr_display_block
-            set_attrs={Attribute.set_for_media(@media, :attributes)}
-            unset_attrs={
-              Attribute.unset_for_media(@media, :attributes)
-              |> filter_editable(@media, @current_user)
-            }
-            media={@media}
-            updates={@updates}
-            socket={@socket}
-            current_user={@current_user}
-          />
-        </div>
-      </.card>
-      <.card>
-        <:header>
-          <div class="flex justify-between items-center">
-            <h3 class="sec-head">Feed</h3>
-            <.live_component
-              module={PlatformWeb.MediaLive.SubscribeButton}
-              id="subscribe_button"
-              current_user={@current_user}
+    <div class="grid lg:grid-cols-3 gap-8 mt-8">
+      <div class="lg:col-span-2 space-y-8">
+        <.card>
+          <:header>
+            <h3 class="sec-head">Attributes</h3>
+            <p class="sec-subhead">
+              This information is inferred based on the uploaded media, news reporting, and other public information.
+            </p>
+          </:header>
+          <div class="border-gray-200">
+            <.attr_display_block
+              set_attrs={Attribute.set_for_media(@media, :attributes)}
+              unset_attrs={
+                Attribute.unset_for_media(@media, :attributes)
+                |> filter_editable(@media, @current_user)
+              }
               media={@media}
+              updates={@updates}
+              socket={@socket}
+              current_user={@current_user}
             />
           </div>
-        </:header>
-        <.live_component
-          module={PlatformWeb.UpdatesLive.UpdateFeed}
-          id="update-feed"
-          current_user={@current_user}
-          updates={@updates}
-        />
-        <hr class="sep h-2" id="feed-bottom" />
-        <!-- There should only ever be one comment box per page -->
-        <.live_component
-          module={PlatformWeb.MediaLive.CommentBox}
-          id="comment-box"
-          media={@media}
-          current_user={@current_user}
-          disabled={!Media.can_user_comment(@media, @current_user)}
-        />
-      </.card>
-    </div>
-    <div class="space-y-8">
-      <.card>
-        <:header>
-          <h3 class="sec-head">Metadata</h3>
-          <p class="sec-subhead">This information is used to coordinate work.</p>
-        </:header>
-        <div class="border-gray-200">
-          <.attr_display_block
-            set_attrs={Attribute.set_for_media(@media, :metadata)}
-            unset_attrs={
-              Attribute.unset_for_media(@media, :metadata)
-              |> filter_editable(@media, @current_user)
-            }
-            media={@media}
-            updates={@updates}
-            socket={@socket}
+        </.card>
+        <.card>
+          <:header>
+            <div class="flex justify-between items-center">
+              <h3 class="sec-head">Feed</h3>
+              <.live_component
+                module={PlatformWeb.MediaLive.SubscribeButton}
+                id="subscribe_button"
+                current_user={@current_user}
+                media={@media}
+              />
+            </div>
+          </:header>
+          <.live_component
+            module={PlatformWeb.UpdatesLive.UpdateFeed}
+            id="update-feed"
             current_user={@current_user}
+            updates={@updates}
           />
-        </div>
-      </.card>
-      <.card>
-        <:header>
-          <h3 class="sec-head">Media</h3>
-          <p class="sec-subhead">This media should depict the incident.</p>
-        </:header>
-        <div class="-mt-10 pt-5 -mb-5">
-          <% versions =
-            @media.versions |> filter_viewable_versions(@current_user) |> sort_by_date() %>
-          <% visible_versions = versions |> Enum.filter(&(&1.visibility == :visible)) %>
-          <% hidden_versions = versions |> Enum.filter(&(&1.visibility == :hidden)) %>
-          <% removed_versions = versions |> Enum.filter(&(&1.visibility == :removed)) %>
-          <%= if length(visible_versions) == 0 do %>
-            <div class="relative block border-2 my-5 border-gray-300 border-dashed rounded-lg p-12 text-center">
+          <hr class="sep h-2" id="feed-bottom" />
+          <!-- There should only ever be one comment box per page -->
+          <.live_component
+            module={PlatformWeb.MediaLive.CommentBox}
+            id="comment-box"
+            media={@media}
+            current_user={@current_user}
+            disabled={!Media.can_user_comment(@media, @current_user)}
+          />
+        </.card>
+      </div>
+      <div class="space-y-8">
+        <.card>
+          <:header>
+            <h3 class="sec-head">Metadata</h3>
+            <p class="sec-subhead">This information is used to coordinate work.</p>
+          </:header>
+          <div class="border-gray-200">
+            <.attr_display_block
+              set_attrs={Attribute.set_for_media(@media, :metadata)}
+              unset_attrs={
+                Attribute.unset_for_media(@media, :metadata)
+                |> filter_editable(@media, @current_user)
+              }
+              media={@media}
+              updates={@updates}
+              socket={@socket}
+              current_user={@current_user}
+            />
+          </div>
+        </.card>
+        <.card>
+          <:header>
+            <h3 class="sec-head">Media</h3>
+            <p class="sec-subhead">This media should depict the incident.</p>
+          </:header>
+          <div class="-mt-10 pt-5 -mb-5">
+            <% versions =
+              @media.versions |> filter_viewable_versions(@current_user) |> sort_by_date() %>
+            <% visible_versions = versions |> Enum.filter(&(&1.visibility == :visible)) %>
+            <% hidden_versions = versions |> Enum.filter(&(&1.visibility == :hidden)) %>
+            <% removed_versions = versions |> Enum.filter(&(&1.visibility == :removed)) %>
+            <%= if length(visible_versions) == 0 do %>
+              <div class="relative block border-2 my-5 border-gray-300 border-dashed rounded-lg p-12 text-center">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="mx-auto h-12 w-12 text-gray-400"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M10 21h7a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v11m0 5l4.879-4.879m0 0a3 3 0 104.243-4.242 3 3 0 00-4.243 4.242z"
+                  />
+                </svg>
+                <span class="mt-2 block text-sm font-medium text-gray-700">
+                  No media uploaded
+                </span>
+                <%= if Media.can_user_edit(@media, @current_user) do %>
+                  <%= live_patch("+ Upload Media",
+                    class: "text-button text-sm",
+                    to: Routes.media_show_path(@socket, :upload, @media.slug)
+                  ) %>
+                <% end %>
+              </div>
+            <% else %>
+              <div class="divide-gray-200 grid grid-cols-1 divide-y divide-dashed">
+                <%= for version <- visible_versions do %>
+                  <.media_version_display
+                    version={version}
+                    media={@media}
+                    current_user={@current_user}
+                  />
+                <% end %>
+                <%= if Media.can_user_edit(@media, @current_user) do %>
+                  <section class="pt-2 pb-4 text-sm overflow-visible">
+                    <%= live_patch("+ Upload More Media",
+                      class: "text-button mt-1 inline-block",
+                      to: Routes.media_show_path(@socket, :upload, @media.slug)
+                    ) %>
+                  </section>
+                <% end %>
+              </div>
+            <% end %>
+            <%= if length(hidden_versions) > 0 do %>
+              <details class="mb-4">
+                <summary class="cursor-pointer text-button text-sm">View hidden media</summary>
+                <div class="divide-gray-200 grid grid-cols-1 divide-y divide-dashed">
+                  <%= for version <- hidden_versions do %>
+                    <.media_version_display
+                      version={version}
+                      media={@media}
+                      current_user={@current_user}
+                    />
+                  <% end %>
+                </div>
+              </details>
+            <% end %>
+            <%= if length(removed_versions) > 0 do %>
+              <details class="mb-4">
+                <summary class="cursor-pointer text-button text-sm">View removed media</summary>
+                <div class="divide-gray-200 grid grid-cols-1 divide-y divide-dashed">
+                  <%= for version <- removed_versions do %>
+                    <.media_version_display
+                      version={version}
+                      media={@media}
+                      current_user={@current_user}
+                    />
+                  <% end %>
+                </div>
+              </details>
+            <% end %>
+          </div>
+        </.card>
+        <.card no_pad={@media.attr_geolocation != nil}>
+          <:header>
+            <h3 class="sec-head">Location</h3>
+            <%= if @media.attr_geolocation do %>
+              <p class="sec-subhead">
+                <% {lon, lat} = @media.attr_geolocation.coordinates %>
+                <a
+                  class="mt-4"
+                  target="_blank"
+                  href={"https://maps.google.com/maps?q=#{lat},#{lon}"}
+                >
+                  View
+                  <span class="font-medium underline">
+                    <.location lat={lat} lon={lon} />
+                  </span>
+                  on Google Maps
+                </a>
+              </p>
+            <% end %>
+          </:header>
+          <%= if @media.attr_geolocation do %>
+            <% {lon, lat} = @media.attr_geolocation.coordinates %>
+            <div
+              phx-update="ignore"
+              class="h-64 overflow-hidden"
+              id={"#{@media.slug}-geolocation-#{lat}-#{lon}"}
+            >
+              <map-pin lat={lat} lon={lon} id={"#{@media.slug}-geolocation-map"} />
+            </div>
+          <% else %>
+            <div class="relative block border-2 border-gray-300 border-dashed rounded-lg p-12 text-center">
               <svg
-                xmlns="http://www.w3.org/2000/svg"
                 class="mx-auto h-12 w-12 text-gray-400"
+                xmlns="http://www.w3.org/2000/svg"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -341,279 +412,178 @@
                 <path
                   stroke-linecap="round"
                   stroke-linejoin="round"
-                  d="M10 21h7a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v11m0 5l4.879-4.879m0 0a3 3 0 104.243-4.242 3 3 0 00-4.243 4.242z"
+                  d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                />
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
                 />
               </svg>
-              <span class="mt-2 block text-sm font-medium text-gray-700">No media uploaded</span>
-              <%= if Media.can_user_edit(@media, @current_user) do %>
-                <%= live_patch("+ Upload Media",
-                  class: "text-button text-sm",
-                  to: Routes.media_show_path(@socket, :upload, @media.slug)
+              <span class="mt-2 block text-sm font-medium text-gray-700">Not yet geolocated</span>
+              <%= live_patch("+ Geolocation",
+                class: "text-button mt-1 text-sm inline-block",
+                to: Routes.media_show_path(@socket, :edit, @media.slug, :geolocation),
+                replace: true
+              ) %>
+            </div>
+          <% end %>
+        </.card>
+      </div>
+    </div>
+    <%= if @live_action == :edit do %>
+      <.live_component
+        module={EditAttribute}
+        id="edit-attribute"
+        media={@media}
+        name={@attribute}
+        current_user={@current_user}
+      />
+    <% end %>
+    <%= if @live_action == :upload do %>
+      <.modal
+        target={}
+        close_confirmation="Are you sure you want to exit the upload process? Your upload is not complete."
+      >
+        <div class="mb-8">
+          <p class="sec-head">
+            <%= Media.slug_to_display(@media) %>: Upload Media
+          </p>
+          <p class="sec-subhead">
+            Note that additional media should document the same event.
+          </p>
+        </div>
+        <.live_component
+          module={PlatformWeb.MediaLive.CreateMediaVersion}
+          id="upload-version"
+          current_user={@current_user}
+          media={@media}
+        />
+      </.modal>
+    <% end %>
+    <%= if @live_action == :history do %>
+      <% attr = Attribute.get_attribute(@attribute) %>
+      <.modal target={} close_confirmation="">
+        <div class="mb-8">
+          <div class="sm:flex justify-between">
+            <div>
+              <p class="support font-mono"><%= Media.slug_to_display(@media) %></p>
+              <p class="sec-head">
+                History: <%= attr.label %>
+              </p>
+              <p class="sec-subhead"><%= attr.description %></p>
+            </div>
+            <div class="sm:mr-8">
+              <%= if Attribute.can_user_edit(attr, @current_user, @media) do %>
+                <%= live_patch("Edit",
+                  class: "base-button",
+                  to: Routes.media_show_path(@socket, :edit, @media.slug, attr.name),
+                  replace: true
                 ) %>
               <% end %>
             </div>
-          <% else %>
-            <div class="divide-gray-200 grid grid-cols-1 divide-y divide-dashed">
-              <%= for version <- visible_versions do %>
-                <.media_version_display
-                  version={version}
-                  media={@media}
-                  current_user={@current_user}
-                />
-              <% end %>
-              <%= if Media.can_user_edit(@media, @current_user) do %>
-                <section class="pt-2 pb-4 text-sm overflow-visible">
-                  <%= live_patch("+ Upload More Media",
-                    class: "text-button mt-1 inline-block",
-                    to: Routes.media_show_path(@socket, :upload, @media.slug)
-                  ) %>
-                </section>
-              <% end %>
-            </div>
-          <% end %>
-          <%= if length(hidden_versions) > 0 do %>
-            <details class="mb-4">
-              <summary class="cursor-pointer text-button text-sm">View hidden media</summary>
-              <div class="divide-gray-200 grid grid-cols-1 divide-y divide-dashed">
-                <%= for version <- hidden_versions do %>
-                  <.media_version_display
-                    version={version}
-                    media={@media}
-                    current_user={@current_user}
-                  />
-                <% end %>
-              </div>
-            </details>
-          <% end %>
-          <%= if length(removed_versions) > 0 do %>
-            <details class="mb-4">
-              <summary class="cursor-pointer text-button text-sm">View removed media</summary>
-              <div class="divide-gray-200 grid grid-cols-1 divide-y divide-dashed">
-                <%= for version <- removed_versions do %>
-                  <.media_version_display
-                    version={version}
-                    media={@media}
-                    current_user={@current_user}
-                  />
-                <% end %>
-              </div>
-            </details>
-          <% end %>
+          </div>
         </div>
-      </.card>
-      <.card no_pad={@media.attr_geolocation != nil}>
-        <:header>
-          <h3 class="sec-head">Location</h3>
-          <%= if @media.attr_geolocation do %>
-            <p class="sec-subhead">
-              <% {lon, lat} = @media.attr_geolocation.coordinates %>
-              <a
-                class="mt-4"
-                target="_blank"
-                href={"https://maps.google.com/maps?q=#{lat},#{lon}"}
-              >
-                View
-                <span class="font-medium underline">
-                  <.location lat={lat} lon={lon} />
-                </span>
-                on Google Maps
-              </a>
-            </p>
-          <% end %>
-        </:header>
-        <%= if @media.attr_geolocation do %>
-          <% {lon, lat} = @media.attr_geolocation.coordinates %>
-          <div
-            phx-update="ignore"
-            class="h-64 overflow-hidden"
-            id={"#{@media.slug}-geolocation-#{lat}-#{lon}"}
-          >
-            <map-pin lat={lat} lon={lon} id={"#{@media.slug}-geolocation-map"} />
-          </div>
-        <% else %>
-          <div class="relative block border-2 border-gray-300 border-dashed rounded-lg p-12 text-center">
-            <svg
-              class="mx-auto h-12 w-12 text-gray-400"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-              />
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-              />
-            </svg>
-            <span class="mt-2 block text-sm font-medium text-gray-700">Not yet geolocated</span>
-            <%= live_patch("+ Geolocation",
-              class: "text-button mt-1 text-sm inline-block",
-              to: Routes.media_show_path(@socket, :edit, @media.slug, :geolocation),
-              replace: true
-            ) %>
-          </div>
-        <% end %>
-      </.card>
-    </div>
-  </div>
-  <%= if @live_action == :edit do %>
-    <.live_component
-      module={EditAttribute}
-      id="edit-attribute"
-      media={@media}
-      name={@attribute}
-      current_user={@current_user}
-    />
-  <% end %>
-  <%= if @live_action == :upload do %>
-    <.modal
-      target={}
-      close_confirmation="Are you sure you want to exit the upload process? Your upload is not complete."
-    >
-      <div class="mb-8">
-        <p class="sec-head">
-          <%= Media.slug_to_display(@media) %>: Upload Media
-        </p>
-        <p class="sec-subhead">
-          Note that additional media should document the same event.
-        </p>
-      </div>
-      <.live_component
-        module={PlatformWeb.MediaLive.CreateMediaVersion}
-        id="upload-version"
-        current_user={@current_user}
-        media={@media}
-      />
-    </.modal>
-  <% end %>
-  <%= if @live_action == :history do %>
-    <% attr = Attribute.get_attribute(@attribute) %>
-    <.modal target={} close_confirmation="">
-      <div class="mb-8">
-        <div class="sm:flex justify-between">
+        <.live_component
+          module={PlatformWeb.UpdatesLive.UpdateFeed}
+          id="update-feed-history"
+          current_user={@current_user}
+          should_combine={false}
+          show_final_line={false}
+          updates={
+            @updates |> Enum.filter(&(&1.modified_attribute == attr.name || &1.type == :create))
+          }
+        />
+      </.modal>
+    <% end %>
+    <%= if @live_action == :merge do %>
+      <.modal target={} close_confirmation="">
+        <div class="mb-8">
           <div>
             <p class="support font-mono"><%= Media.slug_to_display(@media) %></p>
             <p class="sec-head">
-              History: <%= attr.label %>
+              Merge Media
             </p>
-            <p class="sec-subhead"><%= attr.description %></p>
-          </div>
-          <div class="sm:mr-8">
-            <%= if Attribute.can_user_edit(attr, @current_user, @media) do %>
-              <%= live_patch("Edit",
-                class: "base-button",
-                to: Routes.media_show_path(@socket, :edit, @media.slug, attr.name),
-                replace: true
-              ) %>
-            <% end %>
+            <p class="sec-subhead">
+              Merge media associated with this incident into another incident. Note that media that has been hidden from view (i.e., marked as hidden or removed) will not be merged.
+            </p>
           </div>
         </div>
-      </div>
-      <.live_component
-        module={PlatformWeb.UpdatesLive.UpdateFeed}
-        id="update-feed-history"
-        current_user={@current_user}
-        should_combine={false}
-        show_final_line={false}
-        updates={
-          @updates |> Enum.filter(&(&1.modified_attribute == attr.name || &1.type == :create))
-        }
-      />
-    </.modal>
-  <% end %>
-  <%= if @live_action == :merge do %>
-    <.modal target={} close_confirmation="">
-      <div class="mb-8">
-        <div>
-          <p class="support font-mono"><%= Media.slug_to_display(@media) %></p>
-          <p class="sec-head">
-            Merge Media
-          </p>
-          <p class="sec-subhead">
-            Merge media associated with this incident into another incident. Note that media that has been hidden from view (i.e., marked as hidden or removed) will not be merged.
-          </p>
+        <.live_component
+          module={PlatformWeb.MediaLive.MergeVersionsLive}
+          id="merge-versions"
+          current_user={@current_user}
+          source={@media}
+        />
+      </.modal>
+    <% end %>
+    <%= if @live_action == :project do %>
+      <.modal target={} close_confirmation="">
+        <div class="mb-8">
+          <div>
+            <p class="support font-mono"><%= Media.slug_to_display(@media) %></p>
+            <p class="sec-head">
+              Project: <%= @media.attr_description %>
+            </p>
+          </div>
         </div>
-      </div>
-      <.live_component
-        module={PlatformWeb.MediaLive.MergeVersionsLive}
-        id="merge-versions"
-        current_user={@current_user}
-        source={@media}
-      />
-    </.modal>
-  <% end %>
-  <%= if @live_action == :project do %>
-    <.modal target={} close_confirmation="">
-      <div class="mb-8">
-        <div>
-          <p class="support font-mono"><%= Media.slug_to_display(@media) %></p>
-          <p class="sec-head">
-            Project: <%= @media.attr_description %>
-          </p>
+        <.live_component
+          module={PlatformWeb.MediaLive.ManageProjectsLive}
+          id="manage-projects"
+          current_user={@current_user}
+          media={@media}
+        />
+      </.modal>
+    <% end %>
+    <%= if @live_action == :auto_metadata do %>
+      <.modal target={} close_confirmation="">
+        <div class="mb-8">
+          <div>
+            <p class="support font-mono"><%= Media.slug_to_display(@media) %></p>
+            <p class="sec-head">
+              Automatic Metadata
+            </p>
+            <p class="sec-subhead">
+              This information is automatically generated by Atlos based on the incident's data.
+            </p>
+          </div>
         </div>
-      </div>
-      <.live_component
-        module={PlatformWeb.MediaLive.ManageProjectsLive}
-        id="manage-projects"
-        current_user={@current_user}
-        media={@media}
-      />
-    </.modal>
-  <% end %>
-  <%= if @live_action == :auto_metadata do %>
-    <.modal target={} close_confirmation="">
-      <div class="mb-8">
-        <div>
-          <p class="support font-mono"><%= Media.slug_to_display(@media) %></p>
-          <p class="sec-head">
-            Automatic Metadata
-          </p>
-          <p class="sec-subhead">
-            This information is automatically generated by Atlos based on the incident's data.
-          </p>
+        <div class="font-mono text-gray-600 text-sm break-all overflow-auto">
+          <pre><%= Jason.encode!(@media.auto_metadata, pretty: true) %></pre>
         </div>
-      </div>
-      <div class="font-mono text-gray-600 text-sm break-all overflow-auto">
-        <pre><%= Jason.encode!(@media.auto_metadata, pretty: true) %></pre>
-      </div>
-    </.modal>
-  <% end %>
-  <.floating_bottom>
-    <%= if Platform.Accounts.is_muted(@current_user) do %>
-      <.floating_warning>
-        Your account has been muted. As a result, you cannot edit or comment on this incident.
-      </.floating_warning>
+      </.modal>
     <% end %>
-    <%= if @media.deleted do %>
-      <.floating_warning>
-        <strong>This incident is marked as deleted.</strong>
-        Only admins can now edit its attributes or upload new media.
-      </.floating_warning>
-    <% end %>
-    <%= if @media.attr_status == "Completed" do %>
-      <.floating_info>
-        <strong>This incident is marked as completed.</strong>
-        Only moderators can now edit its attributes or upload new media.
-      </.floating_info>
-    <% end %>
-    <%= if @media.attr_status == "Cancelled" do %>
-      <.floating_info>
-        <strong>This incident is marked as cancelled.</strong>
-        Only moderators can now edit its attributes or upload new media.
-      </.floating_info>
-    <% end %>
-    <%= if Media.has_restrictions(@media) do %>
-      <.floating_warning>
-        <strong>This incident has been restricted.</strong>
-        As a result, you may not be able to edit or update it.
-      </.floating_warning>
-    <% end %>
-  </.floating_bottom>
-</article>
-<div class="h-24" />
+    <.floating_bottom>
+      <%= if Platform.Accounts.is_muted(@current_user) do %>
+        <.floating_warning>
+          Your account has been muted. As a result, you cannot edit or comment on this incident.
+        </.floating_warning>
+      <% end %>
+      <%= if @media.deleted do %>
+        <.floating_warning>
+          <strong>This incident is marked as deleted.</strong>
+          Only admins can now edit its attributes or upload new media.
+        </.floating_warning>
+      <% end %>
+      <%= if @media.attr_status == "Completed" do %>
+        <.floating_info>
+          <strong>This incident is marked as completed.</strong>
+          Only moderators can now edit its attributes or upload new media.
+        </.floating_info>
+      <% end %>
+      <%= if @media.attr_status == "Cancelled" do %>
+        <.floating_info>
+          <strong>This incident is marked as cancelled.</strong>
+          Only moderators can now edit its attributes or upload new media.
+        </.floating_info>
+      <% end %>
+      <%= if Media.has_restrictions(@media) do %>
+        <.floating_warning>
+          <strong>This incident has been restricted.</strong>
+          As a result, you may not be able to edit or update it.
+        </.floating_warning>
+      <% end %>
+    </.floating_bottom>
+  </article>
+  <div class="h-24" />
+</div>

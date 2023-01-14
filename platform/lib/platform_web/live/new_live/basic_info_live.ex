@@ -19,7 +19,7 @@ defmodule PlatformWeb.NewLive.BasicInfoLive do
     socket |> assign(:media, %Material.Media{})
   end
 
-  defp assign_changeset(socket, params \\ %{}, opts \\ []) do
+  defp assign_changeset(socket, params, opts \\ []) do
     cs = Material.change_media(socket.assigns.media, params, socket.assigns.current_user)
 
     cs =

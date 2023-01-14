@@ -18,6 +18,7 @@ defmodule PlatformWeb.MediaLive.Show do
   def handle_params(%{"slug" => slug} = params, _uri, socket) do
     {:noreply,
      socket
+     |> assign(:full_width, true)
      |> assign(:slug, slug)
      |> assign(:attribute, Map.get(params, "attribute"))
      |> assign(:title, "Incident #{slug}")

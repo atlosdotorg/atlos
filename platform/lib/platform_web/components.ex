@@ -3171,6 +3171,53 @@ defmodule PlatformWeb.Components do
     """
   end
 
+  attr :project, Platform.Projects.Project
+  slot(:actions)
+
+  def project_bar(assigns) do
+    ~H"""
+    <div class="border-b bg-neutral-100 overflow-hidden border-b flex justify-between">
+      <div class="flex items-center justify-between gap-4 w-full lg:max-w-screen-xl px-6 py-2 lg:mx-auto">
+        <%= if is_nil(@project) do %>
+          <div class="text-neutral-700 pb-1 pt-2 px-3 gap-1 hover:bg-neutral-200 rounded transition">
+            <p class="text-xs text-neutral-500">Project</p>
+            <p class="font-medium">
+              <div class="inline-flex items-center font-medium">
+                No Project
+              </div>
+            </p>
+          </div>
+        <% else %>
+          <.link
+            href={"/projects/#{@project.id}"}
+            class="text-neutral-700 pb-1 pt-2 px-3 gap-1 hover:bg-neutral-200 rounded transition"
+          >
+            <p class="text-xs text-neutral-500">Project</p>
+            <p class="font-medium">
+              <div class="inline-flex items-center font-medium">
+                <%= @project.name %>
+                <span style={"color: #{@project.color}"}>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                    class="w-5 h-5 ml-px"
+                  >
+                    <circle cx="10" cy="10" r="5" />
+                  </svg>
+                </span>
+              </div>
+            </p>
+          </.link>
+        <% end %>
+        <div>
+          <%= render_slot(@actions) || "" %>
+        </div>
+      </div>
+    </div>
+    """
+  end
+
   def project_card(assigns) do
     ~H"""
     <.link class="bg-white rounded-lg shadow overflow-hidden" href={"/projects/#{@project.id}"}>
