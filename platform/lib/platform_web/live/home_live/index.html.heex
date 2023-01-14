@@ -1,20 +1,21 @@
 <div>
-  <header class="border-b bg-white">
+  <header>
     <div class="mx-auto px-8 max-w-[1280px] py-6">
-      <div class="flex items-center gap-8">
-        <div class="font-medium text-2xl">Home</div>
-        <div class="grow">
-          <div class="hidden md:block">
-            <.search_form
-              changeset={@search_changeset}
-              exclude={[:display, :sort]}
-              query_params={%{display: "cards"}}
-              current_user={@current_user}
-              socket={@socket}
-              display={:cards}
-            />
-          </div>
+      <div class="flex items-center gap-4 border-b pb-4">
+        <div>
+          <div class="font-medium text-2xl">Home</div>
         </div>
+        <div class="grow"></div>
+        <div class="hidden md:block">
+          <.search_form
+            changeset={@search_changeset}
+            exclude={[:display, :sort, :status, :project, :more_options]}
+            query_params={%{display: "cards"}}
+            current_user={@current_user}
+            socket={@socket}
+            display={:cards}
+          />
+          </div>
         <div class="relative inline-block text-left" x-data="{open: false}">
           <div>
             <button
@@ -80,7 +81,7 @@
       </div>
     </div>
   </header>
-  <div class="mx-auto px-8 max-w-[1280px] mt-8">
+  <div class="mx-auto px-8 max-w-[1280px] mt-4">
     <%= if not Enum.empty?(@overview_media) do %>
       <section>
         <div class="mb-2">

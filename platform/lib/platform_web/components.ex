@@ -1876,7 +1876,7 @@ defmodule PlatformWeb.Components do
                 </div>
               <% end %>
               <div class={"flex-grow " <> (if Enum.member?(@exclude, :query), do: "hidden", else: "")}>
-                <div class="px-3 h-full group flex flex-col md:flex-row py-2 items-center focus-within:bg-neutral-50">
+                <div class="px-3 h-full group flex flex-col md:flex-row py-2 items-center">
                   <%= label(f, :query, "Search",
                     class:
                       "block w-full md:hidden text-xs font-medium text-gray-900 group-focus-within:text-urge-600"
@@ -1892,7 +1892,7 @@ defmodule PlatformWeb.Components do
                 <%= error_tag(f, :query) %>
               </div>
               <div class={if Enum.member?(@exclude, :status), do: "hidden", else: ""}>
-                <div class="ts-ignore pl-3 py-2 group focus-within:bg-neutral-50">
+                <div class="ts-ignore pl-3 py-2 group">
                   <%= label(f, :attr_status, "Status",
                     class: "block text-xs font-medium text-gray-900 group-focus-within:text-urge-600"
                   ) %>
@@ -1907,7 +1907,7 @@ defmodule PlatformWeb.Components do
                 <%= error_tag(f, :status) %>
               </div>
               <div class={if Enum.member?(@exclude, :project), do: "hidden", else: ""}>
-                <div class="ts-ignore pl-3 py-2 group focus-within:bg-neutral-50">
+                <div class="ts-ignore pl-3 py-2 group">
                   <%= label(f, :project_id, "Project",
                     class: "block text-xs font-medium text-gray-900 group-focus-within:text-urge-600"
                   ) %>
@@ -1924,7 +1924,7 @@ defmodule PlatformWeb.Components do
                 <%= error_tag(f, :project_id) %>
               </div>
               <div class={if Enum.member?(@exclude, :sort), do: "hidden", else: ""}>
-                <div class="ts-ignore pl-3 py-2 group focus-within:bg-neutral-50">
+                <div class="ts-ignore pl-3 py-2 group">
                   <%= label(f, :sort, "Sort",
                     class: "block text-xs font-medium text-gray-900 group-focus-within:text-urge-600"
                   ) %>
@@ -1946,7 +1946,8 @@ defmodule PlatformWeb.Components do
                 <%= error_tag(f, :sort) %>
               </div>
               <div
-                class="flex place-self-center w-full md:w-auto h-full px-2 text-sm md:py-[14px] py-4"
+                class={"flex place-self-center w-full md:w-auto h-full px-2 text-sm md:py-[14px] py-4 " <>
+                  (if Enum.member?(@exclude, :more_options), do: "hidden", else: "")}
                 x-data="{open: false}"
               >
                 <div class="text-left z-10">
@@ -3171,7 +3172,7 @@ defmodule PlatformWeb.Components do
     """
   end
 
-  attr :project, Platform.Projects.Project
+  attr(:project, Platform.Projects.Project)
   slot(:actions)
 
   def project_bar(assigns) do
