@@ -23,7 +23,7 @@
               do: " (#{Enum.join(@media.attr_sensitive, ", ")})",
               else: "" %>
         <button
-          class="font-mono text-sm text-neutral-600 p-1 rounded hover:bg-neutral-100 transition"
+          class="font-mono text-sm text-neutral-600 p-1 rounded hover:bg-neutral-200 transition"
           data-tooltip="Copy information to your clipboard"
           type="button"
           onclick={"window.setClipboard(#{Jason.encode!(title_for_copying)})"}
@@ -103,7 +103,15 @@
         </div>
       </div>
       <div class="mt-5 flex lg:mt-0 lg:ml-4">
-        <span></span>
+          <.live_component
+            module={PlatformWeb.MediaLive.SubscribeButton}
+            id="subscribe_button"
+            current_user={@current_user}
+            media={@media}
+            subscribed_classes="base-button text-blue-600"
+            not_subscribed_classes="base-button"
+            show_icon={false}
+          />
         <%= if Accounts.is_privileged(@current_user) do %>
           <div
             class="flex place-self-center w-full md:w-auto h-full px-2 text-sm relative"
@@ -233,12 +241,6 @@
           <:header>
             <div class="flex justify-between items-center">
               <h3 class="sec-head">Feed</h3>
-              <.live_component
-                module={PlatformWeb.MediaLive.SubscribeButton}
-                id="subscribe_button"
-                current_user={@current_user}
-                media={@media}
-              />
             </div>
           </:header>
           <.live_component

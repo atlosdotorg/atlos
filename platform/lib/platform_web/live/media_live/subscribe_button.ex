@@ -16,7 +16,9 @@ defmodule PlatformWeb.MediaLive.SubscribeButton do
      |> assign_new(:not_subscribed_label, fn -> "Subscribe" end)
      |> assign_new(:show_icon, fn -> true end)
      |> assign_new(:js_on_subscribe, fn -> "" end)
-     |> assign_new(:js_on_unsubscribe, fn -> "" end)}
+     |> assign_new(:js_on_unsubscribe, fn -> "" end)
+     |> assign_new(:subscribed_classes, fn -> "" end)
+     |> assign_new(:not_subscribed_classes, fn -> "" end)}
   end
 
   def handle_event("subscribe", _input, socket) do
@@ -51,7 +53,7 @@ defmodule PlatformWeb.MediaLive.SubscribeButton do
       <%= if @subscription do %>
         <button
           type="button"
-          class="text-button text-sm inline-flex items-center gap-px"
+          class={"text-sm inline-flex items-center gap-px " <> @subscribed_classes}
           phx-click="unsubscribe"
           phx-target={@myself}
           x-on:click={@js_on_unsubscribe}
@@ -64,7 +66,7 @@ defmodule PlatformWeb.MediaLive.SubscribeButton do
       <% else %>
         <button
           type="button"
-          class="text-button text-sm inline-flex items-center gap-px"
+          class={"text-sm inline-flex items-center gap-px " <> @not_subscribed_classes}
           phx-click="subscribe"
           phx-target={@myself}
           x-on:click={@js_on_subscribe}
