@@ -62,6 +62,8 @@ defmodule PlatformWeb.MediaLive.PaginatedMediaList do
                   show_icon={false}
                   js_on_subscribe="faded = false"
                   js_on_unsubscribe="faded = true"
+                  subscribed_classes="text-button"
+                  not_subscribed_classes="text-button"
                 />
               </div>
             <% end %>
