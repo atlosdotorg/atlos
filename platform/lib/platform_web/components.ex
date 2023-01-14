@@ -3176,10 +3176,10 @@ defmodule PlatformWeb.Components do
 
   def project_bar(assigns) do
     ~H"""
-    <div class="border-b bg-neutral-100 overflow-hidden border-b flex justify-between">
+    <div class="border-b bg-white overflow-hidden border-b flex justify-between">
       <div class="flex items-center justify-between gap-4 w-full lg:max-w-screen-xl px-6 py-2 lg:mx-auto">
         <%= if is_nil(@project) do %>
-          <div class="text-neutral-700 pb-1 pt-2 px-3 gap-1 hover:bg-neutral-200 rounded transition">
+          <div class="text-neutral-700 pb-1 pt-2 px-3 gap-1 hover:bg-neutral-100 rounded transition">
             <p class="text-xs text-neutral-500">Project</p>
             <p class="font-medium">
               <div class="inline-flex items-center font-medium">
@@ -3190,7 +3190,7 @@ defmodule PlatformWeb.Components do
         <% else %>
           <.link
             href={"/projects/#{@project.id}"}
-            class="text-neutral-700 pb-1 pt-2 px-3 gap-1 hover:bg-neutral-200 rounded transition"
+            class="text-neutral-700 pb-1 pt-2 px-3 gap-1 hover:bg-neutral-100 rounded transition"
           >
             <p class="text-xs text-neutral-500">Project</p>
             <p class="font-medium">
