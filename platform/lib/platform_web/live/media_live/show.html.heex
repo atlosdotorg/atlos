@@ -103,15 +103,15 @@
         </div>
       </div>
       <div class="mt-5 flex lg:mt-0 lg:ml-4">
-          <.live_component
-            module={PlatformWeb.MediaLive.SubscribeButton}
-            id="subscribe_button"
-            current_user={@current_user}
-            media={@media}
-            subscribed_classes="base-button text-blue-600"
-            not_subscribed_classes="base-button"
-            show_icon={false}
-          />
+        <.live_component
+          module={PlatformWeb.MediaLive.SubscribeButton}
+          id="subscribe_button"
+          current_user={@current_user}
+          media={@media}
+          subscribed_classes="base-button text-blue-600"
+          not_subscribed_classes="base-button"
+          show_icon={false}
+        />
         <%= if Accounts.is_privileged(@current_user) do %>
           <div
             class="flex place-self-center w-full md:w-auto h-full px-2 text-sm relative"

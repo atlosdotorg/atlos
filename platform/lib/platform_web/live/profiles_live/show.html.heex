@@ -24,15 +24,15 @@
     </div>
   </section>
   <%= if Accounts.is_admin(@current_user) do %>
-  <.card>
-    <:header>
-      <div>
-        <p class="sec-head">Activity</p>
-        <p class="sec-subhead">This information is only visible to administrators.</p>
-      </div>
-    </:header>
-    <div id="activity-indicator" class="w-full" data-vega={@activity_indicator_chart}></div>
-  </.card>
+    <.card>
+      <:header>
+        <div>
+          <p class="sec-head">Activity</p>
+          <p class="sec-subhead">This information is only visible to administrators.</p>
+        </div>
+      </:header>
+      <div id="activity-indicator" class="w-full" data-vega={@activity_indicator_chart}></div>
+    </.card>
   <% end %>
   <%= if Accounts.is_admin(@current_user) do %>
     <section>

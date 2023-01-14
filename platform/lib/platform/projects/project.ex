@@ -5,12 +5,12 @@ defmodule Platform.Projects.Project do
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
   schema "projects" do
-    field :code, :string
-    field :name, :string
-    field :description, :string, default: ""
-    field :color, :string, default: "#808080"
+    field(:code, :string)
+    field(:name, :string)
+    field(:description, :string, default: "")
+    field(:color, :string, default: "#f87171")
 
-    has_many :media, Platform.Material.Media
+    has_many(:media, Platform.Material.Media)
 
     timestamps()
   end
