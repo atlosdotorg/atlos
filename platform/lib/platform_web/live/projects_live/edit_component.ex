@@ -97,10 +97,13 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
         <div>
           <%= label(f, :color) %>
           <div id="color-picker" phx-update="ignore">
-            <div class="flex gap-1 flex-wrap items-center" x-data={"{active: '#{Ecto.Changeset.get_field(@changeset, :color)}'}"}>
+            <div
+              class="flex gap-1 flex-wrap items-center"
+              x-data={"{active: '#{Ecto.Changeset.get_field(@changeset, :color)}'}"}
+            >
               <%= for color <- ["#f87171", "#fb923c", "#fbbf24", "#a3e635", "#4ade80", "#2dd4bf", "#22d3ee", "#60a5fa", "#818cf8", "#a78bfa", "#c084fc", "#e879f9", "#f472b6", "#fb7185"] do %>
-                <label class="!mt-0">
-                  <%= radio_button(f, :color, color, "x-model": "active", class: "hidden")%>
+                <label class="!mt-0 cursor-pointer">
+                  <%= radio_button(f, :color, color, "x-model": "active", class: "hidden") %>
                   <svg
                     viewBox="0 0 100 100"
                     xmlns="http://www.w3.org/2000/svg"
@@ -110,7 +113,12 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                   >
                     <circle cx="50" cy="50" r="40" />
                   </svg>
-                  <Heroicons.check_circle mini class="h-7 w-7" style={"color: #{color}"} x-show={"active === '#{color}'"} />
+                  <Heroicons.check_circle
+                    mini
+                    class="h-7 w-7"
+                    style={"color: #{color}"}
+                    x-show={"active === '#{color}'"}
+                  />
                 </label>
               <% end %>
             </div>
