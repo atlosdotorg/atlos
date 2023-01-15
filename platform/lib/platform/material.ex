@@ -166,7 +166,8 @@ defmodule Platform.Material do
 
   defp preload_media_updates(query) do
     # TODO: should this be pulled into the Updates context somehow?
-    query |> preload(updates: [:user, :media_version, :project, media: [:project]])
+    query
+    |> preload(updates: [:user, :media_version, :old_project, :new_project, media: [:project]])
   end
 
   defp preload_media_project(query) do
@@ -615,9 +616,11 @@ defmodule Platform.Material do
       raise "No permission"
     end
 
+    old_media = media
+
     Repo.transaction(fn ->
       with {:ok, media} <- update_media_project(media, attrs, user),
-           update_changeset <- Updates.change_from_media_project_change(media, user),
+           update_changeset <- Updates.change_from_media_project_change(old_media, media, user),
            {:ok, _} <- Updates.create_update_from_changeset(update_changeset) do
         Updates.subscribe_if_first_interaction(media, user)
         media

@@ -28,7 +28,7 @@ defmodule Platform.Updates do
   end
 
   defp preload_fields(queryable) do
-    queryable |> preload([:user, :media_version, :project, media: [:project]])
+    queryable |> preload([:user, :media_version, :old_project, :new_project, media: [:project]])
   end
 
   @doc """
@@ -244,17 +244,37 @@ defmodule Platform.Updates do
   end
 
   def change_from_media_project_change(
-        %Media{} = media,
+        %Media{} = old_media,
+        %Media{} = new_media,
         %User{} = user
       ) do
+    old_project = old_media.project_id
+    new_project = new_media.project_id
+
     change_update(
       %Update{},
-      media,
+      new_media,
       user,
-      %{
-        "type" => :change_project,
-        "project_id" => media.project_id
-      }
+      case {old_project, new_project} do
+        {nil, id} when not is_nil(id) ->
+          %{
+            "type" => :add_project,
+            "new_project_id" => id
+          }
+
+        {id, nil} when not is_nil(id) ->
+          %{
+            "type" => :remove_project,
+            "old_project_id" => id
+          }
+
+        {old_id, new_id} when not is_nil(old_id) and not is_nil(new_id) ->
+          %{
+            "type" => :change_project,
+            "old_project_id" => old_id,
+            "new_project_id" => new_id
+          }
+      end
     )
   end
 
@@ -349,14 +369,13 @@ defmodule Platform.Updates do
     now = DateTime.utc_now()
     dates = Enum.map(0..365, fn date -> DateTime.add(now, -date, :day) end)
 
-    data =
-      Enum.reduce(dates, data, fn date, data ->
-        if Enum.any?(data, fn d -> d.date == date end) do
-          data
-        else
-          [%{date: date, count: 0} | data]
-        end
-      end)
+    Enum.reduce(dates, data, fn date, data ->
+      if Enum.any?(data, fn d -> d.date == date end) do
+        data
+      else
+        [%{date: date, count: 0} | data]
+      end
+    end)
   end
 
   @doc """

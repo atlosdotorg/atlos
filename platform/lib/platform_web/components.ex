@@ -522,6 +522,35 @@ defmodule PlatformWeb.Components do
     """
   end
 
+  attr :project, Platform.Projects.Project, required: false
+
+  def project_text(assigns) do
+    ~H"""
+    <%= if !is_nil(@project) do %>
+      <.link
+        href={"/projects/#{@project.id}"}
+        class="font-medium inline-flex gap-px text-button text-neutral-800 items-center"
+      >
+        <%= @project.name %>
+        <span style={"color: #{@project.color}"}>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+            class="w-4 h-4"
+          >
+            <circle cx="10" cy="10" r="5" />
+          </svg>
+        </span>
+      </.link>
+    <% else %>
+      <div class="font-medium inline-flex gap-px text-button text-neutral-800">
+        [Deleted Project]
+      </div>
+    <% end %>
+    """
+  end
+
   def attribute_icon(assigns) do
     assigns =
       assigns
@@ -715,15 +744,13 @@ defmodule PlatformWeb.Components do
                         deleted this incident
                       <% :undelete -> %>
                         restored this incident
+                      <% :add_project -> %>
+                        moved this incident into <.project_text project={@update.new_project} />
+                      <% :remove_project -> %>
+                        removed this incident from <.project_text project={@update.old_project} />
                       <% :change_project -> %>
-                        <%= if @update.project do %>
-                          moved this incident into
-                          <a href={"/projects/#{@update.project.id}"} class="text-button text-gray-800">
-                            <%= @update.project.name %> &nearr;
-                          </a>
-                        <% else %>
-                          removed this incident's project
-                        <% end %>
+                        moved this incident from <.project_text project={@update.old_project} /> into
+                        <.project_text project={@update.new_project} />
                       <% :upload_version -> %>
                         added
                         <a

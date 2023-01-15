@@ -20,7 +20,9 @@ defmodule Platform.Updates.Update do
         :comment,
         :delete,
         :undelete,
-        :change_project
+        :add_project,
+        :change_project,
+        :remove_project
       ]
 
     # Used for attribute updates
@@ -32,11 +34,14 @@ defmodule Platform.Updates.Update do
 
     field :hidden, :boolean, default: false
 
+    # Used for project changes
+    belongs_to :old_project, Platform.Projects.Project, type: :binary_id
+    belongs_to :new_project, Platform.Projects.Project, type: :binary_id
+
     # General association metadata
     belongs_to :user, Platform.Accounts.User
     belongs_to :media, Platform.Material.Media
     belongs_to :media_version, Platform.Material.MediaVersion
-    belongs_to :project, Platform.Projects.Project, type: :binary_id
 
     timestamps()
   end
@@ -68,7 +73,8 @@ defmodule Platform.Updates.Update do
         :media_version_id,
         # TODO: does this being here allow anyone to sneak `:hidden` in when creating an update? Not a big deal, but worth investigating.
         :hidden,
-        :project_id
+        :old_project_id,
+        :new_project_id
       ])
       |> validate_required([:old_value, :new_value, :type, :user_id, :media_id])
       |> validate_explanation()
