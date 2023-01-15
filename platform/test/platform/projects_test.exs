@@ -24,7 +24,7 @@ defmodule Platform.ProjectsTest do
       valid_attrs = %{code: "code", name: "some name"}
 
       assert {:ok, %Project{} = project} = Projects.create_project(valid_attrs)
-      assert project.code == "code"
+      assert project.code == "CODE"
       assert project.name == "some name"
     end
 
@@ -37,7 +37,7 @@ defmodule Platform.ProjectsTest do
       update_attrs = %{code: "code2", name: "some updated name"}
 
       assert {:ok, %Project{} = project} = Projects.update_project(project, update_attrs)
-      assert project.code == "code2"
+      assert project.code == "CODE2"
       assert project.name == "some updated name"
     end
 
