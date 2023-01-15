@@ -20,6 +20,10 @@ defmodule Platform.Projects.Project do
     project
     |> cast(attrs, [:name, :code, :color, :description])
     |> validate_required([:name, :code, :color])
+    |> then(fn changeset ->
+      changeset
+      |> put_change(:code, String.upcase(Ecto.Changeset.get_field(changeset, :code)))
+    end)
     |> validate_length(:code, min: 1, max: 5)
     |> validate_length(:name, min: 1, max: 40)
     |> validate_length(:description, min: 0, max: 1000)
