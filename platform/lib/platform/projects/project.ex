@@ -25,6 +25,7 @@ defmodule Platform.Projects.Project do
       |> put_change(:code, String.upcase(Ecto.Changeset.get_field(changeset, :code)))
     end)
     |> validate_length(:code, min: 1, max: 5)
+    |> validate_format(:code, ~r/^[a-zA-Z0-9]+$/, message: "must only contain letters and numbers")
     |> validate_length(:name, min: 1, max: 40)
     |> validate_length(:description, min: 0, max: 1000)
     |> validate_format(:color, ~r/^#[0-9a-fA-F]{6}$/)
