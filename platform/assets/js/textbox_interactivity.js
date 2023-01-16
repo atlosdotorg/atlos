@@ -61,6 +61,44 @@ function initialize() {
         })
     })
 
+    document.querySelectorAll("textarea[interactive-tags]").forEach(input => {
+        if (input.parentElement.querySelector("tags")) {
+            return;
+        }
+
+        let feedbackElem = document.getElementById(input.getAttribute("data-feedback"));
+        let value = JSON.parse(feedbackElem.value || "[]");
+        console.log(value)
+
+        let tagify = new Tagify(input, {
+            pasteAsTags: true,
+            delimiters: ",|\n|\r",
+            keepInvalidTags: true,
+            templates: {
+                tag(tagData, { settings: _s }) {
+                    let text = tagData[_s.tagTextProp] || tagData.value;
+                    return `<tag title="${(tagData.title || tagData.value)}"
+                                contenteditable='false'
+                                spellcheck='false'
+                                tabIndex="${_s.a11y.focusableTags ? 0 : -1}"
+                                class="${_s.classNames.tag} ${tagData.class}"
+                                ${this.getAttributes(tagData)}>
+                        <div>
+                            <span class="${_s.classNames.tagText}">${text}</span>
+                        </div>
+                    </tag>`
+                },
+            }
+        });
+
+        tagify.addTags(value);
+
+        tagify.on("change", event => {
+            feedbackElem.value = JSON.stringify(event.detail.tagify.value.map(x => x.value));
+            feedbackElem.dispatchEvent(new Event("input", { bubbles: true }));
+        })
+    })
+
     document.querySelectorAll("textarea[interactive-mentions]").forEach(input => {
         let feedbackElem = document.getElementById(input.getAttribute("data-feedback"));
 
