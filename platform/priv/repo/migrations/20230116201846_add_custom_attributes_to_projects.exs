@@ -3,7 +3,7 @@ defmodule Platform.Repo.Migrations.AddCustomAttributesToProjects do
 
   def change do
     alter table(:projects) do
-      add :attributes, :map, default: %{}
+      add :attributes, :map
     end
   end
 end

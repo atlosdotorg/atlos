@@ -3,7 +3,7 @@ defmodule Platform.Repo.Migrations.AddCustomAttributes do
 
   def change do
     alter table(:media) do
-      add :project_attributes, :map, default: %{}
+      add :project_attributes, :map
     end
   end
 end

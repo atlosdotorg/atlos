@@ -2,12 +2,10 @@ defmodule Platform.Projects.CustomAttribute do
   use Ecto.Schema
   import Ecto.Changeset
 
-  schema "attribute" do
+  embedded_schema do
     field(:name, :string)
     field(:type, Ecto.Enum, values: [:select, :text, :date, :multi_select])
     field(:options, {:array, :string}, default: [])
-
-    timestamps()
   end
 
   def changeset(attribute, attrs) do
