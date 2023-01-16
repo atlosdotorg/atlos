@@ -22,7 +22,7 @@ defmodule PlatformWeb.ProfilesLive.Show do
     with %Accounts.User{} = user <- Accounts.get_user_by_username(socket.assigns.username),
          false <-
            Accounts.is_suspended(user) && !Accounts.is_privileged(socket.assigns.current_user) do
-      updates_over_time = Updates.total_updates_by_user_over_time(user) |> dbg()
+      updates_over_time = Updates.total_updates_by_user_over_time(user)
 
       activity_indicator_chart =
         Vl.new(height: 150, width: "container")

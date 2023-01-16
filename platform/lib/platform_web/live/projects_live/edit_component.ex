@@ -59,7 +59,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
             {:noreply, socket |> assign(project: project)}
 
           {:error, changeset} ->
-            {:noreply, socket |> assign(:changeset, dbg(changeset))}
+            {:noreply, socket |> assign(:changeset, changeset)}
         end
     end
   end
@@ -178,7 +178,6 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
           <fieldset class="flex flex-col gap-4">
             <%= hidden_input(f, :attributes, value: "[]") %>
             <%= for f_attr <- inputs_for(f, :attributes) do %>
-              <% dbg(f_attr) %>
               <div class={"relative group grid grid-cols-1 md:grid-cols-2 gap-4 p-4 rounded border bg-neutral-100 " <> (if Ecto.Changeset.get_field(f_attr.source, :delete), do: "hidden", else: "")}>
                 <%= hidden_inputs_for(f_attr) %>
                 <%= hidden_input(f_attr, :id) %>
