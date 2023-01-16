@@ -10,6 +10,8 @@ defmodule Platform.Projects.Project do
     field(:description, :string, default: "")
     field(:color, :string, default: "#f87171")
 
+    embeds_many(:custom_attributes, Platform.Projects.CustomAttribute)
+
     has_many(:media, Platform.Material.Media)
 
     timestamps()
@@ -19,6 +21,7 @@ defmodule Platform.Projects.Project do
   def changeset(project, attrs) do
     project
     |> cast(attrs, [:name, :code, :color, :description])
+    |> cast_embed(:custom_attributes, with: &Platform.Projects.CustomAttribute.changeset/2)
     |> validate_required([:name, :code, :color])
     |> then(fn changeset ->
       changeset
