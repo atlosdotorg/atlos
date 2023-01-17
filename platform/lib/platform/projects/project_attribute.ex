@@ -1,7 +1,6 @@
 defmodule Platform.Projects.ProjectAttribute do
   use Ecto.Schema
   import Ecto.Changeset
-  alias __MODULE__
 
   embedded_schema do
     field(:name, :string)
