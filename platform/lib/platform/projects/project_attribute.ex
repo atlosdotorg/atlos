@@ -1,4 +1,4 @@
-defmodule Platform.Projects.CustomAttribute do
+defmodule Platform.Projects.ProjectAttribute do
   use Ecto.Schema
   import Ecto.Changeset
   alias __MODULE__

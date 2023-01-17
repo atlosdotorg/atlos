@@ -26,6 +26,12 @@ defmodule Platform.Material.Media do
     field :attr_impact, {:array, :string}
     field :attr_equipment, {:array, :string}
 
+    embeds_many :project_attributes, ProjectAttributeValue do
+      belongs_to :project, Projects.Project
+      field :attribute_id, :binary_id
+      field :value, :map
+    end
+
     # Deprecated attributes (that still live in the database)
     # field :attr_time_of_day, :string
     # field :attr_environment, :string

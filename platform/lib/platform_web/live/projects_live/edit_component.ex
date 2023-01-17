@@ -263,7 +263,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                 phx-target={@myself}
                 class="text-button text-sm"
               >
-                + Add Custom Attribute
+                + Add Attribute
               </button>
             </div>
           </fieldset>

@@ -10,7 +10,7 @@ defmodule Platform.Projects.Project do
     field(:description, :string, default: "")
     field(:color, :string, default: "#f87171")
 
-    embeds_many(:attributes, Platform.Projects.CustomAttribute, on_replace: :delete)
+    embeds_many(:attributes, Platform.Projects.ProjectAttribute, on_replace: :delete)
 
     has_many(:media, Platform.Material.Media)
 
