@@ -216,11 +216,36 @@ function initializeSmartSelects() {
     });
 }
 
+// Load state from the URL fragment
+function _getTotalURLHashState() {
+    let hashState = {}
+    try {
+        hashState = JSON.parse(atob(window.location.hash.slice(1)) || "{}")
+    } catch (e) {
+        console.log("Failed to parse map state from URL fragment")
+    }
+    return hashState
+}
+
+// Load state from the URL fragment, narrowed to a specific key
+function getURLHashState(key) {
+    return _getTotalURLHashState()[key] || {}
+}
+
+// Set state from the URL fragment
+function setURLHashState(key, value) {
+    let currentState = _getTotalURLHashState()
+    currentState[key] = value
+    window.location.hash = btoa(JSON.stringify(currentState))
+}
+
 function initializeMaps() {
     document.querySelectorAll("map-pin").forEach(s => {
         if (s.classList.contains("mapboxgl-map")) {
             return;
         }
+
+        // TODO: support persisting map state in the URL fragment for map pins
 
         let lon = parseFloat(s.getAttribute("lon"));
         let lat = parseFloat(s.getAttribute("lat"));
@@ -239,14 +264,16 @@ function initializeMaps() {
 
     document.querySelectorAll("map-events").forEach(s => {
         let containerID = s.getAttribute("container-id");
+        let persistedMapData = getURLHashState("map-" + containerID);
+
         let container = document.getElementById(containerID);
         if (container.classList.contains("mapboxgl-map") || container.classList.contains("map-initialized")) {
             return;
         }
 
-        let lon = parseFloat(s.getAttribute("lon"));
-        let lat = parseFloat(s.getAttribute("lat"));
-        let zoom = parseFloat(s.getAttribute("zoom") || 6);
+        let lon = persistedMapData["lon"] || parseFloat(s.getAttribute("lon"));
+        let lat = persistedMapData["lat"] || parseFloat(s.getAttribute("lat"));
+        let zoom = persistedMapData["zoom"] || parseFloat(s.getAttribute("zoom") || 6);
 
         let map = new mapboxgl.Map({
             container: containerID,
@@ -361,6 +388,17 @@ function initializeMaps() {
             // Change it back to a pointer when it leaves.
             map.on('mouseleave', 'incidents', () => {
                 map.getCanvas().style.cursor = '';
+            });
+
+            // Update the persisted browser state on move
+            map.on("move", () => {
+                let center = map.getCenter();
+                let zoom = map.getZoom();
+                setURLHashState("map-" + containerID, {
+                    "lon": center.lng,
+                    "lat": center.lat,
+                    "zoom": zoom
+                });
             });
         };
 
