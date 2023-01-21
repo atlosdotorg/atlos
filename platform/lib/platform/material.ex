@@ -586,7 +586,8 @@ defmodule Platform.Material do
     if Media.can_user_edit(media, user) do
       Repo.transaction(fn ->
         with {:ok, version} <- create_media_version(media, attrs),
-             update_changeset <- Updates.change_from_media_version_upload(media, user, version),
+             update_changeset <-
+               Updates.change_from_media_version_upload(media, user, version, attrs),
              {:ok, _} <- Updates.create_update_from_changeset(update_changeset) do
           Updates.subscribe_if_first_interaction(media, user)
           version

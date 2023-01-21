@@ -230,7 +230,8 @@ defmodule Platform.Updates do
   def change_from_media_version_upload(
         %Media{} = media,
         %User{} = user,
-        %MediaVersion{} = version
+        %MediaVersion{} = version,
+        attrs
       ) do
     change_update(
       %Update{},
@@ -238,7 +239,8 @@ defmodule Platform.Updates do
       user,
       %{
         "type" => :upload_version,
-        "media_version_id" => version.id
+        "media_version_id" => version.id,
+        "explanation" => Map.get(attrs, "explanation")
       }
     )
   end
