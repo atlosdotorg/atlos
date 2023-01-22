@@ -12,9 +12,9 @@ defmodule PlatformWeb.ProjectsLive.Show do
   def handle_params(%{"id" => id}, _uri, socket) do
     project = Projects.get_project!(id)
 
-    {query, _} =
-      MediaSearch.search_query(MediaSearch.changeset(%{"project_id" => id}))
-      |> MediaSearch.filter_viewable(socket.assigns.current_user)
+    {query, _} = MediaSearch.search_query(MediaSearch.changeset(%{"project_id" => id}))
+
+    query = MediaSearch.filter_viewable(query, socket.assigns.current_user)
 
     {:noreply,
      socket

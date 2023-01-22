@@ -161,7 +161,7 @@ defmodule Platform.Material.MediaSearch do
     if Enum.member?(user.roles || [], :admin) or Enum.member?(user.roles || [], :trusted) do
       queryable
     else
-      queryable |> where([u], ^"Hidden" not in u.attr_restrictions or is_nil(u.attr_restrictions))
+      queryable |> where([m], ^"Hidden" not in m.attr_restrictions or is_nil(m.attr_restrictions))
     end
   end
 end
