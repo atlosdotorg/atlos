@@ -176,7 +176,7 @@ defmodule Platform.Material.Media do
 
           !is_nil(user) && !is_nil(new_project) && !Projects.can_edit_media?(user, new_project) ->
             changeset
-            |> add_error(:project_id, "You cannot add media to this project!")
+            |> add_error(:project_id, "Only administrators can add incidents to this project.")
 
           !is_nil(user) && !is_nil(original_project) &&
               !Projects.can_edit_media?(user, original_project) ->
