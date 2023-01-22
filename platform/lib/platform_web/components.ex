@@ -2745,7 +2745,7 @@ defmodule PlatformWeb.Components do
                   <%= if @version.visibility == :hidden and @show_controls do %>
                     <button
                       type="button"
-                      data-confirm="Are you sure you want to change the visibility of this media version?"
+                      data-confirm="Are you sure you want to change the visibility of this media?"
                       phx-click="set_media_visibility"
                       phx-value-version={@version.id}
                       phx-value-state="visible"
@@ -2770,7 +2770,7 @@ defmodule PlatformWeb.Components do
                   <%= if Accounts.is_privileged(@current_user) and @show_controls do %>
                     <button
                       type="button"
-                      data-confirm="Are you sure you want to change the visibility of this media version?"
+                      data-confirm="Are you sure you want to change the visibility of this media?"
                       phx-click="set_media_visibility"
                       phx-value-version={@version.id}
                       phx-value-state={
