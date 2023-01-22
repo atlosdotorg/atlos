@@ -33,6 +33,22 @@ defmodule PlatformWeb.MediaLive.ManageProjectsLive do
   def handle_event("save", %{"media" => params}, socket) do
     cs = changeset(socket, params)
 
+    # Require that the project is changed
+    cs =
+      cs
+      |> then(fn c ->
+        if socket.assigns.media.project_id |> dbg() ==
+             Ecto.Changeset.get_field(c, :project_id) |> dbg() do
+          Ecto.Changeset.add_error(
+            c,
+            :project_id,
+            "To change the project, you must select a different project than the current one."
+          )
+        else
+          c
+        end
+      end)
+
     if cs.valid? do
       case Material.update_media_project_audited(
              socket.assigns.media,
