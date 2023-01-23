@@ -290,20 +290,22 @@ defmodule Platform.Material do
     end
   end
 
-  def get_full_media_by_slug(slug) do
+  def get_raw_slug(slug) do
     # If the slug has a prefix that is not ATL, we need to strip it off
     # and look up the media by the slug without the prefix
-    slug =
-      case String.split(slug, "-", parts: 2) do
-        [prefix, slug] when prefix != "ATL" -> slug
-        _ -> slug
-      end
 
+    case String.split(slug, "-", parts: 2) do
+      [prefix, slug] when prefix != "ATL" -> slug
+      _ -> slug
+    end
+  end
+
+  def get_full_media_by_slug(slug) do
     Media
     |> preload_media_versions()
     |> preload_media_updates()
     |> preload_media_project()
-    |> Repo.get_by(slug: slug)
+    |> Repo.get_by(slug: get_raw_slug(slug))
   end
 
   @doc """

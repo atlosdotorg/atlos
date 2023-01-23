@@ -16,13 +16,19 @@ defmodule PlatformWeb.MediaLive.Show do
   end
 
   def handle_params(%{"slug" => slug} = params, _uri, socket) do
-    {:noreply,
-     socket
-     |> assign(:full_width, true)
-     |> assign(:slug, slug)
-     |> assign(:attribute, Map.get(params, "attribute"))
-     |> assign(:title, "Incident #{slug}")
-     |> assign_media_and_updates()}
+    if Material.get_raw_slug(slug) != slug do
+      {:noreply,
+       socket
+       |> redirect(to: "/incidents/#{Material.get_raw_slug(slug)}")}
+    else
+      {:noreply,
+       socket
+       |> assign(:full_width, true)
+       |> assign(:slug, slug)
+       |> assign(:attribute, Map.get(params, "attribute"))
+       |> assign(:title, "Incident #{slug}")
+       |> assign_media_and_updates()}
+    end
   end
 
   defp filter_editable(attributes, media, %User{} = user) do
