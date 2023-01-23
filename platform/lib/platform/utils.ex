@@ -5,7 +5,7 @@ defmodule Platform.Utils do
   import Ecto.Query, warn: false
 
   @tag_regex ~r/((?:\[\[))(@([A-Za-z0-9_]+)(?:\]\]))/
-  @identifier_regex ~r/(?:\[\[)(ATL-[A-Z0-9]{6})(?:\]\])/
+  @identifier_regex ~r/(?:\[\[)((?:[A-Z0-9]{1,5}-)?[A-Z0-9]{6,7})(?:\]\])/
 
   def get_tag_regex(), do: @tag_regex
 
