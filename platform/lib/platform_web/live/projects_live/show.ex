@@ -1,6 +1,7 @@
 defmodule PlatformWeb.ProjectsLive.Show do
   use PlatformWeb, :live_view
 
+  alias PlatformWeb.Errors.NotFound
   alias Platform.Material.MediaSearch
   alias Platform.Projects
   alias Platform.Material
@@ -12,8 +13,12 @@ defmodule PlatformWeb.ProjectsLive.Show do
   def handle_params(%{"id" => id}, _uri, socket) do
     project = Projects.get_project!(id)
 
-    {query, _} = MediaSearch.search_query(MediaSearch.changeset(%{"project_id" => id}))
+    if socket.assigns.live_action == :manage and
+         !Platform.Projects.can_edit_project?(socket.assigns.current_user, project) do
+      raise NotFound, "Not found"
+    end
 
+    {query, _} = MediaSearch.search_query(MediaSearch.changeset(%{"project_id" => id}))
     query = MediaSearch.filter_viewable(query, socket.assigns.current_user)
 
     {:noreply,
