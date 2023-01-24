@@ -69,6 +69,10 @@ defmodule PlatformWeb.Router do
     end
   end
 
+  scope "/", PlatformWeb do
+    get("/health_check", HealthCheckController, :index)
+  end
+
   scope "/spi", PlatformWeb do
     pipe_through([:browser, :require_authenticated_user])
 
