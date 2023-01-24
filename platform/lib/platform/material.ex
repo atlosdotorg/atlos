@@ -5,6 +5,7 @@ defmodule Platform.Material do
 
   import Ecto.Query, warn: false
   alias Platform.Repo
+  alias Platform.Projects
   require Logger
   use Memoize
 
@@ -24,6 +25,7 @@ defmodule Platform.Material do
     query
     |> preload_media_versions()
     |> preload_media_updates()
+    |> preload_media_project()
     |> then(fn x ->
       case Keyword.get(opts, :for_user) do
         nil -> x
@@ -92,6 +94,7 @@ defmodule Platform.Material do
   """
   def get_recently_updated_media_paginated(opts \\ []) do
     user = Keyword.get(opts, :restrict_to_user)
+    project_id = Keyword.get(opts, :restrict_to_project_id)
 
     filter_user =
       if not is_nil(user) do
@@ -100,12 +103,21 @@ defmodule Platform.Material do
         true
       end
 
+    filter_project_id =
+      if not is_nil(project_id) do
+        dynamic([m, u], m.project_id == ^project_id)
+      else
+        true
+      end
+
     query =
       Media
       |> join(:left, [m], u in assoc(m, :updates))
       |> where([m, u], ^filter_user)
+      |> where([m, u], ^filter_project_id)
       |> order_by([m, u], desc: u.inserted_at)
       |> preload([m, u], updates: u)
+      |> preload([m, u], updates: [media: [:project]])
       |> select_merge([m, u], %{last_update_time: u.inserted_at})
       |> order_by([m, u], desc: m.id)
       |> limit(^Keyword.get(opts, :limit, 25))
@@ -154,7 +166,12 @@ defmodule Platform.Material do
 
   defp preload_media_updates(query) do
     # TODO: should this be pulled into the Updates context somehow?
-    query |> preload(updates: [:user, :media, :media_version])
+    query
+    |> preload(updates: [:user, :media_version, :old_project, :new_project, media: [:project]])
+  end
+
+  defp preload_media_project(query) do
+    query |> preload([:project])
   end
 
   defp apply_user_fields(query, user, opts)
@@ -273,8 +290,22 @@ defmodule Platform.Material do
     end
   end
 
+  def get_raw_slug(slug) do
+    # If the slug has a prefix that is not ATL, we need to strip it off
+    # and look up the media by the slug without the prefix
+
+    case String.split(slug, "-", parts: 2) do
+      [prefix, slug] when prefix != "ATL" -> slug
+      _ -> slug
+    end
+  end
+
   def get_full_media_by_slug(slug) do
-    Media |> preload_media_versions() |> preload_media_updates() |> Repo.get_by(slug: slug)
+    Media
+    |> preload_media_versions()
+    |> preload_media_updates()
+    |> preload_media_project()
+    |> Repo.get_by(slug: get_raw_slug(slug))
   end
 
   @doc """
@@ -511,7 +542,7 @@ defmodule Platform.Material do
     Repo.all(
       from v in MediaVersion,
         where: v.source_url == ^url,
-        preload: [media: [[updates: :user], :versions]]
+        preload: [media: [[updates: :user], :versions, :project]]
     )
     |> Enum.sort_by(& &1.media.id)
     |> Enum.dedup_by(& &1.media.id)
@@ -565,7 +596,8 @@ defmodule Platform.Material do
     if Media.can_user_edit(media, user) do
       Repo.transaction(fn ->
         with {:ok, version} <- create_media_version(media, attrs),
-             update_changeset <- Updates.change_from_media_version_upload(media, user, version),
+             update_changeset <-
+               Updates.change_from_media_version_upload(media, user, version, attrs),
              {:ok, _} <- Updates.create_update_from_changeset(update_changeset) do
           Updates.subscribe_if_first_interaction(media, user)
           version
@@ -579,6 +611,40 @@ defmodule Platform.Material do
        change_media_version(%MediaVersion{}, attrs)
        |> Ecto.Changeset.add_error(:source_url, "This media has been locked.")}
     end
+  end
+
+  def change_media_project(%Media{} = media, attrs \\ %{}, user \\ nil) do
+    Media.project_changeset(media, attrs, user)
+  end
+
+  def update_media_project(%Media{} = media, attrs \\ %{}, user \\ nil) do
+    change_media_project(media, attrs, user)
+    |> Repo.update()
+  end
+
+  def update_media_project_audited(%Media{} = media, %User{} = user, attrs \\ %{}) do
+    unless Media.can_user_edit(media, user) do
+      raise "No permission"
+    end
+
+    old_media = media
+
+    res =
+      Repo.transaction(fn ->
+        with {:ok, media} <- update_media_project(media, attrs, user),
+             update_changeset <- Updates.change_from_media_project_change(old_media, media, user),
+             {:ok, _} <- Updates.create_update_from_changeset(update_changeset) do
+          Updates.subscribe_if_first_interaction(media, user)
+          media
+        else
+          _ -> {:error, change_media_project(media, attrs, user)}
+        end
+      end)
+
+    # Schedule the media to have its auto-metadata regenerated
+    schedule_media_auto_metadata_update(media)
+
+    res
   end
 
   @doc """
@@ -879,6 +945,17 @@ defmodule Platform.Material do
     count
   end
 
+  def total_media_in_project!(%Projects.Project{} = project) do
+    [count] =
+      Repo.all(
+        from m in Media,
+          where: m.project_id == ^project.id,
+          select: count()
+      )
+
+    count
+  end
+
   def media_thumbnail(%Media{} = media) do
     case Enum.find(
            media.versions |> Enum.sort_by(& &1.inserted_at) |> Enum.reverse(),
@@ -961,7 +1038,7 @@ defmodule Platform.Material do
   end
 
   @doc """
-  Get the human-readable name of the media version (e.g., ATL-ABCDEF/1). The media must match the version.
+  Get the human-readable name of the media version (e.g., ABCDEF/1). The media must match the version.
   """
   def get_human_readable_media_version_name(%Media{} = media, %MediaVersion{} = version) do
     "#{media.slug}/#{version.scoped_id}"
@@ -976,13 +1053,24 @@ defmodule Platform.Material do
 
   @doc """
   Return summary statistics about the number of incidents by status.
+
+  Optionally include `project_id` to filter to a particular project.
   """
-  def status_overview_statistics() do
-    Repo.all(
-      from m in Media,
-        where: not m.deleted,
-        group_by: m.attr_status,
-        select: {m.attr_status, count(m.id)}
+  def status_overview_statistics(opts \\ []) do
+    from(m in Media,
+      where: not m.deleted,
+      group_by: m.attr_status,
+      select: {m.attr_status, count(m.id)}
     )
+    |> then(fn query ->
+      case Keyword.get(opts, :project_id) do
+        nil ->
+          query
+
+        project_id ->
+          from(m in query, where: m.project_id == ^project_id)
+      end
+    end)
+    |> Repo.all()
   end
 end

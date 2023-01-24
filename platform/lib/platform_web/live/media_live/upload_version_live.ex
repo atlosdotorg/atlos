@@ -145,7 +145,7 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
             socket
           )
 
-          send(pid, {:version_created, version})
+          send(pid, {:version_add_complete, version})
         rescue
           error ->
             Auditor.log(
@@ -160,6 +160,11 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
 
       {:noreply, socket |> assign(:processing, true)}
     end
+  end
+
+  def handle_event("close_modal", _params, socket) do
+    send(self(), {:version_add_complete, nil})
+    {:noreply, socket}
   end
 
   def handle_event("cancel_upload", %{"ref" => ref}, socket) do
@@ -375,6 +380,21 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
                 <.deconfliction_warning duplicates={@url_duplicate_of} current_user={@current_user} />
               <% end %>
             </div>
+            <div>
+              <%= label(f, :explanation, "Briefly Explain Your Addition") %>
+              <div class="border border-gray-300 rounded shadow-sm overflow-hidden focus-within:border-urge-500 focus-within:ring-1 focus-within:ring-urge-500 transition">
+                <.interactive_textarea
+                  form={f}
+                  disabled={false}
+                  name={:explanation}
+                  placeholder="Optionally provide more context on this media."
+                  id="comment-box-parent-input"
+                  rows={1}
+                  class="block w-full !border-0 resize-none focus:ring-0 sm:text-sm shadow-none"
+                />
+              </div>
+              <%= error_tag(f, :explanation) %>
+            </div>
             <div class="flex flex-col sm:flex-row gap-4 justify-between sm:items-center">
               <%= submit(
                 "Publish to Atlos",
@@ -385,7 +405,7 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
                 href={"/incidents/#{@media.slug}/"}
                 class="text-button text-sm text-right phx-only-during-reg"
               >
-                Or skip media upload
+                Or cancel media upload
                 <span class="text-gray-500 font-normal block text-xs">
                   You can upload media later
                 </span>

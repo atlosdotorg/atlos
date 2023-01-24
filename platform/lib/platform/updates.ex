@@ -24,11 +24,11 @@ defmodule Platform.Updates do
 
   """
   def list_updates do
-    Repo.all(Update)
+    Repo.all(Update |> preload_fields())
   end
 
   defp preload_fields(queryable) do
-    queryable |> preload([:user, :media, :media_version])
+    queryable |> preload([:user, :media_version, :old_project, :new_project, media: [:project]])
   end
 
   @doc """
@@ -225,12 +225,13 @@ defmodule Platform.Updates do
   end
 
   @doc """
-  Helper API function that takes attribute change information and uses it to create an Update changeset. Requires 'explanation' to be in attrs.
+  Helper API function that takes attribute change information and uses it to create an Update changeset.
   """
   def change_from_media_version_upload(
         %Media{} = media,
         %User{} = user,
-        %MediaVersion{} = version
+        %MediaVersion{} = version,
+        attrs
       ) do
     change_update(
       %Update{},
@@ -238,8 +239,44 @@ defmodule Platform.Updates do
       user,
       %{
         "type" => :upload_version,
-        "media_version_id" => version.id
+        "media_version_id" => version.id,
+        "explanation" => Map.get(attrs, "explanation")
       }
+    )
+  end
+
+  def change_from_media_project_change(
+        %Media{} = old_media,
+        %Media{} = new_media,
+        %User{} = user
+      ) do
+    old_project = old_media.project_id
+    new_project = new_media.project_id
+
+    change_update(
+      %Update{},
+      new_media,
+      user,
+      case {old_project, new_project} do
+        {nil, id} when not is_nil(id) ->
+          %{
+            "type" => :add_project,
+            "new_project_id" => id
+          }
+
+        {id, nil} when not is_nil(id) ->
+          %{
+            "type" => :remove_project,
+            "old_project_id" => id
+          }
+
+        {old_id, new_id} when not is_nil(old_id) and not is_nil(new_id) ->
+          %{
+            "type" => :change_project,
+            "old_project_id" => old_id,
+            "new_project_id" => new_id
+          }
+      end
     )
   end
 
@@ -248,10 +285,11 @@ defmodule Platform.Updates do
   """
   def get_updates_for_media(media, exclude_hidden \\ false) do
     query =
-      from u in Update,
+      from(u in Update,
         where: u.media_id == ^media.id,
-        preload: [:user, :media, :media_version],
         order_by: [asc: u.inserted_at]
+      )
+      |> preload_fields()
 
     Repo.all(if exclude_hidden, do: query |> where([u], not u.hidden), else: query)
   end
@@ -265,17 +303,81 @@ defmodule Platform.Updates do
   """
   def get_updates_by_user(user, opts) do
     query =
-      from u in Update,
+      from(u in Update,
         where: u.user_id == ^user.id,
-        preload: [:user, :media, :media_version],
         order_by: [desc: u.inserted_at],
         limit: ^Keyword.get(opts, :limit, nil)
+      )
+      |> preload_fields()
 
     Repo.all(
       if Keyword.get(opts, :exclude_hidden, false),
         do: query |> where([u], not u.hidden),
         else: query
     )
+  end
+
+  @doc """
+  Gets most recent update for the given user, associated with media that is part of the optional provided project.
+
+  Options:
+  - %Project{} = project
+  """
+  def most_recent_update_by_user(%User{} = user, opts \\ []) do
+    query =
+      from(u in Update,
+        where: u.user_id == ^user.id,
+        join: m in assoc(u, :media),
+        order_by: [desc: u.inserted_at],
+        limit: 1
+      )
+      |> preload_fields()
+
+    query =
+      case Keyword.get(opts, :project) do
+        nil -> query
+        project -> query |> where([_u, m], m.project_id == ^project.id)
+      end
+
+    Repo.one(query)
+  end
+
+  @doc """
+  Gets the total number of updates by the given user over the past year.
+  Optionally filterable to a particular project.
+  """
+  def total_updates_by_user_over_time(%User{} = user, opts \\ []) do
+    query =
+      from(u in Update,
+        where: u.user_id == ^user.id,
+        join: m in assoc(u, :media),
+        where: u.inserted_at >= fragment("now() - interval '1 year'")
+      )
+
+    query =
+      case Keyword.get(opts, :project) do
+        nil -> query
+        project -> query |> where([_u, m], m.project_id == ^project.id)
+      end
+
+    data =
+      query
+      |> group_by([u], [fragment("date_trunc('day', ?)", u.inserted_at)])
+      |> select([u], %{date: fragment("date_trunc('day', ?)", u.inserted_at), count: count(u.id)})
+      |> order_by([u], asc: fragment("date_trunc('day', ?)", u.inserted_at))
+      |> Repo.all()
+
+    # Fill in all other dates in the past year as zeroes
+    now = DateTime.utc_now()
+    dates = Enum.map(0..365, fn date -> DateTime.add(now, -date, :day) end)
+
+    Enum.reduce(dates, data, fn date, data ->
+      if Enum.any?(data, fn d -> d.date == date end) do
+        data
+      else
+        [%{date: date, count: 0} | data]
+      end
+    end)
   end
 
   @doc """

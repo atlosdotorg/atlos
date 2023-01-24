@@ -98,6 +98,9 @@ defmodule PlatformWeb do
       # Import our custom helper components
       import PlatformWeb.Components
 
+      # Import our feature flag handlers
+      import Platform.FeatureFlags
+
       import PlatformWeb.ErrorHelpers
       import PlatformWeb.Gettext
       alias PlatformWeb.Router.Helpers, as: Routes

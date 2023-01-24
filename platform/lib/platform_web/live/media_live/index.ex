@@ -46,6 +46,7 @@ defmodule PlatformWeb.MediaLive.Index do
      |> assign(:display, display)
      |> assign(:full_width, display == "table")
      |> assign(:query_params, params)
+     |> assign(:active_project, Platform.Projects.get_project(params["project_id"]))
      |> assign(:results, results)
      |> assign(:myself, self())
      |> assign(:pagination_index, 0)

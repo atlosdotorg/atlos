@@ -73,7 +73,8 @@ defmodule Platform.MixProject do
       {:memoize, "~> 1.4"},
       {:libcluster, "~> 3.3"},
       {:heroicons, "~> 0.5.1"},
-      {:credo, "~> 1.6", only: [:dev, :test], runtime: false}
+      {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
+      {:vega_lite, "~> 0.1.6"}
     ]
   end
 

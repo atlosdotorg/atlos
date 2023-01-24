@@ -131,6 +131,7 @@ defmodule Platform.Material.Attribute do
           "Military Activity/Explosion",
           "Military Activity/Detention",
           "Military Activity/Mass Grave",
+          "Military Activity/Demolition",
           "Civilian Activity",
           "Civilian Activity/Protest or March",
           "Civilian Activity/Riot",

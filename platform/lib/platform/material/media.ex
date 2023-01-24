@@ -7,6 +7,7 @@ defmodule Platform.Material.Media do
   alias Platform.Material.MediaSubscription
   alias Platform.Accounts.User
   alias Platform.Accounts
+  alias Platform.Projects
   alias __MODULE__
 
   schema "media" do
@@ -24,6 +25,12 @@ defmodule Platform.Material.Media do
     field :attr_type, {:array, :string}
     field :attr_impact, {:array, :string}
     field :attr_equipment, {:array, :string}
+
+    embeds_many :project_attributes, ProjectAttributeValue do
+      belongs_to :project, Projects.Project
+      field :attribute_id, :binary_id
+      field :value, :map
+    end
 
     # Deprecated attributes (that still live in the database)
     # field :attr_time_of_day, :string
@@ -68,6 +75,7 @@ defmodule Platform.Material.Media do
     has_many :versions, Platform.Material.MediaVersion
     has_many :updates, Platform.Updates.Update
     has_many :subscriptions, MediaSubscription
+    belongs_to :project, Platform.Projects.Project, type: :binary_id
   end
 
   @doc false
@@ -83,6 +91,7 @@ defmodule Platform.Material.Media do
       :attr_date,
       :attr_general_location,
       :deleted,
+      :project_id,
       :urls
     ])
 
@@ -94,6 +103,7 @@ defmodule Platform.Material.Media do
     |> Attribute.validate_attribute(Attribute.get_attribute(:impact), user, false)
     |> Attribute.validate_attribute(Attribute.get_attribute(:date), user, false)
     |> Attribute.validate_attribute(Attribute.get_attribute(:general_location), user, false)
+    |> validate_project(user, media)
     |> parse_and_validate_validate_json_array(:urls, :urls_parsed)
     |> validate_url_list(:urls_parsed)
     |> then(fn cs ->
@@ -143,6 +153,42 @@ defmodule Platform.Material.Media do
     changeset
   end
 
+  def validate_project(changeset, user \\ nil, media \\ nil) do
+    project_id = Ecto.Changeset.get_change(changeset, :project_id, :no_change)
+    original_project_id = changeset.data.project_id
+
+    case project_id do
+      :no_change ->
+        changeset
+
+      new_project_id ->
+        new_project = Projects.get_project(new_project_id)
+        original_project = Projects.get_project(original_project_id)
+
+        cond do
+          !is_nil(media) && !is_nil(user) && !can_user_edit(media, user) ->
+            changeset
+            |> add_error(:project_id, "You cannot edit this media")
+
+          !is_nil(project_id) && is_nil(new_project) ->
+            changeset
+            |> add_error(:project_id, "Project does not exist")
+
+          !is_nil(user) && !is_nil(new_project) && !Projects.can_edit_media?(user, new_project) ->
+            changeset
+            |> add_error(:project_id, "Only administrators can add incidents to this project.")
+
+          !is_nil(user) && !is_nil(original_project) &&
+              !Projects.can_edit_media?(user, original_project) ->
+            changeset
+            |> add_error(:project_id, "You cannot remove media from this project!")
+
+          true ->
+            changeset
+        end
+    end
+  end
+
   def validate_url_list(changeset, field) do
     valid? = fn url ->
       uri = URI.parse(url)
@@ -162,6 +208,15 @@ defmodule Platform.Material.Media do
         end
       end
     end)
+  end
+
+  @doc """
+  A changeset meant to be used with projects.
+  """
+  def project_changeset(media, attrs, user \\ nil) do
+    media
+    |> cast(attrs, [:project_id])
+    |> validate_project(user, media)
   end
 
   @doc """
@@ -220,9 +275,16 @@ defmodule Platform.Material.Media do
   end
 
   @doc """
-  Can the user view the media? Currently this is true for all media *except* media for which the "Hidden" restriction is present and the user is not an admin.
+  Can the user view the media?
   """
   def can_user_view(%Media{} = media, %User{} = user) do
+    can_user_view_media_base(media, user) &&
+      (is_nil(media.project) ||
+         Platform.Projects.can_view_project?(user, media.project))
+  end
+
+  defp can_user_view_media_base(%Media{} = media, %User{} = user) do
+    # Can the user view the media, independent of which project it's a part of?
     case {media.attr_restrictions, media.deleted} do
       {nil, false} ->
         true
@@ -334,6 +396,13 @@ defmodule Platform.Material.Media do
          ),
          select: u
   end
+
+  def slug_to_display(media) do
+    case media.project do
+      nil -> media.slug |> String.replace("ATL-", "")
+      proj -> proj.code <> "-" <> (media.slug |> String.replace("ATL-", ""))
+    end
+  end
 end
 
 defimpl Jason.Encoder, for: Platform.Material.Media do
@@ -357,6 +426,7 @@ defimpl Jason.Encoder, for: Platform.Material.Media do
         :inserted_at,
         :updated_at,
         :deleted,
+        :project,
         :id
       ])
       |> Enum.into(%{}, fn

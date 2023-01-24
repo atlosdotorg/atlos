@@ -18,7 +18,6 @@ Users with the `trusted` role can...
 - View media removed from an incident
 - Generate invite codes for other users to join Atlos
 - Hide individual updates/comments on incidents
-- Delete and restore
 
 # Role: `admin`
 

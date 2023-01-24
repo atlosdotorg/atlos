@@ -97,7 +97,8 @@
     @apply animate-pulse;
   }
 
-  .phx-form textarea, .textarea-base {
+  .phx-form textarea,
+  .textarea-base {
     @apply shadow-sm focus:!ring-urge-500 focus:!border-urge-500 block w-full sm:text-sm !border-gray-300 rounded transition;
   }
 
@@ -278,10 +279,6 @@
 
 .mapboxgl-ctrl-bottom-left {
   bottom: unset !important;
-}
-
-.mapboxgl-ctrl-attrib {
-  display: none !important; /* We still show attribution! */
 }
 
 .mapboxgl-popup-content {

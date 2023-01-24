@@ -3,9 +3,12 @@ defmodule PlatformWeb.NewLive do
 
   alias Platform.Accounts
 
-  def mount(_params, _session, socket) do
+  def mount(params, _session, socket) do
     if Platform.Material.Media.can_user_create(socket.assigns.current_user) do
-      {:ok, socket |> assign(:title, "New Incident")}
+      {:ok,
+       socket
+       |> assign(:title, "New Incident")
+       |> assign(:project_id, Map.get(params, "project_id"))}
     else
       {:ok,
        socket
@@ -66,6 +69,7 @@ defmodule PlatformWeb.NewLive do
           module={PlatformWeb.NewLive.BasicInfoLive}
           id="basic-info"
           current_user={@current_user}
+          project_id={@project_id}
         />
       </.card>
     </div>

@@ -320,7 +320,7 @@ defmodule PlatformWeb.Components do
             </svg>
           </.navlink>
 
-          <.navlink to="/queue" label="Queue" request_path={@path}>
+          <.navlink to="/projects" label="Projects" request_path={@path}>
             <svg
               class="text-neutral-300 group-hover:text-white h-6 w-6"
               xmlns="http://www.w3.org/2000/svg"
@@ -522,6 +522,35 @@ defmodule PlatformWeb.Components do
     """
   end
 
+  attr :project, Platform.Projects.Project, required: false
+
+  def project_text(assigns) do
+    ~H"""
+    <%= if !is_nil(@project) do %>
+      <.link
+        href={"/projects/#{@project.id}"}
+        class="font-medium inline-flex gap-px text-button text-neutral-800 items-center"
+      >
+        <%= @project.name %>
+        <span style={"color: #{@project.color}"}>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+            class="w-4 h-4"
+          >
+            <circle cx="10" cy="10" r="5" />
+          </svg>
+        </span>
+      </.link>
+    <% else %>
+      <div class="font-medium inline-flex gap-px text-button text-neutral-800">
+        [Deleted Project]
+      </div>
+    <% end %>
+    """
+  end
+
   def attribute_icon(assigns) do
     assigns =
       assigns
@@ -710,11 +739,18 @@ defmodule PlatformWeb.Components do
                           <%= attr.label %> &nearr;
                         <% end %>
                       <% :create -> %>
-                        added <span class="font-medium text-gray-900"><%= @update.media.slug %></span>
+                        added this incident
                       <% :delete -> %>
                         deleted this incident
                       <% :undelete -> %>
                         restored this incident
+                      <% :add_project -> %>
+                        moved this incident into <.project_text project={@update.new_project} />
+                      <% :remove_project -> %>
+                        removed this incident from <.project_text project={@update.old_project} />
+                      <% :change_project -> %>
+                        moved this incident from <.project_text project={@update.old_project} /> into
+                        <.project_text project={@update.new_project} />
                       <% :upload_version -> %>
                         added
                         <a
@@ -1596,7 +1632,9 @@ defmodule PlatformWeb.Components do
               ring_class="ring-transparent"
             />
           </div>
-          <%= @media.slug %>
+          <span style={"color: #{if @media.project, do: @media.project.color, else: "unset"}"}>
+            <%= Media.slug_to_display(@media) %>
+          </span>
           <%= if is_sensitive do %>
             <span data-tooltip="Incident is sensitive" class="text-critical-400">
               <Heroicons.shield_exclamation mini class="h-4 w-4" />
@@ -1865,7 +1903,7 @@ defmodule PlatformWeb.Components do
                 </div>
               <% end %>
               <div class={"flex-grow " <> (if Enum.member?(@exclude, :query), do: "hidden", else: "")}>
-                <div class="px-3 h-full group flex flex-col md:flex-row py-2 items-center focus-within:bg-neutral-50">
+                <div class="px-3 h-full group flex flex-col md:flex-row py-2 items-center">
                   <%= label(f, :query, "Search",
                     class:
                       "block w-full md:hidden text-xs font-medium text-gray-900 group-focus-within:text-urge-600"
@@ -1881,7 +1919,7 @@ defmodule PlatformWeb.Components do
                 <%= error_tag(f, :query) %>
               </div>
               <div class={if Enum.member?(@exclude, :status), do: "hidden", else: ""}>
-                <div class="ts-ignore pl-3 py-2 group focus-within:bg-neutral-50">
+                <div class="ts-ignore pl-3 py-2 group">
                   <%= label(f, :attr_status, "Status",
                     class: "block text-xs font-medium text-gray-900 group-focus-within:text-urge-600"
                   ) %>
@@ -1895,8 +1933,26 @@ defmodule PlatformWeb.Components do
                 </div>
                 <%= error_tag(f, :status) %>
               </div>
+              <div class={if Enum.member?(@exclude, :project), do: "hidden", else: ""}>
+                <div class="ts-ignore pl-3 py-2 group">
+                  <%= label(f, :project_id, "Project",
+                    class: "block text-xs font-medium text-gray-900 group-focus-within:text-urge-600"
+                  ) %>
+                  <%= select(
+                    f,
+                    :project_id,
+                    [{"All", nil}, {"No Project", "unset"}] ++
+                      (Platform.Projects.list_projects_for_user(@current_user)
+                       |> Enum.map(fn p -> {p.code <> ": " <> p.name, p.id} end)
+                       |> Enum.map(fn {name, id} -> {Utils.truncate(name, 20), id} end)),
+                    class:
+                      "block bg-transparent w-full border-0 py-0 pl-0 pr-7 text-gray-900 placeholder-gray-500 focus:ring-0 sm:text-sm"
+                  ) %>
+                </div>
+                <%= error_tag(f, :project_id) %>
+              </div>
               <div class={if Enum.member?(@exclude, :sort), do: "hidden", else: ""}>
-                <div class="ts-ignore pl-3 py-2 group focus-within:bg-neutral-50">
+                <div class="ts-ignore pl-3 py-2 group">
                   <%= label(f, :sort, "Sort",
                     class: "block text-xs font-medium text-gray-900 group-focus-within:text-urge-600"
                   ) %>
@@ -1918,7 +1974,8 @@ defmodule PlatformWeb.Components do
                 <%= error_tag(f, :sort) %>
               </div>
               <div
-                class="flex place-self-center w-full md:w-auto h-full px-2 text-sm md:py-[14px] py-4"
+                class={"flex place-self-center w-full md:w-auto h-full px-2 text-sm md:py-[14px] py-4 " <>
+                  (if Enum.member?(@exclude, :more_options), do: "hidden", else: "")}
                 x-data="{open: false}"
               >
                 <div class="text-left z-10">
@@ -2001,7 +2058,7 @@ defmodule PlatformWeb.Components do
           <span class="animate-pulse">Loading...</span>
         </div>
       </div>
-      <iframe dynamic-src={"/incidents/#{@media.slug}/card"} width="350px" height="190px" />
+      <dynamic tag="iframe" src={"/incidents/#{@media.slug}/card"} width="350px" height="190px" />
     </div>
     """
   end
@@ -2100,7 +2157,7 @@ defmodule PlatformWeb.Components do
         <div class="p-2 flex flex-col w-3/4 gap-2 relative">
           <section>
             <p class="font-mono text-xs text-gray-500 flex items-center gap-1">
-              <%= @media.slug %>
+              <%= Media.slug_to_display(@media) %>
               <%= if @media.has_subscription do %>
                 <span data-tooltip="You are subscribed" class="text-neutral-400">
                   <svg
@@ -2360,14 +2417,14 @@ defmodule PlatformWeb.Components do
             <div x-bind:class="grayscale ? 'grayscale' : ''">
               <%= if String.starts_with?(@version.mime_type, "image/") do %>
                 <%= if @dynamic_src do %>
-                  <img dynamic-src={loc} class="w-full" />
+                  <dynamic tag="img" src={loc} class="w-full" />
                 <% else %>
                   <img src={loc} class="w-full" />
                 <% end %>
               <% else %>
                 <%= if @dynamic_src do %>
                   <video controls preload="auto" muted>
-                    <source dynamic-src={loc} class="w-full" />
+                    <dynamic tag="source" src={loc} class="w-full" />
                   </video>
                 <% else %>
                   <video controls preload="auto" poster={thumbnail} muted>
@@ -2646,6 +2703,20 @@ defmodule PlatformWeb.Components do
                       Copy Hash Info
                     </button>
                   <% end %>
+                  <button
+                    type="button"
+                    rel="nofollow"
+                    role="menuitem"
+                    title="Copy Hash Information"
+                    class="text-gray-700 px-2 py-2 text-sm flex items-center gap-2 hover:bg-gray-100 w-full"
+                    onclick={
+                      "window.setClipboard(" <>
+                        Jason.encode!(@version.source_url) <>
+                        ")"
+                    }
+                  >
+                    <Heroicons.link mini class="w-5 h-5 text-neutral-500" /> Copy URL
+                  </button>
                   <%= if @version.visibility == :visible and @show_controls do %>
                     <button
                       type="button"
@@ -2674,7 +2745,7 @@ defmodule PlatformWeb.Components do
                   <%= if @version.visibility == :hidden and @show_controls do %>
                     <button
                       type="button"
-                      data-confirm="Are you sure you want to change the visibility of this media version?"
+                      data-confirm="Are you sure you want to change the visibility of this media?"
                       phx-click="set_media_visibility"
                       phx-value-version={@version.id}
                       phx-value-state="visible"
@@ -2699,7 +2770,7 @@ defmodule PlatformWeb.Components do
                   <%= if Accounts.is_privileged(@current_user) and @show_controls do %>
                     <button
                       type="button"
-                      data-confirm="Are you sure you want to change the visibility of this media version?"
+                      data-confirm="Are you sure you want to change the visibility of this media?"
                       phx-click="set_media_visibility"
                       phx-value-version={@version.id}
                       phx-value-state={
@@ -2973,7 +3044,9 @@ defmodule PlatformWeb.Components do
     ~H"""
     <.popover class="inline overflow-hidden" no_pad={true}>
       <span class={"text-button transition inline-block mr-2 " <> Map.get(assigns, :class, "text-gray-800")}>
-        <.link navigate={"/incidents/" <> @media.slug}><%= @media.slug %> &nearr;</.link>
+        <.link navigate={"/incidents/" <> @media.slug}>
+          <%= Media.slug_to_display(@media) %> &nearr;
+        </.link>
       </span>
       <:display>
         <div class="-m-3 w-[350px] h-[190px] rou@nded">
@@ -3105,25 +3178,109 @@ defmodule PlatformWeb.Components do
     ~H"""
     <footer class="place-self-center max-w-lg mx-auto mt-8 text-gray-500 text-xs">
       <div class="grid grid-cols-3 text-center gap-4 md:flex md:justify-between">
-        <a href="https://github.com/milesmcc/atlos" class="hover:text-gray-600">Source Code</a>
+        <a href="https://github.com/milesmcc/atlos" class="hover:text-gray-600" target="_blank">
+          Source Code
+        </a>
         <a
           href="https://github.com/milesmcc/atlos/blob/main/policy/TERMS_OF_USE.md"
           class="hover:text-gray-600 transition"
+          target="_blank"
         >
           Terms of Use
         </a>
         <a
           href="https://github.com/milesmcc/atlos/blob/main/policy/RESILIENCE.md"
           class="hover:text-gray-600 transition"
+          target="_blank"
         >
           Resilience
         </a>
-        <a href="https://github.com/milesmcc/atlos/discussions" class="hover:text-gray-600 transition">
+        <a
+          href="https://github.com/milesmcc/atlos/discussions"
+          class="hover:text-gray-600 transition"
+          target="_blank"
+        >
           Feedback
         </a>
         <a href="mailto:contact@atlos.org" class="hover:text-gray-600 transition">Contact</a>
       </div>
     </footer>
+    """
+  end
+
+  attr(:project, Platform.Projects.Project)
+  slot(:actions)
+
+  def project_bar(assigns) do
+    ~H"""
+    <div class="border-b bg-white overflow-hidden border-b flex justify-between">
+      <div class="flex items-center justify-between gap-4 w-full lg:max-w-screen-xl px-6 py-2 lg:mx-auto">
+        <%= if is_nil(@project) do %>
+          <div class="text-neutral-700 pb-1 pt-2 px-3 gap-1 hover:bg-neutral-100 rounded transition">
+            <p class="text-xs text-neutral-500">Project</p>
+            <p class="font-medium">
+              <div class="inline-flex items-center font-medium">
+                No Project
+              </div>
+            </p>
+          </div>
+        <% else %>
+          <.link
+            href={"/projects/#{@project.id}"}
+            class="text-neutral-700 pb-1 pt-2 px-3 gap-1 hover:bg-neutral-100 rounded transition"
+          >
+            <p class="text-xs text-neutral-500">Project</p>
+            <p class="font-medium">
+              <div class="inline-flex items-center font-medium">
+                <%= @project.name %>
+                <span style={"color: #{@project.color}"}>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                    class="w-5 h-5 ml-px"
+                  >
+                    <circle cx="10" cy="10" r="5" />
+                  </svg>
+                </span>
+              </div>
+            </p>
+          </.link>
+        <% end %>
+        <div>
+          <%= render_slot(@actions) || "" %>
+        </div>
+      </div>
+    </div>
+    """
+  end
+
+  def project_card(assigns) do
+    ~H"""
+    <.link class="bg-white rounded-lg shadow overflow-hidden" href={"/projects/#{@project.id}"}>
+      <div class="p-4 flex-col gap-2 min-w-[15rem]">
+        <p class="font-mono text-xs text-neutral-600"><%= @project.code %></p>
+        <p class="font-medium text-lg inline-flex items-center">
+          <%= @project.name %>
+          <span style={"color: #{@project.color}"}>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+              class="w-5 h-5 ml-px"
+            >
+              <circle cx="10" cy="10" r="6" />
+            </svg>
+          </span>
+        </p>
+        <% total_incidents = Material.total_media_in_project!(@project) %>
+        <p class="support font-base text-neutral-600">
+          <%= total_incidents |> Formatter.format_number() %> <%= if total_incidents == 1,
+            do: "incident",
+            else: "incidents" %>
+        </p>
+      </div>
+    </.link>
     """
   end
 end
