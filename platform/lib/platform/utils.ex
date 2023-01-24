@@ -5,9 +5,11 @@ defmodule Platform.Utils do
   import Ecto.Query, warn: false
 
   @tag_regex ~r/((?:\[\[))(@([A-Za-z0-9_]+)(?:\]\]))/
-  @identifier_regex ~r/(?:\[\[)((?:[A-Z0-9]{1,5}-)?[A-Z0-9]{6,7})(?:\]\])/
+  @identifier_regex ~r/(?:\[\[)((?:[A-Z0-9]{1,5}-)?[A-Z0-9]{6})(?:\]\])/
+  @identifier_regex_with_project_and_no_tags ~r/((?:[A-Z0-9]{1,5}-)([A-Z0-9]{6}))/
 
   def get_tag_regex(), do: @tag_regex
+  def get_identifier_regex(), do: @identifier_regex
 
   def generate_media_slug() do
     slug = for _ <- 1..6, into: "", do: <<Enum.random('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ')>>
@@ -140,6 +142,11 @@ defmodule Platform.Utils do
   end
 
   def text_search(search_terms, queryable, opts \\ []) do
+    # First, detect if they have entered a slug with a project code into the query. If so, we add a version of the slug without the project code to the query.
+    # This is to make it possible to search for "ATL-123" and get results for "123".
+    # This is a bit hacky, but it works.
+    search_terms = Regex.replace(@identifier_regex_with_project_and_no_tags, search_terms, "\\2")
+
     if Keyword.get(opts, :literal, false) do
       # Manually adding the quotes here make it possible to search for source links directly
       wrapped =

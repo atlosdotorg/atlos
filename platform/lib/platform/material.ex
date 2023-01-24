@@ -629,16 +629,22 @@ defmodule Platform.Material do
 
     old_media = media
 
-    Repo.transaction(fn ->
-      with {:ok, media} <- update_media_project(media, attrs, user),
-           update_changeset <- Updates.change_from_media_project_change(old_media, media, user),
-           {:ok, _} <- Updates.create_update_from_changeset(update_changeset) do
-        Updates.subscribe_if_first_interaction(media, user)
-        media
-      else
-        _ -> {:error, change_media_project(media, attrs, user)}
-      end
-    end)
+    res =
+      Repo.transaction(fn ->
+        with {:ok, media} <- update_media_project(media, attrs, user),
+             update_changeset <- Updates.change_from_media_project_change(old_media, media, user),
+             {:ok, _} <- Updates.create_update_from_changeset(update_changeset) do
+          Updates.subscribe_if_first_interaction(media, user)
+          media
+        else
+          _ -> {:error, change_media_project(media, attrs, user)}
+        end
+      end)
+
+    # Schedule the media to have its auto-metadata regenerated
+    schedule_media_auto_metadata_update(media)
+
+    res
   end
 
   @doc """

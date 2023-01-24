@@ -381,6 +381,31 @@ defmodule Platform.MaterialTest do
       assert length(Material.query_media(query)) == 25
     end
 
+    test "query_media/1 works with searching by slug" do
+      assert Enum.empty?(Material.query_media())
+
+      Enum.map(1..25, fn _ -> media_fixture() end)
+      Enum.map(1..25, fn _ -> media_fixture(%{attr_description: "this is foobar"}) end)
+      main = media_fixture()
+
+      changeset = Material.MediaSearch.changeset(%{query: "#{main.slug}"})
+      {query, _} = Material.MediaSearch.search_query(changeset)
+      assert length(Material.query_media()) == 51
+      assert length(Material.query_media(query)) == 1
+
+      project = Platform.ProjectsFixtures.project_fixture(%{code: "HELLO"})
+
+      {:ok, main} = Material.update_media(main, %{project_id: project.id})
+
+      assert length(Material.query_media(query)) == 1
+
+      changeset = Material.MediaSearch.changeset(%{query: "HELLO-#{main.slug}"})
+
+      {query, _} = Material.MediaSearch.search_query(changeset)
+      assert length(Material.query_media()) == 51
+      assert length(Material.query_media(query)) == 1
+    end
+
     test "query_media/1 works with longer text search" do
       assert Enum.empty?(Material.query_media())
 

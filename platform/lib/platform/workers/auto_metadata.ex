@@ -62,7 +62,9 @@ defmodule Platform.Workers.AutoMetadata do
 
     Material.update_media_auto_metadata(media, %{
       time_generated: DateTime.utc_now() |> DateTime.to_iso8601(),
-      geocoding: geocoding
+      geocoding: geocoding,
+      displayed_slug: Platform.Material.Media.slug_to_display(media),
+      project_code: Platform.Projects.get_project!(media.project_id).code
     })
 
     :ok
