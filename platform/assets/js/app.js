@@ -117,13 +117,15 @@ function initializePopovers() {
                 // tags because Phoenix won't update those.
                 let content = ref.reference.querySelector("section[role=\"popover\"]");
                 for (let elem of content.querySelectorAll("dynamic")) {
+                    if (elem.hasAttribute("populated")) {
+                        continue;
+                    }
                     let newNode = document.createElement(elem.getAttribute("tag"));
                     for (let attr of elem.attributes) {
                         newNode.setAttribute(attr.name, attr.value);
                     }
                     elem.parentElement.appendChild(newNode)
-                    console.log(elem)
-                    console.log(newNode)
+                    elem.setAttribute("populated", "true");
                 }
                 ref.setContent(content.innerHTML);
             },
