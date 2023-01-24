@@ -3178,20 +3178,28 @@ defmodule PlatformWeb.Components do
     ~H"""
     <footer class="place-self-center max-w-lg mx-auto mt-8 text-gray-500 text-xs">
       <div class="grid grid-cols-3 text-center gap-4 md:flex md:justify-between">
-        <a href="https://github.com/milesmcc/atlos" class="hover:text-gray-600">Source Code</a>
+        <a href="https://github.com/milesmcc/atlos" class="hover:text-gray-600" target="_blank">
+          Source Code
+        </a>
         <a
           href="https://github.com/milesmcc/atlos/blob/main/policy/TERMS_OF_USE.md"
           class="hover:text-gray-600 transition"
+          target="_blank"
         >
           Terms of Use
         </a>
         <a
           href="https://github.com/milesmcc/atlos/blob/main/policy/RESILIENCE.md"
           class="hover:text-gray-600 transition"
+          target="_blank"
         >
           Resilience
         </a>
-        <a href="https://github.com/milesmcc/atlos/discussions" class="hover:text-gray-600 transition">
+        <a
+          href="https://github.com/milesmcc/atlos/discussions"
+          class="hover:text-gray-600 transition"
+          target="_blank"
+        >
           Feedback
         </a>
         <a href="mailto:contact@atlos.org" class="hover:text-gray-600 transition">Contact</a>
