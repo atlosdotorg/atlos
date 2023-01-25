@@ -486,10 +486,6 @@ defmodule Platform.Material.Attribute do
       if include_renamed_attributes, do: Map.keys(renamed_attributes()), else: []
   end
 
-  def attribute_schema_fields() do
-    attributes() |> Enum.map(& &1.schema_field)
-  end
-
   def get_attribute(name) do
     # Some attributes have been renamed; this allows us to keep updates
     # that reference the old name working.
