@@ -192,7 +192,7 @@ defmodule PlatformWeb.AdminlandLive.BulkUploadLive do
                       <summary class="cursor-pointer font-medium">Required file format</summary>
                       <p>Atlos can perform bulk imports from CSV files with the following columns:</p>
                       <ul>
-                        <%= for attr <- Material.Attribute.attribute_names(false, false) do %>
+                        <%= for attr <- Material.Attribute.attribute_names() do %>
                           <li>
                             <.attr_explanation name={attr} />
                           </li>

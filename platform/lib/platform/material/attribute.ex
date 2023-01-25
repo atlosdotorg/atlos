@@ -443,6 +443,8 @@ defmodule Platform.Material.Attribute do
 
   @doc """
   Get the names of the attributes that are available for the given media. Both nil and the empty list count as unset.
+
+  If the :pane option is given, only attributes in that pane will be returned.
   """
   def set_for_media(media, opts \\ []) do
     pane = Keyword.get(opts, :pane)
@@ -453,6 +455,11 @@ defmodule Platform.Material.Attribute do
     end)
   end
 
+  @doc """
+  Get the names of the attributes that are not available for the given media. Both nil and the empty list count as unset.
+
+  If the :pane option is given, only attributes in that pane will be returned.
+  """
   def unset_for_media(media, opts \\ []) do
     pane = Keyword.get(opts, :pane)
     set = set_for_media(media)
@@ -463,7 +470,16 @@ defmodule Platform.Material.Attribute do
     |> Enum.filter(&(pane == nil || &1.pane == pane))
   end
 
-  def attribute_names(include_renamed_attributes \\ true, include_deprecated_attributes \\ true) do
+  @doc """
+  Get the names of all attributes, optionally including deprecated ones.
+
+  If the :include_renamed_attributes option is true, renamed attributes will be included.
+  If the :include_deprecated_attributes option is true, deprecated attributes will be included.
+  """
+  def attribute_names(opts \\ []) do
+    include_deprecated_attributes = Keyword.get(opts, :include_deprecated_attributes, false)
+    include_renamed_attributes = Keyword.get(opts, :include_renamed_attributes, false)
+
     (attributes()
      |> Enum.filter(&(&1.deprecated != true or include_deprecated_attributes))
      |> Enum.map(& &1.name)) ++

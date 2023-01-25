@@ -70,7 +70,7 @@ defmodule PlatformWeb.ExportController do
 
     fields =
       [:slug, :inserted_at, :updated_at, :latitude, :longitude, :location] ++
-        Attribute.attribute_names(false, false) ++
+        Attribute.attribute_names() ++
         Enum.map(1..max_num_versions, &("source_" <> to_string(&1)))
 
     results
