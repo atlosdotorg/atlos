@@ -510,19 +510,29 @@ defmodule Platform.Material.Attribute do
     Enum.find(attributes(), &(&1.schema_field |> to_string() == name))
   end
 
+  @doc """
+  Create a changeset for the media from the given attribute.
+
+  Options:
+    * :user - the user making the change (default: nil)
+    * :verify_change_exists - whether to verify that the change exists (default: true)
+    * :changeset - an existing changeset to add to (default: nil)
+  """
   def changeset(
         %Media{} = media,
         %Attribute{} = attribute,
         attrs \\ %{},
-        user \\ nil,
-        verify_change_exists \\ true,
-        changeset \\ nil
+        opts \\ []
       ) do
+    user = Keyword.get(opts, :user)
+    verify_change_exists = Keyword.get(opts, :verify_change_exists, true)
+    changeset = Keyword.get(opts, :changeset)
+
     (changeset || media)
     |> cast(%{}, [])
     |> populate_virtual_data(attribute)
     |> cast_attribute(attribute, attrs)
-    |> validate_attribute(attribute, user)
+    |> validate_attribute(attribute, user: user)
     |> cast_and_validate_virtual_explanation(attrs, attribute)
     |> update_from_virtual_data(attribute)
     |> verify_user_can_edit(attribute, user, media)
@@ -531,21 +541,35 @@ defmodule Platform.Material.Attribute do
     end)
   end
 
+  @doc """
+  Create a changeset for the media from the given attributes.
+
+  Options:
+    * :user - the user making the change (default: nil)
+    * :verify_change_exists - whether to verify that the change exists (default: true)
+    * :changeset - an existing changeset to add to (default: nil)
+  """
   def combined_changeset(
         %Media{} = media,
         attributes,
         attrs \\ %{},
-        user \\ nil,
-        verify_change_exists \\ true
+        opts \\ []
       ) do
-    Enum.reduce(attributes, media, fn elem, acc ->
-      changeset(media, elem, attrs, user, false, acc)
+    user = Keyword.get(opts, :user)
+    verify_change_exists = Keyword.get(opts, :verify_change_exists, true)
+    changeset = Keyword.get(opts, :changeset)
+
+    Enum.reduce(attributes, changeset || media, fn elem, acc ->
+      changeset(media, elem, attrs, user: user, verify_change_exists: false, changeset: acc)
     end)
     |> then(fn c ->
       if verify_change_exists, do: verify_change_exists(c, attributes), else: c
     end)
   end
 
+  @doc """
+  Checks whether the given user can edit the given attribute.
+  """
   def verify_user_can_edit(changeset, attribute, user, media) do
     if is_nil(user) || can_user_edit(attribute, user, media) do
       changeset
@@ -559,6 +583,9 @@ defmodule Platform.Material.Attribute do
   end
 
   defp populate_virtual_data(changeset, %Attribute{} = attribute) do
+    # Populates the virtual data for the given attribute. Specifically, it:
+    # * Sets the location field to a string representation of the location.
+
     case attribute.type do
       :location ->
         with %Geo.Point{coordinates: {lon, lat}} <- get_field(changeset, attribute.schema_field) do
@@ -573,6 +600,9 @@ defmodule Platform.Material.Attribute do
   end
 
   defp update_from_virtual_data(changeset, %Attribute{} = attribute) do
+    # Updates the data in the changeset for the given attribute from the virtual data. Specifically, it:
+    # * Sets the location field by parsing the string representation of the location.
+
     case attribute.type do
       :location ->
         error_msg =
@@ -618,12 +648,14 @@ defmodule Platform.Material.Attribute do
     end
   end
 
-  defp cast_attribute(media, %Attribute{} = attribute, attrs) do
+  defp cast_attribute(media_or_changeset, %Attribute{} = attribute, attrs) do
+    # Casts the given attribute in the Media changeset from the given attrs.
+
     if attribute.deprecated == true do
       raise "cannot cast deprecated attribute"
     end
 
-    media
+    media_or_changeset
     |> cast(attrs, [:explanation], message: "Unable to parse explanation.")
     |> then(fn changeset ->
       case attribute.type do
@@ -661,11 +693,19 @@ defmodule Platform.Material.Attribute do
   end
 
   defmemo get_custom_attribute_options(name) do
+    # TODO: Remove this -- it's a temporary hack to allow us to add options to attributes without
+    # having to deploy code.
     extra = Jason.decode!(System.get_env("ATTRIBUTE_OPTIONS", "{}"))
 
     Map.get(extra, name |> to_string(), [])
   end
 
+  @doc """
+  Get the options for the provided attribute. If the attribute has custom options, those are provided.
+  If the attribute allows user-defined options, those are provided. If the attribute has a "none" option,
+  that is provided. If the attribute is a multi-select, the current values are included (provided `current_val`
+  is given).
+  """
   def options(%Attribute{} = attribute, current_val \\ nil) do
     options =
       case get_custom_attribute_options(attribute.name) do
@@ -694,7 +734,17 @@ defmodule Platform.Material.Attribute do
     end
   end
 
-  def validate_attribute(changeset, %Attribute{} = attribute, user \\ nil, required \\ true) do
+  @doc """
+  Validates the given attribute in the given changeset.
+
+  Options:
+    * `:user` - the user performing the action.
+    * `:required` - whether the attribute is required. Defaults to true.
+  """
+  def validate_attribute(changeset, %Attribute{} = attribute, opts \\ []) do
+    user = Keyword.get(opts, :user, nil)
+    required = Keyword.get(opts, :required, true)
+
     validations =
       case attribute.type do
         :multi_select ->
@@ -761,6 +811,10 @@ defmodule Platform.Material.Attribute do
   end
 
   defp cast_and_validate_virtual_explanation(changeset, params, attribute) do
+    # Cast and validate the `explanation` field, which is virtual and not part of the schema.
+    # Instead, it's passed to the `update` model. Some attributes require an explanation,
+    # and some don't -- that is validated by this function.
+
     change =
       changeset
       |> cast(params, [:explanation])
@@ -785,6 +839,9 @@ defmodule Platform.Material.Attribute do
 
   defp validate_privileged_values(changeset, %Attribute{} = attribute, %User{} = user)
        when is_list(attribute.privileged_values) do
+    # Some attributes have values that can only be set by privileged users. This function
+    # validates that the values are not set by non-privileged users.
+
     if Accounts.is_privileged(user) do
       # Changes by a privileged user can do anything
       changeset
@@ -829,6 +886,9 @@ defmodule Platform.Material.Attribute do
   end
 
   defp verify_change_exists(changeset, attributes) do
+    # Verify that at least one of the given attributes has changed. This is used
+    # to ensure that users don't post updates that don't actually change anything.
+
     if not Enum.any?(attributes, &Map.has_key?(changeset.changes, &1.schema_field)) do
       changeset
       |> add_error(hd(attributes).schema_field, "A change is required to post an update.")
@@ -854,6 +914,9 @@ defmodule Platform.Material.Attribute do
     end
   end
 
+  @doc """
+  Get the color (in "a17t" terms) for the given attribute value.
+  """
   def attr_color(name, value) do
     case name do
       :sensitive ->
@@ -878,6 +941,9 @@ defmodule Platform.Material.Attribute do
     end
   end
 
+  @doc """
+  Checks whether the attribute allows user-defined options (i.e., custom new options).
+  """
   def allow_user_defined_options(%Attribute{allow_user_defined_options: true}) do
     true
   end
@@ -886,12 +952,16 @@ defmodule Platform.Material.Attribute do
     false
   end
 
+  @doc """
+  Checks whether the attribute requires special privileges to edit.
+  """
   def requires_privileges_to_edit(%Attribute{} = attr) do
     is_list(attr.required_roles) and not Enum.empty?(attr.required_roles)
   end
 
   @doc """
-  Get the child attributes of the given parent attribute.
+  Get the child attributes of the given parent attribute. Children are used to combine multiple
+  distinct attributes into a single editing experience (e.g., geolocation and geolocation accuracy).
   """
   def get_children(parent_name) do
     attributes() |> Enum.filter(&(&1.parent == parent_name))

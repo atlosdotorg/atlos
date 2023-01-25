@@ -803,11 +803,10 @@ defmodule Platform.Material do
   def change_media_attributes(
         %Media{} = media,
         attributes,
-        %User{} = user,
-        attrs \\ %{},
-        verify_change_exists \\ true
+        attrs,
+        opts \\ []
       ) do
-    Attribute.combined_changeset(media, attributes, attrs, user, verify_change_exists)
+    Attribute.combined_changeset(media, attributes, attrs, opts)
   end
 
   @doc """
@@ -816,24 +815,21 @@ defmodule Platform.Material do
   def change_media_attribute(
         %Media{} = media,
         %Attribute{} = attribute,
-        %User{} = user,
         attrs \\ %{},
-        verify_change_exists \\ true,
-        changeset \\ nil
+        opts \\ []
       ) do
     Attribute.combined_changeset(
-      changeset || media,
+      media,
       attribute,
       attrs,
-      user,
-      verify_change_exists
+      opts
     )
   end
 
   def update_media_attribute(media, %Attribute{} = attribute, attrs, user \\ nil) do
     result =
       media
-      |> Attribute.changeset(attribute, attrs, user)
+      |> Attribute.changeset(attribute, attrs, user: user)
       |> Repo.update()
 
     invalidate_attribute_values_cache()
@@ -841,9 +837,9 @@ defmodule Platform.Material do
     result
   end
 
-  def update_media_attributes(media, attributes, attrs, user \\ nil) do
+  def update_media_attributes(media, attributes, attrs, opts \\ []) do
     result =
-      change_media_attributes(media, attributes, user, attrs)
+      change_media_attributes(media, attributes, attrs, opts)
       |> Repo.update()
 
     invalidate_attribute_values_cache()
@@ -862,7 +858,7 @@ defmodule Platform.Material do
   Do an audited update of the given attributes. Will broadcast change via PubSub.
   """
   def update_media_attributes_audited(media, attributes, %User{} = user, attrs) do
-    media_changeset = change_media_attributes(media, attributes, user, attrs)
+    media_changeset = change_media_attributes(media, attributes, attrs, user: user)
 
     update_changeset =
       Updates.change_from_attributes_changeset(media, attributes, user, media_changeset, attrs)
@@ -876,7 +872,7 @@ defmodule Platform.Material do
         res =
           Repo.transaction(fn ->
             {:ok, _} = Updates.create_update_from_changeset(update_changeset)
-            {:ok, res} = update_media_attributes(media, attributes, attrs, user)
+            {:ok, res} = update_media_attributes(media, attributes, attrs, user: user)
             Updates.subscribe_if_first_interaction(media, user)
             res
           end)

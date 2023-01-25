@@ -96,13 +96,25 @@ defmodule Platform.Material.Media do
     ])
 
     # These are special attributes, since we define it at creation time. Eventually, it'd be nice to unify this logic with the attribute-specific editing logic.
-    |> Attribute.validate_attribute(Attribute.get_attribute(:description), user, true)
-    |> Attribute.validate_attribute(Attribute.get_attribute(:type), user, true)
-    |> Attribute.validate_attribute(Attribute.get_attribute(:sensitive), user, true)
-    |> Attribute.validate_attribute(Attribute.get_attribute(:equipment), user, false)
-    |> Attribute.validate_attribute(Attribute.get_attribute(:impact), user, false)
-    |> Attribute.validate_attribute(Attribute.get_attribute(:date), user, false)
-    |> Attribute.validate_attribute(Attribute.get_attribute(:general_location), user, false)
+    |> Attribute.validate_attribute(Attribute.get_attribute(:description),
+      user: user,
+      required: true
+    )
+    |> Attribute.validate_attribute(Attribute.get_attribute(:type), user: user, required: true)
+    |> Attribute.validate_attribute(Attribute.get_attribute(:sensitive),
+      user: user,
+      required: true
+    )
+    |> Attribute.validate_attribute(Attribute.get_attribute(:equipment),
+      user: user,
+      required: false
+    )
+    |> Attribute.validate_attribute(Attribute.get_attribute(:impact), user: user, required: false)
+    |> Attribute.validate_attribute(Attribute.get_attribute(:date), user: user, required: false)
+    |> Attribute.validate_attribute(Attribute.get_attribute(:general_location),
+      user: user,
+      required: false
+    )
     |> validate_project(user, media)
     |> parse_and_validate_validate_json_array(:urls, :urls_parsed)
     |> validate_url_list(:urls_parsed)
@@ -113,7 +125,10 @@ defmodule Platform.Material.Media do
         cs
         # TODO: This is a good refactoring opportunity with the logic above
         |> cast(attrs, [:attr_tags])
-        |> Attribute.validate_attribute(Attribute.get_attribute(:tags), user, false)
+        |> Attribute.validate_attribute(Attribute.get_attribute(:tags),
+          user: user,
+          required: false
+        )
       else
         cs
       end
@@ -260,7 +275,7 @@ defmodule Platform.Material.Media do
         Map.put(acc, k, v)
       end)
 
-    Attribute.combined_changeset(media, Attribute.active_attributes(), attrs, nil, false)
+    Attribute.combined_changeset(media, Attribute.active_attributes(), attrs)
   end
 
   def attribute_ratio(%Media{} = media) do
