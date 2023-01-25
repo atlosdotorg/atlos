@@ -10,6 +10,9 @@ import Config
 config :platform,
   ecto_repos: [Platform.Repo]
 
+# Feature flags
+config :platform, :features, custom_project_attributes: true
+
 # Configures the endpoint
 config :platform, PlatformWeb.Endpoint,
   url: [host: "localhost"],

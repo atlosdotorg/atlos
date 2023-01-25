@@ -16,6 +16,9 @@ config :platform, PlatformWeb.Endpoint,
 # Do not print debug messages in production
 config :logger, level: :info
 
+# Feature flags for production
+config :platform, :features, custom_project_attributes: false
+
 # ## SSL Support
 #
 # To get SSL working, you will need to add the `https` key

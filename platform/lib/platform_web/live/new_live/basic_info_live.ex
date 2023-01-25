@@ -12,14 +12,14 @@ defmodule PlatformWeb.NewLive.BasicInfoLive do
      |> assign_media()
      |> assign(:disabled, false)
      |> assign(:url_deconfliction, [])
-     |> assign_changeset()}
+     |> assign_changeset(%{"project_id" => assigns.project_id})}
   end
 
   defp assign_media(socket) do
     socket |> assign(:media, %Material.Media{})
   end
 
-  defp assign_changeset(socket, params \\ %{}, opts \\ []) do
+  defp assign_changeset(socket, params, opts \\ []) do
     cs = Material.change_media(socket.assigns.media, params, socket.assigns.current_user)
 
     cs =
@@ -119,6 +119,31 @@ defmodule PlatformWeb.NewLive.BasicInfoLive do
               media={nil}
             />
           </div>
+
+          <% projects = Platform.Projects.list_projects_for_user(@current_user) %>
+          <%= if not Enum.empty?(projects) do %>
+            <div>
+              <%= label(
+                f,
+                :project_id,
+                "Project"
+              ) %>
+              <div phx-update="ignore" id={"project_select_#{@media.slug}"}>
+                <%= select(
+                  f,
+                  :project_id,
+                  ["No Project": nil] ++ Enum.map(projects, &{"#{&1.name}", &1.id}),
+                  data_descriptions:
+                    Jason.encode!(
+                      Enum.reduce(projects, %{}, fn elem, acc ->
+                        Map.put(acc, elem.id, elem.code)
+                      end)
+                    )
+                ) %>
+              </div>
+              <%= error_tag(f, :project_id) %>
+            </div>
+          <% end %>
 
           <div class="flex flex-col gap-1">
             <label>Source Material <span class="badge ~neutral inline text-xs">Optional</span></label>

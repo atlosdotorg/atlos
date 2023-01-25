@@ -69,6 +69,10 @@ defmodule PlatformWeb.Router do
     end
   end
 
+  scope "/", PlatformWeb do
+    get("/health_check", HealthCheckController, :index)
+  end
+
   scope "/spi", PlatformWeb do
     pipe_through([:browser, :require_authenticated_user])
 
@@ -148,6 +152,15 @@ defmodule PlatformWeb.Router do
       live("/incidents/:slug/upload", MediaLive.Show, :upload)
       live("/incidents/:slug/upload/merge", MediaLive.Show, :merge)
       live("/incidents/:slug/auto_metadata", MediaLive.Show, :auto_metadata)
+      live("/incidents/:slug/project", MediaLive.Show, :project)
+
+      live("/subscriptions", SubscriptionsLive.Index)
+
+      live("/projects", ProjectsLive.Index, :index)
+      live("/projects/new", ProjectsLive.Index, :new)
+      live("/projects/:id", ProjectsLive.Show, :overview)
+      live("/projects/:id/map", ProjectsLive.Show, :map)
+      live("/projects/:id/edit", ProjectsLive.Show, :edit)
 
       live("/profile/:username", ProfilesLive.Show, :show)
       live("/profile/:username/edit", ProfilesLive.Show, :edit)

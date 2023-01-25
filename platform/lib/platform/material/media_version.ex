@@ -21,6 +21,9 @@ defmodule Platform.Material.MediaVersion do
 
     field :visibility, Ecto.Enum, default: :visible, values: [:visible, :hidden, :removed]
 
+    # Virtual field for when creating new media versions (used by Updates)
+    field :explanation, :string, virtual: true
+
     belongs_to :media, Media
 
     timestamps()
@@ -41,7 +44,8 @@ defmodule Platform.Material.MediaVersion do
       :media_id,
       :visibility,
       :scoped_id,
-      :hashes
+      :hashes,
+      :explanation
     ])
     |> validate_required([:source_url],
       message: "Please add a link."
@@ -51,6 +55,10 @@ defmodule Platform.Material.MediaVersion do
       :upload_type,
       :media_id
     ])
+    |> validate_length(:explanation,
+      max: 2500,
+      message: "Explanations cannot exceed 2500 characters."
+    )
     |> unique_constraint([:media_id, :scoped_id], name: "media_versions_scoped_id_index")
   end
 

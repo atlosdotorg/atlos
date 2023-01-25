@@ -6,7 +6,12 @@ export const InfiniteScroll = {
         const target = entries[0];
         if (target.isIntersecting && this.pending == this.page()) {
             this.pending = this.page() + 1;
-            this.pushEvent("load_more", {});
+            let target = this.el.getAttribute("phx-target");
+            if (target) {
+                this.pushEventTo(target, "load_more", {});
+            } else {
+                this.pushEvent("load_more", {});
+            }
         }
     },
     mounted() {

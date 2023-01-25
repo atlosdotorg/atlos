@@ -112,9 +112,9 @@ defmodule PlatformWeb.MediaLive.MergeVersionsLive do
             <%= label(
               f,
               :destination,
-              "What is the slug (ATL code) of the incident to merge media into?"
+              "What is the slug (code) of the incident to merge media into?"
             ) %>
-            <%= text_input(f, :destination, placeholder: "E.g., ATL-123456", phx_debounce: "250") %>
+            <%= text_input(f, :destination, placeholder: "E.g., 123456", phx_debounce: "250") %>
             <p class="support">
               Media from <%= @source.slug %> will be copied to this incident.
             </p>

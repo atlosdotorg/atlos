@@ -13,16 +13,30 @@ defmodule Platform.Updates.Update do
     field :attachments, {:array, :string}
 
     field :type, Ecto.Enum,
-      values: [:update_attribute, :create, :upload_version, :comment, :delete, :undelete]
+      values: [
+        :update_attribute,
+        :create,
+        :upload_version,
+        :comment,
+        :delete,
+        :undelete,
+        :add_project,
+        :change_project,
+        :remove_project
+      ]
 
     # Used for attribute updates
     field :modified_attribute, Ecto.Enum, nullable: true, values: Attribute.attribute_names()
-    # JSON-encoded data
+    # JSON-encoded data, used for attribute changes
     field :new_value, :string, default: "null"
-    # JSON-encoded data
+    # JSON-encoded data, used for attribute changes
     field :old_value, :string, default: "null"
 
     field :hidden, :boolean, default: false
+
+    # Used for project changes
+    belongs_to :old_project, Platform.Projects.Project, type: :binary_id
+    belongs_to :new_project, Platform.Projects.Project, type: :binary_id
 
     # General association metadata
     belongs_to :user, Platform.Accounts.User
@@ -58,7 +72,9 @@ defmodule Platform.Updates.Update do
         :media_id,
         :media_version_id,
         # TODO: does this being here allow anyone to sneak `:hidden` in when creating an update? Not a big deal, but worth investigating.
-        :hidden
+        :hidden,
+        :old_project_id,
+        :new_project_id
       ])
       |> validate_required([:old_value, :new_value, :type, :user_id, :media_id])
       |> validate_explanation()

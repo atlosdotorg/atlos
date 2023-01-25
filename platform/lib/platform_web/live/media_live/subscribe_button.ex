@@ -11,7 +11,14 @@ defmodule PlatformWeb.MediaLive.SubscribeButton do
      socket
      |> assign(assigns)
      |> assign(:subscription, Material.get_subscription(media, user))
-     |> assign(:count, Material.total_subscribed!(media))}
+     |> assign(:count, Material.total_subscribed!(media))
+     |> assign_new(:subscribed_label, fn -> "Subscribed" end)
+     |> assign_new(:not_subscribed_label, fn -> "Subscribe" end)
+     |> assign_new(:show_icon, fn -> true end)
+     |> assign_new(:js_on_subscribe, fn -> "" end)
+     |> assign_new(:js_on_unsubscribe, fn -> "" end)
+     |> assign_new(:subscribed_classes, fn -> "" end)
+     |> assign_new(:not_subscribed_classes, fn -> "" end)}
   end
 
   def handle_event("subscribe", _input, socket) do
@@ -19,8 +26,7 @@ defmodule PlatformWeb.MediaLive.SubscribeButton do
       {:ok, subscription} ->
         {:noreply,
          socket
-         |> assign(:subscription, subscription)
-         |> assign(:count, Material.total_subscribed!(socket.assigns.media))}
+         |> assign(:subscription, subscription)}
 
       {:error, _} ->
         # TODO: throw some kind of error?
@@ -33,8 +39,7 @@ defmodule PlatformWeb.MediaLive.SubscribeButton do
       :ok ->
         {:noreply,
          socket
-         |> assign(:subscription, nil)
-         |> assign(:count, Material.total_subscribed!(socket.assigns.media))}
+         |> assign(:subscription, nil)}
 
       :error ->
         # TODO: throw some kind of error?
@@ -44,45 +49,32 @@ defmodule PlatformWeb.MediaLive.SubscribeButton do
 
   def render(assigns) do
     ~H"""
-    <div>
+    <div class="flex items-center">
       <%= if @subscription do %>
-        <button type="button" class="button ~urge @high" phx-click="unsubscribe" phx-target={@myself}>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-5 w-5 mr-1"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            stroke-width="2"
-          >
-            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-          </svg>
-          Subscribed
-          <span class="ml-2 bg-urge-800 text-xs rounded-full px-2 py-px">
-            <%= @count %>
-          </span>
+        <button
+          type="button"
+          class={"text-sm inline-flex items-center gap-px " <> @subscribed_classes}
+          phx-click="unsubscribe"
+          phx-target={@myself}
+          x-on:click={@js_on_unsubscribe}
+        >
+          <%= if @show_icon do %>
+            <Heroicons.check mini class="h-5 w-5" />
+          <% end %>
+          <%= @subscribed_label %>
         </button>
       <% else %>
-        <button type="button" class="base-button" phx-click="subscribe" phx-target={@myself}>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-5 w-5 mr-1 text-gray-500"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            stroke-width="2"
-          >
-            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-            />
-          </svg>
-          Subscribe
-          <span class="ml-2 bg-neutral-200 text-xs rounded-full px-2 py-px">
-            <%= @count %>
-          </span>
+        <button
+          type="button"
+          class={"text-sm inline-flex items-center gap-px " <> @not_subscribed_classes}
+          phx-click="subscribe"
+          phx-target={@myself}
+          x-on:click={@js_on_subscribe}
+        >
+          <%= if @show_icon do %>
+            <Heroicons.plus_small mini class="h-5 w-5" />
+          <% end %>
+          <%= @not_subscribed_label %>
         </button>
       <% end %>
     </div>

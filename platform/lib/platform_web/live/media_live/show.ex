@@ -16,14 +16,19 @@ defmodule PlatformWeb.MediaLive.Show do
   end
 
   def handle_params(%{"slug" => slug} = params, _uri, socket) do
-    {:noreply,
-     socket
-     |> assign(:slug, slug)
-     |> assign(:attribute, Map.get(params, "attribute"))
-     |> assign(:title, "Incident #{slug}")
-     # This forces the comment box to be fully rerendered on submit
-     #  |> assign(:comment_box_id, Utils.generate_random_sequence(10))
-     |> assign_media_and_updates()}
+    if Material.get_raw_slug(slug) != slug do
+      {:noreply,
+       socket
+       |> redirect(to: "/incidents/#{Material.get_raw_slug(slug)}")}
+    else
+      {:noreply,
+       socket
+       |> assign(:full_width, true)
+       |> assign(:slug, slug)
+       |> assign(:attribute, Map.get(params, "attribute"))
+       |> assign(:title, "Incident #{slug}")
+       |> assign_media_and_updates()}
+    end
   end
 
   defp filter_editable(attributes, media, %User{} = user) do
@@ -58,6 +63,7 @@ defmodule PlatformWeb.MediaLive.Show do
 
       socket
       |> assign(:media, media)
+      |> assign(:active_project, media.project)
       |> assign(:updates, media.updates |> Enum.sort_by(& &1.inserted_at))
       |> subscribe_to_media(media)
     else
@@ -133,18 +139,43 @@ defmodule PlatformWeb.MediaLive.Show do
       {:noreply,
        socket
        |> assign_media_and_updates()
-       |> put_flash(:info, "Media deletion status changed successfully.")
+       |> put_flash(:info, if(media.deleted, do: "Incident deleted.", else: "Incident restored."))
        |> assign(:media, media)}
     end
   end
 
-  def handle_info({:version_created, _version}, socket) do
+  def handle_info({:version_add_complete, version}, socket) do
     {:noreply,
      socket
-     |> put_flash(
-       :info,
-       "Added media successfully. Atlos will archive and process it in the background."
-     )
+     |> then(fn x ->
+       if is_nil(version),
+         do: x,
+         else:
+           put_flash(
+             x,
+             :info,
+             "Added media successfully. Atlos will archive and process it in the background."
+           )
+     end)
+     |> push_patch(
+       to: Routes.media_show_path(socket, :show, socket.assigns.media.slug),
+       replace: true
+     )}
+  end
+
+  def handle_info({:project_change_complete, media}, socket) do
+    {:noreply,
+     socket
+     |> then(fn x ->
+       if is_nil(media),
+         do: x,
+         else:
+           put_flash(
+             x,
+             :info,
+             "Project changed successfully."
+           )
+     end)
      |> push_patch(
        to: Routes.media_show_path(socket, :show, socket.assigns.media.slug),
        replace: true
