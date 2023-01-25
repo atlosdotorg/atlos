@@ -444,14 +444,17 @@ defmodule Platform.Material.Attribute do
   @doc """
   Get the names of the attributes that are available for the given media. Both nil and the empty list count as unset.
   """
-  def set_for_media(media, pane \\ nil) do
+  def set_for_media(media, opts \\ []) do
+    pane = Keyword.get(opts, :pane)
+
     Enum.filter(attributes(), fn attr ->
       val = Map.get(media, attr.schema_field)
       val != nil && val != [] && (pane == nil || attr.pane == pane) && attr.deprecated != true
     end)
   end
 
-  def unset_for_media(media, pane \\ nil) do
+  def unset_for_media(media, opts \\ []) do
+    pane = Keyword.get(opts, :pane)
     set = set_for_media(media)
 
     attributes()

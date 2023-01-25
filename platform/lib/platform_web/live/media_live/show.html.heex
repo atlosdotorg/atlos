@@ -224,9 +224,9 @@
           </:header>
           <div class="border-gray-200">
             <.attr_display_block
-              set_attrs={Attribute.set_for_media(@media, :attributes)}
+              set_attrs={Attribute.set_for_media(@media, pane: :attributes)}
               unset_attrs={
-                Attribute.unset_for_media(@media, :attributes)
+                Attribute.unset_for_media(@media, pane: :attributes)
                 |> filter_editable(@media, @current_user)
               }
               media={@media}
@@ -267,9 +267,9 @@
           </:header>
           <div class="border-gray-200">
             <.attr_display_block
-              set_attrs={Attribute.set_for_media(@media, :metadata)}
+              set_attrs={Attribute.set_for_media(@media, pane: :metadata)}
               unset_attrs={
-                Attribute.unset_for_media(@media, :metadata)
+                Attribute.unset_for_media(@media, pane: :metadata)
                 |> filter_editable(@media, @current_user)
               }
               media={@media}
