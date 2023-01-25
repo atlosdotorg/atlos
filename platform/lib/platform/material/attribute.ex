@@ -486,6 +486,9 @@ defmodule Platform.Material.Attribute do
       if include_renamed_attributes, do: Map.keys(renamed_attributes()), else: []
   end
 
+  @doc """
+  Get an attribute by its name. Will check whether the attribute has been renamed.
+  """
   def get_attribute(name) do
     # Some attributes have been renamed; this allows us to keep updates
     # that reference the old name working.
@@ -499,6 +502,9 @@ defmodule Platform.Material.Attribute do
     Enum.find(attributes(), &(&1.name |> to_string() == real_name))
   end
 
+  @doc """
+  Get an attribute by its schema field name.
+  """
   def get_attribute_by_schema_field(name) do
     name = name |> to_string()
     Enum.find(attributes(), &(&1.schema_field |> to_string() == name))
