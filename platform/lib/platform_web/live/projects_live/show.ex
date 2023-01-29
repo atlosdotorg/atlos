@@ -201,25 +201,11 @@ defmodule PlatformWeb.ProjectsLive.Show do
                 # Stringify to avoid floating point issues
                 lat: "#{lat}",
                 lon: "#{lon}",
-                type: Material.get_media_organization_type(item)
+                color: @project.color
               }
             end) %>
           <div class="w-full h-full">
-            <map-events
-              lat="35"
-              lon="35"
-              zoom="3"
-              id="map_events"
-              container-id="map_events_container"
-              data={Jason.encode!(map_data)}
-            />
-            <section
-              class="fixed h-screen w-screen left-0 top-0 bottom-0"
-              id="map"
-              phx-update="ignore"
-            >
-              <map-container id="map_events_container" />
-            </section>
+            <.map_events map_data={map_data} />
           </div>
         <% end %>
         <%= if @live_action == :edit do %>
