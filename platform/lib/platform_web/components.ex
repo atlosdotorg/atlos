@@ -3283,4 +3283,31 @@ defmodule PlatformWeb.Components do
     </.link>
     """
   end
+
+  attr :map_data, :list
+
+  def map_events(assigns) do
+    # Note: interactivity is setup by `app.js` when initializing the map client-side
+    ~H"""
+    <map-events
+      lat="35"
+      lon="35"
+      zoom="3"
+      id="map_events"
+      container-id="map_events_container"
+      data={Jason.encode!(@map_data)}
+    />
+    <section
+      class="fixed relative h-screen w-screen left-0 top-0 bottom-0"
+      id="map"
+      phx-update="ignore"
+      x-data="{style: 'overview'}"
+    >
+      <map-container id="map_events_container" x-ref="container" />
+      <button class="rounded-full bg-white border shadow h-10 w-10 flex items-center justify-around fixed bottom-0 right-0 mb-8 mr-4 layer-toggle-button">
+        <Heroicons.map mini class="h-5 w-5" />
+      </button>
+    </section>
+    """
+  end
 end

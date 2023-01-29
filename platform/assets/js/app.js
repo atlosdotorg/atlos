@@ -285,9 +285,6 @@ function initializeMaps() {
         });
 
         let initializeLayers = () => {
-            if (!map.loaded()) {
-                return;
-            }
             let elem = document.getElementById(s.id); // 's' might have changed, but its ID hasn't
 
             if (map.getLayer('incidents')) {
@@ -390,6 +387,8 @@ function initializeMaps() {
                     "zoom": zoom
                 });
             });
+
+            console.log("Done initializing layers!")
         };
 
         map.on("load", initializeLayers);
@@ -398,6 +397,16 @@ function initializeMaps() {
         document.addEventListener("resize", () => {
             map.resize();
         });
+
+        // Setup layer toggle button
+        container.parentElement.querySelector(".layer-toggle-button").addEventListener("click", () => {
+            map.on("style.load", initializeLayers);
+            if (map.getStyle().name == "Mapbox Satellite Streets") {
+                map.setStyle('mapbox://styles/milesmcc/cl89ukz84000514oebbd92bjm');
+            } else {
+                map.setStyle('mapbox://styles/mapbox/satellite-streets-v11');
+            }
+        })
 
         s.classList.add("map-initialized");
     });

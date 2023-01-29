@@ -25,7 +25,7 @@
                 lat: "#{lat}",
                 lon: "#{lon}",
                 type: Material.get_media_organization_type(item),
-                color: if(item.project, do: item.project.color, else: "#475569")
+                color: if(item.project, do: item.project.color, else: "#38bdf8")
               }
             end) %>
           <% nongeolocated_length = length(@media) - length(map_data) %>
@@ -48,21 +48,7 @@
               </div>
             <% end %>
           </div>
-          <map-events
-            lat="35"
-            lon="35"
-            zoom="3"
-            id="map_events"
-            container-id="map_events_container"
-            data={Jason.encode!(map_data)}
-          />
-          <section
-            class="fixed h-screen w-screen left-0 top-0 bottom-0"
-            id="map"
-            phx-update="ignore"
-          >
-            <map-container id="map_events_container" />
-          </section>
+          <.map_events map_data={map_data} />
         <% "cards" -> %>
           <div class="grid gap-4 grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 search-highlighting">
             <%= for media <- @media do %>
