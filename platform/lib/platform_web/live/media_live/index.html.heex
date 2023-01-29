@@ -24,7 +24,8 @@
                 # Stringify to avoid floating point issues
                 lat: "#{lat}",
                 lon: "#{lon}",
-                type: Material.get_media_organization_type(item)
+                type: Material.get_media_organization_type(item),
+                color: if(item.project, do: item.project.color, else: "#475569")
               }
             end) %>
           <% nongeolocated_length = length(@media) - length(map_data) %>

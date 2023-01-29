@@ -26,6 +26,7 @@ defmodule Platform.Material do
     |> preload_media_versions()
     |> preload_media_updates()
     |> preload_media_project()
+    |> dbg()
     |> then(fn x ->
       case Keyword.get(opts, :for_user) do
         nil -> x
