@@ -35,6 +35,13 @@ defmodule Platform.Material do
     end)
   end
 
+  defp load_media_color(query) do
+    # Populate the `display_color` virtual attribute
+    query
+    |> join(:left, [m, p], p in assoc(m, :project))
+    |> select_merge([m, p], %{display_color: p.color})
+  end
+
   @doc """
   Returns the list of media. Will preload the versions and updates.
 
@@ -58,6 +65,7 @@ defmodule Platform.Material do
     # - limit_to_subscriptions -- restrict to incidents the user is subscribed to
 
     query
+    |> load_media_color()
     |> then(fn q ->
       if Keyword.get(opts, :hydrate, true), do: hydrate_media_query(q, opts), else: q
     end)

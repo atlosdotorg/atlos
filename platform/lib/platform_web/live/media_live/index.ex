@@ -33,7 +33,8 @@ defmodule PlatformWeb.MediaLive.Index do
     results =
       search_media(socket, changeset,
         # Ideally we would put these params in search_media, but since this is map-specific logic, it'll only be called here (it's not possible to "load more" on the map)
-        limit: if(display == "map", do: 100_000, else: 50)
+        limit: if(display == "map", do: 100_000, else: 50),
+        hydrate: display != "map"
       )
 
     {:noreply,
