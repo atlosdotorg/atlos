@@ -281,7 +281,7 @@ function initializeMaps() {
         let style = persistedMapData["style"] || s.getAttribute("style") || defaultStyle;
 
         if (!style.startsWith("mapbox://")) {
-            style = defaultStyle
+            style = defaultStyle;
         }
 
         let map = new mapboxgl.Map({

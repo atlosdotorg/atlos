@@ -36,10 +36,10 @@ defmodule Platform.Material do
   end
 
   defp load_media_color(query) do
-    # Populate the `display_color` virtual attribute
+    # Populate the `display_color` virtual attribute.
     query
-    |> join(:left, [m, p], p in assoc(m, :project))
-    |> select_merge([m, p], %{display_color: p.color})
+    |> join(:left, [m], m in assoc(m, :project), as: :project)
+    |> select_merge([m, project: p], %{display_color: p.color})
   end
 
   @doc """
@@ -65,7 +65,6 @@ defmodule Platform.Material do
     # - limit_to_subscriptions -- restrict to incidents the user is subscribed to
 
     query
-    |> load_media_color()
     |> then(fn q ->
       if Keyword.get(opts, :hydrate, true), do: hydrate_media_query(q, opts), else: q
     end)
@@ -76,6 +75,7 @@ defmodule Platform.Material do
         q
       end
     end)
+    |> load_media_color()
     |> order_by(desc: :inserted_at)
     |> distinct(true)
   end
