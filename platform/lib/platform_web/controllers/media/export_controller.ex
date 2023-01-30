@@ -61,7 +61,8 @@ defmodule PlatformWeb.ExportController do
         results
         |> Enum.map(fn media ->
           length(media.versions |> Enum.filter(&(&1.visibility == :visible)))
-        end)
+        end),
+        fn -> 0 end
       )
 
     Temp.track!()
