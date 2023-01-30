@@ -273,16 +273,34 @@ function initializeMaps() {
             return;
         }
 
+        let defaultStyle = "mapbox://styles/milesmcc/cl89ukz84000514oebbd92bjm";
+
         let lon = persistedMapData["lon"] || parseFloat(s.getAttribute("lon"));
         let lat = persistedMapData["lat"] || parseFloat(s.getAttribute("lat"));
         let zoom = persistedMapData["zoom"] || parseFloat(s.getAttribute("zoom") || 6);
+        let style = persistedMapData["style"] || s.getAttribute("style") || defaultStyle;
+
+        if (!style.startsWith("mapbox://")) {
+            style = defaultStyle
+        }
 
         let map = new mapboxgl.Map({
             container: containerID,
-            style: 'mapbox://styles/milesmcc/cl89ukz84000514oebbd92bjm',
+            style: style,
             center: [lon, lat],
             zoom: zoom
         });
+
+        let updateMapHashState = () => {
+            let center = map.getCenter();
+            let zoom = map.getZoom();
+            setURLHashState("map-" + containerID, {
+                "lon": center.lng,
+                "lat": center.lat,
+                "zoom": zoom,
+                "style": style
+            });
+        }
 
         let initializeLayers = () => {
             let elem = document.getElementById(s.id); // 's' might have changed, but its ID hasn't
@@ -379,13 +397,7 @@ function initializeMaps() {
 
             // Update the persisted browser state on move
             map.on("move", () => {
-                let center = map.getCenter();
-                let zoom = map.getZoom();
-                setURLHashState("map-" + containerID, {
-                    "lon": center.lng,
-                    "lat": center.lat,
-                    "zoom": zoom
-                });
+                updateMapHashState()
             });
 
             console.log("Done initializing layers!")
@@ -402,10 +414,11 @@ function initializeMaps() {
         container.parentElement.querySelector(".layer-toggle-button").addEventListener("click", () => {
             map.on("style.load", initializeLayers);
             if (map.getStyle().name == "Mapbox Satellite Streets") {
-                map.setStyle('mapbox://styles/milesmcc/cl89ukz84000514oebbd92bjm');
+                style = 'mapbox://styles/milesmcc/cl89ukz84000514oebbd92bjm'
             } else {
-                map.setStyle('mapbox://styles/mapbox/satellite-streets-v11');
+                style = 'mapbox://styles/mapbox/satellite-streets-v11'
             }
+            map.setStyle(style)
         })
 
         s.classList.add("map-initialized");
