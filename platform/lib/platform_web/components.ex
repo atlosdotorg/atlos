@@ -3305,7 +3305,7 @@ defmodule PlatformWeb.Components do
     >
       <map-container id="map_events_container" x-ref="container" />
       <button class="rounded-full bg-white border shadow h-10 w-10 flex items-center justify-around fixed bottom-0 right-0 mb-8 mr-4 layer-toggle-button">
-        <Heroicons.map mini class="opacity-75 h-5 w-5" />
+        <Heroicons.square_3_stack_3d mini class="opacity-75 h-5 w-5" />
       </button>
     </section>
     """
