@@ -3293,27 +3293,8 @@ defmodule PlatformWeb.Components do
 
     {lat, lon} =
       if Enum.count(map_data) > 0 do
-        average_lat =
-          map_data
-          |> Enum.map(& &1[:lat])
-          |> Enum.map(&Float.parse/1)
-          |> Enum.map(fn {n, ""} -> n end)
-          |> Enum.sum()
-          |> Kernel./(Enum.count(map_data))
-          |> max(-90)
-          |> min(90)
-
-        average_lon =
-          map_data
-          |> Enum.map(& &1[:lon])
-          |> Enum.map(&Float.parse/1)
-          |> Enum.map(fn {n, ""} -> n end)
-          |> Enum.sum()
-          |> Kernel./(Enum.count(map_data))
-          |> max(-90)
-          |> min(90)
-
-        {average_lat, average_lon}
+        first = map_data |> Enum.at(0)
+        {first[:lat], first[:lon]}
       else
         {35, 35}
       end
