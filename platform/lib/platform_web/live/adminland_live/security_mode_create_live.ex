@@ -44,7 +44,7 @@ defmodule PlatformWeb.AdminlandLive.SecurityModeCreateLive do
     else
       {:error, changeset} -> {:noreply, socket |> assign(:changeset, changeset)}
       # Should never be hit
-      _ -> raise "no permission to change security mode"
+      _ -> raise PlatformWeb.Errors.Unauthorized, "no permission to change security mode"
     end
   end
 
