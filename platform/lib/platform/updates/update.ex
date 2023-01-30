@@ -26,7 +26,14 @@ defmodule Platform.Updates.Update do
       ]
 
     # Used for attribute updates
-    field :modified_attribute, Ecto.Enum, nullable: true, values: Attribute.attribute_names()
+    field :modified_attribute, Ecto.Enum,
+      nullable: true,
+      values:
+        Attribute.attribute_names(
+          include_renamed_attributes: true,
+          include_deprecated_attributes: true
+        )
+
     # JSON-encoded data, used for attribute changes
     field :new_value, :string, default: "null"
     # JSON-encoded data, used for attribute changes
