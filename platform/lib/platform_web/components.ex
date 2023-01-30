@@ -3288,10 +3288,42 @@ defmodule PlatformWeb.Components do
 
   def map_events(assigns) do
     # Note: interactivity is setup by `app.js` when initializing the map client-side
+
+    map_data = assigns[:map_data]
+
+    {lat, lon} =
+      if Enum.count(map_data) > 0 do
+        average_lat =
+          map_data
+          |> Enum.map(& &1[:lat])
+          |> Enum.map(&Float.parse/1)
+          |> Enum.map(fn {n, ""} -> n end)
+          |> Enum.sum()
+          |> Kernel./(Enum.count(map_data))
+          |> max(-90)
+          |> min(90)
+
+        average_lon =
+          map_data
+          |> Enum.map(& &1[:lon])
+          |> Enum.map(&Float.parse/1)
+          |> Enum.map(fn {n, ""} -> n end)
+          |> Enum.sum()
+          |> Kernel./(Enum.count(map_data))
+          |> max(-90)
+          |> min(90)
+
+        {average_lat, average_lon}
+      else
+        {35, 35}
+      end
+
+    assigns = assign(assigns, :lat, lat) |> assign(:lon, lon)
+
     ~H"""
     <map-events
-      lat="35"
-      lon="35"
+      lat={@lat}
+      lon={@lon}
       zoom="3"
       id="map_events"
       container-id="map_events_container"
