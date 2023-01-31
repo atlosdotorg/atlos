@@ -26,7 +26,6 @@ defmodule Platform.Material do
     |> preload_media_versions()
     |> preload_media_updates()
     |> preload_media_project()
-    |> dbg()
     |> then(fn x ->
       case Keyword.get(opts, :for_user) do
         nil -> x
@@ -107,28 +106,28 @@ defmodule Platform.Material do
 
     filter_user =
       if not is_nil(user) do
-        dynamic([m, u], u.user_id == ^user.id)
+        dynamic([m, update: u], u.user_id == ^user.id)
       else
         true
       end
 
     filter_project_id =
       if not is_nil(project_id) do
-        dynamic([m, u], m.project_id == ^project_id)
+        dynamic([m, update: u], m.project_id == ^project_id)
       else
         true
       end
 
     query =
       Media
-      |> join(:left, [m], u in assoc(m, :updates))
-      |> where([m, u], ^filter_user)
-      |> where([m, u], ^filter_project_id)
-      |> order_by([m, u], desc: u.inserted_at)
-      |> preload([m, u], updates: u)
-      |> preload([m, u], updates: [media: [:project]])
-      |> select_merge([m, u], %{last_update_time: u.inserted_at})
-      |> order_by([m, u], desc: m.id)
+      |> join(:left, [m], u in assoc(m, :updates), as: :update)
+      |> where([m, update: u], ^filter_user)
+      |> where([m, update: u], ^filter_project_id)
+      |> order_by([m, update: u], desc: u.inserted_at)
+      |> preload([m, update: u], updates: u)
+      |> preload([m, update: u], updates: [media: [:project]])
+      |> select_merge([m, update: u], %{last_update_time: u.inserted_at})
+      |> order_by([m, update: u], desc: m.id)
       |> limit(^Keyword.get(opts, :limit, 25))
       |> offset(^Keyword.get(opts, :offset, 0))
 
@@ -190,10 +189,12 @@ defmodule Platform.Material do
   end
 
   defp apply_user_fields(media_query, %User{} = user, opts) do
-    from m in media_query,
+    from(m in media_query,
       left_join: n in Platform.Notifications.Notification,
+      as: :notification,
       on: n.media_id == m.id and n.user_id == ^user.id and not n.read,
       left_join: s in Platform.Material.MediaSubscription,
+      as: :subscription,
       on: s.media_id == m.id and s.user_id == ^user.id,
       select_merge: %{
         has_unread_notification: not is_nil(n),
@@ -201,6 +202,7 @@ defmodule Platform.Material do
       },
       where: ^(not Keyword.get(opts, :limit_to_unread_notifications, false)) or not is_nil(n),
       where: ^(not Keyword.get(opts, :limit_to_subscriptions, false)) or not is_nil(s)
+    )
   end
 
   @doc """
@@ -541,17 +543,19 @@ defmodule Platform.Material do
   """
   def count_media_versions_for_media_id(media_id) do
     Repo.one(
-      from v in MediaVersion,
+      from(v in MediaVersion,
         where: v.media_id == ^media_id,
         select: count("*")
+      )
     )
   end
 
   def get_media_versions_by_source_url(url) do
     Repo.all(
-      from v in MediaVersion,
+      from(v in MediaVersion,
         where: v.source_url == ^url,
         preload: [media: [[updates: :user], :versions, :project]]
+      )
     )
     |> Enum.sort_by(& &1.media.id)
     |> Enum.dedup_by(& &1.media.id)
@@ -559,8 +563,9 @@ defmodule Platform.Material do
 
   def get_media_versions_by_media(%Media{} = media) do
     Repo.all(
-      from v in MediaVersion,
+      from(v in MediaVersion,
         where: v.media_id == ^media.id
+      )
     )
   end
 
@@ -932,9 +937,10 @@ defmodule Platform.Material do
 
   def get_subscribers(%Media{} = media) do
     Repo.all(
-      from w in MediaSubscription,
+      from(w in MediaSubscription,
         where: w.media_id == ^media.id,
         preload: :user
+      )
     )
     |> Enum.map(& &1.user)
   end
@@ -942,9 +948,10 @@ defmodule Platform.Material do
   def total_subscribed!(%Media{} = media) do
     [count] =
       Repo.all(
-        from w in MediaSubscription,
+        from(w in MediaSubscription,
           where: w.media_id == ^media.id,
           select: count()
+        )
       )
 
     count
@@ -953,9 +960,10 @@ defmodule Platform.Material do
   def total_media_in_project!(%Projects.Project{} = project) do
     [count] =
       Repo.all(
-        from m in Media,
+        from(m in Media,
           where: m.project_id == ^project.id,
           select: count()
+        )
       )
 
     count
