@@ -3016,7 +3016,7 @@ defmodule PlatformWeb.Components do
           <.user_name_display user={@user} />
           <p class="text-neutral-600">
             <%= if is_nil(@user.bio) or String.length(@user.bio |> String.trim()) == 0,
-              do: "This user has not provided a bio.",
+              do: "",
               else: @user.bio %>
           </p>
         </div>
