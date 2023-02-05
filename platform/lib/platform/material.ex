@@ -866,7 +866,7 @@ defmodule Platform.Material do
       :project_attributes ->
         media
         |> Map.get(:project_attributes, [])
-        |> Enum.find(fn pa -> pa.attribute_id == attr.name end)
+        |> Enum.find(fn pa -> pa.id == attr.name end)
         |> case do
           nil -> nil
           %Platform.Material.Media.ProjectAttributeValue{value: value} -> value

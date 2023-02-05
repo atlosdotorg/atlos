@@ -145,7 +145,7 @@ defmodule Platform.Updates do
     cond do
       attr.schema_field == :project_attributes ->
         Ecto.Changeset.get_field(changeset, :project_attributes)
-        |> Enum.find(%{value: nil}, &(&1.attribute_id == attr.name))
+        |> Enum.find(%{value: nil}, &(&1.id == attr.name))
         |> Map.get(:value)
 
       true ->
@@ -157,7 +157,8 @@ defmodule Platform.Updates do
     cond do
       attr.schema_field == :project_attributes ->
         Map.get(media, :project_attributes, [])
-        |> Enum.find(&(&1.attribute_id == attr.name))
+        |> Enum.find(%{value: nil}, &(&1.id == attr.name))
+        |> Map.get(:value)
 
       true ->
         Map.get(media, attr.schema_field)
@@ -180,6 +181,7 @@ defmodule Platform.Updates do
       |> Enum.map(&{key_for_attribute(&1), value_for_attribute(&1, media)})
       |> Map.new()
       |> Map.put("_combined", true)
+      |> dbg()
       |> Jason.encode!()
 
     new_value =

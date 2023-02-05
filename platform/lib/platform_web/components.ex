@@ -523,7 +523,7 @@ defmodule PlatformWeb.Components do
     """
   end
 
-  attr :project, Platform.Projects.Project, required: false
+  attr(:project, Platform.Projects.Project, required: false)
 
   def project_text(assigns) do
     ~H"""
@@ -607,7 +607,7 @@ defmodule PlatformWeb.Components do
 
       attributes =
         update
-        |> Enum.map(&Attribute.get_attribute(&1.modified_attribute))
+        |> Enum.map(&Attribute.get_attribute(&1.modified_attribute, project: &1.media.project))
         |> Enum.sort()
         |> Enum.uniq()
 
@@ -1216,7 +1216,12 @@ defmodule PlatformWeb.Components do
             <div class={"chip #{@tone} flex items-center gap-1 inline-block self-start break-all xl:break-normal"}>
               <.attribute_icon name={@name} type={:solid} value={@value} class="h-4 w-4 shrink-0" />
               <.attr_label label={@label} />
-              <%= @value |> Calendar.strftime("%d %B %Y") %>
+              <%= case @value do %>
+                <% %Date{} -> %>
+                  <%= @value |> Calendar.strftime("%d %B %Y") %>
+                <% _ -> %>
+                  <%= @value %>
+              <% end %>
             </div>
           </div>
       <% end %>
@@ -3307,7 +3312,7 @@ defmodule PlatformWeb.Components do
     """
   end
 
-  attr :map_data, :list
+  attr(:map_data, :list)
 
   def map_events(assigns) do
     # Note: interactivity is setup by `app.js` when initializing the map client-side

@@ -12,25 +12,26 @@ defmodule Platform.Material.Media do
 
   schema "media" do
     # Core uneditable data
-    field :slug, :string, autogenerate: {Utils, :generate_media_slug, []}
-    field :deleted, :boolean, default: false
+    field(:slug, :string, autogenerate: {Utils, :generate_media_slug, []})
+    field(:deleted, :boolean, default: false)
 
     # Core Attributes
-    field :attr_description, :string
-    field :attr_geolocation, Geo.PostGIS.Geometry
-    field :attr_geolocation_resolution, :string
-    field :attr_more_info, :string
-    field :attr_general_location, :string
-    field :attr_date, :date
-    field :attr_type, {:array, :string}
-    field :attr_impact, {:array, :string}
-    field :attr_equipment, {:array, :string}
+    field(:attr_description, :string)
+    field(:attr_geolocation, Geo.PostGIS.Geometry)
+    field(:attr_geolocation_resolution, :string)
+    field(:attr_more_info, :string)
+    field(:attr_general_location, :string)
+    field(:attr_date, :date)
+    field(:attr_type, {:array, :string})
+    field(:attr_impact, {:array, :string})
+    field(:attr_equipment, {:array, :string})
 
+    # The ID (primary key) must match the ID of the attribute
+    @primary_key {:id, :binary_id, autogenerate: false}
     embeds_many :project_attributes, ProjectAttributeValue do
-      belongs_to :project, Projects.Project, type: :binary_id
-      field :attribute_id, :binary_id, primary_key: true
-      field :value, Platform.FlexibleJSONType, default: nil
-      field :explanation, :string, virtual: true
+      belongs_to(:project, Projects.Project, type: :binary_id)
+      field(:value, Platform.FlexibleJSONType, default: nil)
+      field(:explanation, :string, virtual: true)
     end
 
     # Deprecated attributes (that still live in the database)
@@ -46,38 +47,38 @@ defmodule Platform.Material.Media do
     # field :attr_time_recorded, :time
 
     # Metadata Attributes
-    field :attr_restrictions, {:array, :string}
-    field :attr_sensitive, {:array, :string}
-    field :attr_status, :string
-    field :attr_tags, {:array, :string}
+    field(:attr_restrictions, {:array, :string})
+    field(:attr_sensitive, {:array, :string})
+    field(:attr_status, :string)
+    field(:attr_tags, {:array, :string})
 
     # Automatically-generated Metadata
-    field :auto_metadata, :map, default: %{}
+    field(:auto_metadata, :map, default: %{})
 
     # Virtual attributes for updates + multi-part attributes
-    field :explanation, :string, virtual: true
-    field :location, :string, virtual: true
+    field(:explanation, :string, virtual: true)
+    field(:location, :string, virtual: true)
     # For the input value from the client (JSON array)
-    field :urls, :string, virtual: true
+    field(:urls, :string, virtual: true)
     # For the internal, parsed representation
-    field :urls_parsed, {:array, :string}, virtual: true
+    field(:urls_parsed, {:array, :string}, virtual: true)
 
     # Virtual attributes for population during querying
-    field :has_unread_notification, :boolean, virtual: true, default: false
-    field :has_subscription, :boolean, virtual: true, default: false
-    field :display_color, :string, virtual: true
+    field(:has_unread_notification, :boolean, virtual: true, default: false)
+    field(:has_subscription, :boolean, virtual: true, default: false)
+    field(:display_color, :string, virtual: true)
 
     # Refers to the post date of the most recent associated update -- this is distinct from `updated_at`
-    field :last_update_time, :utc_datetime, virtual: true
+    field(:last_update_time, :utc_datetime, virtual: true)
 
     # Metadata
     timestamps()
 
     # Associations
-    has_many :versions, Platform.Material.MediaVersion
-    has_many :updates, Platform.Updates.Update
-    has_many :subscriptions, MediaSubscription
-    belongs_to :project, Platform.Projects.Project, type: :binary_id
+    has_many(:versions, Platform.Material.MediaVersion)
+    has_many(:updates, Platform.Updates.Update)
+    has_many(:subscriptions, MediaSubscription)
+    belongs_to(:project, Platform.Projects.Project, type: :binary_id)
   end
 
   @doc false
@@ -398,20 +399,24 @@ defmodule Platform.Material.Media do
   """
   def text_search(search_terms, queryable \\ Media) do
     media_via_associated_media_versions =
-      from version in subquery(
-             Utils.text_search(search_terms, Platform.Material.MediaVersion, literal: true)
-           ),
-           where: version.visibility == :visible,
-           join: media in assoc(version, :media),
-           select: media
+      from(
+        version in subquery(
+          Utils.text_search(search_terms, Platform.Material.MediaVersion, literal: true)
+        ),
+        where: version.visibility == :visible,
+        join: media in assoc(version, :media),
+        select: media
+      )
 
-    from u in subquery(
-           Ecto.Query.union(
-             Utils.text_search(search_terms, queryable),
-             ^media_via_associated_media_versions
-           )
-         ),
-         select: u
+    from(
+      u in subquery(
+        Ecto.Query.union(
+          Utils.text_search(search_terms, queryable),
+          ^media_via_associated_media_versions
+        )
+      ),
+      select: u
+    )
   end
 
   def slug_to_display(media) do

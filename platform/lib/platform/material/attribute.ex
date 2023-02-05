@@ -464,7 +464,7 @@ defmodule Platform.Material.Attribute do
     pane = Keyword.get(opts, :pane)
 
     Enum.filter(attributes(opts), fn attr ->
-      val = Map.get(media, attr.schema_field)
+      val = Material.get_attribute_value(media, attr)
       val != nil && val != [] && (pane == nil || attr.pane == pane) && attr.deprecated != true
     end)
   end
@@ -553,15 +553,6 @@ defmodule Platform.Material.Attribute do
 
     if attribute.schema_field == :project_attributes do
       cast_embedded = fn cs, subattrs ->
-        # cast_project_attribute_value = fn cs, attrs ->
-        #   attrs =
-        #     Map.put(attrs, "attribute_id", attribute.name)
-        #     |> Map.put("project_id", get_field(cs, :project_id))
-
-        #   cs
-        #   |> cast(attrs, [:project_id, :attribute_id, :value])
-        # end
-
         changeset(
           media,
           attribute |> Map.put(:schema_field, :value),
@@ -571,7 +562,7 @@ defmodule Platform.Material.Attribute do
             :changeset,
             cs
             |> cast(%{}, [])
-            |> put_change(:attribute_id, attribute.name)
+            |> put_change(:id, attribute.name)
             |> put_change(:project_id, get_field(changeset |> cast(%{}, []), :project_id))
           )
         )
@@ -581,24 +572,29 @@ defmodule Platform.Material.Attribute do
 
       # Check if an embedded attribute value already exists for the given project and attribute.
       # If so, we update it. If not, we create a new one.
-      existing_attribute_value =
-        cs
-        |> get_field(:project_attributes)
-        |> Enum.find(fn attribute_value ->
-          attribute_value.attribute_id == attribute.name
-        end)
+      existing_attribute_value = :notnull
+      # cs
+      # |> get_field(:project_attributes)
+      # |> Enum.find(fn attribute_value ->
+      #   attribute_value.id == attribute.name
+      # end)
+      # |> dbg()
 
       cs =
         case existing_attribute_value do
           nil ->
             cs
-            |> Ecto.Changeset.put_embed(:project_attributes, [
-              %{
-                project_id: get_field(cs, :project_id),
-                attribute_id: attribute.name,
-                value: nil
-              }
-            ])
+            |> Ecto.Changeset.put_embed(
+              :project_attributes,
+              get_field(cs, :project_attributes, []) ++
+                [
+                  %{
+                    project_id: get_field(cs, :project_id),
+                    id: attribute.name,
+                    value: nil
+                  }
+                ]
+            )
 
           _ ->
             cs
@@ -837,11 +833,19 @@ defmodule Platform.Material.Attribute do
             changeset
           else
             changeset
-            |> validate_subset(attribute.schema_field, options(attribute),
-              message:
-                "Includes an invalid value. Valid values are: " <>
-                  Enum.join(options(attribute), ", ")
-            )
+            |> validate_change(attribute.schema_field, fn _, vals ->
+              # Equivalent to validate_subset; we use our own because we want to operate on all
+              # enumerable types, not just {:array, _}.
+              if Enum.any?(vals, fn val -> not Enum.member?(options(attribute), val) end) do
+                [
+                  {attribute.schema_field,
+                   "Includes an invalid value. Valid values are: " <>
+                     Enum.join(options(attribute), ", ")}
+                ]
+              else
+                []
+              end
+            end)
           end
           |> validate_length(attribute.schema_field,
             min: attribute.min_length,
