@@ -2,10 +2,13 @@ defmodule Platform.Material.Attribute do
   use Ecto.Schema
   import Ecto.Changeset
   alias __MODULE__
+  alias Platform.Material.Media.ProjectAttributeValue
   alias Platform.Material.Media
   alias Platform.Accounts.User
   alias Platform.Accounts
   alias Platform.Material
+
+  alias Platform.Projects.ProjectAttribute
 
   use Memoize
 
@@ -21,6 +24,7 @@ defmodule Platform.Material.Attribute do
     :input_type,
     :required,
     :custom_validation,
+    # This is an internal ID; it is used in URLs. For custom attributes, this is a binary ID.
     :name,
     :description,
     # boolean for deprecated attributes
@@ -46,399 +50,409 @@ defmodule Platform.Material.Attribute do
     }
   end
 
-  def attributes() do
-    [
-      %Attribute{
-        schema_field: :attr_status,
-        type: :select,
-        options: [
-          "Unclaimed",
-          "In Progress",
-          "Help Needed",
-          "Ready for Review",
-          "Completed",
-          "Cancelled"
-        ],
-        label: "Status",
-        pane: :metadata,
-        required: true,
-        name: :status,
-        description: "Use the status to help coordinate and track work on Atlos.",
-        privileged_values: ["Completed", "Cancelled"],
-        option_descriptions: %{
-          "Unclaimed" => "Not actively being worked on",
-          "In Progress" => "Actively being worked on",
-          "Help Needed" => "Stuck, or second opinion needed",
-          "Ready for Review" => "Ready for a moderator's verification",
-          "Completed" => "Investigation complete",
-          "Cancelled" => "Will not be completed (out of scope, etc.)"
-        }
-      },
-      %Attribute{
-        schema_field: :attr_description,
-        type: :text,
-        max_length: 240,
-        min_length: 8,
-        label: "Description",
-        pane: :not_shown,
-        required: true,
-        name: :description
-      },
-      %Attribute{
-        schema_field: :attr_date,
-        type: :date,
-        label: "Date",
-        pane: :attributes,
-        required: false,
-        name: :date,
-        description: "On what date did the incident take place?"
-      },
-      %Attribute{
-        schema_field: :attr_general_location,
-        type: :text,
-        input_type: :short_text,
-        max_length: 240,
-        min_length: 2,
-        label: "Reported Near",
-        pane: :attributes,
-        required: false,
-        name: :general_location
-      },
-      %Attribute{
-        schema_field: :attr_tags,
-        type: :multi_select,
-        label: "Tags",
-        pane: :metadata,
-        required: false,
-        name: :tags,
-        required_roles: [:admin, :trusted],
-        allow_user_defined_options: true,
-        description: "Use tags to help organize incidents on Atlos."
-      },
-      %Attribute{
-        schema_field: :attr_type,
-        type: :multi_select,
-        # Set in ATTRIBUTE_OPTIONS environment variable to override
-        options: [
-          "Military Activity",
-          "Military Activity/Movement",
-          "Military Activity/Equipment",
-          "Military Activity/Equipment/Lost",
-          "Military Activity/Execution",
-          "Military Activity/Combat",
-          "Military Activity/Encampment",
-          "Military Activity/Strike",
-          "Military Activity/Explosion",
-          "Military Activity/Detention",
-          "Military Activity/Mass Grave",
-          "Military Activity/Demolition",
-          "Civilian Activity",
-          "Civilian Activity/Protest or March",
-          "Civilian Activity/Riot",
-          "Civilian Activity/Violence",
-          "Policing",
-          "Policing/Use of Force",
-          "Policing/Detention",
-          "Weather",
-          "Weather/Flooding",
-          "Weather/Hurricane",
-          "Weather/Fire",
-          "Other"
-        ],
-        label: "Incident Type",
-        description: "What type of incident is this? Select all that apply.",
-        pane: :attributes,
-        required: true,
-        name: :type
-      },
-      %Attribute{
-        schema_field: :attr_impact,
-        type: :multi_select,
-        # Set in ATTRIBUTE_OPTIONS environment variable to override
-        options: [
-          "Structure",
-          "Structure/Residential",
-          "Structure/Residential/House",
-          "Structure/Residential/Apartment",
-          "Structure/Healthcare",
-          "Structure/Humanitarian",
-          "Structure/Food Infrastructure",
-          "Structure/School or Childcare",
-          "Structure/Park or Playground",
-          "Structure/Cultural",
-          "Structure/Religious",
-          "Structure/Industrial",
-          "Structure/Administrative",
-          "Structure/Commercial",
-          "Structure/Roads, Highways, or Transport",
-          "Structure/Transit Station",
-          "Structure/Airport",
-          "Structure/Military",
-          "Land Vehicle",
-          "Land Vehicle/Car",
-          "Land Vehicle/Truck",
-          "Land Vehicle/Armored",
-          "Land Vehicle/Train",
-          "Land Vehicle/Bus",
-          "Aircraft",
-          "Aircraft/Fighter",
-          "Aircraft/Bomber",
-          "Aircraft/Helicopter",
-          "Aircraft/Drone",
-          "Sea Vehicle",
-          "Sea Vehicle/Boat",
-          "Sea Vehicle/Warship",
-          "Sea Vehicle/Aircraft Carrier",
-          "Injury",
-          "Injury/Civilian",
-          "Injury/Combatant",
-          "Death",
-          "Death/Civilian",
-          "Death/Combatant"
-        ],
-        label: "Impact",
-        description: "What is damaged, harmed, or lost in this incident?",
-        pane: :attributes,
-        required: false,
-        name: :impact,
-        add_none: "None"
-      },
-      %Attribute{
-        schema_field: :attr_equipment,
-        type: :multi_select,
-        # Set in ATTRIBUTE_OPTIONS environment variable to override
-        options: [
-          "Small Arm",
-          "Munition",
-          "Munition/Cluster",
-          "Munition/Chemical",
-          "Munition/Thermobaric",
-          "Munition/Incendiary",
-          "Non-Lethal Weapon",
-          "Non-Lethal Weapon/Tear Gas",
-          "Non-Lethal Weapon/Rubber Bullet",
-          "Land Mine",
-          "Launch System",
-          "Launch System/Artillery",
-          "Launch System/Self-Propelled",
-          "Launch System/Multiple Launch Rocket System",
-          "Land Vehicle",
-          "Land Vehicle/Car",
-          "Land Vehicle/Armored",
-          "Aircraft",
-          "Aircraft/Fighter",
-          "Aircraft/Bomber",
-          "Aircraft/Helicopter",
-          "Aircraft/Drone",
-          "Sea Vehicle",
-          "Sea Vehicle/Small Boat",
-          "Sea Vehicle/Ship",
-          "Sea Vehicle/Aircraft Carrier"
-        ],
-        label: "Equipment Used",
-        description:
-          "What equipment — weapon, military infrastructure, etc. — is used in the incident?",
-        pane: :attributes,
-        required: false,
-        name: :equipment
-      },
-      %Attribute{
-        schema_field: :attr_time_of_day,
-        type: :select,
-        options: [],
-        label: "Day/Night (Deprecated)",
-        pane: :attributes,
-        required: false,
-        deprecated: true,
-        name: :time_of_day
-      },
-      %Attribute{
-        schema_field: :attr_geolocation,
-        description:
-          "For incidents that span multiple locations (e.g., movement down a street or a fire), choose a representative verifiable location. All geolocations must be confirmable visually.",
-        type: :location,
-        label: "Geolocation",
-        pane: :attributes,
-        required: false,
-        name: :geolocation
-      },
-      %Attribute{
-        schema_field: :attr_geolocation_resolution,
-        type: :select,
-        label: "Precision",
-        pane: :not_shown,
-        required: false,
-        name: :geolocation_resolution,
-        parent: :geolocation,
-        options: [
-          "Exact",
-          "Vicinity",
-          "Locality"
-        ],
-        option_descriptions: %{
-          "Exact" => "Maximum precision (± 10m)",
-          "Vicinity" => "Same complex, block, field, etc. (± 100m)",
-          "Locality" => "Same neighborhood, village, etc. (± 1km)"
-        }
-      },
-      %Attribute{
-        schema_field: :attr_environment,
-        type: :select,
-        options: [],
-        label: "Environment (Deprecated)",
-        pane: :attributes,
-        required: false,
-        name: :environment,
-        deprecated: true,
-        description:
-          "What is primarily in view? Note that this does not refer to where the media was captured."
-      },
-      %Attribute{
-        schema_field: :attr_weather,
-        type: :multi_select,
-        options: [],
-        label: "Weather (Deprecated)",
-        pane: :attributes,
-        required: false,
-        name: :weather,
-        deprecated: true,
-        add_none: "Indeterminable"
-      },
-      %Attribute{
-        schema_field: :attr_camera_system,
-        type: :multi_select,
-        options: [],
-        label: "Camera System (Deprecated)",
-        pane: :attributes,
-        required: false,
-        name: :camera_system,
-        deprecated: true,
-        description:
-          "What kinds of camera systems does the media use? If there are multiple pieces of media, select all that apply."
-      },
-      %Attribute{
-        schema_field: :attr_more_info,
-        type: :text,
-        max_length: 3000,
-        label: "More Info",
-        pane: :attributes,
-        required: false,
-        name: :more_info,
-        description: "For example, information noted by the source."
-      },
-      %Attribute{
-        schema_field: :attr_civilian_impact,
-        type: :multi_select,
-        options: [],
-        label: "Civilian Impact (Deprecated)",
-        pane: :attributes,
-        required: false,
-        name: :civilian_impact,
-        deprecated: true,
-        add_none: "None"
-      },
-      %Attribute{
-        schema_field: :attr_event,
-        type: :multi_select,
-        options: [],
-        label: "Event (Deprecated)",
-        pane: :attributes,
-        required: false,
-        name: :event,
-        description: "What events are visible in the incident's media?",
-        deprecated: true,
-        add_none: "None"
-      },
-      %Attribute{
-        schema_field: :attr_casualty,
-        type: :multi_select,
-        options: [],
-        label: "Casualty (Deprecated)",
-        pane: :attributes,
-        required: false,
-        name: :casualty,
-        deprecated: true,
-        add_none: "None"
-      },
-      %Attribute{
-        schema_field: :attr_military_infrastructure,
-        type: :multi_select,
-        options: [],
-        label: "Military Infrastructure (Deprecated)",
-        pane: :attributes,
-        required: false,
-        name: :military_infrastructure,
-        description: "What military infrastructure is visible in the media?",
-        deprecated: true,
-        add_none: "None"
-      },
-      %Attribute{
-        schema_field: :attr_weapon,
-        type: :multi_select,
-        options: [],
-        label: "Weapon (Deprecated)",
-        pane: :attributes,
-        required: false,
-        name: :weapon,
-        description: "What weapons are visible in the incident's media?",
-        deprecated: true,
-        add_none: "None"
-      },
-      %Attribute{
-        schema_field: :attr_time_recorded,
-        type: :time,
-        label: "Time Recorded (Deprecated)",
-        pane: :attributes,
-        required: false,
-        name: :time_recorded,
-        deprecated: true,
-        description: "What time of day was the incident? Use the local timezone, if possible."
-      },
-      %Attribute{
-        schema_field: :attr_restrictions,
-        type: :multi_select,
-        label: "Restrictions",
-        pane: :metadata,
-        required: false,
-        name: :restrictions,
-        # NOTE: Editing these values also requires editing the perm checks in `media.ex`
-        options: ["Frozen", "Hidden"],
-        required_roles: [:admin, :trusted]
-      },
-      %Attribute{
-        schema_field: :attr_sensitive,
-        type: :multi_select,
-        options: [
-          "Personal Information Visible",
-          "Graphic Violence",
-          "Deleted by Source",
-          "Deceptive or Misleading"
-        ],
-        option_descriptions: %{
-          "Personal Information Visible" => "Could identify individuals or their location",
-          "Graphic Violence" => "Media contains violence or other graphic imagery",
-          "Deleted by Source" => "The media has been deleted from its original location",
-          "Deceptive or Misleading" =>
-            "The media is a hoax, misinformation, or otherwise deceptive",
-          "Not Sensitive" => "The media is not sensitive"
+  def attributes(opts \\ []) do
+    project = Keyword.get(opts, :project)
+
+    attrs =
+      if project do
+        Enum.map(project.attributes, &ProjectAttribute.to_attribute/1)
+      else
+        []
+      end
+
+    attrs ++
+      [
+        %Attribute{
+          schema_field: :attr_status,
+          type: :select,
+          options: [
+            "Unclaimed",
+            "In Progress",
+            "Help Needed",
+            "Ready for Review",
+            "Completed",
+            "Cancelled"
+          ],
+          label: "Status",
+          pane: :metadata,
+          required: true,
+          name: :status,
+          description: "Use the status to help coordinate and track work on Atlos.",
+          privileged_values: ["Completed", "Cancelled"],
+          option_descriptions: %{
+            "Unclaimed" => "Not actively being worked on",
+            "In Progress" => "Actively being worked on",
+            "Help Needed" => "Stuck, or second opinion needed",
+            "Ready for Review" => "Ready for a moderator's verification",
+            "Completed" => "Investigation complete",
+            "Cancelled" => "Will not be completed (out of scope, etc.)"
+          }
         },
-        label: "Sensitivity",
-        min_length: 1,
-        pane: :metadata,
-        required: true,
-        name: :sensitive,
-        add_none: "Not Sensitive",
-        description:
-          "Is this incident sensitive? This information helps us keep our community safe."
-      }
-    ]
+        %Attribute{
+          schema_field: :attr_description,
+          type: :text,
+          max_length: 240,
+          min_length: 8,
+          label: "Description",
+          pane: :not_shown,
+          required: true,
+          name: :description
+        },
+        %Attribute{
+          schema_field: :attr_date,
+          type: :date,
+          label: "Date",
+          pane: :attributes,
+          required: false,
+          name: :date,
+          description: "On what date did the incident take place?"
+        },
+        %Attribute{
+          schema_field: :attr_general_location,
+          type: :text,
+          input_type: :short_text,
+          max_length: 240,
+          min_length: 2,
+          label: "Reported Near",
+          pane: :attributes,
+          required: false,
+          name: :general_location
+        },
+        %Attribute{
+          schema_field: :attr_tags,
+          type: :multi_select,
+          label: "Tags",
+          pane: :metadata,
+          required: false,
+          name: :tags,
+          required_roles: [:admin, :trusted],
+          allow_user_defined_options: true,
+          description: "Use tags to help organize incidents on Atlos."
+        },
+        %Attribute{
+          schema_field: :attr_type,
+          type: :multi_select,
+          # Set in ATTRIBUTE_OPTIONS environment variable to override
+          options: [
+            "Military Activity",
+            "Military Activity/Movement",
+            "Military Activity/Equipment",
+            "Military Activity/Equipment/Lost",
+            "Military Activity/Execution",
+            "Military Activity/Combat",
+            "Military Activity/Encampment",
+            "Military Activity/Strike",
+            "Military Activity/Explosion",
+            "Military Activity/Detention",
+            "Military Activity/Mass Grave",
+            "Military Activity/Demolition",
+            "Civilian Activity",
+            "Civilian Activity/Protest or March",
+            "Civilian Activity/Riot",
+            "Civilian Activity/Violence",
+            "Policing",
+            "Policing/Use of Force",
+            "Policing/Detention",
+            "Weather",
+            "Weather/Flooding",
+            "Weather/Hurricane",
+            "Weather/Fire",
+            "Other"
+          ],
+          label: "Incident Type",
+          description: "What type of incident is this? Select all that apply.",
+          pane: :attributes,
+          required: true,
+          name: :type
+        },
+        %Attribute{
+          schema_field: :attr_impact,
+          type: :multi_select,
+          # Set in ATTRIBUTE_OPTIONS environment variable to override
+          options: [
+            "Structure",
+            "Structure/Residential",
+            "Structure/Residential/House",
+            "Structure/Residential/Apartment",
+            "Structure/Healthcare",
+            "Structure/Humanitarian",
+            "Structure/Food Infrastructure",
+            "Structure/School or Childcare",
+            "Structure/Park or Playground",
+            "Structure/Cultural",
+            "Structure/Religious",
+            "Structure/Industrial",
+            "Structure/Administrative",
+            "Structure/Commercial",
+            "Structure/Roads, Highways, or Transport",
+            "Structure/Transit Station",
+            "Structure/Airport",
+            "Structure/Military",
+            "Land Vehicle",
+            "Land Vehicle/Car",
+            "Land Vehicle/Truck",
+            "Land Vehicle/Armored",
+            "Land Vehicle/Train",
+            "Land Vehicle/Bus",
+            "Aircraft",
+            "Aircraft/Fighter",
+            "Aircraft/Bomber",
+            "Aircraft/Helicopter",
+            "Aircraft/Drone",
+            "Sea Vehicle",
+            "Sea Vehicle/Boat",
+            "Sea Vehicle/Warship",
+            "Sea Vehicle/Aircraft Carrier",
+            "Injury",
+            "Injury/Civilian",
+            "Injury/Combatant",
+            "Death",
+            "Death/Civilian",
+            "Death/Combatant"
+          ],
+          label: "Impact",
+          description: "What is damaged, harmed, or lost in this incident?",
+          pane: :attributes,
+          required: false,
+          name: :impact,
+          add_none: "None"
+        },
+        %Attribute{
+          schema_field: :attr_equipment,
+          type: :multi_select,
+          # Set in ATTRIBUTE_OPTIONS environment variable to override
+          options: [
+            "Small Arm",
+            "Munition",
+            "Munition/Cluster",
+            "Munition/Chemical",
+            "Munition/Thermobaric",
+            "Munition/Incendiary",
+            "Non-Lethal Weapon",
+            "Non-Lethal Weapon/Tear Gas",
+            "Non-Lethal Weapon/Rubber Bullet",
+            "Land Mine",
+            "Launch System",
+            "Launch System/Artillery",
+            "Launch System/Self-Propelled",
+            "Launch System/Multiple Launch Rocket System",
+            "Land Vehicle",
+            "Land Vehicle/Car",
+            "Land Vehicle/Armored",
+            "Aircraft",
+            "Aircraft/Fighter",
+            "Aircraft/Bomber",
+            "Aircraft/Helicopter",
+            "Aircraft/Drone",
+            "Sea Vehicle",
+            "Sea Vehicle/Small Boat",
+            "Sea Vehicle/Ship",
+            "Sea Vehicle/Aircraft Carrier"
+          ],
+          label: "Equipment Used",
+          description:
+            "What equipment — weapon, military infrastructure, etc. — is used in the incident?",
+          pane: :attributes,
+          required: false,
+          name: :equipment
+        },
+        %Attribute{
+          schema_field: :attr_time_of_day,
+          type: :select,
+          options: [],
+          label: "Day/Night (Deprecated)",
+          pane: :attributes,
+          required: false,
+          deprecated: true,
+          name: :time_of_day
+        },
+        %Attribute{
+          schema_field: :attr_geolocation,
+          description:
+            "For incidents that span multiple locations (e.g., movement down a street or a fire), choose a representative verifiable location. All geolocations must be confirmable visually.",
+          type: :location,
+          label: "Geolocation",
+          pane: :attributes,
+          required: false,
+          name: :geolocation
+        },
+        %Attribute{
+          schema_field: :attr_geolocation_resolution,
+          type: :select,
+          label: "Precision",
+          pane: :not_shown,
+          required: false,
+          name: :geolocation_resolution,
+          parent: :geolocation,
+          options: [
+            "Exact",
+            "Vicinity",
+            "Locality"
+          ],
+          option_descriptions: %{
+            "Exact" => "Maximum precision (± 10m)",
+            "Vicinity" => "Same complex, block, field, etc. (± 100m)",
+            "Locality" => "Same neighborhood, village, etc. (± 1km)"
+          }
+        },
+        %Attribute{
+          schema_field: :attr_environment,
+          type: :select,
+          options: [],
+          label: "Environment (Deprecated)",
+          pane: :attributes,
+          required: false,
+          name: :environment,
+          deprecated: true,
+          description:
+            "What is primarily in view? Note that this does not refer to where the media was captured."
+        },
+        %Attribute{
+          schema_field: :attr_weather,
+          type: :multi_select,
+          options: [],
+          label: "Weather (Deprecated)",
+          pane: :attributes,
+          required: false,
+          name: :weather,
+          deprecated: true,
+          add_none: "Indeterminable"
+        },
+        %Attribute{
+          schema_field: :attr_camera_system,
+          type: :multi_select,
+          options: [],
+          label: "Camera System (Deprecated)",
+          pane: :attributes,
+          required: false,
+          name: :camera_system,
+          deprecated: true,
+          description:
+            "What kinds of camera systems does the media use? If there are multiple pieces of media, select all that apply."
+        },
+        %Attribute{
+          schema_field: :attr_more_info,
+          type: :text,
+          max_length: 3000,
+          label: "More Info",
+          pane: :attributes,
+          required: false,
+          name: :more_info,
+          description: "For example, information noted by the source."
+        },
+        %Attribute{
+          schema_field: :attr_civilian_impact,
+          type: :multi_select,
+          options: [],
+          label: "Civilian Impact (Deprecated)",
+          pane: :attributes,
+          required: false,
+          name: :civilian_impact,
+          deprecated: true,
+          add_none: "None"
+        },
+        %Attribute{
+          schema_field: :attr_event,
+          type: :multi_select,
+          options: [],
+          label: "Event (Deprecated)",
+          pane: :attributes,
+          required: false,
+          name: :event,
+          description: "What events are visible in the incident's media?",
+          deprecated: true,
+          add_none: "None"
+        },
+        %Attribute{
+          schema_field: :attr_casualty,
+          type: :multi_select,
+          options: [],
+          label: "Casualty (Deprecated)",
+          pane: :attributes,
+          required: false,
+          name: :casualty,
+          deprecated: true,
+          add_none: "None"
+        },
+        %Attribute{
+          schema_field: :attr_military_infrastructure,
+          type: :multi_select,
+          options: [],
+          label: "Military Infrastructure (Deprecated)",
+          pane: :attributes,
+          required: false,
+          name: :military_infrastructure,
+          description: "What military infrastructure is visible in the media?",
+          deprecated: true,
+          add_none: "None"
+        },
+        %Attribute{
+          schema_field: :attr_weapon,
+          type: :multi_select,
+          options: [],
+          label: "Weapon (Deprecated)",
+          pane: :attributes,
+          required: false,
+          name: :weapon,
+          description: "What weapons are visible in the incident's media?",
+          deprecated: true,
+          add_none: "None"
+        },
+        %Attribute{
+          schema_field: :attr_time_recorded,
+          type: :time,
+          label: "Time Recorded (Deprecated)",
+          pane: :attributes,
+          required: false,
+          name: :time_recorded,
+          deprecated: true,
+          description: "What time of day was the incident? Use the local timezone, if possible."
+        },
+        %Attribute{
+          schema_field: :attr_restrictions,
+          type: :multi_select,
+          label: "Restrictions",
+          pane: :metadata,
+          required: false,
+          name: :restrictions,
+          # NOTE: Editing these values also requires editing the perm checks in `media.ex`
+          options: ["Frozen", "Hidden"],
+          required_roles: [:admin, :trusted]
+        },
+        %Attribute{
+          schema_field: :attr_sensitive,
+          type: :multi_select,
+          options: [
+            "Personal Information Visible",
+            "Graphic Violence",
+            "Deleted by Source",
+            "Deceptive or Misleading"
+          ],
+          option_descriptions: %{
+            "Personal Information Visible" => "Could identify individuals or their location",
+            "Graphic Violence" => "Media contains violence or other graphic imagery",
+            "Deleted by Source" => "The media has been deleted from its original location",
+            "Deceptive or Misleading" =>
+              "The media is a hoax, misinformation, or otherwise deceptive",
+            "Not Sensitive" => "The media is not sensitive"
+          },
+          label: "Sensitivity",
+          min_length: 1,
+          pane: :metadata,
+          required: true,
+          name: :sensitive,
+          add_none: "Not Sensitive",
+          description:
+            "Is this incident sensitive? This information helps us keep our community safe."
+        }
+      ]
   end
 
   @doc """
   Get all the active, non-deprecated attributes.
   """
-  def active_attributes() do
-    attributes() |> Enum.filter(&(&1.deprecated != true))
+  def active_attributes(opts \\ []) do
+    attributes(opts) |> Enum.filter(&(&1.deprecated != true))
   end
 
   @doc """
@@ -449,7 +463,7 @@ defmodule Platform.Material.Attribute do
   def set_for_media(media, opts \\ []) do
     pane = Keyword.get(opts, :pane)
 
-    Enum.filter(attributes(), fn attr ->
+    Enum.filter(attributes(opts), fn attr ->
       val = Map.get(media, attr.schema_field)
       val != nil && val != [] && (pane == nil || attr.pane == pane) && attr.deprecated != true
     end)
@@ -464,7 +478,7 @@ defmodule Platform.Material.Attribute do
     pane = Keyword.get(opts, :pane)
     set = set_for_media(media)
 
-    attributes()
+    attributes(opts)
     |> Enum.filter(&(!Enum.member?(set, &1)))
     |> Enum.filter(&(&1.deprecated != true))
     |> Enum.filter(&(pane == nil || &1.pane == pane))
@@ -480,7 +494,7 @@ defmodule Platform.Material.Attribute do
     include_deprecated_attributes = Keyword.get(opts, :include_deprecated_attributes, false)
     include_renamed_attributes = Keyword.get(opts, :include_renamed_attributes, false)
 
-    (attributes()
+    (attributes(opts)
      |> Enum.filter(&(&1.deprecated != true or include_deprecated_attributes))
      |> Enum.map(& &1.name)) ++
       if include_renamed_attributes, do: Map.keys(renamed_attributes()), else: []
@@ -489,34 +503,40 @@ defmodule Platform.Material.Attribute do
   @doc """
   Get an attribute by its name. Will check whether the attribute has been renamed.
   """
-  def get_attribute(name) do
+  def get_attribute(name_or_id, opts \\ []) do
     # Some attributes have been renamed; this allows us to keep updates
     # that reference the old name working.
-    real_name =
-      case renamed_attributes() do
-        %{^name => new_name} -> new_name
-        _ -> name
-      end
-      |> to_string()
 
-    Enum.find(attributes(), &(&1.name |> to_string() == real_name))
+    real_name =
+      if is_atom(name_or_id) do
+        case renamed_attributes() do
+          %{^name_or_id => new_name} -> new_name
+          _ -> name_or_id
+        end
+        |> to_string()
+      else
+        name_or_id
+      end
+
+    Enum.find(attributes(opts), &(&1.name |> to_string() == real_name))
   end
 
   @doc """
   Get an attribute by its schema field name.
   """
-  def get_attribute_by_schema_field(name) do
+  def get_attribute_by_schema_field(name, opts \\ []) do
     name = name |> to_string()
-    Enum.find(attributes(), &(&1.schema_field |> to_string() == name))
+    Enum.find(attributes(opts), &(&1.schema_field |> to_string() == name))
   end
 
   @doc """
-  Create a changeset for the media from the given attribute.
+  Create a changeset for the media from the given attribute. Works on both core and custom attributes. If the attribute is a custom/project attribute, the project_attribute option must be given.
 
   Options:
     * :user - the user making the change (default: nil)
     * :verify_change_exists - whether to verify that the change exists (default: true)
     * :changeset - an existing changeset to add to (default: nil)
+    * :project_attribute - the project attribute to use (default: nil) (required for project attributes)
   """
   def changeset(
         %Media{} = media,
@@ -528,17 +548,79 @@ defmodule Platform.Material.Attribute do
     verify_change_exists = Keyword.get(opts, :verify_change_exists, true)
     changeset = Keyword.get(opts, :changeset)
 
-    (changeset || media)
-    |> cast(%{}, [])
-    |> populate_virtual_data(attribute)
-    |> cast_attribute(attribute, attrs)
-    |> validate_attribute(attribute, user: user)
-    |> cast_and_validate_virtual_explanation(attrs, attribute)
-    |> update_from_virtual_data(attribute)
-    |> verify_user_can_edit(attribute, user, media)
-    |> then(fn c ->
-      if verify_change_exists, do: verify_change_exists(c, [attribute]), else: c
-    end)
+    # If the attribute's schema field is :project_attributes, we set the field to :value and make the changeset recursively.
+    # Otherwise, we proceed as normal.
+
+    if attribute.schema_field == :project_attributes do
+      cast_embedded = fn cs, subattrs ->
+        # cast_project_attribute_value = fn cs, attrs ->
+        #   attrs =
+        #     Map.put(attrs, "attribute_id", attribute.name)
+        #     |> Map.put("project_id", get_field(cs, :project_id))
+
+        #   cs
+        #   |> cast(attrs, [:project_id, :attribute_id, :value])
+        # end
+
+        changeset(
+          media,
+          attribute |> Map.put(:schema_field, :value),
+          subattrs,
+          Keyword.put(
+            opts,
+            :changeset,
+            cs
+            |> cast(%{}, [])
+            |> put_change(:attribute_id, attribute.name)
+            |> put_change(:project_id, get_field(changeset |> cast(%{}, []), :project_id))
+          )
+        )
+      end
+
+      cs = (changeset || media) |> cast(%{}, [])
+
+      # Check if an embedded attribute value already exists for the given project and attribute.
+      # If so, we update it. If not, we create a new one.
+      existing_attribute_value =
+        cs
+        |> get_field(:project_attributes)
+        |> Enum.find(fn attribute_value ->
+          attribute_value.attribute_id == attribute.name
+        end)
+
+      cs =
+        case existing_attribute_value do
+          nil ->
+            cs
+            |> Ecto.Changeset.put_embed(:project_attributes, [
+              %{
+                project_id: get_field(cs, :project_id),
+                attribute_id: attribute.name,
+                value: nil
+              }
+            ])
+
+          _ ->
+            cs
+        end
+
+      cs
+      |> cast(attrs, [])
+      |> cast_embed(:project_attributes, with: cast_embedded)
+      |> dbg()
+    else
+      (changeset || media)
+      |> cast(%{}, [])
+      |> populate_virtual_data(attribute)
+      |> cast_attribute(attribute, attrs)
+      |> validate_attribute(attribute, user: user)
+      |> cast_and_validate_virtual_explanation(attrs, attribute)
+      |> update_from_virtual_data(attribute)
+      |> verify_user_can_edit(attribute, user, media)
+      |> then(fn c ->
+        if verify_change_exists, do: verify_change_exists(c, [attribute]), else: c
+      end)
+    end
   end
 
   @doc """
@@ -656,16 +738,17 @@ defmodule Platform.Material.Attribute do
     end
 
     media_or_changeset
+    # Explanation is a virtual field! We cast here so we can validate.
+    # TODO: Is there an idiomatic way to clean this up?
     |> cast(attrs, [:explanation], message: "Unable to parse explanation.")
     |> then(fn changeset ->
-      case attribute.type do
-        # Explanation is a virtual field! We cast here so we can validate.
-        # TODO: Is there an idiomatic way to clean this up?
-        :location ->
+      cond do
+        # TODO: streamline location logic; this is janky
+        attribute.type == :location ->
           changeset
           |> cast(attrs, [:location])
 
-        _ ->
+        true ->
           changeset
           |> cast(attrs, [attribute.schema_field])
       end
@@ -963,7 +1046,7 @@ defmodule Platform.Material.Attribute do
   Get the child attributes of the given parent attribute. Children are used to combine multiple
   distinct attributes into a single editing experience (e.g., geolocation and geolocation accuracy).
   """
-  def get_children(parent_name) do
-    attributes() |> Enum.filter(&(&1.parent == parent_name))
+  def get_children(parent_name, opts \\ []) do
+    attributes(opts) |> Enum.filter(&(&1.parent == parent_name))
   end
 end

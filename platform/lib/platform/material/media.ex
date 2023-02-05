@@ -27,9 +27,10 @@ defmodule Platform.Material.Media do
     field :attr_equipment, {:array, :string}
 
     embeds_many :project_attributes, ProjectAttributeValue do
-      belongs_to :project, Projects.Project
-      field :attribute_id, :binary_id
-      field :value, :map
+      belongs_to :project, Projects.Project, type: :binary_id
+      field :attribute_id, :binary_id, primary_key: true
+      field :value, Platform.FlexibleJSONType, default: nil
+      field :explanation, :string, virtual: true
     end
 
     # Deprecated attributes (that still live in the database)

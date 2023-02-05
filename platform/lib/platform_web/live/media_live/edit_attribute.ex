@@ -5,14 +5,7 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
   alias Platform.Auditor
 
   def update(assigns, socket) do
-    atom_name =
-      try do
-        String.to_existing_atom(assigns.name)
-      rescue
-        _ -> nil
-      end
-
-    attr = Attribute.get_attribute(atom_name)
+    attr = Attribute.get_attribute(assigns.name, project: assigns.media.project)
 
     if is_nil(attr) do
       raise PlatformWeb.Errors.NotFound, "Attribute not found"

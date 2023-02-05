@@ -3,6 +3,7 @@ defmodule PlatformWeb.Components do
   use Phoenix.HTML
   import PlatformWeb.ErrorHelpers
 
+  alias Platform.Material.Media.ProjectAttributeValue
   alias Phoenix.LiveView.JS
   alias Platform.Accounts
   alias Platform.Material.Attribute
@@ -734,7 +735,10 @@ defmodule PlatformWeb.Components do
                     <.user_text user={@update.user} />
                     <%= case @update.type do %>
                       <% :update_attribute -> %>
-                        <% attr = Attribute.get_attribute(@update.modified_attribute) %> updated
+                        <% attr =
+                          Attribute.get_attribute(@update.modified_attribute,
+                            project: @update.media.project
+                          ) %> updated
                         <%= live_patch class: "text-button text-gray-800 inline-block", to: Routes.media_show_path(@socket, :history, @update.media.slug, attr.name) do %>
                           <%= attr.label %> &nearr;
                         <% end %>
@@ -809,6 +813,7 @@ defmodule PlatformWeb.Components do
                             name={@update.modified_attribute}
                             old={Jason.decode!(@update.old_value)}
                             new={Jason.decode!(@update.new_value)}
+                            project={@update.media.project}
                           />
                         </div>
                       </div>
@@ -999,7 +1004,8 @@ defmodule PlatformWeb.Components do
               color={true}
               compact={@truncate}
               name={@attr.name}
-              value={Map.get(@media, @attr.schema_field)}
+              project={@media.project}
+              value={Material.get_attribute_value(@media, @attr)}
             />
             <%= for child <- @children do %>
               <%= if not is_nil(Map.get(@media, child.schema_field)) do %>
@@ -1007,7 +1013,8 @@ defmodule PlatformWeb.Components do
                   color={true}
                   compact={@truncate}
                   name={child.name}
-                  value={Map.get(@media, child.schema_field)}
+                  value={Material.get_attribute_value(@media, child)}
+                  project={@media.project}
                   label={child.label}
                 />
               <% end %>
@@ -1069,8 +1076,13 @@ defmodule PlatformWeb.Components do
       </dt>
       <dd class="mt-1 flex items-center text-sm text-gray-900 sm:mt-0 sm:col-span-2">
         <span class="flex-grow gap-1 flex flex-wrap">
-          <%= if not is_nil(Map.get(@media, @attr.schema_field)) do %>
-            <.attr_entry name={@attr.name} color={false} value={Map.get(@media, @attr.schema_field)} />
+          <%= if not is_nil(Material.get_attribute_value(@media, @attr)) do %>
+            <.attr_entry
+              name={@attr.name}
+              color={false}
+              value={Material.get_attribute_value(@media, @attr)}
+              project={@media.project}
+            />
             <%= for child <- @children do %>
               <%= if not is_nil(Map.get(@media, child.schema_field)) do %>
                 <.attr_entry
@@ -1078,6 +1090,7 @@ defmodule PlatformWeb.Components do
                   color={false}
                   value={Map.get(@media, child.schema_field)}
                   label={child.label}
+                  project={@media.project}
                 />
               <% end %>
             <% end %>
@@ -1121,8 +1134,8 @@ defmodule PlatformWeb.Components do
     """
   end
 
-  def attr_entry(%{name: name, value: value} = assigns) do
-    attr = Attribute.get_attribute(name)
+  def attr_entry(%{name: name, value: value, project: project} = assigns) do
+    attr = Attribute.get_attribute(name, project: project)
 
     tone =
       if Map.get(assigns, :color, false), do: Attribute.attr_color(name, value), else: "~neutral"
@@ -1432,8 +1445,8 @@ defmodule PlatformWeb.Components do
     """
   end
 
-  def attr_diff(%{name: name, old: old, new: new} = assigns) do
-    attr = Attribute.get_attribute(name)
+  def attr_diff(%{name: name, old: old, new: new, project: project} = assigns) do
+    attr = Attribute.get_attribute(name, project: project)
 
     assigns =
       assigns
@@ -1445,14 +1458,14 @@ defmodule PlatformWeb.Components do
         # It's possible to encode changes to multiple schema fields in one update, but some legacy/existing updates
         # have their values encoded in the old format, so we perform a render-time conversion here.
         if(Material.is_combined_update_value(old),
-          do: old |> Map.get(attr.schema_field |> to_string()),
+          do: old |> Map.get(Platform.Updates.key_for_attribute(attr)),
           else: old
         )
       )
       |> assign(
         :new_val,
         if(Material.is_combined_update_value(new),
-          do: new |> Map.get(attr.schema_field |> to_string()),
+          do: new |> Map.get(Platform.Updates.key_for_attribute(attr)),
           else: new
         )
       )
@@ -1489,7 +1502,7 @@ defmodule PlatformWeb.Components do
       </span>
       <%= if Material.is_combined_update_value(@old) and Material.is_combined_update_value(@new) do %>
         <%= for child <- @children do %>
-          <.attr_diff name={child.name} old={@old} new={@new} label={child.label} />
+          <.attr_diff name={child.name} old={@old} new={@new} label={child.label} project={@project} />
         <% end %>
       <% end %>
     </div>
@@ -2865,103 +2878,113 @@ defmodule PlatformWeb.Components do
       # Shorthands
       |> assign(:slug, slug)
       |> assign(:f, form)
+      |> assign(
+        :schema_field,
+        if(attr.schema_field == :project_attributes, do: :value, else: attr.schema_field)
+      )
 
     ~H"""
-    <div x-data="{user_loc: null}">
-      <%= case @attr.type do %>
-        <% :text -> %>
-          <%= label(@f, @attr.schema_field, @label) %>
-          <%= case @attr.input_type || :textarea do %>
-            <% :textarea -> %>
-              <%= textarea(@f, @attr.schema_field, rows: 3) %>
-            <% :short_text -> %>
-              <%= text_input(@f, @attr.schema_field) %>
-          <% end %>
-          <%= error_tag(@f, @attr.schema_field) %>
-        <% :select -> %>
-          <%= label(@f, @attr.schema_field, @label) %>
-          <%= error_tag(@f, @attr.schema_field) %>
-          <div phx-update="ignore" id={"attr_select_#{@slug}_#{@attr.schema_field}"}>
-            <%= select(
-              @f,
-              @attr.schema_field,
-              if(@attr.required, do: [], else: ["[Unset]": nil]) ++
-                Attribute.options(@attr),
-              data_descriptions: Jason.encode!(@attr.option_descriptions || %{}),
-              data_privileged: Jason.encode!(@attr.privileged_values || [])
-            ) %>
-          </div>
-        <% :multi_select -> %>
-          <%= label(@f, @attr.schema_field, @label) %>
-          <%= error_tag(@f, @attr.schema_field) %>
-          <div phx-update="ignore" id={"attr_multi_select_#{@slug}_#{@attr.schema_field}"}>
-            <%= multiple_select(
-              @f,
-              @attr.schema_field,
-              Attribute.options(
-                @attr,
-                if(is_nil(@media), do: nil, else: Map.get(@media, @attr.schema_field))
-              ),
-              data_descriptions: Jason.encode!(@attr.option_descriptions || %{}),
-              data_privileged: Jason.encode!(@attr.privileged_values || []),
-              data_allow_user_defined_options: Attribute.allow_user_defined_options(@attr)
-            ) %>
-          </div>
-        <% :location -> %>
-          <div class="space-y-4">
-            <div>
-              <%= label(@f, :location, @label <> " (latitude, longitude)") %>
-              <%= text_input(@f, :location,
-                placeholder: "Comma-separated coordinates (lat, lon).",
-                novalidate: true,
-                phx_debounce: 500,
-                "x-on:input": "user_loc = $event.target.value"
+    <%= for f <- (if @attr.schema_field == :project_attributes, do: (inputs_for(@f, :project_attributes)), else: [@f]) do %>
+      <%= if @attr.schema_field == :project_attributes do %>
+        <%= hidden_inputs_for(f) %>
+      <% end %>
+
+      <div x-data="{user_loc: null}">
+        <%= case @attr.type do %>
+          <% :text -> %>
+            <%= label(f, @schema_field, @label) %>
+            <%= case @attr.input_type || :textarea do %>
+              <% :textarea -> %>
+                <%= textarea(f, @schema_field, rows: 3) %>
+              <% :short_text -> %>
+                <%= text_input(f, @schema_field) %>
+            <% end %>
+            <%= error_tag(f, @schema_field) %>
+          <% :select -> %>
+            <%= label(f, @schema_field, @label) %>
+            <%= error_tag(f, @schema_field) %>
+            <div phx-update="ignore" id={"attr_select_#{@slug}_#{@schema_field}"}>
+              <%= select(
+                f,
+                @schema_field,
+                if(@attr.required, do: [], else: ["[Unset]": nil]) ++
+                  Attribute.options(@attr),
+                data_descriptions: Jason.encode!(@attr.option_descriptions || %{}),
+                data_privileged: Jason.encode!(@attr.privileged_values || [])
               ) %>
-              <%= error_tag(@f, :location) %>
             </div>
-            <%= error_tag(@f, @attr.schema_field) %>
-          </div>
-        <% :time -> %>
-          <%= label(@f, @attr.schema_field, @label) %>
-          <div class="flex items-center gap-2 ts-ignore sm:w-64 apply-a17t-fields">
-            <%= time_select(@f, @attr.schema_field,
-              hour: [prompt: "[Unset]"],
-              minute: [prompt: "[Unset]"],
-              class: "select",
-              phx_debounce: 500
-            ) %>
-          </div>
-          <p class="support">
-            To unset this attribute, set both the hour and minute fields to [Unset].
-          </p>
-          <%= error_tag(@f, @attr.schema_field) %>
-        <% :date -> %>
-          <%= label(@f, @attr.schema_field, @label) %>
-          <div class="flex items-center gap-2 ts-ignore apply-a17t-fields">
-            <%= date_select(@f, @attr.schema_field,
-              year: [prompt: "[Unset]", options: DateTime.utc_now().year..1990],
-              month: [prompt: "[Unset]"],
-              day: [prompt: "[Unset]"],
-              class: "select",
-              phx_debounce: 500
-            ) %>
-          </div>
-          <p class="support">
-            To unset this attribute, set the day, month, and year fields to [Unset].
-          </p>
-          <%= error_tag(@f, @attr.schema_field) %>
-      <% end %>
-      <%= if @attr.type == :location do %>
-        <a
-          class="support text-urge-700 underline mt-4"
-          target="_blank"
-          x-show="user_loc != null && user_loc.length > 0"
-          x-bind:href="'https://maps.google.com/maps?q=' + (user_loc || '').replace(' ', '')"
-        >
-          Preview <span class="font-bold" x-text="user_loc"></span> on Google Maps
-        </a>
-      <% end %>
-    </div>
+          <% :multi_select -> %>
+            <%= label(f, @schema_field, @label) %>
+            <%= error_tag(f, @schema_field) %>
+            <div phx-update="ignore" id={"attr_multi_select_#{@slug}_#{@schema_field}"}>
+              <%= multiple_select(
+                f,
+                @schema_field,
+                Attribute.options(
+                  @attr,
+                  if(is_nil(@media), do: nil, else: Map.get(@media, @schema_field))
+                ),
+                data_descriptions: Jason.encode!(@attr.option_descriptions || %{}),
+                data_privileged: Jason.encode!(@attr.privileged_values || []),
+                data_allow_user_defined_options: Attribute.allow_user_defined_options(@attr)
+              ) %>
+            </div>
+          <% :location -> %>
+            <div class="space-y-4">
+              <div>
+                <%= label(f, :location, @label <> " (latitude, longitude)") %>
+                <%= text_input(f, :location,
+                  placeholder: "Comma-separated coordinates (lat, lon).",
+                  novalidate: true,
+                  phx_debounce: 500,
+                  "x-on:input": "user_loc = $event.target.value"
+                ) %>
+                <%= error_tag(f, :location) %>
+              </div>
+              <%= error_tag(f, @schema_field) %>
+            </div>
+          <% :time -> %>
+            <%= label(f, @schema_field, @label) %>
+            <div class="flex items-center gap-2 ts-ignore sm:w-64 apply-a17t-fields">
+              <%= time_select(f, @schema_field,
+                hour: [prompt: "[Unset]"],
+                minute: [prompt: "[Unset]"],
+                class: "select",
+                phx_debounce: 500
+              ) %>
+            </div>
+            <p class="support">
+              To unset this attribute, set both the hour and minute fields to [Unset].
+            </p>
+            <%= error_tag(f, @schema_field) %>
+          <% :date -> %>
+            <%= label(f, @schema_field, @label) %>
+            <div class="flex items-center gap-2 ts-ignore apply-a17t-fields">
+              <%= date_select(f, @schema_field,
+                year: [prompt: "[Unset]", options: DateTime.utc_now().year..1990],
+                month: [prompt: "[Unset]"],
+                day: [prompt: "[Unset]"],
+                class: "select",
+                phx_debounce: 500
+              ) %>
+            </div>
+            <p class="support">
+              To unset this attribute, set the day, month, and year fields to [Unset].
+            </p>
+            <%= error_tag(f, @schema_field) %>
+        <% end %>
+        <%= if @attr.type == :location do %>
+          <a
+            class="support text-urge-700 underline mt-4"
+            target="_blank"
+            x-show="user_loc != null && user_loc.length > 0"
+            x-bind:href="'https://maps.google.com/maps?q=' + (user_loc || '').replace(' ', '')"
+          >
+            Preview <span class="font-bold" x-text="user_loc"></span> on Google Maps
+          </a>
+        <% end %>
+      </div>
+    <% end %>
     """
   end
 

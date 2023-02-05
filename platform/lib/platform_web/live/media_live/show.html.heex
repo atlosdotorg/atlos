@@ -224,9 +224,11 @@
           </:header>
           <div class="border-gray-200">
             <.attr_display_block
-              set_attrs={Attribute.set_for_media(@media, pane: :attributes)}
+              set_attrs={
+                Attribute.set_for_media(@media, pane: :attributes, project: @media.project)
+              }
               unset_attrs={
-                Attribute.unset_for_media(@media, pane: :attributes)
+                Attribute.unset_for_media(@media, pane: :attributes, project: @media.project)
                 |> filter_editable(@media, @current_user)
               }
               media={@media}
@@ -267,9 +269,11 @@
           </:header>
           <div class="border-gray-200">
             <.attr_display_block
-              set_attrs={Attribute.set_for_media(@media, pane: :metadata)}
+              set_attrs={
+                Attribute.set_for_media(@media, pane: :metadata, project: @media.project)
+              }
               unset_attrs={
-                Attribute.unset_for_media(@media, pane: :metadata)
+                Attribute.unset_for_media(@media, pane: :metadata, project: @media.project)
                 |> filter_editable(@media, @current_user)
               }
               media={@media}
@@ -457,7 +461,7 @@
       </.modal>
     <% end %>
     <%= if @live_action == :history do %>
-      <% attr = Attribute.get_attribute(@attribute) %>
+      <% attr = Attribute.get_attribute(@attribute, project: @media.project) %>
       <.modal target={} close_confirmation="">
         <div class="mb-8">
           <div class="sm:flex justify-between">
@@ -486,7 +490,10 @@
           should_combine={false}
           show_final_line={false}
           updates={
-            @updates |> Enum.filter(&(&1.modified_attribute == attr.name || &1.type == :create))
+            @updates
+            |> Enum.filter(
+              &(&1.modified_attribute == attr.name |> to_string() || &1.type == :create)
+            )
           }
         />
       </.modal>

@@ -25,14 +25,8 @@ defmodule Platform.Updates.Update do
         :remove_project
       ]
 
-    # Used for attribute updates
-    field :modified_attribute, Ecto.Enum,
-      nullable: true,
-      values:
-        Attribute.attribute_names(
-          include_renamed_attributes: true,
-          include_deprecated_attributes: true
-        )
+    # Used for attribute updates.
+    field :modified_attribute, :string
 
     # JSON-encoded data, used for attribute changes
     field :new_value, :string, default: "null"
@@ -85,7 +79,6 @@ defmodule Platform.Updates.Update do
       ])
       |> validate_required([:old_value, :new_value, :type, :user_id, :media_id])
       |> validate_explanation()
-      |> validate_inclusion(:modified_attribute, Attribute.attribute_names())
 
     changeset
     |> put_change(

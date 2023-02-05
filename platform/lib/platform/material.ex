@@ -861,6 +861,23 @@ defmodule Platform.Material do
     result
   end
 
+  def get_attribute_value(%Media{} = media, %Attribute{} = attr) do
+    case attr.schema_field do
+      :project_attributes ->
+        media
+        |> Map.get(:project_attributes, [])
+        |> Enum.find(fn pa -> pa.attribute_id == attr.name end)
+        |> case do
+          nil -> nil
+          %Platform.Material.Media.ProjectAttributeValue{value: value} -> value
+        end
+
+      v ->
+        media
+        |> Map.get(v)
+    end
+  end
+
   @doc """
   Do an audited update of the given attribute. Will broadcast change via PubSub.
   """
@@ -880,6 +897,7 @@ defmodule Platform.Material do
     # Make sure both changesets are valid
     cond do
       !(media_changeset.valid? && update_changeset.valid?) ->
+        dbg(update_changeset)
         {:error, media_changeset}
 
       true ->

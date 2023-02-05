@@ -2,6 +2,8 @@ defmodule Platform.Projects.ProjectAttribute do
   use Ecto.Schema
   import Ecto.Changeset
 
+  alias Platform.Material.Attribute
+
   embedded_schema do
     field(:name, :string)
     field(:type, Ecto.Enum, values: [:select, :text, :date, :multi_select])
@@ -34,5 +36,20 @@ defmodule Platform.Projects.ProjectAttribute do
     else
       changeset
     end
+  end
+
+  @doc """
+  Convert the given ProjectAttribute into an attribute.
+  """
+  def to_attribute(%__MODULE__{} = attribute) do
+    %Attribute{
+      schema_field: :project_attributes,
+      name: attribute.id,
+      label: attribute.name,
+      type: attribute.type,
+      options: attribute.options,
+      pane: :attributes,
+      required: false
+    }
   end
 end
