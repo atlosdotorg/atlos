@@ -125,7 +125,7 @@ defmodule Platform.Material do
       |> where([m, update: u], ^filter_project_id)
       |> order_by([m, update: u], desc: u.inserted_at)
       |> preload([m, update: u], updates: u)
-      |> preload([m, update: u], updates: [media: [:project]])
+      |> preload([m, update: u], updates: [media: [project: [:attributes]]])
       |> select_merge([m, update: u], %{last_update_time: u.inserted_at})
       |> order_by([m, update: u], desc: m.id)
       |> limit(^Keyword.get(opts, :limit, 25))
@@ -179,7 +179,7 @@ defmodule Platform.Material do
   end
 
   defp preload_media_project(query) do
-    query |> preload([:project])
+    query |> preload(project: [:attributes])
   end
 
   defp apply_user_fields(query, user, opts)
@@ -554,7 +554,7 @@ defmodule Platform.Material do
     Repo.all(
       from(v in MediaVersion,
         where: v.source_url == ^url,
-        preload: [media: [[updates: :user], :versions, :project]]
+        preload: [media: [[updates: :user], :versions, project: [:attributes]]]
       )
     )
     |> Enum.sort_by(& &1.media.id)

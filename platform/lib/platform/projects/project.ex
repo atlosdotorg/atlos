@@ -10,8 +10,7 @@ defmodule Platform.Projects.Project do
     field(:description, :string, default: "")
     field(:color, :string, default: "#f87171")
 
-    embeds_many(:attributes, Platform.Projects.ProjectAttribute, on_replace: :delete)
-
+    has_many(:attributes, Platform.Projects.ProjectAttribute, on_replace: :delete)
     has_many(:media, Platform.Material.Media)
 
     timestamps()
@@ -21,7 +20,7 @@ defmodule Platform.Projects.Project do
   def changeset(project, attrs) do
     project
     |> cast(attrs, [:name, :code, :color, :description])
-    |> cast_embed(:attributes, required: false)
+    |> cast_assoc(:attributes, required: false)
     |> validate_required([:name, :code, :color])
     |> then(fn changeset ->
       changeset

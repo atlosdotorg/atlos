@@ -739,8 +739,12 @@ defmodule PlatformWeb.Components do
                           Attribute.get_attribute(@update.modified_attribute,
                             project: @update.media.project
                           ) %> updated
+                        <%= if attr do %>
                         <%= live_patch class: "text-button text-gray-800 inline-block", to: Routes.media_show_path(@socket, :history, @update.media.slug, attr.name) do %>
                           <%= attr.label %> &nearr;
+                        <% end %>
+                        <% else %>
+                          [Deleted Attribute]
                         <% end %>
                       <% :create -> %>
                         added this incident
@@ -1486,23 +1490,27 @@ defmodule PlatformWeb.Components do
         end
       end %>
       <span>
-        <%= case @attr.type do %>
-          <% :text -> %>
-            <.text_diff old={@old_val} new={@new_val} label={@label} />
-          <% :select -> %>
-            <.list_diff old={[@old_val]} new={[@new_val]} label={@label} />
-          <% :multi_select -> %>
-            <.list_diff
-              old={if is_list(@old_val), do: @old_val, else: [@old_val]}
-              new={if is_list(@new_val), do: @new_val, else: [@new_val]}
-              label={@label}
-            />
-          <% :location -> %>
-            <.location_diff old={@old_val} new={@new_val} label={@label} />
-          <% :time -> %>
-            <.list_diff old={[@old_val]} new={[@new_val]} label={@label} />
-          <% :date -> %>
-            <.list_diff old={format_date.(@old_val)} new={format_date.(@new_val)} label={@label} />
+        <%= if @attr do %>
+          <%= case @attr.type do %>
+            <% :text -> %>
+              <.text_diff old={@old_val} new={@new_val} label={@label} />
+            <% :select -> %>
+              <.list_diff old={[@old_val]} new={[@new_val]} label={@label} />
+            <% :multi_select -> %>
+              <.list_diff
+                old={if is_list(@old_val), do: @old_val, else: [@old_val]}
+                new={if is_list(@new_val), do: @new_val, else: [@new_val]}
+                label={@label}
+              />
+            <% :location -> %>
+              <.location_diff old={@old_val} new={@new_val} label={@label} />
+            <% :time -> %>
+              <.list_diff old={[@old_val]} new={[@new_val]} label={@label} />
+            <% :date -> %>
+              <.list_diff old={format_date.(@old_val)} new={format_date.(@new_val)} label={@label} />
+          <% end %>
+          <% else %>
+            <i>Change unavailable.</i>
         <% end %>
       </span>
       <%= if Material.is_combined_update_value(@old) and Material.is_combined_update_value(@new) do %>

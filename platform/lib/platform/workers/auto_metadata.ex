@@ -37,7 +37,7 @@ defmodule Platform.Workers.AutoMetadata do
 
   @impl Oban.Worker
   def perform(%Oban.Job{args: %{"media_id" => id} = _args}) do
-    media = Material.get_media!(id) |> Platform.Repo.preload(:project)
+    media = Material.get_media!(id) |> Platform.Repo.preload(project: [:attributes])
 
     Logger.info("Updating metadata for #{media.slug}.")
 

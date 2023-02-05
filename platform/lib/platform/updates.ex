@@ -131,8 +131,11 @@ defmodule Platform.Updates do
   @doc """
   Returns the key under which the value of the attribute will be stored in change JSON records (old value, new value, etc.)
   """
-  def key_for_attribute(%Attribute{} = attr) do
+  def key_for_attribute(attr) do
     cond do
+      attr == nil ->
+        nil
+
       attr.schema_field == :project_attributes ->
         attr.name
 
@@ -141,8 +144,11 @@ defmodule Platform.Updates do
     end
   end
 
-  def value_for_attribute(%Attribute{} = attr, %Ecto.Changeset{} = changeset) do
+  def value_for_attribute(attr, %Ecto.Changeset{} = changeset) do
     cond do
+      attr == nil ->
+        nil
+
       attr.schema_field == :project_attributes ->
         Ecto.Changeset.get_field(changeset, :project_attributes)
         |> Enum.find(%{value: nil}, &(&1.id == attr.name))

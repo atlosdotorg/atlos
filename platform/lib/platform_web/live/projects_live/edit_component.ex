@@ -68,7 +68,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
     socket =
       update(socket, :changeset, fn changeset ->
         existing = Ecto.Changeset.get_field(changeset, :attributes, [])
-        Ecto.Changeset.put_embed(changeset, :attributes, existing ++ [%{}])
+        Ecto.Changeset.put_assoc(changeset, :attributes, existing ++ [%{}])
       end)
 
     {:noreply, socket}

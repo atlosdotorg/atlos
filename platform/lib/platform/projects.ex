@@ -40,7 +40,7 @@ defmodule Platform.Projects do
       ** (Ecto.NoResultsError)
 
   """
-  def get_project!(id), do: Repo.get!(Project, id)
+  def get_project!(id), do: Repo.get!(Project |> preload(:attributes), id)
 
   @doc """
   Gets a single project. Returns `nil` if the Project does not exist.

@@ -4,14 +4,19 @@ defmodule Platform.Projects.ProjectAttribute do
 
   alias Platform.Material.Attribute
 
-  embedded_schema do
+  @primary_key {:id, :binary_id, autogenerate: true}
+  schema "project_attributes" do
     field(:name, :string)
     field(:type, Ecto.Enum, values: [:select, :text, :date, :multi_select])
     field(:options, {:array, :string}, default: [])
 
+    belongs_to(:project, Platform.Projects.Project, on_replace: :delete, type: :binary_id)
+
     # JSON array of options
     field(:options_json, :string, virtual: true)
     field(:delete, :boolean, virtual: true)
+
+    timestamps()
   end
 
   def changeset(%__MODULE__{} = attribute, attrs) do

@@ -42,7 +42,8 @@ defmodule Platform.Notifications do
   def get_notification!(id),
     do:
       Repo.get!(
-        Notification |> preload(update: [:user, :old_project, :new_project, media: [:project]]),
+        Notification
+        |> preload(update: [:user, :old_project, :new_project, media: [project: [:attributes]]]),
         id
       )
 
@@ -52,7 +53,15 @@ defmodule Platform.Notifications do
   def get_notifications_by_user_paginated(%User{} = user, options \\ []) do
     from(n in Notification,
       where: n.user_id == ^user.id,
-      preload: [update: [:user, :old_project, :new_project, :media_version, media: [:project]]],
+      preload: [
+        update: [
+          :user,
+          :old_project,
+          :new_project,
+          :media_version,
+          media: [project: [:attributes]]
+        ]
+      ],
       order_by: [desc: :inserted_at]
     )
     # Fallback for null/equal values
@@ -64,7 +73,7 @@ defmodule Platform.Notifications do
   Returns whether the user has any unread notifications.
   """
   def has_unread_notifications(%User{} = user) do
-    Repo.exists?(from n in Notification, where: n.user_id == ^user.id and n.read == false)
+    Repo.exists?(from(n in Notification, where: n.user_id == ^user.id and n.read == false))
   end
 
   def mark_notifications_as_read(%User{} = user, media \\ nil) do
