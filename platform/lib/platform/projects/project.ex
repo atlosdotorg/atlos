@@ -10,7 +10,7 @@ defmodule Platform.Projects.Project do
     field(:description, :string, default: "")
     field(:color, :string, default: "#f87171")
 
-    has_many(:attributes, Platform.Projects.ProjectAttribute, on_replace: :delete)
+    has_many(:attributes, Platform.Projects.ProjectAttribute)
     has_many(:media, Platform.Material.Media)
 
     timestamps()

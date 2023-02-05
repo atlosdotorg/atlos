@@ -548,75 +548,17 @@ defmodule Platform.Material.Attribute do
     verify_change_exists = Keyword.get(opts, :verify_change_exists, true)
     changeset = Keyword.get(opts, :changeset)
 
-    # If the attribute's schema field is :project_attributes, we set the field to :value and make the changeset recursively.
-    # Otherwise, we proceed as normal.
-
-    if attribute.schema_field == :project_attributes do
-      cast_embedded = fn cs, subattrs ->
-        changeset(
-          media,
-          attribute |> Map.put(:schema_field, :value),
-          subattrs,
-          Keyword.put(
-            opts,
-            :changeset,
-            cs
-            |> cast(%{}, [])
-            |> put_change(:id, attribute.name)
-            |> put_change(:project_id, get_field(changeset |> cast(%{}, []), :project_id))
-          )
-        )
-      end
-
-      cs = (changeset || media) |> cast(%{}, [])
-
-      # Check if an embedded attribute value already exists for the given project and attribute.
-      # If so, we update it. If not, we create a new one.
-      existing_attribute_value = :notnull
-      # cs
-      # |> get_field(:project_attributes)
-      # |> Enum.find(fn attribute_value ->
-      #   attribute_value.id == attribute.name
-      # end)
-      # |> dbg()
-
-      cs =
-        case existing_attribute_value do
-          nil ->
-            cs
-            |> Ecto.Changeset.put_embed(
-              :project_attributes,
-              get_field(cs, :project_attributes, []) ++
-                [
-                  %{
-                    project_id: get_field(cs, :project_id),
-                    id: attribute.name,
-                    value: nil
-                  }
-                ]
-            )
-
-          _ ->
-            cs
-        end
-
-      cs
-      |> cast(attrs, [])
-      |> cast_embed(:project_attributes, with: cast_embedded)
-      |> dbg()
-    else
-      (changeset || media)
-      |> cast(%{}, [])
-      |> populate_virtual_data(attribute)
-      |> cast_attribute(attribute, attrs)
-      |> validate_attribute(attribute, user: user)
-      |> cast_and_validate_virtual_explanation(attrs, attribute)
-      |> update_from_virtual_data(attribute)
-      |> verify_user_can_edit(attribute, user, media)
-      |> then(fn c ->
-        if verify_change_exists, do: verify_change_exists(c, [attribute]), else: c
-      end)
-    end
+    (changeset || media)
+    |> cast(%{}, [])
+    |> populate_virtual_data(attribute)
+    |> cast_attribute(attribute, attrs)
+    |> validate_attribute(attribute, user: user)
+    |> cast_and_validate_virtual_explanation(attrs, attribute)
+    |> update_from_virtual_data(attribute)
+    |> verify_user_can_edit(attribute, user, media)
+    |> then(fn c ->
+      if verify_change_exists, do: verify_change_exists(c, [attribute]), else: c
+    end)
   end
 
   @doc """

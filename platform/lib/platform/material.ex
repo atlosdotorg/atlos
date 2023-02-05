@@ -23,6 +23,7 @@ defmodule Platform.Material do
 
   defp hydrate_media_query(query, opts \\ []) do
     query
+    |> preload_media_project_attribute_values()
     |> preload_media_versions()
     |> preload_media_updates()
     |> preload_media_project()
@@ -166,6 +167,10 @@ defmodule Platform.Material do
     )
     |> hydrate_media_query()
     |> Repo.all()
+  end
+
+  defp preload_media_project_attribute_values(query) do
+    query |> preload([:project_attribute_values])
   end
 
   defp preload_media_versions(query) do
@@ -869,7 +874,7 @@ defmodule Platform.Material do
         |> Enum.find(fn pa -> pa.id == attr.name end)
         |> case do
           nil -> nil
-          %Platform.Material.Media.ProjectAttributeValue{value: value} -> value
+          %Platform.Material.ProjectAttributeValue{value: value} -> value
         end
 
       v ->

@@ -26,25 +26,7 @@ defmodule Platform.Material.Media do
     field(:attr_impact, {:array, :string})
     field(:attr_equipment, {:array, :string})
 
-    # The ID (primary key) must match the ID of the attribute
-    @primary_key {:id, :binary_id, autogenerate: false}
-    embeds_many :project_attributes, ProjectAttributeValue do
-      belongs_to(:project, Projects.Project, type: :binary_id)
-      field(:value, Platform.FlexibleJSONType, default: nil)
-      field(:explanation, :string, virtual: true)
-    end
-
-    # Deprecated attributes (that still live in the database)
-    # field :attr_time_of_day, :string
-    # field :attr_environment, :string
-    # field :attr_weather, {:array, :string}
-    # field :attr_camera_system, {:array, :string}
-    # field :attr_civilian_impact, {:array, :string}
-    # field :attr_event, {:array, :string}
-    # field :attr_casualty, {:array, :string}
-    # field :attr_military_infrastructure, {:array, :string}
-    # field :attr_weapon, {:array, :string}
-    # field :attr_time_recorded, :time
+    has_many(:project_attribute_values, Platform.Material.ProjectAttributeValue)
 
     # Metadata Attributes
     field(:attr_restrictions, {:array, :string})

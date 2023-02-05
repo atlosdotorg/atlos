@@ -86,7 +86,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
         # Will be handled by the form's `delete` field
         changeset
       else
-        Ecto.Changeset.put_embed(
+        Ecto.Changeset.put_assoc(
           changeset,
           :attributes,
           List.delete_at(existing, index)
