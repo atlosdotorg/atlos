@@ -546,19 +546,35 @@ defmodule Platform.Material.Attribute do
       ) do
     user = Keyword.get(opts, :user)
     verify_change_exists = Keyword.get(opts, :verify_change_exists, true)
-    changeset = Keyword.get(opts, :changeset)
+    changeset = Keyword.get(opts, :changeset, media)
 
-    (changeset || media)
-    |> cast(%{}, [])
-    |> populate_virtual_data(attribute)
-    |> cast_attribute(attribute, attrs)
-    |> validate_attribute(attribute, user: user)
-    |> cast_and_validate_virtual_explanation(attrs, attribute)
-    |> update_from_virtual_data(attribute)
-    |> verify_user_can_edit(attribute, user, media)
-    |> then(fn c ->
-      if verify_change_exists, do: verify_change_exists(c, [attribute]), else: c
-    end)
+    if attribute.schema_field == :project_attributes do
+      changeset
+      |> cast(%{}, [])
+      |> cast_assoc(:project_attribute_values,
+        with: fn changeset, params ->
+          ProjectAttributeValue.changeset(
+            changeset,
+            params,
+            attribute,
+            media,
+            opts |> Keyword.delete(:changeset)
+          )
+        end
+      )
+    else
+      changeset
+      |> cast(%{}, [])
+      |> populate_virtual_data(attribute)
+      |> cast_attribute(attribute, attrs)
+      |> validate_attribute(attribute, user: user)
+      |> cast_and_validate_virtual_explanation(attrs, attribute)
+      |> update_from_virtual_data(attribute)
+      |> verify_user_can_edit(attribute, user, media)
+      |> then(fn c ->
+        if verify_change_exists, do: verify_change_exists(c, [attribute]), else: c
+      end)
+    end
   end
 
   @doc """

@@ -653,7 +653,7 @@ defmodule PlatformWeb.Components do
                       made <%= length(@update) %> updates to
                       <%= for {attr, idx} <- @attributes |> Enum.with_index() do %>
                         <span class="font-medium text-gray-800">
-                          <%= attr.label <> connector_language(idx, @n_attributes) %>
+                          <%= (if attr, do: attr.label, else: "[Deleted Attribute]") <> connector_language(idx, @n_attributes) %>
                         </span>
                       <% end %>
                     <% :upload_version -> %>

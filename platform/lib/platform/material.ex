@@ -126,6 +126,7 @@ defmodule Platform.Material do
       |> where([m, update: u], ^filter_project_id)
       |> order_by([m, update: u], desc: u.inserted_at)
       |> preload([m, update: u], updates: u)
+      |> preload([:project_attribute_values, project: [:attributes]])
       |> preload([m, update: u], updates: [media: [project: [:attributes]]])
       |> select_merge([m, update: u], %{last_update_time: u.inserted_at})
       |> order_by([m, update: u], desc: m.id)
@@ -180,7 +181,15 @@ defmodule Platform.Material do
   defp preload_media_updates(query) do
     # TODO: should this be pulled into the Updates context somehow?
     query
-    |> preload(updates: [:user, :media_version, :old_project, :new_project, media: [:project]])
+    |> preload(
+      updates: [
+        :user,
+        :media_version,
+        :old_project,
+        :new_project,
+        media: [project: [:attributes]]
+      ]
+    )
   end
 
   defp preload_media_project(query) do
@@ -559,7 +568,9 @@ defmodule Platform.Material do
     Repo.all(
       from(v in MediaVersion,
         where: v.source_url == ^url,
-        preload: [media: [[updates: :user], :versions, project: [:attributes]]]
+        preload: [
+          media: [[updates: :user], :versions, :project_attribute_values, project: [:attributes]]
+        ]
       )
     )
     |> Enum.sort_by(& &1.media.id)

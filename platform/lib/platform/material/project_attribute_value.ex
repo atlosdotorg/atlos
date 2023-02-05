@@ -18,17 +18,28 @@ defmodule Platform.Material.ProjectAttributeValue do
     timestamps()
   end
 
-  def changeset(%__MODULE__{} = attribute_value, attrs, %Attribute{} = attr, %Media{} = media) do
+  def changeset(
+        %__MODULE__{} = attribute_value,
+        attrs,
+        %Attribute{} = attr,
+        %Media{} = media,
+        opts \\ []
+      ) do
     if attr.schema_field != :project_attributes do
       raise ArgumentError, "Attribute is not a project attribute"
     end
 
     cs =
-      attribute
+      attribute_value
       |> cast(attrs, [:explanation])
       |> put_change(:media_id, media.id)
       |> put_change(:project_attribute_id, attr.name)
 
-    Attribute.changeset(media, attr |> Map.put(:schema_field, :value), attrs, changeset: cs)
+    Attribute.changeset(
+      media,
+      attr |> Map.put(:schema_field, :value),
+      attrs,
+      opts |> Keyword.put(:changeset, cs)
+    )
   end
 end
