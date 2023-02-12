@@ -2,6 +2,7 @@ defmodule Platform.Material.Attribute do
   use Ecto.Schema
   import Ecto.Changeset
   alias __MODULE__
+  alias Platform.Material.Attribute
   alias Platform.Material.Media.ProjectAttributeValue
   alias Platform.Material.Media
   alias Platform.Accounts.User
@@ -537,6 +538,7 @@ defmodule Platform.Material.Attribute do
     * :verify_change_exists - whether to verify that the change exists (default: true)
     * :changeset - an existing changeset to add to (default: nil)
     * :project_attribute - the project attribute to use (default: nil) (required for project attributes)
+    * :project_attribute_ids_in_changeset - all attribute IDs that are being potentially changed with this changeset (attributes not in this list will not be changed) (default: [])
   """
   def changeset(
         %Media{} = media,
@@ -552,33 +554,76 @@ defmodule Platform.Material.Attribute do
     # Otherwise, we proceed as normal.
 
     if attribute.schema_field == :project_attributes do
-      cast_embedded = fn cs, subattrs ->
-        changeset(
-          media,
-          attribute |> Map.put(:schema_field, :value),
-          subattrs,
-          Keyword.put(
-            opts,
-            :changeset,
-            cs
-            |> cast(%{}, [])
-            |> put_change(:id, attribute.name)
-            |> put_change(:project_id, get_field(changeset |> cast(%{}, []), :project_id))
+      project_attribute_ids_in_changeset =
+        (Keyword.get(opts, :project_attribute_ids_in_changeset, []) ++ [attribute.name])
+        |> dbg()
+
+      provided_attribute_values = Map.get(attrs, "project_attributes", %{})
+      provided_ids = Map.values(provided_attribute_values) |> Enum.map(& &1["id"])
+
+      # Inject values for non-changing attributes
+      unmodified_project_attributes =
+        media.project_attributes
+        |> Enum.filter(&(!Enum.member?(provided_ids, &1.id)))
+        |> Enum.map(&%{"id" => &1.id, "value" => &1.value, "project_id" => &1.project_id})
+        |> Enum.with_index(map_size(provided_attribute_values))
+        |> Enum.map(fn {val, index} -> {to_string(index), val} end)
+        |> Map.new()
+        |> dbg()
+
+      attrs =
+        Map.put(
+          attrs,
+          "project_attributes",
+          Map.merge(
+            Map.get(attrs, "project_attributes", %{}) |> dbg(),
+            unmodified_project_attributes |> dbg()
           )
         )
+        |> dbg()
+
+      opts =
+        Keyword.put(opts, :project_attribute_ids_in_changeset, project_attribute_ids_in_changeset)
+
+      cast_embedded = fn cs, subattrs ->
+        attr = Attribute.get_attribute(Map.get(subattrs, "id"), project: media.project)
+
+        if is_nil(attr) or attr.name != attribute.name do
+          cs
+          |> cast(%{}, [])
+        else
+          changeset(
+            media,
+            attr |> Map.put(:schema_field, :value),
+            subattrs,
+            Keyword.put(
+              opts,
+              :changeset,
+              cs
+              |> cast(%{}, [])
+              |> put_change(:id, attr.name)
+              |> put_change(:project_id, media.project_id)
+            )
+          )
+        end
       end
 
       cs = (changeset || media) |> cast(%{}, [])
 
+      cs =
+        cs
+        |> cast(attrs |> dbg(), [])
+        |> cast_embed(:project_attributes, with: cast_embedded)
+
       # Check if an embedded attribute value already exists for the given project and attribute.
       # If so, we update it. If not, we create a new one.
-      existing_attribute_value = :notnull
-      # cs
-      # |> get_field(:project_attributes)
-      # |> Enum.find(fn attribute_value ->
-      #   attribute_value.id == attribute.name
-      # end)
-      # |> dbg()
+      existing_attribute_value =
+        cs
+        |> get_field(:project_attributes)
+        |> Enum.find(fn attribute_value ->
+          attribute_value.id == attribute.name
+        end)
+        |> dbg()
 
       cs =
         case existing_attribute_value do
@@ -586,7 +631,7 @@ defmodule Platform.Material.Attribute do
             cs
             |> Ecto.Changeset.put_embed(
               :project_attributes,
-              get_field(cs, :project_attributes, []) ++
+              Ecto.Changeset.get_field(cs, :project_attributes) ++
                 [
                   %{
                     project_id: get_field(cs, :project_id),
@@ -595,15 +640,29 @@ defmodule Platform.Material.Attribute do
                   }
                 ]
             )
+            |> dbg()
 
           _ ->
             cs
         end
+        |> dbg()
 
-      cs
-      |> cast(attrs, [])
-      |> cast_embed(:project_attributes, with: cast_embedded)
-      |> dbg()
+      # changed_project_attributes =
+      #   Map.get(cs.changes, :project_attributes, [])
+      #   |> dbg()
+
+      # %{
+      #   cs
+      #   | changes:
+      #       Map.put(
+      #         cs.changes,
+      #         :project_attributes,
+      #         changed_project_attributes ++ unmodified_project_attributes
+      #       )
+      # }
+      # |> dbg()
+
+      dbg(cs)
     else
       (changeset || media)
       |> cast(%{}, [])
@@ -617,6 +676,7 @@ defmodule Platform.Material.Attribute do
         if verify_change_exists, do: verify_change_exists(c, [attribute]), else: c
       end)
     end
+    |> dbg()
   end
 
   @doc """

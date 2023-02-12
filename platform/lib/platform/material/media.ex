@@ -28,7 +28,7 @@ defmodule Platform.Material.Media do
 
     # The ID (primary key) must match the ID of the attribute
     @primary_key {:id, :binary_id, autogenerate: false}
-    embeds_many :project_attributes, ProjectAttributeValue do
+    embeds_many :project_attributes, ProjectAttributeValue, on_replace: :raise do
       belongs_to(:project, Projects.Project, type: :binary_id)
       field(:value, Platform.FlexibleJSONType, default: nil)
       field(:explanation, :string, virtual: true)
