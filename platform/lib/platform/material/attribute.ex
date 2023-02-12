@@ -477,7 +477,7 @@ defmodule Platform.Material.Attribute do
   """
   def unset_for_media(media, opts \\ []) do
     pane = Keyword.get(opts, :pane)
-    set = set_for_media(media)
+    set = set_for_media(media, opts)
 
     attributes(opts)
     |> Enum.filter(&(!Enum.member?(set, &1)))
