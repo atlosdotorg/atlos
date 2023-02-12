@@ -651,7 +651,7 @@ defmodule PlatformWeb.Components do
                   <%= case @head.type do %>
                     <% :update_attribute -> %>
                       made <%= length(@update) %> updates to
-                      <%= for {attr, idx} <- @attributes |> Enum.with_index() do %>
+                      <%= for {attr, idx} <- @attributes |> Enum.filter(& !is_nil(&1)) |> Enum.with_index() do %>
                         <span class="font-medium text-gray-800">
                           <%= attr.label <> connector_language(idx, @n_attributes) %>
                         </span>
@@ -739,8 +739,12 @@ defmodule PlatformWeb.Components do
                           Attribute.get_attribute(@update.modified_attribute,
                             project: @update.media.project
                           ) %> updated
-                        <%= live_patch class: "text-button text-gray-800 inline-block", to: Routes.media_show_path(@socket, :history, @update.media.slug, attr.name) do %>
-                          <%= attr.label %> &nearr;
+                        <%= if not is_nil(attr) do %>
+                          <%= live_patch class: "text-button text-gray-800 inline-block", to: Routes.media_show_path(@socket, :history, @update.media.slug, attr.name) do %>
+                            <%= attr.label %> &nearr;
+                          <% end %>
+                        <% else %>
+                          [Unknown Attribute]
                         <% end %>
                       <% :create -> %>
                         added this incident
@@ -1453,65 +1457,75 @@ defmodule PlatformWeb.Components do
   def attr_diff(%{name: name, old: old, new: new, project: project} = assigns) do
     attr = Attribute.get_attribute(name, project: project)
 
-    assigns =
-      assigns
-      |> assign(:attr, attr)
-      |> assign(:label, Map.get(assigns, :label, ""))
-      |> assign(:children, Attribute.get_children(name))
-      |> assign(
-        :old_val,
-        # It's possible to encode changes to multiple schema fields in one update, but some legacy/existing updates
-        # have their values encoded in the old format, so we perform a render-time conversion here.
-        if(Material.is_combined_update_value(old),
-          do: old |> Map.get(Platform.Updates.key_for_attribute(attr)),
-          else: old
+    if not is_nil(attr) do
+      assigns =
+        assigns
+        |> assign(:attr, attr)
+        |> assign(:label, Map.get(assigns, :label, ""))
+        |> assign(:children, Attribute.get_children(name))
+        |> assign(
+          :old_val,
+          # It's possible to encode changes to multiple schema fields in one update, but some legacy/existing updates
+          # have their values encoded in the old format, so we perform a render-time conversion here.
+          if(Material.is_combined_update_value(old),
+            do: old |> Map.get(Platform.Updates.key_for_attribute(attr)),
+            else: old
+          )
         )
-      )
-      |> assign(
-        :new_val,
-        if(Material.is_combined_update_value(new),
-          do: new |> Map.get(Platform.Updates.key_for_attribute(attr)),
-          else: new
+        |> assign(
+          :new_val,
+          if(Material.is_combined_update_value(new),
+            do: new |> Map.get(Platform.Updates.key_for_attribute(attr)),
+            else: new
+          )
         )
-      )
 
-    ~H"""
-    <div class="inline-block">
-      <% format_date = fn val ->
-        with false <- is_nil(val),
-             {:ok, date} <- val |> Date.from_iso8601() do
-          [date |> Calendar.strftime("%d %B %Y")]
-        else
-          _ -> nil
-        end
-      end %>
-      <span>
-        <%= case @attr.type do %>
-          <% :text -> %>
-            <.text_diff old={@old_val} new={@new_val} label={@label} />
-          <% :select -> %>
-            <.list_diff old={[@old_val]} new={[@new_val]} label={@label} />
-          <% :multi_select -> %>
-            <.list_diff
-              old={if is_list(@old_val), do: @old_val, else: [@old_val]}
-              new={if is_list(@new_val), do: @new_val, else: [@new_val]}
-              label={@label}
-            />
-          <% :location -> %>
-            <.location_diff old={@old_val} new={@new_val} label={@label} />
-          <% :time -> %>
-            <.list_diff old={[@old_val]} new={[@new_val]} label={@label} />
-          <% :date -> %>
-            <.list_diff old={format_date.(@old_val)} new={format_date.(@new_val)} label={@label} />
+      ~H"""
+      <div class="inline-block">
+        <% format_date = fn val ->
+          with false <- is_nil(val),
+               {:ok, date} <- val |> Date.from_iso8601() do
+            [date |> Calendar.strftime("%d %B %Y")]
+          else
+            _ -> nil
+          end
+        end %>
+        <span>
+          <%= case @attr.type do %>
+            <% :text -> %>
+              <.text_diff old={@old_val} new={@new_val} label={@label} />
+            <% :select -> %>
+              <.list_diff old={[@old_val]} new={[@new_val]} label={@label} />
+            <% :multi_select -> %>
+              <.list_diff
+                old={if is_list(@old_val), do: @old_val, else: [@old_val]}
+                new={if is_list(@new_val), do: @new_val, else: [@new_val]}
+                label={@label}
+              />
+            <% :location -> %>
+              <.location_diff old={@old_val} new={@new_val} label={@label} />
+            <% :time -> %>
+              <.list_diff old={[@old_val]} new={[@new_val]} label={@label} />
+            <% :date -> %>
+              <.list_diff old={format_date.(@old_val)} new={format_date.(@new_val)} label={@label} />
+          <% end %>
+        </span>
+        <%= if Material.is_combined_update_value(@old) and Material.is_combined_update_value(@new) do %>
+          <%= for child <- @children do %>
+            <.attr_diff name={child.name} old={@old} new={@new} label={child.label} project={@project} />
+          <% end %>
         <% end %>
-      </span>
-      <%= if Material.is_combined_update_value(@old) and Material.is_combined_update_value(@new) do %>
-        <%= for child <- @children do %>
-          <.attr_diff name={child.name} old={@old} new={@new} label={child.label} project={@project} />
-        <% end %>
-      <% end %>
-    </div>
-    """
+      </div>
+      """
+    else
+      ~H"""
+      <div class="inline-block">
+        <span>
+          [Change Unavailable]
+        </span>
+      </div>
+      """
+    end
   end
 
   def deconfliction_warning(assigns) do
