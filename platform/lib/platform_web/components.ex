@@ -1220,12 +1220,7 @@ defmodule PlatformWeb.Components do
             <div class={"chip #{@tone} flex items-center gap-1 inline-block self-start break-all xl:break-normal"}>
               <.attribute_icon name={@name} type={:solid} value={@value} class="h-4 w-4 shrink-0" />
               <.attr_label label={@label} />
-              <%= case @value do %>
-                <% %Date{} -> %>
-                  <%= @value |> Calendar.strftime("%d %B %Y") %>
-                <% _ -> %>
-                  <%= @value %>
-              <% end %>
+              <%= Platform.Utils.format_date(@value) %>
             </div>
           </div>
       <% end %>
@@ -1482,14 +1477,6 @@ defmodule PlatformWeb.Components do
 
       ~H"""
       <div class="inline-block">
-        <% format_date = fn val ->
-          with false <- is_nil(val),
-               {:ok, date} <- val |> Date.from_iso8601() do
-            [date |> Calendar.strftime("%d %B %Y")]
-          else
-            _ -> nil
-          end
-        end %>
         <span>
           <%= case @attr.type do %>
             <% :text -> %>
@@ -1507,7 +1494,7 @@ defmodule PlatformWeb.Components do
             <% :time -> %>
               <.list_diff old={[@old_val]} new={[@new_val]} label={@label} />
             <% :date -> %>
-              <.list_diff old={format_date.(@old_val)} new={format_date.(@new_val)} label={@label} />
+              <.list_diff old={[Platform.Utils.format_date(@old_val)]} new={[Platform.Utils.format_date(@new_val)]} label={@label} />
           <% end %>
         </span>
         <%= if Material.is_combined_update_value(@old) and Material.is_combined_update_value(@new) do %>
@@ -2906,10 +2893,10 @@ defmodule PlatformWeb.Components do
     <%= for f <- (if @attr.schema_field == :project_attributes, do: (inputs_for(@f, :project_attributes)), else: [@f]) do %>
       <%= if @attr.schema_field == :project_attributes do %>
         <%= hidden_inputs_for(f) %>
-        <%= hidden_input f, :project_id %>
-        <%= hidden_input f, :id %>
+        <%= hidden_input(f, :project_id) %>
+        <%= hidden_input(f, :id) %>
         <%= if Ecto.Changeset.get_field(f.source, :id) != @attr.name do %>
-          <%= hidden_input f, :value %>
+          <%= hidden_input(f, :value) %>
         <% end %>
       <% end %>
 

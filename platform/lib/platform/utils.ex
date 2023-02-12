@@ -29,6 +29,27 @@ defmodule Platform.Utils do
     :crypto.strong_rand_bytes(32) |> Base.url_encode64()
   end
 
+  def format_date(value) do
+    case value do
+      %Date{} ->
+        value |> Calendar.strftime("%d %B %Y")
+
+      %{"day" => day, "month" => month, "year" => year} ->
+        %Date{
+          day: Integer.parse(day) |> elem(0),
+          month: Integer.parse(month) |> elem(0),
+          year: Integer.parse(year) |> elem(0)
+        }
+        |> Calendar.strftime("%d %B %Y")
+
+      str when is_binary(str) ->
+        str |> Date.from_iso8601() |> elem(1) |> Calendar.strftime("%d %B %Y")
+
+      _ ->
+        value
+    end
+  end
+
   def make_keys_strings(map) do
     Enum.reduce(map, %{}, fn
       {key, value}, acc when is_atom(key) -> Map.put(acc, Atom.to_string(key), value)
