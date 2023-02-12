@@ -136,7 +136,7 @@ defmodule Platform.Updates do
       attr == nil ->
         nil
 
-      attr.schema_field == :project_attributes ->
+      attr.schema_field == :project_attribute_values ->
         attr.name
 
       true ->
@@ -144,25 +144,10 @@ defmodule Platform.Updates do
     end
   end
 
-  def value_for_attribute(attr, %Ecto.Changeset{} = changeset) do
-    cond do
-      attr == nil ->
-        nil
-
-      attr.schema_field == :project_attributes ->
-        Ecto.Changeset.get_field(changeset, :project_attributes)
-        |> Enum.find(%{value: nil}, &(&1.id == attr.name))
-        |> Map.get(:value)
-
-      true ->
-        Ecto.Changeset.get_field(changeset, attr.schema_field)
-    end
-  end
-
   def value_for_attribute(%Attribute{} = attr, %Media{} = media) do
     cond do
-      attr.schema_field == :project_attributes ->
-        Map.get(media, :project_attributes, [])
+      attr.schema_field == :project_attribute_values ->
+        Map.get(media, :project_attribute_values, [])
         |> Enum.find(%{value: nil}, &(&1.id == attr.name))
         |> Map.get(:value)
 
@@ -171,14 +156,35 @@ defmodule Platform.Updates do
     end
   end
 
+  def value_for_attribute(attr, changesets) do
+    values =
+      Enum.map(changesets, fn changeset ->
+        cond do
+          attr == nil ->
+            nil
+
+          attr.schema_field == :project_attribute_values ->
+            Ecto.Changeset.get_change(changeset, :project_attribute_values)
+            |> Enum.find(%{value: nil}, &(&1.id == attr.name))
+            |> Map.get(:value)
+
+          true ->
+            Ecto.Changeset.get_change(changeset, attr.schema_field)
+        end
+      end)
+
+    # Find the non-nil value
+    Enum.find(values, fn v -> not is_nil(v) end)
+  end
+
   @doc """
   Helper API function that takes attributes change information and uses it to create an Update changeset. Requires 'explanation' to be in attrs. The change is recorded as belonging to the head of `attributes`; all other attributes should be children of the first element.
   """
-  def change_from_attributes_changeset(
+  def change_from_attributes_changesets(
         %Media{} = media,
         attributes,
         %User{} = user,
-        changeset,
+        changesets,
         attrs \\ %{}
       ) do
     # We add the _combined field so that it's unambiguous when a dict represents a collection of schema fields changing
@@ -192,8 +198,7 @@ defmodule Platform.Updates do
 
     new_value =
       attributes
-      |> dbg()
-      |> Enum.map(&{key_for_attribute(&1), value_for_attribute(&1, changeset)})
+      |> Enum.map(&{key_for_attribute(&1), value_for_attribute(&1, changesets)})
       |> Map.new()
       |> Map.put("_combined", true)
       |> Jason.encode!()

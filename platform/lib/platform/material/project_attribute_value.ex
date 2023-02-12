@@ -25,7 +25,7 @@ defmodule Platform.Material.ProjectAttributeValue do
         %Media{} = media,
         opts \\ []
       ) do
-    if attr.schema_field != :project_attributes do
+    if attr.schema_field != :project_attribute_values do
       raise ArgumentError, "Attribute is not a project attribute"
     end
 

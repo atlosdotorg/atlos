@@ -233,7 +233,7 @@ defmodule Platform.Material do
       ** (Ecto.NoResultsError)
 
   """
-  def get_media!(id), do: Repo.get!(Media, id)
+  def get_media!(id), do: Repo.get!(Media |> hydrate_media_query(), id)
 
   @doc """
   Creates a media.
@@ -327,6 +327,7 @@ defmodule Platform.Material do
 
   def get_full_media_by_slug(slug) do
     Media
+    |> preload_media_project_attribute_values()
     |> preload_media_versions()
     |> preload_media_updates()
     |> preload_media_project()
@@ -836,11 +837,11 @@ defmodule Platform.Material do
         attrs,
         opts \\ []
       ) do
-    Attribute.combined_changeset(media, attributes, attrs, opts)
+    Attribute.assemble_changesets(media, attributes, attrs, opts)
   end
 
   @doc """
-  Changeset for the media attribute. Also checks permissions.
+  Assemble changeset(s) for the media attribute. Also checks permissions. Note that the changeset may have `%Media{}` as its base record, or it may have a `%ProjectAttributeValue{}` as its base record.
   """
   def change_media_attribute(
         %Media{} = media,
@@ -848,7 +849,7 @@ defmodule Platform.Material do
         attrs \\ %{},
         opts \\ []
       ) do
-    Attribute.combined_changeset(
+    Attribute.changeset(
       media,
       attribute,
       attrs,
@@ -856,6 +857,9 @@ defmodule Platform.Material do
     )
   end
 
+  @doc """
+  Note that the changeset may have `%Media{}` as its base record, or it may have a `%ProjectAttributeValue{}` as its base record.
+  """
   def update_media_attribute(media, %Attribute{} = attribute, attrs, user \\ nil) do
     result =
       media
@@ -867,21 +871,27 @@ defmodule Platform.Material do
     result
   end
 
+  @doc """
+  Note that the changeset may have `%Media{}` as its base record, or it may have a `%ProjectAttributeValue{}` as its base record. Therefore, the result may be a `%Media{}` or a `%ProjectAttributeValue{}`.
+  """
   def update_media_attributes(media, attributes, attrs, opts \\ []) do
-    result =
-      change_media_attributes(media, attributes, attrs, opts)
-      |> Repo.update()
+    change_media_attributes(media, attributes, attrs, opts)
+    |> Enum.map(fn changeset ->
+      {:ok, _} =
+        changeset
+        |> Repo.update()
+    end)
 
     invalidate_attribute_values_cache()
 
-    result
+    get_media!(media.id)
   end
 
   def get_attribute_value(%Media{} = media, %Attribute{} = attr) do
     case attr.schema_field do
-      :project_attributes ->
+      :project_attribute_values ->
         media
-        |> Map.get(:project_attributes, [])
+        |> Map.get(:project_attribute_values, [])
         |> Enum.find(fn pa -> pa.id == attr.name end)
         |> case do
           nil -> nil
@@ -905,22 +915,22 @@ defmodule Platform.Material do
   Do an audited update of the given attributes. Will broadcast change via PubSub.
   """
   def update_media_attributes_audited(media, attributes, %User{} = user, attrs) do
-    media_changeset = change_media_attributes(media, attributes, attrs, user: user)
+    changesets = change_media_attributes(media, attributes, attrs, user: user)
 
     update_changeset =
-      Updates.change_from_attributes_changeset(media, attributes, user, media_changeset, attrs)
+      Updates.change_from_attributes_changesets(media, attributes, user, changesets, attrs)
 
     # Make sure both changesets are valid
     cond do
-      !(media_changeset.valid? && update_changeset.valid?) ->
+      !(Enum.all?(changesets, & &1.valid?) && update_changeset.valid?) ->
         dbg(update_changeset)
-        {:error, media_changeset}
+        {:error, changesets}
 
       true ->
         res =
           Repo.transaction(fn ->
             {:ok, _} = Updates.create_update_from_changeset(update_changeset)
-            {:ok, res} = update_media_attributes(media, attributes, attrs, user: user)
+            res = update_media_attributes(media, attributes, attrs, user: user)
             Updates.subscribe_if_first_interaction(media, user)
             res
           end)

@@ -18,7 +18,7 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
      |> assign(assigns)
      |> assign(:attrs, attributes)
      |> assign_new(
-       :changeset,
+       :changesets,
        fn ->
          Material.change_media_attributes(assigns.media, attributes, %{},
            user: assigns.current_user
@@ -78,7 +78,7 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
     # To allow empty strings, lists, etc.
     params = Map.get(input, "media", %{}) |> inject_attr_fields_if_missing(socket.assigns.attrs)
 
-    changeset =
+    changesets =
       socket.assigns.media
       # When validating, don't require the change to exist (that will be validated on submit)
       |> Material.change_media_attributes(
@@ -86,16 +86,16 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
         params,
         user: socket.assigns.current_user
       )
-      |> Map.put(:action, :validate)
+      |> Enum.map(fn cs -> Map.put(cs, :action, :validate) end)
 
-    {:noreply, socket |> assign(:changeset, changeset)}
+    {:noreply, socket |> assign(:changesets, changesets)}
   end
 
   def render(assigns) do
     confirm_prompt = "This will discard your changes without saving. Are you sure?"
 
     assigns =
-      assign(assigns, :disabled, !assigns.changeset.valid?)
+      assign(assigns, :disabled, !Enum.all(assigns.changesets, & &1.valid?))
       |> assign(:confirm_prompt, confirm_prompt)
 
     ~H"""

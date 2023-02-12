@@ -2,7 +2,7 @@ defmodule Platform.Material.Attribute do
   use Ecto.Schema
   import Ecto.Changeset
   alias __MODULE__
-  alias Platform.Material.Media.ProjectAttributeValue
+  alias Platform.Material.ProjectAttributeValue
   alias Platform.Material.Media
   alias Platform.Accounts.User
   alias Platform.Accounts
@@ -535,7 +535,6 @@ defmodule Platform.Material.Attribute do
   Options:
     * :user - the user making the change (default: nil)
     * :verify_change_exists - whether to verify that the change exists (default: true)
-    * :changeset - an existing changeset to add to (default: nil)
     * :project_attribute - the project attribute to use (default: nil) (required for project attributes)
   """
   def changeset(
@@ -546,35 +545,25 @@ defmodule Platform.Material.Attribute do
       ) do
     user = Keyword.get(opts, :user)
     verify_change_exists = Keyword.get(opts, :verify_change_exists, true)
-    changeset = Keyword.get(opts, :changeset, media)
 
-    if attribute.schema_field == :project_attributes do
-      changeset
-      |> cast(%{}, [])
-      |> cast_assoc(:project_attribute_values,
-        with: fn changeset, params ->
-          ProjectAttributeValue.changeset(
-            changeset,
-            params,
-            attribute,
-            media,
-            opts |> Keyword.delete(:changeset)
-          )
-        end
-      )
-    else
-      changeset
-      |> cast(%{}, [])
-      |> populate_virtual_data(attribute)
-      |> cast_attribute(attribute, attrs)
-      |> validate_attribute(attribute, user: user)
-      |> cast_and_validate_virtual_explanation(attrs, attribute)
-      |> update_from_virtual_data(attribute)
-      |> verify_user_can_edit(attribute, user, media)
-      |> then(fn c ->
-        if verify_change_exists, do: verify_change_exists(c, [attribute]), else: c
-      end)
-    end
+    base_record =
+      if attribute.schema_field == :project_attributes do
+        Keyword.get(opts, :project_attribute)
+      else
+        media
+      end
+
+    base_record
+    |> cast(%{}, [])
+    |> populate_virtual_data(attribute)
+    |> cast_attribute(attribute, attrs)
+    |> validate_attribute(attribute, user: user)
+    |> cast_and_validate_virtual_explanation(attrs, attribute)
+    |> update_from_virtual_data(attribute)
+    |> verify_user_can_edit(attribute, user, media)
+    |> then(fn c ->
+      if verify_change_exists, do: verify_change_exists(c, [attribute]), else: c
+    end)
   end
 
   @doc """
@@ -585,21 +574,14 @@ defmodule Platform.Material.Attribute do
     * :verify_change_exists - whether to verify that the change exists (default: true)
     * :changeset - an existing changeset to add to (default: nil)
   """
-  def combined_changeset(
+  def assemble_changesets(
         %Media{} = media,
         attributes,
         attrs \\ %{},
         opts \\ []
       ) do
-    user = Keyword.get(opts, :user)
-    verify_change_exists = Keyword.get(opts, :verify_change_exists, true)
-    changeset = Keyword.get(opts, :changeset)
-
-    Enum.reduce(attributes, changeset || media, fn elem, acc ->
-      changeset(media, elem, attrs, user: user, verify_change_exists: false, changeset: acc)
-    end)
-    |> then(fn c ->
-      if verify_change_exists, do: verify_change_exists(c, attributes), else: c
+    Enum.map(attributes, fn elem ->
+      changeset(media, elem, attrs, Keyword.put(opts, :verify_change_exists, false))
     end)
   end
 

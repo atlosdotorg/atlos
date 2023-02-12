@@ -48,7 +48,7 @@ defmodule Platform.Projects.ProjectAttribute do
   """
   def to_attribute(%__MODULE__{} = attribute) do
     %Attribute{
-      schema_field: :project_attributes,
+      schema_field: :project_attribute_values,
       name: attribute.id,
       label: attribute.name,
       type: attribute.type,

@@ -2893,12 +2893,12 @@ defmodule PlatformWeb.Components do
       |> assign(:f, form)
       |> assign(
         :schema_field,
-        if(attr.schema_field == :project_attributes, do: :value, else: attr.schema_field)
+        if(attr.schema_field == :project_attribute_values, do: :value, else: attr.schema_field)
       )
 
     ~H"""
-    <%= for f <- (if @attr.schema_field == :project_attributes, do: (inputs_for(@f, :project_attributes)), else: [@f]) do %>
-      <%= if @attr.schema_field == :project_attributes do %>
+    <%= for f <- (if @attr.schema_field == :project_attribute_values, do: (inputs_for(@f, :project_attribute_values)), else: [@f]) do %>
+      <%= if @attr.schema_field == :project_attribute_values do %>
         <%= hidden_inputs_for(f) %>
       <% end %>
 
