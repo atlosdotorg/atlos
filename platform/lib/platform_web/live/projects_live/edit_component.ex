@@ -191,12 +191,12 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                     <%= select(
                       f_attr,
                       :type,
-                      %{
+                      [
+                        Text: :text,
                         "Single Select": :select,
                         "Multiple Select": :multi_select,
                         Date: :date,
-                        Text: :text
-                      },
+                      ],
                       phx_debounce: 0,
                       class:
                         "block shadow-sm w-full rounded border border-gray-300 py-2 pl-3 pr-10 text-base focus:border-urge-500 focus:outline-none focus:ring-urge-500 sm:text-sm"
