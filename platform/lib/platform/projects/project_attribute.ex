@@ -4,6 +4,7 @@ defmodule Platform.Projects.ProjectAttribute do
 
   alias Platform.Material.Attribute
 
+  @primary_key {:id, :binary_id, autogenerate: true}
   embedded_schema do
     field(:name, :string)
     field(:type, Ecto.Enum, values: [:select, :text, :date, :multi_select])

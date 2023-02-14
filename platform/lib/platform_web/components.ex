@@ -1494,7 +1494,11 @@ defmodule PlatformWeb.Components do
             <% :time -> %>
               <.list_diff old={[@old_val]} new={[@new_val]} label={@label} />
             <% :date -> %>
-              <.list_diff old={[Platform.Utils.format_date(@old_val)]} new={[Platform.Utils.format_date(@new_val)]} label={@label} />
+              <.list_diff
+                old={[Platform.Utils.format_date(@old_val)]}
+                new={[Platform.Utils.format_date(@new_val)]}
+                label={@label}
+              />
           <% end %>
         </span>
         <%= if Material.is_combined_update_value(@old) and Material.is_combined_update_value(@new) do %>
@@ -1507,8 +1511,8 @@ defmodule PlatformWeb.Components do
     else
       ~H"""
       <div class="inline-block">
-        <span>
-          [Change Unavailable]
+        <span class="italic">
+          Change is unavailable
         </span>
       </div>
       """

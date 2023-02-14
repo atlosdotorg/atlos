@@ -625,44 +625,25 @@ defmodule Platform.Material.Attribute do
         end)
         |> dbg()
 
-      cs =
-        case existing_attribute_value do
-          nil ->
-            cs
-            |> Ecto.Changeset.put_embed(
-              :project_attributes,
-              Ecto.Changeset.get_field(cs, :project_attributes) ++
-                [
-                  %{
-                    project_id: get_field(cs, :project_id),
-                    id: attribute.name,
-                    value: nil
-                  }
-                ]
-            )
-            |> dbg()
+      case existing_attribute_value do
+        nil ->
+          cs
+          |> Ecto.Changeset.put_embed(
+            :project_attributes,
+            Ecto.Changeset.get_field(cs, :project_attributes) ++
+              [
+                %{
+                  project_id: get_field(cs, :project_id),
+                  id: attribute.name,
+                  value: nil
+                }
+              ]
+          )
+          |> dbg()
 
-          _ ->
-            cs
-        end
-        |> dbg()
-
-      # changed_project_attributes =
-      #   Map.get(cs.changes, :project_attributes, [])
-      #   |> dbg()
-
-      # %{
-      #   cs
-      #   | changes:
-      #       Map.put(
-      #         cs.changes,
-      #         :project_attributes,
-      #         changed_project_attributes ++ unmodified_project_attributes
-      #       )
-      # }
-      # |> dbg()
-
-      dbg(cs)
+        _ ->
+          cs
+      end
     else
       (changeset || media)
       |> cast(%{}, [])

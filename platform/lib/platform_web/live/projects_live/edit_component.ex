@@ -1,6 +1,8 @@
 defmodule PlatformWeb.ProjectsLive.EditComponent do
   use PlatformWeb, :live_component
 
+  alias Platform.Projects.ProjectAttribute
+  alias Ecto.UUID
   alias Platform.Auditor
   alias Platform.Projects
 
@@ -68,7 +70,12 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
     socket =
       update(socket, :changeset, fn changeset ->
         existing = Ecto.Changeset.get_field(changeset, :attributes, [])
-        Ecto.Changeset.put_embed(changeset, :attributes, existing ++ [%{}])
+
+        Ecto.Changeset.put_embed(
+          changeset,
+          :attributes,
+          existing ++ [%ProjectAttribute{id: UUID.generate()}]
+        )
       end)
 
     {:noreply, socket}
@@ -195,7 +202,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                         Text: :text,
                         "Single Select": :select,
                         "Multiple Select": :multi_select,
-                        Date: :date,
+                        Date: :date
                       ],
                       phx_debounce: 0,
                       class:
