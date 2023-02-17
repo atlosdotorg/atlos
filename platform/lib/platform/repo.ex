@@ -4,7 +4,8 @@ defmodule Platform.Repo do
     adapter: Ecto.Adapters.Postgres
 
   use Quarto,
-    maximum_limit: :infinity
+    maximum_limit: :infinity,
+    cursor: Platform.Cursor.SignedCursor
 
   Postgrex.Types.define(
     Platform.Repo.PostgresTypes,
