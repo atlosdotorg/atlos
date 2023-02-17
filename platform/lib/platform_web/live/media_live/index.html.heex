@@ -1,4 +1,22 @@
 <article class={"w-full px-4 md:px-8 " <> (if @full_width, do: "mt-8", else: "")}>
+  <% next_link =
+    Routes.live_path(
+      @socket,
+      PlatformWeb.MediaLive.Index,
+      @query_params
+      |> Map.put(:ac, @results.metadata.after)
+      |> Map.put(:bc, nil)
+      |> Map.put(:pi, @pagination_index + 1)
+    ) %>
+  <% prev_link =
+    Routes.live_path(
+      @socket,
+      PlatformWeb.MediaLive.Index,
+      @query_params
+      |> Map.put(:bc, @results.metadata.before)
+      |> Map.put(:ac, nil)
+      |> Map.put(:pi, @pagination_index - 1)
+    ) %>
   <div class="relative z-[1000] 2xl:max-w-[1210px] mx-auto h-[5.5rem]">
     <.search_form
       changeset={@changeset}
@@ -9,6 +27,18 @@
       display={@display}
     />
   </div>
+  <%= if @pagination_index > 0 and @display == "cards" do %>
+    <div class="mx-auto mt-8 text-center text-xs mb-4">
+      <.pagination_controls
+        next_link={next_link}
+        prev_link={prev_link}
+        pagination_metadata={@results.metadata}
+        pagination_index={@pagination_index}
+        currently_displayed_results={length(@media)}
+        id="pagination-top"
+      />
+    </div>
+  <% end %>
   <section>
     <%= if (not Enum.empty?(@media)) or @display == "map" do %>
       <%= case @display do %>
@@ -59,8 +89,11 @@
           <section class="-mx-4 md:-mx-8">
             <div class="overflow-x-auto">
               <div class="inline-block align-middle">
-                <div class="!shadow-inner ring-1 ring-black ring-opacity-5 max-h-[calc(100vh-10rem+40px)]">
-                  <table class="border-separate sticky-headers" style="border-spacing: 0">
+                <div class="!shadow-inner ring-1 ring-black ring-opacity-5 max-h-[calc(100vh-10rem+40px)] relative">
+                  <table
+                    class="border-separate sticky-headers pb-[40px]"
+                    style="border-spacing: 0"
+                  >
                     <thead class="bg-gray-200 whitespace-nowrap">
                       <tr>
                         <th
@@ -98,21 +131,16 @@
                       <% end %>
                     </tbody>
                   </table>
-                  <div class="h-[40px] flex items-center sticky left-0 w-[100vw] relative z-[100] bg-neutral-50 border-t text-sm p-2">
+                  <div class="h-[40px] flex fixed bottom-0 items-center w-full z-[100] bg-neutral-50 border-t text-sm p-2">
                     <div class="text-neutral-600">
-                      <%= if !is_nil(@results.metadata.after) do %>
-                        Showing <%= length(@media) |> Formatter.format_number() %> results.
-                        <button
-                          id="table-load-more"
-                          phx-click="load_more"
-                          phx-disable-with="Loading..."
-                          class="text-button"
-                        >
-                          Load more &rarr;
-                        </button>
-                      <% else %>
-                        No more results to show.
-                      <% end %>
+                      <.pagination_controls
+                        next_link={next_link}
+                        prev_link={prev_link}
+                        pagination_metadata={@results.metadata}
+                        pagination_index={@pagination_index}
+                        currently_displayed_results={length(@media)}
+                        id="pagination-table"
+                      />
                     </div>
                   </div>
                 </div>
@@ -125,16 +153,14 @@
     <% end %>
     <%= if @display == "cards" do %>
       <div class="mx-auto mt-8 text-center text-xs">
-        <%= if !is_nil(@results.metadata.after) do %>
-          <div
-            phx-hook="InfiniteScroll"
-            id="table-load-more"
-            data-page={@pagination_index}
-            class="flex items-center justify-around"
-          >
-            <.loading_spinner />
-          </div>
-        <% end %>
+        <.pagination_controls
+          next_link={next_link}
+          prev_link={prev_link}
+          pagination_metadata={@results.metadata}
+          pagination_index={@pagination_index}
+          currently_displayed_results={length(@media)}
+          id="pagination-bottom"
+        />
       </div>
     <% end %>
   </section>

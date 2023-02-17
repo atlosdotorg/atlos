@@ -1814,7 +1814,7 @@ defmodule PlatformWeb.Components do
     <div x-data="{ open: window.innerWidth >= 768 }">
       <button
         x-on:click="open = !open"
-        class="mx-auto md:hidden bg-white hover:shadow-lg hover:bg-neutral-100 focus:ring-urge-400 transition-all rounded-full gap-1 px-4 py-2 text-sm flex items-center shadow text-neutral-700 justify-around mb-4"
+        class="mx-auto md:hidden bg-white hover:shadow-lg hover:bg-neutral-100 focus:ring-urge-400 transition-all rounded-full gap-1 px-3 py-2 text-sm flex items-center shadow text-neutral-700 justify-around mb-4"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -3361,6 +3361,59 @@ defmodule PlatformWeb.Components do
         <Heroicons.square_3_stack_3d mini class="opacity-75 h-5 w-5" />
       </button>
     </section>
+    """
+  end
+
+  attr(:id, :string)
+  attr(:next_link, :string)
+  attr(:prev_link, :string)
+  attr(:pagination_metadata, :map)
+  attr(:pagination_index, :integer)
+  attr(:currently_displayed_results, :integer)
+
+  def pagination_controls(assigns) do
+    dbg(assigns)
+
+    ~H"""
+    <nav class="flex items-center justify-between" aria-label="Pagination">
+      <div class="hidden sm:block">
+        <p class="text-sm text-gray-700">
+          Showing
+          <span class="font-medium">
+            <%= (@pagination_index * @pagination_metadata.limit + 1) |> Formatter.format_number() %>
+          </span>
+          to
+          <span class="font-medium">
+            <%= ((@pagination_index + 1) * @pagination_metadata.limit) |> Formatter.format_number() %>
+          </span>
+          of
+          <span class="font-medium">
+            <%= @pagination_metadata.total_count |> Formatter.format_number() %><%= if @pagination_metadata.total_count_cap_exceeded,
+              do: "+",
+              else: "" %>
+          </span>
+          results
+        </p>
+      </div>
+      <div
+        class="flex flex-1 justify-between sm:justify-end gap-2 ml-8"
+        phx-hook="ScrollToTop"
+        id={@id}
+      >
+        <%= if not is_nil(@pagination_metadata.before) do %>
+          <.link patch={@prev_link} class="text-button">
+            <Heroicons.arrow_left mini class="h-6 w-6" />
+            <span class="sr-only">Previous</span>
+          </.link>
+        <% end %>
+        <%= if not is_nil(@pagination_metadata.after) do %>
+          <.link patch={@next_link} class="text-button">
+            <Heroicons.arrow_right mini class="h-6 w-6" />
+            <span class="sr-only">Next</span>
+          </.link>
+        <% end %>
+      </div>
+    </nav>
     """
   end
 end

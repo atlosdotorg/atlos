@@ -43,6 +43,13 @@ Hooks.Modal = {
         })
     }
 }
+Hooks.ScrollToTop = {
+    mounted() {
+        this.el.addEventListener("click", e => {
+            window.scrollTo(0, 0);
+        })
+    }
+}
 Hooks.InfiniteScroll = InfiniteScroll;
 
 let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content");

@@ -30,11 +30,36 @@ defmodule PlatformWeb.MediaLive.Index do
       })
     end
 
+    # Pull cursor information from params
+    before_cursor = params["bc"] |> dbg()
+    after_cursor = params["ac"] |> dbg()
+    pagination_index = (params["pi"] || "0") |> String.to_integer()
+
+    search_keywords = [
+      limit: if(display == "map", do: 100_000, else: 50),
+      hydrate: display != "map"
+    ]
+
+    search_keywords =
+      if not is_nil(before_cursor) and not (String.length(before_cursor) == 0) do
+        Keyword.put(search_keywords, :before, before_cursor)
+      else
+        search_keywords
+      end
+
+    search_keywords =
+      if not is_nil(after_cursor) and not (String.length(after_cursor) == 0) do
+        Keyword.put(search_keywords, :after, after_cursor)
+      else
+        search_keywords
+      end
+
     results =
-      search_media(socket, changeset,
+      search_media(
+        socket,
+        changeset,
         # Ideally we would put these params in search_media, but since this is map-specific logic, it'll only be called here (it's not possible to "load more" on the map)
-        limit: if(display == "map", do: 100_000, else: 50),
-        hydrate: display != "map"
+        search_keywords
       )
 
     {:noreply,
@@ -46,10 +71,12 @@ defmodule PlatformWeb.MediaLive.Index do
      |> assign(:display, display)
      |> assign(:full_width, display == "table")
      |> assign(:query_params, params)
+     |> assign(:before_cursor, before_cursor)
+     |> assign(:after_cursor, after_cursor)
      |> assign(:active_project, Platform.Projects.get_project(params["project_id"]))
      |> assign(:results, results)
      |> assign(:myself, self())
-     |> assign(:pagination_index, 0)
+     |> assign(:pagination_index, pagination_index)
      |> assign(:editing, nil)
      |> assign(:media, results.entries)
      |> assign(:attributes, Attribute.active_attributes() |> Enum.filter(&is_nil(&1.parent)))
@@ -80,29 +107,14 @@ defmodule PlatformWeb.MediaLive.Index do
     )
   end
 
-  def handle_event("load_more", _params, socket) do
-    cursor_after = socket.assigns.results.metadata.after
-
-    results =
-      search_media(socket, Material.MediaSearch.changeset(socket.assigns.query_params),
-        after: cursor_after
-      )
-
-    new_socket =
-      socket
-      |> assign(:results, results)
-      |> assign(:pagination_index, socket.assigns.pagination_index + 1)
-      |> assign(:media, socket.assigns.media ++ results.entries)
-
-    {:noreply, new_socket}
-  end
-
   def handle_event("validate", params, socket) do
     handle_event("save", params, socket)
   end
 
   def handle_event("save", %{"search" => params}, socket) do
-    {:noreply, socket |> push_patch(to: Routes.live_path(socket, __MODULE__, params))}
+    merged_params = Map.merge(socket.assigns.query_params, params)
+
+    {:noreply, socket |> push_patch(to: Routes.live_path(socket, __MODULE__, merged_params))}
   end
 
   def handle_event(
