@@ -62,7 +62,7 @@ defmodule PlatformWeb.MediaLive.Show do
       Notifications.mark_notifications_as_read(socket.assigns.current_user, media)
 
       socket
-      |> assign(:media, media |> dbg())
+      |> assign(:media, media)
       |> assign(:active_project, media.project)
       |> assign(:updates, media.updates |> Enum.sort_by(& &1.inserted_at))
       |> subscribe_to_media(media)

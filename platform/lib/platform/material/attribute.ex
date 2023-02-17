@@ -555,8 +555,7 @@ defmodule Platform.Material.Attribute do
 
     if attribute.schema_field == :project_attributes do
       project_attribute_ids_in_changeset =
-        (Keyword.get(opts, :project_attribute_ids_in_changeset, []) ++ [attribute.name])
-        |> dbg()
+        Keyword.get(opts, :project_attribute_ids_in_changeset, []) ++ [attribute.name]
 
       provided_attribute_values = Map.get(attrs, "project_attributes", %{})
       provided_ids = Map.values(provided_attribute_values) |> Enum.map(& &1["id"])
@@ -569,18 +568,16 @@ defmodule Platform.Material.Attribute do
         |> Enum.with_index(map_size(provided_attribute_values))
         |> Enum.map(fn {val, index} -> {to_string(index), val} end)
         |> Map.new()
-        |> dbg()
 
       attrs =
         Map.put(
           attrs,
           "project_attributes",
           Map.merge(
-            Map.get(attrs, "project_attributes", %{}) |> dbg(),
-            unmodified_project_attributes |> dbg()
+            Map.get(attrs, "project_attributes", %{}),
+            unmodified_project_attributes
           )
         )
-        |> dbg()
 
       opts =
         Keyword.put(opts, :project_attribute_ids_in_changeset, project_attribute_ids_in_changeset)
@@ -612,7 +609,7 @@ defmodule Platform.Material.Attribute do
 
       cs =
         cs
-        |> cast(attrs |> dbg(), [])
+        |> cast(attrs, [])
         |> cast_embed(:project_attributes, with: cast_embedded)
 
       # Check if an embedded attribute value already exists for the given project and attribute.
@@ -623,7 +620,6 @@ defmodule Platform.Material.Attribute do
         |> Enum.find(fn attribute_value ->
           attribute_value.id == attribute.name
         end)
-        |> dbg()
 
       case existing_attribute_value do
         nil ->
@@ -639,7 +635,6 @@ defmodule Platform.Material.Attribute do
                 }
               ]
           )
-          |> dbg()
 
         _ ->
           cs
@@ -657,7 +652,6 @@ defmodule Platform.Material.Attribute do
         if verify_change_exists, do: verify_change_exists(c, [attribute]), else: c
       end)
     end
-    |> dbg()
   end
 
   @doc """

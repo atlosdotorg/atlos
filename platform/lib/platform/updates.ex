@@ -181,12 +181,10 @@ defmodule Platform.Updates do
       |> Enum.map(&{key_for_attribute(&1), value_for_attribute(&1, media)})
       |> Map.new()
       |> Map.put("_combined", true)
-      |> dbg()
       |> Jason.encode!()
 
     new_value =
       attributes
-      |> dbg()
       |> Enum.map(&{key_for_attribute(&1), value_for_attribute(&1, changeset)})
       |> Map.new()
       |> Map.put("_combined", true)

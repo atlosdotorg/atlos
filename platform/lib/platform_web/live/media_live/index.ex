@@ -31,8 +31,8 @@ defmodule PlatformWeb.MediaLive.Index do
     end
 
     # Pull cursor information from params
-    before_cursor = params["bc"] |> dbg()
-    after_cursor = params["ac"] |> dbg()
+    before_cursor = params["bc"]
+    after_cursor = params["ac"]
     pagination_index = (params["pi"] || "0") |> String.to_integer()
 
     search_keywords = [

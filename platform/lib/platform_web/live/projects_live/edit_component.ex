@@ -61,7 +61,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
             {:noreply, socket |> assign(project: project)}
 
           {:error, changeset} ->
-            {:noreply, socket |> assign(:changeset, changeset |> dbg())}
+            {:noreply, socket |> assign(:changeset, changeset)}
         end
     end
   end

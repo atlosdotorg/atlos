@@ -37,8 +37,8 @@ defmodule PlatformWeb.MediaLive.ManageProjectsLive do
     cs =
       cs
       |> then(fn c ->
-        if socket.assigns.media.project_id |> dbg() ==
-             Ecto.Changeset.get_field(c, :project_id) |> dbg() do
+        if socket.assigns.media.project_id ==
+             Ecto.Changeset.get_field(c, :project_id) do
           Ecto.Changeset.add_error(
             c,
             :project_id,
