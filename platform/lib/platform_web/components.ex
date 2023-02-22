@@ -2893,114 +2893,113 @@ defmodule PlatformWeb.Components do
       )
 
     ~H"""
-    <%= for f <- (if @attr.schema_field == :project_attributes, do: (inputs_for(@f, :project_attributes)), else: [@f]) do %>
-      <%= if @attr.schema_field == :project_attributes do %>
-        <%= hidden_inputs_for(f) %>
-        <%= hidden_input(f, :project_id) %>
-        <%= hidden_input(f, :id) %>
-        <%= if Ecto.Changeset.get_field(f.source, :id) != @attr.name do %>
-          <%= hidden_input(f, :value) %>
+    <div>
+      <%= for f <- (if @attr.schema_field == :project_attributes, do: (inputs_for(@f, :project_attributes)), else: [@f]) do %>
+        <%= if @attr.schema_field == :project_attributes do %>
+          <%= hidden_inputs_for(f) %>
+          <%= hidden_input(f, :project_id) %>
+          <%= hidden_input(f, :id) %>
+        <% end %>
+
+        <%= if @attr.schema_field != :project_attributes or Ecto.Changeset.get_field(f.source, :id) == @attr.name do %>
+          <div x-data="{user_loc: null}">
+            <%= case @attr.type do %>
+              <% :text -> %>
+                <%= label(f, @schema_field, @label) %>
+                <%= case @attr.input_type || :textarea do %>
+                  <% :textarea -> %>
+                    <%= textarea(f, @schema_field, rows: 3) %>
+                  <% :short_text -> %>
+                    <%= text_input(f, @schema_field) %>
+                <% end %>
+                <%= error_tag(f, @schema_field) %>
+              <% :select -> %>
+                <%= label(f, @schema_field, @label) %>
+                <%= error_tag(f, @schema_field) %>
+                <div phx-update="ignore" id={"attr_select_#{@slug}_#{@schema_field}"}>
+                  <%= select(
+                    f,
+                    @schema_field,
+                    if(@attr.required, do: [], else: ["[Unset]": nil]) ++
+                      Attribute.options(@attr),
+                    data_descriptions: Jason.encode!(@attr.option_descriptions || %{}),
+                    data_privileged: Jason.encode!(@attr.privileged_values || [])
+                  ) %>
+                </div>
+              <% :multi_select -> %>
+                <%= label(f, @schema_field, @label) %>
+                <%= error_tag(f, @schema_field) %>
+                <div phx-update="ignore" id={"attr_multi_select_#{@slug}_#{@schema_field}"}>
+                  <%= multiple_select(
+                    f,
+                    @schema_field,
+                    Attribute.options(
+                      @attr,
+                      if(is_nil(@media), do: nil, else: Map.get(@media, @schema_field))
+                    ),
+                    data_descriptions: Jason.encode!(@attr.option_descriptions || %{}),
+                    data_privileged: Jason.encode!(@attr.privileged_values || []),
+                    data_allow_user_defined_options: Attribute.allow_user_defined_options(@attr)
+                  ) %>
+                </div>
+              <% :location -> %>
+                <div class="space-y-4">
+                  <div>
+                    <%= label(f, :location, @label <> " (latitude, longitude)") %>
+                    <%= text_input(f, :location,
+                      placeholder: "Comma-separated coordinates (lat, lon).",
+                      novalidate: true,
+                      phx_debounce: 500,
+                      "x-on:input": "user_loc = $event.target.value"
+                    ) %>
+                    <%= error_tag(f, :location) %>
+                  </div>
+                  <%= error_tag(f, @schema_field) %>
+                </div>
+              <% :time -> %>
+                <%= label(f, @schema_field, @label) %>
+                <div class="flex items-center gap-2 ts-ignore sm:w-64 apply-a17t-fields">
+                  <%= time_select(f, @schema_field,
+                    hour: [prompt: "[Unset]"],
+                    minute: [prompt: "[Unset]"],
+                    class: "select",
+                    phx_debounce: 500
+                  ) %>
+                </div>
+                <p class="support">
+                  To unset this attribute, set both the hour and minute fields to [Unset].
+                </p>
+                <%= error_tag(f, @schema_field) %>
+              <% :date -> %>
+                <%= label(f, @schema_field, @label) %>
+                <div class="flex items-center gap-2 ts-ignore apply-a17t-fields">
+                  <%= date_select(f, @schema_field,
+                    year: [prompt: "[Unset]", options: DateTime.utc_now().year..1990],
+                    month: [prompt: "[Unset]"],
+                    day: [prompt: "[Unset]"],
+                    class: "select",
+                    phx_debounce: 500
+                  ) %>
+                </div>
+                <p class="support">
+                  To unset this attribute, set the day, month, and year fields to [Unset].
+                </p>
+                <%= error_tag(f, @schema_field) %>
+            <% end %>
+            <%= if @attr.type == :location do %>
+              <a
+                class="support text-urge-700 underline mt-4"
+                target="_blank"
+                x-show="user_loc != null && user_loc.length > 0"
+                x-bind:href="'https://maps.google.com/maps?q=' + (user_loc || '').replace(' ', '')"
+              >
+                Preview <span class="font-bold" x-text="user_loc"></span> on Google Maps
+              </a>
+            <% end %>
+          </div>
         <% end %>
       <% end %>
-
-      <%= if @attr.schema_field != :project_attributes or Ecto.Changeset.get_field(f.source, :id) == @attr.name do %>
-        <div x-data="{user_loc: null}">
-          <%= case @attr.type do %>
-            <% :text -> %>
-              <%= label(f, @schema_field, @label) %>
-              <%= case @attr.input_type || :textarea do %>
-                <% :textarea -> %>
-                  <%= textarea(f, @schema_field, rows: 3) %>
-                <% :short_text -> %>
-                  <%= text_input(f, @schema_field) %>
-              <% end %>
-              <%= error_tag(f, @schema_field) %>
-            <% :select -> %>
-              <%= label(f, @schema_field, @label) %>
-              <%= error_tag(f, @schema_field) %>
-              <div phx-update="ignore" id={"attr_select_#{@slug}_#{@schema_field}"}>
-                <%= select(
-                  f,
-                  @schema_field,
-                  if(@attr.required, do: [], else: ["[Unset]": nil]) ++
-                    Attribute.options(@attr),
-                  data_descriptions: Jason.encode!(@attr.option_descriptions || %{}),
-                  data_privileged: Jason.encode!(@attr.privileged_values || [])
-                ) %>
-              </div>
-            <% :multi_select -> %>
-              <%= label(f, @schema_field, @label) %>
-              <%= error_tag(f, @schema_field) %>
-              <div phx-update="ignore" id={"attr_multi_select_#{@slug}_#{@schema_field}"}>
-                <%= multiple_select(
-                  f,
-                  @schema_field,
-                  Attribute.options(
-                    @attr,
-                    if(is_nil(@media), do: nil, else: Map.get(@media, @schema_field))
-                  ),
-                  data_descriptions: Jason.encode!(@attr.option_descriptions || %{}),
-                  data_privileged: Jason.encode!(@attr.privileged_values || []),
-                  data_allow_user_defined_options: Attribute.allow_user_defined_options(@attr)
-                ) %>
-              </div>
-            <% :location -> %>
-              <div class="space-y-4">
-                <div>
-                  <%= label(f, :location, @label <> " (latitude, longitude)") %>
-                  <%= text_input(f, :location,
-                    placeholder: "Comma-separated coordinates (lat, lon).",
-                    novalidate: true,
-                    phx_debounce: 500,
-                    "x-on:input": "user_loc = $event.target.value"
-                  ) %>
-                  <%= error_tag(f, :location) %>
-                </div>
-                <%= error_tag(f, @schema_field) %>
-              </div>
-            <% :time -> %>
-              <%= label(f, @schema_field, @label) %>
-              <div class="flex items-center gap-2 ts-ignore sm:w-64 apply-a17t-fields">
-                <%= time_select(f, @schema_field,
-                  hour: [prompt: "[Unset]"],
-                  minute: [prompt: "[Unset]"],
-                  class: "select",
-                  phx_debounce: 500
-                ) %>
-              </div>
-              <p class="support">
-                To unset this attribute, set both the hour and minute fields to [Unset].
-              </p>
-              <%= error_tag(f, @schema_field) %>
-            <% :date -> %>
-              <%= label(f, @schema_field, @label) %>
-              <div class="flex items-center gap-2 ts-ignore apply-a17t-fields">
-                <%= date_select(f, @schema_field,
-                  year: [prompt: "[Unset]", options: DateTime.utc_now().year..1990],
-                  month: [prompt: "[Unset]"],
-                  day: [prompt: "[Unset]"],
-                  class: "select",
-                  phx_debounce: 500
-                ) %>
-              </div>
-              <p class="support">
-                To unset this attribute, set the day, month, and year fields to [Unset].
-              </p>
-              <%= error_tag(f, @schema_field) %>
-          <% end %>
-          <%= if @attr.type == :location do %>
-            <a
-              class="support text-urge-700 underline mt-4"
-              target="_blank"
-              x-show="user_loc != null && user_loc.length > 0"
-              x-bind:href="'https://maps.google.com/maps?q=' + (user_loc || '').replace(' ', '')"
-            >
-              Preview <span class="font-bold" x-text="user_loc"></span> on Google Maps
-            </a>
-          <% end %>
-        </div>
-      <% end %>
-    <% end %>
+    </div>
     """
   end
 

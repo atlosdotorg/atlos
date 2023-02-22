@@ -483,19 +483,21 @@
             </div>
           </div>
         </div>
-        <.live_component
-          module={PlatformWeb.UpdatesLive.UpdateFeed}
-          id="update-feed-history"
-          current_user={@current_user}
-          should_combine={false}
-          show_final_line={false}
-          updates={
-            @updates
-            |> Enum.filter(
-              &(&1.modified_attribute == attr.name |> to_string() || &1.type == :create)
-            )
-          }
-        />
+        <div class="mb-8">
+          <.live_component
+            module={PlatformWeb.UpdatesLive.UpdateFeed}
+            id="update-feed-history"
+            current_user={@current_user}
+            should_combine={false}
+            show_final_line={false}
+            updates={
+              @updates
+              |> Enum.filter(
+                &(&1.modified_attribute == attr.name |> to_string() || &1.type == :create)
+              )
+            }
+          />
+        </div>
       </.modal>
     <% end %>
     <%= if @live_action == :merge do %>

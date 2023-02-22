@@ -219,7 +219,7 @@ defmodule Platform.Material do
       ** (Ecto.NoResultsError)
 
   """
-  def get_media!(id), do: Repo.get!(Media, id)
+  def get_media!(id), do: Repo.get!(Media |> hydrate_media_query(), id)
 
   @doc """
   Creates a media.
@@ -904,7 +904,7 @@ defmodule Platform.Material do
           Repo.transaction(fn ->
             # In the transaction, we need to make sure we don't have any stale data
             # in the media_changeset, so we reload the media and recompute the changeset
-            media = Repo.get!(Media, media.id)
+            media = get_media!(media.id)
             media_changeset = change_media_attributes(media, attributes, attrs, user: user)
 
             update_changeset =
