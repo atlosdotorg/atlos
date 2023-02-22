@@ -138,7 +138,7 @@ defmodule Platform.Projects do
   """
   def can_edit_media?(%Accounts.User{} = user, %Project{} = _project) do
     # TODO: Eventually we will handle permissions on a per-project basis.
-    Accounts.is_privileged(user)
+    true
   end
 
   @doc """
