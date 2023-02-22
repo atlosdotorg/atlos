@@ -3372,8 +3372,6 @@ defmodule PlatformWeb.Components do
   attr(:currently_displayed_results, :integer)
 
   def pagination_controls(assigns) do
-    dbg(assigns)
-
     ~H"""
     <nav class="flex items-center justify-between" aria-label="Pagination">
       <div class="hidden sm:block">

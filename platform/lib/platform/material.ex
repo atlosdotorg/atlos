@@ -897,12 +897,25 @@ defmodule Platform.Material do
     # Make sure both changesets are valid
     cond do
       !(media_changeset.valid? && update_changeset.valid?) ->
-        dbg(update_changeset)
         {:error, media_changeset}
 
       true ->
         res =
           Repo.transaction(fn ->
+            # In the transaction, we need to make sure we don't have any stale data
+            # in the media_changeset, so we reload the media and recompute the changeset
+            media = Repo.get!(Media, media.id)
+            media_changeset = change_media_attributes(media, attributes, attrs, user: user)
+
+            update_changeset =
+              Updates.change_from_attributes_changeset(
+                media,
+                attributes,
+                user,
+                media_changeset,
+                attrs
+              )
+
             {:ok, _} = Updates.create_update_from_changeset(update_changeset)
             {:ok, res} = update_media_attributes(media, attributes, attrs, user: user)
             Updates.subscribe_if_first_interaction(media, user)
