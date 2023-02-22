@@ -105,6 +105,95 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
     {:noreply, socket}
   end
 
+  def type_mapping,
+    do: [
+      "Single Select": :select,
+      "Multiple Select": :multi_select,
+      Text: :text,
+      Date: :date
+    ]
+
+  def name_mapping,
+    # Invert type_mapping
+    do: type_mapping() |> Enum.map(fn {k, v} -> {v, k} end) |> Enum.into(%{})
+
+  def edit_custom_project_attribute(assigns) do
+    ~H"""
+    <div class={"relative group grid grid-cols-1 md:grid-cols-2 gap-4 " <> (if Ecto.Changeset.get_field(@f_attr.source, :delete), do: "hidden", else: "")}>
+      <%= hidden_inputs_for(@f_attr) %>
+      <%= hidden_input(@f_attr, :id) %>
+      <div>
+        <%= label(@f_attr, :name) %>
+        <%= text_input(@f_attr, :name) %>
+        <%= error_tag(@f_attr, :name) %>
+      </div>
+      <div class="ts-ignore">
+        <%= label(@f_attr, :type) %>
+        <%= select(
+          @f_attr,
+          :type,
+          type_mapping(),
+          phx_debounce: 0,
+          class:
+            "block shadow-sm w-full rounded border border-gray-300 py-2 pl-3 pr-10 text-base focus:border-urge-500 focus:outline-none focus:ring-urge-500 sm:text-sm"
+        ) %>
+        <%= error_tag(@f_attr, :type) %>
+      </div>
+      <%= if Ecto.Changeset.get_field(@f_attr.source, :type) in [:select, :multi_select] or Ecto.Changeset.get_field(@f_attr.source, :type) == nil do %>
+        <div class="col-span-2">
+          <%= label(@f_attr, :options) %>
+          <% id = "field-#{@f_attr.data.id}-options" %>
+          <div id={id} phx-update="ignore">
+            <div id={"child-#{id}"} x-data>
+              <%= textarea(@f_attr, :options_json,
+                class: "!hidden",
+                id: "textarea-#{id}"
+              ) %>
+              <div>
+                <textarea
+                  interactive-tags
+                  placeholder="Enter options for this attribute..."
+                  class="input-base bg-white overflow-hidden break-all !pr-1"
+                  data-feedback={"textarea-#{id}"}
+                />
+              </div>
+            </div>
+          </div>
+          <%= error_tag(@f_attr, :options) %>
+          <p class="support">
+            Press enter to add a new option.
+          </p>
+        </div>
+      <% end %>
+      <div class="absolute transition-all opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 right-0 top-0 p-2">
+        <label>
+          <%= if @f_attr.data.id do %>
+            <label data-tooltip="Delete this attribute">
+              <%= checkbox(@f_attr, :delete,
+                "x-bind:checked": "deleted",
+                "data-confirm": "Are you sure you want to delete this attribute?",
+                class: "hidden"
+              ) %>
+              <Heroicons.x_circle mini class="h-5 w-5 text-red-400 cursor-pointer" />
+            </label>
+          <% else %>
+            <button
+              type="button"
+              phx-target={@myself}
+              phx-click="delete_attr"
+              phx-value-index={@f_attr.index}
+              data-confirm="Are you sure you want to delete this attribute?"
+              data-tooltip="Delete this attribute"
+            >
+              <Heroicons.x_circle mini class="h-5 w-5 text-red-400" />
+            </button>
+          <% end %>
+        </label>
+      </div>
+    </div>
+    """
+  end
+
   def render(assigns) do
     ~H"""
     <article>
@@ -185,81 +274,24 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
             </div>
             <fieldset class="flex flex-col gap-4">
               <%= for f_attr <- inputs_for(f, :attributes) do %>
-                <div class={"relative group grid grid-cols-1 md:grid-cols-2 gap-4 p-4 rounded border bg-neutral-100 " <> (if Ecto.Changeset.get_field(f_attr.source, :delete), do: "hidden", else: "")}>
-                  <%= hidden_inputs_for(f_attr) %>
-                  <%= hidden_input(f_attr, :id) %>
-                  <div>
-                    <%= label(f_attr, :name) %>
-                    <%= text_input(f_attr, :name) %>
-                    <%= error_tag(f_attr, :name) %>
-                  </div>
-                  <div class="ts-ignore">
-                    <%= label(f_attr, :type) %>
-                    <%= select(
-                      f_attr,
-                      :type,
-                      [
-                        Text: :text,
-                        "Single Select": :select,
-                        "Multiple Select": :multi_select,
-                        Date: :date
-                      ],
-                      phx_debounce: 0,
-                      class:
-                        "block shadow-sm w-full rounded border border-gray-300 py-2 pl-3 pr-10 text-base focus:border-urge-500 focus:outline-none focus:ring-urge-500 sm:text-sm"
-                    ) %>
-                    <%= error_tag(f_attr, :type) %>
-                  </div>
-                  <%= if Ecto.Changeset.get_field(f_attr.source, :type) in [:select, :multi_select] do %>
-                    <div class="col-span-2">
-                      <%= label(f_attr, :options) %>
-                      <% id = "field-#{f_attr.data.id}-options" %>
-                      <div id={id} phx-update="ignore">
-                        <div id={"child-#{id}"} x-data>
-                          <%= textarea(f_attr, :options_json,
-                            class: "!hidden",
-                            id: "textarea-#{id}"
-                          ) %>
-                          <div>
-                            <textarea
-                              interactive-tags
-                              placeholder="Enter options for this attribute..."
-                              class="input-base bg-white overflow-hidden break-all !pr-1"
-                              data-feedback={"textarea-#{id}"}
-                            />
-                          </div>
-                        </div>
-                      </div>
-                      <%= error_tag(f_attr, :options) %>
-                      <p class="support">
-                        Press enter to add a new option.
+                <div x-data="{active: false}" class="group border rounded-lg shadow-sm overflow-hidden">
+                  <button class={"p-4 bg-white w-full " <> (if not f_attr.source.valid?, do: "ring-2 ring-critical-500", else: "")} type="button" x-on:click="active = !active">
+                    <div class="flex w-full justify-between items-baseline">
+                      <h3 class="font-medium">
+                        <%= Ecto.Changeset.get_field(f_attr.source, :name) %>
+                      </h3>
+                      <p class="text-sm text-gray-500">
+                        <%= if f_attr.source.valid? do %>
+                          <%= Ecto.Changeset.get_field(f_attr.source, :type)
+                          |> then(&Map.get(name_mapping(), &1)) %>
+                        <% else %>
+                          <span class="text-critical-500">Invalid</span>
+                        <% end %>
                       </p>
                     </div>
-                  <% end %>
-                  <div class="absolute transition-all opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 right-0 top-0 p-2">
-                    <label>
-                      <%= if f_attr.data.id do %>
-                        <label data-tooltip="Delete this attribute">
-                          <%= checkbox(f_attr, :delete,
-                            "x-bind:checked": "deleted",
-                            "data-confirm": "Are you sure you want to delete this attribute?",
-                            class: "hidden"
-                          ) %>
-                          <Heroicons.x_circle mini class="h-5 w-5 text-red-400 cursor-pointer" />
-                        </label>
-                      <% else %>
-                        <button
-                          type="button"
-                          phx-target={@myself}
-                          phx-click="delete_attr"
-                          phx-value-index={f_attr.index}
-                          data-confirm="Are you sure you want to delete this attribute?"
-                          data-tooltip="Delete this attribute"
-                        >
-                          <Heroicons.x_circle mini class="h-5 w-5 text-red-400" />
-                        </button>
-                      <% end %>
-                    </label>
+                  </button>
+                  <div class="border-t p-4" x-show="active">
+                    <.edit_custom_project_attribute f_attr={f_attr} />
                   </div>
                 </div>
               <% end %>

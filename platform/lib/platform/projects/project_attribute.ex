@@ -16,12 +16,16 @@ defmodule Platform.Projects.ProjectAttribute do
   end
 
   def changeset(%__MODULE__{} = attribute, attrs) do
+    options =
+      Map.get(attrs, "options_json", Jason.encode!(attribute.options))
+      |> then(&if &1 == "", do: Jason.encode!(attribute.options), else: &1)
+
     attribute
     |> cast(attrs, [:name, :type, :options_json, :id, :delete])
-    |> put_change(:options_json, Map.get(attrs, "options_json", Jason.encode!(attribute.options)))
+    |> put_change(:options_json, options)
     |> put_change(
       :options,
-      Jason.decode!(Map.get(attrs, "options_json", Jason.encode!(attribute.options)))
+      Jason.decode!(options)
     )
     |> validate_required([:name, :type])
     |> validate_length(:name, min: 1, max: 40)
