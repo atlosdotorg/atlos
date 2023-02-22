@@ -3,7 +3,6 @@ defmodule Platform.Material.Attribute do
   import Ecto.Changeset
   alias __MODULE__
   alias Platform.Material.Attribute
-  alias Platform.Material.Media.ProjectAttributeValue
   alias Platform.Material.Media
   alias Platform.Accounts.User
   alias Platform.Accounts

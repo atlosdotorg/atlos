@@ -136,7 +136,7 @@ defmodule Platform.Projects do
   @doc """
   Returns whether the given user can edit a project's media.
   """
-  def can_edit_media?(%Accounts.User{} = user, %Project{} = _project) do
+  def can_edit_media?(%Accounts.User{} = _user, %Project{} = _project) do
     # TODO: Eventually we will handle permissions on a per-project basis.
     true
   end

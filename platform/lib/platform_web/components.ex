@@ -3,7 +3,6 @@ defmodule PlatformWeb.Components do
   use Phoenix.HTML
   import PlatformWeb.ErrorHelpers
 
-  alias Platform.Material.Media.ProjectAttributeValue
   alias Phoenix.LiveView.JS
   alias Platform.Accounts
   alias Platform.Material.Attribute
