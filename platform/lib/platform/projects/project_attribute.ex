@@ -15,7 +15,7 @@ defmodule Platform.Projects.ProjectAttribute do
     field(:delete, :boolean, virtual: true)
   end
 
-  def changeset(%__MODULE__{} = attribute, attrs) do
+  def changeset(%__MODULE__{} = attribute, attrs \\ %{}) do
     options =
       Map.get(attrs, "options_json", Jason.encode!(attribute.options))
       |> then(&if &1 == "", do: Jason.encode!(attribute.options), else: &1)

@@ -209,14 +209,12 @@ defmodule PlatformWeb.ProjectsLive.Show do
           </div>
         <% end %>
         <%= if @live_action == :edit do %>
-          <div class="max-w-prose">
-            <.live_component
-              module={PlatformWeb.ProjectsLive.EditComponent}
-              id="edit-project"
-              current_user={@current_user}
-              project={@project}
-            />
-          </div>
+          <.live_component
+            module={PlatformWeb.ProjectsLive.EditComponent}
+            id="edit-project"
+            current_user={@current_user}
+            project={@project}
+          />
         <% end %>
       </article>
     </div>

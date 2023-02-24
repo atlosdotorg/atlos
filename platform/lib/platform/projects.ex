@@ -4,6 +4,7 @@ defmodule Platform.Projects do
   """
 
   import Ecto.Query, warn: false
+  alias Platform.Projects.ProjectAttribute
   alias Platform.Repo
 
   alias Platform.Projects.Project
@@ -118,6 +119,44 @@ defmodule Platform.Projects do
   """
   def delete_project(%Project{} = project) do
     Repo.delete(project)
+  end
+
+  @doc """
+  Deletes an embedded custom project attribute. Checks user permission.
+
+  ## Examples
+
+      iex> delete_project_attribute(project, "existing_id")
+      {:ok, %Project{}}
+
+      iex> delete_project_attribute(project, "non_existing_id")
+      {:error, %Ecto.Changeset{}}
+  """
+  def delete_project_attribute(%Project{} = project, id, user \\ nil) do
+    # Verify the user has permission to edit the project
+    unless is_nil(user) || can_edit_project?(user, project) do
+      raise "User does not have permission to edit this project"
+    end
+
+    # Verify the attribute exists
+    unless Enum.any?(project.attributes, fn attr -> attr.id == id end) do
+      raise "Attribute does not exist"
+    end
+
+    # Delete the attribute
+    change_project(project)
+    |> Ecto.Changeset.put_embed(
+      :attributes,
+      project.attributes
+      |> Enum.map(fn attr ->
+        if attr.id == id do
+          ProjectAttribute.changeset(attr) |> Map.put(:action, :delete)
+        else
+          attr
+        end
+      end)
+    )
+    |> Repo.update()
   end
 
   @doc """
