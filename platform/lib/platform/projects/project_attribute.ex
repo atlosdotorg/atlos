@@ -7,6 +7,7 @@ defmodule Platform.Projects.ProjectAttribute do
   @primary_key {:id, :binary_id, autogenerate: true}
   embedded_schema do
     field(:name, :string)
+    field(:description, :string, default: "")
     field(:type, Ecto.Enum, values: [:select, :text, :date, :multi_select])
     field(:options, {:array, :string}, default: [])
 
@@ -31,7 +32,7 @@ defmodule Platform.Projects.ProjectAttribute do
       |> then(&if &1 == "", do: Jason.encode!(attribute.options), else: &1)
 
     attribute
-    |> cast(attrs, [:name, :type, :options_json, :id])
+    |> cast(attrs, [:name, :type, :options_json, :id, :description])
     |> put_change(:options_json, options)
     |> cast(
       %{options: Jason.decode!(options)},
@@ -39,6 +40,7 @@ defmodule Platform.Projects.ProjectAttribute do
     )
     |> validate_required([:name, :type])
     |> validate_length(:name, min: 1, max: 40)
+    |> validate_length(:description, min: 0, max: 240)
     |> validate_inclusion(:type, [:select, :text, :date, :multi_select])
     |> validate_change(:type, fn :type, type ->
       if type != attribute.type and not Enum.member?(compatible_types(attribute.type), type) do
@@ -89,6 +91,7 @@ defmodule Platform.Projects.ProjectAttribute do
       label: attribute.name,
       type: attribute.type,
       options: attribute.options,
+      description: attribute.description,
       pane: :attributes,
       required: false
     }

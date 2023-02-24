@@ -197,6 +197,14 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
         <p class="support">After creation, modifying an attribute's type is limited.</p>
         <%= error_tag(@f_attr, :type) %>
       </div>
+      <div>
+        <%= label(@f_attr, :description) %>
+        <%= text_input(@f_attr, :description) %>
+        <%= error_tag(@f_attr, :description) %>
+        <p class="support">
+          Optional. The description will be displayed when editing this attribute.
+        </p>
+      </div>
       <%= if Ecto.Changeset.get_field(@f_attr.source, :type) in [:select, :multi_select] or Ecto.Changeset.get_field(@f_attr.source, :type) == nil do %>
         <div>
           <%= label(@f_attr, :options) %>
