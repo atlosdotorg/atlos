@@ -2,7 +2,6 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
   use PlatformWeb, :live_component
 
   alias Platform.Projects.ProjectAttribute
-  alias Ecto.UUID
   alias Platform.Auditor
   alias Platform.Projects
 
