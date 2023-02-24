@@ -17,10 +17,11 @@ defmodule Platform.Projects.ProjectAttribute do
   def compatible_types(current_type) do
     case current_type do
       :select -> [:select, :multi_select]
-      :multi_select -> [:select, :multi_select]
+      :multi_select -> [:multi_select]
       :text -> [:text]
       :date -> [:date]
       nil -> [:select, :multi_select, :text, :date]
+      other -> [other]
     end
   end
 

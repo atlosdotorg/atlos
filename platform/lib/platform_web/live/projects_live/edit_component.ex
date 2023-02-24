@@ -168,7 +168,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
 
   def edit_custom_project_attribute(assigns) do
     ~H"""
-    <div class={"relative group grid grid-cols-1 md:grid-cols-2 gap-4 " <> (if Ecto.Changeset.get_field(@f_attr.source, :delete), do: "hidden", else: "")}>
+    <div class={"relative group grid grid-cols-1 gap-4 mt-8 " <> (if Ecto.Changeset.get_field(@f_attr.source, :delete), do: "hidden", else: "")}>
       <%= hidden_inputs_for(@f_attr) %>
       <%= hidden_input(@f_attr, :id) %>
       <div>
@@ -193,10 +193,11 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
           class:
             "block shadow-sm w-full rounded border border-gray-300 py-2 pl-3 pr-10 text-base focus:border-urge-500 focus:outline-none focus:ring-urge-500 sm:text-sm"
         ) %>
+        <p class="support">After creation, modifying an attribute's type is limited.</p>
         <%= error_tag(@f_attr, :type) %>
       </div>
       <%= if Ecto.Changeset.get_field(@f_attr.source, :type) in [:select, :multi_select] or Ecto.Changeset.get_field(@f_attr.source, :type) == nil do %>
-        <div class="col-span-2">
+        <div>
           <%= label(@f_attr, :options) %>
           <% id = "field-#{@f_attr.data.id}-options" %>
           <div id={id} phx-update="ignore">
@@ -219,6 +220,20 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
           <p class="support">
             Press enter to add a new option.
           </p>
+        </div>
+      <% end %>
+      <%= if Ecto.Changeset.get_field(@f_attr.source, :type) == :multi_select and @f_attr.data.type == :select do %>
+        <div class="rounded-md bg-blue-50 p-4">
+          <div class="flex">
+            <div class="flex-shrink-0">
+              <Heroicons.information_circle mini class="h-5 w-5 text-blue-400" />
+            </div>
+            <div class="ml-3 flex-1 md:flex md:justify-between">
+              <p class="text-sm text-blue-700">
+                Once you change this attribute to a multi-select, you will not be able to change it back to a single-select.
+              </p>
+            </div>
+          </div>
         </div>
       <% end %>
     </div>
@@ -391,7 +406,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                               phx-target={@myself}
                               phx-click="delete_attr"
                               phx-value-id={f_attr.data.id}
-                              data-confirm="Are you sure you want to delete this attribute?"
+                              data-confirm={"Are you sure you want to delete the attribute \"#{f_attr.data.name}\"? This action cannot be undone. This will remove this attribute from all incidents in this project."}
                               data-tooltip="Delete this attribute"
                               class="button ~critical @high"
                             >
