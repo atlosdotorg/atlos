@@ -383,6 +383,20 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                   <p class="sec-subhead">Specify your data model for incidents in this project.</p>
                 </div>
               <% end %>
+              <%= if ProjectAttribute.does_project_have_default_attributes?(@project) do %>
+                <div class="rounded-md bg-blue-50 p-4 border-blue-600 border">
+                  <div class="flex">
+                    <div class="flex-shrink-0">
+                      <Heroicons.information_circle mini class="h-5 w-5 text-blue-500" />
+                    </div>
+                    <div class="ml-3 flex-1 md:flex md:justify-between">
+                      <p class="text-sm text-blue-700">
+                        We've provided some default suggested attributes for this project. You can edit these attributes, or add new ones.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              <% end %>
               <fieldset class="flex flex-col">
                 <%= for f_attr <- inputs_for(f, :attributes) do %>
                   <div x-data="{active: false}" class="group">

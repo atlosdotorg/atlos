@@ -79,6 +79,7 @@ defmodule Platform.Projects do
 
     %Project{}
     |> Project.changeset(attrs)
+    |> Ecto.Changeset.put_embed(:attributes, ProjectAttribute.default_attributes())
     |> Repo.insert()
   end
 
