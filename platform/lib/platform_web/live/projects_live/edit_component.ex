@@ -250,26 +250,27 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
 
   def attribute_preview(assigns) do
     ~H"""
-    <div class="flex w-full justify-between items-baseline">
-      <h3 class="font-medium">
-        <%= @f_attr.data.name %>
-      </h3>
-      <p class="text-sm text-gray-500">
-        <%= if @f_attr.source.valid? do %>
-          <%= @f_attr.data.type
+    <article class="block text-left">
+      <div class="flex w-full gap-1 items-baseline">
+        <h3 class="font-medium">
+          <%= @attribute.label %>
+        </h3>
+        <p class="badge ~neutral">
+          <%= @attribute.type
           |> then(&Map.get(name_mapping(), &1)) %>
-        <% else %>
-          <span class="text-critical-500">Invalid</span>
-        <% end %>
+        </p>
+      </div>
+      <p class="text-sm text-gray-500">
+        <%= @attribute.description %>
       </p>
-    </div>
+    </article>
     """
   end
 
   def render(assigns) do
     ~H"""
     <article>
-      <div class={"grid grid-cols-1 gap-8 divide-x mb-8 " <> (if length(@show_panes) > 1, do: "lg:grid-cols-2", else: "")}>
+      <div class="grid grid-cols-1 gap-8 mb-8 max-w-prose divide-y">
         <%= if Enum.member?(@show_panes, :general) do %>
           <.form
             :let={f}
@@ -376,7 +377,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
             phx-change="validate_custom_attributes"
             class="phx-form"
           >
-            <div class="flex flex-col gap-4 lg:pl-8">
+            <div class="flex flex-col gap-4 pt-8">
               <%= if length(@show_panes) > 1 do %>
                 <div class="mb-4">
                   <p class="sec-head text-xl">Project Attributes</p>
@@ -402,13 +403,13 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                   <div x-data="{active: false}" class="group">
                     <%= if f_attr.data.id do %>
                       <button
-                        class={"p-4 mb-4 bg-white border hover:bg-neutral-50 transition-all rounded-lg shadow-sm overflow-hidden w-full " <> (if not f_attr.source.valid?, do: "ring-2 ring-critical-500", else: "")}
+                        class="p-4 mb-4 bg-white border hover:bg-neutral-50 transition-all rounded-lg shadow-sm overflow-hidden w-full"
                         type="button"
                         phx-click="open_modal"
                         phx-value-id={f_attr.data.id}
                         phx-target={@myself}
                       >
-                        <.attribute_preview f_attr={f_attr} />
+                        <.attribute_preview attribute={ProjectAttribute.to_attribute(f_attr.data)} />
                       </button>
                     <% end %>
                     <%= if (@actively_editing_id == f_attr.data.id) || (f_attr.data.id == nil and @actively_editing_id == :new) do %>
@@ -464,6 +465,19 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
               </fieldset>
             </div>
           </.form>
+          <div>
+            <div class="mb-4 mt-8">
+              <p class="sec-head text-xl">Core Attributes</p>
+              <p class="sec-subhead">These attributes apply to all incidents and are not editable.</p>
+            </div>
+            <div class="flex flex-col">
+              <%= for attr <- Platform.Material.Attribute.active_attributes() |> Enum.filter(& &1.pane != :metadata && is_nil(&1.parent)) do %>
+                <div class="p-4 mb-4 bg-white border hover:bg-neutral-50 transition-all rounded-lg shadow-sm overflow-hidden w-full cursor-not-allowed">
+                  <.attribute_preview attribute={attr} />
+                </div>
+              <% end %>
+            </div>
+          </div>
         <% end %>
       </div>
     </article>

@@ -95,7 +95,8 @@ defmodule Platform.Material.Attribute do
         label: "Description",
         pane: :not_shown,
         required: true,
-        name: :description
+        name: :description,
+        description: "A short description of the incident."
       },
       %Attribute{
         schema_field: :attr_date,

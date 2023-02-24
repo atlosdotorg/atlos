@@ -100,13 +100,9 @@ defmodule Platform.Projects.ProjectAttribute do
   def default_attributes() do
     [
       %__MODULE__{
-        name: "Reported Near",
-        type: :text,
-        description: "Where the incident was reported to be near."
-      },
-      %__MODULE__{
         name: "Incident Type",
         type: :multi_select,
+        description: "What kind of incident is this?",
         options: [
           "Military Activity",
           "Military Activity/Movement",
@@ -133,6 +129,11 @@ defmodule Platform.Projects.ProjectAttribute do
           "Weather/Fire",
           "Other"
         ]
+      },
+      %__MODULE__{
+        name: "Reported Near",
+        type: :text,
+        description: "Where the incident was reported to be near."
       },
       %__MODULE__{
         name: "Impact",
