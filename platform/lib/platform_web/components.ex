@@ -1706,8 +1706,14 @@ defmodule PlatformWeb.Components do
           id={"table-row-" <> @media.slug <> "-" <> to_string(attr.name)}
         >
           <div class="text-sm text-gray-900 px-4 overflow-hidden h-6 max-w-[36rem] truncate">
-            <.popover class="font-base p-0 inline">
-              <.link href={"/incidents/#{@media.slug}"} class="inline">
+            <%= if Platform.Material.Attribute.can_user_edit(attr, @current_user, @media) do %>
+              <button
+                class="inline"
+                phx-click="edit_attribute"
+                phx-value-attribute={attr.name}
+                phx-value-media-id={@media.id}
+                title={"Edit #{attr.label}"}
+              >
                 <.attr_display_compact
                   color={true}
                   truncate={true}
@@ -1715,49 +1721,18 @@ defmodule PlatformWeb.Components do
                   media={@media}
                   current_user={@current_user}
                 />
-              </.link>
-              <:display>
-                <% update =
-                  @media.updates
-                  |> Enum.filter(
-                    &(&1.modified_attribute == attr.name ||
-                        &1.type == :create)
-                  )
-                  |> Enum.sort_by(& &1.inserted_at)
-                  |> Enum.reverse()
-                  |> hd() %>
-                <div class="py-2 flex flex-col gap-2 word-breaks">
-                  <div class="md:flex gap-4 items-center justify-between">
-                    <%= if not is_nil(update) do %>
-                      <div class="text-sm text-neutral-600">
-                        <.user_text user={update.user} /> changed
-                        <.rel_time time={update.inserted_at} />
-                      </div>
-                    <% end %>
-                    <%= if Platform.Material.Attribute.can_user_edit(attr, @current_user, @media) do %>
-                      <button
-                        class="button ~urge @high inline !rounded !text-xs !px-2 !py-1"
-                        phx-click="edit_attribute"
-                        phx-value-attribute={attr.name}
-                        phx-value-media-id={@media.id}
-                        phx-disable-with="Opening..."
-                      >
-                        Update
-                      </button>
-                    <% end %>
-                  </div>
-                  <div class="border p-2 rounded shadow-sm max-w-full">
-                    <.attr_display_compact
-                      color={true}
-                      attr={attr}
-                      truncate={false}
-                      media={@media}
-                      current_user={@current_user}
-                    />
-                  </div>
-                </div>
-              </:display>
-            </.popover>
+              </button>
+            <% else %>
+              <span title="You do not have permission to edit this attribute.">
+                <.attr_display_compact
+                  color={true}
+                  truncate={true}
+                  attr={attr}
+                  media={@media}
+                  current_user={@current_user}
+                />
+              </span>
+            <% end %>
           </div>
         </td>
       <% end %>
