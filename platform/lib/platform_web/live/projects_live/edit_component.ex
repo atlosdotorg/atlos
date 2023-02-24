@@ -24,12 +24,19 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
   end
 
   def assign_general_changeset(socket, attrs \\ %{}) do
-    socket |> assign(:general_changeset, Projects.change_project(socket.assigns.project, attrs))
+    socket
+    |> assign(
+      :general_changeset,
+      Projects.change_project(socket.assigns.project, attrs) |> Map.put(:action, :validate)
+    )
   end
 
   def assign_custom_attribute_changeset(socket, attrs \\ %{}) do
     socket
-    |> assign(:custom_attribute_changeset, Projects.change_project(socket.assigns.project, attrs))
+    |> assign(
+      :custom_attribute_changeset,
+      Projects.change_project(socket.assigns.project, attrs) |> Map.put(:action, :validate)
+    )
   end
 
   def handle_event("close", _params, socket) do
@@ -66,7 +73,8 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
             {:noreply, socket |> assign(project: project)}
 
           {:error, changeset} ->
-            {:noreply, socket |> assign(:general_changeset, changeset)}
+            {:noreply,
+             socket |> assign(:general_changeset, changeset |> Map.put(:action, :validate))}
         end
 
       _project_id ->
@@ -80,7 +88,8 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
             {:noreply, socket |> assign(project: project) |> assign(:actively_editing_id, nil)}
 
           {:error, changeset} ->
-            {:noreply, socket |> assign(:general_changeset, changeset)}
+            {:noreply,
+             socket |> assign(:general_changeset, changeset |> Map.put(:action, :validate))}
         end
     end
   end
@@ -102,7 +111,8 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
          |> assign_custom_attribute_changeset()}
 
       {:error, changeset} ->
-        {:noreply, socket |> assign(:custom_attributes_changeset, changeset)}
+        {:noreply,
+         socket |> assign(:custom_attributes_changeset, changeset |> Map.put(:action, :validate))}
     end
   end
 
@@ -152,16 +162,6 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
       Date: :date
     ]
 
-  def compatible_types(current_type) do
-    case current_type do
-      :select -> [:select, :multi_select]
-      :multi_select -> [:select, :multi_select]
-      :text -> [:text]
-      :date -> [:date]
-      nil -> [:select, :multi_select, :text, :date]
-    end
-  end
-
   def name_mapping,
     # Invert type_mapping
     do: type_mapping() |> Enum.map(fn {k, v} -> {v, k} end) |> Enum.into(%{})
@@ -183,7 +183,11 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
           :type,
           type_mapping()
           |> Enum.map(fn {k, v} ->
-            [key: k, value: v, disabled: not Enum.member?(compatible_types(@f_attr.data.type), v)]
+            [
+              key: k,
+              value: v,
+              disabled: not Enum.member?(ProjectAttribute.compatible_types(@f_attr.data.type), v)
+            ]
           end),
           phx_debounce: 0,
           class:
@@ -346,7 +350,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
           >
             <div class="flex flex-col gap-4 lg:pl-8">
               <div class="mb-4">
-                <p class="sec-head text-xl">Attributes</p>
+                <p class="sec-head text-xl">Project Attributes</p>
                 <p class="sec-subhead">Specify your data model for incidents in this project.</p>
               </div>
               <fieldset class="flex flex-col">
@@ -354,10 +358,10 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                   <div x-data="{active: false}" class="group">
                     <%= if f_attr.data.id do %>
                       <button
-                        class={"p-4 mb-4 bg-white border rounded-lg shadow-sm overflow-hidden w-full " <> (if not f_attr.source.valid?, do: "ring-2 ring-critical-500", else: "")}
+                        class={"p-4 mb-4 bg-white border hover:bg-neutral-50 transition-all rounded-lg shadow-sm overflow-hidden w-full " <> (if not f_attr.source.valid?, do: "ring-2 ring-critical-500", else: "")}
                         type="button"
                         phx-click="open_modal"
-                        phx-value-id={f_attr.data.id |> dbg()}
+                        phx-value-id={f_attr.data.id}
                         phx-target={@myself}
                       >
                         <.attribute_preview f_attr={f_attr} />
@@ -366,7 +370,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                     <%= if (@actively_editing_id == f_attr.data.id) || (f_attr.data.id == nil and @actively_editing_id == :new) do %>
                       <.modal target={@myself}>
                         <section class="mb-4">
-                          <h2 class="sec-head">Edit Custom Attribute</h2>
+                          <h2 class="sec-head">Edit Attribute</h2>
                         </section>
                         <.edit_custom_project_attribute f_attr={f_attr} />
                         <div class="mt-8 flex justify-between items-center">

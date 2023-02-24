@@ -284,6 +284,7 @@ function initializeMaps() {
 
         let lon = persistedMapData["lon"] || parseFloat(s.getAttribute("lon"));
         let lat = persistedMapData["lat"] || parseFloat(s.getAttribute("lat"));
+
         let zoom = persistedMapData["zoom"] || parseFloat(s.getAttribute("zoom") || 6);
         let style = persistedMapData["style"] || s.getAttribute("style") || defaultStyle;
 

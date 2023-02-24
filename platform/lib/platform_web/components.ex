@@ -3330,11 +3330,13 @@ defmodule PlatformWeb.Components do
     map_data = assigns[:map_data]
 
     {lat, lon} =
-      if Enum.count(map_data) > 0 do
+      with [first | _] <- map_data,
+           %{lat: lat, lon: lon} when -90 <= lat and 90 > lat and -180 <= lon and 180 >= lon <-
+             first do
         first = map_data |> Enum.at(0)
         {first[:lat], first[:lon]}
       else
-        {35, 35}
+        _ -> {35, 35}
       end
 
     assigns = assign(assigns, :lat, lat) |> assign(:lon, lon)
