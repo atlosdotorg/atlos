@@ -93,6 +93,7 @@ defmodule PlatformWeb.ProjectsLive.Index do
             module={PlatformWeb.ProjectsLive.EditComponent}
             id="new-project"
             current_user={@current_user}
+            show_panes={[:general]}
           />
         </.modal>
       <% end %>

@@ -10,17 +10,18 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
     socket =
       socket
       |> assign(assigns)
+      |> assign_new(:project, fn -> %Projects.Project{} end)
 
     {:ok,
      socket
-     |> assign_new(:project, fn -> %Projects.Project{} end)
      |> assign(:actively_editing_id, nil)
      |> assign_new(:general_changeset, fn ->
        Projects.change_project(socket.assigns.project)
      end)
      |> assign_new(:custom_attribute_changeset, fn ->
        Projects.change_project(socket.assigns.project)
-     end)}
+     end)
+     |> assign_new(:show_panes, fn -> [:general, :custom_attributes] end)}
   end
 
   def assign_general_changeset(socket, attrs \\ %{}) do
@@ -261,99 +262,104 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
   def render(assigns) do
     ~H"""
     <article>
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 divide-x mb-8">
-        <.form
-          :let={f}
-          for={@general_changeset}
-          id="general-form"
-          phx-target={@myself}
-          phx-submit="save_general"
-          phx-change="validate_general"
-          class="phx-form flex flex-col gap-4"
-        >
-          <div class="mb-4">
-            <p class="sec-head text-xl">General</p>
-            <p class="sec-subhead">General information about the project.</p>
-          </div>
-          <div>
-            <%= label(f, :name) %>
-            <%= text_input(f, :name, placeholder: "What should we call this project?") %>
-            <%= error_tag(f, :name) %>
-          </div>
-          <div>
-            <%= label(f, :code) %>
-            <%= text_input(f, :code, class: "uppercase font-mono", placeholder: "E.g., CIV") %>
-            <%= error_tag(f, :code) %>
-            <p class="support">
-              This is a short code that will be used to identify this project in incident IDs. E.g., CIV-1234.
-            </p>
-          </div>
-          <div>
-            <%= label(f, :description) %>
-            <%= textarea(f, :description,
-              placeholder: "Provide a short description for the project..."
-            ) %>
-            <%= error_tag(f, :description) %>
-          </div>
-          <div>
-            <%= label(f, :color) %>
-            <div id="color-picker" phx-update="ignore">
-              <div
-                class="flex gap-1 flex-wrap items-center"
-                x-data={"{active: '#{Ecto.Changeset.get_field(@general_changeset, :color)}'}"}
-              >
-                <%= for color <- ["#f87171", "#fb923c", "#fbbf24", "#a3e635", "#4ade80", "#2dd4bf", "#22d3ee", "#60a5fa", "#818cf8", "#a78bfa", "#c084fc", "#e879f9", "#f472b6", "#fb7185"] do %>
-                  <label class="!mt-0 cursor-pointer">
-                    <%= radio_button(f, :color, color, "x-model": "active", class: "hidden") %>
-                    <svg
-                      viewBox="0 0 100 100"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill={color}
-                      class="h-7 w-7"
-                      x-show={"active !== '#{color}'"}
+      <div class={"grid grid-cols-1 gap-8 divide-x mb-8 " <> (if length(@show_panes) > 1, do: "lg:grid-cols-2", else: "")}>
+        <%= if Enum.member?(@show_panes, :general) do %>
+          <.form
+            :let={f}
+            for={@general_changeset}
+            id="general-form"
+            phx-target={@myself}
+            phx-submit="save_general"
+            phx-change="validate_general"
+            class="phx-form flex flex-col gap-4"
+          >
+            <%= if length(@show_panes) > 1 do %>
+              <div class="mb-4">
+                <p class="sec-head text-xl">General</p>
+                <p class="sec-subhead">General information about the project.</p>
+              </div>
+            <% end %>
+            <div>
+              <%= label(f, :name) %>
+              <%= text_input(f, :name, placeholder: "What should we call this project?") %>
+              <%= error_tag(f, :name) %>
+            </div>
+            <div>
+              <%= label(f, :code) %>
+              <%= text_input(f, :code, class: "uppercase font-mono", placeholder: "E.g., CIV") %>
+              <%= error_tag(f, :code) %>
+              <p class="support">
+                This is a short code that will be used to identify this project in incident IDs. E.g., CIV-1234.
+              </p>
+            </div>
+            <div>
+              <%= label(f, :description) %>
+              <%= textarea(f, :description,
+                placeholder: "Provide a short description for the project..."
+              ) %>
+              <%= error_tag(f, :description) %>
+            </div>
+            <div>
+              <%= label(f, :color) %>
+              <div id="color-picker" phx-update="ignore">
+                <div
+                  class="flex gap-1 flex-wrap items-center"
+                  x-data={"{active: '#{Ecto.Changeset.get_field(@general_changeset, :color)}'}"}
+                >
+                  <%= for color <- ["#f87171", "#fb923c", "#fbbf24", "#a3e635", "#4ade80", "#2dd4bf", "#22d3ee", "#60a5fa", "#818cf8", "#a78bfa", "#c084fc", "#e879f9", "#f472b6", "#fb7185"] do %>
+                    <label class="!mt-0 cursor-pointer">
+                      <%= radio_button(f, :color, color, "x-model": "active", class: "hidden") %>
+                      <svg
+                        viewBox="0 0 100 100"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill={color}
+                        class="h-7 w-7"
+                        x-show={"active !== '#{color}'"}
+                      >
+                        <circle cx="50" cy="50" r="40" />
+                      </svg>
+                      <Heroicons.check_circle
+                        mini
+                        class="h-7 w-7"
+                        style={"color: #{color}"}
+                        x-show={"active === '#{color}'"}
+                      />
+                    </label>
+                  <% end %>
+                </div>
+              </div>
+              <%= error_tag(f, :color) %>
+              <p class="support">
+                This color will help visually identify the project.
+              </p>
+            </div>
+            <div class="mt-8">
+              <div class="flex justify-between gap-4 flex-wrap">
+                <div>
+                  <%= submit("Save", class: "button ~urge @high") %>
+                </div>
+                <%= if @project.id do %>
+                  <div>
+                    <button
+                      phx-click="delete"
+                      data-confirm="Are you sure you want to delete this project? This action cannot be undone. This will not delete the incidents that are part of this project."
+                      class="button ~critical @high"
+                      type="button"
+                      phx-target={@myself}
                     >
-                      <circle cx="50" cy="50" r="40" />
-                    </svg>
-                    <Heroicons.check_circle
-                      mini
-                      class="h-7 w-7"
-                      style={"color: #{color}"}
-                      x-show={"active === '#{color}'"}
-                    />
-                  </label>
+                      Delete
+                    </button>
+                  </div>
+                <% else %>
+                  <button phx-click="close" class="base-button" type="button" phx-target={@myself}>
+                    Cancel
+                  </button>
                 <% end %>
               </div>
             </div>
-            <%= error_tag(f, :color) %>
-            <p class="support">
-              This color will help visually identify the project.
-            </p>
-          </div>
-          <div class="mt-8">
-            <div class="flex justify-between gap-4 flex-wrap">
-              <div>
-                <%= submit("Save", class: "button ~urge @high") %>
-                <button phx-click="close" class="base-button" type="button" phx-target={@myself}>
-                  Cancel
-                </button>
-              </div>
-              <%= if @project.id do %>
-                <div>
-                  <button
-                    phx-click="delete"
-                    data-confirm="Are you sure you want to delete this project? This action cannot be undone. This will not delete the incidents that are part of this project."
-                    class="button ~critical @high"
-                    type="button"
-                    phx-target={@myself}
-                  >
-                    Delete
-                  </button>
-                </div>
-              <% end %>
-            </div>
-          </div>
-        </.form>
-        <%= if feature_available?(:custom_project_attributes) do %>
+          </.form>
+        <% end %>
+        <%= if feature_available?(:custom_project_attributes) and Enum.member?(@show_panes, :custom_attributes) do %>
           <.form
             :let={f}
             for={@custom_attribute_changeset}
@@ -364,10 +370,12 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
             class="phx-form"
           >
             <div class="flex flex-col gap-4 lg:pl-8">
-              <div class="mb-4">
-                <p class="sec-head text-xl">Project Attributes</p>
-                <p class="sec-subhead">Specify your data model for incidents in this project.</p>
-              </div>
+              <%= if length(@show_panes) > 1 do %>
+                <div class="mb-4">
+                  <p class="sec-head text-xl">Project Attributes</p>
+                  <p class="sec-subhead">Specify your data model for incidents in this project.</p>
+                </div>
+              <% end %>
               <fieldset class="flex flex-col">
                 <%= for f_attr <- inputs_for(f, :attributes) do %>
                   <div x-data="{active: false}" class="group">
