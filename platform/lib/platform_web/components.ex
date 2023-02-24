@@ -997,10 +997,11 @@ defmodule PlatformWeb.Components do
     assigns =
       assign(assigns, :children, Attribute.get_children(attr.name))
       |> assign_new(:truncate, fn -> true end)
+      |> assign(:attr_value, Material.get_attribute_value(assigns.media, attr))
 
     ~H"""
     <div class="inline">
-      <%= if not is_nil(Map.get(@media, @attr.schema_field)) and Map.get(@media, @attr.schema_field) != [] and Map.get(@media, @attr.schema_field) != "" do %>
+      <%= if not is_nil(@attr_value) and @attr_value != [] and @attr_value != "" do %>
         <div class="inline-flex flex-wrap text-xs">
           <div class="break-word max-w-full text-ellipsis">
             <.attr_entry
@@ -1008,7 +1009,7 @@ defmodule PlatformWeb.Components do
               compact={@truncate}
               name={@attr.name}
               project={@media.project}
-              value={Material.get_attribute_value(@media, @attr)}
+              value={@attr_value}
             />
             <%= for child <- @children do %>
               <%= if not is_nil(Map.get(@media, child.schema_field)) do %>
@@ -3374,6 +3375,34 @@ defmodule PlatformWeb.Components do
   def pagination_controls(assigns) do
     ~H"""
     <nav class="flex items-center justify-between" aria-label="Pagination">
+      <div
+        class="flex flex-1 justify-between sm:justify-end gap-2 md:mr-8"
+        phx-hook="ScrollToTop"
+        id={@id}
+      >
+        <%= if not is_nil(@pagination_metadata.before) do %>
+          <.link patch={@prev_link} class="text-button">
+            <Heroicons.arrow_left mini class="h-6 w-6" />
+            <span class="sr-only">Previous</span>
+          </.link>
+        <% else %>
+          <span class="cursor-not-allowed opacity-75 text-neutral-600">
+            <Heroicons.arrow_left mini class="h-6 w-6" />
+            <span class="sr-only">Previous</span>
+          </span>
+        <% end %>
+        <%= if not is_nil(@pagination_metadata.after) do %>
+          <.link patch={@next_link} class="text-button">
+            <Heroicons.arrow_right mini class="h-6 w-6" />
+            <span class="sr-only">Next</span>
+          </.link>
+        <% else %>
+          <span class="cursor-not-allowed opacity-75 text-neutral-600">
+            <Heroicons.arrow_right mini class="h-6 w-6" />
+            <span class="sr-only">Next</span>
+          </span>
+        <% end %>
+      </div>
       <div class="hidden sm:block">
         <p class="text-sm text-gray-700">
           Showing
@@ -3382,7 +3411,9 @@ defmodule PlatformWeb.Components do
           </span>
           to
           <span class="font-medium">
-            <%= ((@pagination_index + 1) * @pagination_metadata.limit) |> Formatter.format_number() %>
+            <%= (@pagination_index * @pagination_metadata.limit +
+                   @currently_displayed_results)
+            |> Formatter.format_number() %>
           </span>
           of
           <span class="font-medium">
@@ -3392,24 +3423,6 @@ defmodule PlatformWeb.Components do
           </span>
           results
         </p>
-      </div>
-      <div
-        class="flex flex-1 justify-between sm:justify-end gap-2 ml-8"
-        phx-hook="ScrollToTop"
-        id={@id}
-      >
-        <%= if not is_nil(@pagination_metadata.before) do %>
-          <.link patch={@prev_link} class="text-button">
-            <Heroicons.arrow_left mini class="h-6 w-6" />
-            <span class="sr-only">Previous</span>
-          </.link>
-        <% end %>
-        <%= if not is_nil(@pagination_metadata.after) do %>
-          <.link patch={@next_link} class="text-button">
-            <Heroicons.arrow_right mini class="h-6 w-6" />
-            <span class="sr-only">Next</span>
-          </.link>
-        <% end %>
       </div>
     </nav>
     """

@@ -131,7 +131,7 @@
                       <% end %>
                     </tbody>
                   </table>
-                  <div class="h-[40px] flex fixed bottom-0 items-center w-full z-[100] bg-neutral-50 border-t text-sm p-2">
+                  <div class="h-[40px] flex fixed bottom-0 md:justify-between items-center w-full z-[100] backdrop-blur-lg bg-white/30 border-t text-sm p-2">
                     <div class="text-neutral-600">
                       <.pagination_controls
                         next_link={next_link}
@@ -142,6 +142,14 @@
                         id="pagination-table"
                       />
                     </div>
+                    <%= if is_nil(@active_project) do %>
+                      <div class="flex items-center ml-4 md:ml-16 md:mr-32">
+                        <Heroicons.information_circle mini class="h-5 w-5 text-neutral-400" />
+                        <span class="ml-1">
+                          To see project attributes, refine your search to a project.
+                        </span>
+                      </div>
+                    <% end %>
                   </div>
                 </div>
               </div>

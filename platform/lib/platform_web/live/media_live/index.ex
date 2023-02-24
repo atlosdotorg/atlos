@@ -62,6 +62,8 @@ defmodule PlatformWeb.MediaLive.Index do
         search_keywords
       )
 
+    active_project = Platform.Projects.get_project(params["project_id"])
+
     {:noreply,
      socket
      |> assign(
@@ -73,13 +75,16 @@ defmodule PlatformWeb.MediaLive.Index do
      |> assign(:query_params, params)
      |> assign(:before_cursor, before_cursor)
      |> assign(:after_cursor, after_cursor)
-     |> assign(:active_project, Platform.Projects.get_project(params["project_id"]))
+     |> assign(:active_project, active_project)
      |> assign(:results, results)
      |> assign(:myself, self())
      |> assign(:pagination_index, pagination_index)
      |> assign(:editing, nil)
      |> assign(:media, results.entries)
-     |> assign(:attributes, Attribute.active_attributes() |> Enum.filter(&is_nil(&1.parent)))
+     |> assign(
+       :attributes,
+       Attribute.active_attributes(project: active_project) |> Enum.filter(&is_nil(&1.parent))
+     )
      |> then(fn s ->
        if display == "table",
          do:
@@ -112,7 +117,12 @@ defmodule PlatformWeb.MediaLive.Index do
   end
 
   def handle_event("save", %{"search" => params}, socket) do
-    merged_params = Map.merge(socket.assigns.query_params, params)
+    # Also reset the pagination index, since we're doing a new search
+    merged_params =
+      Map.merge(socket.assigns.query_params, params)
+      |> Map.delete("bc")
+      |> Map.delete("ac")
+      |> Map.delete("pi")
 
     {:noreply, socket |> push_patch(to: Routes.live_path(socket, __MODULE__, merged_params))}
   end
