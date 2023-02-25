@@ -159,7 +159,8 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
       "Single Select": :select,
       "Multiple Select": :multi_select,
       Text: :text,
-      Date: :date
+      Date: :date,
+      Location: :location
     ]
 
   def name_mapping,
@@ -182,6 +183,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
           @f_attr,
           :type,
           type_mapping()
+          |> Enum.filter(fn {_, v} -> v != :location end)
           |> Enum.map(fn {k, v} ->
             [
               key: k,

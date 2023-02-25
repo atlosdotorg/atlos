@@ -7,11 +7,11 @@ defmodule Platform.Updates.Update do
   alias Platform.Material
 
   schema "updates" do
-    field :search_metadata, :string, default: ""
-    field :explanation, :string
-    field :attachments, {:array, :string}
+    field(:search_metadata, :string, default: "")
+    field(:explanation, :string)
+    field(:attachments, {:array, :string})
 
-    field :type, Ecto.Enum,
+    field(:type, Ecto.Enum,
       values: [
         :update_attribute,
         :create,
@@ -23,25 +23,26 @@ defmodule Platform.Updates.Update do
         :change_project,
         :remove_project
       ]
+    )
 
     # Used for attribute updates.
-    field :modified_attribute, :string
+    field(:modified_attribute, :string)
 
-    # JSON-encoded data, used for attribute changes
-    field :new_value, :string, default: "null"
-    # JSON-encoded data, used for attribute changes
-    field :old_value, :string, default: "null"
+    # JSON-encoded data, used for attribute changes; ideally these would be :map
+    field(:new_value, :string, default: "null")
+    # JSON-encoded data, used for attribute changes; ideally these would be :map
+    field(:old_value, :string, default: "null")
 
-    field :hidden, :boolean, default: false
+    field(:hidden, :boolean, default: false)
 
     # Used for project changes
-    belongs_to :old_project, Platform.Projects.Project, type: :binary_id
-    belongs_to :new_project, Platform.Projects.Project, type: :binary_id
+    belongs_to(:old_project, Platform.Projects.Project, type: :binary_id)
+    belongs_to(:new_project, Platform.Projects.Project, type: :binary_id)
 
     # General association metadata
-    belongs_to :user, Platform.Accounts.User
-    belongs_to :media, Platform.Material.Media
-    belongs_to :media_version, Platform.Material.MediaVersion
+    belongs_to(:user, Platform.Accounts.User)
+    belongs_to(:media, Platform.Material.Media)
+    belongs_to(:media_version, Platform.Material.MediaVersion)
 
     timestamps()
   end

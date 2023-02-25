@@ -840,15 +840,41 @@ defmodule Platform.Material do
     )
   end
 
-  def update_media_attribute(media, %Attribute{} = attribute, attrs, user \\ nil) do
+  def update_media_attribute(media, %Attribute{} = attribute, attrs, opts \\ []) do
     result =
       media
-      |> Attribute.changeset(attribute, attrs, user: user)
+      |> Attribute.changeset(attribute, attrs, opts)
       |> Repo.update()
 
     invalidate_attribute_values_cache()
 
     result
+  end
+
+  @doc """
+  Set the value of the given attribute on the given media. Works for both core and project attributes. Does not check permissions. Meant for internal use (e.g., in migrations) when you don't want to fiddle with putting together a correct set of attributes for the embedded cast.
+  """
+  def update_media_attribute_internal(media, %Attribute{} = attribute, value) do
+    case attribute.schema_field do
+      :project_attributes ->
+        update_media_attribute(
+          media,
+          attribute,
+          %{
+            "project_attributes" => %{
+              "0" => %{"id" => attribute.name, "value" => value, "project_id" => media.project_id}
+            }
+          },
+          allow_invalid_selects: true,
+          verify_change_exists: false
+        )
+
+      v ->
+        update_media_attribute(media, attribute, %{attribute.schema_field => value},
+          allow_invalid_selects: true,
+          verify_change_exists: false
+        )
+    end
   end
 
   def update_media_attributes(media, attributes, attrs, opts \\ []) do

@@ -116,7 +116,8 @@ defmodule Platform.Material.Attribute do
         label: "Reported Near",
         pane: :attributes,
         required: false,
-        name: :general_location
+        name: :general_location,
+        deprecated: true
       },
       %Attribute{
         schema_field: :attr_tags,
@@ -163,7 +164,8 @@ defmodule Platform.Material.Attribute do
         description: "What type of incident is this? Select all that apply.",
         pane: :attributes,
         required: true,
-        name: :type
+        name: :type,
+        deprecated: true
       },
       %Attribute{
         schema_field: :attr_impact,
@@ -215,7 +217,8 @@ defmodule Platform.Material.Attribute do
         pane: :attributes,
         required: false,
         name: :impact,
-        add_none: "None"
+        add_none: "None",
+        deprecated: true
       },
       %Attribute{
         schema_field: :attr_equipment,
@@ -254,7 +257,8 @@ defmodule Platform.Material.Attribute do
           "What equipment — weapon, military infrastructure, etc. — is used in the incident?",
         pane: :attributes,
         required: false,
-        name: :equipment
+        name: :equipment,
+        deprecated: true
       },
       %Attribute{
         schema_field: :attr_time_of_day,
@@ -458,14 +462,16 @@ defmodule Platform.Material.Attribute do
   @doc """
   Get the names of the attributes that are available for the given media. Both nil and the empty list count as unset.
 
-  If the :pane option is given, only attributes in that pane will be returned.
+  If the :pane option is given, only attributes in that pane will be returned. If include_deprecated_attributes is true, deprecated attributes will be included.
   """
   def set_for_media(media, opts \\ []) do
     pane = Keyword.get(opts, :pane)
 
     Enum.filter(attributes(opts), fn attr ->
       val = Material.get_attribute_value(media, attr)
-      val != nil && val != [] && (pane == nil || attr.pane == pane) && attr.deprecated != true
+
+      val != nil && val != [] && (pane == nil || attr.pane == pane) &&
+        (attr.deprecated != true || Keyword.get(opts, :include_deprecated_attributes, false))
     end)
   end
 
@@ -538,6 +544,7 @@ defmodule Platform.Material.Attribute do
     * :changeset - an existing changeset to add to (default: nil)
     * :project_attribute - the project attribute to use (default: nil) (required for project attributes)
     * :project_attribute_ids_in_changeset - all attribute IDs that are being potentially changed with this changeset (attributes not in this list will not be changed) (default: [])
+    * :allow_invalid_selects - whether to allow invalid values in selects (default: false)
   """
   def changeset(
         %Media{} = media,
@@ -643,7 +650,7 @@ defmodule Platform.Material.Attribute do
       |> cast(%{}, [])
       |> populate_virtual_data(attribute)
       |> cast_attribute(attribute, attrs)
-      |> validate_attribute(attribute, user: user)
+      |> validate_attribute(attribute, opts)
       |> cast_and_validate_virtual_explanation(attrs, attribute)
       |> update_from_virtual_data(attribute)
       |> verify_user_can_edit(attribute, user, media)
@@ -851,8 +858,9 @@ defmodule Platform.Material.Attribute do
   Validates the given attribute in the given changeset.
 
   Options:
-    * `:user` - the user performing the action.
-    * `:required` - whether the attribute is required. Defaults to true.
+  * `:user` - the user performing the action.
+  * `:required` - whether the attribute is required. Defaults to true.
+  * `:allow_invalid_selects` - whether to allow invalid options in multi- and single-selects. Defaults to false.
   """
   def validate_attribute(changeset, %Attribute{} = attribute, opts \\ []) do
     user = Keyword.get(opts, :user, nil)
@@ -870,7 +878,8 @@ defmodule Platform.Material.Attribute do
             |> validate_change(attribute.schema_field, fn _, vals ->
               # Equivalent to validate_subset; we use our own because we want to operate on all
               # enumerable types, not just {:array, _}.
-              if Enum.any?(vals, fn val -> not Enum.member?(options(attribute), val) end) do
+              if Enum.any?(vals, fn val -> not Enum.member?(options(attribute), val) end) and
+                   not Keyword.get(opts, :allow_invalid_selects, false) do
                 [
                   {attribute.schema_field,
                    "Includes an invalid value. Valid values are: " <>
@@ -899,11 +908,18 @@ defmodule Platform.Material.Attribute do
 
         :select ->
           changeset
-          |> validate_inclusion(attribute.schema_field, options(attribute),
-            message:
-              "Includes an invalid value. Valid values are: " <>
-                Enum.join(options(attribute), ", ")
-          )
+          |> then(fn changeset ->
+            if Keyword.get(opts, :allow_invalid_selects, false) do
+              changeset
+            else
+              changeset
+              |> validate_inclusion(attribute.schema_field, options(attribute),
+                message:
+                  "Includes an invalid value. Valid values are: " <>
+                    Enum.join(options(attribute), ", ")
+              )
+            end
+          end)
           |> validate_privileged_values(attribute, user)
 
         :text ->

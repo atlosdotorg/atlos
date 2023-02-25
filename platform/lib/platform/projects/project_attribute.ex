@@ -103,32 +103,8 @@ defmodule Platform.Projects.ProjectAttribute do
         name: "Incident Type",
         type: :multi_select,
         description: "What kind of incident is this?",
-        options: [
-          "Military Activity",
-          "Military Activity/Movement",
-          "Military Activity/Equipment",
-          "Military Activity/Equipment/Lost",
-          "Military Activity/Execution",
-          "Military Activity/Combat",
-          "Military Activity/Encampment",
-          "Military Activity/Strike",
-          "Military Activity/Explosion",
-          "Military Activity/Detention",
-          "Military Activity/Mass Grave",
-          "Military Activity/Demolition",
-          "Civilian Activity",
-          "Civilian Activity/Protest or March",
-          "Civilian Activity/Riot",
-          "Civilian Activity/Violence",
-          "Policing",
-          "Policing/Use of Force",
-          "Policing/Detention",
-          "Weather",
-          "Weather/Flooding",
-          "Weather/Hurricane",
-          "Weather/Fire",
-          "Other"
-        ]
+        options:
+          Platform.Material.Attribute.options(Platform.Material.Attribute.get_attribute(:type))
       },
       %__MODULE__{
         name: "Reported Near",
@@ -139,81 +115,18 @@ defmodule Platform.Projects.ProjectAttribute do
         name: "Impact",
         type: :multi_select,
         description: "What is damaged, harmed, or lost in this incident?",
-        options: [
-          "Structure",
-          "Structure/Residential",
-          "Structure/Residential/House",
-          "Structure/Residential/Apartment",
-          "Structure/Healthcare",
-          "Structure/Humanitarian",
-          "Structure/Food Infrastructure",
-          "Structure/School or Childcare",
-          "Structure/Park or Playground",
-          "Structure/Cultural",
-          "Structure/Religious",
-          "Structure/Industrial",
-          "Structure/Administrative",
-          "Structure/Commercial",
-          "Structure/Roads, Highways, or Transport",
-          "Structure/Transit Station",
-          "Structure/Airport",
-          "Structure/Military",
-          "Land Vehicle",
-          "Land Vehicle/Car",
-          "Land Vehicle/Truck",
-          "Land Vehicle/Armored",
-          "Land Vehicle/Train",
-          "Land Vehicle/Bus",
-          "Aircraft",
-          "Aircraft/Fighter",
-          "Aircraft/Bomber",
-          "Aircraft/Helicopter",
-          "Aircraft/Drone",
-          "Sea Vehicle",
-          "Sea Vehicle/Boat",
-          "Sea Vehicle/Warship",
-          "Sea Vehicle/Aircraft Carrier",
-          "Injury",
-          "Injury/Civilian",
-          "Injury/Combatant",
-          "Death",
-          "Death/Civilian",
-          "Death/Combatant"
-        ]
+        options:
+          Platform.Material.Attribute.options(Platform.Material.Attribute.get_attribute(:impact))
       },
       %__MODULE__{
-        name: "Equipment",
+        name: "Equipment Used",
         type: :multi_select,
         description:
           "What equipment — weapon, military infrastructure, etc. — is used in the incident?",
-        options: [
-          "Small Arm",
-          "Munition",
-          "Munition/Cluster",
-          "Munition/Chemical",
-          "Munition/Thermobaric",
-          "Munition/Incendiary",
-          "Non-Lethal Weapon",
-          "Non-Lethal Weapon/Tear Gas",
-          "Non-Lethal Weapon/Rubber Bullet",
-          "Land Mine",
-          "Launch System",
-          "Launch System/Artillery",
-          "Launch System/Self-Propelled",
-          "Launch System/Multiple Launch Rocket System",
-          "Land Vehicle",
-          "Land Vehicle/Car",
-          "Land Vehicle/Armored",
-          "Aircraft",
-          "Aircraft/Fighter",
-          "Aircraft/Bomber",
-          "Aircraft/Helicopter",
-          "Aircraft/Drone",
-          "Sea Vehicle",
-          "Sea Vehicle/Small Boat",
-          "Sea Vehicle/Ship",
-          "Sea Vehicle/Aircraft Carrier"
-        ]
+        options:
+          Platform.Material.Attribute.options(
+            Platform.Material.Attribute.get_attribute(:equipment)
+          )
       }
     ]
   end
