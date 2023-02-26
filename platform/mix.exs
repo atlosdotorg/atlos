@@ -40,8 +40,8 @@ defmodule Platform.MixProject do
       {:postgrex, ">= 0.0.0"},
       {:phoenix_html, "~> 3.0"},
       {:phoenix_live_reload, "~> 1.2", only: :dev},
-      # Temporary fix for LiveView
       {:phoenix_live_view, "~> 0.18"},
+      {:phoenix_view, "~> 2.0"},
       {:floki, "~> 0.33", only: :test},
       {:phoenix_live_dashboard, "~> 0.7"},
       {:esbuild, "~> 0.5", runtime: Mix.env() == :dev},
