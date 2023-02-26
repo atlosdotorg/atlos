@@ -273,7 +273,7 @@ defmodule Platform.Material.Attribute do
       %Attribute{
         schema_field: :attr_geolocation,
         description:
-          "For incidents that span multiple locations (e.g., movement down a street or a fire), choose a representative verifiable location. All geolocations must be confirmable visually.",
+          "For incidents that span multiple locations (e.g., movement down a street or a fire), choose a representative verifiable location.",
         type: :location,
         label: "Geolocation",
         pane: :attributes,
