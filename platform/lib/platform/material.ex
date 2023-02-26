@@ -841,6 +841,9 @@ defmodule Platform.Material do
   end
 
   def update_media_attribute(media, %Attribute{} = attribute, attrs, opts \\ []) do
+    # Update the media in case it was recently updated elsewhere
+    media = get_media!(media.id)
+
     result =
       media
       |> Attribute.changeset(attribute, attrs, opts)
@@ -869,7 +872,7 @@ defmodule Platform.Material do
           verify_change_exists: false
         )
 
-      v ->
+      _ ->
         update_media_attribute(media, attribute, %{attribute.schema_field => value},
           allow_invalid_selects: true,
           verify_change_exists: false
@@ -878,6 +881,9 @@ defmodule Platform.Material do
   end
 
   def update_media_attributes(media, attributes, attrs, opts \\ []) do
+    # Update the media in case it was recently updated elsewhere
+    media = get_media!(media.id)
+
     result =
       change_media_attributes(media, attributes, attrs, opts)
       |> Repo.update()
