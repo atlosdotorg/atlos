@@ -67,34 +67,6 @@ defmodule Platform.Workers.Migrator do
     end
   end
 
-  def migratable_attributes(media) do
-    if is_nil(media.project) do
-      []
-    else
-      project_attributes =
-        media.project.attributes |> Enum.map(&Platform.Projects.ProjectAttribute.to_attribute(&1))
-
-      deprecated_attributes =
-        Material.Attribute.attributes() |> Enum.filter(&(&1.deprecated == true))
-
-      deprecated_attributes
-      |> Enum.map(fn deprecated_attribute ->
-        new_attribute =
-          project_attributes
-          |> Enum.find(
-            &(&1.label == deprecated_attribute.label && &1.type == deprecated_attribute.type)
-          )
-
-        if not is_nil(new_attribute) do
-          {deprecated_attribute, new_attribute}
-        else
-          nil
-        end
-      end)
-      |> Enum.reject(&is_nil/1)
-    end
-  end
-
   def migrate_media(%Platform.Material.Media{} = media) do
     # Migration has three steps:
     # 1. Check if the media has any deprecated attributes set. If so, check whether there are any new project attributes available that are unset, share a name with the deprecated attribute, and are of the same type. If so, set the new attribute to the value of the deprecated attribute.
@@ -110,7 +82,7 @@ defmodule Platform.Workers.Migrator do
         include_deprecated_attributes: true
       )
 
-    for {deprecated_attribute, new_attribute} <- migratable_attributes(media) do
+    for {deprecated_attribute, new_attribute} <- Platform.Utils.migrated_attributes(media) do
       # Refresh the media, since it was likely just updated.
       media = Platform.Material.get_media!(media.id)
 
@@ -172,7 +144,7 @@ defmodule Platform.Workers.Migrator do
     Logger.info("Verifying integrity of all media...")
 
     for media <- Material.list_media() do
-      for {old_attr, new_attr} <- migratable_attributes(media) do
+      for {old_attr, new_attr} <- Platform.Utils.migrated_attributes(media) do
         old_value = Material.get_attribute_value(media, old_attr)
         new_value = Material.get_attribute_value(media, new_attr)
 
@@ -190,7 +162,7 @@ defmodule Platform.Workers.Migrator do
     Logger.info("Verifying integrity of all updates...")
 
     for update <- Updates.list_updates() do
-      for {old_attr, new_attr} <- migratable_attributes(update.media) do
+      for {old_attr, new_attr} <- Platform.Utils.migrated_attributes(update.media) do
         old_key = Updates.key_for_attribute(old_attr)
 
         for value <- [update.old_value, update.new_value] do

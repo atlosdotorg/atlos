@@ -29,6 +29,34 @@ defmodule Platform.Utils do
     :crypto.strong_rand_bytes(32) |> Base.url_encode64()
   end
 
+  def migrated_attributes(media) do
+    if is_nil(media.project) do
+      []
+    else
+      project_attributes =
+        media.project.attributes |> Enum.map(&Platform.Projects.ProjectAttribute.to_attribute(&1))
+
+      deprecated_attributes =
+        Platform.Material.Attribute.attributes() |> Enum.filter(&(&1.deprecated == true))
+
+      deprecated_attributes
+      |> Enum.map(fn deprecated_attribute ->
+        new_attribute =
+          project_attributes
+          |> Enum.find(
+            &(&1.label == deprecated_attribute.label && &1.type == deprecated_attribute.type)
+          )
+
+        if not is_nil(new_attribute) do
+          {deprecated_attribute, new_attribute}
+        else
+          nil
+        end
+      end)
+      |> Enum.reject(&is_nil/1)
+    end
+  end
+
   def format_date(value) do
     case value do
       %Date{} ->

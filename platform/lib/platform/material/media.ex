@@ -428,6 +428,18 @@ defmodule Platform.Material.Media do
 end
 
 defimpl Jason.Encoder, for: Platform.Material.Media do
+  def insert_deprecated_attributes(map, %Platform.Material.Media{} = media) do
+    # When we added custom attributes, we migrated some attributes that were previously "core"
+    # attributes to the custom attribute system. This function looks for those attributes
+    # and inserts their "correct" versions into the map.
+
+    migrated_pairs = Platform.Utils.migrated_attributes(media)
+
+    Enum.reduce(migrated_pairs, map, fn map, {old_attr, new_attr} ->
+      Map.put(map, old_attr.schema_field, Platform.Material.get_attribute_value(media, new_attr))
+    end)
+  end
+
   def encode(value, opts) do
     Jason.Encode.map(
       Map.take(value, [
@@ -437,9 +449,6 @@ defimpl Jason.Encoder, for: Platform.Material.Media do
         :attr_geolocation_resolution,
         :attr_more_info,
         :attr_date,
-        :attr_type,
-        :attr_impact,
-        :attr_equipment,
         :attr_restrictions,
         :attr_sensitive,
         :attr_status,
@@ -454,7 +463,8 @@ defimpl Jason.Encoder, for: Platform.Material.Media do
       |> Enum.into(%{}, fn
         {key, %Ecto.Association.NotLoaded{}} -> {key, nil}
         {key, value} -> {key, value}
-      end),
+      end)
+      |> insert_deprecated_attributes(value),
       opts
     )
   end
