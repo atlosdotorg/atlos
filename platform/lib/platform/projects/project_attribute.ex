@@ -109,7 +109,7 @@ defmodule Platform.Projects.ProjectAttribute do
       %__MODULE__{
         name: "Reported Near",
         type: :text,
-        description: "Where the incident was reported to be near."
+        description: "Where was the incident reported to be near?"
       },
       %__MODULE__{
         name: "Impact",
