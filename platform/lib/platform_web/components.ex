@@ -743,7 +743,7 @@ defmodule PlatformWeb.Components do
                             <%= attr.label %> &nearr;
                           <% end %>
                         <% else %>
-                          [Unknown Attribute]
+                          a deleted or unknown attribute
                         <% end %>
                       <% :create -> %>
                         added this incident
@@ -806,10 +806,15 @@ defmodule PlatformWeb.Components do
                   </div>
                 </div>
 
-                <%= if @update.type == :update_attribute || @update.explanation do %>
+                <% has_attr_change_to_show =
+                  @update.type == :update_attribute and
+                    not is_nil(
+                      Attribute.get_attribute(@update.modified_attribute, project: @update.media.project)
+                    ) %>
+                <%= if has_attr_change_to_show || @update.explanation do %>
                   <div class="mt-1 text-sm text-gray-700 border border-gray-300 rounded-lg shadow-sm overflow-hidden flex flex-col divide-y">
                     <!-- Update detail section -->
-                    <%= if @update.type == :update_attribute do %>
+                    <%= if has_attr_change_to_show do %>
                       <div class="bg-gray-50 p-2 flex">
                         <div class="flex-grow">
                           <.attr_diff
