@@ -250,22 +250,37 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
     """
   end
 
-  def attribute_preview(assigns) do
+  def attribute_table_row(assigns) do
     ~H"""
-    <article class="block text-left">
-      <div class="flex w-full gap-1 items-baseline">
-        <h3 class="font-medium">
-          <%= @attribute.label %>
-        </h3>
-        <p class="badge ~neutral">
-          <%= @attribute.type
-          |> then(&Map.get(name_mapping(), &1)) %>
-        </p>
-      </div>
-      <p class="text-sm text-gray-500">
-        <%= @attribute.description %>
-      </p>
-    </article>
+    <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
+      <%= @attr.label %>
+    </td>
+    <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+      <%= @attr.type
+      |> then(&Map.get(name_mapping(), &1)) %>
+    </td>
+    <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 truncate hidden md:table-cell">
+      <%= @attr.description |> Platform.Utils.truncate(40) %>
+    </td>
+    <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6 flex justify-end">
+      <%= if @attr.schema_field == :project_attributes do %>
+        <button
+          class="text-button"
+          type="button"
+          phx-click="open_modal"
+          phx-value-id={@attr.name}
+          phx-target={@myself}
+        >
+          <Heroicons.pencil_square mini class="h-5 w-5 text-urge-600" />
+          <span class="sr-only">Edit <%= @attr.label %></span>
+        </button>
+      <% else %>
+        <Heroicons.lock_closed
+          class="h-5 w-5 text-gray-400"
+          data-tooltip="This is a core attribute and cannot be edited."
+        />
+      <% end %>
+    </td>
     """
   end
 
@@ -382,8 +397,10 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
             <div class="flex flex-col gap-4 pt-8">
               <%= if length(@show_panes) > 1 do %>
                 <div class="mb-4">
-                  <p class="sec-head text-xl">Project Attributes</p>
-                  <p class="sec-subhead">Specify your data model for incidents in this project.</p>
+                  <p class="sec-head text-xl">Attributes</p>
+                  <p class="sec-subhead">
+                    Define the data model for incidents in this project. You can add new attributes, or edit the existing ones.
+                  </p>
                 </div>
               <% end %>
               <%= if ProjectAttribute.does_project_have_default_attributes?(@project) do %>
@@ -401,85 +418,106 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                 </div>
               <% end %>
               <fieldset class="flex flex-col">
-                <%= for f_attr <- inputs_for(f, :attributes) do %>
-                  <div x-data="{active: false}" class="group">
-                    <%= if f_attr.data.id do %>
-                      <button
-                        class="p-4 mb-4 bg-white border hover:bg-neutral-50 transition-all rounded-lg shadow-sm overflow-hidden w-full"
-                        type="button"
-                        phx-click="open_modal"
-                        phx-value-id={f_attr.data.id}
-                        phx-target={@myself}
-                      >
-                        <.attribute_preview attribute={ProjectAttribute.to_attribute(f_attr.data)} />
-                      </button>
-                    <% end %>
-                    <%= if (@actively_editing_id == f_attr.data.id) || (f_attr.data.id == nil and @actively_editing_id == :new) do %>
-                      <.modal target={@myself}>
-                        <section class="mb-4">
-                          <h2 class="sec-head">Edit Attribute</h2>
-                        </section>
-                        <.edit_custom_project_attribute f_attr={f_attr} />
-                        <div class="mt-8 flex justify-between items-center">
-                          <div>
-                            <%= submit("Save", class: "button ~urge @high") %>
-                            <button
-                              type="button"
-                              phx-target={@myself}
-                              phx-click="close_modal"
-                              class="base-button"
-                            >
-                              Cancel
-                            </button>
-                          </div>
-                          <%= if f_attr.data.id do %>
-                            <button
-                              type="button"
-                              phx-target={@myself}
-                              phx-click="delete_attr"
-                              phx-value-id={f_attr.data.id}
-                              data-confirm={"Are you sure you want to delete the attribute \"#{f_attr.data.name}\"? This action cannot be undone. This will remove this attribute from all incidents in this project."}
-                              data-tooltip="Delete this attribute"
-                              class="button ~critical @high"
-                            >
-                              Delete
-                            </button>
-                          <% end %>
-                        </div>
-                      </.modal>
-                    <% else %>
-                      <div class="hidden">
-                        <.edit_custom_project_attribute f_attr={f_attr} />
+                <div class="flow-root">
+                  <div class="-mx-4 overflow-x-auto sm:-mx-6 lg:-mx-8">
+                    <div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
+                      <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg relative">
+                        <table class="min-w-full divide-y divide-gray-300">
+                          <thead class="bg-gray-50">
+                            <tr>
+                              <th
+                                scope="col"
+                                class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6"
+                              >
+                                Name
+                              </th>
+                              <th
+                                scope="col"
+                                class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
+                              >
+                                Type
+                              </th>
+                              <th
+                                scope="col"
+                                class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 hidden md:block"
+                              >
+                                Description
+                              </th>
+                              <div scope="col" class="absolute right-3 top-3">
+                                <button
+                                  type="button"
+                                  phx-click="add_attr"
+                                  phx-target={@myself}
+                                  class="text-button text-sm"
+                                >
+                                  Add&nbsp;Attribute
+                                </button>
+                              </div>
+                            </tr>
+                          </thead>
+                          <tbody class="divide-y divide-gray-200 bg-white">
+                            <%= for f_attr <- inputs_for(f, :attributes) do %>
+                              <%= if f_attr.data.id do %>
+                                <tr x-data="{active: false}" class="group">
+                                  <.attribute_table_row
+                                    attr={ProjectAttribute.to_attribute(f_attr.data)}
+                                    myself={@myself}
+                                  />
+                                </tr>
+                              <% end %>
+                              <%= if (@actively_editing_id == f_attr.data.id) || (f_attr.data.id == nil and @actively_editing_id == :new) do %>
+                                <.modal target={@myself}>
+                                  <section class="mb-4">
+                                    <h2 class="sec-head">Edit Attribute</h2>
+                                  </section>
+                                  <.edit_custom_project_attribute f_attr={f_attr} />
+                                  <div class="mt-8 flex justify-between items-center">
+                                    <div>
+                                      <%= submit("Save", class: "button ~urge @high") %>
+                                      <button
+                                        type="button"
+                                        phx-target={@myself}
+                                        phx-click="close_modal"
+                                        class="base-button"
+                                      >
+                                        Cancel
+                                      </button>
+                                    </div>
+                                    <%= if f_attr.data.id do %>
+                                      <button
+                                        type="button"
+                                        phx-target={@myself}
+                                        phx-click="delete_attr"
+                                        phx-value-id={f_attr.data.id}
+                                        data-confirm={"Are you sure you want to delete the attribute \"#{f_attr.data.name}\"? This action cannot be undone. This will remove this attribute from all incidents in this project."}
+                                        data-tooltip="Delete this attribute"
+                                        class="button ~critical @high"
+                                      >
+                                        Delete
+                                      </button>
+                                    <% end %>
+                                  </div>
+                                </.modal>
+                              <% else %>
+                                <div class="hidden">
+                                  <.edit_custom_project_attribute f_attr={f_attr} />
+                                </div>
+                              <% end %>
+                            <% end %>
+                            <%= for attr <- Platform.Material.Attribute.active_attributes() |> Enum.filter(& &1.pane != :metadata && is_nil(&1.parent)) do %>
+                              <tr>
+                                <.attribute_table_row attr={attr} myself={@myself} />
+                              </tr>
+                            <% end %>
+                          </tbody>
+                        </table>
                       </div>
-                    <% end %>
+                    </div>
                   </div>
-                <% end %>
-                <div>
-                  <button
-                    type="button"
-                    phx-click="add_attr"
-                    phx-target={@myself}
-                    class="text-button text-sm"
-                  >
-                    + Add Attribute
-                  </button>
                 </div>
               </fieldset>
             </div>
           </.form>
-          <div>
-            <div class="mb-4 mt-8">
-              <p class="sec-head text-xl">Core Attributes</p>
-              <p class="sec-subhead">These attributes apply to all incidents and are not editable.</p>
-            </div>
-            <div class="flex flex-col">
-              <%= for attr <- Platform.Material.Attribute.active_attributes() |> Enum.filter(& &1.pane != :metadata && is_nil(&1.parent)) do %>
-                <div class="p-4 mb-4 bg-white border hover:bg-neutral-50 transition-all rounded-lg shadow-sm overflow-hidden w-full cursor-not-allowed">
-                  <.attribute_preview attribute={attr} />
-                </div>
-              <% end %>
-            </div>
-          </div>
         <% end %>
       </div>
     </article>
