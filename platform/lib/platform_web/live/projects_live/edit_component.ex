@@ -170,7 +170,6 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
   def edit_custom_project_attribute(assigns) do
     ~H"""
     <div class={"relative group grid grid-cols-1 gap-4 mt-8 " <> (if Ecto.Changeset.get_field(@f_attr.source, :delete), do: "hidden", else: "")}>
-      <%= hidden_inputs_for(@f_attr) %>
       <%= hidden_input(@f_attr, :id) %>
       <div>
         <%= label(@f_attr, :name) %>
@@ -466,7 +465,11 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                                 </tr>
                               <% end %>
                               <%= if (@actively_editing_id == f_attr.data.id) || (f_attr.data.id == nil and @actively_editing_id == :new) do %>
-                                <.modal target={@myself}>
+                                <.modal
+                                  target={@myself}
+                                  id={@actively_editing_id || "nil"}
+                                  js_on_close="document.cancelFormEvent($event)"
+                                >
                                   <section class="mb-4">
                                     <h2 class="sec-head">Edit Attribute</h2>
                                   </section>
@@ -479,6 +482,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                                         phx-target={@myself}
                                         phx-click="close_modal"
                                         class="base-button"
+                                        x-on:click="document.cancelFormEvent"
                                       >
                                         Cancel
                                       </button>

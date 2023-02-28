@@ -34,6 +34,9 @@ defmodule PlatformWeb.Components do
   end
 
   def modal(assigns) do
+    assigns =
+      assign_new(assigns, :id, fn -> "default" end) |> assign_new(:js_on_close, fn -> "" end)
+
     ~H"""
     <div
       class="fixed z-[10000] inset-0 overflow-y-auto"
@@ -41,7 +44,7 @@ defmodule PlatformWeb.Components do
       role="dialog"
       aria-modal="true"
       phx-hook="Modal"
-      id="modal"
+      id={"modal-" <> @id}
       x-data
     >
       <div
@@ -57,9 +60,9 @@ defmodule PlatformWeb.Components do
             )
           }
           aria-hidden="true"
-          x-on:click="window.closeModal($event)"
+          x-on:click={"window.closeModal($event); " <> @js_on_close}
           phx-target={@target}
-          id="modal-overlay"
+          id={"modal-overlay-" <> @id}
         >
         </div>
         <!-- This element is to trick the browser into centering the modal contents. -->
@@ -84,7 +87,7 @@ defmodule PlatformWeb.Components do
             <button
               type="button"
               class="text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-urge-500 p-1"
-              x-on:click="window.closeModal($event)"
+              x-on:click={"window.closeModal($event); " <> @js_on_close}
               phx-target={@target}
             >
               <span class="sr-only">Close</span>

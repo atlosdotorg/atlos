@@ -32,6 +32,8 @@ import Mark from 'mark.js';
 import { InfiniteScroll } from "./infinite_scroll";
 import { setupTextboxInteractivity } from "./textbox_interactivity";
 import { initialize as initializeKeyboardFormSubmits } from "./keyboard_form_submit";
+import { initialize as initializeFormUnloadWarning } from "./form_warnings";
+
 
 mapboxgl.accessToken = 'pk.eyJ1IjoibWlsZXNtY2MiLCJhIjoiY2t6ZzdzZmY0MDRobjJvbXBydWVmaXBpNSJ9.-aHM8bjOOsSrGI0VvZenAQ';
 
@@ -491,6 +493,7 @@ document.addEventListener("phx:update", applyVegaCharts);
 document.addEventListener("load", applyVegaCharts);
 
 initializeKeyboardFormSubmits();
+initializeFormUnloadWarning();
 
 // Used to set the clipboard when copying hash information
 window.setClipboard = (text) => {
