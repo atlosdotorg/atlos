@@ -467,7 +467,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                               <%= if (@actively_editing_id == f_attr.data.id) || (f_attr.data.id == nil and @actively_editing_id == :new) do %>
                                 <.modal
                                   target={@myself}
-                                  id={@actively_editing_id || "nil"}
+                                  id={(@actively_editing_id || "nil") |> to_string()}
                                   js_on_close="document.cancelFormEvent($event)"
                                 >
                                   <section class="mb-4">
