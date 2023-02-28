@@ -16,17 +16,19 @@
   </.project_bar>
   <article class="w-full lg:max-w-screen-xl px-8 lg:mx-auto mt-8">
     <div class="lg:flex lg:items-center lg:justify-between">
-      <div class="flex-1 min-w-0 max-w-full">
+      <div class="flex-1 min-w-0 max-w-full" x-data="{pulse: false}">
         <% title_for_copying =
           "#{Media.slug_to_display(@media)} / #{@media.attr_description}" <>
             if Platform.Material.Media.is_sensitive(@media),
               do: " (#{Enum.join(@media.attr_sensitive, ", ")})",
               else: "" %>
         <button
-          class="font-mono text-sm text-neutral-600 p-1 rounded hover:bg-neutral-200 transition"
+          class="font-mono text-sm text-neutral-600 p-1 rounded hover:bg-neutral-200 transition-all"
+          x-bind:class="pulse ? 'animate-ping' : ''"
           data-tooltip="Copy information to your clipboard"
           type="button"
           onclick={"window.setClipboard(#{Jason.encode!(title_for_copying)})"}
+          x-on:click="pulse = true; setTimeout(() => pulse = false, 500)"
         >
           <%= Media.slug_to_display(@media) %>
         </button>
