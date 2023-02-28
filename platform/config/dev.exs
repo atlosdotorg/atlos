@@ -5,7 +5,7 @@ config :platform, Platform.Repo,
   username: "postgres",
   password: "postgres",
   hostname: "localhost",
-  database: "platform_bellingcat",
+  database: "platform_dev",
   show_sensitive_data_on_connection_error: true,
   pool_size: 10,
   types: Platform.Repo.PostgresTypes
