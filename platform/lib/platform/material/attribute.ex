@@ -823,7 +823,7 @@ defmodule Platform.Material.Attribute do
   @doc """
   Get the options for the provided attribute. If the attribute has custom options, those are provided.
   If the attribute allows user-defined options, those are provided. If the attribute has a "none" option,
-  that is provided. If the attribute is a multi-select, the current values are included (provided `current_val`
+  that is provided. If the attribute is a select or multi-select, the current values are included (provided `current_val`
   is given).
   """
   def options(%Attribute{} = attribute, current_val \\ nil) do
@@ -847,10 +847,10 @@ defmodule Platform.Material.Attribute do
         options
       end
 
-    if is_list(current_val) do
-      options ++ current_val
-    else
-      options
+    case current_val do
+      nil -> options
+      l when is_list(l) -> options ++ l
+      v -> options ++ [v]
     end
   end
 

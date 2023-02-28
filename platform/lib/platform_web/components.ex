@@ -2907,7 +2907,10 @@ defmodule PlatformWeb.Components do
                     f,
                     @schema_field,
                     if(@attr.required, do: [], else: ["[Unset]": nil]) ++
-                      Attribute.options(@attr),
+                      Attribute.options(
+                        @attr,
+                        if(is_nil(@media), do: nil, else: Material.get_attribute_value(@media, @attr))
+                      ),
                     data_descriptions: Jason.encode!(@attr.option_descriptions || %{}),
                     data_privileged: Jason.encode!(@attr.privileged_values || [])
                   ) %>
@@ -2921,7 +2924,7 @@ defmodule PlatformWeb.Components do
                     @schema_field,
                     Attribute.options(
                       @attr,
-                      if(is_nil(@media), do: nil, else: Map.get(@media, @schema_field))
+                      if(is_nil(@media), do: nil, else: Material.get_attribute_value(@media, @attr))
                     ),
                     data_descriptions: Jason.encode!(@attr.option_descriptions || %{}),
                     data_privileged: Jason.encode!(@attr.privileged_values || []),

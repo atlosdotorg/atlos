@@ -33,7 +33,7 @@ defmodule Platform.Projects.ProjectAttribute do
 
     attribute
     |> cast(attrs, [:name, :type, :options_json, :id, :description])
-    |> put_change(:options_json, options)
+    |> cast(%{options_json: options}, [:options_json])
     |> cast(
       %{options: Jason.decode!(options)},
       [:options]
@@ -49,7 +49,6 @@ defmodule Platform.Projects.ProjectAttribute do
         []
       end
     end)
-    |> validate_length(:options, min: 1, max: 256)
     |> then(fn changeset ->
       if Enum.member?([:select, :multi_select], get_field(changeset, :type)) do
         changeset
