@@ -28,7 +28,7 @@
     />
   </div>
   <%= if @pagination_index > 0 and @display == "cards" do %>
-    <div class="mx-auto mt-8 text-center text-xs mb-4">
+    <div class="text-xs mb-4 w-full">
       <.pagination_controls
         next_link={next_link}
         prev_link={prev_link}
@@ -80,6 +80,7 @@
           </div>
           <.map_events map_data={map_data} />
         <% "cards" -> %>
+          <div class="top-scroll-anchor"></div>
           <div class="grid gap-4 grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 search-highlighting">
             <%= for media <- @media do %>
               <.media_card media={media} current_user={@current_user} />
@@ -121,6 +122,7 @@
                       </tr>
                     </thead>
                     <tbody class="bg-white" id="table-body">
+                      <div class="top-scroll-anchor"></div>
                       <%= for media <- @media do %>
                         <.media_table_row
                           media={media}

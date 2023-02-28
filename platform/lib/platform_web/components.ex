@@ -1821,6 +1821,7 @@ defmodule PlatformWeb.Components do
           id="search-form"
           phx-change={JS.push("validate") |> JS.dispatch("atlos:updating", to: "body")}
           phx-submit={JS.push("save") |> JS.dispatch("atlos:updating", to: "body")}
+          data-no-warn="true"
         >
           <section class="md:flex w-full max-w-7xl mx-auto flex-wrap md:flex-nowrap gap-2 items-center">
             <div class="flex divide-y md:divide-y-0 md:divide-x flex-col flex-grow md:flex-row rounded-lg bg-white shadow-sm border overflow-hidden">
@@ -2028,7 +2029,8 @@ defmodule PlatformWeb.Components do
                       <%= button type: "button", to: Routes.export_path(@socket, :create, @query_params),
                   class: "text-gray-700 group w-full hover:bg-gray-100 flex items-center px-4 py-2 text-sm",
                   role: "menuitem",
-                  method: :post
+                  method: :post,
+                  "x-cloak": true
                    do %>
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
@@ -3357,12 +3359,8 @@ defmodule PlatformWeb.Components do
 
   def pagination_controls(assigns) do
     ~H"""
-    <nav class="flex items-center justify-between" aria-label="Pagination">
-      <div
-        class="flex flex-1 justify-between sm:justify-end gap-2 md:mr-8"
-        phx-hook="ScrollToTop"
-        id={@id}
-      >
+    <nav class="flex items-center justify-center sm:justify-between w-full" aria-label="Pagination">
+      <div class="flex flex-1 gap-2 md:mr-8" phx-hook="ScrollToTop" id={@id}>
         <%= if not is_nil(@pagination_metadata.before) do %>
           <.link patch={@prev_link} class="text-button">
             <Heroicons.arrow_left mini class="h-6 w-6" />

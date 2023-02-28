@@ -1,7 +1,7 @@
 function onInput(event) {
     if (event.target.closest && event.target.closest("form") !== null) {
         let form = event.target.closest("form");
-        if (!document._unsavedForms.includes(form)) {
+        if (!document._unsavedForms.includes(form) && !form.getAttribute("data-no-warn")) {
             document._unsavedForms.push(form);
         }
     }
@@ -9,7 +9,7 @@ function onInput(event) {
 
 function onSave(event) {
     if (event.target.closest && event.target.closest("form") !== null) {
-        let form = event.target.closest("form");
+        let form = event.target.closest("form")
         document._unsavedForms = document._unsavedForms.filter(f => f !== form);
     }
 }

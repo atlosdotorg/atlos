@@ -91,10 +91,7 @@ defmodule PlatformWeb.MediaLive.Index do
            assign(
              s,
              :source_cols,
-             Enum.max([
-               24,
-               Enum.max(results.entries |> Enum.map(&length(&1.versions)), &>=/2, fn -> 0 end)
-             ])
+             Enum.max(results.entries |> Enum.map(&length(&1.versions)), &>=/2, fn -> 0 end)
            ),
          else: s
      end)}

@@ -34,7 +34,6 @@ import { setupTextboxInteractivity } from "./textbox_interactivity";
 import { initialize as initializeKeyboardFormSubmits } from "./keyboard_form_submit";
 import { initialize as initializeFormUnloadWarning } from "./form_warnings";
 
-
 mapboxgl.accessToken = 'pk.eyJ1IjoibWlsZXNtY2MiLCJhIjoiY2t6ZzdzZmY0MDRobjJvbXBydWVmaXBpNSJ9.-aHM8bjOOsSrGI0VvZenAQ';
 
 let Hooks = {};
@@ -48,11 +47,19 @@ Hooks.Modal = {
 Hooks.ScrollToTop = {
     mounted() {
         this.el.addEventListener("click", e => {
-            window.scrollTo(0, 0);
+            window.scrollToTop()
         })
     }
 }
 Hooks.InfiniteScroll = InfiniteScroll;
+
+// Used by the pagination button to scroll back up to the top of the page.
+window.scrollToTop = () => {
+    for (let elem of document.querySelectorAll(".top-scroll-anchor")) {
+        elem.scrollIntoView({ behavior: "smooth", block: "start", inline: "nearest" })
+    }
+    window.scrollTo(0, 0);
+}
 
 let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content");
 let liveSocket = new LiveSocket("/live", Socket, {
