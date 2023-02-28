@@ -393,7 +393,7 @@
             <% {lon, lat} = @media.attr_geolocation.coordinates %>
             <div
               phx-update="ignore"
-              class="h-64 overflow-hidden"
+              class="h-64 overflow-hidden rounded-b-lg"
               id={"#{@media.slug}-geolocation-#{lat}-#{lon}"}
             >
               <map-pin lat={lat} lon={lon} id={"#{@media.slug}-geolocation-map"} />
