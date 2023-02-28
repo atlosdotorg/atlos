@@ -414,8 +414,7 @@ defmodule Platform.Material.Media do
           Utils.text_search(search_terms, queryable),
           ^media_via_associated_media_versions
         )
-      ),
-      select: u
+      )
     )
   end
 

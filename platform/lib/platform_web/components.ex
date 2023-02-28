@@ -3386,7 +3386,7 @@ defmodule PlatformWeb.Components do
       </div>
       <div class="hidden sm:block">
         <p class="text-sm text-gray-700">
-          Showing
+          Showing results
           <span class="font-medium">
             <%= (@pagination_index * @pagination_metadata.limit + 1) |> Formatter.format_number() %>
           </span>
@@ -3396,13 +3396,6 @@ defmodule PlatformWeb.Components do
                    @currently_displayed_results)
             |> Formatter.format_number() %>
           </span>
-          of
-          <span class="font-medium">
-            <%= @pagination_metadata.total_count |> Formatter.format_number() %><%= if @pagination_metadata.total_count_cap_exceeded,
-              do: "+",
-              else: "" %>
-          </span>
-          results
         </p>
       </div>
     </nav>
