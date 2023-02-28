@@ -331,7 +331,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                   class="flex gap-1 flex-wrap items-center"
                   x-data={"{active: '#{Ecto.Changeset.get_field(@general_changeset, :color)}'}"}
                 >
-                  <%= for color <- ["#f87171", "#fb923c", "#fbbf24", "#a3e635", "#4ade80", "#2dd4bf", "#22d3ee", "#60a5fa", "#818cf8", "#a78bfa", "#c084fc", "#e879f9", "#f472b6", "#fb7185"] do %>
+                  <%= for color <- ["#fb923c", "#fbbf24", "#a3e635", "#4ade80", "#2dd4bf", "#22d3ee", "#60a5fa", "#818cf8", "#a78bfa", "#c084fc", "#e879f9", "#f472b6"] do %>
                     <label class="!mt-0 cursor-pointer">
                       <%= radio_button(f, :color, color, "x-model": "active", class: "hidden") %>
                       <svg
