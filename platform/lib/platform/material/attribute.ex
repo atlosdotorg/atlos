@@ -582,8 +582,6 @@ defmodule Platform.Material.Attribute do
         attrs \\ %{},
         opts \\ []
       ) do
-    dbg(attrs)
-
     user = Keyword.get(opts, :user)
     verify_change_exists = Keyword.get(opts, :verify_change_exists, true)
     changeset = Keyword.get(opts, :changeset)
@@ -708,7 +706,7 @@ defmodule Platform.Material.Attribute do
     # Cast the embedded attributes.
     cs =
       cs
-      |> cast(attrs |> dbg(), [])
+      |> cast(attrs, [])
       |> cast_embed(:project_attributes, with: cast_embedded_project_attributes)
 
     # Cast the core attributes.
@@ -727,7 +725,7 @@ defmodule Platform.Material.Attribute do
     # Finally, verify that there is indeed a change, if a change is required.
     cs = if verify_change_exists, do: verify_change_exists(cs, attributes), else: cs
 
-    cs |> dbg()
+    cs
   end
 
   @doc """
