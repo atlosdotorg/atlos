@@ -652,10 +652,16 @@ defmodule PlatformWeb.Components do
                   <.user_text user={@head.user} />
                   <%= case @head.type do %>
                     <% :update_attribute -> %>
-                      made <%= length(@update) %> updates to
-                      <%= for {attr, idx} <- @attributes |> Enum.filter(& !is_nil(&1)) |> Enum.with_index() do %>
+                      made <%= length(@update) %> updates to <% changed_attrs =
+                        @attributes |> Enum.filter(&(!is_nil(&1))) |> Enum.with_index() %>
+                      <%= for {attr, idx} <- changed_attrs do %>
                         <span class="font-medium text-gray-800">
                           <%= attr.label <> connector_language(idx, @n_attributes) %>
+                        </span>
+                      <% end %>
+                      <%= if Enum.empty?(changed_attrs) do %>
+                        <span class="font-medium text-gray-800">
+                          attributes
                         </span>
                       <% end %>
                     <% :upload_version -> %>
