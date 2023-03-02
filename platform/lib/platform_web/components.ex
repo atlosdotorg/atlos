@@ -2871,7 +2871,7 @@ defmodule PlatformWeb.Components do
       assigns
       |> assign(:core_attributes, core_attributes)
       |> assign(:project_attributes, project_attributes)
-      |> assign(:optional, fn -> false end)
+      |> assign_new(:optional, fn -> false end)
 
     ~H"""
     <section class="flex flex-col gap-8">
@@ -2908,7 +2908,7 @@ defmodule PlatformWeb.Components do
       assigns
       |> assign(
         :label,
-        attr.label <> if(Map.get(assigns, :optional, false), do: " (Optional)", else: "")
+        attr.label <> if(Map.get(assigns |> dbg(), :optional, false), do: " (Optional)", else: "")
       )
       # Shorthands
       |> assign(:slug, slug)
@@ -2933,7 +2933,7 @@ defmodule PlatformWeb.Components do
         <% :select -> %>
           <%= label(@f, @schema_field, @label) %>
           <%= error_tag(@f, @schema_field) %>
-          <div phx-update="ignore" id={"attr_select_#{@slug}_#{@schema_field}"}>
+          <div phx-update="ignore" id={"attr_select_#{@slug}_#{@attr.name}"}>
             <%= select(
               @f,
               @schema_field,
