@@ -2885,22 +2885,19 @@ defmodule PlatformWeb.Components do
         />
       <% end %>
 
-      <%= for sub_f <- inputs_for(@form, :project_attributes) do %>
-        <% attr_id = sub_f.data.id %>
-        <% attr = @project_attributes |> Enum.find(&(&1.name == attr_id)) %>
-        <%= if not is_nil(attr) do %>
-          <div>
-            <%= hidden_input(sub_f, :project_id) %>
-            <%= hidden_input(sub_f, :id) %>
-            <.edit_attribute
-              attr={attr}
-              form={sub_f}
-              media_slug={@media_slug}
-              media={@media}
-              optional={@optional}
-            />
-          </div>
-        <% end %>
+      <%= for sub_f <- inputs_for(@form, :project_attributes), not is_nil(Enum.find(@project_attributes, &(&1.name == input_value(sub_f, :id)))) do %>
+        <% attr = @project_attributes |> Enum.find(&(&1.name == input_value(sub_f, :id))) %>
+        <div>
+          <%= hidden_input(sub_f, :project_id) %>
+          <%= hidden_input(sub_f, :id) %>
+          <.edit_attribute
+            attr={attr}
+            form={sub_f}
+            media_slug={@media_slug}
+            media={@media}
+            optional={@optional}
+          />
+        </div>
       <% end %>
     </section>
     """

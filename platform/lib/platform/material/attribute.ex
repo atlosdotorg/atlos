@@ -543,7 +543,6 @@ defmodule Platform.Material.Attribute do
     * :verify_change_exists - whether to verify that the change exists (default: true)
     * :changeset - an existing changeset to add to (default: nil)
     * :project_attribute - the project attribute to use (default: nil) (required for project attributes)
-    * :project_attribute_ids_in_changeset - all attribute IDs that are being potentially changed with this changeset (attributes not in this list will not be changed) (default: [])
     * :allow_invalid_selects - whether to allow invalid values in selects (default: false)
   """
   def changeset(
@@ -556,110 +555,17 @@ defmodule Platform.Material.Attribute do
     verify_change_exists = Keyword.get(opts, :verify_change_exists, true)
     changeset = Keyword.get(opts, :changeset)
 
-    # If the attribute's schema field is :project_attributes, we set the field to :value and make the changeset recursively.
-    # Otherwise, we proceed as normal.
-
-    if attribute.schema_field == :project_attributes do
-      project_attribute_ids_in_changeset =
-        Keyword.get(opts, :project_attribute_ids_in_changeset, []) ++ [attribute.name]
-
-      provided_attribute_values = Map.get(attrs, "project_attributes", %{})
-      provided_ids = Map.values(provided_attribute_values) |> Enum.map(& &1["id"])
-
-      # Inject values for non-changing attributes
-      unmodified_project_attributes =
-        media.project_attributes
-        |> Enum.filter(&(!Enum.member?(provided_ids, &1.id)))
-        |> Enum.map(&%{"id" => &1.id, "value" => &1.value, "project_id" => &1.project_id})
-        |> Enum.with_index(map_size(provided_attribute_values))
-        |> Enum.map(fn {val, index} -> {to_string(index), val} end)
-        |> Map.new()
-
-      attrs =
-        Map.put(
-          attrs,
-          "project_attributes",
-          Map.merge(
-            Map.get(attrs, "project_attributes", %{}),
-            unmodified_project_attributes
-          )
-        )
-
-      opts =
-        Keyword.put(opts, :project_attribute_ids_in_changeset, project_attribute_ids_in_changeset)
-
-      cast_embedded = fn cs, subattrs ->
-        attr = Attribute.get_attribute(Map.get(subattrs, "id"), project: media.project)
-
-        if attr == nil do
-          cs
-          # Do not modify
-          |> cast(%{}, [])
-        else
-          changeset(
-            media,
-            attr |> Map.put(:schema_field, :value),
-            subattrs,
-            Keyword.put(
-              opts,
-              :changeset,
-              cs
-              |> cast(%{}, [])
-              |> put_change(:id, attr.name)
-              |> put_change(:project_id, media.project_id)
-            )
-          )
-        end
-      end
-
-      cs = (changeset || media) |> cast(%{}, [])
-
-      cs =
-        cs
-        |> cast(attrs, [])
-        # NOTE: This will also cast other project attributes (i.e., all the attributes in the project) but that's okay. Access controls are still enforced.
-        |> cast_embed(:project_attributes, with: cast_embedded)
-
-      # Check if an embedded attribute value already exists for the given project and attribute.
-      # If so, we update it. If not, we create a new one.
-      existing_attribute_value =
-        cs
-        |> get_field(:project_attributes)
-        |> Enum.find(fn attribute_value ->
-          attribute_value.id == attribute.name
-        end)
-
-      case existing_attribute_value do
-        nil ->
-          cs
-          |> Ecto.Changeset.put_embed(
-            :project_attributes,
-            Ecto.Changeset.get_field(cs, :project_attributes) ++
-              [
-                %{
-                  project_id: get_field(cs, :project_id),
-                  id: attribute.name,
-                  value: nil
-                }
-              ]
-          )
-
-        _ ->
-          cs
-      end
-    else
-      (changeset || media)
-      |> cast(%{}, [])
-      |> populate_virtual_data(attribute)
-      |> cast_attribute(attribute, attrs)
-      |> validate_attribute(attribute, opts)
-      |> cast_and_validate_virtual_explanation(attrs, attribute)
-      |> update_from_virtual_data(attribute)
-      |> verify_user_can_edit(attribute, user, media)
-      |> then(fn c ->
-        if verify_change_exists, do: verify_change_exists(c, [attribute]), else: c
-      end)
-    end
+    (changeset || media)
+    |> cast(%{}, [])
+    |> populate_virtual_data(attribute)
+    |> cast_attribute(attribute, attrs)
+    |> validate_attribute(attribute, opts)
+    |> cast_and_validate_virtual_explanation(attrs, attribute)
+    |> update_from_virtual_data(attribute)
+    |> verify_user_can_edit(attribute, user, media)
+    |> then(fn c ->
+      if verify_change_exists, do: verify_change_exists(c, [attribute]), else: c
+    end)
   end
 
   @doc """
@@ -676,9 +582,15 @@ defmodule Platform.Material.Attribute do
         attrs \\ %{},
         opts \\ []
       ) do
+    dbg(attrs)
+
     user = Keyword.get(opts, :user)
     verify_change_exists = Keyword.get(opts, :verify_change_exists, true)
     changeset = Keyword.get(opts, :changeset)
+
+    # Now, we need to inject the not-provided project attributes into the changeset.
+    # When we cast an embedded field, we need to include all the values — but of course
+    # we don't want the caller to have to do that. So we hide that complexity here.
 
     project_attribute_ids_in_changeset =
       attributes
@@ -686,17 +598,136 @@ defmodule Platform.Material.Attribute do
       |> Enum.map(& &1.name)
       |> Enum.uniq()
 
-    Enum.reduce(attributes, changeset || media, fn elem, acc ->
-      changeset(media, elem, attrs,
-        user: user,
-        verify_change_exists: false,
-        changeset: acc,
-        project_attribute_ids_in_changeset: project_attribute_ids_in_changeset
+    provided_project_attribute_values = Map.get(attrs, "project_attributes", %{})
+
+    provided_project_attribute_values =
+      Map.values(provided_project_attribute_values)
+      |> Enum.map(&{&1["id"], &1["value"]})
+      |> Map.new()
+
+    existing_project_attribute_ids =
+      media.project_attributes
+      |> Enum.map(& &1.id)
+
+    # Inject values for attributes that are not included in the changeset.
+    # Add in any attributes that are not in `media.project_attributes`, but are provided in the changeset.
+    synthetic_project_attributes_attrs =
+      ((media.project_attributes
+        |> Enum.map(
+          &%{
+            "id" => &1.id,
+            "value" => Map.get(provided_project_attribute_values, &1.id, &1.value),
+            "project_id" => &1.project_id
+          }
+        )) ++
+         (attributes
+          |> Enum.filter(&(&1.schema_field == :project_attributes))
+          |> Enum.map(& &1.name)
+          |> Enum.reject(&Enum.member?(existing_project_attribute_ids, &1))
+          |> Enum.map(
+            &%{
+              "id" => &1,
+              "value" => Map.get(provided_project_attribute_values, &1),
+              "project_id" => media.project_id
+            }
+          )))
+      |> Enum.with_index()
+      |> Enum.map(fn {val, index} -> {to_string(index), val} end)
+      |> Map.new()
+
+    attrs =
+      Map.put(
+        attrs,
+        "project_attributes",
+        synthetic_project_attributes_attrs
       )
-    end)
-    |> then(fn c ->
-      if verify_change_exists, do: verify_change_exists(c, attributes), else: c
-    end)
+
+    cast_embedded_project_attributes = fn cs, subattrs ->
+      attr_id = Map.get(subattrs, "id")
+      attr = Enum.find(attributes, &(&1.name == attr_id))
+
+      if attr == nil do
+        cs
+        # Do not modify -- just turn it into a changeset. This attribute is not provided, so we don't want to modify it.
+        |> cast(%{}, [])
+      else
+        changeset(
+          media,
+          attr |> Map.put(:schema_field, :value),
+          subattrs,
+          Keyword.put(
+            opts,
+            :changeset,
+            cs
+            |> cast(%{}, [])
+            |> put_change(:id, attr.name)
+            |> put_change(:project_id, media.project_id)
+          )
+        )
+      end
+    end
+
+    # Now it's time to start updating the media.
+    cs = (changeset || media) |> cast(%{}, [])
+
+    # Check if an embedded attribute value already exists for the given project and attribute.
+    # If so, we update it. If not, we create a new one.
+    cs =
+      Enum.reduce(
+        Enum.filter(attributes, &(&1.schema_field == :project_attributes)),
+        cs,
+        fn attribute, cs ->
+          existing_attribute_value =
+            cs
+            |> get_field(:project_attributes)
+            |> Enum.find(fn attribute_value ->
+              attribute_value.id == attribute.name
+            end)
+
+          case existing_attribute_value do
+            nil ->
+              cs
+              |> Ecto.Changeset.put_embed(
+                :project_attributes,
+                Ecto.Changeset.get_field(cs, :project_attributes) ++
+                  [
+                    %{
+                      project_id: get_field(cs, :project_id),
+                      id: attribute.name,
+                      value: nil
+                    }
+                  ]
+              )
+
+            _ ->
+              cs
+          end
+        end
+      )
+
+    # Cast the embedded attributes.
+    cs =
+      cs
+      |> cast(attrs |> dbg(), [])
+      |> cast_embed(:project_attributes, with: cast_embedded_project_attributes)
+
+    # Cast the core attributes.
+    core_attributes = Enum.filter(attributes, &(&1.schema_field != :project_attributes))
+
+    cs =
+      Enum.reduce(core_attributes, cs, fn elem, acc ->
+        changeset(media, elem, attrs,
+          user: user,
+          verify_change_exists: false,
+          changeset: acc,
+          project_attribute_ids_in_changeset: project_attribute_ids_in_changeset
+        )
+      end)
+
+    # Finally, verify that there is indeed a change, if a change is required.
+    cs = if verify_change_exists, do: verify_change_exists(cs, attributes), else: cs
+
+    cs |> dbg()
   end
 
   @doc """
