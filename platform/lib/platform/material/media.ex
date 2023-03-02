@@ -88,11 +88,7 @@ defmodule Platform.Material.Media do
       :attr_description,
       :attr_sensitive,
       :attr_status,
-      :attr_type,
-      :attr_equipment,
-      :attr_impact,
       :attr_date,
-      :attr_general_location,
       :deleted,
       :project_id,
       :urls
@@ -103,21 +99,11 @@ defmodule Platform.Material.Media do
       user: user,
       required: true
     )
-    |> Attribute.validate_attribute(Attribute.get_attribute(:type), user: user, required: true)
     |> Attribute.validate_attribute(Attribute.get_attribute(:sensitive),
       user: user,
       required: true
     )
-    |> Attribute.validate_attribute(Attribute.get_attribute(:equipment),
-      user: user,
-      required: false
-    )
-    |> Attribute.validate_attribute(Attribute.get_attribute(:impact), user: user, required: false)
     |> Attribute.validate_attribute(Attribute.get_attribute(:date), user: user, required: false)
-    |> Attribute.validate_attribute(Attribute.get_attribute(:general_location),
-      user: user,
-      required: false
-    )
     |> validate_project(user, media)
     |> parse_and_validate_validate_json_array(:urls, :urls_parsed)
     |> validate_url_list(:urls_parsed)
@@ -135,6 +121,22 @@ defmodule Platform.Material.Media do
       else
         cs
       end
+    end)
+    |> then(fn cs ->
+      project_id = Ecto.Changeset.get_change(cs, :project_id)
+      project = if is_nil(project_id), do: nil, else: Projects.get_project!(project_id)
+
+      if is_nil(project),
+        do: cs,
+        else:
+          Platform.Material.change_media_attributes(
+            cs.data |> Map.put(:project, project) |> Map.put(:project_id, project.id),
+            project.attributes |> Enum.map(&Platform.Projects.ProjectAttribute.to_attribute(&1)),
+            attrs,
+            changeset: cs,
+            user: user,
+            verify_change_exists: false
+          )
     end)
   end
 

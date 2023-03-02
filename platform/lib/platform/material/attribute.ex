@@ -591,8 +591,9 @@ defmodule Platform.Material.Attribute do
       cast_embedded = fn cs, subattrs ->
         attr = Attribute.get_attribute(Map.get(subattrs, "id"), project: media.project)
 
-        if is_nil(attr) or attr.name != attribute.name do
+        if attr == nil do
           cs
+          # Do not modify
           |> cast(%{}, [])
         else
           changeset(
@@ -616,6 +617,7 @@ defmodule Platform.Material.Attribute do
       cs =
         cs
         |> cast(attrs, [])
+        # NOTE: This will also cast other project attributes (i.e., all the attributes in the project) but that's okay. Access controls are still enforced.
         |> cast_embed(:project_attributes, with: cast_embedded)
 
       # Check if an embedded attribute value already exists for the given project and attribute.
@@ -678,8 +680,19 @@ defmodule Platform.Material.Attribute do
     verify_change_exists = Keyword.get(opts, :verify_change_exists, true)
     changeset = Keyword.get(opts, :changeset)
 
+    project_attribute_ids_in_changeset =
+      attributes
+      |> Enum.filter(&(&1.schema_field == :project_attributes))
+      |> Enum.map(& &1.name)
+      |> Enum.uniq()
+
     Enum.reduce(attributes, changeset || media, fn elem, acc ->
-      changeset(media, elem, attrs, user: user, verify_change_exists: false, changeset: acc)
+      changeset(media, elem, attrs,
+        user: user,
+        verify_change_exists: false,
+        changeset: acc,
+        project_attribute_ids_in_changeset: project_attribute_ids_in_changeset
+      )
     end)
     |> then(fn c ->
       if verify_change_exists, do: verify_change_exists(c, attributes), else: c

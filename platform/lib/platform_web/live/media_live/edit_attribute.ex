@@ -119,9 +119,7 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
           class="phx-form"
         >
           <div class="space-y-6">
-            <%= for attr <- @attrs do %>
-              <.edit_attribute attr={attr} form={f} media_slug={@media.slug} media={@media} />
-            <% end %>
+            <.edit_attributes attrs={@attrs} form={f} media_slug={@media.slug} media={@media} />
             <div>
               <%= label(f, :explanation, "Briefly Explain Your Change") %>
               <div class="border border-gray-300 rounded shadow-sm overflow-hidden focus-within:border-urge-500 focus-within:ring-1 focus-within:ring-urge-500 transition">

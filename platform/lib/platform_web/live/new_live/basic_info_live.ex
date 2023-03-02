@@ -20,6 +20,8 @@ defmodule PlatformWeb.NewLive.BasicInfoLive do
   end
 
   defp assign_changeset(socket, params, opts \\ []) do
+    # Also assigns the @project
+
     cs = Material.change_media(socket.assigns.media, params, socket.assigns.current_user)
 
     cs =
@@ -36,6 +38,10 @@ defmodule PlatformWeb.NewLive.BasicInfoLive do
         {url, Material.get_media_by_source_url(url)}
       end)
 
+    # If available, assign the project
+    project_id = Ecto.Changeset.get_field(cs, :project_id, nil)
+    project = if is_nil(project_id), do: nil, else: Platform.Projects.get_project!(project_id)
+
     socket
     |> assign(
       :changeset,
@@ -44,6 +50,10 @@ defmodule PlatformWeb.NewLive.BasicInfoLive do
     |> assign(
       :url_deconfliction,
       url_deconfliction
+    )
+    |> assign(
+      :project,
+      project
     )
   end
 
@@ -91,8 +101,8 @@ defmodule PlatformWeb.NewLive.BasicInfoLive do
       >
         <div class="space-y-6">
           <div>
-            <.edit_attribute
-              attr={Attribute.get_attribute(:description)}
+            <.edit_attributes
+              attrs={[Attribute.get_attribute(:description)]}
               form={f}
               media_slug="NEW"
               media={nil}
@@ -103,17 +113,8 @@ defmodule PlatformWeb.NewLive.BasicInfoLive do
           </div>
 
           <div>
-            <.edit_attribute
-              attr={Attribute.get_attribute(:sensitive)}
-              form={f}
-              media_slug="NEW"
-              media={nil}
-            />
-          </div>
-
-          <div>
-            <.edit_attribute
-              attr={Attribute.get_attribute(:type)}
+            <.edit_attributes
+              attrs={[Attribute.get_attribute(:sensitive)]}
               form={f}
               media_slug="NEW"
               media={nil}
@@ -204,38 +205,8 @@ defmodule PlatformWeb.NewLive.BasicInfoLive do
             <div class="space-y-6 mt-4" x-transition x-show="open">
               <hr />
               <div>
-                <.edit_attribute
-                  attr={Attribute.get_attribute(:equipment)}
-                  form={f}
-                  media_slug="NEW"
-                  media={nil}
-                  optional={true}
-                />
-              </div>
-
-              <div>
-                <.edit_attribute
-                  attr={Attribute.get_attribute(:impact)}
-                  form={f}
-                  media_slug="NEW"
-                  media={nil}
-                  optional={true}
-                />
-              </div>
-
-              <div>
-                <.edit_attribute
-                  attr={Attribute.get_attribute(:date)}
-                  form={f}
-                  media_slug="NEW"
-                  media={nil}
-                  optional={true}
-                />
-              </div>
-
-              <div>
-                <.edit_attribute
-                  attr={Attribute.get_attribute(:general_location)}
+                <.edit_attributes
+                  attrs={[Attribute.get_attribute(:date)]}
                   form={f}
                   media_slug="NEW"
                   media={nil}
@@ -245,14 +216,28 @@ defmodule PlatformWeb.NewLive.BasicInfoLive do
 
               <%= if Accounts.is_privileged(@current_user) do %>
                 <div>
-                  <.edit_attribute
-                    attr={Attribute.get_attribute(:tags)}
+                  <.edit_attributes
+                    attrs={[Attribute.get_attribute(:tags)]}
                     form={f}
                     media_slug="NEW"
                     media={nil}
                     optional={true}
                   />
                 </div>
+              <% end %>
+
+              <%= if @project do %>
+                <hr />
+                <.edit_attributes
+                  attrs={
+                    @project.attributes
+                    |> Enum.map(&Platform.Projects.ProjectAttribute.to_attribute/1)
+                  }
+                  form={f}
+                  media_slug="NEW"
+                  media={nil}
+                  optional={true}
+                />
               <% end %>
             </div>
           </div>
