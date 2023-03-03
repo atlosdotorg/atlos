@@ -58,4 +58,58 @@ defmodule Platform.ProjectsTest do
       assert %Ecto.Changeset{} = Projects.change_project(project)
     end
   end
+
+  describe "project_memberships" do
+    alias Platform.Projects.ProjectMembership
+
+    import Platform.ProjectsFixtures
+
+    @invalid_attrs %{role: nil}
+
+    test "list_project_memberships/0 returns all project_memberships" do
+      project_membership = project_membership_fixture()
+      assert Projects.list_project_memberships() == [project_membership]
+    end
+
+    test "get_project_membership!/1 returns the project_membership with given id" do
+      project_membership = project_membership_fixture()
+      assert Projects.get_project_membership!(project_membership.id) == project_membership
+    end
+
+    test "create_project_membership/1 with valid data creates a project_membership" do
+      valid_attrs = %{role: :owner}
+
+      assert {:ok, %ProjectMembership{} = project_membership} = Projects.create_project_membership(valid_attrs)
+      assert project_membership.role == :owner
+    end
+
+    test "create_project_membership/1 with invalid data returns error changeset" do
+      assert {:error, %Ecto.Changeset{}} = Projects.create_project_membership(@invalid_attrs)
+    end
+
+    test "update_project_membership/2 with valid data updates the project_membership" do
+      project_membership = project_membership_fixture()
+      update_attrs = %{role: :manager}
+
+      assert {:ok, %ProjectMembership{} = project_membership} = Projects.update_project_membership(project_membership, update_attrs)
+      assert project_membership.role == :manager
+    end
+
+    test "update_project_membership/2 with invalid data returns error changeset" do
+      project_membership = project_membership_fixture()
+      assert {:error, %Ecto.Changeset{}} = Projects.update_project_membership(project_membership, @invalid_attrs)
+      assert project_membership == Projects.get_project_membership!(project_membership.id)
+    end
+
+    test "delete_project_membership/1 deletes the project_membership" do
+      project_membership = project_membership_fixture()
+      assert {:ok, %ProjectMembership{}} = Projects.delete_project_membership(project_membership)
+      assert_raise Ecto.NoResultsError, fn -> Projects.get_project_membership!(project_membership.id) end
+    end
+
+    test "change_project_membership/1 returns a project_membership changeset" do
+      project_membership = project_membership_fixture()
+      assert %Ecto.Changeset{} = Projects.change_project_membership(project_membership)
+    end
+  end
 end

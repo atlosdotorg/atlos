@@ -201,4 +201,100 @@ defmodule Platform.Projects do
   def can_view_project?(%Accounts.User{} = _user, %Project{} = _project) do
     true
   end
+
+  alias Platform.Projects.ProjectMembership
+
+  @doc """
+  Returns the list of project_memberships.
+
+  ## Examples
+
+      iex> list_project_memberships()
+      [%ProjectMembership{}, ...]
+
+  """
+  def list_project_memberships do
+    Repo.all(ProjectMembership)
+  end
+
+  @doc """
+  Gets a single project_membership.
+
+  Raises `Ecto.NoResultsError` if the Project membership does not exist.
+
+  ## Examples
+
+      iex> get_project_membership!(123)
+      %ProjectMembership{}
+
+      iex> get_project_membership!(456)
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_project_membership!(id), do: Repo.get!(ProjectMembership, id)
+
+  @doc """
+  Creates a project_membership.
+
+  ## Examples
+
+      iex> create_project_membership(%{field: value})
+      {:ok, %ProjectMembership{}}
+
+      iex> create_project_membership(%{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_project_membership(attrs \\ %{}) do
+    %ProjectMembership{}
+    |> ProjectMembership.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Updates a project_membership.
+
+  ## Examples
+
+      iex> update_project_membership(project_membership, %{field: new_value})
+      {:ok, %ProjectMembership{}}
+
+      iex> update_project_membership(project_membership, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_project_membership(%ProjectMembership{} = project_membership, attrs) do
+    project_membership
+    |> ProjectMembership.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Deletes a project_membership.
+
+  ## Examples
+
+      iex> delete_project_membership(project_membership)
+      {:ok, %ProjectMembership{}}
+
+      iex> delete_project_membership(project_membership)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def delete_project_membership(%ProjectMembership{} = project_membership) do
+    Repo.delete(project_membership)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking project_membership changes.
+
+  ## Examples
+
+      iex> change_project_membership(project_membership)
+      %Ecto.Changeset{data: %ProjectMembership{}}
+
+  """
+  def change_project_membership(%ProjectMembership{} = project_membership, attrs \\ %{}) do
+    ProjectMembership.changeset(project_membership, attrs)
+  end
 end
