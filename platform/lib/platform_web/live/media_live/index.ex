@@ -36,7 +36,7 @@ defmodule PlatformWeb.MediaLive.Index do
     pagination_index = (params["pi"] || "0") |> String.to_integer()
 
     search_keywords = [
-      limit: if(display == "map", do: 100_000, else: 50),
+      limit: if(display == "map", do: 100_000, else: 51),
       hydrate: display != "map"
     ]
 
