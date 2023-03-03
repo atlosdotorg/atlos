@@ -11,7 +11,7 @@ config :platform,
   ecto_repos: [Platform.Repo]
 
 # Feature flags
-config :platform, :features, custom_project_attributes: true
+config :platform, :features, custom_project_attributes: true, project_access_controls: true
 
 # Configures the endpoint
 config :platform, PlatformWeb.Endpoint,
