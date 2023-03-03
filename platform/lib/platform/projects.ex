@@ -275,6 +275,10 @@ defmodule Platform.Projects do
     %ProjectMembership{}
     |> ProjectMembership.changeset(attrs)
     |> Repo.insert()
+    |> case do
+      {:ok, val} -> {:ok, Repo.preload(val, [:user, :project])}
+      v -> v
+    end
   end
 
   @doc """
@@ -293,6 +297,10 @@ defmodule Platform.Projects do
     project_membership
     |> ProjectMembership.changeset(attrs)
     |> Repo.update()
+    |> case do
+      {:ok, val} -> {:ok, Repo.preload(val, [:user, :project])}
+      v -> v
+    end
   end
 
   @doc """

@@ -26,10 +26,12 @@ defmodule Platform.ProjectsFixtures do
     {:ok, project_membership} =
       attrs
       |> Enum.into(%{
-        role: :owner
+        role: :owner,
+        project_id: project_fixture().id,
+        username: Platform.AccountsFixtures.user_fixture().username
       })
       |> Platform.Projects.create_project_membership()
 
-    project_membership
+    project_membership |> Platform.Repo.preload([:user, :project])
   end
 end
