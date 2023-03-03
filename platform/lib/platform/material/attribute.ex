@@ -633,12 +633,13 @@ defmodule Platform.Material.Attribute do
       |> Enum.map(fn {val, index} -> {to_string(index), val} end)
       |> Map.new()
 
+    # If the map is using atom keys, set :project_attributes to the synthetic map; otherwise, use a string key.
     attrs =
-      Map.put(
-        attrs,
-        "project_attributes",
-        synthetic_project_attributes_attrs
-      )
+      if Map.keys(attrs) |> Enum.any?(fn k -> is_atom(k) end) do
+        Map.put(attrs, :project_attributes, synthetic_project_attributes_attrs)
+      else
+        Map.put(attrs, "project_attributes", synthetic_project_attributes_attrs)
+      end
 
     cast_embedded_project_attributes = fn cs, subattrs ->
       attr_id = Map.get(subattrs, "id")
