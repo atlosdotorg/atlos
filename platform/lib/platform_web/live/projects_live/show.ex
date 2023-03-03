@@ -84,7 +84,7 @@ defmodule PlatformWeb.ProjectsLive.Show do
               <% end %>
               <%= if Projects.can_edit_project?(@current_user, @project) do %>
                 <.link href={"/new?project_id=#{@project.id}"} class="button ~urge @high">
-                  + New Incident
+                  New Incident
                 </.link>
               <% end %>
             </div>
@@ -120,6 +120,14 @@ defmodule PlatformWeb.ProjectsLive.Show do
                 <span>Manage</span>
               </.link>
             <% end %>
+
+            <.link
+              patch={"/projects/#{@project.id}/members"}
+              class={if @live_action == :members, do: active_classes, else: inactive_classes}
+            >
+              <Heroicons.user_circle mini class="opacity-75 -ml-0.5 mr-2 h-5 w-5" />
+              <span>Members</span>
+            </.link>
 
             <.link
               href={
@@ -212,6 +220,14 @@ defmodule PlatformWeb.ProjectsLive.Show do
           <.live_component
             module={PlatformWeb.ProjectsLive.EditComponent}
             id="edit-project"
+            current_user={@current_user}
+            project={@project}
+          />
+        <% end %>
+        <%= if @live_action == :members do %>
+          <.live_component
+            module={PlatformWeb.ProjectsLive.MembersComponent}
+            id="project-members"
             current_user={@current_user}
             project={@project}
           />

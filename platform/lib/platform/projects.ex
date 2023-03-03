@@ -204,6 +204,11 @@ defmodule Platform.Projects do
 
   alias Platform.Projects.ProjectMembership
 
+  defp preload_project_memberships(query) do
+    query
+    |> preload([:user, :project])
+  end
+
   @doc """
   Returns the list of project_memberships.
 
@@ -231,7 +236,28 @@ defmodule Platform.Projects do
       ** (Ecto.NoResultsError)
 
   """
-  def get_project_membership!(id), do: Repo.get!(ProjectMembership, id)
+  def get_project_membership!(id),
+    do: Repo.get!(ProjectMembership |> preload_project_memberships(), id)
+
+  @doc """
+  Gets the project relationships for a given project.
+  """
+  def get_project_memberships(%Project{} = project) do
+    Repo.all(
+      from pm in (ProjectMembership |> preload_project_memberships()),
+        where: pm.project_id == ^project.id
+    )
+  end
+
+  @doc """
+  Gets the project memberships for a user.
+  """
+  def get_users_project_memberships(%Accounts.User{} = user) do
+    Repo.all(
+      from pm in (ProjectMembership |> preload_project_memberships()),
+        where: pm.user_id == ^user.id
+    )
+  end
 
   @doc """
   Creates a project_membership.
