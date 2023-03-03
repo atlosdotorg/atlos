@@ -846,7 +846,7 @@ defmodule Platform.Material do
 
     result =
       media
-      |> Attribute.changeset(attribute, attrs, opts)
+      |> Attribute.combined_changeset([attribute], attrs, opts)
       |> Repo.update()
 
     invalidate_attribute_values_cache()
