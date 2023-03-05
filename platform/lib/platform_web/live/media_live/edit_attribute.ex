@@ -109,6 +109,21 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
           </div>
         </div>
         <hr class="h-8 sep" />
+        <%= if hd(@attrs).schema_field == :attr_status and Enum.member?(@media.attr_tags || [], "Volunteer") do %>
+          <div class="rounded-md bg-blue-50 p-4 mb-4">
+            <div class="flex">
+              <div class="flex-shrink-0">
+                <Heroicons.information_circle mini class="h-5 w-5 text-blue-600" />
+              </div>
+              <div class="ml-3 flex-1 md:flex md:justify-between">
+                <p class="text-sm text-blue-700">
+                  <span class="font-medium">This is a volunteer-created incident.</span>
+                  It may require additional review during the verification process.
+                </p>
+              </div>
+            </div>
+          </div>
+        <% end %>
         <.form
           :let={f}
           for={@changeset}
