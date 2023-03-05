@@ -436,7 +436,8 @@ defimpl Jason.Encoder, for: Platform.Material.Media do
 
     migrated_pairs = Platform.Utils.migrated_attributes(media)
 
-    Enum.reduce(migrated_pairs, map, fn map, {old_attr, new_attr} ->
+    Enum.reduce(migrated_pairs, map, fn {old_attr, new_attr}, map ->
+      dbg(old_attr.schema_field)
       Map.put(map, old_attr.schema_field, Platform.Material.get_attribute_value(media, new_attr))
     end)
   end
