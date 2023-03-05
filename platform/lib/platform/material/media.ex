@@ -442,6 +442,25 @@ defimpl Jason.Encoder, for: Platform.Material.Media do
     end)
   end
 
+  def insert_custom_attributes(map, %Platform.Material.Media{} = media) do
+    project_attributes = if is_nil(media.project), do: [], else: media.project.attributes
+
+    values =
+      Enum.map(project_attributes, fn attr ->
+        %{
+          name: attr.name,
+          id: attr.id,
+          value:
+            Platform.Material.get_attribute_value(
+              media,
+              Platform.Projects.ProjectAttribute.to_attribute(attr)
+            )
+        }
+      end)
+
+    Map.put(map, "project_attributes", values)
+  end
+
   def encode(value, opts) do
     Jason.Encode.map(
       Map.take(value, [
@@ -466,7 +485,8 @@ defimpl Jason.Encoder, for: Platform.Material.Media do
         {key, %Ecto.Association.NotLoaded{}} -> {key, nil}
         {key, value} -> {key, value}
       end)
-      |> insert_deprecated_attributes(value),
+      |> insert_deprecated_attributes(value)
+      |> insert_custom_attributes(value),
       opts
     )
   end
