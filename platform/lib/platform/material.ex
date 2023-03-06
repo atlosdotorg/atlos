@@ -919,6 +919,8 @@ defmodule Platform.Material do
         _ ->
           value
       end
+    else
+      value
     end
   end
 
