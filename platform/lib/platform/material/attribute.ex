@@ -217,7 +217,6 @@ defmodule Platform.Material.Attribute do
         pane: :attributes,
         required: false,
         name: :impact,
-        add_none: "None",
         deprecated: true
       },
       %Attribute{
