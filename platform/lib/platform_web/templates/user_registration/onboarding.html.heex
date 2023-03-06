@@ -76,7 +76,7 @@
         <p class="flex gap-2 sm:gap-4 items-center">
           <span class="text-3xl">📖</span>
           <span>
-            Atlos is an <strong class="font-semibold">open source commons</strong>
+            Atlos is an <strong class="font-semibold">open source platform</strong>
             for visual investigations.
           </span>
         </p>
@@ -143,7 +143,7 @@
           <div class="px-4 pt-6 pb-4 rounded border">
             <.attr_display_block
               set_attrs={[
-                Platform.Material.Attribute.get_attribute(:type),
+                Platform.Material.Attribute.get_attribute(:date),
                 Platform.Material.Attribute.get_attribute(:impact),
                 Platform.Material.Attribute.get_attribute(:equipment),
                 Platform.Material.Attribute.get_attribute(:geolocation)
@@ -158,24 +158,22 @@
           </div>
         </div>
         <p class="flex gap-2 sm:gap-4 items-center">
-          <span class="text-3xl">💡</span>
+          <span class="text-3xl">🔒</span>
           <span>
-            <strong class="font-medium">Incident Type</strong>
-            describes what the media depicts: military activity, extreme weather, etc.
+            <strong class="font-medium">Core attributes</strong>
+            like date and geolocation describe essential information about events, so they apply to all incidents.
           </span>
         </p>
         <p class="flex gap-2 sm:gap-4 items-center">
           <span class="text-3xl">💡</span>
           <span>
-            <strong class="font-medium">Impact</strong>
-            describes who and what was impacted by the incident.
+            Every incident comes with several default attributes to help you build your own descriptive model.
           </span>
         </p>
         <p class="flex gap-2 sm:gap-4 items-center">
-          <span class="text-3xl">💡</span>
+          <span class="text-3xl">✏️</span>
           <span>
-            <strong class="font-medium">Equipment Used</strong>
-            refers to what equipment was used to carry out the incident.
+            If the default options don't work for your project, you can create new <strong class="font-medium">custom attributes</strong>.
           </span>
         </p>
         <div class="mt-8">
