@@ -22,7 +22,9 @@ document.cancelFormEvent = function (event) {
 }
 
 function hasActiveUnsavedForms() {
-    return document._unsavedForms.some(form => document.body.contains(form));
+    return false;
+    // We will enable this once we have a better way to detect if a form is dirty; right now this is unreliable
+    // return document._unsavedForms.some(form => document.body.contains(form));
 }
 
 function onUnload(event) {
