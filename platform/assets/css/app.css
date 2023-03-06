@@ -102,13 +102,24 @@
     @apply shadow-sm focus:!ring-urge-500 focus:!border-urge-500 block w-full sm:text-sm !border-gray-300 rounded transition;
   }
 
+  .input-core {
+    @apply shadow-sm focus:!ring-urge-500 focus-within:ring-1 focus-within:!border-urge-500 focus-within:!ring-urge-500 sm:text-sm !border-gray-300 rounded transition;
+  }
+
   .phx-form input[type="email"],
   .phx-form input[type="password"],
   .phx-form input[type="url"],
   .phx-form input[type="number"],
   .phx-form input[type="text"],
   .input-base {
-    @apply shadow-sm focus:!ring-urge-500 focus-within:ring-1 focus-within:!border-urge-500 focus-within:!ring-urge-500 block w-full sm:text-sm !border-gray-300 rounded transition;
+    @apply input-core w-full block;
+  }
+
+  .ts-wrapper.single .ts-control,
+  .ts-wrapper.multi .ts-control,
+  .ts-wrapper.single .ts-control input,
+  .ts-wrapper.multi .ts-control input {
+    @apply input-core;
   }
 
   .phx-only-during-submit {
@@ -310,11 +321,6 @@
  */
 select:not(.ts-ignore *) {
   display: none;
-}
-
-.ts-wrapper.single .ts-control,
-.ts-wrapper.single .ts-control input {
-  cursor: pointer;
 }
 
 .ts-wrapper.plugin-drag_drop.multi > .ts-control > div.ui-sortable-placeholder {
@@ -752,11 +758,6 @@ select:not(.ts-ignore *) {
 }
 .ts-control.dropdown -active {
   border-radius: 0.25rem;
-}
-.focus .ts-control {
-  border-color: #86b7fe;
-  outline: 0;
-  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
 }
 .ts-control .item {
   display: flex;
