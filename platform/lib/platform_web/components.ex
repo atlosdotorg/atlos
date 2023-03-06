@@ -1742,36 +1742,23 @@ defmodule PlatformWeb.Components do
       <%= for attr <- @attributes do %>
         <td
           class="border-b cursor-pointer p-0"
+          phx-click={
+            if Platform.Material.Attribute.can_user_edit(attr, @current_user, @media),
+              do: "edit_attribute",
+              else: nil
+          }
+          phx-value-attribute={attr.name}
+          phx-value-media-id={@media.id}
           id={"table-row-" <> @media.slug <> "-" <> to_string(attr.name)}
         >
           <div class="text-sm text-gray-900 px-4 overflow-hidden h-6 max-w-[36rem] truncate">
-            <%= if Platform.Material.Attribute.can_user_edit(attr, @current_user, @media) do %>
-              <button
-                class="inline"
-                phx-click="edit_attribute"
-                phx-value-attribute={attr.name}
-                phx-value-media-id={@media.id}
-                title={"Edit #{attr.label}"}
-              >
-                <.attr_display_compact
-                  color={true}
-                  truncate={true}
-                  attr={attr}
-                  media={@media}
-                  current_user={@current_user}
-                />
-              </button>
-            <% else %>
-              <span title="You do not have permission to edit this attribute.">
-                <.attr_display_compact
-                  color={true}
-                  truncate={true}
-                  attr={attr}
-                  media={@media}
-                  current_user={@current_user}
-                />
-              </span>
-            <% end %>
+            <.attr_display_compact
+              color={true}
+              truncate={true}
+              attr={attr}
+              media={@media}
+              current_user={@current_user}
+            />
           </div>
         </td>
       <% end %>
