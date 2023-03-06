@@ -227,6 +227,13 @@ function initializeSmartSelects() {
 
                 //     return '<div><div><span class="opacity-[60%]">' + escape(before) + '</span><span>' + escape(after) + '</span></div></div>';
                 // }
+            },
+            onChange(value) {
+                if (!s.hasAttribute("multiple")) {
+                    setTimeout(() => {
+                        x.close(); // Close the dropdown after a delay, so that the user can see the selection
+                    }, 25);
+                }
             }
         });
         x.control_input.setAttribute("phx-debounce", "blur");
