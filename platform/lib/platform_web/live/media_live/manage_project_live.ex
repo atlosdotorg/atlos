@@ -93,6 +93,25 @@ defmodule PlatformWeb.MediaLive.ManageProjectsLive do
         class="phx-form"
       >
         <div class="space-y-6">
+          <%= if not is_nil(@media.project) do %>
+            <div class="rounded-md bg-blue-50 p-4 mb-4">
+              <div class="flex">
+                <div class="flex-shrink-0">
+                  <Heroicons.information_circle mini class="h-5 w-5 text-blue-600" />
+                </div>
+                <div class="ml-3 prose">
+                  <p class="text-sm text-blue-700">
+                    <span class="font-medium">
+                      All project-specific attributes will be archived and not visible when you change this incident's project.
+                    </span>
+                    They can be recovered by moving the incident back into this project. These attributes are: <%= @media.project.attributes
+                    |> Enum.map(& &1.name)
+                    |> Enum.join(", ") %>.
+                  </p>
+                </div>
+              </div>
+            </div>
+          <% end %>
           <div>
             <%= label(
               f,
