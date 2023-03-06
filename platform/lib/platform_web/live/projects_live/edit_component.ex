@@ -6,6 +6,10 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
   alias Platform.Projects
 
   def update(assigns, socket) do
+    if not Projects.can_edit_project?(assigns.current_user, assigns.project) do
+      raise PlatformWeb.Errors.Unauthorized, "You do not have permission to edit this project"
+    end
+
     socket =
       socket
       |> assign(assigns)
