@@ -1190,7 +1190,12 @@ defmodule PlatformWeb.Components do
         <% :select -> %>
           <div class="inline-block">
             <div class={"chip #{@tone} flex items-center gap-1 inline-block self-start break-all xl:break-normal"}>
-              <.attribute_icon name={@name} type={:solid} value={@value} class="h-4 w-4 shrink-0" />
+              <.attribute_icon
+                name={@name}
+                type={:solid}
+                value={@value}
+                class="h-4 w-4 shrink-0 opacity-50"
+              />
               <.attr_label label={@label} />
               <span><%= @value %></span>
             </div>
@@ -1199,7 +1204,12 @@ defmodule PlatformWeb.Components do
           <.attr_label label={@label} />
           <%= for item <- (if @compact, do: @value |> Enum.take(1), else: @value) do %>
             <div class={"chip #{@tone} flex items-center gap-1 inline-block self-start break-all xl:break-normal"}>
-              <.attribute_icon name={@name} type={:solid} value={item} class="h-4 w-4 shrink-0" />
+              <.attribute_icon
+                name={@name}
+                type={:solid}
+                value={item}
+                class="h-4 w-4 shrink-0 opacity-50"
+              />
               <span><%= item %></span>
             </div>
             <%= if @compact and length(@value) > 1 do %>
@@ -1216,7 +1226,12 @@ defmodule PlatformWeb.Components do
               target="_blank"
               href={"https://maps.google.com/maps?q=#{lat},#{lon}"}
             >
-              <.attribute_icon name={@name} type={:solid} value={@value} class="h-4 w-4 shrink-0" />
+              <.attribute_icon
+                name={@name}
+                type={:solid}
+                value={@value}
+                class="h-4 w-4 shrink-0 opacity-50"
+              />
               <.attr_label label={@label} />
               <.location lat={lat} lon={lon} />
             </a>
@@ -1224,7 +1239,12 @@ defmodule PlatformWeb.Components do
         <% :time -> %>
           <div class="inline-block">
             <div class={"chip #{@tone} flex items-center gap-1 inline-block self-start break-all xl:break-normal"}>
-              <.attribute_icon name={@name} type={:solid} value={@value} class="h-4 w-4 shrink-0" />
+              <.attribute_icon
+                name={@name}
+                type={:solid}
+                value={@value}
+                class="h-4 w-4 shrink-0 opacity-50"
+              />
               <.attr_label label={@label} />
               <%= @value %>
             </div>
@@ -1232,7 +1252,12 @@ defmodule PlatformWeb.Components do
         <% :date -> %>
           <div class="inline-block">
             <div class={"chip #{@tone} flex items-center gap-1 inline-block self-start break-all xl:break-normal"}>
-              <.attribute_icon name={@name} type={:solid} value={@value} class="h-4 w-4 shrink-0" />
+              <.attribute_icon
+                name={@name}
+                type={:solid}
+                value={@value}
+                class="h-4 w-4 shrink-0 opacity-50"
+              />
               <.attr_label label={@label} />
               <%= Platform.Utils.format_date(@value) %>
             </div>
