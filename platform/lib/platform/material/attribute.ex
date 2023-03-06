@@ -53,14 +53,14 @@ defmodule Platform.Material.Attribute do
   def attributes(opts \\ []) do
     project = Keyword.get(opts, :project)
 
-    attrs =
+    project_attrs =
       if project do
         Enum.map(project.attributes, &ProjectAttribute.to_attribute/1)
       else
         []
       end
 
-    [
+    core_attrs = [
       %Attribute{
         schema_field: :attr_status,
         type: :select,
@@ -411,7 +411,10 @@ defmodule Platform.Material.Attribute do
         name: :time_recorded,
         deprecated: true,
         description: "What time of day was the incident? Use the local timezone, if possible."
-      },
+      }
+    ]
+
+    safety_attrs = [
       %Attribute{
         schema_field: :attr_restrictions,
         type: :multi_select,
@@ -449,7 +452,9 @@ defmodule Platform.Material.Attribute do
         description:
           "Is this incident sensitive? This information helps us keep our community safe."
       }
-    ] ++ attrs
+    ]
+
+    core_attrs ++ project_attrs ++ safety_attrs
   end
 
   @doc """
