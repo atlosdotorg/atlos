@@ -44,7 +44,8 @@ defmodule PlatformWeb.ExportController do
        end)) ++
         (custom_attributes
          |> Enum.map(fn attr ->
-           {name_for_custom_attribute.(attr), Material.get_attribute_value(media, attr)}
+           {name_for_custom_attribute.(attr),
+            Material.get_attribute_value(media, attr, format_dates: true)}
          end)) ++
         (media.versions
          |> Enum.filter(&(&1.visibility == :visible))

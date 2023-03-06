@@ -893,20 +893,32 @@ defmodule Platform.Material do
     result
   end
 
-  def get_attribute_value(%Media{} = media, %Attribute{} = attr) do
-    case attr.schema_field do
-      :project_attributes ->
-        media
-        |> Map.get(:project_attributes, [])
-        |> Enum.find(fn pa -> pa.id == attr.name end)
-        |> case do
-          nil -> nil
-          %Platform.Material.Media.ProjectAttributeValue{value: value} -> value
-        end
+  def get_attribute_value(%Media{} = media, %Attribute{} = attr, opts \\ []) do
+    value =
+      case attr.schema_field do
+        :project_attributes ->
+          media
+          |> Map.get(:project_attributes, [])
+          |> Enum.find(fn pa -> pa.id == attr.name end)
+          |> case do
+            nil -> nil
+            %Platform.Material.Media.ProjectAttributeValue{value: value} -> value
+          end
 
-      v ->
-        media
-        |> Map.get(v)
+        v ->
+          media
+          |> Map.get(v)
+      end
+
+    if Keyword.get(opts, :format_dates, false) do
+      case attr.type do
+        :date ->
+          value
+          |> Platform.Utils.format_date()
+
+        _ ->
+          value
+      end
     end
   end
 
