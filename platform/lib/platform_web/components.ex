@@ -2129,24 +2129,6 @@ defmodule PlatformWeb.Components do
           <%= @media.attr_date |> Calendar.strftime("%d %B %Y") %>
         </span>
       <% end %>
-
-      <%= if is_list(@media.attr_type) and not Enum.empty?(@media.attr_type) do %>
-        <span class="self-start badge whitespace-nowrap ~neutral">
-          <%= hd(@media.attr_type) %>
-        </span>
-      <% end %>
-
-      <%= if is_list(@media.attr_equipment) and not Enum.empty?(@media.attr_equipment) do %>
-        <span class="self-start badge whitespace-nowrap ~neutral">
-          <%= hd(@media.attr_equipment) %>
-        </span>
-      <% end %>
-
-      <%= if is_list(@media.attr_impact) and not Enum.empty?(@media.attr_impact) do %>
-        <span class="self-start badge whitespace-nowrap ~neutral">
-          <%= hd(@media.attr_impact) %>
-        </span>
-      <% end %>
     <% end %>
     """
   end
