@@ -1798,9 +1798,13 @@ defmodule PlatformWeb.Components do
 
   def search_form(%{changeset: _, query_params: _, socket: _, display: _} = assigns) do
     assigns = assign_new(assigns, :exclude, fn -> [] end)
+    # We assign the ID to the top-level div to fix a Safari rendering bug
 
     ~H"""
-    <div x-data="{ open: window.innerWidth >= 768 }">
+    <div
+      x-data="{ open: window.innerWidth >= 768 }"
+      id={"search-form-component-#{Ecto.Changeset.get_field(@changeset, :display) |> to_string()}"}
+    >
       <button
         x-on:click="open = !open"
         class="mx-auto md:hidden bg-white hover:shadow-lg hover:bg-neutral-100 focus:ring-urge-400 transition-all rounded-full gap-1 px-3 py-2 text-sm flex items-center shadow text-neutral-700 justify-around mb-4"
