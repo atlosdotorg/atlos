@@ -18,20 +18,20 @@
       |> Map.put(:pi, @pagination_index - 1)
     ) %>
   <div class="relative z-[1000] 2xl:max-w-[1210px] mx-auto h-[5.5rem]">
-    <%= if @selected != [] and Platform.Accounts.is_privileged(@current_user) do %>
-      <div class="mb-4 py-2 px-4 w-full flex text-sm items-center gap-8 flex-wrap border bg-white shadow-sm rounded-lg transition-all">
-        <p>
+    <%= if @selected_ids != [] and Platform.Accounts.is_privileged(@current_user) do %>
+      <div class="mb-4 w-full flex text-sm items-center flex-wrap divide-x border bg-white shadow-sm rounded-lg transition-all">
+        <p class="p-4 text-urge-600">
           <span class="font-medium">
-            <%= if @selected == :all, do: "All matching", else: length(@selected) %>
-            <%= if length(@selected) != 1 do %>
+            <%= length(@selected_ids) %>
+          </span>
+            <%= if length(@selected_ids) != 1 do %>
               incidents
             <% else %>
               incident
             <% end %>
-          </span>
           selected
         </p>
-        <div class="flex gap-4 items-center">
+        <div class="p-4 hover:bg-neutral-50 transition">
           <.dropdown label="Add tag">
             <div class="p-4 ts-ignore flex flex-col gap-4" x-data="{tag: null}">
               <select x-model="tag" class="w-full input-base" id="bulk-action-select">
@@ -45,7 +45,7 @@
                 x-bind:disabled="tag == null || tag == ''"
                 phx-click="apply_tag"
                 x-bind:phx-value-tag="tag"
-                x-bind:data-confirm={"\"Are you sure you want to apply the tag \" + tag + \" to the #{length(@selected)} selected incident(s)?\""}
+                x-bind:data-confirm={"\"Are you sure you want to apply the tag \" + tag + \" to the #{length(@selected_ids)} selected incident(s)?\""}
                 x-on:click="open = false"
                 phx-disable-with="Working..."
               >
@@ -53,6 +53,8 @@
               </button>
             </div>
           </.dropdown>
+          </div>
+          <div class="p-4 hover:bg-neutral-50 transition">
           <.dropdown label="Add to project">
             <div class="p-4 ts-ignore flex flex-col gap-4" x-data="{project_id: null}">
               <select x-model="project_id" class="w-full input-base" id="project-select">
@@ -66,7 +68,7 @@
                 x-bind:disabled="project_id == null || project_id == ''"
                 phx-click="apply_project"
                 x-bind:phx-value-project-id="project_id"
-                x-bind:data-confirm={"\"Are you sure you want to add #{length(@selected)} selected incident(s) to this project? Incidents already in a project will not be moved.\""}
+                x-bind:data-confirm={"\"Are you sure you want to add #{length(@selected_ids)} selected incident(s) to this project? Incidents already in a project will not be moved.\""}
                 x-on:click="open = false"
                 phx-disable-with="Working..."
               >
@@ -74,6 +76,8 @@
               </button>
             </div>
           </.dropdown>
+          </div>
+          <div class="p-4 hover:bg-neutral-50 transition">
           <.dropdown label="Set status">
             <div class="p-4 ts-ignore flex flex-col gap-4" x-data="{status: null}">
               <select x-model="status" class="w-full input-base" id="status-select">
@@ -87,7 +91,7 @@
                 x-bind:disabled="status == null || status == ''"
                 phx-click="apply_status"
                 x-bind:phx-value-status="status"
-                x-bind:data-confirm={"\"Are you sure you want to set the status to \" + status + \" for the #{length(@selected)} selected incident(s)?\""}
+                x-bind:data-confirm={"\"Are you sure you want to set the status to \" + status + \" for the #{length(@selected_ids)} selected incident(s)?\""}
                 x-on:click="open = false"
                 phx-disable-with="Working..."
               >
@@ -96,13 +100,15 @@
             </div>
           </.dropdown>
         </div>
-        <div class="flex-grow"></div>
-        <button phx-click="select_all" class="text-button" phx-disable-with="Selecting...">
-          Select All
-        </button>
-        <button phx-click="deselect_all" class="text-button" phx-disable-with="Closing...">
-          Cancel
-        </button>
+        <div class="flex-grow p-4">&nbsp;</div>
+        <div class="p-4 hover:bg-neutral-50 transition flex gap-4 items-center">
+          <button phx-click="select_all" class="text-button" phx-disable-with="Selecting...">
+            Select All
+          </button>
+          <button phx-click="deselect_all" class="text-button" phx-disable-with="Closing...">
+            Cancel
+          </button>
+        </div>
       </div>
     <% else %>
       <.search_form
@@ -218,8 +224,7 @@
                           attributes={@attributes}
                           source_cols={@source_cols}
                           is_selected={
-                            @selected == :all or
-                              Enum.member?(@selected |> Enum.map(& &1.slug), media.slug)
+                              Enum.member?(@selected_ids, media.id)
                           }
                         />
                       <% end %>

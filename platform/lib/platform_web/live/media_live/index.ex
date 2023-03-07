@@ -81,7 +81,7 @@ defmodule PlatformWeb.MediaLive.Index do
      |> assign(:pagination_index, pagination_index)
      |> assign(:editing, nil)
      |> assign(:media, results.entries)
-     |> assign(:selected, [])
+     |> assign(:selected_ids, [])
      |> assign(
        :addable_projects,
        Platform.Projects.list_projects_for_user(socket.assigns.current_user)
@@ -116,7 +116,8 @@ defmodule PlatformWeb.MediaLive.Index do
 
   defp apply_bulk_action(socket, action) do
     updated_media =
-      socket.assigns.selected
+      socket.assigns.media
+      |> Enum.filter(&Enum.member?(socket.assigns.selected_ids, &1.id))
       |> Enum.map(action)
 
     updated_media_ids = Enum.map(updated_media, & &1.id)
@@ -139,20 +140,20 @@ defmodule PlatformWeb.MediaLive.Index do
     {:noreply,
      socket
      |> assign(
-       :selected,
-       if(Enum.member?(socket.assigns.selected, media),
-         do: Enum.filter(socket.assigns.selected, &(&1 != media)),
-         else: [media | socket.assigns.selected]
+       :selected_ids,
+       if(Enum.member?(socket.assigns.selected_ids, media.id),
+         do: Enum.filter(socket.assigns.selected_ids, &(&1 != media.id)),
+         else: [media.id | socket.assigns.selected_ids]
        )
      )}
   end
 
   def handle_event("select_all", _params, socket) do
-    {:noreply, socket |> assign(:selected, socket.assigns.media)}
+    {:noreply, socket |> assign(:selected_ids, socket.assigns.media |> Enum.map(& &1.id))}
   end
 
   def handle_event("deselect_all", _params, socket) do
-    {:noreply, socket |> assign(:selected, [])}
+    {:noreply, socket |> assign(:selected_ids, [])}
   end
 
   def handle_event("apply_tag", %{"tag" => tag}, socket) do
@@ -160,11 +161,13 @@ defmodule PlatformWeb.MediaLive.Index do
      socket
      |> put_flash(
        :info,
-       "Applied the tag \"#{tag}\" to #{Enum.count(socket.assigns.selected)} incident(s)"
+       "Applied the tag \"#{tag}\" to #{length(socket.assigns.selected_ids)} incident(s)"
      )
      |> assign(
        :media,
        apply_bulk_action(socket, fn media ->
+         dbg(media.attr_tags)
+
          if (media.attr_tags || []) |> Enum.member?(tag) do
            media
          else
@@ -197,10 +200,9 @@ defmodule PlatformWeb.MediaLive.Index do
          if not is_nil(media.project) do
            media
          else
-           {:ok, media} =
-             Platform.Material.update_media_project_audited(media, socket.assigns.current_user, %{
-               "project_id" => project_id
-             })
+           Platform.Material.update_media_project_audited(media, socket.assigns.current_user, %{
+             "project_id" => project_id
+           })
 
            Platform.Material.get_media!(media.id)
          end
@@ -213,7 +215,7 @@ defmodule PlatformWeb.MediaLive.Index do
      socket
      |> put_flash(
        :info,
-       "Status set to \"#{status}\" on the #{Enum.count(socket.assigns.selected)} selected incident(s)"
+       "Status set to \"#{status}\" on the #{length(socket.assigns.selected_ids)} selected incident(s)"
      )
      |> assign(
        :media,

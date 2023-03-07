@@ -2882,7 +2882,7 @@ defmodule PlatformWeb.Components do
       <div>
         <button
           type="button"
-          class="inline-flex w-full justify-center gap-x-1.5 rounded-md bg-white px-3 py-2 text-sm text-gray-900 shadow-sm border hover:bg-gray-50"
+          class="inline-flex w-full justify-center gap-x-1.5 text-sm text-gray-900"
           aria-haspopup="true"
           x-on:click="open = !open"
         >
