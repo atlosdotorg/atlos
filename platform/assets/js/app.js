@@ -99,6 +99,7 @@ window.addEventListener("phx:page-loading-start", () => topbar.show())
 window.addEventListener("phx:page-loading-stop", () => topbar.hide())
 window.addEventListener("atlos:updating", () => topbar.show())
 window.addEventListener("phx:update", () => topbar.hide())
+window.topbar = topbar;
 
 // Setup Alpine
 window.Alpine = Alpine

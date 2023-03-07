@@ -87,7 +87,7 @@
                 x-bind:disabled="status == null || status == ''"
                 phx-click="apply_status"
                 x-bind:phx-value-status="status"
-                x-bind:data-confirm={"\"Are you sure you want to set the status to \" + tag + \" for the #{length(@selected)} selected incident(s)?\""}
+                x-bind:data-confirm={"\"Are you sure you want to set the status to \" + status + \" for the #{length(@selected)} selected incident(s)?\""}
                 x-on:click="open = false"
                 phx-disable-with="Working..."
               >

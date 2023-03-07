@@ -6,12 +6,7 @@ defmodule PlatformWeb.MediaLive.Index do
   def mount(_params, _session, socket) do
     {:ok,
      socket
-     |> assign(:title, "Incidents")
-     |> assign(:selected, [])
-     |> assign(
-       :addable_projects,
-       Platform.Projects.list_projects_for_user(socket.assigns.current_user)
-     )}
+     |> assign(:title, "Incidents")}
   end
 
   def handle_params(params, _uri, socket) do
@@ -86,6 +81,11 @@ defmodule PlatformWeb.MediaLive.Index do
      |> assign(:pagination_index, pagination_index)
      |> assign(:editing, nil)
      |> assign(:media, results.entries)
+     |> assign(:selected, [])
+     |> assign(
+       :addable_projects,
+       Platform.Projects.list_projects_for_user(socket.assigns.current_user)
+     )
      |> assign(
        :attributes,
        Attribute.active_attributes(project: active_project) |> Enum.filter(&is_nil(&1.parent))
