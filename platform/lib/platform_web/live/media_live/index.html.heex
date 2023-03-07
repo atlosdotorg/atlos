@@ -66,7 +66,7 @@
                 x-bind:disabled="project_id == null || project_id == ''"
                 phx-click="apply_project"
                 x-bind:phx-value-project-id="project_id"
-                x-bind:data-confirm={"\"Are you sure you want to add #{length(@selected)} selected incident(s) to this project? Incidents already in a project will be unaffected.\""}
+                x-bind:data-confirm={"\"Are you sure you want to add #{length(@selected)} selected incident(s) to this project? Incidents already in a project will not be moved.\""}
                 x-on:click="open = false"
                 phx-disable-with="Working..."
               >
