@@ -19,7 +19,7 @@
     ) %>
   <div class="relative z-[1000] 2xl:max-w-[1210px] mx-auto h-[5.5rem]">
     <%= if @selected_ids != [] and Platform.Accounts.is_privileged(@current_user) do %>
-      <div class="mb-4 w-full flex text-sm items-center flex-wrap divide-x border bg-white shadow-sm rounded-lg transition-all">
+      <div class="mb-4 w-full flex text-sm items-center divide-x border bg-white shadow-sm rounded-lg transition-all overflow-x-auto">
         <p class="p-4 text-urge-600">
           <span class="font-medium">
             <%= length(@selected_ids) %>
@@ -100,8 +100,7 @@
             </div>
           </.dropdown>
         </div>
-        <div class="flex-grow p-4">&nbsp;</div>
-        <div class="p-4 hover:bg-neutral-50 transition flex gap-4 items-center">
+        <div class="p-4 hover:bg-neutral-50 transition flex gap-4 items-center flex-grow justify-end">
           <button phx-click="select_all" class="text-button" phx-disable-with="Selecting...">
             Select All
           </button>

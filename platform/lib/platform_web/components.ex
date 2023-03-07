@@ -289,7 +289,6 @@ defmodule PlatformWeb.Components do
         <div
           class="grid md:flex md:flex-col md:justify-start grid-cols-3 gap-1 md:grid-cols-1 mt-6 w-full px-2 md:h-full md:pb-2 pb-6 md:max-h-full"
           x-show="open"
-          x-cloak
         >
           <.navlink to="/home" label="Home" request_path={@path}>
             <Heroicons.home solid class="text-neutral-300 group-hover:text-white h-6 w-6" />
@@ -1685,41 +1684,41 @@ defmodule PlatformWeb.Components do
     >
       <td
         id={"table-row-" <> @media.slug <> "-slug"}
-        class={"md:sticky left-0 z-[100] pl-4 pr-1 border-r font-mono whitespace-nowrap border-b border-gray-200 h-10 transition-all " <> background_color}
+        class={"md:sticky left-0 z-[100] pl-4 pr-1 flex items-center gap-1 border-r whitespace-nowrap border-b border-gray-200 h-10 transition-all " <> background_color}
         x-bind:class={"{'!bg-urge-50': (selected || #{@is_selected})}"}
       >
-        <.link
-          href={"/incidents/#{@media.slug}"}
-          class="text-button text-sm flex items-center gap-1 mr-px"
-        >
+        <%= if Platform.Accounts.is_privileged(@current_user) do %>
           <div
-            class={"flex-shrink-0 w-5 mr-1 " <> (if Platform.Accounts.is_privileged(@current_user), do: "group-hover:hidden", else: "")}
-            x-bind:class={"{'hidden': (selected || #{@is_selected})}"}
-            data-tooltip={"Last modified by #{List.last(@media.updates).user.username}"}
+            class="flex-shrink-0 w-5 mr-2 group-hover:block"
+            x-bind:class={"{'hidden': !(selected || #{@is_selected})}"}
+            data-tooltip="Select this incident"
+            x-cloak
           >
-            <.user_stack
-              users={@media.updates |> Enum.take(1) |> Enum.map(& &1.user)}
-              dynamic={false}
-              ring_class="ring-transparent"
+            <input
+              phx-click="select"
+              phx-value-slug={@media.slug}
+              x-on:change="selected = $event.target.checked"
+              checked={@is_selected}
+              type="checkbox"
+              class="h-4 w-4 mb-1 rounded border-gray-300 text-urge-600 focus:ring-urge-600"
             />
           </div>
-          <%= if Platform.Accounts.is_privileged(@current_user) do %>
-            <div
-              class="flex-shrink-0 w-5 mr-1 group-hover:block"
-              x-bind:class={"{'hidden': !(selected || #{@is_selected})}"}
-              data-tooltip="Select this incident"
-              x-cloak
-            >
-              <input
-                phx-click="select"
-                phx-value-slug={@media.slug}
-                x-on:change="selected = $event.target.checked"
-                checked={@is_selected}
-                type="checkbox"
-                class="h-4 w-4 rounded border-gray-300 text-urge-600 focus:ring-urge-600"
-              />
-            </div>
-          <% end %>
+        <% end %>
+        <div
+          class={"flex-shrink-0 w-5 mr-2 " <> (if Platform.Accounts.is_privileged(@current_user), do: "group-hover:hidden", else: "")}
+          x-bind:class={"{'hidden': (selected || #{@is_selected})}"}
+          data-tooltip={"Last modified by #{List.last(@media.updates).user.username}"}
+        >
+          <.user_stack
+            users={@media.updates |> Enum.take(1) |> Enum.map(& &1.user)}
+            dynamic={false}
+            ring_class="ring-transparent"
+          />
+        </div>
+        <.link
+          href={"/incidents/#{@media.slug}"}
+          class="text-button text-sm flex items-center gap-1 mr-px font-mono"
+        >
           <span style={"color: #{if @media.project, do: @media.project.color, else: "unset"}"}>
             <%= Media.slug_to_display(@media) %>
           </span>
