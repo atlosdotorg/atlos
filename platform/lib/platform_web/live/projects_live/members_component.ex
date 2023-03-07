@@ -27,7 +27,8 @@ defmodule PlatformWeb.ProjectsLive.MembersComponent do
       nil ->
         Projects.change_project_membership(
           %ProjectMembership{},
-          params
+          params,
+          all_memberships: socket.assigns.memberships
         )
 
       username ->
@@ -35,7 +36,8 @@ defmodule PlatformWeb.ProjectsLive.MembersComponent do
           Enum.find(socket.assigns.memberships, fn m ->
             String.downcase(m.user.username) == String.downcase(username)
           end),
-          params
+          params,
+          all_memberships: socket.assigns.memberships
         )
     end
   end
@@ -49,6 +51,36 @@ defmodule PlatformWeb.ProjectsLive.MembersComponent do
      socket
      |> assign_changeset(changeset(socket))
      |> assign(:editing, nil)}
+  end
+
+  def handle_event("delete_member", %{"username" => username}, socket) do
+    # Don't allow the last owner to be removed
+    owners = socket.assigns.memberships |> Enum.filter(&(&1.role == :owner))
+
+    if length(owners) == 1 and hd(owners).user.username == username do
+      raise PlatformWeb.Errors.Unauthorized, "You cannot remove the last owner"
+    end
+
+    membership =
+      Enum.find(socket.assigns.memberships, fn m ->
+        String.downcase(m.user.username) == String.downcase(username)
+      end)
+
+    Projects.delete_project_membership(membership)
+
+    Auditor.log(
+      :project_membership_changed,
+      socket.assigns.current_user,
+      %{
+        project_id: socket.assigns.project.id,
+        user_id: membership.user_id,
+        project_membership_id: membership.id
+      }
+    )
+
+    {:noreply,
+     socket
+     |> assign(:memberships, Projects.get_project_memberships(socket.assigns.project))}
   end
 
   def handle_event("edit_member", %{"username" => username}, socket) do
@@ -86,7 +118,8 @@ defmodule PlatformWeb.ProjectsLive.MembersComponent do
                 String.downcase(m.user.username) ==
                   String.downcase(Ecto.Changeset.get_field(cs, :username))
               end),
-              params
+              params,
+              all_memberships: socket.assigns.memberships
             )
 
       case result do
@@ -144,9 +177,6 @@ defmodule PlatformWeb.ProjectsLive.MembersComponent do
                     User
                   </th>
                   <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                    MFA
-                  </th>
-                  <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
                     Role
                   </th>
                   <th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-0">
@@ -174,25 +204,18 @@ defmodule PlatformWeb.ProjectsLive.MembersComponent do
                       </div>
                     </td>
                     <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                      <%= if membership.user.has_mfa do %>
-                        <span class="chip ~positive">Enabled</span>
-                      <% else %>
-                        <span class="chip ~critical">Disabled</span>
-                      <% end %>
-                    </td>
-                    <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                       <%= case membership.role do %>
                         <% :owner -> %>
-                          Owner
-                        <% :admin -> %>
-                          Admin
-                        <% :member -> %>
-                          Member
+                          <span class="chip ~critical">Owner</span>
+                        <% :manager -> %>
+                          <span class="chip ~warning">Manager</span>
+                        <% :editor -> %>
+                          <span class="chip ~info">Editor</span>
                         <% :viewer -> %>
-                          Viewer
+                          <span class="chip ~neutral">Viewer</span>
                       <% end %>
                     </td>
-                    <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-0">
+                    <td class="relative whitespace-nowrap gap-4 py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-0">
                       <button
                         phx-target={@myself}
                         class="text-button"
@@ -201,6 +224,17 @@ defmodule PlatformWeb.ProjectsLive.MembersComponent do
                       >
                         Edit<span class="sr-only">, <%= membership.user.username %></span>
                       </button>
+                      <%= if not (membership.role == :owner and Enum.filter(@memberships, & &1.role == :owner) |> length() == 1) do %>
+                        <button
+                          phx-target={@myself}
+                          class="text-button text-critical-600 ml-2"
+                          phx-click="delete_member"
+                          phx-value-username={membership.user.username}
+                          data-confirm={"Are you sure that you want to remove #{membership.user.username} from #{@project.name}?"}
+                        >
+                          Remove<span class="sr-only">, <%= membership.user.username %></span>
+                        </button>
+                      <% end %>
                     </td>
                   </tr>
                 <% end %>
@@ -250,7 +284,7 @@ defmodule PlatformWeb.ProjectsLive.MembersComponent do
                 <%= error_tag(@form, :username) %>
               </div>
             <% else %>
-              <div class="rounded-lg border shadow-sm">
+              <div class="rounded-lg border shadow-sm text-sm">
                 <%= hidden_input(@form, :username, value: @editing) %>
                 <.user_card user={Enum.find(@memberships, &(&1.user.username == @editing)).user} />
               </div>

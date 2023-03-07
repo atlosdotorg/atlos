@@ -14,7 +14,9 @@ defmodule Platform.Projects.ProjectMembership do
   end
 
   @doc false
-  def changeset(project_membership, attrs) do
+  def changeset(project_membership, attrs, opts \\ []) do
+    all_memberships = Keyword.get(opts, :all_memberships, [])
+
     project_membership
     |> cast(attrs, [:role, :username, :project_id])
     |> validate_required([:role])
@@ -24,6 +26,18 @@ defmodule Platform.Projects.ProjectMembership do
     |> unique_constraint([:user_id, :project_id],
       message: "This user is already a member of this project."
     )
+    # If they are the owner and they are the only owner, don't allow them to change their role
+    |> validate_change(:role, fn :role, _value ->
+      if is_list(all_memberships) and project_membership.role == :owner and
+           Enum.filter(all_memberships, fn pm -> pm.role == :owner end) |> Enum.count() == 1 do
+        [
+          role:
+            "This is the only owner of the project, so you cannot change their role. To change their role, you must first add another owner."
+        ]
+      else
+        []
+      end
+    end)
   end
 
   def validate_username(changeset) do

@@ -293,9 +293,9 @@ defmodule Platform.Projects do
       {:error, %Ecto.Changeset{}}
 
   """
-  def update_project_membership(%ProjectMembership{} = project_membership, attrs) do
+  def update_project_membership(%ProjectMembership{} = project_membership, attrs, opts \\ []) do
     project_membership
-    |> ProjectMembership.changeset(attrs)
+    |> ProjectMembership.changeset(attrs, opts)
     |> Repo.update()
     |> case do
       {:ok, val} -> {:ok, Repo.preload(val, [:user, :project])}
@@ -328,7 +328,11 @@ defmodule Platform.Projects do
       %Ecto.Changeset{data: %ProjectMembership{}}
 
   """
-  def change_project_membership(%ProjectMembership{} = project_membership, attrs \\ %{}) do
-    ProjectMembership.changeset(project_membership, attrs)
+  def change_project_membership(
+        %ProjectMembership{} = project_membership,
+        attrs \\ %{},
+        opts \\ []
+      ) do
+    ProjectMembership.changeset(project_membership, attrs, opts)
   end
 end
