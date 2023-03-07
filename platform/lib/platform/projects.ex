@@ -60,7 +60,7 @@ defmodule Platform.Projects do
   def get_project(id), do: Repo.get(Project, id)
 
   @doc """
-  Creates a project.
+  Creates a project. If the user is not nil, it will add the user as an owner of the project.
 
   ## Examples
 
@@ -77,10 +77,28 @@ defmodule Platform.Projects do
       raise "User does not have permission to create a project"
     end
 
-    %Project{}
-    |> Project.changeset(attrs)
-    |> Ecto.Changeset.put_embed(:attributes, ProjectAttribute.default_attributes())
-    |> Repo.insert()
+    result =
+      %Project{}
+      |> Project.changeset(attrs)
+      |> Ecto.Changeset.put_embed(:attributes, ProjectAttribute.default_attributes())
+      |> Repo.insert()
+
+    # If the user is not nil, add them as an owner of the project
+    case result do
+      {:ok, project} ->
+        if not is_nil(user) do
+          create_project_membership(%{
+            project_id: project.id,
+            username: user.username,
+            role: :owner
+          })
+        end
+
+        {:ok, project}
+
+      {:error, changeset} ->
+        {:error, changeset}
+    end
   end
 
   @doc """
