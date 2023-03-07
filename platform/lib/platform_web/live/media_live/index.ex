@@ -213,7 +213,7 @@ defmodule PlatformWeb.MediaLive.Index do
      socket
      |> put_flash(
        :info,
-       "Set the status to \"#{status}\" on the #{Enum.count(socket.assigns.selected)} selected incident(s)"
+       "Status set to \"#{status}\" on the #{Enum.count(socket.assigns.selected)} selected incident(s)"
      )
      |> assign(
        :media,
