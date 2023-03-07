@@ -1674,24 +1674,27 @@ defmodule PlatformWeb.Components do
     <% is_sensitive = Material.Media.is_sensitive(@media) %>
     <% background_color =
       cond do
-        assigns.is_selected -> "bg-urge-50"
         is_sensitive -> "bg-red-50"
-        true -> "bg-white hover:bg-neutral-50"
+        true -> "bg-white group-hover:bg-neutral-50 hover:bg-neutral-50"
       end %>
     <tr
       class={"search-highlighting group transition-all " <> background_color}
       id={"table-row-" <> @media.slug}
+      x-data={"{selected: #{@is_selected}}"}
+      x-bind:class={"{'!bg-urge-50': (selected || #{@is_selected})}"}
     >
       <td
         id={"table-row-" <> @media.slug <> "-slug"}
         class={"md:sticky left-0 z-[100] pl-4 pr-1 border-r font-mono whitespace-nowrap border-b border-gray-200 h-10 transition-all " <> background_color}
+        x-bind:class={"{'!bg-urge-50': (selected || #{@is_selected})}"}
       >
         <.link
           href={"/incidents/#{@media.slug}"}
           class="text-button text-sm flex items-center gap-1 mr-px"
         >
           <div
-            class={"flex-shrink-0 w-5 mr-1 " <> (if @is_selected, do: "hidden ", else: "") <> (if Platform.Accounts.is_privileged(@current_user), do: "group-hover:hidden", else: "")}
+            class={"flex-shrink-0 w-5 mr-1 " <> (if Platform.Accounts.is_privileged(@current_user), do: "group-hover:hidden", else: "")}
+            x-bind:class={"{'hidden': (selected || #{@is_selected})}"}
             data-tooltip={"Last modified by #{List.last(@media.updates).user.username}"}
           >
             <.user_stack
@@ -1702,13 +1705,15 @@ defmodule PlatformWeb.Components do
           </div>
           <%= if Platform.Accounts.is_privileged(@current_user) do %>
             <div
-              class={"flex-shrink-0 w-5 mr-1 group-hover:block " <> (if @is_selected, do: "", else: "hidden")}
+              class="flex-shrink-0 w-5 mr-1 group-hover:block"
+              x-bind:class={"{'hidden': !(selected || #{@is_selected})}"}
               data-tooltip="Select this incident"
+              x-cloak
             >
               <input
                 phx-click="select"
                 phx-value-slug={@media.slug}
-                x-on:click="window.topbar.show()"
+                x-on:change="selected = $event.target.checked"
                 checked={@is_selected}
                 type="checkbox"
                 class="h-4 w-4 rounded border-gray-300 text-urge-600 focus:ring-urge-600"

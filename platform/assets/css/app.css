@@ -302,6 +302,10 @@
   align-items: baseline;
 }
 
+[x-cloak] {
+  display: none !important;
+}
+
 /**
  * Tom Select bootstrap 5
  */
