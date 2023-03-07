@@ -1672,20 +1672,26 @@ defmodule PlatformWeb.Components do
     <% is_subscribed = @media.has_subscription %>
     <% has_unread_notification = @media.has_unread_notification %>
     <% is_sensitive = Material.Media.is_sensitive(@media) %>
+    <% background_color =
+      cond do
+        assigns.is_selected -> "bg-urge-50"
+        is_sensitive -> "bg-red-50"
+        true -> "bg-white hover:bg-neutral-50"
+      end %>
     <tr
-      class={"search-highlighting group transition-all " <> if is_sensitive, do: "bg-red-50", else: "bg-white hover:bg-neutral-50 "}
+      class={"search-highlighting group transition-all " <> background_color}
       id={"table-row-" <> @media.slug}
     >
       <td
         id={"table-row-" <> @media.slug <> "-slug"}
-        class={"md:sticky left-0 z-[100] pl-4 pr-1 border-r font-mono whitespace-nowrap border-b border-gray-200 h-10 transition-all " <> if is_sensitive, do: "bg-red-50", else: "bg-white group-hover:bg-neutral-50 "}
+        class={"md:sticky left-0 z-[100] pl-4 pr-1 border-r font-mono whitespace-nowrap border-b border-gray-200 h-10 transition-all " <> background_color}
       >
         <.link
           href={"/incidents/#{@media.slug}"}
           class="text-button text-sm flex items-center gap-1 mr-px"
         >
           <div
-            class="flex-shrink-0 w-5 mr-1"
+            class={"flex-shrink-0 w-5 mr-1 " <> (if @is_selected, do: "hidden ", else: "") <> (if Platform.Accounts.is_privileged(@current_user), do: "group-hover:hidden", else: "")}
             data-tooltip={"Last modified by #{List.last(@media.updates).user.username}"}
           >
             <.user_stack
@@ -1694,6 +1700,20 @@ defmodule PlatformWeb.Components do
               ring_class="ring-transparent"
             />
           </div>
+          <%= if Platform.Accounts.is_privileged(@current_user) do %>
+            <div
+              class={"flex-shrink-0 w-5 mr-1 group-hover:block " <> (if @is_selected, do: "", else: "hidden")}
+              data-tooltip="Select this incident"
+            >
+              <input
+                phx-click="select"
+                phx-value-slug={@media.slug}
+                checked={@is_selected}
+                type="checkbox"
+                class="h-4 w-4 rounded border-gray-300 text-urge-600 focus:ring-urge-600"
+              />
+            </div>
+          <% end %>
           <span style={"color: #{if @media.project, do: @media.project.color, else: "unset"}"}>
             <%= Media.slug_to_display(@media) %>
           </span>
@@ -2840,6 +2860,51 @@ defmodule PlatformWeb.Components do
             required={@required}
             data-feedback={"textarea-#{@id}"}
           ><%= Ecto.Changeset.get_field(@form.source, :explanation) %></textarea>
+        </div>
+      </div>
+    </div>
+    """
+  end
+
+  def dropdown(assigns) do
+    ~H"""
+    <div
+      class="relative inline-block text-left z-[10000]"
+      x-data="{open: false}"
+      x-on:click.away="open = false"
+    >
+      <div>
+        <button
+          type="button"
+          class="inline-flex w-full justify-center gap-x-1.5 rounded-md bg-white px-3 py-2 text-sm text-gray-900 shadow-sm border hover:bg-gray-50"
+          aria-haspopup="true"
+          x-on:click="open = !open"
+        >
+          <%= @label %>
+          <svg
+            class="-mr-1 h-5 w-5 text-gray-400"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+            aria-hidden="true"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
+              clip-rule="evenodd"
+            />
+          </svg>
+        </button>
+      </div>
+      <div
+        class="absolute right-0 z-10 mt-2 w-56 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
+        role="menu"
+        x-transition
+        aria-orientation="vertical"
+        tabindex="-1"
+        x-show="open"
+      >
+        <div class="py-1" role="none">
+          <%= render_slot(@inner_block) %>
         </div>
       </div>
     </div>

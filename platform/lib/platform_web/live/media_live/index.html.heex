@@ -18,14 +18,102 @@
       |> Map.put(:pi, @pagination_index - 1)
     ) %>
   <div class="relative z-[1000] 2xl:max-w-[1210px] mx-auto h-[5.5rem]">
-    <.search_form
-      changeset={@changeset}
-      exclude={if @display == "map", do: [:sort], else: []}
-      query_params={@query_params}
-      socket={@socket}
-      current_user={@current_user}
-      display={@display}
-    />
+    <%= if @selected != [] and Platform.Accounts.is_privileged(@current_user) do %>
+      <div class="mb-4 py-2 px-4 w-full flex text-sm items-center gap-8 flex-wrap border bg-white shadow-sm rounded-lg transition-all">
+        <p>
+          <span class="font-medium">
+            <%= if @selected == :all, do: "All matching", else: length(@selected) %>
+            <%= if length(@selected) != 1 do %>
+              incidents
+            <% else %>
+              incident
+            <% end %>
+          </span>
+          selected
+        </p>
+        <div class="flex gap-4 items-center">
+          <.dropdown label="Add tag">
+            <div class="p-4 ts-ignore flex flex-col gap-4" x-data="{tag: null}">
+              <select x-model="tag" class="w-full input-base" id="bulk-action-select">
+                <option value="">Select a tag</option>
+                <%= for tag <- Platform.Material.Attribute.options(Platform.Material.Attribute.get_attribute(:tags, project: @active_project)) do %>
+                  <option value={tag}><%= tag %></option>
+                <% end %>
+              </select>
+              <button
+                class="button ~urge @high"
+                x-bind:disabled="tag == null || tag == ''"
+                phx-click="apply_tag"
+                x-bind:phx-value-tag="tag"
+                x-bind:data-confirm={"\"Are you sure you want to apply the tag \" + tag + \" to the #{length(@selected)} selected incident(s)?\""}
+                x-on:click="open = false"
+                phx-disable-with="Working..."
+              >
+                Apply
+              </button>
+            </div>
+          </.dropdown>
+          <.dropdown label="Add to project">
+            <div class="p-4 ts-ignore flex flex-col gap-4" x-data="{project_id: null}">
+              <select x-model="project_id" class="w-full input-base" id="project-select">
+                <option value="">Select a project</option>
+                <%= for project <- @addable_projects do %>
+                  <option value={project.id}><%= project.name %></option>
+                <% end %>
+              </select>
+              <button
+                class="button ~urge @high"
+                x-bind:disabled="project_id == null || project_id == ''"
+                phx-click="apply_project"
+                x-bind:phx-value-project-id="project_id"
+                x-bind:data-confirm={"\"Are you sure you want to add #{length(@selected)} selected incident(s) to this project? Incidents already in a project will be unaffected.\""}
+                x-on:click="open = false"
+                phx-disable-with="Working..."
+              >
+                Apply
+              </button>
+            </div>
+          </.dropdown>
+          <.dropdown label="Set status">
+            <div class="p-4 ts-ignore flex flex-col gap-4" x-data="{status: null}">
+              <select x-model="status" class="w-full input-base" id="status-select">
+                <option value="">Select a status</option>
+                <%= for status <- Platform.Material.Attribute.options(Platform.Material.Attribute.get_attribute(:status, project: @active_project)) do %>
+                  <option value={status}><%= status %></option>
+                <% end %>
+              </select>
+              <button
+                class="button ~urge @high"
+                x-bind:disabled="status == null || status == ''"
+                phx-click="apply_status"
+                x-bind:phx-value-status="status"
+                x-bind:data-confirm={"\"Are you sure you want to set the status to \" + tag + \" for the #{length(@selected)} selected incident(s)?\""}
+                x-on:click="open = false"
+                phx-disable-with="Working..."
+              >
+                Apply
+              </button>
+            </div>
+          </.dropdown>
+        </div>
+        <div class="flex-grow"></div>
+        <button phx-click="select_all" class="text-button" phx-disable-with="Selecting...">
+          Select All
+        </button>
+        <button phx-click="deselect_all" class="text-button" phx-disable-with="Closing...">
+          Close
+        </button>
+      </div>
+    <% else %>
+      <.search_form
+        changeset={@changeset}
+        exclude={if @display == "map", do: [:sort], else: []}
+        query_params={@query_params}
+        socket={@socket}
+        current_user={@current_user}
+        display={@display}
+      />
+    <% end %>
   </div>
   <%= if @pagination_index > 0 and @display == "cards" do %>
     <div class="text-xs mb-4 w-full">
@@ -129,6 +217,10 @@
                           current_user={@current_user}
                           attributes={@attributes}
                           source_cols={@source_cols}
+                          is_selected={
+                            @selected == :all or
+                              Enum.member?(@selected |> Enum.map(& &1.slug), media.slug)
+                          }
                         />
                       <% end %>
                     </tbody>

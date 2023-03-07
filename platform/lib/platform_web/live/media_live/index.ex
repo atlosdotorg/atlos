@@ -6,7 +6,12 @@ defmodule PlatformWeb.MediaLive.Index do
   def mount(_params, _session, socket) do
     {:ok,
      socket
-     |> assign(:title, "Incidents")}
+     |> assign(:title, "Incidents")
+     |> assign(:selected, [])
+     |> assign(
+       :addable_projects,
+       Platform.Projects.list_projects_for_user(socket.assigns.current_user)
+     )}
   end
 
   def handle_params(params, _uri, socket) do
@@ -107,6 +112,127 @@ defmodule PlatformWeb.MediaLive.Index do
         for_user: socket.assigns.current_user
       )
     )
+  end
+
+  defp apply_bulk_action(socket, action) do
+    updated_media =
+      socket.assigns.selected
+      |> Enum.map(action)
+
+    updated_media_ids = Enum.map(updated_media, & &1.id)
+
+    combined_updated_media =
+      Enum.map(socket.assigns.media, fn media ->
+        if Enum.member?(updated_media_ids, media.id) do
+          Enum.find(updated_media, &(&1.id == media.id))
+        else
+          media
+        end
+      end)
+
+    combined_updated_media
+  end
+
+  def handle_event("select", %{"slug" => slug}, socket) do
+    media = Enum.find(socket.assigns.media, &(&1.slug == slug))
+
+    {:noreply,
+     socket
+     |> assign(
+       :selected,
+       if(Enum.member?(socket.assigns.selected, media),
+         do: Enum.filter(socket.assigns.selected, &(&1 != media)),
+         else: [media | socket.assigns.selected]
+       )
+     )}
+  end
+
+  def handle_event("select_all", _params, socket) do
+    {:noreply, socket |> assign(:selected, socket.assigns.media)}
+  end
+
+  def handle_event("deselect_all", _params, socket) do
+    {:noreply, socket |> assign(:selected, [])}
+  end
+
+  def handle_event("apply_tag", %{"tag" => tag}, socket) do
+    {:noreply,
+     socket
+     |> put_flash(
+       :info,
+       "Applied the tag \"#{tag}\" to #{Enum.count(socket.assigns.selected)} incident(s)"
+     )
+     |> assign(
+       :media,
+       apply_bulk_action(socket, fn media ->
+         if (media.attr_tags || []) |> Enum.member?(tag) do
+           media
+         else
+           {:ok, media} =
+             Platform.Material.update_media_attribute_audited(
+               media,
+               Platform.Material.Attribute.get_attribute(:tags),
+               socket.assigns.current_user,
+               %{"attr_tags" => (media.attr_tags || []) ++ [tag]}
+             )
+
+           media
+         end
+       end)
+     )}
+  end
+
+  def handle_event("apply_project", %{"project-id" => project_id}, socket) do
+    project = Platform.Projects.get_project!(project_id)
+
+    {:noreply,
+     socket
+     |> put_flash(
+       :info,
+       "Added the selected incidents to #{project.name}. Incidents already in a project were not modified."
+     )
+     |> assign(
+       :media,
+       apply_bulk_action(socket, fn media ->
+         if not is_nil(media.project) do
+           media
+         else
+           {:ok, media} =
+             Platform.Material.update_media_project_audited(media, socket.assigns.current_user, %{
+               "project_id" => project_id
+             })
+
+           Platform.Material.get_media!(media.id)
+         end
+       end)
+     )}
+  end
+
+  def handle_event("apply_status", %{"status" => status}, socket) do
+    {:noreply,
+     socket
+     |> put_flash(
+       :info,
+       "Set the status to \"#{status}\" on the #{Enum.count(socket.assigns.selected)} selected incident(s)"
+     )
+     |> assign(
+       :media,
+       apply_bulk_action(socket, fn media ->
+         if media.attr_status == status do
+           media
+         else
+           {:ok, media} =
+             Platform.Material.update_media_attribute_audited(
+               media,
+               Platform.Material.Attribute.get_attribute(:status),
+               socket.assigns.current_user,
+               %{"attr_status" => status}
+             )
+
+           media
+         end
+       end)
+     )}
   end
 
   def handle_event("validate", params, socket) do
