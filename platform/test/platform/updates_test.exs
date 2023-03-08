@@ -3,14 +3,17 @@ defmodule Platform.UpdatesTest do
 
   alias Platform.Material
   alias Platform.Updates
+  alias Platform.Permissions
+  alias Platform.Projects
 
   import Platform.MaterialFixtures
   import Platform.AccountsFixtures
+  import Platform.ProjectsFixtures
 
   describe "updates" do
     test "Material.update_media_attribute_audited creates an update" do
-      media = media_fixture()
       admin = admin_user_fixture()
+      media = media_fixture(%{project_id: project_fixture(%{}, owner: admin).id})
 
       assert Enum.empty?(Updates.get_updates_for_media(media))
 
@@ -34,8 +37,8 @@ defmodule Platform.UpdatesTest do
     end
 
     test "change_update_visibility/2 changes visibility" do
-      media = media_fixture()
       admin = admin_user_fixture()
+      media = media_fixture(%{project_id: project_fixture(%{}, owner: admin).id})
 
       assert Enum.empty?(Updates.get_updates_for_media(media))
 
@@ -70,9 +73,16 @@ defmodule Platform.UpdatesTest do
     end
 
     test "can_user_view/2 works for admins" do
-      media = media_fixture()
       admin = admin_user_fixture()
+      media = media_fixture(%{project_id: project_fixture(%{}, owner: admin).id})
       user = user_fixture()
+
+      {:ok, _} =
+        Projects.create_project_membership(%{
+          username: user.username,
+          project_id: media.project_id,
+          role: :editor
+        })
 
       assert {:ok, _} =
                Material.update_media_attribute_audited(

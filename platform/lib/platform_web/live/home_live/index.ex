@@ -1,6 +1,7 @@
 defmodule PlatformWeb.HomeLive.Index do
   use PlatformWeb, :live_view
   alias Platform.Material
+  alias Platform.Permissions
 
   def mount(_params, _session, socket) do
     {:ok,
@@ -33,7 +34,7 @@ defmodule PlatformWeb.HomeLive.Index do
           )
       )
     )
-    |> Enum.filter(&Material.Media.can_user_view(&1, socket.assigns.current_user))
+    |> Enum.filter(&Permissions.can_view_media?(socket.assigns.current_user, &1))
   end
 
   defp get_overview_media(socket, opts \\ []) do
@@ -78,7 +79,7 @@ defmodule PlatformWeb.HomeLive.Index do
     |> Enum.sort_by(& &1.last_update_time, {:desc, NaiveDateTime})
     |> Enum.uniq_by(& &1.id)
     |> Enum.concat(unclaimed_for_backfill)
-    |> Enum.filter(&Material.Media.can_user_view(&1, socket.assigns.current_user))
+    |> Enum.filter(&Permissions.can_view_media?(socket.assigns.current_user, &1))
     |> Enum.take(4)
   end
 

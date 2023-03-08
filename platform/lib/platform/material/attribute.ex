@@ -7,6 +7,7 @@ defmodule Platform.Material.Attribute do
   alias Platform.Accounts.User
   alias Platform.Accounts
   alias Platform.Material
+  alias Platform.Permissions
 
   alias Platform.Projects.ProjectAttribute
 
@@ -30,7 +31,7 @@ defmodule Platform.Material.Attribute do
     # boolean for deprecated attributes
     :deprecated,
     :add_none,
-    :required_roles,
+    :is_restricted,
     :explanation_required,
     # for selects and multiple selects -- the values which require the user to have special privileges
     :privileged_values,
@@ -126,7 +127,7 @@ defmodule Platform.Material.Attribute do
         pane: :metadata,
         required: false,
         name: :tags,
-        required_roles: [:admin, :trusted],
+        is_restricted: true,
         allow_user_defined_options: true,
         description: "Use tags to help organize incidents on Atlos."
       },
@@ -423,7 +424,7 @@ defmodule Platform.Material.Attribute do
         name: :restrictions,
         # NOTE: Editing these values also requires editing the perm checks in `media.ex`
         options: ["Frozen", "Hidden"],
-        required_roles: [:admin, :trusted]
+        is_restricted: true
       },
       %Attribute{
         schema_field: :attr_sensitive,
@@ -737,7 +738,7 @@ defmodule Platform.Material.Attribute do
   Checks whether the given user can edit the given attribute.
   """
   def verify_user_can_edit(changeset, attribute, user, media) do
-    if is_nil(user) || can_user_edit(attribute, user, media) do
+    if is_nil(user) || Permissions.can_edit_media?(user, media, attribute) do
       changeset
     else
       changeset
@@ -1082,23 +1083,6 @@ defmodule Platform.Material.Attribute do
   end
 
   @doc """
-  Can the given user edit the given attribute for the given media? This also checks
-  whether they are allowed to edit the given media.
-  """
-  def can_user_edit(%Attribute{} = attribute, %User{} = user, %Media{} = media) do
-    user_roles = user.roles || []
-
-    with true <- Media.can_user_edit(media, user) do
-      case attribute.required_roles || [] do
-        [] -> true
-        [hd | tail] -> Enum.any?([hd] ++ tail, &Enum.member?(user_roles, &1))
-      end
-    else
-      _ -> false
-    end
-  end
-
-  @doc """
   Get the color (in "a17t" terms) for the given attribute value.
   """
   def attr_color(name, value) do
@@ -1140,7 +1124,7 @@ defmodule Platform.Material.Attribute do
   Checks whether the attribute requires special privileges to edit.
   """
   def requires_privileges_to_edit(%Attribute{} = attr) do
-    is_list(attr.required_roles) and not Enum.empty?(attr.required_roles)
+    attr.is_restricted
   end
 
   @doc """

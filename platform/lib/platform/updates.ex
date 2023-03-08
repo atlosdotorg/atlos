@@ -14,6 +14,7 @@ defmodule Platform.Updates do
   alias Platform.Accounts.User
   alias Platform.Material
   alias Platform.Accounts
+  alias Platform.Permissions
 
   @doc """
   Returns the list of updates.
@@ -426,6 +427,7 @@ defmodule Platform.Updates do
   Is the given user able to view the given update?
   """
   def can_user_view(%Update{} = update, %User{} = user) do
+    # TODO: Move this into Platform.Permissions
     case Platform.Accounts.is_privileged(user) do
       true ->
         true
@@ -433,7 +435,7 @@ defmodule Platform.Updates do
       false ->
         case update.hidden do
           true -> false
-          false -> Media.can_user_view(update.media, user)
+          false -> Permissions.can_view_media?(user, update.media)
         end
     end
   end

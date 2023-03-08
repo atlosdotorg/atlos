@@ -3,6 +3,7 @@ defmodule Platform.Permissions do
   This module contains functions for checking permissions. This is intended as a central hub for all permission checks, so that we can easily change the logic in one place.
   """
 
+  alias Platform.Accounts
   alias Platform.Accounts.User
   alias Platform.Material.Media
   alias Platform.Material.MediaVersion
@@ -52,5 +53,124 @@ defmodule Platform.Permissions do
       %Projects.ProjectMembership{role: :editor} -> true
       _ -> false
     end
+  end
+
+  def can_view_media?(%User{} = user, %Media{} = media) do
+    if is_nil(media.project) do
+      # TODO: We will remove this case when media must be a part of projects
+      true
+    else
+      membership = Projects.get_project_membership_by_user_and_project(user, media.project)
+
+      case can_view_project?(user, media.project) do
+        true ->
+          case {media.attr_restrictions, media.deleted} do
+            {nil, false} ->
+              true
+
+            {_, true} ->
+              membership.role == :owner
+
+            {values, false} ->
+              # Restrictions are present.
+              if Enum.member?(values, "Hidden") do
+                membership.role == :owner or membership.role == :manager
+              else
+                true
+              end
+          end
+
+        false ->
+          # The user can't view the project, so they can't view the media.
+          false
+      end
+    end
+  end
+
+  def can_edit_media?(%User{} = user, %Media{} = media) do
+    # This includes uploading new media versions as well as editing attributes.
+
+    if is_nil(media.project) do
+      true
+    else
+      membership = Projects.get_project_membership_by_user_and_project(user, media.project)
+
+      # This logic would be nice to refactor into a `with` statement
+      case Platform.Security.get_security_mode_state() do
+        :normal ->
+          case Enum.member?(user.restrictions || [], :muted) do
+            true ->
+              false
+
+            false ->
+              if is_nil(media.project) or
+                   (not is_nil(membership) and
+                      (membership.role == :owner or
+                         membership.role == :manager)) do
+                true
+              else
+                not (Enum.member?(media.attr_restrictions || [], "Hidden") ||
+                       Enum.member?(media.attr_restrictions || [], "Frozen") ||
+                       media.attr_status == "Completed" || media.attr_status == "Cancelled")
+              end
+          end
+
+        _ ->
+          Accounts.is_admin(user)
+      end
+    end
+  end
+
+  def can_edit_media?(%User{} = user, %Media{} = media, %Attribute{} = attribute) do
+    # This includes uploading new media versions as well as editing attributes.
+    membership = Projects.get_project_membership_by_user_and_project(user, media.project)
+
+    with false <- is_nil(membership) and not is_nil(media.project),
+         true <- can_edit_media?(user, media) do
+      if attribute.is_restricted do
+        membership.role == :owner or membership.role == :manager
+      else
+        true
+      end
+    else
+      _ -> false
+    end
+  end
+
+  def can_comment_on_media?(%User{} = user, %Media{} = media) do
+    # This logic would be nice to refactor into a `with` statement
+    case Platform.Security.get_security_mode_state() do
+      :normal ->
+        case Enum.member?(user.restrictions || [], :muted) do
+          true ->
+            false
+
+          false ->
+            case media.attr_restrictions do
+              nil ->
+                can_view_media?(user, media)
+
+              values ->
+                # Restrictions are present.
+                if not is_nil(media.project) and
+                     (Enum.member?(values, "Hidden") || Enum.member?(values, "Frozen")) do
+                  membership =
+                    Projects.get_project_membership_by_user_and_project(user, media.project)
+
+                  membership.role == :owner or membership.role == :manager
+                else
+                  true
+                end
+            end
+        end
+
+      _ ->
+        Accounts.is_admin(user)
+    end
+  end
+
+  def can_create_media?(%User{} = user) do
+    # Separate from `can_add_media_to_project?` because this is for creating media that is not yet associated with a project.
+    not Enum.member?(user.restrictions || [], :muted)
   end
 end

@@ -240,6 +240,8 @@ defmodule Platform.Projects do
         project_id: project.id
       )
 
+  def get_project_membership_by_user_and_project(_, _), do: nil
+
   @doc """
   Gets the project relationships for a given project.
   """

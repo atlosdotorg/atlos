@@ -20,6 +20,7 @@ defmodule Platform.Material do
   alias Platform.Accounts.User
   alias Platform.Uploads
   alias Platform.Accounts
+  alias Platform.Permissions
 
   defp hydrate_media_query(query, opts \\ []) do
     query
@@ -607,7 +608,7 @@ defmodule Platform.Material do
         %User{} = user,
         attrs \\ %{}
       ) do
-    if Media.can_user_edit(media, user) do
+    if Permissions.can_edit_media?(user, media) do
       Repo.transaction(fn ->
         with {:ok, version} <- create_media_version(media, attrs),
              update_changeset <-
@@ -637,7 +638,7 @@ defmodule Platform.Material do
   end
 
   def update_media_project_audited(%Media{} = media, %User{} = user, attrs \\ %{}) do
-    unless Media.can_user_edit(media, user) do
+    unless Permissions.can_edit_media?(user, media) do
       raise "No permission"
     end
 

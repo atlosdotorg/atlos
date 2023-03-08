@@ -10,6 +10,7 @@ defmodule PlatformWeb.MediaLive.Show do
   alias Platform.Accounts
   alias Accounts.User
   alias Platform.Notifications
+  alias Platform.Permissions
 
   def mount(_params, _session, socket) do
     {:ok, socket}
@@ -34,7 +35,7 @@ defmodule PlatformWeb.MediaLive.Show do
   defp filter_editable(attributes, media, %User{} = user) do
     attributes
     |> Enum.filter(fn attr ->
-      Attribute.can_user_edit(attr, user, media)
+      Permissions.can_edit_media?(user, media, attr)
     end)
   end
 
@@ -57,7 +58,7 @@ defmodule PlatformWeb.MediaLive.Show do
 
   defp assign_media_and_updates(socket) do
     with %Material.Media{} = media <- Material.get_full_media_by_slug(socket.assigns.slug),
-         true <- Media.can_user_view(media, socket.assigns.current_user) do
+         true <- Permissions.can_view_media?(socket.assigns.current_user, media) do
       # Mark notifications for this media as read
       Notifications.mark_notifications_as_read(socket.assigns.current_user, media)
 
@@ -68,9 +69,7 @@ defmodule PlatformWeb.MediaLive.Show do
       |> subscribe_to_media(media)
     else
       _ ->
-        socket
-        |> put_flash(:error, "This incident does not exist or is not available.")
-        |> redirect(to: "/")
+        raise PlatformWeb.Errors.NotFound, "Media not found"
     end
   end
 
@@ -91,7 +90,7 @@ defmodule PlatformWeb.MediaLive.Show do
     version = Material.get_media_version!(version)
 
     if (!Accounts.is_privileged(socket.assigns.current_user) && version.visibility == :removed) or
-         !Media.can_user_edit(socket.assigns.media, socket.assigns.current_user) do
+         !Permissions.can_edit_media?(socket.assigns.current_user, socket.assigns.media) do
       {:noreply,
        socket |> put_flash(:error, "You cannot change this media version's visibility.")}
     else

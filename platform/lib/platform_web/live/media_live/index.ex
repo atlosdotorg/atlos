@@ -166,8 +166,6 @@ defmodule PlatformWeb.MediaLive.Index do
      |> assign(
        :media,
        apply_bulk_action(socket, fn media ->
-         dbg(media.attr_tags)
-
          if (media.attr_tags || []) |> Enum.member?(tag) do
            media
          else

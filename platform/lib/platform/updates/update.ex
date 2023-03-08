@@ -5,6 +5,7 @@ defmodule Platform.Updates.Update do
   alias Platform.Accounts.User
   alias Platform.Accounts
   alias Platform.Material
+  alias Platform.Permissions
 
   schema "updates" do
     field(:search_metadata, :string, default: "")
@@ -91,8 +92,9 @@ defmodule Platform.Updates.Update do
   end
 
   def validate_access(changeset, %User{} = user, %Media{} = media) do
-    if Media.can_user_edit(media, user) ||
-         (get_field(changeset, :type) == :comment and Media.can_user_comment(media, user)) do
+    if Permissions.can_edit_media?(user, media) ||
+         (get_field(changeset, :type) == :comment and
+            Permissions.can_comment_on_media?(user, media)) do
       changeset
     else
       changeset
@@ -106,7 +108,7 @@ defmodule Platform.Updates.Update do
   def can_user_view(%Platform.Updates.Update{} = update, %User{} = user) do
     cond do
       Accounts.is_privileged(user) -> true
-      not Media.can_user_view(update.media, user) -> false
+      not Permissions.can_view_media?(user, update.media) -> false
       update.hidden -> false
       true -> true
     end

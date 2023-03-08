@@ -30,7 +30,7 @@
           "text-xl font-medium leading-7 text-gray-700 sm:text-3xl block transition p-1 rounded " <>
             if @media.deleted, do: "line-through ", else: "" %>
         <%= if(
-        Attribute.can_user_edit(Attribute.get_attribute(:description), @current_user, @media)
+       Permissions.can_edit_media?(@current_user, @media, Attribute.get_attribute(:description))
       ) do %>
           <%= live_patch(class: title_classes <> "hover:bg-neutral-200 focus:bg-neutral-200",
               to: Routes.media_show_path(@socket, :edit, @media.slug, :description),
@@ -253,7 +253,7 @@
             id="comment-box"
             media={@media}
             current_user={@current_user}
-            disabled={!Media.can_user_comment(@media, @current_user)}
+            disabled={!Permissions.can_comment_on_media?(@current_user, @media)}
           />
         </.card>
       </div>
@@ -309,7 +309,7 @@
                 <span class="mt-2 block text-sm font-medium text-gray-700">
                   No media uploaded
                 </span>
-                <%= if Media.can_user_edit(@media, @current_user) do %>
+                <%= if Permissions.can_edit_media?(@current_user, @media) do %>
                   <%= live_patch("+ Upload Media",
                     class: "text-button text-sm",
                     to: Routes.media_show_path(@socket, :upload, @media.slug)
@@ -325,7 +325,7 @@
                     current_user={@current_user}
                   />
                 <% end %>
-                <%= if Media.can_user_edit(@media, @current_user) do %>
+                <%= if Permissions.can_edit_media?(@current_user, @media) do %>
                   <section class="pt-2 pb-4 text-sm overflow-visible">
                     <%= live_patch("+ Upload More Media",
                       class: "text-button mt-1 inline-block",
@@ -469,7 +469,7 @@
               <p class="sec-subhead"><%= attr.description %></p>
             </div>
             <div class="sm:mr-8">
-              <%= if Attribute.can_user_edit(attr, @current_user, @media) do %>
+              <%= if Permissions.can_edit_media?(@current_user, @media, attr) do %>
                 <%= live_patch("Edit",
                   class: "base-button",
                   to: Routes.media_show_path(@socket, :edit, @media.slug, attr.name),

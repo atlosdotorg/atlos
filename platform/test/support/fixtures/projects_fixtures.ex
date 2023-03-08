@@ -7,7 +7,7 @@ defmodule Platform.ProjectsFixtures do
   @doc """
   Generate a project.
   """
-  def project_fixture(attrs \\ %{}) do
+  def project_fixture(attrs \\ %{}, opts \\ []) do
     {:ok, project} =
       attrs
       |> Enum.into(%{
@@ -15,6 +15,17 @@ defmodule Platform.ProjectsFixtures do
         name: "some name"
       })
       |> Platform.Projects.create_project()
+
+    owner = Keyword.get(opts, :owner)
+
+    if not is_nil(owner) do
+      {:ok, _} =
+        Platform.Projects.create_project_membership(%{
+          project_id: project.id,
+          username: owner.username,
+          role: :owner
+        })
+    end
 
     project
   end
