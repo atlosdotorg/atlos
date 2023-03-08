@@ -5,12 +5,6 @@
         <.link patch={"/incidents/#{@media.slug}/project"} class="text-button text-sm">
           + Add to Project
         </.link>
-      <% else %>
-        <%= if Platform.Projects.can_edit_media?(@current_user, @media.project) do %>
-          <.link patch={"/incidents/#{@media.slug}/project"} class="text-button text-sm">
-            Update
-          </.link>
-        <% end %>
       <% end %>
     </:actions>
   </.project_bar>
