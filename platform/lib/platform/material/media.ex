@@ -8,6 +8,7 @@ defmodule Platform.Material.Media do
   alias Platform.Accounts.User
   alias Platform.Accounts
   alias Platform.Projects
+  alias Platform.Permissions
   alias __MODULE__
 
   schema "media" do
@@ -194,14 +195,14 @@ defmodule Platform.Material.Media do
             changeset
             |> add_error(:project_id, "Project does not exist")
 
-          !is_nil(user) && !is_nil(new_project) && !Projects.can_edit_media?(user, new_project) ->
+          !is_nil(user) && !is_nil(new_project) &&
+              !Permissions.can_add_media_to_project?(user, new_project) ->
             changeset
-            |> add_error(:project_id, "Only administrators can add incidents to this project.")
+            |> add_error(:project_id, "You cannot add incidents to this project.")
 
-          !is_nil(user) && !is_nil(original_project) &&
-              !Projects.can_edit_media?(user, original_project) ->
+          !is_nil(user) && !is_nil(original_project) ->
             changeset
-            |> add_error(:project_id, "You cannot remove media from this project!")
+            |> add_error(:project_id, "You cannot remove media from projects!")
 
           true ->
             changeset
@@ -300,7 +301,7 @@ defmodule Platform.Material.Media do
   def can_user_view(%Media{} = media, %User{} = user) do
     can_user_view_media_base(media, user) &&
       (is_nil(media.project) ||
-         Platform.Projects.can_view_project?(user, media.project))
+         Permissions.can_view_project?(user, media.project))
   end
 
   defp can_user_view_media_base(%Media{} = media, %User{} = user) do

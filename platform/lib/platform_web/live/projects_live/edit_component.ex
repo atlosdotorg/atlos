@@ -4,12 +4,13 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
   alias Platform.Projects.ProjectAttribute
   alias Platform.Auditor
   alias Platform.Projects
+  alias Platform.Permissions
 
   def update(assigns, socket) do
     assigns = Map.put_new(assigns, :project, %Projects.Project{})
 
     if not is_nil(assigns.project) and
-         not Projects.can_edit_project?(assigns.current_user, assigns.project) do
+         not Permissions.can_edit_project_metadata?(assigns.current_user, assigns.project) do
       raise PlatformWeb.Errors.Unauthorized, "You do not have permission to edit this project"
     end
 
@@ -52,7 +53,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
   end
 
   def handle_event("delete", _params, socket) do
-    if Projects.can_edit_project?(socket.assigns.current_user, socket.assigns.project) do
+    if Permissions.can_delete_project?(socket.assigns.current_user, socket.assigns.project) do
       Projects.delete_project(socket.assigns.project)
       Auditor.log(:project_deleted, %{project: socket.assigns.project}, socket)
       send(self(), {:project_deleted, nil})

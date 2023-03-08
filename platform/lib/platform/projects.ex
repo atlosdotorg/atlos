@@ -9,6 +9,7 @@ defmodule Platform.Projects do
 
   alias Platform.Projects.Project
   alias Platform.Accounts
+  alias Platform.Permissions
 
   @doc """
   Returns the list of projects.
@@ -24,7 +25,8 @@ defmodule Platform.Projects do
   end
 
   def list_projects_for_user(%Accounts.User{} = user) do
-    list_projects() |> Enum.filter(&can_view_project?(user, &1))
+    # TODO: This is a temporary solution. We should be using a query to get the projects for the user.
+    list_projects() |> Enum.filter(&Permissions.can_view_project?(user, &1))
   end
 
   @doc """
@@ -73,7 +75,7 @@ defmodule Platform.Projects do
   """
   def create_project(attrs \\ %{}, user \\ nil) do
     # Verify the user has permission to create
-    unless is_nil(user) || can_create_project?(user) do
+    unless is_nil(user) || Permissions.can_create_project?(user) do
       raise "User does not have permission to create a project"
     end
 
@@ -115,7 +117,7 @@ defmodule Platform.Projects do
   """
   def update_project(%Project{} = project, attrs, user \\ nil) do
     # Verify the user has permission to edit the project
-    unless is_nil(user) || can_edit_project?(user, project) do
+    unless is_nil(user) || Permissions.can_edit_project_metadata?(user, project) do
       raise "User does not have permission to edit this project"
     end
 
@@ -153,7 +155,7 @@ defmodule Platform.Projects do
   """
   def delete_project_attribute(%Project{} = project, id, user \\ nil) do
     # Verify the user has permission to edit the project
-    unless is_nil(user) || can_edit_project?(user, project) do
+    unless is_nil(user) || Permissions.can_edit_project_metadata?(user, project) do
       raise "User does not have permission to edit this project"
     end
 
@@ -189,35 +191,6 @@ defmodule Platform.Projects do
   """
   def change_project(%Project{} = project, attrs \\ %{}) do
     Project.changeset(project, attrs)
-  end
-
-  @doc """
-  Returns whether the given user can edit a project's media.
-  """
-  def can_edit_media?(%Accounts.User{} = _user, %Project{} = _project) do
-    # TODO: Eventually we will handle permissions on a per-project basis.
-    true
-  end
-
-  @doc """
-  Returns whether the given user can edit a project.
-  """
-  def can_edit_project?(%Accounts.User{} = user, %Project{} = _project) do
-    Accounts.is_privileged(user)
-  end
-
-  @doc """
-  Returns whether the given user create a new project.
-  """
-  def can_create_project?(%Accounts.User{} = user) do
-    Accounts.is_privileged(user)
-  end
-
-  @doc """
-  Returns whether the given user can view the project.
-  """
-  def can_view_project?(%Accounts.User{} = _user, %Project{} = _project) do
-    true
   end
 
   alias Platform.Projects.ProjectMembership
@@ -258,12 +231,23 @@ defmodule Platform.Projects do
     do: Repo.get!(ProjectMembership |> preload_project_memberships(), id)
 
   @doc """
+  Gets a single project_membership by the user and project.
+  """
+  def get_project_membership_by_user_and_project(%Accounts.User{} = user, %Project{} = project),
+    do:
+      Repo.get_by(ProjectMembership |> preload_project_memberships(),
+        user_id: user.id,
+        project_id: project.id
+      )
+
+  @doc """
   Gets the project relationships for a given project.
   """
   def get_project_memberships(%Project{} = project) do
     Repo.all(
-      from pm in (ProjectMembership |> preload_project_memberships()),
+      from(pm in (ProjectMembership |> preload_project_memberships()),
         where: pm.project_id == ^project.id
+      )
     )
   end
 
@@ -272,8 +256,9 @@ defmodule Platform.Projects do
   """
   def get_users_project_memberships(%Accounts.User{} = user) do
     Repo.all(
-      from pm in (ProjectMembership |> preload_project_memberships()),
+      from(pm in (ProjectMembership |> preload_project_memberships()),
         where: pm.user_id == ^user.id
+      )
     )
   end
 

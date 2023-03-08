@@ -5,6 +5,7 @@ defmodule PlatformWeb.ProjectsLive.Show do
   alias Platform.Material.MediaSearch
   alias Platform.Projects
   alias Platform.Material
+  alias Platform.Permissions
 
   def mount(_params, _session, socket) do
     {:ok, socket}
@@ -13,8 +14,12 @@ defmodule PlatformWeb.ProjectsLive.Show do
   def handle_params(%{"id" => id}, _uri, socket) do
     project = Projects.get_project!(id)
 
+    if !Permissions.can_view_project?(socket.assigns.current_user, project) do
+      raise NotFound, "Not found"
+    end
+
     if socket.assigns.live_action == :manage and
-         !Platform.Projects.can_edit_project?(socket.assigns.current_user, project) do
+         !Permissions.can_edit_project_metadata?(socket.assigns.current_user, project) do
       raise NotFound, "Not found"
     end
 
@@ -82,7 +87,7 @@ defmodule PlatformWeb.ProjectsLive.Show do
                    do %>
                 Export
               <% end %>
-              <%= if Projects.can_edit_project?(@current_user, @project) do %>
+              <%= if Permissions.can_edit_project_metadata?(@current_user, @project) do %>
                 <.link href={"/new?project_id=#{@project.id}"} class="button ~urge @high">
                   New Incident
                 </.link>
@@ -111,7 +116,7 @@ defmodule PlatformWeb.ProjectsLive.Show do
               <span>Map</span>
             </.link>
 
-            <%= if Projects.can_edit_project?(@current_user, @project) do %>
+            <%= if Permissions.can_edit_project_metadata?(@current_user, @project) do %>
               <.link
                 patch={"/projects/#{@project.id}/edit"}
                 class={if @live_action == :edit, do: active_classes, else: inactive_classes}
