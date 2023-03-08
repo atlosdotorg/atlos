@@ -105,6 +105,7 @@ defmodule Platform.Material.Media do
       required: true
     )
     |> Attribute.validate_attribute(Attribute.get_attribute(:date), user: user, required: false)
+    |> validate_required([:project_id], message: "Please select a project")
     |> validate_project(user, media)
     |> parse_and_validate_validate_json_array(:urls, :urls_parsed)
     |> validate_url_list(:urls_parsed)
@@ -203,6 +204,10 @@ defmodule Platform.Material.Media do
           !is_nil(user) && !is_nil(original_project) ->
             changeset
             |> add_error(:project_id, "You cannot remove media from projects!")
+
+          is_nil(new_project) ->
+            changeset
+            |> add_error(:project_id, "You must select a project.")
 
           true ->
             changeset

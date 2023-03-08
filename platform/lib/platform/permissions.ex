@@ -57,7 +57,6 @@ defmodule Platform.Permissions do
 
   def can_view_media?(%User{} = user, %Media{} = media) do
     if is_nil(media.project) do
-      # TODO: We will remove this case when media must be a part of projects
       true
     else
       membership = Projects.get_project_membership_by_user_and_project(user, media.project)
@@ -90,34 +89,45 @@ defmodule Platform.Permissions do
   def can_edit_media?(%User{} = user, %Media{} = media) do
     # This includes uploading new media versions as well as editing attributes.
 
-    if is_nil(media.project) do
-      true
-    else
-      membership = Projects.get_project_membership_by_user_and_project(user, media.project)
+    membership = Projects.get_project_membership_by_user_and_project_id(user, media.project_id)
 
-      # This logic would be nice to refactor into a `with` statement
-      case Platform.Security.get_security_mode_state() do
-        :normal ->
-          case Enum.member?(user.restrictions || [], :muted) do
-            true ->
-              false
+    # This logic would be nice to refactor into a `with` statement
+    case Platform.Security.get_security_mode_state() do
+      :normal ->
+        case Enum.member?(user.restrictions || [], :muted) do
+          true ->
+            false
 
-            false ->
-              if is_nil(media.project) or
-                   (not is_nil(membership) and
-                      (membership.role == :owner or
-                         membership.role == :manager)) do
+          false ->
+            cond do
+              is_nil(media.slug) ->
+                # This is a new media object that hasn't been saved yet.
                 true
-              else
-                not (Enum.member?(media.attr_restrictions || [], "Hidden") ||
-                       Enum.member?(media.attr_restrictions || [], "Frozen") ||
-                       media.attr_status == "Completed" || media.attr_status == "Cancelled")
-              end
-          end
 
-        _ ->
-          Accounts.is_admin(user)
-      end
+              is_nil(media.project) ->
+                # This media object is not associated with a project.
+                true
+
+              is_nil(membership) ->
+                false
+
+              membership.role == :owner ->
+                true
+
+              membership.role == :manager ->
+                true
+
+              membership.role == :editor ->
+                not (Enum.member?(media.attr_restrictions || [], "Frozen") ||
+                       media.attr_status == "Completed" || media.attr_status == "Cancelled")
+
+              true ->
+                false
+            end
+        end
+
+      _ ->
+        Accounts.is_admin(user)
     end
   end
 
