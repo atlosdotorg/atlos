@@ -8,7 +8,7 @@ defmodule Platform.Projects.Project do
     field(:code, :string)
     field(:name, :string)
     field(:description, :string, default: "")
-    field(:color, :string, default: "#f87171")
+    field(:color, :string, default: "#fb923c")
 
     embeds_many(:attributes, Platform.Projects.ProjectAttribute, on_replace: :delete)
 

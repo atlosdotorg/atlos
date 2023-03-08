@@ -6,7 +6,10 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
   alias Platform.Projects
 
   def update(assigns, socket) do
-    if not Projects.can_edit_project?(assigns.current_user, assigns.project) do
+    assigns = Map.put_new(assigns, :project, %Projects.Project{})
+
+    if not is_nil(assigns.project) and
+         not Projects.can_edit_project?(assigns.current_user, assigns.project) do
       raise PlatformWeb.Errors.Unauthorized, "You do not have permission to edit this project"
     end
 
@@ -290,7 +293,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
   def render(assigns) do
     ~H"""
     <article>
-      <div class="grid grid-cols-1 gap-8 mb-8 max-w-prose divide-y">
+      <div class="grid grid-cols-1 gap-8 max-w-prose divide-y">
         <%= if Enum.member?(@show_panes, :general) do %>
           <.form
             :let={f}
