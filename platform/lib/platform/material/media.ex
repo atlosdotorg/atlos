@@ -111,7 +111,7 @@ defmodule Platform.Material.Media do
     |> then(fn cs ->
       attr = Attribute.get_attribute(:tags)
 
-      if !is_nil(user) && Attribute.can_user_edit(attr, user, media) do
+      if !is_nil(user) && Permissions.can_edit_media?(user, media, attr) do
         cs
         # TODO: This is a good refactoring opportunity with the logic above
         |> cast(attrs, [:attr_tags])
@@ -187,9 +187,9 @@ defmodule Platform.Material.Media do
         original_project = Projects.get_project(original_project_id)
 
         cond do
-          !is_nil(media) && !is_nil(user) && !can_user_edit(media, user) ->
+          !is_nil(media) && !is_nil(user) && !Permissions.can_edit_media?(user, media) ->
             changeset
-            |> add_error(:project_id, "You cannot edit this media")
+            |> add_error(:project_id, "You cannot edit this incidents's project.")
 
           !is_nil(project_id) && is_nil(new_project) ->
             changeset
@@ -295,100 +295,6 @@ defmodule Platform.Material.Media do
     end
   end
 
-  @doc """
-  Can the user view the media?
-  """
-  def can_user_view(%Media{} = media, %User{} = user) do
-    can_user_view_media_base(media, user) &&
-      (is_nil(media.project) ||
-         Permissions.can_view_project?(user, media.project))
-  end
-
-  defp can_user_view_media_base(%Media{} = media, %User{} = user) do
-    # Can the user view the media, independent of which project it's a part of?
-    case {media.attr_restrictions, media.deleted} do
-      {nil, false} ->
-        true
-
-      {_, true} ->
-        Enum.member?(user.roles || [], :admin)
-
-      {values, false} ->
-        # Restrictions are present.
-        if Enum.member?(values, "Hidden") do
-          Accounts.is_privileged(user)
-        else
-          true
-        end
-    end
-  end
-
-  @doc """
-  Can the given user edit the media? This includes uploading new media versions as well as editing attributes.
-  """
-  def can_user_edit(%Media{} = media, %User{} = user) do
-    # This logic would be nice to refactor into a `with` statement
-    case Platform.Security.get_security_mode_state() do
-      :normal ->
-        case Enum.member?(user.restrictions || [], :muted) do
-          true ->
-            false
-
-          false ->
-            if Accounts.is_privileged(user) do
-              true
-            else
-              not (Enum.member?(media.attr_restrictions || [], "Hidden") ||
-                     Enum.member?(media.attr_restrictions || [], "Frozen") ||
-                     media.attr_status == "Completed" || media.attr_status == "Cancelled")
-            end
-        end
-
-      _ ->
-        Accounts.is_admin(user)
-    end
-  end
-
-  @doc """
-  Can the user comment on the media?
-  """
-  def can_user_comment(%Media{} = media, %User{} = user) do
-    case Platform.Security.get_security_mode_state() do
-      :normal ->
-        case Enum.member?(user.restrictions || [], :muted) do
-          true ->
-            false
-
-          false ->
-            case media.attr_restrictions do
-              nil ->
-                true
-
-              values ->
-                # Restrictions are present.
-                if Enum.member?(values, "Hidden") || Enum.member?(values, "Frozen") do
-                  Accounts.is_privileged(user)
-                else
-                  true
-                end
-            end
-        end
-
-      _ ->
-        Accounts.is_admin(user)
-    end
-  end
-
-  def can_user_create(%User{} = user) do
-    case Platform.Security.get_security_mode_state() do
-      :normal ->
-        true
-
-      _ ->
-        Accounts.is_admin(user)
-    end
-  end
-
   def has_restrictions(%Media{} = media) do
     length(media.attr_restrictions || []) > 0
   end
@@ -438,7 +344,6 @@ defimpl Jason.Encoder, for: Platform.Material.Media do
     migrated_pairs = Platform.Utils.migrated_attributes(media)
 
     Enum.reduce(migrated_pairs, map, fn {old_attr, new_attr}, map ->
-      dbg(old_attr.schema_field)
       Map.put(map, old_attr.schema_field, Platform.Material.get_attribute_value(media, new_attr))
     end)
   end

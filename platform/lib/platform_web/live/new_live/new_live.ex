@@ -2,9 +2,10 @@ defmodule PlatformWeb.NewLive do
   use PlatformWeb, :live_view
 
   alias Platform.Accounts
+  alias Platform.Permissions
 
   def mount(params, _session, socket) do
-    if Platform.Material.Media.can_user_create(socket.assigns.current_user) do
+    if Permissions.can_create_media?(socket.assigns.current_user) do
       {:ok,
        socket
        |> assign(:title, "New Incident")

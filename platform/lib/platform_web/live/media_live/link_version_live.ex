@@ -2,6 +2,7 @@ defmodule PlatformWeb.MediaLive.LinkVersionLive do
   use PlatformWeb, :live_component
   alias Platform.Material
   alias Platform.Auditor
+  alias Platform.Permissions
 
   def update(assigns, socket) do
     {:ok,
@@ -29,7 +30,7 @@ defmodule PlatformWeb.MediaLive.LinkVersionLive do
       |> assign(
         :url_duplicate_of,
         Material.get_media_by_source_url(source_url)
-        |> Enum.filter(&Material.Media.can_user_view(&1, socket.assigns.current_user))
+        |> Enum.filter(&Permissions.can_view_media?(socket.assigns.current_user, &1))
       )
     else
       socket |> assign(:url_duplicate_of, [])

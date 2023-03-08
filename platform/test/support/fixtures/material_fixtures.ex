@@ -4,6 +4,8 @@ defmodule Platform.MaterialFixtures do
   entities via the `Platform.Material` context.
   """
 
+  import Platform.ProjectsFixtures
+
   @doc """
   Generate a unique media slug.
   """
@@ -12,7 +14,7 @@ defmodule Platform.MaterialFixtures do
   @doc """
   Generate a media.
   """
-  def media_fixture(attrs \\ %{}) do
+  def media_fixture(attrs \\ %{}, opts \\ []) do
     {:ok, media} =
       attrs
       |> Enum.into(%{
@@ -20,11 +22,24 @@ defmodule Platform.MaterialFixtures do
         attr_sensitive: ["Graphic Violence"],
         attr_type: ["Other"],
         slug: unique_media_slug(),
-        status: "Unclaimed"
+        status: "Unclaimed",
+        project_id: project_fixture().id
       })
       |> Platform.Material.create_media()
 
-    media
+    for_user = Keyword.get(opts, :for_user)
+
+    if for_user do
+      {:ok, _} =
+        Platform.Projects.create_project_membership(%{
+          project_id: media.project_id,
+          username: for_user.username,
+          role: :editor
+        })
+    end
+
+    # So that everything is preloaded
+    Platform.Material.get_media!(media.id)
   end
 
   @doc """

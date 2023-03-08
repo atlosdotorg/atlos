@@ -7,6 +7,7 @@ defmodule Platform.MaterialTest do
 
   import Platform.MaterialFixtures
   import Platform.AccountsFixtures
+  import Platform.ProjectsFixtures
 
   describe "media" do
     alias Platform.Material.Media
@@ -168,7 +169,7 @@ defmodule Platform.MaterialTest do
 
     test "a user modifying an attribute (audited) creates an update" do
       user = user_fixture()
-      media = media_fixture()
+      media = media_fixture(%{}, for_user: user)
       attribute = Material.Attribute.get_attribute(:sensitive)
 
       {:ok, updated} =
@@ -201,7 +202,7 @@ defmodule Platform.MaterialTest do
 
     test "an admin modifying a protected attribute (audited) works" do
       user = admin_user_fixture()
-      media = media_fixture()
+      media = media_fixture(%{project_id: project_fixture(%{}, owner: user).id})
       attribute = Material.Attribute.get_attribute(:restrictions)
 
       assert {:ok, updated} =
@@ -215,7 +216,7 @@ defmodule Platform.MaterialTest do
 
     test "a user cannot edit frozen media" do
       admin = admin_user_fixture()
-      media = media_fixture()
+      media = media_fixture(%{project_id: project_fixture(%{}, owner: admin).id})
       attribute = Material.Attribute.get_attribute(:restrictions)
 
       assert {:ok, updated} =
@@ -227,6 +228,12 @@ defmodule Platform.MaterialTest do
       assert updated.attr_restrictions == ["Frozen"]
 
       user = user_fixture()
+
+      Platform.Projects.create_project_membership(%{
+        username: user.username,
+        project_id: media.project_id,
+        role: :editor
+      })
 
       assert {:error, changeset} =
                Material.update_media_attribute_audited(
@@ -245,8 +252,15 @@ defmodule Platform.MaterialTest do
 
     test "normal users cannot edit restricted attributes" do
       admin = admin_user_fixture()
-      media = media_fixture()
+      media = media_fixture(%{project_id: project_fixture(%{}, owner: admin).id})
       user = user_fixture()
+
+      Platform.Projects.create_project_membership(%{
+        username: user.username,
+        project_id: media.project_id,
+        role: :editor
+      })
+
       attribute = Material.Attribute.get_attribute(:restrictions)
 
       assert {:error, changeset} =
@@ -268,8 +282,8 @@ defmodule Platform.MaterialTest do
     end
 
     test "a muted user cannot edit media" do
-      media = media_fixture()
       user = user_fixture()
+      media = media_fixture(%{}, for_user: user)
       attribute = Material.Attribute.get_attribute(:sensitive)
 
       assert {:ok, _} =

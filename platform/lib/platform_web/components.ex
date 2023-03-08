@@ -12,6 +12,7 @@ defmodule PlatformWeb.Components do
   alias Platform.Notifications
   alias Platform.Uploads
   alias PlatformWeb.Router.Helpers, as: Routes
+  alias Platform.Permissions
 
   def navlink(%{request_path: path, to: to} = assigns) do
     active = String.starts_with?(path, to) and !String.equivalent?(path, "/")
@@ -1113,7 +1114,7 @@ defmodule PlatformWeb.Components do
           <% end %>
         </span>
         <span class="ml-4 flex-shrink-0">
-          <%= if Attribute.can_user_edit(@attr, @current_user, @media) and not @immutable do %>
+          <%= if Permissions.can_edit_media?(@current_user, @media, @attr) and not @immutable do %>
             <%= live_patch("Update",
               class: "text-button mt-1 inline-block",
               to: Routes.media_show_path(@socket, :edit, @media.slug, @attr.name),
@@ -1769,7 +1770,7 @@ defmodule PlatformWeb.Components do
         <td
           class="border-b cursor-pointer p-0"
           phx-click={
-            if Platform.Material.Attribute.can_user_edit(attr, @current_user, @media),
+            if Permissions.can_edit_media?(@current_user, @media, attr),
               do: "edit_attribute",
               else: nil
           }
@@ -2191,7 +2192,7 @@ defmodule PlatformWeb.Components do
       href={if @link, do: "/incidents/#{@media.slug}", else: nil}
       target={@target}
     >
-      <%= if Media.can_user_view(@media, @current_user) do %>
+      <%= if Permissions.can_view_media?(@current_user, @media) do %>
         <div class="p-2 flex flex-col w-3/4 gap-2 relative">
           <section>
             <p class="font-mono text-xs text-gray-500 flex items-center gap-1">
