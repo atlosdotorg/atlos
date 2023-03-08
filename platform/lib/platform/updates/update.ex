@@ -1,18 +1,17 @@
 defmodule Platform.Updates.Update do
   use Ecto.Schema
   import Ecto.Changeset
-  alias Platform.Material.Attribute
   alias Platform.Material.Media
   alias Platform.Accounts.User
   alias Platform.Accounts
   alias Platform.Material
 
   schema "updates" do
-    field :search_metadata, :string, default: ""
-    field :explanation, :string
-    field :attachments, {:array, :string}
+    field(:search_metadata, :string, default: "")
+    field(:explanation, :string)
+    field(:attachments, {:array, :string})
 
-    field :type, Ecto.Enum,
+    field(:type, Ecto.Enum,
       values: [
         :update_attribute,
         :create,
@@ -24,24 +23,26 @@ defmodule Platform.Updates.Update do
         :change_project,
         :remove_project
       ]
+    )
 
-    # Used for attribute updates
-    field :modified_attribute, Ecto.Enum, nullable: true, values: Attribute.attribute_names()
-    # JSON-encoded data, used for attribute changes
-    field :new_value, :string, default: "null"
-    # JSON-encoded data, used for attribute changes
-    field :old_value, :string, default: "null"
+    # Used for attribute updates.
+    field(:modified_attribute, :string)
 
-    field :hidden, :boolean, default: false
+    # JSON-encoded data, used for attribute changes; ideally these would be :map
+    field(:new_value, :string, default: "null")
+    # JSON-encoded data, used for attribute changes; ideally these would be :map
+    field(:old_value, :string, default: "null")
+
+    field(:hidden, :boolean, default: false)
 
     # Used for project changes
-    belongs_to :old_project, Platform.Projects.Project, type: :binary_id
-    belongs_to :new_project, Platform.Projects.Project, type: :binary_id
+    belongs_to(:old_project, Platform.Projects.Project, type: :binary_id)
+    belongs_to(:new_project, Platform.Projects.Project, type: :binary_id)
 
     # General association metadata
-    belongs_to :user, Platform.Accounts.User
-    belongs_to :media, Platform.Material.Media
-    belongs_to :media_version, Platform.Material.MediaVersion
+    belongs_to(:user, Platform.Accounts.User)
+    belongs_to(:media, Platform.Material.Media)
+    belongs_to(:media_version, Platform.Material.MediaVersion)
 
     timestamps()
   end
@@ -78,7 +79,6 @@ defmodule Platform.Updates.Update do
       ])
       |> validate_required([:old_value, :new_value, :type, :user_id, :media_id])
       |> validate_explanation()
-      |> validate_inclusion(:modified_attribute, Attribute.attribute_names())
 
     changeset
     |> put_change(

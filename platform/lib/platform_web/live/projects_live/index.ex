@@ -17,7 +17,8 @@ defmodule PlatformWeb.ProjectsLive.Index do
   # Handle the :close message
   def handle_info({:close, project}, socket) do
     {:noreply,
-     socket |> push_redirect(to: if(project, do: "/projects/#{project.id}", else: "/projects"))}
+     socket
+     |> push_redirect(to: if(project, do: "/projects/#{project.id}/edit", else: "/projects"))}
   end
 
   def handle_event("close_modal", _params, socket) do
@@ -93,6 +94,7 @@ defmodule PlatformWeb.ProjectsLive.Index do
             module={PlatformWeb.ProjectsLive.EditComponent}
             id="new-project"
             current_user={@current_user}
+            show_panes={[:general]}
           />
         </.modal>
       <% end %>

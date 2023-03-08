@@ -1,14 +1,137 @@
 <article class={"w-full px-4 md:px-8 " <> (if @full_width, do: "mt-8", else: "")}>
+  <% next_link =
+    Routes.live_path(
+      @socket,
+      PlatformWeb.MediaLive.Index,
+      @query_params
+      |> Map.put(:ac, @results.metadata.after)
+      |> Map.put(:bc, nil)
+      |> Map.put(:pi, @pagination_index + 1)
+    ) %>
+  <% prev_link =
+    Routes.live_path(
+      @socket,
+      PlatformWeb.MediaLive.Index,
+      @query_params
+      |> Map.put(:bc, @results.metadata.before)
+      |> Map.put(:ac, nil)
+      |> Map.put(:pi, @pagination_index - 1)
+    ) %>
   <div class="relative z-[1000] 2xl:max-w-[1210px] mx-auto h-[5.5rem]">
-    <.search_form
-      changeset={@changeset}
-      exclude={if @display == "map", do: [:sort], else: []}
-      query_params={@query_params}
-      socket={@socket}
-      current_user={@current_user}
-      display={@display}
-    />
+    <%= if @selected_ids != [] and Platform.Accounts.is_privileged(@current_user) do %>
+      <div class="mb-4 w-full flex text-sm items-center divide-x border bg-white shadow-sm rounded-lg transition-all">
+        <p class="p-4 text-urge-600">
+          <span class="font-medium">
+            <%= length(@selected_ids) %>
+          </span>
+            <%= if length(@selected_ids) != 1 do %>
+              incidents
+            <% else %>
+              incident
+            <% end %>
+          selected
+        </p>
+        <div class="p-4 hover:bg-neutral-50 transition">
+          <.dropdown label="Add tag">
+            <div class="p-4 ts-ignore flex flex-col gap-4" x-data="{tag: null}">
+              <select x-model="tag" class="w-full input-base" id="bulk-action-select">
+                <option value="">Select a tag</option>
+                <%= for tag <- Platform.Material.Attribute.options(Platform.Material.Attribute.get_attribute(:tags, project: @active_project)) do %>
+                  <option value={tag}><%= tag %></option>
+                <% end %>
+              </select>
+              <button
+                class="button ~urge @high"
+                x-bind:disabled="tag == null || tag == ''"
+                phx-click="apply_tag"
+                x-bind:phx-value-tag="tag"
+                x-bind:data-confirm={"\"Are you sure you want to apply the tag \" + tag + \" to the #{length(@selected_ids)} selected incident(s)?\""}
+                x-on:click="open = false; window.topbar.show()"
+                phx-disable-with="Working..."
+              >
+                Apply
+              </button>
+            </div>
+          </.dropdown>
+          </div>
+          <div class="p-4 hover:bg-neutral-50 transition">
+          <.dropdown label="Add to project">
+            <div class="p-4 ts-ignore flex flex-col gap-4" x-data="{project_id: null}">
+              <select x-model="project_id" class="w-full input-base" id="project-select">
+                <option value="">Select a project</option>
+                <%= for project <- @addable_projects do %>
+                  <option value={project.id}><%= project.name %></option>
+                <% end %>
+              </select>
+              <button
+                class="button ~urge @high"
+                x-bind:disabled="project_id == null || project_id == ''"
+                phx-click="apply_project"
+                x-bind:phx-value-project-id="project_id"
+                x-bind:data-confirm={"\"Are you sure you want to add #{length(@selected_ids)} selected incident(s) to this project? Incidents already in a project will not be moved.\""}
+                x-on:click="open = false; window.topbar.show()"
+                phx-disable-with="Working..."
+              >
+                Apply
+              </button>
+            </div>
+          </.dropdown>
+          </div>
+          <div class="p-4 hover:bg-neutral-50 transition">
+          <.dropdown label="Set status">
+            <div class="p-4 ts-ignore flex flex-col gap-4" x-data="{status: null}">
+              <select x-model="status" class="w-full input-base" id="status-select">
+                <option value="">Select a status</option>
+                <%= for status <- Platform.Material.Attribute.options(Platform.Material.Attribute.get_attribute(:status, project: @active_project)) do %>
+                  <option value={status}><%= status %></option>
+                <% end %>
+              </select>
+              <button
+                class="button ~urge @high"
+                x-bind:disabled="status == null || status == ''"
+                phx-click="apply_status"
+                x-bind:phx-value-status="status"
+                x-bind:data-confirm={"\"Are you sure you want to set the status to \" + status + \" for the #{length(@selected_ids)} selected incident(s)?\""}
+                x-on:click="open = false; window.topbar.show()"
+                phx-disable-with="Working..."
+              >
+                Apply
+              </button>
+            </div>
+          </.dropdown>
+        </div>
+        <div class="p-4 hover:bg-neutral-50 transition flex gap-4 items-center flex-grow justify-end">
+          <button phx-click="select_all" class="text-button" phx-disable-with="Selecting...">
+            Select All
+          </button>
+          <button phx-click="deselect_all" class="text-button" phx-disable-with="Closing...">
+            Cancel
+          </button>
+        </div>
+      </div>
+    <% else %>
+      <.search_form
+        changeset={@changeset}
+        exclude={if @display == "map", do: [:sort], else: []}
+        query_params={@query_params}
+        socket={@socket}
+        current_user={@current_user}
+        display={@display}
+      />
+    <% end %>
   </div>
+  <%= if @pagination_index > 0 and @display == "cards" do %>
+    <div class="text-xs mb-4 w-full">
+      <.pagination_controls
+        next_link={next_link}
+        prev_link={prev_link}
+        pagination_metadata={@results.metadata}
+        pagination_index={@pagination_index}
+        currently_displayed_results={length(@media)}
+        id="pagination-top"
+      />
+    </div>
+  <% end %>
   <section>
     <%= if (not Enum.empty?(@media)) or @display == "map" do %>
       <%= case @display do %>
@@ -24,7 +147,8 @@
                 # Stringify to avoid floating point issues
                 lat: "#{lat}",
                 lon: "#{lon}",
-                type: Material.get_media_organization_type(item)
+                type: Material.get_media_organization_type(item),
+                color: item.display_color || "#60a5fa"
               }
             end) %>
           <% nongeolocated_length = length(@media) - length(map_data) %>
@@ -47,22 +171,9 @@
               </div>
             <% end %>
           </div>
-          <map-events
-            lat="35"
-            lon="35"
-            zoom="3"
-            id="map_events"
-            container-id="map_events_container"
-            data={Jason.encode!(map_data)}
-          />
-          <section
-            class="fixed h-screen w-screen left-0 top-0 bottom-0"
-            id="map"
-            phx-update="ignore"
-          >
-            <map-container id="map_events_container" />
-          </section>
+          <.map_events map_data={map_data} />
         <% "cards" -> %>
+          <div class="top-scroll-anchor"></div>
           <div class="grid gap-4 grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 search-highlighting">
             <%= for media <- @media do %>
               <.media_card media={media} current_user={@current_user} />
@@ -70,10 +181,13 @@
           </div>
         <% "table" -> %>
           <section class="-mx-4 md:-mx-8">
-            <div class="overflow-x-auto">
-              <div class="inline-block align-middle">
-                <div class="!shadow-inner ring-1 ring-black ring-opacity-5 max-h-[calc(100vh-10rem+40px)]">
-                  <table class="border-separate sticky-headers" style="border-spacing: 0">
+            <div class="overflow-x-auto w-full">
+              <div class="inline-block align-middle w-full">
+                <div class="!shadow-inner ring-1 ring-black ring-opacity-5 max-h-[calc(100vh-10rem+40px)] relative w-full">
+                  <table
+                    class="border-separate sticky-headers pb-[40px] w-full"
+                    style="border-spacing: 0"
+                  >
                     <thead class="bg-gray-200 whitespace-nowrap">
                       <tr>
                         <th
@@ -101,32 +215,39 @@
                       </tr>
                     </thead>
                     <tbody class="bg-white" id="table-body">
+                      <div class="top-scroll-anchor"></div>
                       <%= for media <- @media do %>
                         <.media_table_row
                           media={media}
                           current_user={@current_user}
                           attributes={@attributes}
                           source_cols={@source_cols}
+                          is_selected={
+                              Enum.member?(@selected_ids, media.id)
+                          }
                         />
                       <% end %>
                     </tbody>
                   </table>
-                  <div class="h-[40px] flex items-center sticky left-0 w-[100vw] relative z-[100] bg-neutral-50 border-t text-sm p-2">
+                  <div class="h-[40px] flex fixed bottom-0 md:justify-between items-center w-full z-[100] backdrop-blur-lg bg-white/30 border-t text-sm p-2">
                     <div class="text-neutral-600">
-                      <%= if !is_nil(@results.metadata.after) do %>
-                        Showing <%= length(@media) |> Formatter.format_number() %> results.
-                        <button
-                          id="table-load-more"
-                          phx-click="load_more"
-                          phx-disable-with="Loading..."
-                          class="text-button"
-                        >
-                          Load more &rarr;
-                        </button>
-                      <% else %>
-                        No more results to show.
-                      <% end %>
+                      <.pagination_controls
+                        next_link={next_link}
+                        prev_link={prev_link}
+                        pagination_metadata={@results.metadata}
+                        pagination_index={@pagination_index}
+                        currently_displayed_results={length(@media)}
+                        id="pagination-table"
+                      />
                     </div>
+                    <%= if is_nil(@active_project) do %>
+                      <div class="flex items-center ml-4 md:ml-16 md:mr-32">
+                        <Heroicons.information_circle mini class="h-5 w-5 text-neutral-400" />
+                        <span class="ml-1">
+                          To see project attributes, refine your search to a project.
+                        </span>
+                      </div>
+                    <% end %>
                   </div>
                 </div>
               </div>
@@ -138,16 +259,14 @@
     <% end %>
     <%= if @display == "cards" do %>
       <div class="mx-auto mt-8 text-center text-xs">
-        <%= if !is_nil(@results.metadata.after) do %>
-          <div
-            phx-hook="InfiniteScroll"
-            id="table-load-more"
-            data-page={@pagination_index}
-            class="flex items-center justify-around"
-          >
-            <.loading_spinner />
-          </div>
-        <% end %>
+        <.pagination_controls
+          next_link={next_link}
+          prev_link={prev_link}
+          pagination_metadata={@results.metadata}
+          pagination_index={@pagination_index}
+          currently_displayed_results={length(@media)}
+          id="pagination-bottom"
+        />
       </div>
     <% end %>
   </section>

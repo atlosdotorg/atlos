@@ -4,6 +4,7 @@ defmodule Platform.Projects do
   """
 
   import Ecto.Query, warn: false
+  alias Platform.Projects.ProjectAttribute
   alias Platform.Repo
 
   alias Platform.Projects.Project
@@ -78,6 +79,7 @@ defmodule Platform.Projects do
 
     %Project{}
     |> Project.changeset(attrs)
+    |> Ecto.Changeset.put_embed(:attributes, ProjectAttribute.default_attributes())
     |> Repo.insert()
   end
 
@@ -121,6 +123,44 @@ defmodule Platform.Projects do
   end
 
   @doc """
+  Deletes an embedded custom project attribute. Checks user permission.
+
+  ## Examples
+
+      iex> delete_project_attribute(project, "existing_id")
+      {:ok, %Project{}}
+
+      iex> delete_project_attribute(project, "non_existing_id")
+      {:error, %Ecto.Changeset{}}
+  """
+  def delete_project_attribute(%Project{} = project, id, user \\ nil) do
+    # Verify the user has permission to edit the project
+    unless is_nil(user) || can_edit_project?(user, project) do
+      raise "User does not have permission to edit this project"
+    end
+
+    # Verify the attribute exists
+    unless Enum.any?(project.attributes, fn attr -> attr.id == id end) do
+      raise "Attribute does not exist"
+    end
+
+    # Delete the attribute
+    change_project(project)
+    |> Ecto.Changeset.put_embed(
+      :attributes,
+      project.attributes
+      |> Enum.map(fn attr ->
+        if attr.id == id do
+          ProjectAttribute.changeset(attr) |> Map.put(:action, :delete)
+        else
+          attr
+        end
+      end)
+    )
+    |> Repo.update()
+  end
+
+  @doc """
   Returns an `%Ecto.Changeset{}` for tracking project changes.
 
   ## Examples
@@ -136,9 +176,9 @@ defmodule Platform.Projects do
   @doc """
   Returns whether the given user can edit a project's media.
   """
-  def can_edit_media?(%Accounts.User{} = user, %Project{} = _project) do
+  def can_edit_media?(%Accounts.User{} = _user, %Project{} = _project) do
     # TODO: Eventually we will handle permissions on a per-project basis.
-    Accounts.is_privileged(user)
+    true
   end
 
   @doc """
@@ -160,5 +200,135 @@ defmodule Platform.Projects do
   """
   def can_view_project?(%Accounts.User{} = _user, %Project{} = _project) do
     true
+  end
+
+  alias Platform.Projects.ProjectMembership
+
+  defp preload_project_memberships(query) do
+    query
+    |> preload([:user, :project])
+  end
+
+  @doc """
+  Returns the list of project_memberships.
+
+  ## Examples
+
+      iex> list_project_memberships()
+      [%ProjectMembership{}, ...]
+
+  """
+  def list_project_memberships do
+    Repo.all(ProjectMembership)
+  end
+
+  @doc """
+  Gets a single project_membership.
+
+  Raises `Ecto.NoResultsError` if the Project membership does not exist.
+
+  ## Examples
+
+      iex> get_project_membership!(123)
+      %ProjectMembership{}
+
+      iex> get_project_membership!(456)
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_project_membership!(id),
+    do: Repo.get!(ProjectMembership |> preload_project_memberships(), id)
+
+  @doc """
+  Gets the project relationships for a given project.
+  """
+  def get_project_memberships(%Project{} = project) do
+    Repo.all(
+      from pm in (ProjectMembership |> preload_project_memberships()),
+        where: pm.project_id == ^project.id
+    )
+  end
+
+  @doc """
+  Gets the project memberships for a user.
+  """
+  def get_users_project_memberships(%Accounts.User{} = user) do
+    Repo.all(
+      from pm in (ProjectMembership |> preload_project_memberships()),
+        where: pm.user_id == ^user.id
+    )
+  end
+
+  @doc """
+  Creates a project_membership.
+
+  ## Examples
+
+      iex> create_project_membership(%{field: value})
+      {:ok, %ProjectMembership{}}
+
+      iex> create_project_membership(%{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_project_membership(attrs \\ %{}) do
+    %ProjectMembership{}
+    |> ProjectMembership.changeset(attrs)
+    |> Repo.insert()
+    |> case do
+      {:ok, val} -> {:ok, Repo.preload(val, [:user, :project])}
+      v -> v
+    end
+  end
+
+  @doc """
+  Updates a project_membership.
+
+  ## Examples
+
+      iex> update_project_membership(project_membership, %{field: new_value})
+      {:ok, %ProjectMembership{}}
+
+      iex> update_project_membership(project_membership, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_project_membership(%ProjectMembership{} = project_membership, attrs) do
+    project_membership
+    |> ProjectMembership.changeset(attrs)
+    |> Repo.update()
+    |> case do
+      {:ok, val} -> {:ok, Repo.preload(val, [:user, :project])}
+      v -> v
+    end
+  end
+
+  @doc """
+  Deletes a project_membership.
+
+  ## Examples
+
+      iex> delete_project_membership(project_membership)
+      {:ok, %ProjectMembership{}}
+
+      iex> delete_project_membership(project_membership)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def delete_project_membership(%ProjectMembership{} = project_membership) do
+    Repo.delete(project_membership)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking project_membership changes.
+
+  ## Examples
+
+      iex> change_project_membership(project_membership)
+      %Ecto.Changeset{data: %ProjectMembership{}}
+
+  """
+  def change_project_membership(%ProjectMembership{} = project_membership, attrs \\ %{}) do
+    ProjectMembership.changeset(project_membership, attrs)
   end
 end

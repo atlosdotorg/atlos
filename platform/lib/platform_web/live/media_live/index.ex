@@ -30,12 +30,39 @@ defmodule PlatformWeb.MediaLive.Index do
       })
     end
 
+    # Pull cursor information from params
+    before_cursor = params["bc"]
+    after_cursor = params["ac"]
+    pagination_index = (params["pi"] || "0") |> String.to_integer()
+
+    search_keywords = [
+      limit: if(display == "map", do: 100_000, else: 51),
+      hydrate: display != "map"
+    ]
+
+    search_keywords =
+      if not is_nil(before_cursor) and not (String.length(before_cursor) == 0) do
+        Keyword.put(search_keywords, :before, before_cursor)
+      else
+        search_keywords
+      end
+
+    search_keywords =
+      if not is_nil(after_cursor) and not (String.length(after_cursor) == 0) do
+        Keyword.put(search_keywords, :after, after_cursor)
+      else
+        search_keywords
+      end
+
     results =
-      search_media(socket, changeset,
+      search_media(
+        socket,
+        changeset,
         # Ideally we would put these params in search_media, but since this is map-specific logic, it'll only be called here (it's not possible to "load more" on the map)
-        limit: if(display == "map", do: 100_000, else: 50),
-        hydrate: display != "map"
+        search_keywords
       )
+
+    active_project = Platform.Projects.get_project(params["project_id"])
 
     {:noreply,
      socket
@@ -46,23 +73,30 @@ defmodule PlatformWeb.MediaLive.Index do
      |> assign(:display, display)
      |> assign(:full_width, display == "table")
      |> assign(:query_params, params)
-     |> assign(:active_project, Platform.Projects.get_project(params["project_id"]))
+     |> assign(:before_cursor, before_cursor)
+     |> assign(:after_cursor, after_cursor)
+     |> assign(:active_project, active_project)
      |> assign(:results, results)
      |> assign(:myself, self())
-     |> assign(:pagination_index, 0)
+     |> assign(:pagination_index, pagination_index)
      |> assign(:editing, nil)
      |> assign(:media, results.entries)
-     |> assign(:attributes, Attribute.active_attributes() |> Enum.filter(&is_nil(&1.parent)))
+     |> assign(:selected_ids, [])
+     |> assign(
+       :addable_projects,
+       Platform.Projects.list_projects_for_user(socket.assigns.current_user)
+     )
+     |> assign(
+       :attributes,
+       Attribute.active_attributes(project: active_project) |> Enum.filter(&is_nil(&1.parent))
+     )
      |> then(fn s ->
        if display == "table",
          do:
            assign(
              s,
              :source_cols,
-             Enum.max([
-               24,
-               Enum.max(results.entries |> Enum.map(&length(&1.versions)), &>=/2, fn -> 0 end)
-             ])
+             Enum.max(results.entries |> Enum.map(&length(&1.versions)), &>=/2, fn -> 0 end)
            ),
          else: s
      end)}
@@ -80,21 +114,127 @@ defmodule PlatformWeb.MediaLive.Index do
     )
   end
 
-  def handle_event("load_more", _params, socket) do
-    cursor_after = socket.assigns.results.metadata.after
+  defp apply_bulk_action(socket, action) do
+    updated_media =
+      socket.assigns.media
+      |> Enum.filter(&Enum.member?(socket.assigns.selected_ids, &1.id))
+      |> Enum.map(action)
 
-    results =
-      search_media(socket, Material.MediaSearch.changeset(socket.assigns.query_params),
-        after: cursor_after
-      )
+    updated_media_ids = Enum.map(updated_media, & &1.id)
 
-    new_socket =
-      socket
-      |> assign(:results, results)
-      |> assign(:pagination_index, socket.assigns.pagination_index + 1)
-      |> assign(:media, socket.assigns.media ++ results.entries)
+    combined_updated_media =
+      Enum.map(socket.assigns.media, fn media ->
+        if Enum.member?(updated_media_ids, media.id) do
+          Enum.find(updated_media, &(&1.id == media.id))
+        else
+          media
+        end
+      end)
 
-    {:noreply, new_socket}
+    combined_updated_media
+  end
+
+  def handle_event("select", %{"slug" => slug}, socket) do
+    media = Enum.find(socket.assigns.media, &(&1.slug == slug))
+
+    {:noreply,
+     socket
+     |> assign(
+       :selected_ids,
+       if(Enum.member?(socket.assigns.selected_ids, media.id),
+         do: Enum.filter(socket.assigns.selected_ids, &(&1 != media.id)),
+         else: [media.id | socket.assigns.selected_ids]
+       )
+     )}
+  end
+
+  def handle_event("select_all", _params, socket) do
+    {:noreply, socket |> assign(:selected_ids, socket.assigns.media |> Enum.map(& &1.id))}
+  end
+
+  def handle_event("deselect_all", _params, socket) do
+    {:noreply, socket |> assign(:selected_ids, [])}
+  end
+
+  def handle_event("apply_tag", %{"tag" => tag}, socket) do
+    {:noreply,
+     socket
+     |> put_flash(
+       :info,
+       "Applied the tag \"#{tag}\" to #{length(socket.assigns.selected_ids)} incident(s)"
+     )
+     |> assign(
+       :media,
+       apply_bulk_action(socket, fn media ->
+         dbg(media.attr_tags)
+
+         if (media.attr_tags || []) |> Enum.member?(tag) do
+           media
+         else
+           {:ok, media} =
+             Platform.Material.update_media_attribute_audited(
+               media,
+               Platform.Material.Attribute.get_attribute(:tags),
+               socket.assigns.current_user,
+               %{"attr_tags" => (media.attr_tags || []) ++ [tag]}
+             )
+
+           media
+         end
+       end)
+     )}
+  end
+
+  def handle_event("apply_project", %{"project-id" => project_id}, socket) do
+    project = Platform.Projects.get_project!(project_id)
+
+    {:noreply,
+     socket
+     |> put_flash(
+       :info,
+       "Added the selected incidents to #{project.name}. Incidents already in a project were not modified."
+     )
+     |> assign(
+       :media,
+       apply_bulk_action(socket, fn media ->
+         if not is_nil(media.project) do
+           media
+         else
+           Platform.Material.update_media_project_audited(media, socket.assigns.current_user, %{
+             "project_id" => project_id
+           })
+
+           Platform.Material.get_media!(media.id)
+         end
+       end)
+     )}
+  end
+
+  def handle_event("apply_status", %{"status" => status}, socket) do
+    {:noreply,
+     socket
+     |> put_flash(
+       :info,
+       "Status set to \"#{status}\" on the #{length(socket.assigns.selected_ids)} selected incident(s)"
+     )
+     |> assign(
+       :media,
+       apply_bulk_action(socket, fn media ->
+         if media.attr_status == status do
+           media
+         else
+           {:ok, media} =
+             Platform.Material.update_media_attribute_audited(
+               media,
+               Platform.Material.Attribute.get_attribute(:status),
+               socket.assigns.current_user,
+               %{"attr_status" => status}
+             )
+
+           media
+         end
+       end)
+     )}
   end
 
   def handle_event("validate", params, socket) do
@@ -102,7 +242,14 @@ defmodule PlatformWeb.MediaLive.Index do
   end
 
   def handle_event("save", %{"search" => params}, socket) do
-    {:noreply, socket |> push_patch(to: Routes.live_path(socket, __MODULE__, params))}
+    # Also reset the pagination index, since we're doing a new search
+    merged_params =
+      Map.merge(socket.assigns.query_params, params)
+      |> Map.delete("bc")
+      |> Map.delete("ac")
+      |> Map.delete("pi")
+
+    {:noreply, socket |> push_patch(to: Routes.live_path(socket, __MODULE__, merged_params))}
   end
 
   def handle_event(

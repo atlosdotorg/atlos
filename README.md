@@ -31,3 +31,5 @@ Atlos is open source, licensed under the GPLv3. We take the license very serious
 - We are grateful to [Fly.io](https://fly.io) for sponsoring our infrastructure.
 - We are grateful to [Logtail](https://betterstack.com/logtail) for sponsoring our logging system.
 - We are grateful to [Highlight](https://highlight.io/) for providing invaluable privacy-friendly usage monitoring.
+
+<a target="_blank" href="https://betteruptime.com/"><img style="width: 130px; height: 52px;" alt="Better Uptime Website Monitoring" src="https://betteruptime.com/assets/static_assets/badges/light.png" /></a>

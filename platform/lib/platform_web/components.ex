@@ -34,6 +34,9 @@ defmodule PlatformWeb.Components do
   end
 
   def modal(assigns) do
+    assigns =
+      assign_new(assigns, :id, fn -> "default" end) |> assign_new(:js_on_close, fn -> "" end)
+
     ~H"""
     <div
       class="fixed z-[10000] inset-0 overflow-y-auto"
@@ -41,7 +44,7 @@ defmodule PlatformWeb.Components do
       role="dialog"
       aria-modal="true"
       phx-hook="Modal"
-      id="modal"
+      id={"modal-" <> @id}
       x-data
     >
       <div
@@ -57,9 +60,9 @@ defmodule PlatformWeb.Components do
             )
           }
           aria-hidden="true"
-          x-on:click="window.closeModal($event)"
+          x-on:click={"window.closeModal($event); " <> @js_on_close}
           phx-target={@target}
-          id="modal-overlay"
+          id={"modal-overlay-" <> @id}
         >
         </div>
         <!-- This element is to trick the browser into centering the modal contents. -->
@@ -84,7 +87,7 @@ defmodule PlatformWeb.Components do
             <button
               type="button"
               class="text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-urge-500 p-1"
-              x-on:click="window.closeModal($event)"
+              x-on:click={"window.closeModal($event); " <> @js_on_close}
               phx-target={@target}
             >
               <span class="sr-only">Close</span>
@@ -286,7 +289,6 @@ defmodule PlatformWeb.Components do
         <div
           class="grid md:flex md:flex-col md:justify-start grid-cols-3 gap-1 md:grid-cols-1 mt-6 w-full px-2 md:h-full md:pb-2 pb-6 md:max-h-full"
           x-show="open"
-          x-cloak
         >
           <.navlink to="/home" label="Home" request_path={@path}>
             <Heroicons.home solid class="text-neutral-300 group-hover:text-white h-6 w-6" />
@@ -522,7 +524,7 @@ defmodule PlatformWeb.Components do
     """
   end
 
-  attr :project, Platform.Projects.Project, required: false
+  attr(:project, Platform.Projects.Project, required: false)
 
   def project_text(assigns) do
     ~H"""
@@ -606,7 +608,7 @@ defmodule PlatformWeb.Components do
 
       attributes =
         update
-        |> Enum.map(&Attribute.get_attribute(&1.modified_attribute))
+        |> Enum.map(&Attribute.get_attribute(&1.modified_attribute, project: &1.media.project))
         |> Enum.sort()
         |> Enum.uniq()
 
@@ -649,10 +651,16 @@ defmodule PlatformWeb.Components do
                   <.user_text user={@head.user} />
                   <%= case @head.type do %>
                     <% :update_attribute -> %>
-                      made <%= length(@update) %> updates to
-                      <%= for {attr, idx} <- @attributes |> Enum.with_index() do %>
+                      made <%= length(@update) %> updates to <% changed_attrs =
+                        @attributes |> Enum.filter(&(!is_nil(&1))) |> Enum.with_index() %>
+                      <%= for {attr, idx} <- changed_attrs do %>
                         <span class="font-medium text-gray-800">
                           <%= attr.label <> connector_language(idx, @n_attributes) %>
+                        </span>
+                      <% end %>
+                      <%= if Enum.empty?(changed_attrs) do %>
+                        <span class="font-medium text-gray-800">
+                          attributes
                         </span>
                       <% end %>
                     <% :upload_version -> %>
@@ -734,9 +742,16 @@ defmodule PlatformWeb.Components do
                     <.user_text user={@update.user} />
                     <%= case @update.type do %>
                       <% :update_attribute -> %>
-                        <% attr = Attribute.get_attribute(@update.modified_attribute) %> updated
-                        <%= live_patch class: "text-button text-gray-800 inline-block", to: Routes.media_show_path(@socket, :history, @update.media.slug, attr.name) do %>
-                          <%= attr.label %> &nearr;
+                        <% attr =
+                          Attribute.get_attribute(@update.modified_attribute,
+                            project: @update.media.project
+                          ) %> updated
+                        <%= if not is_nil(attr) do %>
+                          <%= live_patch class: "text-button text-gray-800 inline-block", to: Routes.media_show_path(@socket, :history, @update.media.slug, attr.name) do %>
+                            <%= attr.label %> &nearr;
+                          <% end %>
+                        <% else %>
+                          a deleted or unknown attribute
                         <% end %>
                       <% :create -> %>
                         added this incident
@@ -799,16 +814,22 @@ defmodule PlatformWeb.Components do
                   </div>
                 </div>
 
-                <%= if @update.type == :update_attribute || @update.explanation do %>
+                <% has_attr_change_to_show =
+                  @update.type == :update_attribute and
+                    not is_nil(
+                      Attribute.get_attribute(@update.modified_attribute, project: @update.media.project)
+                    ) %>
+                <%= if has_attr_change_to_show || @update.explanation do %>
                   <div class="mt-1 text-sm text-gray-700 border border-gray-300 rounded-lg shadow-sm overflow-hidden flex flex-col divide-y">
                     <!-- Update detail section -->
-                    <%= if @update.type == :update_attribute do %>
+                    <%= if has_attr_change_to_show do %>
                       <div class="bg-gray-50 p-2 flex">
                         <div class="flex-grow">
                           <.attr_diff
                             name={@update.modified_attribute}
                             old={Jason.decode!(@update.old_value)}
                             new={Jason.decode!(@update.new_value)}
+                            project={@update.media.project}
                           />
                         </div>
                       </div>
@@ -989,17 +1010,19 @@ defmodule PlatformWeb.Components do
     assigns =
       assign(assigns, :children, Attribute.get_children(attr.name))
       |> assign_new(:truncate, fn -> true end)
+      |> assign(:attr_value, Material.get_attribute_value(assigns.media, attr))
 
     ~H"""
     <div class="inline">
-      <%= if not is_nil(Map.get(@media, @attr.schema_field)) and Map.get(@media, @attr.schema_field) != [] and Map.get(@media, @attr.schema_field) != "" do %>
+      <%= if not is_nil(@attr_value) and @attr_value != [] and @attr_value != "" do %>
         <div class="inline-flex flex-wrap text-xs">
           <div class="break-word max-w-full text-ellipsis">
             <.attr_entry
               color={true}
               compact={@truncate}
               name={@attr.name}
-              value={Map.get(@media, @attr.schema_field)}
+              project={@media.project}
+              value={@attr_value}
             />
             <%= for child <- @children do %>
               <%= if not is_nil(Map.get(@media, child.schema_field)) do %>
@@ -1007,7 +1030,8 @@ defmodule PlatformWeb.Components do
                   color={true}
                   compact={@truncate}
                   name={child.name}
-                  value={Map.get(@media, child.schema_field)}
+                  value={Material.get_attribute_value(@media, child)}
+                  project={@media.project}
                   label={child.label}
                 />
               <% end %>
@@ -1069,8 +1093,13 @@ defmodule PlatformWeb.Components do
       </dt>
       <dd class="mt-1 flex items-center text-sm text-gray-900 sm:mt-0 sm:col-span-2">
         <span class="flex-grow gap-1 flex flex-wrap">
-          <%= if not is_nil(Map.get(@media, @attr.schema_field)) do %>
-            <.attr_entry name={@attr.name} color={false} value={Map.get(@media, @attr.schema_field)} />
+          <%= if not is_nil(Material.get_attribute_value(@media, @attr)) do %>
+            <.attr_entry
+              name={@attr.name}
+              color={false}
+              value={Material.get_attribute_value(@media, @attr)}
+              project={@media.project}
+            />
             <%= for child <- @children do %>
               <%= if not is_nil(Map.get(@media, child.schema_field)) do %>
                 <.attr_entry
@@ -1078,6 +1107,7 @@ defmodule PlatformWeb.Components do
                   color={false}
                   value={Map.get(@media, child.schema_field)}
                   label={child.label}
+                  project={@media.project}
                 />
               <% end %>
             <% end %>
@@ -1121,8 +1151,8 @@ defmodule PlatformWeb.Components do
     """
   end
 
-  def attr_entry(%{name: name, value: value} = assigns) do
-    attr = Attribute.get_attribute(name)
+  def attr_entry(%{name: name, value: value, project: project} = assigns) do
+    attr = Attribute.get_attribute(name, project: project)
 
     tone =
       if Map.get(assigns, :color, false), do: Attribute.attr_color(name, value), else: "~neutral"
@@ -1159,7 +1189,12 @@ defmodule PlatformWeb.Components do
         <% :select -> %>
           <div class="inline-block">
             <div class={"chip #{@tone} flex items-center gap-1 inline-block self-start break-all xl:break-normal"}>
-              <.attribute_icon name={@name} type={:solid} value={@value} class="h-4 w-4 shrink-0" />
+              <.attribute_icon
+                name={@name}
+                type={:solid}
+                value={@value}
+                class="h-4 w-4 shrink-0 opacity-50"
+              />
               <.attr_label label={@label} />
               <span><%= @value %></span>
             </div>
@@ -1168,7 +1203,12 @@ defmodule PlatformWeb.Components do
           <.attr_label label={@label} />
           <%= for item <- (if @compact, do: @value |> Enum.take(1), else: @value) do %>
             <div class={"chip #{@tone} flex items-center gap-1 inline-block self-start break-all xl:break-normal"}>
-              <.attribute_icon name={@name} type={:solid} value={item} class="h-4 w-4 shrink-0" />
+              <.attribute_icon
+                name={@name}
+                type={:solid}
+                value={item}
+                class="h-4 w-4 shrink-0 opacity-50"
+              />
               <span><%= item %></span>
             </div>
             <%= if @compact and length(@value) > 1 do %>
@@ -1185,7 +1225,12 @@ defmodule PlatformWeb.Components do
               target="_blank"
               href={"https://maps.google.com/maps?q=#{lat},#{lon}"}
             >
-              <.attribute_icon name={@name} type={:solid} value={@value} class="h-4 w-4 shrink-0" />
+              <.attribute_icon
+                name={@name}
+                type={:solid}
+                value={@value}
+                class="h-4 w-4 shrink-0 opacity-50"
+              />
               <.attr_label label={@label} />
               <.location lat={lat} lon={lon} />
             </a>
@@ -1193,7 +1238,12 @@ defmodule PlatformWeb.Components do
         <% :time -> %>
           <div class="inline-block">
             <div class={"chip #{@tone} flex items-center gap-1 inline-block self-start break-all xl:break-normal"}>
-              <.attribute_icon name={@name} type={:solid} value={@value} class="h-4 w-4 shrink-0" />
+              <.attribute_icon
+                name={@name}
+                type={:solid}
+                value={@value}
+                class="h-4 w-4 shrink-0 opacity-50"
+              />
               <.attr_label label={@label} />
               <%= @value %>
             </div>
@@ -1201,9 +1251,14 @@ defmodule PlatformWeb.Components do
         <% :date -> %>
           <div class="inline-block">
             <div class={"chip #{@tone} flex items-center gap-1 inline-block self-start break-all xl:break-normal"}>
-              <.attribute_icon name={@name} type={:solid} value={@value} class="h-4 w-4 shrink-0" />
+              <.attribute_icon
+                name={@name}
+                type={:solid}
+                value={@value}
+                class="h-4 w-4 shrink-0 opacity-50"
+              />
               <.attr_label label={@label} />
-              <%= @value |> Calendar.strftime("%d %B %Y") %>
+              <%= Platform.Utils.format_date(@value) %>
             </div>
           </div>
       <% end %>
@@ -1432,68 +1487,74 @@ defmodule PlatformWeb.Components do
     """
   end
 
-  def attr_diff(%{name: name, old: old, new: new} = assigns) do
-    attr = Attribute.get_attribute(name)
+  def attr_diff(%{name: name, old: old, new: new, project: project} = assigns) do
+    attr = Attribute.get_attribute(name, project: project)
 
-    assigns =
-      assigns
-      |> assign(:attr, attr)
-      |> assign(:label, Map.get(assigns, :label, ""))
-      |> assign(:children, Attribute.get_children(name))
-      |> assign(
-        :old_val,
-        # It's possible to encode changes to multiple schema fields in one update, but some legacy/existing updates
-        # have their values encoded in the old format, so we perform a render-time conversion here.
-        if(Material.is_combined_update_value(old),
-          do: old |> Map.get(attr.schema_field |> to_string()),
-          else: old
+    if not is_nil(attr) do
+      assigns =
+        assigns
+        |> assign(:attr, attr)
+        |> assign(:label, Map.get(assigns, :label, ""))
+        |> assign(:children, Attribute.get_children(name))
+        |> assign(
+          :old_val,
+          # It's possible to encode changes to multiple schema fields in one update, but some legacy/existing updates
+          # have their values encoded in the old format, so we perform a render-time conversion here.
+          if(Material.is_combined_update_value(old),
+            do: old |> Map.get(Platform.Updates.key_for_attribute(attr)),
+            else: old
+          )
         )
-      )
-      |> assign(
-        :new_val,
-        if(Material.is_combined_update_value(new),
-          do: new |> Map.get(attr.schema_field |> to_string()),
-          else: new
+        |> assign(
+          :new_val,
+          if(Material.is_combined_update_value(new),
+            do: new |> Map.get(Platform.Updates.key_for_attribute(attr)),
+            else: new
+          )
         )
-      )
 
-    ~H"""
-    <div class="inline-block">
-      <% format_date = fn val ->
-        with false <- is_nil(val),
-             {:ok, date} <- val |> Date.from_iso8601() do
-          [date |> Calendar.strftime("%d %B %Y")]
-        else
-          _ -> nil
-        end
-      end %>
-      <span>
-        <%= case @attr.type do %>
-          <% :text -> %>
-            <.text_diff old={@old_val} new={@new_val} label={@label} />
-          <% :select -> %>
-            <.list_diff old={[@old_val]} new={[@new_val]} label={@label} />
-          <% :multi_select -> %>
-            <.list_diff
-              old={if is_list(@old_val), do: @old_val, else: [@old_val]}
-              new={if is_list(@new_val), do: @new_val, else: [@new_val]}
-              label={@label}
-            />
-          <% :location -> %>
-            <.location_diff old={@old_val} new={@new_val} label={@label} />
-          <% :time -> %>
-            <.list_diff old={[@old_val]} new={[@new_val]} label={@label} />
-          <% :date -> %>
-            <.list_diff old={format_date.(@old_val)} new={format_date.(@new_val)} label={@label} />
+      ~H"""
+      <div class="inline-block">
+        <span>
+          <%= case @attr.type do %>
+            <% :text -> %>
+              <.text_diff old={@old_val} new={@new_val} label={@label} />
+            <% :select -> %>
+              <.list_diff old={[@old_val]} new={[@new_val]} label={@label} />
+            <% :multi_select -> %>
+              <.list_diff
+                old={if is_list(@old_val), do: @old_val, else: [@old_val]}
+                new={if is_list(@new_val), do: @new_val, else: [@new_val]}
+                label={@label}
+              />
+            <% :location -> %>
+              <.location_diff old={@old_val} new={@new_val} label={@label} />
+            <% :time -> %>
+              <.list_diff old={[@old_val]} new={[@new_val]} label={@label} />
+            <% :date -> %>
+              <.list_diff
+                old={[Platform.Utils.format_date(@old_val)]}
+                new={[Platform.Utils.format_date(@new_val)]}
+                label={@label}
+              />
+          <% end %>
+        </span>
+        <%= if Material.is_combined_update_value(@old) and Material.is_combined_update_value(@new) do %>
+          <%= for child <- @children do %>
+            <.attr_diff name={child.name} old={@old} new={@new} label={child.label} project={@project} />
+          <% end %>
         <% end %>
-      </span>
-      <%= if Material.is_combined_update_value(@old) and Material.is_combined_update_value(@new) do %>
-        <%= for child <- @children do %>
-          <.attr_diff name={child.name} old={@old} new={@new} label={child.label} />
-        <% end %>
-      <% end %>
-    </div>
-    """
+      </div>
+      """
+    else
+      ~H"""
+      <div class="inline-block">
+        <span class="italic">
+          Change is unavailable
+        </span>
+      </div>
+      """
+    end
   end
 
   def deconfliction_warning(assigns) do
@@ -1610,28 +1671,54 @@ defmodule PlatformWeb.Components do
     <% is_subscribed = @media.has_subscription %>
     <% has_unread_notification = @media.has_unread_notification %>
     <% is_sensitive = Material.Media.is_sensitive(@media) %>
+    <% background_color =
+      cond do
+        is_sensitive -> "bg-red-50"
+        true -> "bg-white group-hover:bg-neutral-50 hover:bg-neutral-50"
+      end %>
     <tr
-      class={"search-highlighting group transition-all " <> if is_sensitive, do: "bg-red-50", else: "bg-white hover:bg-neutral-50 "}
+      class={"search-highlighting group transition-all " <> background_color}
       id={"table-row-" <> @media.slug}
+      x-data={"{selected: #{@is_selected}}"}
+      x-bind:class={"{'!bg-urge-50': (selected || #{@is_selected})}"}
     >
       <td
         id={"table-row-" <> @media.slug <> "-slug"}
-        class={"md:sticky left-0 z-[100] pl-4 pr-1 border-r font-mono whitespace-nowrap border-b border-gray-200 h-10 transition-all " <> if is_sensitive, do: "bg-red-50", else: "bg-white group-hover:bg-neutral-50 "}
+        class={"md:sticky left-0 z-[100] pl-4 pr-1 flex items-center gap-1 border-r whitespace-nowrap border-b border-gray-200 h-10 transition-all " <> background_color}
+        x-bind:class={"{'!bg-urge-50': (selected || #{@is_selected})}"}
       >
-        <.link
-          href={"/incidents/#{@media.slug}"}
-          class="text-button text-sm flex items-center gap-1 mr-px"
-        >
+        <%= if Platform.Accounts.is_privileged(@current_user) do %>
           <div
-            class="flex-shrink-0 w-5 mr-1"
-            data-tooltip={"Last modified by #{List.last(@media.updates).user.username}"}
+            class="flex-shrink-0 w-5 mr-2 group-hover:block"
+            x-bind:class={"{'hidden': !(selected || #{@is_selected})}"}
+            data-tooltip="Select this incident"
+            x-cloak
           >
-            <.user_stack
-              users={@media.updates |> Enum.take(1) |> Enum.map(& &1.user)}
-              dynamic={false}
-              ring_class="ring-transparent"
+            <input
+              phx-click="select"
+              phx-value-slug={@media.slug}
+              x-on:change="selected = $event.target.checked"
+              checked={@is_selected}
+              type="checkbox"
+              class="h-4 w-4 mb-1 rounded border-gray-300 text-urge-600 focus:ring-urge-600"
             />
           </div>
+        <% end %>
+        <div
+          class={"flex-shrink-0 w-5 mr-2 " <> (if Platform.Accounts.is_privileged(@current_user), do: "group-hover:hidden", else: "")}
+          x-bind:class={"{'hidden': (selected || #{@is_selected})}"}
+          data-tooltip={"Last modified by #{List.last(@media.updates).user.username}"}
+        >
+          <.user_stack
+            users={@media.updates |> Enum.take(1) |> Enum.map(& &1.user)}
+            dynamic={false}
+            ring_class="ring-transparent"
+          />
+        </div>
+        <.link
+          href={"/incidents/#{@media.slug}"}
+          class="text-button text-sm flex items-center gap-1 mr-px font-mono"
+        >
           <span style={"color: #{if @media.project, do: @media.project.color, else: "unset"}"}>
             <%= Media.slug_to_display(@media) %>
           </span>
@@ -1680,61 +1767,23 @@ defmodule PlatformWeb.Components do
       <%= for attr <- @attributes do %>
         <td
           class="border-b cursor-pointer p-0"
+          phx-click={
+            if Platform.Material.Attribute.can_user_edit(attr, @current_user, @media),
+              do: "edit_attribute",
+              else: nil
+          }
+          phx-value-attribute={attr.name}
+          phx-value-media-id={@media.id}
           id={"table-row-" <> @media.slug <> "-" <> to_string(attr.name)}
         >
           <div class="text-sm text-gray-900 px-4 overflow-hidden h-6 max-w-[36rem] truncate">
-            <.popover class="font-base p-0 inline">
-              <.link href={"/incidents/#{@media.slug}"} class="inline">
-                <.attr_display_compact
-                  color={true}
-                  truncate={true}
-                  attr={attr}
-                  media={@media}
-                  current_user={@current_user}
-                />
-              </.link>
-              <:display>
-                <% update =
-                  @media.updates
-                  |> Enum.filter(
-                    &(&1.modified_attribute == attr.name ||
-                        &1.type == :create)
-                  )
-                  |> Enum.sort_by(& &1.inserted_at)
-                  |> Enum.reverse()
-                  |> hd() %>
-                <div class="py-2 flex flex-col gap-2 word-breaks">
-                  <div class="md:flex gap-4 items-center justify-between">
-                    <%= if not is_nil(update) do %>
-                      <div class="text-sm text-neutral-600">
-                        <.user_text user={update.user} /> changed
-                        <.rel_time time={update.inserted_at} />
-                      </div>
-                    <% end %>
-                    <%= if Platform.Material.Attribute.can_user_edit(attr, @current_user, @media) do %>
-                      <button
-                        class="button ~urge @high inline !rounded !text-xs !px-2 !py-1"
-                        phx-click="edit_attribute"
-                        phx-value-attribute={attr.name}
-                        phx-value-media-id={@media.id}
-                        phx-disable-with="Opening..."
-                      >
-                        Update
-                      </button>
-                    <% end %>
-                  </div>
-                  <div class="border p-2 rounded shadow-sm max-w-full">
-                    <.attr_display_compact
-                      color={true}
-                      attr={attr}
-                      truncate={false}
-                      media={@media}
-                      current_user={@current_user}
-                    />
-                  </div>
-                </div>
-              </:display>
-            </.popover>
+            <.attr_display_compact
+              color={true}
+              truncate={true}
+              attr={attr}
+              media={@media}
+              current_user={@current_user}
+            />
           </div>
         </td>
       <% end %>
@@ -1786,12 +1835,16 @@ defmodule PlatformWeb.Components do
 
   def search_form(%{changeset: _, query_params: _, socket: _, display: _} = assigns) do
     assigns = assign_new(assigns, :exclude, fn -> [] end)
+    # We assign the ID to the top-level div to fix a Safari rendering bug
 
     ~H"""
-    <div x-data="{ open: window.innerWidth >= 768 }">
+    <div
+      x-data="{ open: window.innerWidth >= 768 }"
+      id={"search-form-component-#{Ecto.Changeset.get_field(@changeset, :display) |> to_string()}"}
+    >
       <button
         x-on:click="open = !open"
-        class="mx-auto md:hidden bg-white hover:shadow-lg hover:bg-neutral-100 focus:ring-urge-400 transition-all rounded-full gap-1 px-4 py-2 text-sm flex items-center shadow text-neutral-700 justify-around mb-4"
+        class="mx-auto md:hidden bg-white hover:shadow-lg hover:bg-neutral-100 focus:ring-urge-400 transition-all rounded-full gap-1 px-3 py-2 text-sm flex items-center shadow text-neutral-700 justify-around mb-4"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -1815,6 +1868,7 @@ defmodule PlatformWeb.Components do
           id="search-form"
           phx-change={JS.push("validate") |> JS.dispatch("atlos:updating", to: "body")}
           phx-submit={JS.push("save") |> JS.dispatch("atlos:updating", to: "body")}
+          data-no-warn="true"
         >
           <section class="md:flex w-full max-w-7xl mx-auto flex-wrap md:flex-nowrap gap-2 items-center">
             <div class="flex divide-y md:divide-y-0 md:divide-x flex-col flex-grow md:flex-row rounded-lg bg-white shadow-sm border overflow-hidden">
@@ -2022,7 +2076,8 @@ defmodule PlatformWeb.Components do
                       <%= button type: "button", to: Routes.export_path(@socket, :create, @query_params),
                   class: "text-gray-700 group w-full hover:bg-gray-100 flex items-center px-4 py-2 text-sm",
                   role: "menuitem",
-                  method: :post
+                  method: :post,
+                  "x-cloak": true
                    do %>
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
@@ -2113,24 +2168,6 @@ defmodule PlatformWeb.Components do
       <%= if @media.attr_date do %>
         <span class="self-start badge whitespace-nowrap ~neutral">
           <%= @media.attr_date |> Calendar.strftime("%d %B %Y") %>
-        </span>
-      <% end %>
-
-      <%= if is_list(@media.attr_type) and not Enum.empty?(@media.attr_type) do %>
-        <span class="self-start badge whitespace-nowrap ~neutral">
-          <%= hd(@media.attr_type) %>
-        </span>
-      <% end %>
-
-      <%= if is_list(@media.attr_equipment) and not Enum.empty?(@media.attr_equipment) do %>
-        <span class="self-start badge whitespace-nowrap ~neutral">
-          <%= hd(@media.attr_equipment) %>
-        </span>
-      <% end %>
-
-      <%= if is_list(@media.attr_impact) and not Enum.empty?(@media.attr_impact) do %>
-        <span class="self-start badge whitespace-nowrap ~neutral">
-          <%= hd(@media.attr_impact) %>
         </span>
       <% end %>
     <% end %>
@@ -2834,6 +2871,51 @@ defmodule PlatformWeb.Components do
     """
   end
 
+  def dropdown(assigns) do
+    ~H"""
+    <div
+      class="relative inline-block text-left z-[10000]"
+      x-data="{open: false}"
+      x-on:click.away="open = false"
+    >
+      <div>
+        <button
+          type="button"
+          class="inline-flex w-full justify-center gap-x-1.5 text-sm text-gray-900"
+          aria-haspopup="true"
+          x-on:click="open = !open"
+        >
+          <%= @label %>
+          <svg
+            class="-mr-1 h-5 w-5 text-gray-400"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+            aria-hidden="true"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
+              clip-rule="evenodd"
+            />
+          </svg>
+        </button>
+      </div>
+      <div
+        class="absolute right-0 z-10 mt-2 w-56 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
+        role="menu"
+        x-transition
+        aria-orientation="vertical"
+        tabindex="-1"
+        x-show="open"
+      >
+        <div class="py-1" role="none">
+          <%= render_slot(@inner_block) %>
+        </div>
+      </div>
+    </div>
+    """
+  end
+
   def interactive_urldrop(assigns) do
     ~H"""
     <div id={@id} phx-update="ignore">
@@ -2855,7 +2937,47 @@ defmodule PlatformWeb.Components do
     """
   end
 
-  def edit_attribute(%{attr: attr, form: form, media_slug: slug, media: _} = assigns) do
+  def edit_attributes(assigns) do
+    core_attributes = assigns[:attrs] |> Enum.filter(&(&1.schema_field != :project_attributes))
+    project_attributes = assigns[:attrs] |> Enum.filter(&(&1.schema_field == :project_attributes))
+
+    assigns =
+      assigns
+      |> assign(:core_attributes, core_attributes)
+      |> assign(:project_attributes, project_attributes)
+      |> assign_new(:optional, fn -> false end)
+
+    ~H"""
+    <section class="flex flex-col gap-8">
+      <%= for attr <- @core_attributes do %>
+        <.edit_attribute
+          attr={attr}
+          form={@form}
+          media_slug={@media_slug}
+          media={@media}
+          optional={@optional}
+        />
+      <% end %>
+
+      <%= for sub_f <- inputs_for(@form, :project_attributes), not is_nil(Enum.find(@project_attributes, &(&1.name == input_value(sub_f, :id)))) do %>
+        <% attr = @project_attributes |> Enum.find(&(&1.name == input_value(sub_f, :id))) %>
+        <div>
+          <%= hidden_input(sub_f, :project_id) %>
+          <%= hidden_input(sub_f, :id) %>
+          <.edit_attribute
+            attr={attr}
+            form={sub_f}
+            media_slug={@media_slug}
+            media={@media}
+            optional={@optional}
+          />
+        </div>
+      <% end %>
+    </section>
+    """
+  end
+
+  defp edit_attribute(%{attr: attr, form: form, media_slug: slug} = assigns) do
     assigns =
       assigns
       |> assign(
@@ -2865,43 +2987,52 @@ defmodule PlatformWeb.Components do
       # Shorthands
       |> assign(:slug, slug)
       |> assign(:f, form)
+      |> assign(
+        :schema_field,
+        if(attr.schema_field == :project_attributes, do: :value, else: attr.schema_field)
+      )
 
     ~H"""
-    <div x-data="{user_loc: null}">
+    <article x-data="{user_loc: null}" id={"editor-" <> (@attr.name |> to_string())}>
       <%= case @attr.type do %>
         <% :text -> %>
-          <%= label(@f, @attr.schema_field, @label) %>
+          <%= label(@f, @schema_field, @label) %>
           <%= case @attr.input_type || :textarea do %>
             <% :textarea -> %>
-              <%= textarea(@f, @attr.schema_field, rows: 3) %>
+              <%= textarea(@f, @schema_field, rows: 3) %>
             <% :short_text -> %>
-              <%= text_input(@f, @attr.schema_field) %>
+              <%= text_input(@f, @schema_field) %>
           <% end %>
-          <%= error_tag(@f, @attr.schema_field) %>
+          <%= error_tag(@f, @schema_field) %>
         <% :select -> %>
-          <%= label(@f, @attr.schema_field, @label) %>
-          <%= error_tag(@f, @attr.schema_field) %>
-          <div phx-update="ignore" id={"attr_select_#{@slug}_#{@attr.schema_field}"}>
+          <%= label(@f, @schema_field, @label) %>
+          <%= error_tag(@f, @schema_field) %>
+          <div phx-update="ignore" id={"attr_select_#{@slug}_#{@attr.name}"}>
             <%= select(
               @f,
-              @attr.schema_field,
+              @schema_field,
               if(@attr.required, do: [], else: ["[Unset]": nil]) ++
-                Attribute.options(@attr),
+                Attribute.options(
+                  @attr,
+                  if(is_nil(@media), do: nil, else: Material.get_attribute_value(@media, @attr))
+                ),
+              id: "attr_select_#{@slug}_#{@attr.name}_input",
               data_descriptions: Jason.encode!(@attr.option_descriptions || %{}),
               data_privileged: Jason.encode!(@attr.privileged_values || [])
             ) %>
           </div>
         <% :multi_select -> %>
-          <%= label(@f, @attr.schema_field, @label) %>
-          <%= error_tag(@f, @attr.schema_field) %>
-          <div phx-update="ignore" id={"attr_multi_select_#{@slug}_#{@attr.schema_field}"}>
+          <%= label(@f, @schema_field, @label) %>
+          <%= error_tag(@f, @schema_field) %>
+          <div phx-update="ignore" id={"attr_multi_select_#{@slug}_#{@attr.name}"}>
             <%= multiple_select(
               @f,
-              @attr.schema_field,
+              @schema_field,
               Attribute.options(
                 @attr,
-                if(is_nil(@media), do: nil, else: Map.get(@media, @attr.schema_field))
+                if(is_nil(@media), do: nil, else: Material.get_attribute_value(@media, @attr))
               ),
+              id: "attr_multi_select_#{@slug}_#{@attr.name}_input",
               data_descriptions: Jason.encode!(@attr.option_descriptions || %{}),
               data_privileged: Jason.encode!(@attr.privileged_values || []),
               data_allow_user_defined_options: Attribute.allow_user_defined_options(@attr)
@@ -2919,12 +3050,12 @@ defmodule PlatformWeb.Components do
               ) %>
               <%= error_tag(@f, :location) %>
             </div>
-            <%= error_tag(@f, @attr.schema_field) %>
+            <%= error_tag(@f, @schema_field) %>
           </div>
         <% :time -> %>
-          <%= label(@f, @attr.schema_field, @label) %>
+          <%= label(@f, @schema_field, @label) %>
           <div class="flex items-center gap-2 ts-ignore sm:w-64 apply-a17t-fields">
-            <%= time_select(@f, @attr.schema_field,
+            <%= time_select(@f, @schema_field,
               hour: [prompt: "[Unset]"],
               minute: [prompt: "[Unset]"],
               class: "select",
@@ -2934,11 +3065,11 @@ defmodule PlatformWeb.Components do
           <p class="support">
             To unset this attribute, set both the hour and minute fields to [Unset].
           </p>
-          <%= error_tag(@f, @attr.schema_field) %>
+          <%= error_tag(@f, @schema_field) %>
         <% :date -> %>
-          <%= label(@f, @attr.schema_field, @label) %>
+          <%= label(@f, @schema_field, @label) %>
           <div class="flex items-center gap-2 ts-ignore apply-a17t-fields">
-            <%= date_select(@f, @attr.schema_field,
+            <%= date_select(@f, @schema_field,
               year: [prompt: "[Unset]", options: DateTime.utc_now().year..1990],
               month: [prompt: "[Unset]"],
               day: [prompt: "[Unset]"],
@@ -2949,7 +3080,7 @@ defmodule PlatformWeb.Components do
           <p class="support">
             To unset this attribute, set the day, month, and year fields to [Unset].
           </p>
-          <%= error_tag(@f, @attr.schema_field) %>
+          <%= error_tag(@f, @schema_field) %>
       <% end %>
       <%= if @attr.type == :location do %>
         <a
@@ -2961,7 +3092,7 @@ defmodule PlatformWeb.Components do
           Preview <span class="font-bold" x-text="user_loc"></span> on Google Maps
         </a>
       <% end %>
-    </div>
+    </article>
     """
   end
 
@@ -3016,7 +3147,7 @@ defmodule PlatformWeb.Components do
           <.user_name_display user={@user} />
           <p class="text-neutral-600">
             <%= if is_nil(@user.bio) or String.length(@user.bio |> String.trim()) == 0,
-              do: "This user has not provided a bio.",
+              do: "",
               else: @user.bio %>
           </p>
         </div>
@@ -3281,6 +3412,100 @@ defmodule PlatformWeb.Components do
         </p>
       </div>
     </.link>
+    """
+  end
+
+  attr(:map_data, :list)
+
+  def map_events(assigns) do
+    # Note: interactivity is setup by `app.js` when initializing the map client-side
+
+    map_data = assigns[:map_data]
+
+    {lat, lon} =
+      with [first | _] <- map_data,
+           %{lat: lat, lon: lon} when -90 <= lat and 90 > lat and -180 <= lon and 180 >= lon <-
+             first do
+        first = map_data |> Enum.at(0)
+        {first[:lat], first[:lon]}
+      else
+        _ -> {35, 35}
+      end
+
+    assigns = assign(assigns, :lat, lat) |> assign(:lon, lon)
+
+    ~H"""
+    <map-events
+      lat={@lat}
+      lon={@lon}
+      zoom="3"
+      id="map_events"
+      container-id="map_events_container"
+      data={Jason.encode!(@map_data)}
+    />
+    <section
+      class="fixed relative h-screen w-screen left-0 top-0 bottom-0"
+      id="map"
+      phx-update="ignore"
+      x-data="{style: 'overview'}"
+    >
+      <map-container id="map_events_container" x-ref="container" />
+      <button class="rounded-full bg-white border shadow h-10 w-10 flex items-center justify-around fixed bottom-0 right-0 mb-8 mr-4 layer-toggle-button">
+        <Heroicons.square_3_stack_3d mini class="opacity-75 h-5 w-5" />
+      </button>
+    </section>
+    """
+  end
+
+  attr(:id, :string)
+  attr(:next_link, :string)
+  attr(:prev_link, :string)
+  attr(:pagination_metadata, :map)
+  attr(:pagination_index, :integer)
+  attr(:currently_displayed_results, :integer)
+
+  def pagination_controls(assigns) do
+    ~H"""
+    <nav class="flex items-center justify-center sm:justify-between w-full" aria-label="Pagination">
+      <div class="flex flex-1 gap-2 md:mr-8" phx-hook="ScrollToTop" id={@id}>
+        <%= if not is_nil(@pagination_metadata.before) do %>
+          <.link patch={@prev_link} class="text-button">
+            <Heroicons.arrow_left mini class="h-6 w-6" />
+            <span class="sr-only">Previous</span>
+          </.link>
+        <% else %>
+          <span class="cursor-not-allowed opacity-75 text-neutral-600">
+            <Heroicons.arrow_left mini class="h-6 w-6" />
+            <span class="sr-only">Previous</span>
+          </span>
+        <% end %>
+        <%= if not is_nil(@pagination_metadata.after) do %>
+          <.link patch={@next_link} class="text-button">
+            <Heroicons.arrow_right mini class="h-6 w-6" />
+            <span class="sr-only">Next</span>
+          </.link>
+        <% else %>
+          <span class="cursor-not-allowed opacity-75 text-neutral-600">
+            <Heroicons.arrow_right mini class="h-6 w-6" />
+            <span class="sr-only">Next</span>
+          </span>
+        <% end %>
+      </div>
+      <div class="hidden sm:block">
+        <p class="text-sm text-gray-700">
+          Showing results
+          <span class="font-medium">
+            <%= (@pagination_index * @pagination_metadata.limit + 1) |> Formatter.format_number() %>
+          </span>
+          to
+          <span class="font-medium">
+            <%= (@pagination_index * @pagination_metadata.limit +
+                   @currently_displayed_results)
+            |> Formatter.format_number() %>
+          </span>
+        </p>
+      </div>
+    </nav>
     """
   end
 end

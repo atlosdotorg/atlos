@@ -32,6 +32,7 @@ import Mark from 'mark.js';
 import { InfiniteScroll } from "./infinite_scroll";
 import { setupTextboxInteractivity } from "./textbox_interactivity";
 import { initialize as initializeKeyboardFormSubmits } from "./keyboard_form_submit";
+import { initialize as initializeFormUnloadWarning } from "./form_warnings";
 
 mapboxgl.accessToken = 'pk.eyJ1IjoibWlsZXNtY2MiLCJhIjoiY2t6ZzdzZmY0MDRobjJvbXBydWVmaXBpNSJ9.-aHM8bjOOsSrGI0VvZenAQ';
 
@@ -43,7 +44,22 @@ Hooks.Modal = {
         })
     }
 }
+Hooks.ScrollToTop = {
+    mounted() {
+        this.el.addEventListener("click", e => {
+            window.scrollToTop()
+        })
+    }
+}
 Hooks.InfiniteScroll = InfiniteScroll;
+
+// Used by the pagination button to scroll back up to the top of the page.
+window.scrollToTop = () => {
+    for (let elem of document.querySelectorAll(".top-scroll-anchor")) {
+        elem.scrollIntoView({ behavior: "smooth", block: "start", inline: "nearest" })
+    }
+    window.scrollTo(0, 0);
+}
 
 let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content");
 let liveSocket = new LiveSocket("/live", Socket, {
@@ -83,6 +99,7 @@ window.addEventListener("phx:page-loading-start", () => topbar.show())
 window.addEventListener("phx:page-loading-stop", () => topbar.hide())
 window.addEventListener("atlos:updating", () => topbar.show())
 window.addEventListener("phx:update", () => topbar.hide())
+window.topbar = topbar;
 
 // Setup Alpine
 window.Alpine = Alpine
@@ -192,25 +209,21 @@ function initializeSmartSelects() {
                     }
                     let requiresPrivilege = privileged.indexOf(data.text) >= 0;
 
-                    // let rawDepth = data.text.split("/").length - 1;
-                    // let effectiveDepth = rawDepth > 4 ? 4 : rawDepth;
                     let effectiveDepth = 0; // TODO: Smart indents currently disabled
                     let nestingDepth = ["ml-0", "ml-[25px]", "ml-[50px]", "ml-[75px]", "ml-[100px]"][effectiveDepth];
 
-                    // let lastComponentIndex = data.text.lastIndexOf('/');
-                    // let before = lastComponentIndex >= 0 ? data.text.slice(0, lastComponentIndex + 1) : "";
                     let before = "";
                     let after = data.text;
 
                     return '<div class="flex rounded ' + nestingDepth + '"><div><span class="opacity-50">' + escape(before) + '</span><span>' + escape(after) + '</span><span class="text-gray-400">' + (requiresPrivilege ? lockIcon : '') + '&nbsp;' + escape(desc) + '</span></div></div>';
                 },
-                // item: function (data, escape) {
-                //     let lastComponentIndex = data.text.lastIndexOf('/');
-                //     let before = lastComponentIndex >= 0 ? data.text.slice(0, lastComponentIndex + 1) : "";
-                //     let after = data.text.slice(lastComponentIndex + 1);
-
-                //     return '<div><div><span class="opacity-[60%]">' + escape(before) + '</span><span>' + escape(after) + '</span></div></div>';
-                // }
+            },
+            onChange(value) {
+                if (!s.hasAttribute("multiple")) {
+                    setTimeout(() => {
+                        x.close(); // Close the dropdown after a delay, so that the user can see the selection
+                    }, 25);
+                }
             }
         });
         x.control_input.setAttribute("phx-debounce", "blur");
@@ -273,21 +286,37 @@ function initializeMaps() {
             return;
         }
 
+        let defaultStyle = "mapbox://styles/milesmcc/cl89ukz84000514oebbd92bjm";
+
         let lon = persistedMapData["lon"] || parseFloat(s.getAttribute("lon"));
         let lat = persistedMapData["lat"] || parseFloat(s.getAttribute("lat"));
+
         let zoom = persistedMapData["zoom"] || parseFloat(s.getAttribute("zoom") || 6);
+        let style = persistedMapData["style"] || s.getAttribute("style") || defaultStyle;
+
+        if (!style.startsWith("mapbox://")) {
+            style = defaultStyle;
+        }
 
         let map = new mapboxgl.Map({
             container: containerID,
-            style: 'mapbox://styles/milesmcc/cl89ukz84000514oebbd92bjm',
+            style: style,
             center: [lon, lat],
             zoom: zoom
         });
 
+        let updateMapHashState = () => {
+            let center = map.getCenter();
+            let zoom = map.getZoom();
+            setURLHashState("map-" + containerID, {
+                "lon": center.lng,
+                "lat": center.lat,
+                "zoom": zoom,
+                "style": style
+            });
+        }
+
         let initializeLayers = () => {
-            if (!map.loaded()) {
-                return;
-            }
             let elem = document.getElementById(s.id); // 's' might have changed, but its ID hasn't
 
             if (map.getLayer('incidents')) {
@@ -309,18 +338,6 @@ function initializeMaps() {
                 "data": {
                     "type": "FeatureCollection",
                     "features": data.map(incident => {
-                        let colorForType = (type) => {
-                            switch (type) {
-                                case "Completed": return '#60a5fa';
-                                case "Ready for Review": return '#06b6d4';
-                                case "Cancelled": return '#888888';
-                                case "In Progress": return '#6d28d9';
-                                case "Unclaimed": return '#4ade80';
-                                case "Help Needed": return '#eab308';
-                                default: return '#0f172a';
-                            }
-                        };
-
                         return {
                             "type": "Feature",
                             "properties": {
@@ -337,7 +354,7 @@ function initializeMaps() {
                                     />
                                 `,
                                 "slug": incident.slug,
-                                "color": colorForType(incident.type)
+                                "color": incident.color
                             },
                             'geometry': {
                                 'type': 'Point',
@@ -394,14 +411,10 @@ function initializeMaps() {
 
             // Update the persisted browser state on move
             map.on("move", () => {
-                let center = map.getCenter();
-                let zoom = map.getZoom();
-                setURLHashState("map-" + containerID, {
-                    "lon": center.lng,
-                    "lat": center.lat,
-                    "zoom": zoom
-                });
+                updateMapHashState()
             });
+
+            console.log("Done initializing layers!")
         };
 
         map.on("load", initializeLayers);
@@ -410,6 +423,17 @@ function initializeMaps() {
         document.addEventListener("resize", () => {
             map.resize();
         });
+
+        // Setup layer toggle button
+        container.parentElement.querySelector(".layer-toggle-button").addEventListener("click", () => {
+            map.on("style.load", initializeLayers);
+            if (map.getStyle().name == "Mapbox Satellite Streets") {
+                style = 'mapbox://styles/milesmcc/cl89ukz84000514oebbd92bjm'
+            } else {
+                style = 'mapbox://styles/mapbox/satellite-streets-v11'
+            }
+            map.setStyle(style)
+        })
 
         s.classList.add("map-initialized");
     });
@@ -473,6 +497,7 @@ document.addEventListener("phx:update", applyVegaCharts);
 document.addEventListener("load", applyVegaCharts);
 
 initializeKeyboardFormSubmits();
+initializeFormUnloadWarning();
 
 // Used to set the clipboard when copying hash information
 window.setClipboard = (text) => {

@@ -34,6 +34,13 @@ defmodule Platform.Material do
     end)
   end
 
+  defp load_media_color(query) do
+    # Populate the `display_color` virtual attribute.
+    query
+    |> join(:left, [m], m in assoc(m, :project), as: :project)
+    |> select_merge([m, project: p], %{display_color: p.color})
+  end
+
   @doc """
   Returns the list of media. Will preload the versions and updates.
 
@@ -67,6 +74,7 @@ defmodule Platform.Material do
         q
       end
     end)
+    |> load_media_color()
     |> order_by(desc: :inserted_at)
     |> distinct(true)
   end
@@ -98,28 +106,28 @@ defmodule Platform.Material do
 
     filter_user =
       if not is_nil(user) do
-        dynamic([m, u], u.user_id == ^user.id)
+        dynamic([m, update: u], u.user_id == ^user.id)
       else
         true
       end
 
     filter_project_id =
       if not is_nil(project_id) do
-        dynamic([m, u], m.project_id == ^project_id)
+        dynamic([m, update: u], m.project_id == ^project_id)
       else
         true
       end
 
     query =
       Media
-      |> join(:left, [m], u in assoc(m, :updates))
-      |> where([m, u], ^filter_user)
-      |> where([m, u], ^filter_project_id)
-      |> order_by([m, u], desc: u.inserted_at)
-      |> preload([m, u], updates: u)
-      |> preload([m, u], updates: [media: [:project]])
-      |> select_merge([m, u], %{last_update_time: u.inserted_at})
-      |> order_by([m, u], desc: m.id)
+      |> join(:left, [m], u in assoc(m, :updates), as: :update)
+      |> where([m, update: u], ^filter_user)
+      |> where([m, update: u], ^filter_project_id)
+      |> order_by([m, update: u], desc: u.inserted_at)
+      |> preload([m, update: u], updates: u)
+      |> preload([m, update: u], updates: [media: [:project]])
+      |> select_merge([m, update: u], %{last_update_time: u.inserted_at})
+      |> order_by([m, update: u], desc: m.id)
       |> limit(^Keyword.get(opts, :limit, 25))
       |> offset(^Keyword.get(opts, :offset, 0))
 
@@ -181,10 +189,12 @@ defmodule Platform.Material do
   end
 
   defp apply_user_fields(media_query, %User{} = user, opts) do
-    from m in media_query,
+    from(m in media_query,
       left_join: n in Platform.Notifications.Notification,
+      as: :notification,
       on: n.media_id == m.id and n.user_id == ^user.id and not n.read,
       left_join: s in Platform.Material.MediaSubscription,
+      as: :subscription,
       on: s.media_id == m.id and s.user_id == ^user.id,
       select_merge: %{
         has_unread_notification: not is_nil(n),
@@ -192,6 +202,7 @@ defmodule Platform.Material do
       },
       where: ^(not Keyword.get(opts, :limit_to_unread_notifications, false)) or not is_nil(n),
       where: ^(not Keyword.get(opts, :limit_to_subscriptions, false)) or not is_nil(s)
+    )
   end
 
   @doc """
@@ -208,7 +219,7 @@ defmodule Platform.Material do
       ** (Ecto.NoResultsError)
 
   """
-  def get_media!(id), do: Repo.get!(Media, id)
+  def get_media!(id), do: Repo.get!(Media |> hydrate_media_query(), id)
 
   @doc """
   Creates a media.
@@ -532,17 +543,19 @@ defmodule Platform.Material do
   """
   def count_media_versions_for_media_id(media_id) do
     Repo.one(
-      from v in MediaVersion,
+      from(v in MediaVersion,
         where: v.media_id == ^media_id,
         select: count("*")
+      )
     )
   end
 
   def get_media_versions_by_source_url(url) do
     Repo.all(
-      from v in MediaVersion,
+      from(v in MediaVersion,
         where: v.source_url == ^url,
         preload: [media: [[updates: :user], :versions, :project]]
+      )
     )
     |> Enum.sort_by(& &1.media.id)
     |> Enum.dedup_by(& &1.media.id)
@@ -550,8 +563,9 @@ defmodule Platform.Material do
 
   def get_media_versions_by_media(%Media{} = media) do
     Repo.all(
-      from v in MediaVersion,
+      from(v in MediaVersion,
         where: v.media_id == ^media.id
+      )
     )
   end
 
@@ -803,11 +817,10 @@ defmodule Platform.Material do
   def change_media_attributes(
         %Media{} = media,
         attributes,
-        %User{} = user,
-        attrs \\ %{},
-        verify_change_exists \\ true
+        attrs,
+        opts \\ []
       ) do
-    Attribute.combined_changeset(media, attributes, attrs, user, verify_change_exists)
+    Attribute.combined_changeset(media, attributes, attrs, opts)
   end
 
   @doc """
@@ -816,24 +829,24 @@ defmodule Platform.Material do
   def change_media_attribute(
         %Media{} = media,
         %Attribute{} = attribute,
-        %User{} = user,
         attrs \\ %{},
-        verify_change_exists \\ true,
-        changeset \\ nil
+        opts \\ []
       ) do
     Attribute.combined_changeset(
-      changeset || media,
+      media,
       attribute,
       attrs,
-      user,
-      verify_change_exists
+      opts
     )
   end
 
-  def update_media_attribute(media, %Attribute{} = attribute, attrs, user \\ nil) do
+  def update_media_attribute(media, %Attribute{} = attribute, attrs, opts \\ []) do
+    # Update the media in case it was recently updated elsewhere
+    media = get_media!(media.id)
+
     result =
       media
-      |> Attribute.changeset(attribute, attrs, user)
+      |> Attribute.combined_changeset([attribute], attrs, opts)
       |> Repo.update()
 
     invalidate_attribute_values_cache()
@@ -841,14 +854,74 @@ defmodule Platform.Material do
     result
   end
 
-  def update_media_attributes(media, attributes, attrs, user \\ nil) do
+  @doc """
+  Set the value of the given attribute on the given media. Works for both core and project attributes. Does not check permissions. Meant for internal use (e.g., in migrations) when you don't want to fiddle with putting together a correct set of attributes for the embedded cast.
+  """
+  def update_media_attribute_internal(media, %Attribute{} = attribute, value) do
+    case attribute.schema_field do
+      :project_attributes ->
+        update_media_attribute(
+          media,
+          attribute,
+          %{
+            "project_attributes" => %{
+              "0" => %{"id" => attribute.name, "value" => value, "project_id" => media.project_id}
+            }
+          },
+          allow_invalid_selects: true,
+          verify_change_exists: false
+        )
+
+      _ ->
+        update_media_attribute(media, attribute, %{attribute.schema_field => value},
+          allow_invalid_selects: true,
+          verify_change_exists: false
+        )
+    end
+  end
+
+  def update_media_attributes(media, attributes, attrs, opts \\ []) do
+    # Update the media in case it was recently updated elsewhere
+    media = get_media!(media.id)
+
     result =
-      change_media_attributes(media, attributes, user, attrs)
+      change_media_attributes(media, attributes, attrs, opts)
       |> Repo.update()
 
     invalidate_attribute_values_cache()
 
     result
+  end
+
+  def get_attribute_value(%Media{} = media, %Attribute{} = attr, opts \\ []) do
+    value =
+      case attr.schema_field do
+        :project_attributes ->
+          media
+          |> Map.get(:project_attributes, [])
+          |> Enum.find(fn pa -> pa.id == attr.name end)
+          |> case do
+            nil -> nil
+            %Platform.Material.Media.ProjectAttributeValue{value: value} -> value
+          end
+
+        v ->
+          media
+          |> Map.get(v)
+      end
+
+    if Keyword.get(opts, :format_dates, false) do
+      case attr.type do
+        :date ->
+          value
+          |> Platform.Utils.format_date()
+
+        _ ->
+          value
+      end
+    else
+      value
+    end
   end
 
   @doc """
@@ -862,7 +935,7 @@ defmodule Platform.Material do
   Do an audited update of the given attributes. Will broadcast change via PubSub.
   """
   def update_media_attributes_audited(media, attributes, %User{} = user, attrs) do
-    media_changeset = change_media_attributes(media, attributes, user, attrs)
+    media_changeset = change_media_attributes(media, attributes, attrs, user: user)
 
     update_changeset =
       Updates.change_from_attributes_changeset(media, attributes, user, media_changeset, attrs)
@@ -875,8 +948,22 @@ defmodule Platform.Material do
       true ->
         res =
           Repo.transaction(fn ->
+            # In the transaction, we need to make sure we don't have any stale data
+            # in the media_changeset, so we reload the media and recompute the changeset
+            media = get_media!(media.id)
+            media_changeset = change_media_attributes(media, attributes, attrs, user: user)
+
+            update_changeset =
+              Updates.change_from_attributes_changeset(
+                media,
+                attributes,
+                user,
+                media_changeset,
+                attrs
+              )
+
             {:ok, _} = Updates.create_update_from_changeset(update_changeset)
-            {:ok, res} = update_media_attributes(media, attributes, attrs, user)
+            {:ok, res} = update_media_attributes(media, attributes, attrs, user: user)
             Updates.subscribe_if_first_interaction(media, user)
             res
           end)
@@ -927,9 +1014,10 @@ defmodule Platform.Material do
 
   def get_subscribers(%Media{} = media) do
     Repo.all(
-      from w in MediaSubscription,
+      from(w in MediaSubscription,
         where: w.media_id == ^media.id,
         preload: :user
+      )
     )
     |> Enum.map(& &1.user)
   end
@@ -937,9 +1025,10 @@ defmodule Platform.Material do
   def total_subscribed!(%Media{} = media) do
     [count] =
       Repo.all(
-        from w in MediaSubscription,
+        from(w in MediaSubscription,
           where: w.media_id == ^media.id,
           select: count()
+        )
       )
 
     count
@@ -948,9 +1037,10 @@ defmodule Platform.Material do
   def total_media_in_project!(%Projects.Project{} = project) do
     [count] =
       Repo.all(
-        from m in Media,
+        from(m in Media,
           where: m.project_id == ^project.id,
           select: count()
+        )
       )
 
     count

@@ -84,7 +84,7 @@ defmodule PlatformWeb.ProjectsLive.Show do
               <% end %>
               <%= if Projects.can_edit_project?(@current_user, @project) do %>
                 <.link href={"/new?project_id=#{@project.id}"} class="button ~urge @high">
-                  + New Incident
+                  New Incident
                 </.link>
               <% end %>
             </div>
@@ -118,6 +118,16 @@ defmodule PlatformWeb.ProjectsLive.Show do
               >
                 <Heroicons.cog_6_tooth mini class="opacity-75 -ml-0.5 mr-2 h-5 w-5" />
                 <span>Manage</span>
+              </.link>
+            <% end %>
+
+            <%= if feature_available?(:project_access_controls) do %>
+              <.link
+                patch={"/projects/#{@project.id}/members"}
+                class={if @live_action == :members, do: active_classes, else: inactive_classes}
+              >
+                <Heroicons.user_circle mini class="opacity-75 -ml-0.5 mr-2 h-5 w-5" />
+                <span>Members</span>
               </.link>
             <% end %>
 
@@ -201,36 +211,28 @@ defmodule PlatformWeb.ProjectsLive.Show do
                 # Stringify to avoid floating point issues
                 lat: "#{lat}",
                 lon: "#{lon}",
-                type: Material.get_media_organization_type(item)
+                color: @project.color
               }
             end) %>
           <div class="w-full h-full">
-            <map-events
-              lat="35"
-              lon="35"
-              zoom="3"
-              id="map_events"
-              container-id="map_events_container"
-              data={Jason.encode!(map_data)}
-            />
-            <section
-              class="fixed h-screen w-screen left-0 top-0 bottom-0"
-              id="map"
-              phx-update="ignore"
-            >
-              <map-container id="map_events_container" />
-            </section>
+            <.map_events map_data={map_data} />
           </div>
         <% end %>
         <%= if @live_action == :edit do %>
-          <div class="max-w-prose">
-            <.live_component
-              module={PlatformWeb.ProjectsLive.EditComponent}
-              id="edit-project"
-              current_user={@current_user}
-              project={@project}
-            />
-          </div>
+          <.live_component
+            module={PlatformWeb.ProjectsLive.EditComponent}
+            id="edit-project"
+            current_user={@current_user}
+            project={@project}
+          />
+        <% end %>
+        <%= if @live_action == :members and feature_available?(:project_access_controls) do %>
+          <.live_component
+            module={PlatformWeb.ProjectsLive.MembersComponent}
+            id="project-members"
+            current_user={@current_user}
+            project={@project}
+          />
         <% end %>
       </article>
     </div>

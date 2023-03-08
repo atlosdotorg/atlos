@@ -12,24 +12,26 @@ defmodule Platform.Material.Media do
 
   schema "media" do
     # Core uneditable data
-    field :slug, :string, autogenerate: {Utils, :generate_media_slug, []}
-    field :deleted, :boolean, default: false
+    field(:slug, :string, autogenerate: {Utils, :generate_media_slug, []})
+    field(:deleted, :boolean, default: false)
 
     # Core Attributes
-    field :attr_description, :string
-    field :attr_geolocation, Geo.PostGIS.Geometry
-    field :attr_geolocation_resolution, :string
-    field :attr_more_info, :string
-    field :attr_general_location, :string
-    field :attr_date, :date
-    field :attr_type, {:array, :string}
-    field :attr_impact, {:array, :string}
-    field :attr_equipment, {:array, :string}
+    field(:attr_description, :string)
+    field(:attr_geolocation, Geo.PostGIS.Geometry)
+    field(:attr_geolocation_resolution, :string)
+    field(:attr_more_info, :string)
+    field(:attr_general_location, :string)
+    field(:attr_date, :date)
+    field(:attr_type, {:array, :string})
+    field(:attr_impact, {:array, :string})
+    field(:attr_equipment, {:array, :string})
 
-    embeds_many :project_attributes, ProjectAttributeValue do
-      belongs_to :project, Projects.Project
-      field :attribute_id, :binary_id
-      field :value, :map
+    # The ID (primary key) must match the ID of the attribute
+    @primary_key {:id, :binary_id, autogenerate: false}
+    embeds_many :project_attributes, ProjectAttributeValue, on_replace: :raise do
+      belongs_to(:project, Projects.Project, type: :binary_id)
+      field(:value, Platform.FlexibleJSONType, default: nil)
+      field(:explanation, :string, virtual: true)
     end
 
     # Deprecated attributes (that still live in the database)
@@ -45,37 +47,38 @@ defmodule Platform.Material.Media do
     # field :attr_time_recorded, :time
 
     # Metadata Attributes
-    field :attr_restrictions, {:array, :string}
-    field :attr_sensitive, {:array, :string}
-    field :attr_status, :string
-    field :attr_tags, {:array, :string}
+    field(:attr_restrictions, {:array, :string})
+    field(:attr_sensitive, {:array, :string})
+    field(:attr_status, :string)
+    field(:attr_tags, {:array, :string})
 
     # Automatically-generated Metadata
-    field :auto_metadata, :map, default: %{}
+    field(:auto_metadata, :map, default: %{})
 
     # Virtual attributes for updates + multi-part attributes
-    field :explanation, :string, virtual: true
-    field :location, :string, virtual: true
+    field(:explanation, :string, virtual: true)
+    field(:location, :string, virtual: true)
     # For the input value from the client (JSON array)
-    field :urls, :string, virtual: true
+    field(:urls, :string, virtual: true)
     # For the internal, parsed representation
-    field :urls_parsed, {:array, :string}, virtual: true
+    field(:urls_parsed, {:array, :string}, virtual: true)
 
     # Virtual attributes for population during querying
-    field :has_unread_notification, :boolean, virtual: true, default: false
-    field :has_subscription, :boolean, virtual: true, default: false
+    field(:has_unread_notification, :boolean, virtual: true, default: false)
+    field(:has_subscription, :boolean, virtual: true, default: false)
+    field(:display_color, :string, virtual: true)
 
     # Refers to the post date of the most recent associated update -- this is distinct from `updated_at`
-    field :last_update_time, :utc_datetime, virtual: true
+    field(:last_update_time, :utc_datetime, virtual: true)
 
     # Metadata
     timestamps()
 
     # Associations
-    has_many :versions, Platform.Material.MediaVersion
-    has_many :updates, Platform.Updates.Update
-    has_many :subscriptions, MediaSubscription
-    belongs_to :project, Platform.Projects.Project, type: :binary_id
+    has_many(:versions, Platform.Material.MediaVersion)
+    has_many(:updates, Platform.Updates.Update)
+    has_many(:subscriptions, MediaSubscription)
+    belongs_to(:project, Platform.Projects.Project, type: :binary_id)
   end
 
   @doc false
@@ -85,24 +88,22 @@ defmodule Platform.Material.Media do
       :attr_description,
       :attr_sensitive,
       :attr_status,
-      :attr_type,
-      :attr_equipment,
-      :attr_impact,
       :attr_date,
-      :attr_general_location,
       :deleted,
       :project_id,
       :urls
     ])
 
     # These are special attributes, since we define it at creation time. Eventually, it'd be nice to unify this logic with the attribute-specific editing logic.
-    |> Attribute.validate_attribute(Attribute.get_attribute(:description), user, true)
-    |> Attribute.validate_attribute(Attribute.get_attribute(:type), user, true)
-    |> Attribute.validate_attribute(Attribute.get_attribute(:sensitive), user, true)
-    |> Attribute.validate_attribute(Attribute.get_attribute(:equipment), user, false)
-    |> Attribute.validate_attribute(Attribute.get_attribute(:impact), user, false)
-    |> Attribute.validate_attribute(Attribute.get_attribute(:date), user, false)
-    |> Attribute.validate_attribute(Attribute.get_attribute(:general_location), user, false)
+    |> Attribute.validate_attribute(Attribute.get_attribute(:description),
+      user: user,
+      required: true
+    )
+    |> Attribute.validate_attribute(Attribute.get_attribute(:sensitive),
+      user: user,
+      required: true
+    )
+    |> Attribute.validate_attribute(Attribute.get_attribute(:date), user: user, required: false)
     |> validate_project(user, media)
     |> parse_and_validate_validate_json_array(:urls, :urls_parsed)
     |> validate_url_list(:urls_parsed)
@@ -113,10 +114,29 @@ defmodule Platform.Material.Media do
         cs
         # TODO: This is a good refactoring opportunity with the logic above
         |> cast(attrs, [:attr_tags])
-        |> Attribute.validate_attribute(Attribute.get_attribute(:tags), user, false)
+        |> Attribute.validate_attribute(Attribute.get_attribute(:tags),
+          user: user,
+          required: false
+        )
       else
         cs
       end
+    end)
+    |> then(fn cs ->
+      project_id = Ecto.Changeset.get_change(cs, :project_id)
+      project = if is_nil(project_id), do: nil, else: Projects.get_project!(project_id)
+
+      if is_nil(project),
+        do: cs,
+        else:
+          Platform.Material.change_media_attributes(
+            cs.data |> Map.put(:project, project) |> Map.put(:project_id, project.id),
+            project.attributes |> Enum.map(&Platform.Projects.ProjectAttribute.to_attribute(&1)),
+            attrs,
+            changeset: cs,
+            user: user,
+            verify_change_exists: false
+          )
     end)
   end
 
@@ -227,7 +247,7 @@ defmodule Platform.Material.Media do
   """
   def import_changeset(media, attrs) do
     # First, we rename and parse fields to match their internal representation.
-    attr_names = Attribute.attribute_names(false, false) |> Enum.map(&(&1 |> to_string()))
+    attr_names = Attribute.attribute_names() |> Enum.map(&(&1 |> to_string()))
 
     attrs =
       attrs
@@ -260,11 +280,11 @@ defmodule Platform.Material.Media do
         Map.put(acc, k, v)
       end)
 
-    Attribute.combined_changeset(media, Attribute.active_attributes(), attrs, nil, false)
+    Attribute.combined_changeset(media, Attribute.active_attributes(), attrs)
   end
 
   def attribute_ratio(%Media{} = media) do
-    length(Attribute.set_for_media(media)) / length(Attribute.attribute_names(false, false))
+    length(Attribute.set_for_media(media)) / length(Attribute.attribute_names())
   end
 
   def is_sensitive(%Media{} = media) do
@@ -381,20 +401,23 @@ defmodule Platform.Material.Media do
   """
   def text_search(search_terms, queryable \\ Media) do
     media_via_associated_media_versions =
-      from version in subquery(
-             Utils.text_search(search_terms, Platform.Material.MediaVersion, literal: true)
-           ),
-           where: version.visibility == :visible,
-           join: media in assoc(version, :media),
-           select: media
+      from(
+        version in subquery(
+          Utils.text_search(search_terms, Platform.Material.MediaVersion, literal: true)
+        ),
+        where: version.visibility == :visible,
+        join: media in assoc(version, :media),
+        select: media
+      )
 
-    from u in subquery(
-           Ecto.Query.union(
-             Utils.text_search(search_terms, queryable),
-             ^media_via_associated_media_versions
-           )
-         ),
-         select: u
+    from(
+      u in subquery(
+        Ecto.Query.union(
+          Utils.text_search(search_terms, queryable),
+          ^media_via_associated_media_versions
+        )
+      )
+    )
   end
 
   def slug_to_display(media) do
@@ -406,6 +429,38 @@ defmodule Platform.Material.Media do
 end
 
 defimpl Jason.Encoder, for: Platform.Material.Media do
+  def insert_deprecated_attributes(map, %Platform.Material.Media{} = media) do
+    # When we added custom attributes, we migrated some attributes that were previously "core"
+    # attributes to the custom attribute system. This function looks for those attributes
+    # and inserts their "correct" versions into the map.
+
+    migrated_pairs = Platform.Utils.migrated_attributes(media)
+
+    Enum.reduce(migrated_pairs, map, fn {old_attr, new_attr}, map ->
+      dbg(old_attr.schema_field)
+      Map.put(map, old_attr.schema_field, Platform.Material.get_attribute_value(media, new_attr))
+    end)
+  end
+
+  def insert_custom_attributes(map, %Platform.Material.Media{} = media) do
+    project_attributes = if is_nil(media.project), do: [], else: media.project.attributes
+
+    values =
+      Enum.map(project_attributes, fn attr ->
+        %{
+          name: attr.name,
+          id: attr.id,
+          value:
+            Platform.Material.get_attribute_value(
+              media,
+              Platform.Projects.ProjectAttribute.to_attribute(attr)
+            )
+        }
+      end)
+
+    Map.put(map, "project_attributes", values)
+  end
+
   def encode(value, opts) do
     Jason.Encode.map(
       Map.take(value, [
@@ -415,9 +470,6 @@ defimpl Jason.Encoder, for: Platform.Material.Media do
         :attr_geolocation_resolution,
         :attr_more_info,
         :attr_date,
-        :attr_type,
-        :attr_impact,
-        :attr_equipment,
         :attr_restrictions,
         :attr_sensitive,
         :attr_status,
@@ -432,7 +484,9 @@ defimpl Jason.Encoder, for: Platform.Material.Media do
       |> Enum.into(%{}, fn
         {key, %Ecto.Association.NotLoaded{}} -> {key, nil}
         {key, value} -> {key, value}
-      end),
+      end)
+      |> insert_deprecated_attributes(value)
+      |> insert_custom_attributes(value),
       opts
     )
   end

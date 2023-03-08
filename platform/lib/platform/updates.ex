@@ -4,6 +4,7 @@ defmodule Platform.Updates do
   """
 
   import Ecto.Query, warn: false
+  alias Platform.Material.Attribute
   alias Platform.Repo
 
   alias Platform.Utils
@@ -128,6 +129,43 @@ defmodule Platform.Updates do
   end
 
   @doc """
+  Returns the key under which the value of the attribute will be stored in change JSON records (old value, new value, etc.)
+  """
+  def key_for_attribute(%Attribute{} = attr) do
+    cond do
+      attr.schema_field == :project_attributes ->
+        attr.name
+
+      true ->
+        attr.schema_field |> to_string()
+    end
+  end
+
+  def value_for_attribute(%Attribute{} = attr, %Ecto.Changeset{} = changeset) do
+    cond do
+      attr.schema_field == :project_attributes ->
+        Ecto.Changeset.get_field(changeset, :project_attributes)
+        |> Enum.find(%{value: nil}, &(&1.id == attr.name))
+        |> Map.get(:value)
+
+      true ->
+        Ecto.Changeset.get_field(changeset, attr.schema_field)
+    end
+  end
+
+  def value_for_attribute(%Attribute{} = attr, %Media{} = media) do
+    cond do
+      attr.schema_field == :project_attributes ->
+        Map.get(media, :project_attributes, [])
+        |> Enum.find(%{value: nil}, &(&1.id == attr.name))
+        |> Map.get(:value)
+
+      true ->
+        Map.get(media, attr.schema_field)
+    end
+  end
+
+  @doc """
   Helper API function that takes attributes change information and uses it to create an Update changeset. Requires 'explanation' to be in attrs. The change is recorded as belonging to the head of `attributes`; all other attributes should be children of the first element.
   """
   def change_from_attributes_changeset(
@@ -140,17 +178,14 @@ defmodule Platform.Updates do
     # We add the _combined field so that it's unambiguous when a dict represents a collection of schema fields changing
     old_value =
       attributes
-      |> Enum.map(&{&1.schema_field, Map.get(media, &1.schema_field)})
+      |> Enum.map(&{key_for_attribute(&1), value_for_attribute(&1, media)})
       |> Map.new()
       |> Map.put("_combined", true)
       |> Jason.encode!()
 
     new_value =
       attributes
-      |> Enum.map(
-        &{&1.schema_field,
-         Map.get(changeset.changes, &1.schema_field, Map.get(media, &1.schema_field))}
-      )
+      |> Enum.map(&{key_for_attribute(&1), value_for_attribute(&1, changeset)})
       |> Map.new()
       |> Map.put("_combined", true)
       |> Jason.encode!()
@@ -162,7 +197,7 @@ defmodule Platform.Updates do
       attrs
       |> Map.put("old_value", old_value)
       |> Map.put("new_value", new_value)
-      |> Map.put("modified_attribute", hd(attributes).name)
+      |> Map.put("modified_attribute", hd(attributes).name |> to_string())
       |> Map.put("type", :update_attribute)
     )
   end
