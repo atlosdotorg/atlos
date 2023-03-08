@@ -1082,7 +1082,6 @@ defmodule PlatformWeb.Components do
           ) do %>
           <.user_stack users={
             @updates
-            |> dbg()
             |> Enum.filter(&(&1.modified_attribute == to_string(@attr.name) || &1.type == :create))
             |> Enum.filter(&(!&1.hidden))
             |> Enum.sort_by(& &1.inserted_at, {:desc, NaiveDateTime})
