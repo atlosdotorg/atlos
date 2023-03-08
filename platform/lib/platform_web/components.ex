@@ -1683,85 +1683,87 @@ defmodule PlatformWeb.Components do
     >
       <td
         id={"table-row-" <> @media.slug <> "-slug"}
-        class={"md:sticky left-0 z-[100] pl-4 pr-1 flex items-center gap-1 border-r whitespace-nowrap border-b border-gray-200 h-10 transition-all " <> background_color}
+        class={"md:sticky left-0 z-[100] pl-4 pr-1 border-r whitespace-nowrap border-b border-gray-200 h-10 transition-all " <> background_color}
         x-bind:class={"{'!bg-urge-50': (selected || #{@is_selected})}"}
       >
-        <%= if Platform.Accounts.is_privileged(@current_user) do %>
+        <div class="flex items-center gap-1">
+          <%= if Platform.Accounts.is_privileged(@current_user) do %>
+            <div
+              class="flex-shrink-0 w-5 mr-2 group-hover:block"
+              x-bind:class={"{'hidden': !(selected || #{@is_selected})}"}
+              data-tooltip="Select this incident"
+              x-cloak
+            >
+              <input
+                phx-click="select"
+                phx-value-slug={@media.slug}
+                x-on:change="selected = $event.target.checked"
+                checked={@is_selected}
+                type="checkbox"
+                class="h-4 w-4 mb-1 rounded border-gray-300 text-urge-600 focus:ring-urge-600"
+              />
+            </div>
+          <% end %>
           <div
-            class="flex-shrink-0 w-5 mr-2 group-hover:block"
-            x-bind:class={"{'hidden': !(selected || #{@is_selected})}"}
-            data-tooltip="Select this incident"
-            x-cloak
+            class={"flex-shrink-0 w-5 mr-2 " <> (if Platform.Accounts.is_privileged(@current_user), do: "group-hover:hidden", else: "")}
+            x-bind:class={"{'hidden': (selected || #{@is_selected})}"}
+            data-tooltip={"Last modified by #{List.last(@media.updates).user.username}"}
           >
-            <input
-              phx-click="select"
-              phx-value-slug={@media.slug}
-              x-on:change="selected = $event.target.checked"
-              checked={@is_selected}
-              type="checkbox"
-              class="h-4 w-4 mb-1 rounded border-gray-300 text-urge-600 focus:ring-urge-600"
+            <.user_stack
+              users={@media.updates |> Enum.take(1) |> Enum.map(& &1.user)}
+              dynamic={false}
+              ring_class="ring-transparent"
             />
           </div>
-        <% end %>
-        <div
-          class={"flex-shrink-0 w-5 mr-2 " <> (if Platform.Accounts.is_privileged(@current_user), do: "group-hover:hidden", else: "")}
-          x-bind:class={"{'hidden': (selected || #{@is_selected})}"}
-          data-tooltip={"Last modified by #{List.last(@media.updates).user.username}"}
-        >
-          <.user_stack
-            users={@media.updates |> Enum.take(1) |> Enum.map(& &1.user)}
-            dynamic={false}
-            ring_class="ring-transparent"
-          />
+          <.link
+            href={"/incidents/#{@media.slug}"}
+            class="text-button text-sm flex items-center gap-1 mr-px font-mono"
+          >
+            <span style={"color: #{if @media.project, do: @media.project.color, else: "unset"}"}>
+              <%= Media.slug_to_display(@media) %>
+            </span>
+            <%= if is_sensitive do %>
+              <span data-tooltip="Incident is sensitive" class="text-critical-400">
+                <Heroicons.shield_exclamation mini class="h-4 w-4" />
+              </span>
+            <% end %>
+            <%= if is_subscribed do %>
+              <span data-tooltip="You are subscribed" class="text-neutral-400">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                  class="w-3 h-3"
+                >
+                  <path d="M10 12.5a2.5 2.5 0 100-5 2.5 2.5 0 000 5z" />
+                  <path
+                    fill-rule="evenodd"
+                    d="M.664 10.59a1.651 1.651 0 010-1.186A10.004 10.004 0 0110 3c4.257 0 7.893 2.66 9.336 6.41.147.381.146.804 0 1.186A10.004 10.004 0 0110 17c-4.257 0-7.893-2.66-9.336-6.41zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+                <span class="sr-only">
+                  You are subscribed
+                </span>
+              </span>
+            <% end %>
+            <%= if has_unread_notification do %>
+              <span data-tooltip="Unread notification">
+                <svg
+                  viewBox="0 0 100 100"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="currentColor"
+                  class="h-2 w-2"
+                >
+                  <circle cx="50" cy="50" r="50" />
+                </svg>
+                <span class="sr-only">
+                  Unread notification
+                </span>
+              </span>
+            <% end %>
+          </.link>
         </div>
-        <.link
-          href={"/incidents/#{@media.slug}"}
-          class="text-button text-sm flex items-center gap-1 mr-px font-mono"
-        >
-          <span style={"color: #{if @media.project, do: @media.project.color, else: "unset"}"}>
-            <%= Media.slug_to_display(@media) %>
-          </span>
-          <%= if is_sensitive do %>
-            <span data-tooltip="Incident is sensitive" class="text-critical-400">
-              <Heroicons.shield_exclamation mini class="h-4 w-4" />
-            </span>
-          <% end %>
-          <%= if is_subscribed do %>
-            <span data-tooltip="You are subscribed" class="text-neutral-400">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-                class="w-3 h-3"
-              >
-                <path d="M10 12.5a2.5 2.5 0 100-5 2.5 2.5 0 000 5z" />
-                <path
-                  fill-rule="evenodd"
-                  d="M.664 10.59a1.651 1.651 0 010-1.186A10.004 10.004 0 0110 3c4.257 0 7.893 2.66 9.336 6.41.147.381.146.804 0 1.186A10.004 10.004 0 0110 17c-4.257 0-7.893-2.66-9.336-6.41zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
-                  clip-rule="evenodd"
-                />
-              </svg>
-              <span class="sr-only">
-                You are subscribed
-              </span>
-            </span>
-          <% end %>
-          <%= if has_unread_notification do %>
-            <span data-tooltip="Unread notification">
-              <svg
-                viewBox="0 0 100 100"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="currentColor"
-                class="h-2 w-2"
-              >
-                <circle cx="50" cy="50" r="50" />
-              </svg>
-              <span class="sr-only">
-                Unread notification
-              </span>
-            </span>
-          <% end %>
-        </.link>
       </td>
       <%= for attr <- @attributes do %>
         <td
