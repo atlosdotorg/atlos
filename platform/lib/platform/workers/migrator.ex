@@ -131,12 +131,16 @@ defmodule Platform.Workers.Migrator do
 
   def create_custom_attributes() do
     for project <- Platform.Projects.list_projects() do
-      Platform.Projects.change_project(project)
-      |> Ecto.Changeset.put_embed(
-        :attributes,
-        Platform.Projects.ProjectAttribute.default_attributes()
-      )
-      |> Platform.Repo.update!()
+      if project.attributes == nil or project.attributes == [] do
+        Logger.info("Creating custom attributes for #{project.id}.")
+
+        Platform.Projects.change_project(project)
+        |> Ecto.Changeset.put_embed(
+          :attributes,
+          Platform.Projects.ProjectAttribute.default_attributes()
+        )
+        |> Platform.Repo.update!()
+      end
     end
   end
 
@@ -162,12 +166,25 @@ defmodule Platform.Workers.Migrator do
     Logger.info("Verifying integrity of all updates...")
 
     for update <- Updates.list_updates() do
-      for {old_attr, new_attr} <- Platform.Utils.migrated_attributes(update.media) do
+      migrated = Platform.Utils.migrated_attributes(update.media)
+      old_attr_names = migrated |> Enum.map(fn {old, _new} -> old.name |> to_string() end)
+
+      # Check that the update's modified attribute is not one of the deprecated attributes.
+      if Enum.member?(
+           old_attr_names,
+           update.modified_attribute
+         ) do
+        raise(
+          "Integrity check failed for update #{update.id}: modified attribute #{update.modified_attribute.label} (#{update.modified_attribute.name}) is deprecated."
+        )
+      end
+
+      for {old_attr, new_attr} <- migrated do
         old_key = Updates.key_for_attribute(old_attr)
 
         for value <- [update.old_value, update.new_value] do
           with {:ok, map} <- Jason.decode(value), true <- not is_nil(map) do
-            if Map.has_key?(map, old_key) and
+            if is_map(map) and Map.has_key?(map, old_key) and
                  not (map[old_key] == map[Updates.key_for_attribute(new_attr)]) do
               raise(
                 "Integrity check failed for update #{update.id}: #{old_attr.label} (#{old_attr.name}) is #{inspect(map[old_key])}, but #{new_attr.label} (#{new_attr.name}) is #{inspect(map[Updates.key_for_attribute(new_attr)])}."
@@ -182,9 +199,17 @@ defmodule Platform.Workers.Migrator do
   end
 
   def migrate() do
+    # Verify that there are no incidents without a project
+    if Enum.any?(Platform.Material.list_media(), &is_nil(&1.project_id)) do
+      raise(
+        "There are media without a project. Please set a project for all media before running the migration."
+      )
+    end
+
     create_custom_attributes()
     migrate_all_media()
     verify_integrity()
+
     Logger.info("Good to go!")
   end
 end

@@ -19,7 +19,7 @@
     ) %>
   <div class="relative z-[1000] 2xl:max-w-[1210px] mx-auto h-[5.5rem]">
     <%= if @selected_ids != [] and Platform.Accounts.is_privileged(@current_user) do %>
-      <div class="mb-4 w-full flex text-sm items-center divide-x border bg-white shadow-sm rounded-lg transition-all overflow-x-auto">
+      <div class="mb-4 w-full flex text-sm items-center divide-x border bg-white shadow-sm rounded-lg transition-all">
         <p class="p-4 text-urge-600">
           <span class="font-medium">
             <%= length(@selected_ids) %>
@@ -46,7 +46,7 @@
                 phx-click="apply_tag"
                 x-bind:phx-value-tag="tag"
                 x-bind:data-confirm={"\"Are you sure you want to apply the tag \" + tag + \" to the #{length(@selected_ids)} selected incident(s)?\""}
-                x-on:click="open = false"
+                x-on:click="open = false; window.topbar.show()"
                 phx-disable-with="Working..."
               >
                 Apply
@@ -69,7 +69,7 @@
                 phx-click="apply_project"
                 x-bind:phx-value-project-id="project_id"
                 x-bind:data-confirm={"\"Are you sure you want to add #{length(@selected_ids)} selected incident(s) to this project? Incidents already in a project will not be moved.\""}
-                x-on:click="open = false"
+                x-on:click="open = false; window.topbar.show()"
                 phx-disable-with="Working..."
               >
                 Apply
@@ -92,7 +92,7 @@
                 phx-click="apply_status"
                 x-bind:phx-value-status="status"
                 x-bind:data-confirm={"\"Are you sure you want to set the status to \" + status + \" for the #{length(@selected_ids)} selected incident(s)?\""}
-                x-on:click="open = false"
+                x-on:click="open = false; window.topbar.show()"
                 phx-disable-with="Working..."
               >
                 Apply
