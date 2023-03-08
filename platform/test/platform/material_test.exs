@@ -32,7 +32,8 @@ defmodule Platform.MaterialTest do
     test "create_media/1 with valid data creates a media" do
       valid_attrs = %{
         attr_description: "some description",
-        attr_sensitive: ["Not Sensitive"]
+        attr_sensitive: ["Not Sensitive"],
+        project_id: project_fixture().id
       }
 
       assert {:ok, %Media{} = media} = Material.create_media(valid_attrs)

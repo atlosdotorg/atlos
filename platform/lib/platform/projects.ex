@@ -11,6 +11,8 @@ defmodule Platform.Projects do
   alias Platform.Accounts
   alias Platform.Permissions
 
+  use Memoize
+
   @doc """
   Returns the list of projects.
 
@@ -234,13 +236,22 @@ defmodule Platform.Projects do
   Gets a single project_membership by the user and project.
   """
   def get_project_membership_by_user_and_project(%Accounts.User{} = user, %Project{} = project),
-    do:
-      Repo.get_by(ProjectMembership |> preload_project_memberships(),
-        user_id: user.id,
-        project_id: project.id
-      )
+    do: get_project_membership_by_user_and_project_id(user, project.id)
 
   def get_project_membership_by_user_and_project(_, _), do: nil
+
+  def get_project_membership_by_user_and_project_id(_, nil), do: nil
+
+  def get_project_membership_by_user_and_project_id(%Accounts.User{} = user, project_id) do
+    get_project_membership_by_user_id_and_project_id(user.id, project_id)
+  end
+
+  defmemo get_project_membership_by_user_id_and_project_id(user_id, project_id), expires_in: 1000 do
+    Repo.get_by(ProjectMembership |> preload_project_memberships(),
+      user_id: user_id,
+      project_id: project_id
+    )
+  end
 
   @doc """
   Gets the project relationships for a given project.
