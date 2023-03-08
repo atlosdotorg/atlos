@@ -24,11 +24,11 @@
           <span class="font-medium">
             <%= length(@selected_ids) %>
           </span>
-            <%= if length(@selected_ids) != 1 do %>
-              incidents
-            <% else %>
-              incident
-            <% end %>
+          <%= if length(@selected_ids) != 1 do %>
+            incidents
+          <% else %>
+            incident
+          <% end %>
           selected
         </p>
         <div class="p-4 hover:bg-neutral-50 transition">
@@ -53,8 +53,8 @@
               </button>
             </div>
           </.dropdown>
-          </div>
-          <div class="p-4 hover:bg-neutral-50 transition">
+        </div>
+        <div class="p-4 hover:bg-neutral-50 transition">
           <.dropdown label="Add to project">
             <div class="p-4 ts-ignore flex flex-col gap-4" x-data="{project_id: null}">
               <select x-model="project_id" class="w-full input-base" id="project-select">
@@ -76,8 +76,8 @@
               </button>
             </div>
           </.dropdown>
-          </div>
-          <div class="p-4 hover:bg-neutral-50 transition">
+        </div>
+        <div class="p-4 hover:bg-neutral-50 transition">
           <.dropdown label="Set status">
             <div class="p-4 ts-ignore flex flex-col gap-4" x-data="{status: null}">
               <select x-model="status" class="w-full input-base" id="status-select">
@@ -222,9 +222,7 @@
                           current_user={@current_user}
                           attributes={@attributes}
                           source_cols={@source_cols}
-                          is_selected={
-                              Enum.member?(@selected_ids, media.id)
-                          }
+                          is_selected={Enum.member?(@selected_ids, media.id)}
                         />
                       <% end %>
                     </tbody>
