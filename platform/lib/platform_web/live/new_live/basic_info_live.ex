@@ -35,7 +35,7 @@ defmodule PlatformWeb.NewLive.BasicInfoLive do
     url_deconfliction =
       Ecto.Changeset.get_field(cs, :urls_parsed, "")
       |> Enum.map(fn url ->
-        {url, Material.get_media_by_source_url(url)}
+        {url, Material.get_media_by_source_url(url, for_user: socket.assigns.current_user)}
       end)
 
     # If available, assign the project
