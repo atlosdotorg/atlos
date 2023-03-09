@@ -189,15 +189,34 @@ defmodule Platform.Material do
     user = Keyword.get(opts, :for_user)
 
     if not is_nil(user) do
-      query
-      |> join(
-        :left,
-        [m],
-        sub in Platform.Projects.ProjectMembership,
-        on: sub.project_id == m.project_id and sub.user_id == ^user.id,
-        as: :project_membership
-      )
-      |> where([m, project_membership: pm], not is_nil(pm))
+      query =
+        query
+        |> then(fn q ->
+          if has_named_binding?(q, :project_membership) do
+            q
+          else
+            join(
+              q,
+              :left,
+              [m],
+              sub in Platform.Projects.ProjectMembership,
+              on: sub.project_id == m.project_id and sub.user_id == ^user.id,
+              as: :project_membership
+            )
+          end
+        end)
+        |> where([m, project_membership: pm], not is_nil(pm))
+
+      if Enum.member?(user.roles || [], :admin) or Enum.member?(user.roles || [], :trusted) do
+        query
+      else
+        query
+        |> where(
+          [m, project_membership: pm],
+          pm.role == :owner or pm.role == :editor or
+            (^"Hidden" not in m.attr_restrictions or is_nil(m.attr_restrictions))
+        )
+      end
     else
       query
     end
