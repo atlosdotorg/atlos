@@ -298,6 +298,18 @@ defmodule Platform.Projects do
   end
 
   @doc """
+  Get the users for a project.
+  """
+  def get_project_users(%Project{} = project) do
+    Repo.all(
+      from(pm in (ProjectMembership |> preload_project_memberships()),
+        where: pm.project_id == ^project.id
+      )
+    )
+    |> Enum.map(fn pm -> pm.user end)
+  end
+
+  @doc """
   Updates a project_membership.
 
   ## Examples

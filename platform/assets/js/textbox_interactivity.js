@@ -3,7 +3,8 @@ import "@yaireo/tagify/dist/tagify.css"
 
 async function searchForUser(prefix) {
     let results = (await (await fetch("/spi/users?" + new URLSearchParams({
-        query: prefix
+        query: prefix,
+        project_id: document.querySelector("meta[name='active_project_id']").getAttribute("content"),
     }))).json())["results"].map(e => "@" + e.username);
 
     return results;
