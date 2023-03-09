@@ -23,6 +23,17 @@
       </p>
     </div>
   </section>
+  <div>
+    <%= if Enum.empty?(@shared_projects) do %>
+      <p class="text-gray-600">You do not have any projects in common with this user.</p>
+    <% else %>
+      <div class="grid gap-4 grid-cols-1 md:grid-cols-2">
+        <%= for project <- @shared_projects do %>
+          <.project_card project={project} />
+        <% end %>
+      </div>
+    <% end %>
+  </div>
   <%= if Accounts.is_admin(@current_user) do %>
     <.card>
       <:header>
