@@ -56,11 +56,11 @@ defmodule Platform.Permissions do
   end
 
   def can_view_media?(%User{} = user, %Media{} = media) do
-    if is_nil(media.project) do
-      true
-    else
-      membership = Projects.get_project_membership_by_user_and_project(user, media.project)
+    membership = Projects.get_project_membership_by_user_and_project(user, media.project)
 
+    if is_nil(membership) do
+      false
+    else
       case can_view_project?(user, media.project) do
         true ->
           case {media.attr_restrictions, media.deleted} do
@@ -135,7 +135,7 @@ defmodule Platform.Permissions do
     # This includes uploading new media versions as well as editing attributes.
     membership = Projects.get_project_membership_by_user_and_project(user, media.project)
 
-    with false <- is_nil(membership) and not is_nil(media.project),
+    with false <- is_nil(membership),
          true <- can_edit_media?(user, media) do
       if attribute.is_restricted do
         membership.role == :owner or membership.role == :manager

@@ -1630,7 +1630,7 @@ defmodule PlatformWeb.Components do
               <h3 class="text-sm font-medium text-green-800">No duplicates detected</h3>
               <div class="mt-2 text-sm text-green-700">
                 <p>
-                  These URLs have not been previously uploaded to Atlos.
+                  These URLs have not been previously uploaded to your projects on Atlos.
                 </p>
               </div>
             </div>

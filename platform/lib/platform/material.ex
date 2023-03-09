@@ -60,7 +60,7 @@ defmodule Platform.Material do
 
   defp _query_media(query, opts) do
     # Helper function used to abstract behavior of the `query_media` functions. Options:
-    # - for_user -- populate this user's data into the response object (e.g., whether there is an unread notification, the user is subscribed, etc)
+    # - for_user -- filter to data visible to the user, and populate this user's data into the response object (e.g., whether there is an unread notification, the user is subscribed, etc)
     # - limit_to_unread_notifications -- restrict to incidents with unread notifications
     # - limit_to_subscriptions -- restrict to incidents the user is subscribed to
 
@@ -75,6 +75,7 @@ defmodule Platform.Material do
         q
       end
     end)
+    |> maybe_filter_accessible_to_user(opts)
     |> load_media_color()
     |> order_by(desc: :inserted_at)
     |> distinct(true)
@@ -147,28 +148,6 @@ defmodule Platform.Material do
     |> Repo.all()
   end
 
-  @doc """
-  Returns the list of geolocated media.
-  """
-  def list_geolocated_media() do
-    Media
-    |> where([i], not is_nil(i.attr_geolocation))
-    |> hydrate_media_query()
-    |> Repo.all()
-  end
-
-  @doc """
-  Returns all the media that do not have any versions uploaded.
-  """
-  def list_unarchived_media() do
-    from(m in Media,
-      where:
-        fragment("NOT EXISTS (SELECT * FROM media_versions other WHERE other.media_id = ?)", m.id)
-    )
-    |> hydrate_media_query()
-    |> Repo.all()
-  end
-
   defp preload_media_versions(query) do
     query |> preload([:versions])
   end
@@ -204,6 +183,24 @@ defmodule Platform.Material do
       where: ^(not Keyword.get(opts, :limit_to_unread_notifications, false)) or not is_nil(n),
       where: ^(not Keyword.get(opts, :limit_to_subscriptions, false)) or not is_nil(s)
     )
+  end
+
+  defp maybe_filter_accessible_to_user(query, opts) do
+    user = Keyword.get(opts, :for_user)
+
+    if not is_nil(user) do
+      query
+      |> join(
+        :left,
+        [m],
+        sub in Platform.Projects.ProjectMembership,
+        on: sub.project_id == m.project_id and sub.user_id == ^user.id,
+        as: :project_membership
+      )
+      |> where([m, project_membership: pm], not is_nil(pm))
+    else
+      query
+    end
   end
 
   @doc """
@@ -551,12 +548,25 @@ defmodule Platform.Material do
     )
   end
 
-  def get_media_versions_by_source_url(url) do
+  def get_media_versions_by_source_url(url, opts \\ []) do
+    user = Keyword.get(opts, :for_user, nil)
+
     Repo.all(
       from(v in MediaVersion,
         where: v.source_url == ^url,
         preload: [media: [[updates: :user], :versions, :project]]
       )
+      |> then(fn query ->
+        if is_nil(user) do
+          query
+        else
+          query
+          |> join(:inner, [v], m in assoc(v, :media))
+          |> join(:inner, [v, m], p in assoc(m, :project))
+          |> join(:inner, [v, m, p], membership in assoc(p, :memberships))
+          |> where([v, m, p, membersip], membersip.user_id == ^user.id)
+        end
+      end)
     )
     |> Enum.sort_by(& &1.media.id)
     |> Enum.dedup_by(& &1.media.id)
@@ -570,8 +580,8 @@ defmodule Platform.Material do
     )
   end
 
-  def get_media_by_source_url(source_url) do
-    get_media_versions_by_source_url(source_url)
+  def get_media_by_source_url(source_url, opts \\ []) do
+    get_media_versions_by_source_url(source_url, opts)
     |> Enum.map(& &1.media)
     |> Enum.sort()
     |> Enum.dedup()
