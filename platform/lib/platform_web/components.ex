@@ -706,7 +706,7 @@ defmodule PlatformWeb.Components do
       """
     else
       ~H"""
-      <% can_user_view = Platform.Updates.Update.can_user_view(@update, @current_user) %>
+      <% can_user_view = Permissions.can_view_update?(@current_user, @update) %>
       <li class={"transition-all " <> (if @update.hidden and can_user_view, do: "opacity-50", else: "")}>
         <div class={"relative group word-breaks " <> (if @show_line, do: "pb-8", else: "")}>
           <%= if @show_line do %>
@@ -1791,7 +1791,7 @@ defmodule PlatformWeb.Components do
       <% end %>
       <% versions =
         @media.versions
-        |> Enum.filter(&Material.MediaVersion.can_user_view(&1, @current_user)) %>
+        |> Enum.filter(&Permissions.can_view_media_version?(@current_user, &1)) %>
       <%= for idx <- 0..@source_cols do %>
         <td
           class="border-b cursor-pointer p-0"

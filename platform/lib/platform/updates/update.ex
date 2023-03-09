@@ -105,15 +105,6 @@ defmodule Platform.Updates.Update do
     end
   end
 
-  def can_user_view(%Platform.Updates.Update{} = update, %User{} = user) do
-    cond do
-      Accounts.is_privileged(user) -> true
-      not Permissions.can_view_media?(user, update.media) -> false
-      update.hidden -> false
-      true -> true
-    end
-  end
-
   def validate_explanation(update) do
     update
     # Also validated in attribute.ex
