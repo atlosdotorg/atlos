@@ -24,6 +24,7 @@ defmodule Platform.Projects.ProjectMembership do
     |> validate_username()
     |> validate_required([:user_id, :project_id])
     |> unique_constraint([:user_id, :project_id],
+      error_key: :username,
       message: "This user is already a member of this project."
     )
     # If they are the owner and they are the only owner, don't allow them to change their role
