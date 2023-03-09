@@ -10,6 +10,8 @@ defmodule Platform.Accounts do
   alias Platform.Accounts.{User, UserToken, UserNotifier}
   alias Platform.Invites
 
+  use Memoize
+
   def get_valid_invite_code() do
     # Find invites created by the system (nil user)
     invites = Invites.get_invites_by_user(nil)
@@ -25,7 +27,10 @@ defmodule Platform.Accounts do
     end
   end
 
-  def get_auto_account() do
+  def is_auto_account(%User{username: "Atlos"}), do: true
+  def is_auto_account(_), do: false
+
+  defmemo get_auto_account(), expires_in: 1000 * 60 do
     case get_user_by_username("atlos") do
       nil ->
         # No admin! Create the user

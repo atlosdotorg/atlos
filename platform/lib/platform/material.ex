@@ -278,8 +278,11 @@ defmodule Platform.Material do
             |> Updates.create_update_from_changeset()
 
           # Automatically tag new incidents created by regular users, if desirable
+          user_project_membership =
+            Projects.get_project_membership_by_user_and_project_id(user, media.project_id)
+
           {:ok, media} =
-            with false <- Accounts.is_privileged(user),
+            with false <- Enum.member?([:owner, :manager], user_project_membership.role),
                  new_tags_json <- System.get_env("AUTOTAG_USER_INCIDENTS"),
                  false <- is_nil(new_tags_json),
                  {:ok, new_tags} <- Jason.decode(new_tags_json) do

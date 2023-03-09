@@ -247,10 +247,18 @@ defmodule Platform.Projects do
   end
 
   defmemo get_project_membership_by_user_id_and_project_id(user_id, project_id), expires_in: 1000 do
-    Repo.get_by(ProjectMembership |> preload_project_memberships(),
-      user_id: user_id,
-      project_id: project_id
-    )
+    if Accounts.get_auto_account().id == user_id do
+      %ProjectMembership{
+        user_id: user_id,
+        project_id: project_id,
+        role: :manager
+      }
+    else
+      Repo.get_by(ProjectMembership |> preload_project_memberships(),
+        user_id: user_id,
+        project_id: project_id
+      )
+    end
   end
 
   @doc """

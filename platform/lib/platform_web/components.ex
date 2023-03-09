@@ -872,7 +872,7 @@ defmodule PlatformWeb.Components do
                   <span class="font-medium text-gray-800">
                     You do not have permission to see this update.
                   </span>
-                  The incident may have been removed, or the update may have been hidden.
+                  The incident may have been removed, you may have been removed from the project, or the update may have been hidden.
                 </p>
               </div>
             <% end %>

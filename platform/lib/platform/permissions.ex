@@ -137,7 +137,7 @@ defmodule Platform.Permissions do
 
   def can_edit_media?(%User{} = user, %Media{} = media, %Attribute{} = attribute) do
     # This includes uploading new media versions as well as editing attributes.
-    membership = Projects.get_project_membership_by_user_and_project(user, media.project)
+    membership = Projects.get_project_membership_by_user_and_project_id(user, media.project_id)
 
     with false <- is_nil(membership),
          true <- can_edit_media?(user, media) do
