@@ -12,13 +12,27 @@ defmodule PlatformWeb.ProjectsLive.MembersComponent do
      |> assign(assigns)
      |> assign(:memberships, Projects.get_project_memberships(assigns.project))
      |> assign(:changeset, nil)
-     |> assign(:editing, nil)}
+     |> assign(:editing, nil)
+     |> assign_can_remove_self()}
   end
 
   def assign_changeset(socket, changeset) do
     socket
     |> assign(:changeset, changeset)
     |> assign(:form, if(not is_nil(changeset), do: changeset |> to_form(), else: nil))
+  end
+
+  def assign_can_remove_self(socket) do
+    own_membership =
+      Enum.find(socket.assigns.memberships, fn m ->
+        m.user_id == socket.assigns.current_user.id
+      end)
+
+    total_owners =
+      Enum.filter(socket.assigns.memberships, fn m -> m.role == :owner end) |> length()
+
+    socket
+    |> assign(:can_remove_self, total_owners > 1 or own_membership.role != :owner)
   end
 
   def changeset(socket, params \\ %{}) do
@@ -89,7 +103,8 @@ defmodule PlatformWeb.ProjectsLive.MembersComponent do
 
     {:noreply,
      socket
-     |> assign(:memberships, Projects.get_project_memberships(socket.assigns.project))}
+     |> assign(:memberships, Projects.get_project_memberships(socket.assigns.project))
+     |> assign_can_remove_self()}
   end
 
   def handle_event("edit_member", %{"username" => username}, socket) do
@@ -100,6 +115,32 @@ defmodule PlatformWeb.ProjectsLive.MembersComponent do
     {:noreply,
      socket
      |> assign_changeset(changeset(socket))}
+  end
+
+  def handle_event("leave_project", _params, socket) do
+    if not socket.assigns.can_remove_self do
+      raise PlatformWeb.Errors.Unauthorized, "You cannot remove yourself from this project"
+    end
+
+    # Regardless of their ability to edit the project, they should be able to leave
+    membership =
+      Projects.get_project_membership_by_user_and_project(
+        socket.assigns.current_user,
+        socket.assigns.project
+      )
+
+    {:ok, _} = Projects.delete_project_membership(membership)
+
+    Auditor.log(
+      :project_left,
+      %{user_id: socket.assigns.current_user.id, project_id: socket.assigns.project.id},
+      socket
+    )
+
+    {:noreply,
+     socket
+     |> redirect(to: "/")
+     |> put_flash(:info, "You have successfully removed yourself from the project.")}
   end
 
   def handle_event("validate", %{"project_membership" => params}, socket) do
@@ -147,7 +188,8 @@ defmodule PlatformWeb.ProjectsLive.MembersComponent do
            socket
            |> assign_changeset(nil)
            |> assign(:editing, nil)
-           |> assign(:memberships, Projects.get_project_memberships(socket.assigns.project))}
+           |> assign(:memberships, Projects.get_project_memberships(socket.assigns.project))
+           |> assign_can_remove_self()}
 
         {:error, changeset} ->
           {:noreply, socket |> assign_changeset(changeset |> Map.put(:action, :validate))}
@@ -172,18 +214,31 @@ defmodule PlatformWeb.ProjectsLive.MembersComponent do
             View and manage the users who have access to the project.
           </p>
         </div>
-        <%= if can_edit do %>
-          <div class="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
-            <button
-              type="button"
-              class="button ~urge @high"
-              phx-click="add_member"
-              phx-target={@myself}
-            >
-              Add member
-            </button>
+        <div>
+          <div class="mt-4 sm:mt-0 sm:ml-16 flex gap-4">
+            <%= if can_edit do %>
+              <button
+                type="button"
+                class="button ~urge @high"
+                phx-click="add_member"
+                phx-target={@myself}
+              >
+                Add member
+              </button>
+            <% end %>
+            <%= if @can_remove_self do %>
+              <button
+                type="button"
+                class="button ~critical @high"
+                phx-click="leave_project"
+                data-confirm="Are you sure you want to leave this project? To rejoin it, you will need to be invited again."
+                phx-target={@myself}
+              >
+                Leave project
+              </button>
+            <% end %>
           </div>
-        <% end %>
+        </div>
       </div>
       <div class="mt-8 flow-root">
         <div class="pb-4">

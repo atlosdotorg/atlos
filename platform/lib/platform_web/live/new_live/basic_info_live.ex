@@ -112,7 +112,7 @@ defmodule PlatformWeb.NewLive.BasicInfoLive do
                 <%= select(
                   f,
                   :project_id,
-                  ["No Project": nil] ++ Enum.map(projects, &{"#{&1.name}", &1.id}),
+                  Enum.map(projects, &{"#{&1.name}", &1.id}),
                   data_descriptions:
                     Jason.encode!(
                       Enum.reduce(projects, %{}, fn elem, acc ->
