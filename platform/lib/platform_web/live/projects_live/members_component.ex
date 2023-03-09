@@ -223,7 +223,7 @@ defmodule PlatformWeb.ProjectsLive.MembersComponent do
                 phx-click="add_member"
                 phx-target={@myself}
               >
-                Add member
+                Add Member
               </button>
             <% end %>
             <%= if @can_remove_self do %>
@@ -234,7 +234,7 @@ defmodule PlatformWeb.ProjectsLive.MembersComponent do
                 data-confirm="Are you sure you want to leave this project? To rejoin it, you will need to be invited again."
                 phx-target={@myself}
               >
-                Leave project
+                Leave Project
               </button>
             <% end %>
           </div>

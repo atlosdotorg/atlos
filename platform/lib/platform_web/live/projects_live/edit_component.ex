@@ -410,7 +410,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                   </p>
                 </div>
               <% end %>
-              <%= if ProjectAttribute.does_project_have_default_attributes?(@project) do %>
+              <%= if ProjectAttribute.does_project_have_default_attributes?(@project) and Permissions.can_edit_project_metadata?(@current_user, @project) do %>
                 <div class="rounded-md bg-blue-50 p-4 border-blue-600 border">
                   <div class="flex">
                     <div class="flex-shrink-0">
