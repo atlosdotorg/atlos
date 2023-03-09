@@ -185,7 +185,7 @@ defmodule Platform.Material do
     )
   end
 
-  defp maybe_filter_accessible_to_user(query, opts) do
+  def maybe_filter_accessible_to_user(query, opts) do
     user = Keyword.get(opts, :for_user)
 
     if not is_nil(user) do
@@ -1030,6 +1030,7 @@ defmodule Platform.Material do
         preload: :user
       )
     )
+    |> Enum.filter(&Permissions.can_view_media?(&1.user, media))
     |> Enum.map(& &1.user)
   end
 
