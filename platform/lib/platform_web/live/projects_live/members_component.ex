@@ -156,11 +156,13 @@ defmodule PlatformWeb.ProjectsLive.MembersComponent do
   def handle_event("save", %{"project_membership" => params}, socket) do
     cs = changeset(socket, params)
 
+    is_creation = is_nil(socket.assigns.editing)
+
     if cs.valid? do
       params = params |> Map.put("project_id", socket.assigns.project.id)
 
       result =
-        if is_nil(socket.assigns.editing),
+        if is_creation,
           do: Projects.create_project_membership(params),
           else:
             Projects.update_project_membership(
@@ -183,6 +185,14 @@ defmodule PlatformWeb.ProjectsLive.MembersComponent do
               project_membership_id: membership.id
             }
           )
+
+          if is_creation do
+            # Send a notification to the invited user
+            Platform.Notifications.send_message_notification_to_user(
+              Platform.Accounts.get_user!(membership.user_id),
+              "You have been added to the project [#{socket.assigns.project.name |> Phoenix.HTML.html_escape() |> Phoenix.HTML.safe_to_string()}](/projects/#{socket.assigns.project.id}) by [#{socket.assigns.current_user.username}](/profile/#{socket.assigns.current_user.username})."
+            )
+          end
 
           {:noreply,
            socket
