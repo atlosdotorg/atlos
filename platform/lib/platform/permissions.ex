@@ -3,11 +3,15 @@ defmodule Platform.Permissions do
   This module contains functions for checking permissions. This is intended as a central hub for all permission checks, so that we can easily change the logic in one place.
   """
 
+  use Memoize
+
+  alias Platform.Material
   alias Platform.Accounts
   alias Platform.Accounts.User
   alias Platform.Material.Media
   alias Platform.Material.MediaVersion
   alias Platform.Material.Attribute
+  alias Platform.Updates.Update
   alias Platform.Projects
   alias Platform.Projects.Project
 
@@ -182,5 +186,41 @@ defmodule Platform.Permissions do
   def can_create_media?(%User{} = user) do
     # Separate from `can_add_media_to_project?` because this is for creating media that is not yet associated with a project.
     not Enum.member?(user.restrictions || [], :muted)
+  end
+
+  defmemo _get_media_from_id(media_id), expires_in: 1000 do
+    # Memoized media lookup to avoid hitting the database multiple times for the same media during a request.
+    # This is a classic n+1 query problem; we should probably fix it at the database level.
+    Material.get_media!(media_id)
+  end
+
+  def can_view_update?(%User{} = user, %Update{} = update) do
+    media = _get_media_from_id(update.media_id)
+
+    with true <- can_view_media?(user, media) do
+      membership = Projects.get_project_membership_by_user_and_project(user, media.project)
+
+      case update.hidden do
+        true -> membership.role == :owner or membership.role == :manager
+        false -> true
+      end
+    else
+      _ -> false
+    end
+  end
+
+  def can_view_media_version?(%User{} = user, %MediaVersion{} = version) do
+    media = _get_media_from_id(version.media_id)
+
+    with true <- can_view_media?(user, media) do
+      membership = Projects.get_project_membership_by_user_and_project(user, media.project)
+
+      case version.visibility == :removed do
+        true -> membership.role == :owner or membership.role == :manager
+        false -> true
+      end
+    else
+      _ -> false
+    end
   end
 end

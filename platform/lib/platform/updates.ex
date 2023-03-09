@@ -424,23 +424,6 @@ defmodule Platform.Updates do
   end
 
   @doc """
-  Is the given user able to view the given update?
-  """
-  def can_user_view(%Update{} = update, %User{} = user) do
-    # TODO: Move this into Platform.Permissions
-    case Platform.Accounts.is_privileged(user) do
-      true ->
-        true
-
-      false ->
-        case update.hidden do
-          true -> false
-          false -> Permissions.can_view_media?(user, update.media)
-        end
-    end
-  end
-
-  @doc """
   Optimistically subscribe the given user to the media if the user has no
   interactions with the media yet.
   """

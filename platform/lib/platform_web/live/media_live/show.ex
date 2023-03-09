@@ -44,7 +44,7 @@ defmodule PlatformWeb.MediaLive.Show do
   end
 
   defp filter_viewable_versions(versions, %User{} = user) do
-    versions |> Enum.filter(&Material.MediaVersion.can_user_view(&1, user))
+    versions |> Enum.filter(&Permissions.can_view_media_version?(user, &1))
   end
 
   defp subscribe_to_media(socket, media) do

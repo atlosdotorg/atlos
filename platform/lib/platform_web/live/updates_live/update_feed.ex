@@ -2,6 +2,7 @@ defmodule PlatformWeb.UpdatesLive.UpdateFeed do
   use PlatformWeb, :live_component
   alias Platform.Accounts
   alias Platform.Updates
+  alias Platform.Permissions
 
   def update(
         assigns,
@@ -88,7 +89,7 @@ defmodule PlatformWeb.UpdatesLive.UpdateFeed do
   def render(assigns) do
     to_show =
       assigns.updates
-      |> Enum.filter(&Updates.can_user_view(&1, assigns.current_user))
+      |> Enum.filter(&Permissions.can_view_update?(assigns.current_user, &1))
       |> combine_and_sort_updates(Map.get(assigns, :should_combine, true))
       |> reorder(assigns.reverse)
       |> Enum.with_index()

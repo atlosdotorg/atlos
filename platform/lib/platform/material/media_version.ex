@@ -61,14 +61,4 @@ defmodule Platform.Material.MediaVersion do
     )
     |> unique_constraint([:media_id, :scoped_id], name: "media_versions_scoped_id_index")
   end
-
-  @doc """
-  Can the given user view the media version?
-  """
-  def can_user_view(%MediaVersion{} = version, %Accounts.User{} = user) do
-    case version.visibility == :removed do
-      true -> Accounts.is_privileged(user)
-      false -> true
-    end
-  end
 end

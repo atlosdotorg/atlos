@@ -72,7 +72,7 @@ defmodule Platform.UpdatesTest do
       assert Enum.any?(Enum.map(modified_updates, & &1.hidden))
     end
 
-    test "can_user_view/2 works for admins" do
+    test "Permissions.can_view_update?/2 works for admins" do
       admin = admin_user_fixture()
       media = media_fixture(%{project_id: project_fixture(%{}, owner: admin).id})
       user = user_fixture()
@@ -98,8 +98,8 @@ defmodule Platform.UpdatesTest do
       updates = Updates.get_updates_for_media(media)
       assert length(updates) == 1
 
-      assert length(Enum.filter(updates, &Updates.can_user_view(&1, user))) == 1
-      assert length(Enum.filter(updates, &Updates.can_user_view(&1, admin))) == 1
+      assert length(Enum.filter(updates, &Permissions.can_view_update?(user, &1))) == 1
+      assert length(Enum.filter(updates, &Permissions.can_view_update?(admin, &1))) == 1
 
       assert {:ok, _} =
                Updates.change_update_visibility(hd(updates), true)
@@ -109,8 +109,8 @@ defmodule Platform.UpdatesTest do
       assert length(modified_updates) == 1
       assert Enum.any?(Enum.map(modified_updates, & &1.hidden))
 
-      assert Enum.empty?(Enum.filter(modified_updates, &Updates.can_user_view(&1, user)))
-      assert length(Enum.filter(modified_updates, &Updates.can_user_view(&1, admin))) == 1
+      assert Enum.empty?(Enum.filter(modified_updates, &Permissions.can_view_update?(user, &1)))
+      assert length(Enum.filter(modified_updates, &Permissions.can_view_update?(admin, &1))) == 1
 
       # Quick check to also verify get_updates_for_media excludes hidden
       assert Enum.empty?(Updates.get_updates_for_media(media, true))
