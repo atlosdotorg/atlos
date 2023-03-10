@@ -17,7 +17,7 @@ config :platform, PlatformWeb.Endpoint,
 config :logger, level: :info
 
 # Feature flags for production
-config :platform, :features, custom_project_attributes: true, project_access_controls: false
+config :platform, :features, custom_project_attributes: true, project_access_controls: true
 
 # ## SSL Support
 #
