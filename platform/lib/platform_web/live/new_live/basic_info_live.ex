@@ -20,6 +20,8 @@ defmodule PlatformWeb.NewLive.BasicInfoLive do
   end
 
   defp assign_changeset(socket, params, opts \\ []) do
+    # Also assigns the @project
+
     cs = Material.change_media(socket.assigns.media, params, socket.assigns.current_user)
 
     cs =
@@ -36,6 +38,10 @@ defmodule PlatformWeb.NewLive.BasicInfoLive do
         {url, Material.get_media_by_source_url(url)}
       end)
 
+    # If available, assign the project
+    project_id = Ecto.Changeset.get_field(cs, :project_id, nil)
+    project = if is_nil(project_id), do: nil, else: Platform.Projects.get_project!(project_id)
+
     socket
     |> assign(
       :changeset,
@@ -44,6 +50,10 @@ defmodule PlatformWeb.NewLive.BasicInfoLive do
     |> assign(
       :url_deconfliction,
       url_deconfliction
+    )
+    |> assign(
+      :project,
+      project
     )
   end
 
@@ -90,36 +100,6 @@ defmodule PlatformWeb.NewLive.BasicInfoLive do
         class="phx-form"
       >
         <div class="space-y-6">
-          <div>
-            <.edit_attribute
-              attr={Attribute.get_attribute(:description)}
-              form={f}
-              media_slug="NEW"
-              media={nil}
-            />
-            <p class="support">
-              Try to be as descriptive as possible. You'll be able to change this later.
-            </p>
-          </div>
-
-          <div>
-            <.edit_attribute
-              attr={Attribute.get_attribute(:sensitive)}
-              form={f}
-              media_slug="NEW"
-              media={nil}
-            />
-          </div>
-
-          <div>
-            <.edit_attribute
-              attr={Attribute.get_attribute(:type)}
-              form={f}
-              media_slug="NEW"
-              media={nil}
-            />
-          </div>
-
           <% projects = Platform.Projects.list_projects_for_user(@current_user) %>
           <%= if not Enum.empty?(projects) do %>
             <div>
@@ -144,6 +124,29 @@ defmodule PlatformWeb.NewLive.BasicInfoLive do
               <%= error_tag(f, :project_id) %>
             </div>
           <% end %>
+
+          <div>
+            <.edit_attributes
+              attrs={[Attribute.get_attribute(:description)]}
+              form={f}
+              media_slug="NEW"
+              media={nil}
+              optional={false}
+            />
+            <p class="support">
+              Try to be as descriptive as possible. You'll be able to change this later.
+            </p>
+          </div>
+
+          <div>
+            <.edit_attributes
+              attrs={[Attribute.get_attribute(:sensitive)]}
+              form={f}
+              media_slug="NEW"
+              media={nil}
+              optional={false}
+            />
+          </div>
 
           <div class="flex flex-col gap-1">
             <label>Source Material <span class="badge ~neutral inline text-xs">Optional</span></label>
@@ -204,38 +207,8 @@ defmodule PlatformWeb.NewLive.BasicInfoLive do
             <div class="space-y-6 mt-4" x-transition x-show="open">
               <hr />
               <div>
-                <.edit_attribute
-                  attr={Attribute.get_attribute(:equipment)}
-                  form={f}
-                  media_slug="NEW"
-                  media={nil}
-                  optional={true}
-                />
-              </div>
-
-              <div>
-                <.edit_attribute
-                  attr={Attribute.get_attribute(:impact)}
-                  form={f}
-                  media_slug="NEW"
-                  media={nil}
-                  optional={true}
-                />
-              </div>
-
-              <div>
-                <.edit_attribute
-                  attr={Attribute.get_attribute(:date)}
-                  form={f}
-                  media_slug="NEW"
-                  media={nil}
-                  optional={true}
-                />
-              </div>
-
-              <div>
-                <.edit_attribute
-                  attr={Attribute.get_attribute(:general_location)}
+                <.edit_attributes
+                  attrs={[Attribute.get_attribute(:date)]}
                   form={f}
                   media_slug="NEW"
                   media={nil}
@@ -245,10 +218,26 @@ defmodule PlatformWeb.NewLive.BasicInfoLive do
 
               <%= if Accounts.is_privileged(@current_user) do %>
                 <div>
-                  <.edit_attribute
-                    attr={Attribute.get_attribute(:tags)}
+                  <.edit_attributes
+                    attrs={[Attribute.get_attribute(:tags)]}
                     form={f}
                     media_slug="NEW"
+                    media={nil}
+                    optional={true}
+                  />
+                </div>
+              <% end %>
+
+              <%= if not is_nil(@project) and not Enum.empty?(@project.attributes) do %>
+                <hr />
+                <div id={"project-attributes-#{@project.id}"}>
+                  <.edit_attributes
+                    attrs={
+                      @project.attributes
+                      |> Enum.map(&Platform.Projects.ProjectAttribute.to_attribute/1)
+                    }
+                    form={f}
+                    media_slug={@project.id}
                     media={nil}
                     optional={true}
                   />

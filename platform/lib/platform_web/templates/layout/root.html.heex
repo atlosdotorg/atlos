@@ -1,5 +1,10 @@
 <!DOCTYPE html>
-<html lang="en" class={if assigns[:_no_background] == true, do: "", else: "bg-gray-50"}>
+<html
+  lang="en"
+  class={
+    if assigns[:_no_background] == true, do: "scroll-smooth", else: "scroll-smooth bg-gray-50"
+  }
+>
   <head>
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />

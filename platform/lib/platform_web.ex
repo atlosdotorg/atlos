@@ -95,6 +95,9 @@ defmodule PlatformWeb do
       # Import basic rendering functionality (render, render_layout, etc)
       import Phoenix.View
 
+      # Import ~p
+      import Phoenix.VerifiedRoutes
+
       # Import our custom helper components
       import PlatformWeb.Components
 

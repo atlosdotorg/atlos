@@ -5,14 +5,7 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
   alias Platform.Auditor
 
   def update(assigns, socket) do
-    atom_name =
-      try do
-        String.to_existing_atom(assigns.name)
-      rescue
-        _ -> nil
-      end
-
-    attr = Attribute.get_attribute(atom_name)
+    attr = Attribute.get_attribute(assigns.name, project: assigns.media.project)
 
     if is_nil(attr) do
       raise PlatformWeb.Errors.NotFound, "Attribute not found"
@@ -26,7 +19,11 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
      |> assign(:attrs, attributes)
      |> assign_new(
        :changeset,
-       fn -> Material.change_media_attributes(assigns.media, attributes, assigns.current_user) end
+       fn ->
+         Material.change_media_attributes(assigns.media, attributes, %{},
+           user: assigns.current_user
+         )
+       end
      )}
   end
 
@@ -86,9 +83,8 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
       # When validating, don't require the change to exist (that will be validated on submit)
       |> Material.change_media_attributes(
         socket.assigns.attrs,
-        socket.assigns.current_user,
         params,
-        false
+        user: socket.assigns.current_user
       )
       |> Map.put(:action, :validate)
 
@@ -113,6 +109,21 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
           </div>
         </div>
         <hr class="h-8 sep" />
+        <%= if hd(@attrs).schema_field == :attr_status and Enum.member?(@media.attr_tags || [], "Volunteer") do %>
+          <div class="rounded-md bg-blue-50 p-4 mb-4">
+            <div class="flex">
+              <div class="flex-shrink-0">
+                <Heroicons.information_circle mini class="h-5 w-5 text-blue-600" />
+              </div>
+              <div class="ml-3 flex-1 md:flex md:justify-between">
+                <p class="text-sm text-blue-700">
+                  <span class="font-medium">This is a volunteer-created incident.</span>
+                  It may require additional review during the verification process.
+                </p>
+              </div>
+            </div>
+          </div>
+        <% end %>
         <.form
           :let={f}
           for={@changeset}
@@ -123,9 +134,7 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
           class="phx-form"
         >
           <div class="space-y-6">
-            <%= for attr <- @attrs do %>
-              <.edit_attribute attr={attr} form={f} media_slug={@media.slug} media={@media} />
-            <% end %>
+            <.edit_attributes attrs={@attrs} form={f} media_slug={@media.slug} media={@media} />
             <div>
               <%= label(f, :explanation, "Briefly Explain Your Change") %>
               <div class="border border-gray-300 rounded shadow-sm overflow-hidden focus-within:border-urge-500 focus-within:ring-1 focus-within:ring-urge-500 transition">
