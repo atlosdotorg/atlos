@@ -38,7 +38,13 @@ defmodule PlatformWeb.ProjectsLive.Show do
        )
      )
      |> assign(:full_width, true)
-     |> assign(:status_statistics, Material.status_overview_statistics(project_id: project.id))}
+     |> assign(
+       :status_statistics,
+       Material.status_overview_statistics(
+         project_id: project.id,
+         for_user: socket.assigns.current_user
+       )
+     )}
   end
 
   def handle_info({:project_saved, project}, socket) do

@@ -1180,12 +1180,13 @@ defmodule Platform.Material do
 
   Optionally include `project_id` to filter to a particular project.
   """
-  def status_overview_statistics(opts \\ []) do
+  defmemo status_overview_statistics(opts \\ []), expires_in: 1000 do
     from(m in Media,
       where: not m.deleted,
       group_by: m.attr_status,
       select: {m.attr_status, count(m.id)}
     )
+    |> maybe_filter_accessible_to_user(opts)
     |> then(fn query ->
       case Keyword.get(opts, :project_id) do
         nil ->
