@@ -63,6 +63,7 @@ defmodule Platform.Material.Media do
     field(:urls, :string, virtual: true)
     # For the internal, parsed representation
     field(:urls_parsed, {:array, :string}, virtual: true)
+    field(:is_selected, :boolean, virtual: true, default: false)
 
     # Virtual attributes for population during querying
     field(:has_unread_notification, :boolean, virtual: true, default: false)

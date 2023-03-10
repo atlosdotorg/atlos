@@ -174,9 +174,15 @@
           <.map_events map_data={map_data} />
         <% "cards" -> %>
           <div class="top-scroll-anchor"></div>
-          <div class="grid gap-4 grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 search-highlighting">
-            <%= for media <- @media do %>
-              <.media_card media={media} current_user={@current_user} />
+          <div
+            class="grid gap-4 grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 search-highlighting"
+            phx-update="stream"
+            id="cards"
+          >
+            <%= for {dom_id, media} <- @streams.media_stream do %>
+              <div id={dom_id}>
+                <.media_card media={media} current_user={@current_user} />
+              </div>
             <% end %>
           </div>
         <% "table" -> %>
@@ -185,7 +191,7 @@
               <div class="inline-block align-middle w-full">
                 <div class="!shadow-inner ring-1 ring-black ring-opacity-5 max-h-[calc(100vh-10rem+40px)] relative w-full">
                   <table
-                    class="border-separate sticky-headers pb-[40px] w-full"
+                    class="border-separate sticky-headers pb-[40px] w-full overflow-x-scroll"
                     style="border-spacing: 0"
                   >
                     <thead class="bg-gray-200 whitespace-nowrap">
@@ -214,15 +220,15 @@
                         <% end %>
                       </tr>
                     </thead>
-                    <tbody class="bg-white" id="table-body">
+                    <tbody class="bg-white" id="table-body" phx-update="stream">
                       <div class="top-scroll-anchor"></div>
-                      <%= for media <- @media do %>
+                      <%= for {dom_id, media} <- @streams.media_stream do %>
                         <.media_table_row
                           media={media}
                           current_user={@current_user}
                           attributes={@attributes}
                           source_cols={@source_cols}
-                          is_selected={Enum.member?(@selected_ids, media.id)}
+                          id={dom_id}
                         />
                       <% end %>
                     </tbody>

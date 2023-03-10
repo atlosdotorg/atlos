@@ -236,7 +236,7 @@ defmodule Platform.Material do
       ** (Ecto.NoResultsError)
 
   """
-  def get_media!(id), do: Repo.get!(Media |> hydrate_media_query(), id)
+  def get_media!(id, opts \\ []), do: Repo.get!(Media |> hydrate_media_query(opts), id)
 
   @doc """
   Creates a media.

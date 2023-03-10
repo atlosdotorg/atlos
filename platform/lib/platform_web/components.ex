@@ -1678,20 +1678,20 @@ defmodule PlatformWeb.Components do
       end %>
     <tr
       class={"search-highlighting group transition-all " <> background_color}
-      id={"table-row-" <> @media.slug}
-      x-data={"{selected: #{@is_selected}}"}
-      x-bind:class={"{'!bg-urge-50': (selected || #{@is_selected})}"}
+      id={@id}
+      x-data={"{selected: #{@media.is_selected}}"}
+      x-bind:class={"{'!bg-urge-50': (selected || #{@media.is_selected})}"}
     >
       <td
         id={"table-row-" <> @media.slug <> "-slug"}
         class={"md:sticky left-0 z-[100] pl-4 pr-1 border-r whitespace-nowrap border-b border-gray-200 h-10 transition-all " <> background_color}
-        x-bind:class={"{'!bg-urge-50': (selected || #{@is_selected})}"}
+        x-bind:class={"{'!bg-urge-50': (selected || #{@media.is_selected})}"}
       >
         <div class="flex items-center gap-1">
           <%= if Platform.Accounts.is_privileged(@current_user) do %>
             <div
               class="flex-shrink-0 w-5 mr-2 group-hover:block"
-              x-bind:class={"{'hidden': !(selected || #{@is_selected})}"}
+              x-bind:class={"{'hidden': !(selected || #{@media.is_selected})}"}
               data-tooltip="Select this incident"
               x-cloak
             >
@@ -1699,7 +1699,7 @@ defmodule PlatformWeb.Components do
                 phx-click="select"
                 phx-value-slug={@media.slug}
                 x-on:change="selected = $event.target.checked"
-                checked={@is_selected}
+                checked={@media.is_selected}
                 type="checkbox"
                 class="h-4 w-4 mb-1 rounded border-gray-300 text-urge-600 focus:ring-urge-600"
               />
@@ -1707,7 +1707,7 @@ defmodule PlatformWeb.Components do
           <% end %>
           <div
             class={"flex-shrink-0 w-5 mr-2 " <> (if Platform.Accounts.is_privileged(@current_user), do: "group-hover:hidden", else: "")}
-            x-bind:class={"{'hidden': (selected || #{@is_selected})}"}
+            x-bind:class={"{'hidden': (selected || #{@media.is_selected})}"}
             data-tooltip={"Last modified by #{List.last(@media.updates).user.username}"}
           >
             <.user_stack
