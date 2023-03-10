@@ -252,56 +252,27 @@ defmodule PlatformWeb.ProjectsLive.MembersComponent do
       </div>
       <div class="mt-8 flow-root">
         <div class="pb-4">
-          <div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8 rounded-lg bg-white border p-2 shadow-sm">
-            <table class="min-w-full divide-y divide-gray-300">
-              <thead>
-                <tr>
-                  <th
-                    scope="col"
-                    class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-0"
-                  >
-                    User
-                  </th>
-                  <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                    Role
-                  </th>
-                  <th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-0">
-                    <span class="sr-only">Edit</span>
-                  </th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-gray-200 bg-white">
-                <%= for membership <- @memberships do %>
-                  <tr>
-                    <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm sm:pl-0">
-                      <div class="flex items-center">
-                        <div class="h-10 w-10 flex-shrink-0">
-                          <img
-                            class="h-10 w-10 rounded-full"
-                            src={Platform.Accounts.get_profile_photo_path(membership.user)}
-                            alt={"Profile photo of " <> membership.user.username}
-                          />
-                        </div>
-                        <div class="ml-4">
-                          <div class="font-medium text-gray-900">
-                            <.user_text user={membership.user} />
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-                    <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+          <div class="inline-block min-w-full">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <%= for membership <- @memberships do %>
+                <article class="text-sm rounded-lg shadow-sm border flex flex-col overflow-hidden">
+                  <div class="bg-white p-2">
+                    <.user_card user={membership.user} />
+                  </div>
+                  <div class="flex justify-between bg-neutral-100 p-4">
+                    <div>
                       <%= case membership.role do %>
                         <% :owner -> %>
-                          <span class="chip ~critical">Owner</span>
+                          <span class="badge ~critical @high">Owner</span>
                         <% :manager -> %>
-                          <span class="chip ~warning">Manager</span>
+                          <span class="badge ~critical @low">Manager</span>
                         <% :editor -> %>
-                          <span class="chip ~info">Editor</span>
+                          <span class="badge ~info @high">Editor</span>
                         <% :viewer -> %>
-                          <span class="chip ~neutral">Viewer</span>
+                          <span class="badge ~neutral @high">Viewer</span>
                       <% end %>
-                    </td>
-                    <td class="relative whitespace-nowrap gap-4 py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-0">
+                    </div>
+                    <div>
                       <%= if can_edit do %>
                         <button
                           phx-target={@myself}
@@ -323,18 +294,16 @@ defmodule PlatformWeb.ProjectsLive.MembersComponent do
                           </button>
                         <% end %>
                       <% end %>
-                    </td>
-                  </tr>
-                <% end %>
-                <%= if Enum.empty?(@memberships) do %>
-                  <tr>
-                    <td class="py-4 text-sm text-gray-500" colspan="4">
-                      No members found.
-                    </td>
-                  </tr>
-                <% end %>
-              </tbody>
-            </table>
+                    </div>
+                  </div>
+                </article>
+              <% end %>
+              <%= if Enum.empty?(@memberships) do %>
+                <div class="text-sm text-gray-500">
+                  No members found.
+                </div>
+              <% end %>
+            </div>
           </div>
         </div>
       </div>
