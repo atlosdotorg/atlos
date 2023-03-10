@@ -447,8 +447,18 @@ defmodule Platform.MaterialTest do
       admin = admin_user_fixture()
 
       project = project_fixture()
-      Projects.create_project_membership(%{username: user.username, project_id: project.id})
-      Projects.create_project_membership(%{username: admin.username, project_id: project.id})
+
+      Projects.create_project_membership(%{
+        username: user.username,
+        project_id: project.id,
+        role: :viewer
+      })
+
+      Projects.create_project_membership(%{
+        username: admin.username,
+        project_id: project.id,
+        role: :owner
+      })
 
       Enum.map(1..50, fn _ ->
         media_fixture(%{project_id: project.id})
@@ -472,19 +482,33 @@ defmodule Platform.MaterialTest do
       user = user_fixture()
       admin = admin_user_fixture()
 
+      project = project_fixture()
+
+      Projects.create_project_membership(%{
+        username: user.username,
+        project_id: project.id,
+        role: :editor
+      })
+
+      Projects.create_project_membership(%{
+        username: admin.username,
+        project_id: project.id,
+        role: :owner
+      })
+
       Enum.map(1..50, fn _ ->
-        media_fixture(%{attr_description: "description is foo bar!"})
+        media_fixture(%{attr_description: "description is foo bar!", project_id: project.id})
       end)
 
       Enum.map(1..50, fn _ ->
-        media_fixture(%{attr_description: "description is bing bong!"})
+        media_fixture(%{attr_description: "description is bing bong!", project_id: project.id})
       end)
 
       (Enum.map(1..10, fn _ ->
-         media_fixture(%{attr_description: "description is foo bar!"})
+         media_fixture(%{attr_description: "description is foo bar!", project_id: project.id})
        end) ++
          Enum.map(1..10, fn _ ->
-           media_fixture(%{attr_description: "description is bing bong!"})
+           media_fixture(%{attr_description: "description is bing bong!", project_id: project.id})
          end))
       |> Enum.map(
         &Material.update_media_attribute(&1, Material.Attribute.get_attribute(:restrictions), %{
@@ -497,14 +521,14 @@ defmodule Platform.MaterialTest do
       {query, _} =
         Material.MediaSearch.search_query(Material.MediaSearch.changeset(%{query: "bing bong"}))
 
-      assert length(query |> Material.MediaSearch.filter_viewable(user) |> Material.query_media()) ==
-               50
-
       assert length(
                query
                |> Material.MediaSearch.filter_viewable(admin)
                |> Material.query_media()
              ) == 60
+
+      assert length(query |> Material.MediaSearch.filter_viewable(user) |> Material.query_media()) ==
+               50
     end
 
     test "query_media_paginated/0 paginates" do

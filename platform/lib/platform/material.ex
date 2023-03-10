@@ -213,7 +213,7 @@ defmodule Platform.Material do
         query
         |> where(
           [m, project_membership: pm],
-          pm.role == :owner or pm.role == :editor or
+          pm.role == :owner or pm.role == :manager or
             (^"Hidden" not in m.attr_restrictions or is_nil(m.attr_restrictions))
         )
       end
