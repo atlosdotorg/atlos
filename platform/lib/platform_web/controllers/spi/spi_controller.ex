@@ -2,7 +2,6 @@ defmodule PlatformWeb.SPIController do
   use PlatformWeb, :controller
   require Ecto.Query
 
-  alias Platform.Accounts
   alias Platform.Projects
   alias Platform.Permissions
 

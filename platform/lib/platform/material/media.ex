@@ -5,8 +5,6 @@ defmodule Platform.Material.Media do
   alias Platform.Utils
   alias Platform.Material.Attribute
   alias Platform.Material.MediaSubscription
-  alias Platform.Accounts.User
-  alias Platform.Accounts
   alias Platform.Projects
   alias Platform.Permissions
   alias __MODULE__

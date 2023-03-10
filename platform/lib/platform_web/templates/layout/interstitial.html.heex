@@ -17,11 +17,11 @@
       <:header>
         <p class="sec-head"><%= @title || "" %></p>
       </:header>
-      <%= if get_flash(@conn, :info) do %>
-        <p class="aside ~urge mb-4" role="alert"><%= get_flash(@conn, :info) %></p>
+      <%= if get(@flash, :info) do %>
+        <p class="aside ~urge mb-4" role="alert"><%= get(@flash, :info) %></p>
       <% end %>
-      <%= if get_flash(@conn, :error) do %>
-        <p class="aside ~critical mb-4" role="alert"><%= get_flash(@conn, :error) %></p>
+      <%= if get(@flash, :error) do %>
+        <p class="aside ~critical mb-4" role="alert"><%= get(@flash, :error) %></p>
       <% end %>
       <%= @inner_content %>
     </.card>
