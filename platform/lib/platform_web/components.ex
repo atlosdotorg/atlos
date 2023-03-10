@@ -1997,7 +1997,7 @@ defmodule PlatformWeb.Components do
                   <%= select(
                     f,
                     :project_id,
-                    [{"All", nil}, {"No Project", "unset"}] ++
+                    [{"All", nil}] ++
                       (Platform.Projects.list_projects_for_user(@current_user)
                        |> Enum.map(fn p -> {p.code <> ": " <> p.name, p.id} end)
                        |> Enum.map(fn {name, id} -> {Utils.truncate(name, 20), id} end)),
