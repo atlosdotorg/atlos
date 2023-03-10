@@ -1,6 +1,7 @@
 defmodule Platform.MaterialTest do
   use Platform.DataCase
 
+  alias Platform.Projects
   alias Platform.Material
   alias Platform.Updates
   alias Platform.Accounts
@@ -445,12 +446,16 @@ defmodule Platform.MaterialTest do
       user = user_fixture()
       admin = admin_user_fixture()
 
+      project = project_fixture()
+      Projects.create_project_membership(%{username: user.username, project_id: project.id})
+      Projects.create_project_membership(%{username: admin.username, project_id: project.id})
+
       Enum.map(1..50, fn _ ->
-        media_fixture()
+        media_fixture(%{project_id: project.id})
       end)
 
       Enum.map(1..10, fn _ ->
-        media_fixture()
+        media_fixture(%{project_id: project.id})
       end)
       |> Enum.map(
         &Material.update_media_attribute(&1, Material.Attribute.get_attribute(:restrictions), %{

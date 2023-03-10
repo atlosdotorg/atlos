@@ -30,7 +30,7 @@ defmodule Platform.Accounts do
   def is_auto_account(%User{username: "Atlos"}), do: true
   def is_auto_account(_), do: false
 
-  defmemo get_auto_account(), expires_in: 1000 * 60 do
+  def get_auto_account() do
     case get_user_by_username("atlos") do
       nil ->
         # No admin! Create the user
@@ -113,7 +113,7 @@ defmodule Platform.Accounts do
   @doc """
   Gets all users, and preloads their invite code (and the owner of that invite code).
   """
-  def get_all_users(), do: Repo.all(from u in User, preload: [invite: [:owner]])
+  def get_all_users(), do: Repo.all(from(u in User, preload: [invite: [:owner]]))
 
   ## User registration
 
@@ -353,7 +353,7 @@ defmodule Platform.Accounts do
   Deletes all session tokens.
   """
   def delete_all_session_tokens() do
-    Repo.delete_all(from Platform.Accounts.UserToken, where: [context: "session"])
+    Repo.delete_all(from(Platform.Accounts.UserToken, where: [context: "session"]))
   end
 
   ## Confirmation
