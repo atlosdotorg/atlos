@@ -2016,12 +2016,12 @@ defmodule PlatformWeb.Components do
                     f,
                     :sort,
                     [
-                      "Newest Added": :uploaded_desc,
-                      "Oldest Added": :uploaded_asc,
-                      "Recently Modified": :modified_desc,
-                      "Least Recently Modified": :modified_asc,
-                      "Description (A-Z)": :description_asc,
-                      "Description (Z-A)": :description_desc
+                      "↓ Added": :uploaded_desc,
+                      "↑ Added": :uploaded_asc,
+                      "↓ Modified": :modified_desc,
+                      "↑ Modified": :modified_asc,
+                      "↓ Description": :description_desc,
+                      "↑ Description": :description_asc
                     ],
                     class:
                       "block bg-transparent w-full border-0 py-0 pl-0 pr-7 text-gray-900 placeholder-gray-500 focus:ring-0 sm:text-sm"
