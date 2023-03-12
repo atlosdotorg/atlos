@@ -181,25 +181,42 @@
           </div>
         <% "table" -> %>
           <section class="-mx-4 md:-mx-8">
-            <div class="overflow-x-auto w-full">
+            <div class="h-[40px] flex md:justify-between items-center w-full bg-neutral-100 border-t text-sm p-2 z-[100]">
+              <div class="text-neutral-600">
+                <.pagination_controls
+                  next_link={next_link}
+                  prev_link={prev_link}
+                  pagination_metadata={@results.metadata}
+                  pagination_index={@pagination_index}
+                  currently_displayed_results={length(@media)}
+                  id="pagination-table"
+                />
+              </div>
+              <%= if is_nil(@active_project) do %>
+                <div class="flex items-center ml-4 md:ml-16 md:mr-8">
+                  <Heroicons.information_circle mini class="h-5 w-5 text-neutral-400" />
+                  <span class="ml-1">
+                    To see project attributes, refine your search to a project.
+                  </span>
+                </div>
+              <% end %>
+            </div>
+            <div class="overflow-x-scroll overflow-y-visible w-full">
               <div class="inline-block align-middle w-full">
-                <div class="!shadow-inner ring-1 ring-black ring-opacity-5 max-h-[calc(100vh-10rem+40px)] relative w-full">
-                  <table
-                    class="border-separate sticky-headers pb-[40px] w-full"
-                    style="border-spacing: 0"
-                  >
+                <div class="!shadow-inner ring-1 ring-black ring-opacity-5 max-h-[calc(100vh-10rem-10px)] relative w-full mb-2">
+                  <table class="border-separate sticky-headers w-full" style="border-spacing: 0">
                     <thead class="bg-gray-200 whitespace-nowrap">
                       <tr>
                         <th
                           scope="col"
-                          class="md:sticky left-0 z-[101] top-0 border-b border-t border-neutral-200 bg-neutral-100 px-2 py-4 font-medium text-sm text-left"
+                          class="md:sticky left-0 z-[101] top-0 border-b border-t border-neutral-200 bg-neutral-100 px-2 py-3 font-medium text-sm text-left"
                         >
                           Incident
                         </th>
                         <%= for attr <- @attributes do %>
                           <th
                             scope="col"
-                            class="md:sticky z-[100] top-0 border-b border-t border-neutral-200 bg-neutral-100 bg-opacity-[95%] px-2 py-4 font-medium text-sm text-left"
+                            class="md:sticky z-[100] top-0 border-b border-t border-neutral-200 bg-neutral-100 bg-opacity-[95%] px-2 py-3 font-medium text-sm text-left"
                           >
                             <%= attr.label %>
                           </th>
@@ -207,7 +224,7 @@
                         <%= for idx <- 0..@source_cols do %>
                           <th
                             scope="col"
-                            class="md:sticky z-[100] top-0 border-b border-t border-neutral-200 bg-neutral-100 bg-opacity-[95%] px-4 py-4 font-medium text-sm text-left"
+                            class="md:sticky z-[100] top-0 border-b border-t border-neutral-200 bg-neutral-100 bg-opacity-[95%] px-4 py-3 font-medium text-sm text-left"
                           >
                             Source <%= idx + 1 %>
                           </th>
@@ -227,26 +244,6 @@
                       <% end %>
                     </tbody>
                   </table>
-                  <div class="h-[40px] flex fixed bottom-0 md:justify-between items-center w-full z-[100] backdrop-blur-lg bg-white/30 border-t text-sm p-2">
-                    <div class="text-neutral-600">
-                      <.pagination_controls
-                        next_link={next_link}
-                        prev_link={prev_link}
-                        pagination_metadata={@results.metadata}
-                        pagination_index={@pagination_index}
-                        currently_displayed_results={length(@media)}
-                        id="pagination-table"
-                      />
-                    </div>
-                    <%= if is_nil(@active_project) do %>
-                      <div class="flex items-center ml-4 md:ml-16 md:mr-32">
-                        <Heroicons.information_circle mini class="h-5 w-5 text-neutral-400" />
-                        <span class="ml-1">
-                          To see project attributes, refine your search to a project.
-                        </span>
-                      </div>
-                    <% end %>
-                  </div>
                 </div>
               </div>
             </div>
