@@ -1046,6 +1046,68 @@ defmodule PlatformWeb.Components do
     """
   end
 
+  def attr_filter(assigns) do
+    ~H"""
+    <article
+      class="relative inline-block text-left z-[10000] overflow-visible"
+      x-data="{open: false}"
+      x-on:click.away="open = false"
+    >
+      <div>
+        <button
+          type="button"
+          class="inline-flex border rounded-full py-1 px-2 w-full justify-center gap-x-1 text-sm text-gray-900"
+          aria-haspopup="true"
+          x-on:click="open = !open"
+        >
+          <%= @attr.label %>
+          <svg
+            class="-mr-1 h-5 w-5 text-gray-400"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+            aria-hidden="true"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
+              clip-rule="evenodd"
+            />
+          </svg>
+        </button>
+      </div>
+      <div
+        class="absolute right-0 z-10 mt-2 w-56 origin-top-right rounded-md backdrop-blur-md bg-white/30 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
+        role="menu"
+        x-transition
+        aria-orientation="vertical"
+        tabindex="-1"
+        x-show="open"
+      >
+        <div class="p-2" role="none">
+          <p class="text-xs font-medium uppercase tracking-wide text-gray-500">
+            Filter <%= @attr.label %> to...
+          </p>
+          <div>
+            <%= case @attr.type do %>
+              <% x when x == :multi_select or x == :select -> %>
+                <div phx-update="ignore" id={"attr_select_#{@attr.name}"} class="phx-form">
+                  <%= multiple_select(
+                    @form,
+                    @attr.schema_field,
+                    Attribute.options(@attr),
+                    id: "attr_select_#{@attr.name}_input",
+                    data_descriptions: Jason.encode!(@attr.option_descriptions || %{}),
+                    data_privileged: Jason.encode!(@attr.privileged_values || [])
+                  ) %>
+                </div>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    </article>
+    """
+  end
+
   def attr_display_row(assigns) do
     attr = Map.get(assigns, :attr)
 
@@ -1873,7 +1935,7 @@ defmodule PlatformWeb.Components do
           data-no-warn="true"
         >
           <section class="md:flex w-full max-w-7xl mx-auto flex-wrap md:flex-nowrap gap-2 items-center">
-            <div class="flex divide-y md:divide-y-0 md:divide-x flex-col flex-grow md:flex-row rounded-lg bg-white shadow-sm border overflow-hidden">
+            <div class="flex divide-y md:divide-y-0 md:divide-x flex-col flex-grow md:flex-row rounded-lg bg-white shadow-sm border">
               <%= if not Enum.member?(@exclude, :display) do %>
                 <div class="flex px-2 py-1 pd:my-0 ">
                   <nav class="flex items-center gap-px" aria-label="Tabs">
@@ -1973,6 +2035,9 @@ defmodule PlatformWeb.Components do
                   ) %>
                 </div>
                 <%= error_tag(f, :query) %>
+              </div>
+              <div class="relative z-[1000] flex items-center gap-2">
+                <.attr_filter form={f} attr={Attribute.get_attribute(:status)} />
               </div>
               <div class={if Enum.member?(@exclude, :status), do: "hidden", else: ""}>
                 <div class="ts-ignore pl-3 py-2 group">
