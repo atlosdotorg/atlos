@@ -32,7 +32,7 @@ defmodule Platform.Material.MediaSearch do
     {data, @types}
     |> Ecto.Changeset.cast(params, Map.keys(@types))
     |> Ecto.Changeset.validate_change(:attr_geolocation, fn _, value ->
-      case parse_location(value) |> dbg() do
+      case parse_location(value) do
         :error ->
           [
             attr_geolocation:
@@ -261,8 +261,6 @@ defmodule Platform.Material.MediaSearch do
   Builds a composeable query given the search changeset. Returns a {queryable, pagination_opts} tuple.
   """
   def search_query(queryable \\ Media, %Ecto.Changeset{} = cs, current_user \\ nil) do
-    dbg(cs)
-
     queryable
     |> apply_query_component(cs, :query)
     |> apply_query_component(cs, :attr_status)
