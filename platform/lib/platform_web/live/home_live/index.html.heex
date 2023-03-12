@@ -6,10 +6,10 @@
           <div class="font-medium text-2xl">Home</div>
         </div>
         <div class="grow"></div>
-        <div class="hidden md:block">
+        <div class="hidden md:block w-56">
           <.search_form
             changeset={@search_changeset}
-            exclude={[:display, :sort, :status, :project, :more_options]}
+            exclude={[:display, :sort, :status, :project, :more_options, :filters, :pagination]}
             query_params={%{display: "cards"}}
             current_user={@current_user}
             socket={@socket}

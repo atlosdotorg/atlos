@@ -242,7 +242,7 @@ defmodule PlatformWeb.MediaLive.Index do
   def handle_event("save", %{"search" => params}, socket) do
     # Also reset the pagination index, since we're doing a new search
     merged_params =
-      Map.merge(socket.assigns.query_params, params)
+      params
       |> Map.delete("bc")
       |> Map.delete("ac")
       |> Map.delete("pi")

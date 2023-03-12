@@ -1066,18 +1066,18 @@ defmodule PlatformWeb.Components do
       <div>
         <button
           type="button"
-          class={"inline-flex border shadow-sm rounded-lg py-1 px-2 w-full justify-center gap-x-1 text-sm text-gray-900 bg-white " <>
+          class={"inline-flex border shadow-sm rounded-lg py-1 px-2 w-full justify-center gap-x-1 text-sm text-gray-900 " <>
             if @is_active do
-              "text-urge-600"
+              "text-white bg-urge-500 border-urge-500"
             else
-              ""
+              "bg-white"
             end}
           aria-haspopup="true"
           x-on:click="open = !open"
         >
           <%= @attr.label %>
           <svg
-            class="-mr-1 h-5 w-5 text-gray-400"
+            class="-mr-1 h-5 w-5 opacity-75"
             viewBox="0 0 20 20"
             fill="currentColor"
             aria-hidden="true"
@@ -1091,7 +1091,7 @@ defmodule PlatformWeb.Components do
         </button>
       </div>
       <div
-        class="absolute right-0 z-10 mt-2 w-96 origin-top-right rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
+        class="absolute right-0 z-[10000] overflow-visible mt-2 w-96 origin-top-right rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
         role="menu"
         x-transition
         aria-orientation="vertical"
@@ -1112,19 +1112,20 @@ defmodule PlatformWeb.Components do
                     @attr.schema_field,
                     Attribute.options(@attr) ++ ["[Unset]"],
                     id: "attr_select_#{@attr.name}_input",
-                    data_descriptions: Jason.encode!(@attr.option_descriptions || %{}),
+                    data_descriptions: Jason.encode!((@attr.option_descriptions || %{}) |> Map.put("[Unset]", "The value is not set")),
                     data_privileged: Jason.encode!(@attr.privileged_values || [])
                   ) %>
                 </div>
               <% :location -> %>
                 <div>
-                  <div class="flex gap-2 items-center ts-ignore">
+                  <div class="flex flex-col gap-2 items-center ts-ignore">
                     <%= text_input(
                       @form,
                       :attr_geolocation,
                       class: "input-base grow",
                       "phx-debounce": "500"
                     ) %>
+                    <span class="text-gray-600 text-sm">within</span>
                     <%= select(
                       @form,
                       :attr_geolocation_radius,
@@ -1140,13 +1141,13 @@ defmodule PlatformWeb.Components do
                         {"1000 km", 1000}
                       ],
                       default: 10,
-                      class: "input-base"
+                      class: "input-base shrink"
                     ) %>
                   </div>
-                  <p class="support text-gray-600 mt-1">
+                  <p class="support text-gray-600 my-1">
                     Input the location in the format: <code>latitude, longitude</code>
                   </p>
-                  <p class="support text-critical-600 mt-1">
+                  <p class="support text-critical-600">
                     <%= error_tag(@form, :attr_geolocation) %>
                   </p>
                 </div>
@@ -1156,14 +1157,14 @@ defmodule PlatformWeb.Components do
                     <%= date_input(
                       @form,
                       :attr_date_min,
-                      id: "search-form-date-#{@attr.name}",
+                      id: "search-form-date-min",
                       class: "input-base inline-flex items-center"
                     ) %>
                     <span class="text-sm text-gray-600">until</span>
                     <%= date_input(
                       @form,
                       :attr_date_max,
-                      id: "search-form-date-#{@attr.name}",
+                      id: "search-form-date-max",
                       class: "input-base inline-flex items-center"
                     ) %>
                   </div>
@@ -2224,7 +2225,7 @@ defmodule PlatformWeb.Components do
                         class="text-gray-700 group w-full hover:bg-gray-100 flex items-center px-4 py-2 text-sm"
                         role="menuitem"
                       >
-                        <Heroicons.arrow_left_circle class="mr-3 h-5 w-5 text-gray-400 group-hover:text-gray-500" />
+                        <Heroicons.arrow_uturn_left class="mr-3 h-5 w-5 text-gray-400 group-hover:text-gray-500" />
                         Reset Filters
                       </.link>
                     </div>
@@ -2232,9 +2233,9 @@ defmodule PlatformWeb.Components do
                 </div>
               </div>
             </div>
-            <div class="flex justify-between items-center w-full">
+            <div class={"flex justify-between items-center w-full " <> if Enum.member?(@exclude, :pagination) and Enum.member?(@exclude, :filters), do: "hidden", else: ""}>
               <div class={if Enum.member?(@exclude, :pagination), do: "hidden", else: ""}>
-                <%= if @pagination do %>
+                <%= if assigns[:pagination] do %>
                   <%= render_slot(@pagination) %>
                 <% end %>
               </div>
@@ -2500,8 +2501,8 @@ defmodule PlatformWeb.Components do
       <h3 class="mt-2 font-medium text-gray-900">No results</h3>
       <p class="mt-1 text-gray-500">No incidents matched this criteria</p>
       <div class="mt-6">
-        <a href="/incidents" class="button ~urge @high">
-          View All &rarr;
+        <a href="/" class="button ~urge @high">
+          Return Home &rarr;
         </a>
       </div>
     </div>

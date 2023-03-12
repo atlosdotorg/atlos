@@ -1,4 +1,4 @@
-<article class={"w-full px-4 md:px-8 " <> (if @full_width, do: "mt-8", else: "")}>
+<article class={"w-full min-h-[90vh] px-4 md:px-8 " <> (if @full_width, do: "mt-8", else: "")}>
   <% next_link =
     Routes.live_path(
       @socket,
@@ -94,6 +94,7 @@
         socket={@socket}
         current_user={@current_user}
         display={@display}
+        active_project={@active_project}
       >
         <:pagination>
           <%= if @display != "map" do %>
@@ -170,7 +171,7 @@
           <section class="-mx-4 md:-mx-8">
             <div class="overflow-x-scroll overflow-y-visible w-full">
               <div class="inline-block align-middle w-full">
-                <div class="!shadow-inner ring-1 ring-black ring-opacity-5 max-h-[calc(100vh-10rem-8px)] relative w-full mb-2">
+                <div class="!shadow-inner ring-1 ring-black ring-opacity-5 max-h-[calc(100vh-11rem)] relative w-full">
                   <table class="border-separate sticky-headers w-full" style="border-spacing: 0">
                     <thead class="bg-gray-200 whitespace-nowrap">
                       <tr>
