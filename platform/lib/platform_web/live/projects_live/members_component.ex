@@ -259,17 +259,17 @@ defmodule PlatformWeb.ProjectsLive.MembersComponent do
                   <div class="bg-white p-2">
                     <.user_card user={membership.user} />
                   </div>
-                  <div class="flex justify-between bg-neutral-100 p-4">
+                  <div class="flex justify-between items-center bg-white border-t p-4">
                     <div>
                       <%= case membership.role do %>
                         <% :owner -> %>
-                          <span class="badge ~critical @high">Owner</span>
+                          <span class="chip ~critical @high">Owner</span>
                         <% :manager -> %>
-                          <span class="badge ~critical @low">Manager</span>
+                          <span class="chip ~critical @low">Manager</span>
                         <% :editor -> %>
-                          <span class="badge ~info @high">Editor</span>
+                          <span class="chip ~info @high">Editor</span>
                         <% :viewer -> %>
-                          <span class="badge ~neutral @high">Viewer</span>
+                          <span class="chip ~neutral @high">Viewer</span>
                       <% end %>
                     </div>
                     <div>
