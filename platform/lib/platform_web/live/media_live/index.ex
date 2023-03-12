@@ -77,7 +77,7 @@ defmodule PlatformWeb.MediaLive.Index do
      |> assign(:after_cursor, after_cursor)
      |> assign(:active_project, active_project)
      |> assign(:results, results)
-     |> assign(:myself, self())
+     |> assign(:root_pid, self())
      |> assign(:pagination_index, pagination_index)
      |> assign(:editing, nil)
      |> assign(:media, results.entries)

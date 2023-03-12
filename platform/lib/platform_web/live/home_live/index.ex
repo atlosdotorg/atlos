@@ -12,7 +12,7 @@ defmodule PlatformWeb.HomeLive.Index do
   def handle_params(_params, _uri, socket) do
     {:noreply,
      socket
-     |> assign(:myself, self())
+     |> assign(:root_pid, self())
      |> assign(:pagination_index, 0)
      |> assign(:projects, Platform.Projects.list_projects_for_user(socket.assigns.current_user))
      |> assign(:media, get_feed_media(socket, limit: 50))
