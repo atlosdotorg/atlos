@@ -185,7 +185,6 @@ function initializeSmartSelects() {
         }
         let descriptions = JSON.parse(s.getAttribute("data-descriptions")) || {};
         let privileged = JSON.parse(s.getAttribute("data-privileged")) || [];
-        let indent = JSON.parse(s.getAttribute("data-indent")) || false;
 
         let x = new TomSelect(`#${s.id}`, {
             maxOptions: null,

@@ -1047,16 +1047,31 @@ defmodule PlatformWeb.Components do
   end
 
   def attr_filter(assigns) do
+    assigns =
+      assign(
+        assigns,
+        :is_active,
+        Ecto.Changeset.get_change(assigns.form.source, assigns.attr.schema_field) != nil or
+          (assigns.attr.type == :date and
+             (Ecto.Changeset.get_change(assigns.form.source, :attr_date_min) != nil or
+                Ecto.Changeset.get_change(assigns.form.source, :attr_date_max) != nil))
+      )
+
     ~H"""
     <article
-      class="relative inline-block text-left z-[10000] overflow-visible"
+      class="relative inline-block text-left overflow-visible"
       x-data="{open: false}"
       x-on:click.away="open = false"
     >
       <div>
         <button
           type="button"
-          class="inline-flex border rounded-full py-1 px-2 w-full justify-center gap-x-1 text-sm text-gray-900"
+          class={"inline-flex border shadow-sm rounded-lg py-1 px-2 w-full justify-center gap-x-1 text-sm text-gray-900 bg-white " <>
+            if @is_active do
+              "text-urge-600"
+            else
+              ""
+            end}
           aria-haspopup="true"
           x-on:click="open = !open"
         >
@@ -1076,15 +1091,16 @@ defmodule PlatformWeb.Components do
         </button>
       </div>
       <div
-        class="absolute right-0 z-10 mt-2 w-56 origin-top-right rounded-md backdrop-blur-md bg-white/30 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
+        class="absolute right-0 z-10 mt-2 w-96 origin-top-right rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
         role="menu"
         x-transition
         aria-orientation="vertical"
         tabindex="-1"
         x-show="open"
+        x-cloak
       >
         <div class="p-2" role="none">
-          <p class="text-xs font-medium uppercase tracking-wide text-gray-500">
+          <p class="text-xs font-medium uppercase tracking-wide text-gray-500 mb-1">
             Filter <%= @attr.label %> to...
           </p>
           <div>
@@ -1094,12 +1110,69 @@ defmodule PlatformWeb.Components do
                   <%= multiple_select(
                     @form,
                     @attr.schema_field,
-                    Attribute.options(@attr),
+                    Attribute.options(@attr) ++ ["[Unset]"],
                     id: "attr_select_#{@attr.name}_input",
                     data_descriptions: Jason.encode!(@attr.option_descriptions || %{}),
                     data_privileged: Jason.encode!(@attr.privileged_values || [])
                   ) %>
                 </div>
+              <% :location -> %>
+                <div>
+                  <div class="flex gap-2 items-center ts-ignore">
+                    <%= text_input(
+                      @form,
+                      :attr_geolocation,
+                      class: "input-base grow",
+                      "phx-debounce": "500"
+                    ) %>
+                    <%= select(
+                      @form,
+                      :attr_geolocation_radius,
+                      [
+                        {"1 km", 1},
+                        {"5 km", 5},
+                        {"10 km", 10},
+                        {"25 km", 25},
+                        {"50 km", 50},
+                        {"100 km", 100},
+                        {"250 km", 250},
+                        {"500 km", 500},
+                        {"1000 km", 1000}
+                      ],
+                      default: 10,
+                      class: "input-base"
+                    ) %>
+                  </div>
+                  <p class="support text-gray-600 mt-1">
+                    Input the location in the format: <code>latitude, longitude</code>
+                  </p>
+                  <p class="support text-critical-600 mt-1">
+                    <%= error_tag(@form, :attr_geolocation) %>
+                  </p>
+                </div>
+              <% :date -> %>
+                <div>
+                  <div class="flex gap-2 items-center">
+                    <%= date_input(
+                      @form,
+                      :attr_date_min,
+                      id: "search-form-date-#{@attr.name}",
+                      class: "input-base inline-flex items-center"
+                    ) %>
+                    <span class="text-sm text-gray-600">until</span>
+                    <%= date_input(
+                      @form,
+                      :attr_date_max,
+                      id: "search-form-date-#{@attr.name}",
+                      class: "input-base inline-flex items-center"
+                    ) %>
+                  </div>
+                  <p class="support text-gray-600 mt-1">
+                    For an open ended range, leave the field blank.
+                  </p>
+                </div>
+              <% _ -> %>
+                TODO
             <% end %>
           </div>
         </div>
@@ -1897,8 +1970,11 @@ defmodule PlatformWeb.Components do
     """
   end
 
-  def search_form(%{changeset: _, query_params: _, socket: _, display: _} = assigns) do
-    assigns = assign_new(assigns, :exclude, fn -> [] end)
+  def search_form(%{changeset: c, query_params: _, socket: _, display: _} = assigns) do
+    assigns =
+      assign_new(assigns, :exclude, fn -> [] end)
+      |> assign(:changeset, Map.put(c, :action, :validate))
+
     # We assign the ID to the top-level div to fix a Safari rendering bug
 
     ~H"""
@@ -1933,11 +2009,12 @@ defmodule PlatformWeb.Components do
           phx-change={JS.push("validate") |> JS.dispatch("atlos:updating", to: "body")}
           phx-submit={JS.push("save") |> JS.dispatch("atlos:updating", to: "body")}
           data-no-warn="true"
+          class="w-full"
         >
-          <section class="md:flex w-full max-w-7xl mx-auto flex-wrap md:flex-nowrap gap-2 items-center">
-            <div class="flex divide-y md:divide-y-0 md:divide-x flex-col flex-grow md:flex-row rounded-lg bg-white shadow-sm border">
+          <section class="flex flex-col items-start w-full max-w-7xl mx-auto flex-wrap md:flex-nowrap gap-2 items-center">
+            <div class="flex w-full divide-y md:divide-y-0 flex-col flex-grow md:flex-row rounded-lg bg-white shadow-sm border">
               <%= if not Enum.member?(@exclude, :display) do %>
-                <div class="flex px-2 py-1 pd:my-0 ">
+                <div class="flex px-2 py-1 pd:my-0 md:border-r">
                   <nav class="flex items-center gap-px" aria-label="Tabs">
                     <%= label do %>
                       <div
@@ -2020,42 +2097,8 @@ defmodule PlatformWeb.Components do
                   </nav>
                 </div>
               <% end %>
-              <div class={"flex-grow " <> (if Enum.member?(@exclude, :query), do: "hidden", else: "")}>
-                <div class="px-3 h-full group flex flex-col md:flex-row py-2 items-center">
-                  <%= label(f, :query, "Search",
-                    class:
-                      "block w-full md:hidden text-xs font-medium text-gray-900 group-focus-within:text-urge-600"
-                  ) %>
-                  <%= text_input(f, :query,
-                    placeholder: "Search for anything...",
-                    phx_debounce: "1000",
-                    id: "search-form-query-input",
-                    class:
-                      "block w-full border-0 p-0 bg-transparent text-gray-900 placeholder-gray-500 focus:ring-0 sm:text-sm"
-                  ) %>
-                </div>
-                <%= error_tag(f, :query) %>
-              </div>
-              <div class="relative z-[1000] flex items-center gap-2">
-                <.attr_filter form={f} attr={Attribute.get_attribute(:status)} />
-              </div>
-              <div class={if Enum.member?(@exclude, :status), do: "hidden", else: ""}>
-                <div class="ts-ignore pl-3 py-2 group">
-                  <%= label(f, :attr_status, "Status",
-                    class: "block text-xs font-medium text-gray-900 group-focus-within:text-urge-600"
-                  ) %>
-                  <%= select(
-                    f,
-                    :attr_status,
-                    ["Any"] ++ Attribute.options(Attribute.get_attribute(:status)),
-                    class:
-                      "block bg-transparent w-full border-0 py-0 pl-0 pr-7 text-gray-900 placeholder-gray-500 focus:ring-0 sm:text-sm"
-                  ) %>
-                </div>
-                <%= error_tag(f, :status) %>
-              </div>
               <div class={if Enum.member?(@exclude, :project), do: "hidden", else: ""}>
-                <div class="ts-ignore pl-3 py-2 group">
+                <div class="ts-ignore pl-3 py-2 group md:border-r">
                   <%= label(f, :project_id, "Project",
                     class: "block text-xs font-medium text-gray-900 group-focus-within:text-urge-600"
                   ) %>
@@ -2072,8 +2115,24 @@ defmodule PlatformWeb.Components do
                 </div>
                 <%= error_tag(f, :project_id) %>
               </div>
+              <div class={"flex-grow " <> (if Enum.member?(@exclude, :query), do: "hidden", else: "")}>
+                <div class="px-3 h-full group flex flex-col md:flex-row py-2 items-center">
+                  <%= label(f, :query, "Search",
+                    class:
+                      "block w-full md:hidden text-xs font-medium text-gray-900 group-focus-within:text-urge-600"
+                  ) %>
+                  <%= text_input(f, :query,
+                    placeholder: "Search for anything...",
+                    phx_debounce: "1000",
+                    id: "search-form-query-input",
+                    class:
+                      "block w-full border-0 p-0 bg-transparent text-gray-900 placeholder-gray-500 focus:ring-0 sm:text-sm"
+                  ) %>
+                </div>
+                <%= error_tag(f, :query) %>
+              </div>
               <div class={if Enum.member?(@exclude, :sort), do: "hidden", else: ""}>
-                <div class="ts-ignore pl-3 py-2 group">
+                <div class="ts-ignore pl-3 py-2 group border-x">
                   <%= label(f, :sort, "Sort",
                     class: "block text-xs font-medium text-gray-900 group-focus-within:text-urge-600"
                   ) %>
@@ -2095,7 +2154,7 @@ defmodule PlatformWeb.Components do
                 <%= error_tag(f, :sort) %>
               </div>
               <div
-                class={"flex place-self-center w-full md:w-auto h-full px-2 text-sm md:py-[14px] py-4 " <>
+                class={"flex place-self-center w-full md:w-auto h-full pr-2 text-sm md:py-[14px] py-4 pl-2 " <>
                   (if Enum.member?(@exclude, :more_options), do: "hidden", else: "")}
                 x-data="{open: false}"
               >
@@ -2160,8 +2219,32 @@ defmodule PlatformWeb.Components do
                         </svg>
                         Export Incidents
                       <% end %>
+                      <.link
+                        patch="/incidents"
+                        class="text-gray-700 group w-full hover:bg-gray-100 flex items-center px-4 py-2 text-sm"
+                        role="menuitem"
+                      >
+                        <Heroicons.arrow_left_circle class="mr-3 h-5 w-5 text-gray-400 group-hover:text-gray-500" />
+                        Reset Filters
+                      </.link>
                     </div>
                   </div>
+                </div>
+              </div>
+            </div>
+            <div class="flex justify-between items-center w-full">
+              <div class={if Enum.member?(@exclude, :pagination), do: "hidden", else: ""}>
+                <%= if @pagination do %>
+                  <%= render_slot(@pagination) %>
+                <% end %>
+              </div>
+              <div class={if Enum.member?(@exclude, :filters), do: "hidden", else: ""}>
+                <div class="relative flex items-center h-full gap-2">
+                  <.attr_filter form={f} attr={Attribute.get_attribute(:status)} />
+                  <.attr_filter form={f} attr={Attribute.get_attribute(:geolocation)} />
+                  <.attr_filter form={f} attr={Attribute.get_attribute(:date)} />
+                  <.attr_filter form={f} attr={Attribute.get_attribute(:tags)} />
+                  <.attr_filter form={f} attr={Attribute.get_attribute(:sensitive)} />
                 </div>
               </div>
             </div>
@@ -3564,12 +3647,10 @@ defmodule PlatformWeb.Components do
           <span class="font-medium">
             <%= (@pagination_index * @pagination_metadata.limit + 1) |> Formatter.format_number() %>
           </span>
-          to
-          <span class="font-medium">
+          to <span class="font-medium">
             <%= (@pagination_index * @pagination_metadata.limit +
                    @currently_displayed_results)
-            |> Formatter.format_number() %>
-          </span>
+            |> Formatter.format_number() %></span>.
         </p>
       </div>
     </nav>

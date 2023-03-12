@@ -2,7 +2,12 @@
   <p class="mb-4 text-gray-600">
     Thank you for joining Atlos. Click the button below to confirm that this email belongs to you.
   </p>
-  <.form :let={_f} for={%{}} as={:user} action={Routes.user_confirmation_path(@conn, :update, @token)}>
+  <.form
+    :let={_f}
+    for={%{}}
+    as={:user}
+    action={Routes.user_confirmation_path(@conn, :update, @token)}
+  >
     <div class="md:flex gap-2 items-center text-neutral-600">
       <%= submit("Confirm my account", class: "button ~urge @high mr-2") %>
       <%= link("Register", to: Routes.user_registration_path(@conn, :new)) %>
