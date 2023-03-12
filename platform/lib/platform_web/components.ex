@@ -2517,7 +2517,7 @@ defmodule PlatformWeb.Components do
         <%= if @dynamic do %>
           <.popover class="inline">
             <img
-              class={"relative z-30 inline-block h-5 w-5 rounded-full ring-2 " <> Map.get(assigns, :ring_class, "ring-white")}
+              class={"relative z-30 inline-block rounded-full ring-2 " <> Map.get(assigns, :size_classes, "h-5 w-5") <> " " <> Map.get(assigns, :ring_class, "ring-white")}
               src={Accounts.get_profile_photo_path(user)}
               alt={"Profile photo for #{user.username}"}
             />
@@ -2527,14 +2527,14 @@ defmodule PlatformWeb.Components do
           </.popover>
         <% else %>
           <img
-            class={"relative z-30 inline-block h-5 w-5 rounded-full ring-2 " <> Map.get(assigns, :ring_class, "ring-white")}
+            class={"relative z-30 inline-block rounded-full ring-2 " <> Map.get(assigns, :size_classes, "h-5 w-5") <> " " <> Map.get(assigns, :ring_class, "ring-white")}
             src={Accounts.get_profile_photo_path(user)}
             alt={"Profile photo for #{user.username}"}
           />
         <% end %>
       <% end %>
       <%= if length(@users) > @max do %>
-        <div class={"bg-gray-300 text-gray-700 text-xl rounded-full mt-1 h-5 w-5 z-30 ring-2 flex items-center justify-center"  <> Map.get(assigns, :ring_class, "ring-white")}>
+        <div class={"bg-gray-300 text-gray-700 text-xl rounded-full mt-1 z-30 ring-2 flex items-center justify-center " <> Map.get(assigns, :size_classes, "h-5 w-5") <>" " <> Map.get(assigns, :ring_class, "ring-white")}>
           <svg
             xmlns="http://www.w3.org/2000/svg"
             class="h-3 w-3"
@@ -3529,7 +3529,7 @@ defmodule PlatformWeb.Components do
           </.link>
         <% end %>
         <div>
-          <%= render_slot(@actions) || "" %>
+          <.user_stack users={@project.memberships |> Enum.map(& &1.user)} size_classes="h-7 w-7" />
         </div>
       </div>
     </div>

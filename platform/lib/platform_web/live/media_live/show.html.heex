@@ -1,13 +1,5 @@
 <div>
-  <.project_bar project={@media.project}>
-    <:actions>
-      <%= if is_nil(@media.project) do %>
-        <.link patch={"/incidents/#{@media.slug}/project"} class="text-button text-sm">
-          + Add to Project
-        </.link>
-      <% end %>
-    </:actions>
-  </.project_bar>
+  <.project_bar project={@media.project} />
   <article class="w-full lg:max-w-screen-xl px-8 lg:mx-auto mt-8">
     <div class="lg:flex lg:items-center lg:justify-between">
       <div class="flex-1 min-w-0 max-w-full" x-data="{pulse: false}">

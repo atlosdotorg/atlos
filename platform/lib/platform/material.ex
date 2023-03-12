@@ -159,7 +159,7 @@ defmodule Platform.Material do
   end
 
   defp preload_media_project(query) do
-    query |> preload([:project])
+    query |> preload(project: [memberships: [:user]])
   end
 
   defp apply_user_fields(query, user, opts)
