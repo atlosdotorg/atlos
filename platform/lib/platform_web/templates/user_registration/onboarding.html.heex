@@ -9,11 +9,13 @@
   updates: [
     %Platform.Updates.Update{
       type: :create,
-      user: Platform.Accounts.get_auto_account()
+      user: Platform.Accounts.get_auto_account(),
+      inserted_at: DateTime.utc_now()
     },
     %Platform.Updates.Update{
       type: :create,
-      user: @current_user
+      user: @current_user,
+      inserted_at: DateTime.utc_now()
     }
   ],
   updated_at: DateTime.utc_now() |> DateTime.add(-2, :hour),
@@ -112,14 +114,6 @@
             with media, attributes, metadata, and comments.
           </span>
         </p>
-        <div class="relative">
-          <.media_card
-            border={true}
-            link={false}
-            media={example_media}
-            current_user={@current_user}
-          />
-        </div>
         <p class="flex gap-2 sm:gap-4 items-center">
           <span class="text-3xl">📌</span>
           <span>

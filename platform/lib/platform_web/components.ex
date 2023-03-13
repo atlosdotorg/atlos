@@ -1112,8 +1112,11 @@ defmodule PlatformWeb.Components do
                     @attr.schema_field,
                     Attribute.options(@attr) ++ ["[Unset]"],
                     id: "attr_select_#{@attr.name}_input",
-                    data_descriptions: Jason.encode!((@attr.option_descriptions || %{}) |> Map.put("[Unset]", "The value is not set")),
-                    data_privileged: Jason.encode!(@attr.privileged_values || [])
+                    data_descriptions:
+                      Jason.encode!(
+                        (@attr.option_descriptions || %{})
+                        |> Map.put("[Unset]", "The value is not set")
+                      )
                   ) %>
                 </div>
               <% :location -> %>
@@ -2099,7 +2102,7 @@ defmodule PlatformWeb.Components do
                 </div>
               <% end %>
               <div class={if Enum.member?(@exclude, :project), do: "hidden", else: ""}>
-                <div class="ts-ignore pl-3 py-2 group md:border-r">
+                <div class="ts-ignore pl-3 py-2 group md:border-r min-w-[8rem]">
                   <%= label(f, :project_id, "Project",
                     class: "block text-xs font-medium text-gray-900 group-focus-within:text-urge-600"
                   ) %>
@@ -2502,7 +2505,7 @@ defmodule PlatformWeb.Components do
       <p class="mt-1 text-gray-500">No incidents matched this criteria</p>
       <div class="mt-6">
         <a href="/" class="button ~urge @high">
-          Return Home &rarr;
+          Return Home
         </a>
       </div>
     </div>

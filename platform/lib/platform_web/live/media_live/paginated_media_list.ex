@@ -91,7 +91,7 @@ defmodule PlatformWeb.MediaLive.PaginatedMediaList do
           <p class="mt-1 text-gray-500">No incidents matched this criteria</p>
           <div class="mt-6">
             <a href="/" class="button ~urge @high">
-              Return Home &rarr;
+              Return Home
             </a>
           </div>
         </div>
