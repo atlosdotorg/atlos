@@ -66,14 +66,14 @@ defmodule Platform.Accounts do
 
   """
   def get_user_by_email(email) when is_binary(email) do
-    Repo.get_by(User, email: email)
+    Repo.get_by(User |> preload_user(), email: email)
   end
 
   @doc """
   Gets a user by username.
   """
   def get_user_by_username(username) do
-    Repo.get_by(User, username: username)
+    Repo.get_by(User |> preload_user(), username: username)
   end
 
   @doc """
@@ -90,7 +90,7 @@ defmodule Platform.Accounts do
   """
   def get_user_by_email_and_password(email, password)
       when is_binary(email) and is_binary(password) do
-    user = Repo.get_by(User, email: email)
+    user = Repo.get_by(User |> preload_user(), email: email)
     if User.valid_password?(user, password), do: user
   end
 
@@ -108,12 +108,12 @@ defmodule Platform.Accounts do
       ** (Ecto.NoResultsError)
 
   """
-  def get_user!(id), do: Repo.get!(User, id)
+  def get_user!(id), do: Repo.get!(User |> preload_user(), id)
 
   @doc """
   Gets all users, and preloads their invite code (and the owner of that invite code).
   """
-  def get_all_users(), do: Repo.all(from(u in User, preload: [invite: [:owner]]))
+  def get_all_users(), do: Repo.all(User |> preload_user())
 
   ## User registration
 
@@ -264,6 +264,10 @@ defmodule Platform.Accounts do
     |> Ecto.Multi.delete_all(:tokens, UserToken.user_and_contexts_query(user, [context]))
   end
 
+  defp preload_user(queryable) do
+    queryable |> preload([:active_project_membership, invite: [:owner]])
+  end
+
   @doc """
   Delivers the update email instructions to the given user.
 
@@ -338,7 +342,7 @@ defmodule Platform.Accounts do
   """
   def get_user_by_session_token(token) do
     {:ok, query} = UserToken.verify_session_token_query(token)
-    Repo.one(query)
+    Repo.one(query) |> Repo.preload([:active_project_membership, invite: [:owner]])
   end
 
   @doc """
@@ -462,6 +466,13 @@ defmodule Platform.Accounts do
     |> case do
       {:ok, %{user: user}} -> {:ok, user}
       {:error, :user, changeset, _} -> {:error, changeset}
+    end
+  end
+
+  def active_project_id(user) do
+    case user.active_project_membership do
+      nil -> nil
+      %Platform.Projects.ProjectMembership{project_id: project_id} -> project_id
     end
   end
 

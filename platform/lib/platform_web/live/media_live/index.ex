@@ -23,10 +23,23 @@ defmodule PlatformWeb.MediaLive.Index do
       raise PlatformWeb.Errors.NotFound, "Display type not found"
     end
 
+    active_project = Platform.Projects.get_project(params["project_id"])
+
+    membership =
+      Platform.Projects.get_project_membership_by_user_and_project(
+        socket.assigns.current_user,
+        active_project
+      )
+
+    membership_id = if not is_nil(membership), do: membership.id, else: nil
+
     # Update the user's prefered incident display, if necessary
-    if socket.assigns.current_user.active_incidents_tab != display do
+    if socket.assigns.current_user.active_incidents_tab != display or
+         socket.assigns.current_user.active_project_membership_id !=
+           membership_id do
       Platform.Accounts.update_user_preferences(socket.assigns.current_user, %{
-        active_incidents_tab: display
+        active_incidents_tab: display,
+        active_project_membership_id: membership_id
       })
     end
 
@@ -61,8 +74,6 @@ defmodule PlatformWeb.MediaLive.Index do
         # Ideally we would put these params in search_media, but since this is map-specific logic, it'll only be called here (it's not possible to "load more" on the map)
         search_keywords
       )
-
-    active_project = Platform.Projects.get_project(params["project_id"])
 
     {:noreply,
      socket

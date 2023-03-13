@@ -22,6 +22,7 @@ defmodule Platform.Accounts.User do
 
     # Platform settings and preferences
     field :active_incidents_tab, :string, default: "map"
+    belongs_to :active_project_membership, Platform.Projects.ProjectMembership, type: :binary_id
 
     # Authentication, identity, and compliance
     field :invite_code, :string, virtual: true
@@ -276,7 +277,7 @@ defmodule Platform.Accounts.User do
 
   def preferences_changeset(user, attrs) do
     user
-    |> cast(attrs, [:active_incidents_tab])
+    |> cast(attrs, [:active_incidents_tab, :active_project_membership_id])
   end
 
   @doc """

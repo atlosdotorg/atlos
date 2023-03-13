@@ -26,6 +26,19 @@ defmodule PlatformWeb.ProjectsLive.Show do
     {query, _} = MediaSearch.search_query(MediaSearch.changeset(%{"project_id" => id}))
     query = MediaSearch.filter_viewable(query, socket.assigns.current_user)
 
+    membership_id =
+      Platform.Projects.get_project_membership_by_user_and_project(
+        socket.assigns.current_user,
+        project
+      ).id
+
+    if socket.assigns.current_user.active_project_membership_id !=
+         membership_id do
+      Platform.Accounts.update_user_preferences(socket.assigns.current_user, %{
+        active_project_membership_id: membership_id
+      })
+    end
+
     {:noreply,
      socket
      |> assign(:title, project.name)

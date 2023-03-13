@@ -19,9 +19,9 @@ defmodule PlatformWeb.Components do
 
     classes =
       if active do
-        "self-start bg-neutral-800 text-white group w-full p-3 rounded-md flex flex-col items-center text-xs font-medium"
+        "transition self-start bg-neutral-800 text-white group w-full p-3 rounded-md flex flex-col items-center text-xs font-medium"
       else
-        "self-start text-neutral-100 hover:bg-neutral-800 hover:text-white group w-full p-3 rounded-md flex flex-col items-center text-xs font-medium"
+        "transition self-start text-neutral-100 hover:bg-neutral-800 hover:text-white group w-full p-3 rounded-md flex flex-col items-center text-xs font-medium"
       end
 
     assigns = assign(assigns, :classes, classes)
@@ -306,7 +306,11 @@ defmodule PlatformWeb.Components do
             </svg>
           </.navlink>
 
-          <.navlink to="/incidents" label="Incidents" request_path={@path}>
+          <.navlink
+            to={"/incidents?project_id=#{Accounts.active_project_id(@current_user)}"}
+            label="Incidents"
+            request_path={@path}
+          >
             <svg
               xmlns="http://www.w3.org/2000/svg"
               class="text-neutral-300 group-hover:text-white h-6 w-6"
