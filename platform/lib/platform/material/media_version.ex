@@ -1,9 +1,7 @@
 defmodule Platform.Material.MediaVersion do
   use Ecto.Schema
   import Ecto.Changeset
-  alias Platform.Accounts
   alias Platform.Material.Media
-  alias __MODULE__
 
   @derive {Jason.Encoder, except: [:__meta__, :client_name, :file_location, :media]}
   schema "media_versions" do

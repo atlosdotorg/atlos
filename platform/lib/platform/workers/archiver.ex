@@ -42,7 +42,9 @@ defmodule Platform.Workers.Archiver do
           "--max-filesize",
           "500m",
           "--merge-output-format",
-          "mp4"
+          "mp4",
+          "-I",
+          ":1"
         ],
         into: IO.stream()
       )

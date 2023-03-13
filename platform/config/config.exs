@@ -74,6 +74,12 @@ import_config "appsignal.exs"
 
 config :platform, Oban,
   repo: Platform.Repo,
-  plugins: [Oban.Plugins.Pruner],
+  plugins: [
+    Oban.Plugins.Pruner,
+    {Oban.Plugins.Cron,
+     crontab: [
+       {"0 * * * *", Platform.Workers.Custodian}
+     ]}
+  ],
   # We only want one instance of ffmpeg running on the server at a time...
-  queues: [media_archival: 1, auto_metadata: 1]
+  queues: [media_archival: 1, auto_metadata: 1, custodian: 1]
