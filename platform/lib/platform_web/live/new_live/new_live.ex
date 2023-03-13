@@ -26,7 +26,7 @@ defmodule PlatformWeb.NewLive do
 
   def render(assigns) do
     ~H"""
-    <div class="space-y-8 max-w-xl md:mx-auto mx-4">
+    <div class="space-y-8 max-w-xl md:mx-auto mx-4 mb-64">
       <h1 class="page-header">New Incident</h1>
       <.card>
         <%= if Accounts.is_admin(@current_user) do %>
