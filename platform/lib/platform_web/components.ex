@@ -3540,31 +3540,38 @@ defmodule PlatformWeb.Components do
     """
   end
 
+  def project_card_inner(assigns) do
+    # Like <.project_card> below, but without a link.
+    ~H"""
+    <div class="bg-white rounded-lg shadow overflow-hidden p-4 flex-col gap-2 min-w-[15rem]">
+      <p class="font-mono text-xs text-neutral-600"><%= @project.code %></p>
+      <p class="font-medium text-lg inline-flex items-center">
+        <%= @project.name %>
+        <span style={"color: #{@project.color}"}>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+            class="w-5 h-5 ml-px"
+          >
+            <circle cx="10" cy="10" r="6" />
+          </svg>
+        </span>
+      </p>
+      <% total_incidents = Material.total_media_in_project!(@project) %>
+      <p class="support font-base text-neutral-600">
+        <%= total_incidents |> Formatter.format_number() %> <%= if total_incidents == 1,
+          do: "incident",
+          else: "incidents" %>
+      </p>
+    </div>
+    """
+  end
+
   def project_card(assigns) do
     ~H"""
-    <.link class="bg-white rounded-lg shadow overflow-hidden" href={"/projects/#{@project.id}"}>
-      <div class="p-4 flex-col gap-2 min-w-[15rem]">
-        <p class="font-mono text-xs text-neutral-600"><%= @project.code %></p>
-        <p class="font-medium text-lg inline-flex items-center">
-          <%= @project.name %>
-          <span style={"color: #{@project.color}"}>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-              class="w-5 h-5 ml-px"
-            >
-              <circle cx="10" cy="10" r="6" />
-            </svg>
-          </span>
-        </p>
-        <% total_incidents = Material.total_media_in_project!(@project) %>
-        <p class="support font-base text-neutral-600">
-          <%= total_incidents |> Formatter.format_number() %> <%= if total_incidents == 1,
-            do: "incident",
-            else: "incidents" %>
-        </p>
-      </div>
+    <.link href={"/projects/#{@project.id}"}>
+      <.project_card_inner project={@project} />
     </.link>
     """
   end

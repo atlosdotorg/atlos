@@ -109,11 +109,6 @@
                   id="pagination-table"
                 />
               </div>
-              <%= if is_nil(@active_project) and @display == "table" do %>
-                <span class="ml-1 text-sm text-gray-700">
-                  To see all attributes, choose a project.
-                </span>
-              <% end %>
             </div>
           <% end %>
         </:pagination>
@@ -168,54 +163,88 @@
             <% end %>
           </div>
         <% "table" -> %>
-          <section class="-mx-4 md:-mx-8">
-            <div class="overflow-x-scroll overflow-y-visible w-full">
-              <div class="inline-block align-middle w-full">
-                <div class="!shadow-inner ring-1 ring-black ring-opacity-5 max-h-[calc(100vh-11rem)] relative w-full">
-                  <table class="border-separate sticky-headers w-full" style="border-spacing: 0">
-                    <thead class="bg-gray-200 whitespace-nowrap">
-                      <tr>
-                        <th
-                          scope="col"
-                          class="md:sticky left-0 z-[101] top-0 border-b border-t border-neutral-200 bg-neutral-100 px-2 py-3 font-medium text-sm text-left"
-                        >
-                          Incident
-                        </th>
-                        <%= for attr <- @attributes do %>
-                          <th
-                            scope="col"
-                            class="md:sticky z-[100] top-0 border-b border-t border-neutral-200 bg-neutral-100 bg-opacity-[95%] px-2 py-3 font-medium text-sm text-left"
-                          >
-                            <%= attr.label %>
-                          </th>
-                        <% end %>
-                        <%= for idx <- 0..@source_cols do %>
-                          <th
-                            scope="col"
-                            class="md:sticky z-[100] top-0 border-b border-t border-neutral-200 bg-neutral-100 bg-opacity-[95%] px-4 py-3 font-medium text-sm text-left"
-                          >
-                            Source <%= idx + 1 %>
-                          </th>
-                        <% end %>
-                      </tr>
-                    </thead>
-                    <tbody class="bg-white" id="table-body">
-                      <div class="top-scroll-anchor"></div>
-                      <%= for media <- @media do %>
-                        <.media_table_row
-                          media={media}
-                          current_user={@current_user}
-                          attributes={@attributes}
-                          source_cols={@source_cols}
-                          is_selected={Enum.member?(@selected_ids, media.id)}
-                        />
+          <%= if is_nil(@active_project) do %>
+            <div class="flex justify-center">
+              <div class="flex flex-col items-center justify-around h-full min-h-[60vh]">
+                <div class="flex flex-col justify-around items-center gap-4">
+                  <Heroicons.squares_2x2 class="h-16 w-16 text-neutral-400" />
+                  <h2 class="text-lg font-medium text-center">Select a project</h2>
+                  <p class="text-sm text-neutral-600 mb-8 text-center">
+                    Every project has a different schema, so select a project to view these incidents in a table.
+                  </p>
+                  <%= if not Enum.empty?(@user_projects) do %>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                      <%= for project <- @user_projects do %>
+                        <.link patch={
+                          Routes.live_path(
+                            @socket,
+                            PlatformWeb.MediaLive.Index,
+                            @query_params
+                            |> Map.put(:project_id, project.id)
+                          )
+                        }>
+                          <.project_card_inner project={project} />
+                        </.link>
                       <% end %>
-                    </tbody>
-                  </table>
+                    </div>
+                  <% else %>
+                    <p class="italic text-sm text-neutral-600 text-center">
+                      You don't have any projects.
+                    </p>
+                  <% end %>
                 </div>
               </div>
             </div>
-          </section>
+          <% else %>
+            <section class="-mx-4 md:-mx-8">
+              <div class="overflow-x-scroll overflow-y-visible w-full">
+                <div class="inline-block align-middle w-full">
+                  <div class="!shadow-inner ring-1 ring-black ring-opacity-5 max-h-[calc(100vh-11rem)] relative w-full">
+                    <table class="border-separate sticky-headers w-full" style="border-spacing: 0">
+                      <thead class="bg-gray-200 whitespace-nowrap">
+                        <tr>
+                          <th
+                            scope="col"
+                            class="md:sticky left-0 z-[101] top-0 border-b border-t border-neutral-200 bg-neutral-100 px-2 py-3 font-medium text-sm text-left"
+                          >
+                            Incident
+                          </th>
+                          <%= for attr <- @attributes do %>
+                            <th
+                              scope="col"
+                              class="md:sticky z-[100] top-0 border-b border-t border-neutral-200 bg-neutral-100 bg-opacity-[95%] px-2 py-3 font-medium text-sm text-left"
+                            >
+                              <%= attr.label %>
+                            </th>
+                          <% end %>
+                          <%= for idx <- 0..@source_cols do %>
+                            <th
+                              scope="col"
+                              class="md:sticky z-[100] top-0 border-b border-t border-neutral-200 bg-neutral-100 bg-opacity-[95%] px-4 py-3 font-medium text-sm text-left"
+                            >
+                              Source <%= idx + 1 %>
+                            </th>
+                          <% end %>
+                        </tr>
+                      </thead>
+                      <tbody class="bg-white" id="table-body">
+                        <div class="top-scroll-anchor"></div>
+                        <%= for media <- @media do %>
+                          <.media_table_row
+                            media={media}
+                            current_user={@current_user}
+                            attributes={@attributes}
+                            source_cols={@source_cols}
+                            is_selected={Enum.member?(@selected_ids, media.id)}
+                          />
+                        <% end %>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </section>
+          <% end %>
       <% end %>
     <% else %>
       <.no_media_results />

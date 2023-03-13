@@ -83,7 +83,7 @@ defmodule PlatformWeb.MediaLive.Index do
      |> assign(:media, results.entries)
      |> assign(:selected_ids, [])
      |> assign(
-       :addable_projects,
+       :user_projects,
        Platform.Projects.list_projects_for_user(socket.assigns.current_user)
      )
      |> assign(
