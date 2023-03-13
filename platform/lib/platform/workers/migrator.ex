@@ -1,6 +1,7 @@
 defmodule Platform.Workers.Migrator do
   alias Platform.Material
   alias Platform.Updates
+  alias Platform.Accounts
 
   require Logger
 
@@ -198,7 +199,7 @@ defmodule Platform.Workers.Migrator do
     Logger.info("Update integrity check passed.")
   end
 
-  def migrate() do
+  def migrate_to_custom_attributes() do
     # Verify that there are no incidents without a project
     if Enum.any?(Platform.Material.list_media(), &is_nil(&1.project_id)) do
       raise(
@@ -211,5 +212,17 @@ defmodule Platform.Workers.Migrator do
     verify_integrity()
 
     Logger.info("Good to go!")
+  end
+
+  def add_all_users_to_all_projects() do
+    for project <- Platform.Projects.list_projects() do
+      for user <- Platform.Accounts.get_all_users() do
+        Platform.Projects.create_project_membership(%{
+          username: user.username,
+          project_id: project.id,
+          role: if(Accounts.is_admin(user), do: :owner, else: :editor)
+        })
+      end
+    end
   end
 end
