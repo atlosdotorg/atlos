@@ -578,6 +578,14 @@ defmodule Platform.Material do
     |> Enum.dedup()
   end
 
+  def get_pending_media_versions() do
+    Repo.all(
+      from(v in MediaVersion,
+        where: v.status == :pending
+      )
+    )
+  end
+
   @doc """
   Updates the auto metadata for the given media. Auto metadata is a JSONB object
   that is automatically generated to help index and organize media. (E.g., it contains
