@@ -2542,7 +2542,7 @@ defmodule PlatformWeb.Components do
         <% end %>
       <% end %>
       <%= if length(@users) > @max do %>
-        <div class={"bg-gray-300 text-gray-700 text-xl rounded-full mt-1 z-30 ring-2 flex items-center justify-center " <> Map.get(assigns, :size_classes, "h-5 w-5") <>" " <> Map.get(assigns, :ring_class, "ring-white")}>
+        <div class={"bg-gray-300 text-gray-700 text-xl rounded-full z-30 ring-2 flex items-center justify-center " <> Map.get(assigns, :size_classes, "h-5 w-5") <>" " <> Map.get(assigns, :ring_class, "ring-white")}>
           <svg
             xmlns="http://www.w3.org/2000/svg"
             class="h-3 w-3"
