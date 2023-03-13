@@ -304,13 +304,15 @@ defmodule Platform.Material do
 
           # Upload media, if provided
           for url <- Ecto.Changeset.get_field(changeset, :urls_parsed) do
-            {:ok, _} =
+            {:ok, version} =
               create_media_version_audited(media, user, %{
                 upload_type: :direct,
                 status: :pending,
                 source_url: url,
                 media_id: media.id
               })
+
+            archive_media_version(version)
           end
 
           # Schedule metadata generation
