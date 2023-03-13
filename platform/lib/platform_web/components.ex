@@ -2233,14 +2233,14 @@ defmodule PlatformWeb.Components do
                 </div>
               </div>
             </div>
-            <div class={"flex justify-between items-center w-full " <> if Enum.member?(@exclude, :pagination) and Enum.member?(@exclude, :filters), do: "hidden", else: ""}>
+            <div class={"flex bg-white border rounded sm:border-none sm:rounded-none sm:bg-transparent p-4 sm:p-0 justify-between gap-4 items-center w-full flex-col-reverse sm:flex-row " <> if Enum.member?(@exclude, :pagination) and Enum.member?(@exclude, :filters), do: "hidden", else: ""}>
               <div class={if Enum.member?(@exclude, :pagination), do: "hidden", else: ""}>
                 <%= if assigns[:pagination] do %>
                   <%= render_slot(@pagination) %>
                 <% end %>
               </div>
               <div class={if Enum.member?(@exclude, :filters), do: "hidden", else: ""}>
-                <div class="relative flex items-center h-full gap-2">
+                <div class="relative flex flex-wrap items-center h-full gap-2">
                   <.attr_filter form={f} attr={Attribute.get_attribute(:status)} />
                   <.attr_filter form={f} attr={Attribute.get_attribute(:geolocation)} />
                   <.attr_filter form={f} attr={Attribute.get_attribute(:date)} />
