@@ -106,7 +106,10 @@ defmodule Platform.Material.Attribute do
         required: false,
         name: :date,
         description: "On what date did the incident take place?"
-      },
+      }
+    ]
+
+    secondary_attrs = [
       %Attribute{
         schema_field: :attr_general_location,
         type: :text,
@@ -334,16 +337,6 @@ defmodule Platform.Material.Attribute do
           "What kinds of camera systems does the media use? If there are multiple pieces of media, select all that apply."
       },
       %Attribute{
-        schema_field: :attr_more_info,
-        type: :text,
-        max_length: 3000,
-        label: "More Info",
-        pane: :attributes,
-        required: false,
-        name: :more_info,
-        description: "For example, information noted by the source."
-      },
-      %Attribute{
         schema_field: :attr_civilian_impact,
         type: :multi_select,
         options: [],
@@ -410,10 +403,17 @@ defmodule Platform.Material.Attribute do
         name: :time_recorded,
         deprecated: true,
         description: "What time of day was the incident? Use the local timezone, if possible."
-      }
-    ]
-
-    safety_attrs = [
+      },
+      %Attribute{
+        schema_field: :attr_more_info,
+        type: :text,
+        max_length: 3000,
+        label: "More Info",
+        pane: :attributes,
+        required: false,
+        name: :more_info,
+        description: "For example, information noted by the source."
+      },
       %Attribute{
         schema_field: :attr_restrictions,
         type: :multi_select,
@@ -453,7 +453,7 @@ defmodule Platform.Material.Attribute do
       }
     ]
 
-    core_attrs ++ project_attrs ++ safety_attrs
+    core_attrs ++ project_attrs ++ secondary_attrs
   end
 
   @doc """
