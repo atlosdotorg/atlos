@@ -19,9 +19,12 @@ defmodule Platform.Permissions do
     not is_nil(Projects.get_project_membership_by_user_and_project(user, project))
   end
 
-  def can_create_project?(%User{} = _user) do
+  def can_create_project?(%User{} = user) do
     # Everyone can create a project
-    true
+    case System.get_env("RESTRICT_PROJECT_CREATION") do
+      "true" -> Accounts.is_privileged(user)
+      _ -> true
+    end
   end
 
   def can_edit_project_metadata?(%User{} = user, %Project{id: nil}) do
