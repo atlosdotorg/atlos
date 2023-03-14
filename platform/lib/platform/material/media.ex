@@ -310,24 +310,7 @@ defmodule Platform.Material.Media do
   Perform a text search on the given queryable. Will also query associated media versions.
   """
   def text_search(search_terms, queryable \\ Media) do
-    media_via_associated_media_versions =
-      from(
-        version in subquery(
-          Utils.text_search(search_terms, Platform.Material.MediaVersion, literal: true)
-        ),
-        where: version.visibility == :visible,
-        join: media in assoc(version, :media),
-        select: media
-      )
-
-    from(
-      u in subquery(
-        Ecto.Query.union(
-          Utils.text_search(search_terms, queryable),
-          ^media_via_associated_media_versions
-        )
-      )
-    )
+    Utils.text_search(search_terms, queryable)
   end
 
   def slug_to_display(media) do

@@ -25,9 +25,21 @@ defmodule Platform.Workers.Custodian do
     end
   end
 
+  defp refresh_auto_metadata() do
+    # Check if auto-metadata doesn't contain media source information, and if so, re-schedule it.
+
+    Logger.info("Refreshing auto-metadata.")
+
+    for media <- Material.get_media_without_auto_metadata_source_urls() do
+      Logger.info("Re-scheduling auto-metadata for #{media.slug}.")
+      Material.schedule_media_auto_metadata_update(media)
+    end
+  end
+
   @impl Oban.Worker
   def perform(_) do
     refresh_stale_media_versions()
+    refresh_auto_metadata()
 
     # Add additional cleanup tasks here...
 

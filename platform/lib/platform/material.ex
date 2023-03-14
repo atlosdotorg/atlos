@@ -619,6 +619,14 @@ defmodule Platform.Material do
     )
   end
 
+  def get_media_without_auto_metadata_source_urls() do
+    Repo.all(
+      from(m in Media,
+        where: is_nil(m.auto_metadata) or not fragment("? \\? ?", m.auto_metadata, "source_urls")
+      )
+    )
+  end
+
   @doc """
   Updates the auto metadata for the given media. Auto metadata is a JSONB object
   that is automatically generated to help index and organize media. (E.g., it contains
@@ -657,6 +665,7 @@ defmodule Platform.Material do
                Updates.change_from_media_version_upload(media, user, version, attrs),
              {:ok, _} <- Updates.create_update_from_changeset(update_changeset) do
           Updates.subscribe_if_first_interaction(media, user)
+          schedule_media_auto_metadata_update(media)
           version
         else
           _ -> {:error, change_media_version(%MediaVersion{}, attrs)}
@@ -828,6 +837,8 @@ defmodule Platform.Material do
   - priority: 0-3, the priority (default 1)
   """
   def schedule_media_auto_metadata_update(%Media{id: id} = _media, opts \\ []) do
+    Logger.info("Scheduling auto-metadata update for media #{id}")
+
     %{
       "media_id" => id
     }
