@@ -23,7 +23,7 @@ defmodule Platform.Permissions do
     # Everyone can create a project
     case System.get_env("RESTRICT_PROJECT_CREATION") do
       "true" -> Accounts.is_privileged(user)
-      _ -> true
+      _ -> not Accounts.is_muted(user)
     end
   end
 
