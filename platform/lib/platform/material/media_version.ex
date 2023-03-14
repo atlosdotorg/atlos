@@ -2,6 +2,8 @@ defmodule Platform.Material.MediaVersion do
   use Ecto.Schema
   import Ecto.Changeset
   alias Platform.Material.Media
+  alias Platform.Accounts
+  alias __MODULE__
 
   @derive {Jason.Encoder, except: [:__meta__, :client_name, :file_location, :media]}
   schema "media_versions" do
@@ -63,7 +65,7 @@ defmodule Platform.Material.MediaVersion do
   @doc """
   Can the given user view the media version?
   """
-  def can_user_view(%MediaVersion{} = version, %Accounts.User{} = user) do
+  def can_user_view(%__MODULE__{} = version, %Accounts.User{} = user) do
     case version.visibility == :removed do
       true -> Accounts.is_privileged(user)
       false -> true
