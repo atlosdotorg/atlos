@@ -28,8 +28,13 @@ defmodule Platform.Projects do
 
   def list_projects_for_user(%Accounts.User{} = user) do
     get_users_project_memberships(user)
-    |> Enum.sort_by(& &1.updated_at, {:desc, NaiveDateTime})
-    |> Enum.sort_by(&if(user.active_project_membership_id == &1.id, do: 0, else: 1))
+    |> Enum.sort_by(
+      &if(user.active_project_membership_id == &1.id,
+        do: NaiveDateTime.local_now(),
+        else: &1.updated_at
+      ),
+      {:desc, NaiveDateTime}
+    )
     |> Enum.map(& &1.project)
     |> Enum.filter(&Permissions.can_view_project?(user, &1))
   end
