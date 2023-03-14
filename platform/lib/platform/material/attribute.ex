@@ -474,7 +474,8 @@ defmodule Platform.Material.Attribute do
     Enum.filter(attributes(opts), fn attr ->
       val = Material.get_attribute_value(media, attr)
 
-      val != nil && val != [] && (pane == nil || attr.pane == pane) &&
+      val != nil && val != [] && val != %{"day" => "", "month" => "", "year" => ""} &&
+        (pane == nil || attr.pane == pane) &&
         (attr.deprecated != true || Keyword.get(opts, :include_deprecated_attributes, false))
     end)
   end

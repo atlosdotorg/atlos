@@ -62,6 +62,9 @@ defmodule Platform.Utils do
       %Date{} ->
         value |> Calendar.strftime("%d %B %Y")
 
+      %{"day" => "", "month" => "", "year" => ""} ->
+        "Unset"
+
       %{"day" => day, "month" => month, "year" => year} ->
         %Date{
           day: Integer.parse(day) |> elem(0),
