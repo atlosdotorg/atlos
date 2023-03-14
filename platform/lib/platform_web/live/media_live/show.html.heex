@@ -100,7 +100,7 @@
           not_subscribed_classes="base-button"
           show_icon={false}
         />
-        <%= if Accounts.is_privileged(@current_user) do %>
+        <%= if Permissions.can_delete_media?(@current_user, @media) do %>
           <div
             class="flex place-self-center w-full md:w-auto h-full px-2 text-sm relative"
             x-data="{open: false}"

@@ -256,7 +256,7 @@ defmodule PlatformWeb.ProjectsLive.MembersComponent do
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <%= for membership <- @memberships do %>
                 <article class="text-sm rounded-lg shadow-sm border flex flex-col overflow-hidden">
-                  <div class="bg-white p-2">
+                  <div class="bg-white p-2 grow">
                     <.user_card user={membership.user} />
                   </div>
                   <div class="flex justify-between items-center bg-white border-t p-4">

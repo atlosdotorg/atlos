@@ -155,6 +155,16 @@ defmodule PlatformWeb.ProjectsLive.Show do
               </.link>
             <% end %>
 
+            <%= if Permissions.can_view_project_deleted_media?(@current_user, @project) do %>
+              <.link
+                patch={"/projects/#{@project.id}/deleted"}
+                class={if @live_action == :deleted, do: active_classes, else: inactive_classes}
+              >
+                <Heroicons.trash mini class="opacity-75 -ml-0.5 mr-2 h-5 w-5" />
+                <span>Deleted</span>
+              </.link>
+            <% end %>
+
             <.link
               href={
                 Routes.live_path(@socket, PlatformWeb.MediaLive.Index, %{
@@ -256,6 +266,14 @@ defmodule PlatformWeb.ProjectsLive.Show do
             id="project-members"
             current_user={@current_user}
             project={@project}
+          />
+        <% end %>
+        <%= if @live_action == :deleted and Permissions.can_view_project_deleted_media?(@current_user, @project) do %>
+          <.live_component
+            module={PlatformWeb.MediaLive.PaginatedMediaList}
+            id="deleted-media-list"
+            current_user={@current_user}
+            query_params={%{deleted: true, project_id: @project.id}}
           />
         <% end %>
       </article>

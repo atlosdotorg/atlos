@@ -162,6 +162,7 @@ defmodule PlatformWeb.Router do
       live("/projects/:id/map", ProjectsLive.Show, :map)
       live("/projects/:id/edit", ProjectsLive.Show, :edit)
       live("/projects/:id/members", ProjectsLive.Show, :members)
+      live("/projects/:id/deleted", ProjectsLive.Show, :deleted)
 
       live("/profile/:username", ProfilesLive.Show, :show)
       live("/profile/:username/edit", ProfilesLive.Show, :edit)

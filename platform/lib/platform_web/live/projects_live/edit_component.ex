@@ -424,7 +424,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                   </div>
                 </div>
               <% end %>
-              <fieldset class="flex flex-col">
+              <fieldset class="flex flex-col mb-32">
                 <div class="flow-root">
                   <div class="-mx-4 overflow-x-auto sm:-mx-6 lg:-mx-8">
                     <div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">

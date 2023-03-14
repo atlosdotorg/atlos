@@ -3293,7 +3293,7 @@ defmodule PlatformWeb.Components do
   def user_card(%{user: %Accounts.User{} = _} = assigns) do
     ~H"""
     <.link navigate={"/profile/" <> @user.username}>
-      <div class="flex items-center gap-4 p-2">
+      <div class="flex items-center gap-4 p-2 overflow-hidden">
         <div class="w-12">
           <img
             class="relative z-30 inline-block h-12 w-12 rounded-full ring-2 ring-white"
@@ -3301,9 +3301,9 @@ defmodule PlatformWeb.Components do
             alt={"Profile photo for #{@user.username}"}
           />
         </div>
-        <div class="flex flex-col gap-1">
+        <div class="flex flex-col gap-1 max-w-full">
           <.user_name_display user={@user} />
-          <p class="text-neutral-600">
+          <p class="text-neutral-600 break-words max-w-full">
             <%= if is_nil(@user.bio) or String.length(@user.bio |> String.trim()) == 0,
               do: "",
               else: @user.bio %>

@@ -39,6 +39,14 @@ defmodule Platform.Permissions do
     end
   end
 
+  def can_view_project_deleted_media?(%User{} = user, %Project{} = project) do
+    case Projects.get_project_membership_by_user_and_project(user, project) do
+      %Projects.ProjectMembership{role: :owner} -> true
+      %Projects.ProjectMembership{role: :manager} -> true
+      _ -> false
+    end
+  end
+
   def can_edit_project_members?(%User{} = user, %Project{} = project) do
     case Projects.get_project_membership_by_user_and_project(user, project) do
       %Projects.ProjectMembership{role: :owner} -> true
@@ -58,6 +66,14 @@ defmodule Platform.Permissions do
       %Projects.ProjectMembership{role: :owner} -> true
       %Projects.ProjectMembership{role: :manager} -> true
       %Projects.ProjectMembership{role: :editor} -> true
+      _ -> false
+    end
+  end
+
+  def can_delete_media?(%User{} = user, %Media{} = media) do
+    case Projects.get_project_membership_by_user_and_project_id(user, media.project_id) do
+      %Projects.ProjectMembership{role: :owner} -> true
+      %Projects.ProjectMembership{role: :manager} -> true
       _ -> false
     end
   end

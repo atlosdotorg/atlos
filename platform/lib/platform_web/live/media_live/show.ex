@@ -124,7 +124,7 @@ defmodule PlatformWeb.MediaLive.Show do
       ) do
     media = socket.assigns.media
 
-    if !Accounts.is_admin(socket.assigns.current_user) do
+    if !Permissions.can_delete_media?(socket.assigns.current_user, media) do
       {:noreply,
        socket |> put_flash(:error, "You cannot change this incident's deletion status.")}
     else
