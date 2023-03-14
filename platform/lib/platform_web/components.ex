@@ -2542,19 +2542,11 @@ defmodule PlatformWeb.Components do
         <% end %>
       <% end %>
       <%= if length(@users) > @max do %>
-        <div class={"bg-gray-300 text-gray-700 text-xl rounded-full z-30 ring-2 flex items-center justify-center " <> Map.get(assigns, :size_classes, "h-5 w-5") <>" " <> Map.get(assigns, :ring_class, "ring-white")}>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-3 w-3"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path
-              fill-rule="evenodd"
-              d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
-              clip-rule="evenodd"
-            />
-          </svg>
+        <div
+          class={"bg-gray-200 text-gray-700 text-xl rounded-full z-30 ring-2 flex items-center justify-center " <> Map.get(assigns, :size_classes, "h-5 w-5") <>" " <> Map.get(assigns, :ring_class, "ring-white")}
+          data-tooltip={"Shared with #{length(@users) - 5} more user#{if length(@users) - 5 == 1, do: "", else: "s"}"}
+        >
+          <Heroicons.ellipsis_horizontal mini class="h-4 w-4" />
         </div>
       <% end %>
     </div>
