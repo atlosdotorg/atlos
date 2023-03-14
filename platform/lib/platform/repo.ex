@@ -7,7 +7,7 @@ defmodule Platform.Repo do
     maximum_limit: :infinity,
     cursor: Platform.Cursor.SignedCursor,
     include_total_count: false,
-    total_count_limit: 1000
+    total_count_limit: 10000
 
   Postgrex.Types.define(
     Platform.Repo.PostgresTypes,

@@ -1114,7 +1114,7 @@ defmodule PlatformWeb.Components do
                   <%= multiple_select(
                     @form,
                     @attr.schema_field,
-                    Attribute.options(@attr) ++ ["[Unset]"],
+                    Attribute.options(@attr) ++ if(not @attr.required, do: ["[Unset]"], else: []),
                     id: "attr_select_#{@attr.name}_input",
                     data_descriptions:
                       Jason.encode!(
