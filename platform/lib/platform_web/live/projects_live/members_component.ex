@@ -365,13 +365,12 @@ defmodule PlatformWeb.ProjectsLive.MembersComponent do
                   ],
                   "data-descriptions":
                     Jason.encode!(%{
-                      "viewer" => "Can view and comment on incidents, but not edit or create them",
-                      "editor" =>
-                        "Can view, comment on, and edit incidents, but not mark them as complete",
+                      "viewer" => "Can view and comment, but not edit or create",
+                      "editor" => "Can view, comment, and edit, but not mark as complete",
                       "manager" =>
-                        "Can view, comment on, and edit incidents, and mark them as complete",
+                        "Can view, comment, edit, mark as complete, and edit completed incidents",
                       "owner" =>
-                        "Can view, comment on, and edit incidents, mark them as complete, and add and remove members to the project"
+                        "Everything managers can do, plus add and remove members to the project"
                     })
                 ) %>
               </div>
