@@ -27,8 +27,11 @@ defmodule Platform.Projects do
   end
 
   def list_projects_for_user(%Accounts.User{} = user) do
-    # TODO: This is a temporary solution. We should be using a query to get the projects for the user.
-    list_projects() |> Enum.filter(&Permissions.can_view_project?(user, &1))
+    get_users_project_memberships(user)
+    |> Enum.sort_by(& &1.updated_at, {:desc, NaiveDateTime})
+    |> Enum.sort_by(&if(user.active_project_membership_id == &1.id, do: 0, else: 1))
+    |> Enum.map(& &1.project)
+    |> Enum.filter(&Permissions.can_view_project?(user, &1))
   end
 
   @doc """
