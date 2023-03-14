@@ -194,31 +194,6 @@ defmodule PlatformWeb.MediaLive.Index do
      )}
   end
 
-  def handle_event("apply_project", %{"project-id" => project_id}, socket) do
-    project = Platform.Projects.get_project!(project_id)
-
-    {:noreply,
-     socket
-     |> put_flash(
-       :info,
-       "Added the selected incidents to #{project.name}. Incidents already in a project were not modified."
-     )
-     |> assign(
-       :media,
-       apply_bulk_action(socket, fn media ->
-         if not is_nil(media.project) do
-           media
-         else
-           Platform.Material.update_media_project_audited(media, socket.assigns.current_user, %{
-             "project_id" => project_id
-           })
-
-           Platform.Material.get_media!(media.id)
-         end
-       end)
-     )}
-  end
-
   def handle_event("apply_status", %{"status" => status}, socket) do
     {:noreply,
      socket
