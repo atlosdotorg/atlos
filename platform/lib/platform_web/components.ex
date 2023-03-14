@@ -3654,10 +3654,18 @@ defmodule PlatformWeb.Components do
           <span class="font-medium">
             <%= (@pagination_index * @pagination_metadata.limit + 1) |> Formatter.format_number() %>
           </span>
-          to <span class="font-medium">
+          to
+          <span class="font-medium">
             <%= (@pagination_index * @pagination_metadata.limit +
                    @currently_displayed_results)
-            |> Formatter.format_number() %></span>.
+            |> Formatter.format_number() %>
+          </span>
+          of
+          <span class="font-medium">
+            <%= @pagination_metadata.total_count |> Formatter.format_number() %><%= if @pagination_metadata.total_count_cap_exceeded,
+              do: "+",
+              else: "" %>
+          </span>
         </p>
       </div>
     </nav>

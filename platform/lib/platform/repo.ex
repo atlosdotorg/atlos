@@ -6,7 +6,7 @@ defmodule Platform.Repo do
   use Quarto,
     maximum_limit: :infinity,
     cursor: Platform.Cursor.SignedCursor,
-    include_total_count: false,
+    include_total_count: true,
     total_count_limit: 10000
 
   Postgrex.Types.define(
