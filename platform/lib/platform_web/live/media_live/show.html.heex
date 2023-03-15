@@ -554,19 +554,19 @@
       <%= if @media.deleted do %>
         <.floating_warning>
           <strong>This incident is marked as deleted.</strong>
-          Only admins can now edit its attributes or upload new media.
+          Only project managers and owners can edit its content.
         </.floating_warning>
       <% end %>
       <%= if @media.attr_status == "Completed" do %>
         <.floating_info>
           <strong>This incident is marked as completed.</strong>
-          Only moderators can now edit its attributes or upload new media.
+          Only project managers and owners can edit its content.
         </.floating_info>
       <% end %>
       <%= if @media.attr_status == "Cancelled" do %>
         <.floating_info>
           <strong>This incident is marked as cancelled.</strong>
-          Only moderators can now edit its attributes or upload new media.
+          Only project managers and owners can edit its content.
         </.floating_info>
       <% end %>
       <%= if Media.has_restrictions(@media) do %>
