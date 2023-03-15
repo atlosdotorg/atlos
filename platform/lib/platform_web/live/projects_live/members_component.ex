@@ -101,10 +101,17 @@ defmodule PlatformWeb.ProjectsLive.MembersComponent do
       }
     )
 
-    {:noreply,
-     socket
-     |> assign(:memberships, Projects.get_project_memberships(socket.assigns.project))
-     |> assign_can_remove_self()}
+    if socket.assigns.current_user.username == username do
+      {:noreply,
+       socket
+       |> redirect(to: "/")
+       |> put_flash(:info, "You have successfully removed yourself from the project.")}
+    else
+      {:noreply,
+       socket
+       |> assign(:memberships, Projects.get_project_memberships(socket.assigns.project))
+       |> assign_can_remove_self()}
+    end
   end
 
   def handle_event("edit_member", %{"username" => username}, socket) do
