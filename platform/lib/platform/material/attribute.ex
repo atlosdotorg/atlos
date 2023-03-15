@@ -565,7 +565,7 @@ defmodule Platform.Material.Attribute do
     |> cast(%{}, [])
     |> populate_virtual_data(attribute)
     |> cast_attribute(attribute, attrs)
-    |> validate_attribute(attribute, opts)
+    |> validate_attribute(attribute, media, opts)
     |> cast_and_validate_virtual_explanation(attrs, attribute)
     |> update_from_virtual_data(attribute)
     |> verify_user_can_edit(attribute, user, media)
@@ -911,7 +911,7 @@ defmodule Platform.Material.Attribute do
   * `:required` - whether the attribute is required. Defaults to true.
   * `:allow_invalid_selects` - whether to allow invalid options in multi- and single-selects. Defaults to false.
   """
-  def validate_attribute(changeset, %Attribute{} = attribute, opts \\ []) do
+  def validate_attribute(changeset, %Attribute{} = attribute, %Media{} = media, opts \\ []) do
     user = Keyword.get(opts, :user, nil)
     required = Keyword.get(opts, :required, true)
 
@@ -953,7 +953,7 @@ defmodule Platform.Material.Attribute do
               []
             end
           end)
-          |> validate_privileged_values(attribute, user)
+          |> validate_privileged_values(attribute, user, media)
 
         :select ->
           changeset
@@ -969,7 +969,7 @@ defmodule Platform.Material.Attribute do
               )
             end
           end)
-          |> validate_privileged_values(attribute, user)
+          |> validate_privileged_values(attribute, user, media)
 
         :text ->
           changeset
@@ -1023,12 +1023,17 @@ defmodule Platform.Material.Attribute do
     end
   end
 
-  defp validate_privileged_values(changeset, %Attribute{} = attribute, %User{} = user)
+  defp validate_privileged_values(
+         changeset,
+         %Attribute{} = attribute,
+         %User{} = user,
+         %Media{} = media
+       )
        when is_list(attribute.privileged_values) do
     # Some attributes have values that can only be set by privileged users. This function
     # validates that the values are not set by non-privileged users.
 
-    if Accounts.is_privileged(user) do
+    if Permissions.can_set_restricted_attribute_values?(user, media, attribute) do
       # Changes by a privileged user can do anything
       changeset
     else
@@ -1064,7 +1069,7 @@ defmodule Platform.Material.Attribute do
     end
   end
 
-  defp validate_privileged_values(changeset, _attribute, _user) do
+  defp validate_privileged_values(changeset, _attribute, _user, _media) do
     # When attribute and user aren't provided, or there are no privileged values,
     # then there is nothing to validate.
 

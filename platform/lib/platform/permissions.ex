@@ -170,6 +170,21 @@ defmodule Platform.Permissions do
     end
   end
 
+  def can_set_restricted_attribute_values?(
+        %User{} = user,
+        %Media{} = media,
+        %Attribute{} = _attribute
+      ) do
+    membership = Projects.get_project_membership_by_user_and_project_id(user, media.project_id)
+
+    with false <- is_nil(membership),
+         true <- can_edit_media?(user, media) do
+      membership.role == :owner or membership.role == :manager
+    else
+      _ -> false
+    end
+  end
+
   def can_comment_on_media?(%User{} = user, %Media{} = media) do
     # This logic would be nice to refactor into a `with` statement
     case Platform.Security.get_security_mode_state() do

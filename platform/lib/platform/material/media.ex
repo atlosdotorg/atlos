@@ -94,15 +94,18 @@ defmodule Platform.Material.Media do
     ])
 
     # These are special attributes, since we define it at creation time. Eventually, it'd be nice to unify this logic with the attribute-specific editing logic.
-    |> Attribute.validate_attribute(Attribute.get_attribute(:description),
+    |> Attribute.validate_attribute(Attribute.get_attribute(:description), media,
       user: user,
       required: true
     )
-    |> Attribute.validate_attribute(Attribute.get_attribute(:sensitive),
+    |> Attribute.validate_attribute(Attribute.get_attribute(:sensitive), media,
       user: user,
       required: true
     )
-    |> Attribute.validate_attribute(Attribute.get_attribute(:date), user: user, required: false)
+    |> Attribute.validate_attribute(Attribute.get_attribute(:date), media,
+      user: user,
+      required: false
+    )
     |> validate_required([:project_id], message: "Please select a project")
     |> validate_project(user, media)
     |> parse_and_validate_validate_json_array(:urls, :urls_parsed)
@@ -114,7 +117,7 @@ defmodule Platform.Material.Media do
         cs
         # TODO: This is a good refactoring opportunity with the logic above
         |> cast(attrs, [:attr_tags])
-        |> Attribute.validate_attribute(Attribute.get_attribute(:tags),
+        |> Attribute.validate_attribute(Attribute.get_attribute(:tags), media,
           user: user,
           required: false
         )
