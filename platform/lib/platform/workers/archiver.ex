@@ -52,120 +52,126 @@ defmodule Platform.Workers.Archiver do
 
   @impl Oban.Worker
   def perform(%Oban.Job{args: %{"media_version_id" => id} = args}) do
-    %MediaVersion{status: :pending, media_id: media_id} =
-      version = Material.get_media_version!(id)
+    version = Material.get_media_version!(id)
 
-    media = Material.get_media!(media_id)
+    with %MediaVersion{status: :pending, media_id: media_id} <- version do
+      media = Material.get_media!(media_id)
 
-    hide_version_on_failure = Map.get(args, "hide_version_on_failure", false)
+      hide_version_on_failure = Map.get(args, "hide_version_on_failure", false)
 
-    # Cleanup any existing tempfiles. (The worker is a long-running task.)
-    # In case we haven't already
-    Temp.track!()
-    Temp.cleanup()
+      # Cleanup any existing tempfiles. (The worker is a long-running task.)
+      # In case we haven't already
+      Temp.track!()
+      Temp.cleanup()
 
-    result =
-      try do
-        # Submit to the Internet Archive for archival
-        Material.submit_for_external_archival(version)
+      result =
+        try do
+          # Submit to the Internet Archive for archival
+          Material.submit_for_external_archival(version)
 
-        # Setup tempfiles for media download
-        temp_dir = Temp.mkdir!()
+          # Setup tempfiles for media download
+          temp_dir = Temp.mkdir!()
 
-        # Download the media (either from S3 for user-provided files, from the original source, or, if we're cloning from an existing media version, then from that media version)
-        case version.upload_type do
-          :user_provided ->
-            # If we're merging, grab the original version from the source rather than from the given media version
-            url =
-              case Map.get(args, "clone_from_media_version_id") do
-                nil ->
-                  Uploads.OriginalMediaVersion.url({version.file_location, media},
-                    signed: true
-                  )
+          # Download the media (either from S3 for user-provided files, from the original source, or, if we're cloning from an existing media version, then from that media version)
+          case version.upload_type do
+            :user_provided ->
+              # If we're merging, grab the original version from the source rather than from the given media version
+              url =
+                case Map.get(args, "clone_from_media_version_id") do
+                  nil ->
+                    Uploads.OriginalMediaVersion.url({version.file_location, media},
+                      signed: true
+                    )
 
-                id ->
-                  source_version = Material.get_media_version!(id)
+                  id ->
+                    source_version = Material.get_media_version!(id)
 
-                  Uploads.OriginalMediaVersion.url(
-                    {source_version.file_location, Material.get_media!(source_version.media_id)},
-                    signed: true
-                  )
-              end
+                    Uploads.OriginalMediaVersion.url(
+                      {source_version.file_location,
+                       Material.get_media!(source_version.media_id)},
+                      signed: true
+                    )
+                end
 
-            {_, 0} = download_file(url, Path.join(temp_dir, version.file_location))
+              {_, 0} = download_file(url, Path.join(temp_dir, version.file_location))
 
-          :direct ->
-            # When merging media we pulled from the source, we just re-pull, hence why there are no additional conditions here
-            {_, 0} = extract_media_from_url(version.source_url, temp_dir)
-        end
+            :direct ->
+              # When merging media we pulled from the source, we just re-pull, hence why there are no additional conditions here
+              {_, 0} = extract_media_from_url(version.source_url, temp_dir)
+          end
 
-        # Figure out what we downloaded
-        [file_name] = File.ls!(temp_dir)
-        file_path = Path.join(temp_dir, file_name)
-        mime = MIME.from_path(file_path)
+          # Figure out what we downloaded
+          [file_name] = File.ls!(temp_dir)
+          file_path = Path.join(temp_dir, file_name)
+          mime = MIME.from_path(file_path)
 
-        # Process + upload it (only store original if upload_type is direct/not user provided, *or* we're cloning)
-        {:ok, identifier, duration, size, watermarked_hash, original_hash} =
-          process_uploaded_media(
-            file_path,
-            mime,
-            media,
-            version,
-            version.upload_type == :direct or
-              not is_nil(Map.get(args, "clone_from_media_version_id"))
-          )
+          # Process + upload it (only store original if upload_type is direct/not user provided, *or* we're cloning)
+          {:ok, identifier, duration, size, watermarked_hash, original_hash} =
+            process_uploaded_media(
+              file_path,
+              mime,
+              media,
+              version,
+              version.upload_type == :direct or
+                not is_nil(Map.get(args, "clone_from_media_version_id"))
+            )
 
-        # Update the media version to reflect the change
-        {:ok, new_version} =
-          Material.update_media_version(version, %{
-            file_location: identifier,
-            file_size: size,
-            status: :complete,
-            duration_seconds: duration,
-            mime_type: mime,
-            hashes: %{original_sha256: original_hash, watermarked_sha256: watermarked_hash}
+          # Update the media version to reflect the change
+          {:ok, new_version} =
+            Material.update_media_version(version, %{
+              file_location: identifier,
+              file_size: size,
+              status: :complete,
+              duration_seconds: duration,
+              mime_type: mime,
+              hashes: %{original_sha256: original_hash, watermarked_sha256: watermarked_hash}
+            })
+
+          # Track event
+          Auditor.log(:archive_success, %{
+            media_id: media_id,
+            source_url: new_version.source_url,
+            media_version: new_version
           })
 
-        # Track event
-        Auditor.log(:archive_success, %{
-          media_id: media_id,
-          source_url: new_version.source_url,
-          media_version: new_version
-        })
-
-        {:ok, new_version}
-      rescue
-        val ->
-          # Some error happened! Log it and update the media version appropriately.
-          Logger.error("Unable to automatically archive media: " <> inspect(val))
-          Logger.error(Exception.format_stacktrace())
-
-          Auditor.log(:archive_failed, %{error: inspect(val), version: version})
-
-          # Update the media version.
-          version_map = %{
-            status: :error
-          }
-
-          # If we're supposed to hide versions on failure, we do so here.
-          new_version_map =
-            if hide_version_on_failure && version.visibility == :visible do
-              Map.put(version_map, :visibility, :hidden)
-            else
-              version_map
-            end
-
-          # Actually update the media version
-          {:ok, new_version} = Material.update_media_version(version, new_version_map)
-
           {:ok, new_version}
-      end
+        rescue
+          val ->
+            # Some error happened! Log it and update the media version appropriately.
+            Logger.error("Unable to automatically archive media: " <> inspect(val))
+            Logger.error(Exception.format_stacktrace())
 
-    # Push update to viewers
-    Material.broadcast_media_updated(media_id)
+            Auditor.log(:archive_failed, %{error: inspect(val), version: version})
 
-    Temp.cleanup()
-    result
+            # Update the media version.
+            version_map = %{
+              status: :error
+            }
+
+            # If we're supposed to hide versions on failure, we do so here.
+            new_version_map =
+              if hide_version_on_failure && version.visibility == :visible do
+                Map.put(version_map, :visibility, :hidden)
+              else
+                version_map
+              end
+
+            # Actually update the media version
+            {:ok, new_version} = Material.update_media_version(version, new_version_map)
+
+            {:ok, new_version}
+        end
+
+      # Push update to viewers
+      Material.broadcast_media_updated(media_id)
+
+      Temp.cleanup()
+      result
+    else
+      _ ->
+        Logger.error("Media version #{id} is not pending, skipping.")
+        {:ok, version}
+    end
   end
 
   @doc """
