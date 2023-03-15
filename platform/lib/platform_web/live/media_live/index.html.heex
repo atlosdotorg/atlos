@@ -227,17 +227,17 @@
                           <% end %>
                         </tr>
                       </thead>
-                      <tbody class="bg-white" id="table-body">
+                      <tbody class="bg-white" id="table-body" phx-update="stream">
                         <div class="top-scroll-anchor"></div>
-                        <%= for media <- @media do %>
-                          <.media_table_row
-                            media={media}
-                            current_user={@current_user}
-                            attributes={@attributes}
-                            source_cols={@source_cols}
-                            is_selected={Enum.member?(@selected_ids, media.id)}
-                          />
-                        <% end %>
+                        <.media_table_row
+                          :for={{dom_id, media} <- @streams.media_stream}
+                          id={dom_id}
+                          media={media}
+                          current_user={@current_user}
+                          attributes={@attributes}
+                          source_cols={@source_cols}
+                          is_selected={Enum.member?(@selected_ids, media.id)}
+                        />
                       </tbody>
                     </table>
                   </div>

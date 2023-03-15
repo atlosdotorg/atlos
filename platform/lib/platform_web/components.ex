@@ -1821,7 +1821,7 @@ defmodule PlatformWeb.Components do
       end %>
     <tr
       class={"search-highlighting group transition-all " <> background_color}
-      id={"table-row-" <> @media.slug}
+      id={@id}
       x-data={"{selected: #{@is_selected}}"}
       x-bind:class={"{'!bg-urge-50': (selected || #{@is_selected})}"}
     >
