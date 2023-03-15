@@ -1043,7 +1043,7 @@ defmodule Platform.Material.Attribute do
             changeset
             |> add_error(
               attribute.schema_field,
-              "Only moderators can set the following values: " <>
+              "Only project managers and owners can set the following values: " <>
                 Enum.join(requires_privilege, ", ")
             )
           else
@@ -1055,7 +1055,7 @@ defmodule Platform.Material.Attribute do
             changeset
             |> add_error(
               attribute.schema_field,
-              "Only moderators can set the value to '" <> v <> "'"
+              "Only project managers and owners can set the value to '" <> v <> "'"
             )
           else
             changeset
