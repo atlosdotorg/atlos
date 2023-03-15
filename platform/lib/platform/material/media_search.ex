@@ -159,7 +159,7 @@ defmodule Platform.Material.MediaSearch do
             m.attr_geolocation,
             ^lon,
             ^lat,
-            ^Map.get(changeset.changes, :attr_geolocation_radius, 10)
+            ^(Map.get(changeset.changes, :attr_geolocation_radius, 10) * (0.01 / 1.11))
           )
         )
 
