@@ -1,11 +1,11 @@
 defmodule PlatformWeb.MediaLive.MergeVersionsLive do
   use PlatformWeb, :live_component
   alias Platform.Material
-  alias Platform.Accounts
   alias Platform.Auditor
+  alias Platform.Permissions
 
   def update(assigns, socket) do
-    if Accounts.is_privileged(assigns.current_user) do
+    if Permissions.can_merge_media?(assigns.current_user, assigns.source) do
       {:ok,
        socket
        |> assign(assigns)

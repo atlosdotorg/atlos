@@ -446,7 +446,7 @@ defmodule Platform.Material do
   def soft_delete_media_audited(%Media{} = media, %User{} = user) do
     cs = change_media(media, %{deleted: true})
 
-    if Accounts.is_admin(user) do
+    if Permissions.can_delete_media?(user, media) do
       Repo.transaction(fn ->
         with {:ok, media} <- Repo.update(cs),
              update_changeset <- Updates.change_from_media_deletion(media, user),
@@ -472,7 +472,7 @@ defmodule Platform.Material do
   def soft_undelete_media_audited(%Media{} = media, %User{} = user) do
     cs = change_media(media, %{deleted: false})
 
-    if Accounts.is_admin(user) do
+    if Permissions.can_delete_media?(user, media) do
       Repo.transaction(fn ->
         with {:ok, media} <- Repo.update(cs),
              update_changeset <- Updates.change_from_media_undeletion(media, user),

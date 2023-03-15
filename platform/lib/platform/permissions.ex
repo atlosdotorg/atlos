@@ -91,7 +91,7 @@ defmodule Platform.Permissions do
               true
 
             {_, true} ->
-              membership.role == :owner
+              membership.role == :owner or membership.role == :manager
 
             {values, false} ->
               # Restrictions are present.
@@ -217,6 +217,17 @@ defmodule Platform.Permissions do
     end
   end
 
+  def can_merge_media?(%User{} = user, %Media{} = media) do
+    membership = Projects.get_project_membership_by_user_and_project_id(user, media.project_id)
+
+    with false <- is_nil(membership),
+         true <- can_edit_media?(user, media) do
+      membership.role == :owner or membership.role == :manager
+    else
+      _ -> false
+    end
+  end
+
   def can_create_media?(%User{} = user) do
     # Separate from `can_add_media_to_project?` because this is for creating media that is not yet associated with a project.
     not Enum.member?(user.restrictions || [], :muted)
@@ -253,6 +264,30 @@ defmodule Platform.Permissions do
         true -> membership.role == :owner or membership.role == :manager
         false -> true
       end
+    else
+      _ -> false
+    end
+  end
+
+  def can_change_media_version_visibility?(%User{} = user, %MediaVersion{} = version) do
+    media = _get_media_from_id(version.media_id)
+
+    with true <- can_view_media?(user, media) do
+      membership = Projects.get_project_membership_by_user_and_project(user, media.project)
+
+      membership.role == :owner or membership.role == :manager
+    else
+      _ -> false
+    end
+  end
+
+  def can_user_change_update_visibility?(%User{} = user, %Update{} = update) do
+    media = _get_media_from_id(update.media_id)
+
+    with true <- can_view_media?(user, media) do
+      membership = Projects.get_project_membership_by_user_and_project(user, media.project)
+
+      membership.role == :owner
     else
       _ -> false
     end

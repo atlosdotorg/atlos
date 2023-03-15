@@ -4,6 +4,7 @@ defmodule PlatformWeb.NewLive.BasicInfoLive do
   alias Platform.Material.Attribute
   alias Platform.Auditor
   alias Platform.Accounts
+  alias Platform.Permissions
 
   def update(assigns, socket) do
     {:ok,
@@ -236,7 +237,7 @@ defmodule PlatformWeb.NewLive.BasicInfoLive do
                   />
                 </div>
 
-                <%= if Accounts.is_privileged(@current_user) do %>
+                <%= if Permissions.can_edit_media?(@current_user, @media, Attribute.get_attribute(:tags)) do %>
                   <div>
                     <.edit_attributes
                       attrs={[Attribute.get_attribute(:tags)]}

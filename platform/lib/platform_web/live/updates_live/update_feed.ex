@@ -16,10 +16,6 @@ defmodule PlatformWeb.UpdatesLive.UpdateFeed do
      |> assign_new(:show_media, fn -> false end)}
   end
 
-  def can_user_change_visibility(user) do
-    Accounts.is_privileged(user)
-  end
-
   defp can_combine(old_update, new_update) do
     old_update.user == new_update.user and
       old_update.media_id == new_update.media_id and
@@ -57,9 +53,10 @@ defmodule PlatformWeb.UpdatesLive.UpdateFeed do
   end
 
   def handle_event("change_visibility", %{"update" => update_id}, socket) do
-    with true <- can_user_change_visibility(socket.assigns.current_user) do
-      update = Updates.get_update!(update_id)
+    update = Updates.get_update!(update_id)
 
+    with true <-
+           Permissions.can_user_change_update_visibility?(socket.assigns.current_user, update) do
       case Updates.update_update_from_changeset(
              Updates.change_update_visibility(update, !update.hidden)
            ) do
@@ -108,7 +105,6 @@ defmodule PlatformWeb.UpdatesLive.UpdateFeed do
             current_user={@current_user}
             show_line={idx != length(@to_show) - 1 || @show_final_line}
             show_media={@show_media}
-            can_user_change_visibility={can_user_change_visibility(@current_user)}
             target={@myself}
             socket={@socket}
             left_indicator={:profile}

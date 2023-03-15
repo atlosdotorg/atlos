@@ -623,6 +623,7 @@ defmodule PlatformWeb.Components do
         assign(assigns, :n_attributes, n_attributes)
         |> assign(:attributes, attributes)
         |> assign(:head, head)
+        |> assign(:can_user_change_visibility, false)
 
       ~H"""
       <li x-data="{expanded: false}" id={"collapsed-update-#{@head.id}"}>
@@ -698,7 +699,6 @@ defmodule PlatformWeb.Components do
               update={sub_update}
               show_line={true}
               show_media={false}
-              can_user_change_visibility={@can_user_change_visibility}
               target={@target}
               socket={@socket}
               left_indicator={:dot}
@@ -709,6 +709,15 @@ defmodule PlatformWeb.Components do
       </li>
       """
     else
+      assigns =
+        assigns
+        |> assign_new(
+          :can_user_change_visibility,
+          fn ->
+            Permissions.can_user_change_update_visibility?(assigns.current_user, assigns.update)
+          end
+        )
+
       ~H"""
       <% can_user_view = Permissions.can_view_update?(@current_user, @update) %>
       <li class={"transition-all " <> (if @update.hidden and can_user_view, do: "opacity-50", else: "")}>
@@ -1831,25 +1840,23 @@ defmodule PlatformWeb.Components do
         x-bind:class={"{'!bg-urge-50': (selected || #{@is_selected})}"}
       >
         <div class="flex items-center gap-1">
-          <%= if Platform.Accounts.is_privileged(@current_user) do %>
-            <div
-              class="flex-shrink-0 w-5 mr-2 group-hover:block"
-              x-bind:class={"{'hidden': !(selected || #{@is_selected})}"}
-              data-tooltip="Select this incident"
-              x-cloak
-            >
-              <input
-                phx-click="select"
-                phx-value-slug={@media.slug}
-                x-on:change="selected = $event.target.checked"
-                checked={@is_selected}
-                type="checkbox"
-                class="h-4 w-4 mb-1 rounded border-gray-300 text-urge-600 focus:ring-urge-600"
-              />
-            </div>
-          <% end %>
           <div
-            class={"flex-shrink-0 w-5 mr-2 " <> (if Platform.Accounts.is_privileged(@current_user), do: "group-hover:hidden", else: "")}
+            class="flex-shrink-0 w-5 mr-2 group-hover:block"
+            x-bind:class={"{'hidden': !(selected || #{@is_selected})}"}
+            data-tooltip="Select this incident"
+            x-cloak
+          >
+            <input
+              phx-click="select"
+              phx-value-slug={@media.slug}
+              x-on:change="selected = $event.target.checked"
+              checked={@is_selected}
+              type="checkbox"
+              class="h-4 w-4 mb-1 rounded border-gray-300 text-urge-600 focus:ring-urge-600"
+            />
+          </div>
+          <div
+            class="flex-shrink-0 w-5 mr-2 group-hover:hidden"
             x-bind:class={"{'hidden': (selected || #{@is_selected})}"}
             data-tooltip={"Last modified by #{List.last(@media.updates).user.username}"}
           >
@@ -2926,7 +2933,7 @@ defmodule PlatformWeb.Components do
                           clip-rule="evenodd"
                         />
                       </svg>
-                      Hide
+                      Minimize
                     </button>
                   <% end %>
                   <%= if @version.visibility == :hidden and @show_controls do %>
@@ -2951,10 +2958,10 @@ defmodule PlatformWeb.Components do
                           clip-rule="evenodd"
                         />
                       </svg>
-                      Unhide
+                      Unminimize
                     </button>
                   <% end %>
-                  <%= if Accounts.is_privileged(@current_user) and @show_controls do %>
+                  <%= if Platform.Permissions.can_change_media_version_visibility?(@current_user, @version) and @show_controls do %>
                     <button
                       type="button"
                       data-confirm="Are you sure you want to change the visibility of this media?"

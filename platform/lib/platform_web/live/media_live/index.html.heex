@@ -18,7 +18,7 @@
       |> Map.put(:pi, @pagination_index - 1)
     ) %>
   <div class="relative z-[1000] 2xl:max-w-[1210px] mx-auto h-[9rem]">
-    <%= if @selected_ids != [] and Platform.Accounts.is_privileged(@current_user) do %>
+    <%= if @selected_ids != [] do %>
       <div class="mb-4 w-full flex text-sm items-center divide-x border bg-white shadow-sm rounded-lg transition-all">
         <p class="p-4 text-urge-600">
           <span class="font-medium">

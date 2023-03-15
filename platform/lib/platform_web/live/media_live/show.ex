@@ -89,7 +89,10 @@ defmodule PlatformWeb.MediaLive.Show do
       ) do
     version = Material.get_media_version!(version)
 
-    if (!Accounts.is_privileged(socket.assigns.current_user) && version.visibility == :removed) or
+    if (!Permissions.can_change_media_version_visibility?(
+          socket.assigns.current_user,
+          socket.assigns.media
+        ) && version.visibility == :removed) or
          !Permissions.can_edit_media?(socket.assigns.current_user, socket.assigns.media) do
       {:noreply,
        socket |> put_flash(:error, "You cannot change this media version's visibility.")}
@@ -103,7 +106,10 @@ defmodule PlatformWeb.MediaLive.Show do
             Material.update_media_version(version, %{visibility: value})
 
           "removed" ->
-            if Accounts.is_privileged(socket.assigns.current_user) do
+            if Permissions.can_change_media_version_visibility?(
+                 socket.assigns.current_user,
+                 socket.assigns.media
+               ) do
               Material.update_media_version(version, %{visibility: value})
             else
               raise PlatformWeb.Errors.Unauthorized, "No permission"
