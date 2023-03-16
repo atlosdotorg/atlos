@@ -3156,9 +3156,9 @@ defmodule PlatformWeb.Components do
           <%= label(@f, @schema_field, @label) %>
           <%= case @attr.input_type || :textarea do %>
             <% :textarea -> %>
-              <%= textarea(@f, @schema_field, rows: 3) %>
+              <%= textarea(@f, @schema_field, rows: 3, phx_debounce: 750) %>
             <% :short_text -> %>
-              <%= text_input(@f, @schema_field) %>
+              <%= text_input(@f, @schema_field, phx_debounce: 750) %>
           <% end %>
           <%= error_tag(@f, @schema_field) %>
         <% :select -> %>

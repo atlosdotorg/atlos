@@ -3,27 +3,29 @@ defmodule PlatformWeb.NewLive.BasicInfoLive do
   alias Platform.Material
   alias Platform.Material.Attribute
   alias Platform.Auditor
-  alias Platform.Accounts
   alias Platform.Permissions
+  alias Platform.Projects
 
   def update(assigns, socket) do
     {:ok,
      socket
      |> assign(assigns)
-     |> assign_media()
+     |> assign(:project_options, Projects.list_projects_for_user(assigns.current_user))
      |> assign(:disabled, false)
      |> assign(:url_deconfliction, [])
      |> assign_changeset(%{"project_id" => assigns.project_id})}
   end
 
-  defp assign_media(socket) do
-    socket |> assign(:media, %Material.Media{})
-  end
-
   defp assign_changeset(socket, params, opts \\ []) do
-    # Also assigns the @project
+    # Also assigns the @project and @media
 
-    cs = Material.change_media(socket.assigns.media, params, socket.assigns.current_user)
+    project_id =
+      Map.get(params, "project_id") || Enum.at(socket.assigns.project_options, 0, %{id: nil}).id
+
+    project = Platform.Projects.get_project(project_id)
+    media = %Material.Media{project_id: project_id, project: project}
+
+    cs = Material.change_media(media, params, socket.assigns.current_user)
 
     cs =
       if Keyword.get(opts, :validate, false) do
@@ -40,8 +42,6 @@ defmodule PlatformWeb.NewLive.BasicInfoLive do
       end)
 
     # If available, assign the project
-    project_id = Ecto.Changeset.get_field(cs, :project_id, nil)
-    project = if is_nil(project_id), do: nil, else: Platform.Projects.get_project!(project_id)
 
     socket
     |> assign(
@@ -56,13 +56,18 @@ defmodule PlatformWeb.NewLive.BasicInfoLive do
       :project,
       project
     )
+    |> assign(
+      :media,
+      media
+    )
+    |> assign(:form, to_form(cs))
   end
 
   def handle_event("validate", %{"media" => media_params}, socket) do
     # TODO: We don't currently do live validation because it causes the multiselect panel to jump around.
     # Given the time, it'd be nice to fix this.
 
-    {:noreply, socket |> assign_changeset(media_params, validate: true)}
+    {:noreply, socket |> assign_changeset(media_params |> dbg(), validate: true)}
   end
 
   def handle_event("save", %{"media" => media_params}, socket) do
@@ -89,16 +94,9 @@ defmodule PlatformWeb.NewLive.BasicInfoLive do
   end
 
   def render(assigns) do
-    assigns =
-      assign(
-        assigns,
-        :user_projects,
-        Platform.Projects.list_projects_for_user(assigns.current_user)
-      )
-
     ~H"""
     <div>
-      <%= if Enum.empty?(@user_projects) do %>
+      <%= if Enum.empty?(@project_options) do %>
         <div class="flex flex-col gap-4 items-center justify-around">
           <div class="flex flex-col gap-2 items-center justify-around">
             <Heroicons.archive_box class="w-12 h-12 text-neutral-500" />
@@ -111,8 +109,7 @@ defmodule PlatformWeb.NewLive.BasicInfoLive do
         </div>
       <% else %>
         <.form
-          :let={f}
-          for={@changeset}
+          for={@form}
           id="media-form"
           phx-target={@myself}
           phx-submit="save"
@@ -120,34 +117,34 @@ defmodule PlatformWeb.NewLive.BasicInfoLive do
           class="phx-form"
         >
           <div class="space-y-6">
-            <%= if not Enum.empty?(@user_projects) do %>
+            <%= if not Enum.empty?(@project_options) do %>
               <div>
                 <%= label(
-                  f,
+                  @form,
                   :project_id,
                   "Project"
                 ) %>
                 <div phx-update="ignore" id={"project_select_#{@media.slug}"}>
                   <%= select(
-                    f,
+                    @form,
                     :project_id,
-                    Enum.map(@user_projects, &{"#{&1.name}", &1.id}),
+                    Enum.map(@project_options, &{"#{&1.name}", &1.id}),
                     data_descriptions:
                       Jason.encode!(
-                        Enum.reduce(@user_projects, %{}, fn elem, acc ->
+                        Enum.reduce(@project_options, %{}, fn elem, acc ->
                           Map.put(acc, elem.id, elem.code)
                         end)
                       )
                   ) %>
                 </div>
-                <%= error_tag(f, :project_id) %>
+                <%= error_tag(@form, :project_id) %>
               </div>
             <% end %>
 
             <div>
               <.edit_attributes
                 attrs={[Attribute.get_attribute(:description)]}
-                form={f}
+                form={@form}
                 media_slug="NEW"
                 media={nil}
                 optional={false}
@@ -160,7 +157,7 @@ defmodule PlatformWeb.NewLive.BasicInfoLive do
             <div>
               <.edit_attributes
                 attrs={[Attribute.get_attribute(:sensitive)]}
-                form={f}
+                form={@form}
                 media_slug="NEW"
                 media={nil}
                 optional={false}
@@ -172,15 +169,15 @@ defmodule PlatformWeb.NewLive.BasicInfoLive do
                 Source Material <span class="badge ~neutral inline text-xs">Optional</span>
               </label>
               <.interactive_urldrop
-                form={f}
+                form={@form}
                 id="urldrop"
                 name={:urls}
                 placeholder="Drop URLs here..."
                 class="input-base"
               />
               <p class="support">Atlos will attempt to archive these URLs automatically.</p>
-              <%= error_tag(f, :urls) %>
-              <%= error_tag(f, :urls_parsed) %>
+              <%= error_tag(@form, :urls) %>
+              <%= error_tag(@form, :urls_parsed) %>
               <%= if not Enum.empty?(@url_deconfliction) do %>
                 <div class="mt-4">
                   <.multi_deconfliction_warning
@@ -230,18 +227,18 @@ defmodule PlatformWeb.NewLive.BasicInfoLive do
                 <div>
                   <.edit_attributes
                     attrs={[Attribute.get_attribute(:date)]}
-                    form={f}
+                    form={@form}
                     media_slug="NEW"
                     media={nil}
                     optional={true}
                   />
                 </div>
 
-                <%= if Permissions.can_edit_media?(@current_user, @media, Attribute.get_attribute(:tags)) do %>
+                <%= if Permissions.can_edit_media?(@current_user, @media, Attribute.get_attribute(:tags, project: @project)) do %>
                   <div>
                     <.edit_attributes
-                      attrs={[Attribute.get_attribute(:tags)]}
-                      form={f}
+                      attrs={[Attribute.get_attribute(:tags, project: @project)]}
+                      form={@form}
                       media_slug="NEW"
                       media={nil}
                       optional={true}
@@ -257,7 +254,7 @@ defmodule PlatformWeb.NewLive.BasicInfoLive do
                         @project.attributes
                         |> Enum.map(&Platform.Projects.ProjectAttribute.to_attribute/1)
                       }
-                      form={f}
+                      form={@form}
                       media_slug={@project.id}
                       media={nil}
                       optional={true}

@@ -1132,8 +1132,17 @@ defmodule Platform.Material do
   @doc """
   Get the unique values of the given attribute across *all* media. Will hit the database.
   """
-  def get_values_of_attribute(%Attribute{type: :multi_select} = attribute) do
+  def get_values_of_attribute(%Attribute{type: :multi_select} = attribute, opts \\ []) do
+    project = Keyword.get(opts, :project)
+
     Media
+    |> then(fn query ->
+      if project do
+        from(m in query, where: m.project_id == ^project.id)
+      else
+        query
+      end
+    end)
     |> select([m], fragment("unnest(?)", field(m, ^attribute.schema_field)))
     |> distinct(true)
     |> Repo.all()
@@ -1142,9 +1151,9 @@ defmodule Platform.Material do
   @doc """
   Get the unique values of the given attribute across *all* media. May hit the database, but cached for 5 minutes.
   """
-  defmemo get_values_of_attribute_cached(%Attribute{type: :multi_select} = attribute),
+  defmemo get_values_of_attribute_cached(%Attribute{type: :multi_select} = attribute, opts \\ []),
     expires_in: 300 * 1000 do
-    get_values_of_attribute(attribute)
+    get_values_of_attribute(attribute, opts)
   end
 
   @doc """

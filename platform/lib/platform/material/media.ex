@@ -111,23 +111,8 @@ defmodule Platform.Material.Media do
     |> parse_and_validate_validate_json_array(:urls, :urls_parsed)
     |> validate_url_list(:urls_parsed)
     |> then(fn cs ->
-      attr = Attribute.get_attribute(:tags)
-
-      if !is_nil(user) && Permissions.can_edit_media?(user, media, attr) do
-        cs
-        # TODO: This is a good refactoring opportunity with the logic above
-        |> cast(attrs, [:attr_tags])
-        |> Attribute.validate_attribute(Attribute.get_attribute(:tags), media,
-          user: user,
-          required: false
-        )
-      else
-        cs
-      end
-    end)
-    |> then(fn cs ->
-      project_id = Ecto.Changeset.get_change(cs, :project_id)
-      project = if is_nil(project_id), do: nil, else: Projects.get_project!(project_id)
+      project_id = Ecto.Changeset.get_field(cs, :project_id)
+      project = Projects.get_project(project_id)
 
       if is_nil(project),
         do: cs,
@@ -140,6 +125,29 @@ defmodule Platform.Material.Media do
             user: user,
             verify_change_exists: false
           )
+    end)
+    |> then(fn cs ->
+      project_id = Ecto.Changeset.get_field(cs, :project_id, nil)
+
+      attr =
+        Attribute.get_attribute(:tags,
+          project: Ecto.Changeset.get_field(cs, :project_id, nil) |> Projects.get_project()
+        )
+
+      # We manually insert the project ID because the media hasn't been inserted yet,
+      # so we can't get it from the media itself. Still, we want to check the user's permissions.
+      if !is_nil(user) &&
+           Permissions.can_edit_media?(user, %{media | project_id: project_id}, attr) do
+        cs
+        # TODO: This is a good refactoring opportunity with the logic above
+        |> cast(attrs, [:attr_tags])
+        |> Attribute.validate_attribute(Attribute.get_attribute(:tags), media,
+          user: user,
+          required: false
+        )
+      else
+        cs
+      end
     end)
   end
 

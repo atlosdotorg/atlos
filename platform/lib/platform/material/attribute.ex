@@ -530,7 +530,22 @@ defmodule Platform.Material.Attribute do
         name_or_id
       end
 
-    Enum.find(attributes(opts), &(&1.name |> to_string() == real_name))
+    value = Enum.find(attributes(opts), &(&1.name |> to_string() == real_name))
+
+    case value do
+      nil ->
+        nil
+
+      %Attribute{} = attr ->
+        project = Keyword.get(opts, :project)
+
+        if not is_nil(project) and allow_user_defined_options(attr) and attr.type == :multi_select do
+          attr
+          |> Map.put(:options, Material.get_values_of_attribute_cached(attr, project: project))
+        else
+          attr
+        end
+    end
   end
 
   @doc """
@@ -880,13 +895,6 @@ defmodule Platform.Material.Attribute do
       case get_custom_attribute_options(attribute.name) do
         [] -> attribute.options || []
         values -> values
-      end
-
-    options =
-      if Attribute.allow_user_defined_options(attribute) and attribute.type == :multi_select do
-        options ++ Material.get_values_of_attribute_cached(attribute)
-      else
-        options
       end
 
     options =
