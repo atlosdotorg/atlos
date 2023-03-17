@@ -45,6 +45,14 @@ defmodule Platform.Projects.ProjectMembership do
     username = get_change(changeset, :username)
 
     if username do
+      # If the username starts with a @, remove it
+      username =
+        if String.starts_with?(username, "@") do
+          String.replace_prefix(username, "@", "")
+        else
+          username
+        end
+
       case Platform.Accounts.get_user_by_username(username) do
         nil ->
           add_error(changeset, :username, "This user does not exist.")
