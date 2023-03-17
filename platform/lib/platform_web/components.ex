@@ -2515,11 +2515,6 @@ defmodule PlatformWeb.Components do
       </svg>
       <h3 class="mt-2 font-medium text-gray-900">No results</h3>
       <p class="mt-1 text-gray-500">No incidents matched this criteria</p>
-      <div class="mt-6">
-        <a href="/" class="button ~urge @high">
-          Return Home
-        </a>
-      </div>
     </div>
     """
   end
