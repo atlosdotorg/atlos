@@ -190,7 +190,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
           @f_attr,
           :type,
           type_mapping()
-          |> Enum.filter(fn {_, v} -> v != :location end)
+          |> Enum.filter(fn {_, v} -> v != :location and v != :date end)
           |> Enum.map(fn {k, v} ->
             [
               key: k,
