@@ -35,14 +35,12 @@ defmodule PlatformWeb.MediaLive.Index do
     membership_id = if not is_nil(membership), do: membership.id, else: nil
 
     # Update the user's prefered incident display, if necessary
-    if socket.assigns.current_user.active_incidents_tab != display or
-         socket.assigns.current_user.active_project_membership_id !=
-           membership_id do
-      Platform.Accounts.update_user_preferences(socket.assigns.current_user, %{
-        active_incidents_tab: display,
-        active_project_membership_id: membership_id
-      })
-    end
+    Platform.Accounts.update_user_preferences(socket.assigns.current_user, %{
+      active_incidents_tab: display,
+      active_project_membership_id: membership_id,
+      active_incidents_tab_params: params,
+      active_incidents_tab_params_time: NaiveDateTime.utc_now()
+    })
 
     # Pull cursor information from params
     before_cursor = params["bc"]

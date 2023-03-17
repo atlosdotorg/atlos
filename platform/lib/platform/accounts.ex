@@ -476,6 +476,21 @@ defmodule Platform.Accounts do
     end
   end
 
+  def active_incidents_params(user) do
+    case user.active_incidents_tab_params_time do
+      nil ->
+        %{project_id: active_project_id(user)}
+
+      time ->
+        # If the time is older than an hour, we don't want to use it
+        if NaiveDateTime.diff(NaiveDateTime.utc_now(), time) > 3600 do
+          %{project_id: active_project_id(user)}
+        else
+          user.active_incidents_tab_params || %{}
+        end
+    end
+  end
+
   def change_user_profile(user, attrs \\ %{}) do
     User.profile_changeset(user, attrs)
   end

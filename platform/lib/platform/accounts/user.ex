@@ -6,33 +6,35 @@ defmodule Platform.Accounts.User do
 
   schema "users" do
     # General metadata
-    field :email, :string
-    field :username, :string
-    field :roles, {:array, Ecto.Enum}, values: [:trusted, :admin, :coordinator]
-    field :restrictions, {:array, Ecto.Enum}, values: [:suspended, :muted]
-    field :bio, :string, default: ""
-    field :profile_photo_file, :string, default: ""
-    field :flair, :string, default: ""
-    field :admin_notes, :string, default: ""
+    field(:email, :string)
+    field(:username, :string)
+    field(:roles, {:array, Ecto.Enum}, values: [:trusted, :admin, :coordinator])
+    field(:restrictions, {:array, Ecto.Enum}, values: [:suspended, :muted])
+    field(:bio, :string, default: "")
+    field(:profile_photo_file, :string, default: "")
+    field(:flair, :string, default: "")
+    field(:admin_notes, :string, default: "")
 
     # Multi-factor authentication
-    field :has_mfa, :boolean, default: false
-    field :otp_secret, :binary, redact: true
-    field :current_otp_code, :string, virtual: true, redact: true
+    field(:has_mfa, :boolean, default: false)
+    field(:otp_secret, :binary, redact: true)
+    field(:current_otp_code, :string, virtual: true, redact: true)
 
     # Platform settings and preferences
-    field :active_incidents_tab, :string, default: "map"
-    belongs_to :active_project_membership, Platform.Projects.ProjectMembership, type: :binary_id
+    field(:active_incidents_tab, :string, default: "map")
+    field(:active_incidents_tab_params, :map, default: %{})
+    field(:active_incidents_tab_params_time, :naive_datetime)
+    belongs_to(:active_project_membership, Platform.Projects.ProjectMembership, type: :binary_id)
 
     # Authentication, identity, and compliance
-    field :invite_code, :string, virtual: true
-    field :terms_agree, :boolean, virtual: true
-    field :password, :string, virtual: true, redact: true
-    field :hashed_password, :string, redact: true
-    field :confirmed_at, :naive_datetime
+    field(:invite_code, :string, virtual: true)
+    field(:terms_agree, :boolean, virtual: true)
+    field(:password, :string, virtual: true, redact: true)
+    field(:hashed_password, :string, redact: true)
+    field(:confirmed_at, :naive_datetime)
 
-    many_to_many :subscribed_media, Material.Media, join_through: "media_subscriptions"
-    belongs_to :invite, Platform.Invites.Invite
+    many_to_many(:subscribed_media, Material.Media, join_through: "media_subscriptions")
+    belongs_to(:invite, Platform.Invites.Invite)
 
     timestamps()
   end
@@ -277,7 +279,12 @@ defmodule Platform.Accounts.User do
 
   def preferences_changeset(user, attrs) do
     user
-    |> cast(attrs, [:active_incidents_tab, :active_project_membership_id])
+    |> cast(attrs, [
+      :active_incidents_tab,
+      :active_project_membership_id,
+      :active_incidents_tab_params_time,
+      :active_incidents_tab_params
+    ])
   end
 
   @doc """

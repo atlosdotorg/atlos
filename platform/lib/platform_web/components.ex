@@ -308,7 +308,11 @@ defmodule PlatformWeb.Components do
           </.navlink>
 
           <.navlink
-            to={"/incidents?project_id=#{Accounts.active_project_id(@current_user)}"}
+            to={if String.starts_with?(@path, "/incidents"), do: "/incidents", else: Routes.live_path(
+            @endpoint,
+            PlatformWeb.MediaLive.Index,
+            Accounts.active_incidents_params(@current_user)
+          )}
             label="Incidents"
             request_path={@path}
           >
@@ -2171,80 +2175,31 @@ defmodule PlatformWeb.Components do
                 <%= error_tag(f, :sort) %>
               </div>
               <div
-                class={"flex place-self-center w-full md:w-auto h-full pr-2 text-sm md:py-[14px] py-4 pl-2 " <>
+                class={"flex place-self-center w-full md:w-auto h-full pr-2 pl-1 text-sm md:py-[14px] py-4 pl-2 " <>
                   (if Enum.member?(@exclude, :more_options), do: "hidden", else: "")}
                 x-data="{open: false}"
               >
                 <div class="text-left z-10">
-                  <div class="h-full">
-                    <button
-                      x-on:click="open = !open"
-                      type="button"
-                      class="rounded-full flex items-center align-center text-gray-600 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-urge-500"
-                      id="menu-button"
-                      aria-expanded="true"
-                      aria-haspopup="true"
-                    >
-                      <span class="sr-only">Open options</span>
-                      <!-- Heroicon name: solid/dots-vertical -->
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                        fill="currentColor"
-                        class="w-6 h-6"
-                      >
-                        <path
-                          fill-rule="evenodd"
-                          d="M10.5 6a1.5 1.5 0 113 0 1.5 1.5 0 01-3 0zm0 6a1.5 1.5 0 113 0 1.5 1.5 0 01-3 0zm0 6a1.5 1.5 0 113 0 1.5 1.5 0 01-3 0z"
-                          clip-rule="evenodd"
-                        />
-                      </svg>
-
-                      <span class="md:hidden text-neutral-800 ml-1">Additional options</span>
-                    </button>
-                  </div>
-
-                  <div
-                    x-show="open"
-                    x-on:click.outside="open = false"
-                    x-transition
-                    x-cloak
-                    class="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none"
-                    role="menu"
-                    aria-orientation="vertical"
-                    aria-labelledby="menu-button"
-                    tabindex="-1"
-                  >
-                    <div class="py-1" role="none">
-                      <%= button type: "button", to: Routes.export_path(@socket, :create, @query_params),
-                  class: "text-gray-700 group w-full hover:bg-gray-100 flex items-center px-4 py-2 text-sm",
-                  role: "menuitem",
-                  method: :post,
-                  "x-cloak": true
-                   do %>
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          class="mr-3 h-5 w-5 text-gray-400 group-hover:text-gray-500"
-                          viewBox="0 0 20 20"
-                          fill="currentColor"
-                        >
-                          <path
-                            fill-rule="evenodd"
-                            d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"
-                            clip-rule="evenodd"
-                          />
-                        </svg>
-                        Export Incidents
-                      <% end %>
-                      <.link
+                  <div class="h-full flex gap-1">
+                    <%= button type: "button", to: Routes.export_path(@socket, :create, @query_params),
+                      class: "rounded-full flex items-center align-center text-gray-600 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-urge-500",
+                      role: "menuitem",
+                      method: :post,
+                      "x-cloak": true,
+                      data_tooltip: "Export Incidents"
+                    do %>
+                      <Heroicons.arrow_down_tray mini class="h-5 w-5" />
+                      <span class="sr-only">Export Incidents</span>
+                    <% end %>
+                    <.link
                         patch="/incidents"
-                        class="text-gray-700 group w-full hover:bg-gray-100 flex items-center px-4 py-2 text-sm"
+                        class="rounded-full flex items-center align-center text-gray-600 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-urge-500"
                         role="menuitem"
+                        data-tooltip="Reset Filters"
                       >
-                        <Heroicons.arrow_uturn_left class="mr-3 h-5 w-5 text-gray-400 group-hover:text-gray-500" />
-                        Reset Filters
-                      </.link>
-                    </div>
+                        <Heroicons.x_mark mini class="h-6 w-6" />
+                        <span class="sr-only">Reset Filters</span>
+                    </.link>
                   </div>
                 </div>
               </div>
