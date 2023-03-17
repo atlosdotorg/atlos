@@ -33,7 +33,7 @@ defmodule Platform.Projects.ProjectMembership do
            Enum.filter(all_memberships, fn pm -> pm.role == :owner end) |> Enum.count() == 1 do
         [
           role:
-            "This is the only owner of the project, so you cannot change their role. To change their role, you must first add another owner."
+            "You are the only owner of this project, so you cannot change your role. To change your role, you must first add another owner."
         ]
       else
         []
