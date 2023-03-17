@@ -91,7 +91,7 @@ defmodule PlatformWeb.MediaLive.Show do
 
     if (!Permissions.can_change_media_version_visibility?(
           socket.assigns.current_user,
-          socket.assigns.media
+          version
         ) && version.visibility == :removed) or
          !Permissions.can_edit_media?(socket.assigns.current_user, socket.assigns.media) do
       {:noreply,
@@ -108,7 +108,7 @@ defmodule PlatformWeb.MediaLive.Show do
           "removed" ->
             if Permissions.can_change_media_version_visibility?(
                  socket.assigns.current_user,
-                 socket.assigns.media
+                 version
                ) do
               Material.update_media_version(version, %{visibility: value})
             else

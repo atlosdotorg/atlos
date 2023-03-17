@@ -329,7 +329,7 @@
             <% end %>
             <%= if length(hidden_versions) > 0 do %>
               <details class="mb-4">
-                <summary class="cursor-pointer text-button text-sm">View hidden media</summary>
+                <summary class="cursor-pointer text-button text-sm">View minimized media</summary>
                 <div class="divide-gray-200 grid grid-cols-1 divide-y divide-dashed">
                   <%= for version <- hidden_versions do %>
                     <.media_version_display
