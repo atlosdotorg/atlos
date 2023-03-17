@@ -207,16 +207,12 @@ defmodule Platform.Material do
         end)
         |> where([m, project_membership: pm], not is_nil(pm))
 
-      if Enum.member?(user.roles || [], :admin) or Enum.member?(user.roles || [], :trusted) do
-        query
-      else
-        query
-        |> where(
-          [m, project_membership: pm],
-          pm.role == :owner or pm.role == :manager or
-            (^"Hidden" not in m.attr_restrictions or is_nil(m.attr_restrictions))
-        )
-      end
+      query
+      |> where(
+        [m, project_membership: pm],
+        pm.role == :owner or pm.role == :manager or
+          (^"Hidden" not in m.attr_restrictions or is_nil(m.attr_restrictions))
+      )
     else
       query
     end
