@@ -176,8 +176,11 @@ function initializeSmartSelects() {
     // Make smart-selects interactive
     document.querySelectorAll("select:not(.ts-ignore *)").forEach(s => {
         if (s.tomselect) {
+            console.log("Already initialized", s)
             return;
         }
+
+        console.log("Initializing", s)
 
         let prompt = "Select...";
         if (s.hasAttribute("multiple")) {
@@ -216,14 +219,7 @@ function initializeSmartSelects() {
 
                     return '<div class="flex ' + nestingDepth + '"><div><span class="opacity-50">' + escape(before) + '</span><span>' + escape(after) + '</span><span class="text-gray-400">' + (requiresPrivilege ? lockIcon : '') + '&nbsp;' + escape(desc) + '</span></div></div>';
                 },
-            },
-            // onChange(value) {
-            //     if (!s.hasAttribute("multiple")) {
-            //         setTimeout(() => {
-            //             x.close(); // Close the dropdown after a delay, so that the user can see the selection
-            //         }, 2000);
-            //     }
-            // }
+            }
         });
         x.control_input.setAttribute("phx-debounce", "blur");
         x.control_input.setAttribute("phx-update", "ignore");
