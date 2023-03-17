@@ -45,6 +45,7 @@ defmodule PlatformWeb.Components do
       role="dialog"
       aria-modal="true"
       phx-hook="Modal"
+      data-is-modal
       id={"modal-" <> @id}
       x-data
     >
@@ -2260,7 +2261,7 @@ defmodule PlatformWeb.Components do
                   <.attr_filter id="geolocation_filter" form={f} attr={Attribute.get_attribute(:geolocation)} />
                   <.attr_filter id="date_filter" form={f} attr={Attribute.get_attribute(:date)} />
                   <.attr_filter id="tags_filter" form={f} attr={Attribute.get_attribute(:tags, projects: Platform.Projects.list_projects_for_user(@current_user))} />
-                  <.attr_filter id="status_filter" form={f} attr={Attribute.get_attribute(:sensitive)} />
+                  <.attr_filter id="sensitive_filter" form={f} attr={Attribute.get_attribute(:sensitive)} />
                 </div>
               </div>
             </div>

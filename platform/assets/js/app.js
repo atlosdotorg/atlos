@@ -465,7 +465,9 @@ function debounce(func, timeout = 25) {
 window.closeModal = debounce((event) => {
     // Find the target, if possible.
     let elem = event.target;
-    if (confirm("Are you sure you want to exit? Any unsaved changes will be lost.")) {
+    let parentModal = elem.closest("[data-is-modal]");
+
+    if ((parentModal && !document.elementContainsActiveUnsavedForms(parentModal)) || confirm("Are you sure you want to exit? Any unsaved changes will be lost.")) {
         let event = new CustomEvent("modal:close", { detail: { elem } });
         window.dispatchEvent(event);
     }
