@@ -10,7 +10,11 @@ defmodule PlatformWeb.NewLive.BasicInfoLive do
     {:ok,
      socket
      |> assign(assigns)
-     |> assign(:project_options, Projects.list_projects_for_user(assigns.current_user))
+     |> assign(
+       :project_options,
+       Projects.list_projects_for_user(assigns.current_user)
+       |> Enum.filter(&Permissions.can_add_media_to_project?(assigns.current_user, &1))
+     )
      |> assign(:disabled, false)
      |> assign(:url_deconfliction, [])
      |> assign_changeset(%{"project_id" => assigns.project_id})}
