@@ -538,10 +538,18 @@ defmodule Platform.Material.Attribute do
 
       %Attribute{} = attr ->
         project = Keyword.get(opts, :project)
+        projects = Keyword.get(opts, :projects, if(is_nil(project), do: [], else: [project]))
 
-        if not is_nil(project) and allow_user_defined_options(attr) and attr.type == :multi_select do
+        if not Enum.empty?(projects) and allow_user_defined_options(attr) and
+             attr.type == :multi_select do
+          options =
+            List.flatten(
+              projects
+              |> Enum.map(&Material.get_values_of_attribute_cached(attr, project: &1))
+            )
+
           attr
-          |> Map.put(:options, Material.get_values_of_attribute_cached(attr, project: project))
+          |> Map.put(:options, options)
         else
           attr
         end

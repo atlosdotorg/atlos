@@ -1075,6 +1075,7 @@ defmodule PlatformWeb.Components do
       class="relative inline-block text-left overflow-visible"
       x-data="{open: false}"
       x-on:click.away="open = false"
+      id={@id}
     >
       <div>
         <button
@@ -2255,11 +2256,11 @@ defmodule PlatformWeb.Components do
               </div>
               <div class={if Enum.member?(@exclude, :filters), do: "hidden", else: ""}>
                 <div class="relative flex flex-wrap items-center h-full gap-2">
-                  <.attr_filter form={f} attr={Attribute.get_attribute(:status)} />
-                  <.attr_filter form={f} attr={Attribute.get_attribute(:geolocation)} />
-                  <.attr_filter form={f} attr={Attribute.get_attribute(:date)} />
-                  <.attr_filter form={f} attr={Attribute.get_attribute(:tags)} />
-                  <.attr_filter form={f} attr={Attribute.get_attribute(:sensitive)} />
+                  <.attr_filter id="status_filter" form={f} attr={Attribute.get_attribute(:status)} />
+                  <.attr_filter id="geolocation_filter" form={f} attr={Attribute.get_attribute(:geolocation)} />
+                  <.attr_filter id="date_filter" form={f} attr={Attribute.get_attribute(:date)} />
+                  <.attr_filter id="tags_filter" form={f} attr={Attribute.get_attribute(:tags, projects: Platform.Projects.list_projects_for_user(@current_user))} />
+                  <.attr_filter id="status_filter" form={f} attr={Attribute.get_attribute(:sensitive)} />
                 </div>
               </div>
             </div>
