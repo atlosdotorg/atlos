@@ -152,7 +152,6 @@ defmodule PlatformWeb.Router do
       live("/incidents/:slug/upload", MediaLive.Show, :upload)
       live("/incidents/:slug/upload/merge", MediaLive.Show, :merge)
       live("/incidents/:slug/auto_metadata", MediaLive.Show, :auto_metadata)
-      live("/incidents/:slug/project", MediaLive.Show, :project)
 
       live("/subscriptions", SubscriptionsLive.Index)
 
