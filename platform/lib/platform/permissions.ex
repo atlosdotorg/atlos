@@ -20,10 +20,16 @@ defmodule Platform.Permissions do
   end
 
   def can_create_project?(%User{} = user) do
-    # Everyone can create a project
-    case System.get_env("RESTRICT_PROJECT_CREATION") do
-      "true" -> Accounts.is_privileged(user)
-      _ -> not Accounts.is_muted(user)
+    case Platform.Security.get_security_mode_state() do
+      :normal ->
+        # Everyone can create a project
+        case System.get_env("RESTRICT_PROJECT_CREATION") do
+          "true" -> Accounts.is_privileged(user)
+          _ -> not Accounts.is_muted(user)
+        end
+
+      _ ->
+        Accounts.is_admin(user)
     end
   end
 
