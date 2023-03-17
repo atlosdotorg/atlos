@@ -2592,7 +2592,7 @@ defmodule PlatformWeb.Components do
     ~H"""
     <section
       id={"version-#{@version.id}"}
-      class="py-4 target:outline outline-2 outline-urge-600 rounded outline-offset-2"
+      class="py-2 target:outline outline-2 outline-urge-600 rounded outline-offset-2"
       x-data={"{grayscale: true, hidden: #{@should_blur_js_bool}}"}
     >
       <% loc = Material.media_version_location(@version, @media) %>
@@ -2603,7 +2603,7 @@ defmodule PlatformWeb.Components do
       </span>
       <div class="relative">
         <%= if @media_to_show do %>
-          <div id={media_id} x-bind:class="hidden ? 'min-h-[10rem] invisible' : 'min-h-[10rem]'">
+          <div id={media_id} class="min-h-[10rem] p-1 z-[1]">
             <div x-bind:class="grayscale ? 'grayscale' : ''">
               <%= if String.starts_with?(@version.mime_type, "image/") do %>
                 <%= if @dynamic_src do %>
