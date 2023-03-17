@@ -106,7 +106,7 @@ defmodule Platform.Workers.Archiver do
           mime = MIME.from_path(file_path)
 
           # Process + upload it (only store original if upload_type is direct/not user provided, *or* we're cloning)
-          {:ok, identifier, duration, size, watermarked_hash, original_hash} =
+          {:ok, identifier, duration, size, hash} =
             process_uploaded_media(
               file_path,
               mime,
@@ -124,7 +124,7 @@ defmodule Platform.Workers.Archiver do
               status: :complete,
               duration_seconds: duration,
               mime_type: mime,
-              hashes: %{original_sha256: original_hash, watermarked_sha256: watermarked_hash}
+              hashes: %{sha256: hash}
             })
 
           # Track event
@@ -177,53 +177,24 @@ defmodule Platform.Workers.Archiver do
   @doc """
   Process the media at the given path. Also called by the manual media uploader.
   """
-  def process_uploaded_media(path, mime, media, version, store_original \\ true) do
+  def process_uploaded_media(path, _mime, media, _version, store_original \\ true) do
     # Preprocesses the given media and uploads it to persistent storage.
     # Returns {:ok, file_path, thumbnail_path, duration}
 
-    identifier = Material.get_human_readable_media_version_name(media, version)
+    {:ok, out_data} = FFprobe.format(path)
 
-    media_path =
-      cond do
-        String.starts_with?(mime, "image/") -> Temp.path!(%{suffix: ".jpg", prefix: media.slug})
-        String.starts_with?(mime, "video/") -> Temp.path!(%{suffix: ".mp4", prefix: media.slug})
-      end
-
-    font_path =
-      System.get_env(
-        "WATERMARK_FONT_PATH",
-        Path.join(:code.priv_dir(:platform), "static/fonts/iosevka-bold.ttc")
-      )
-
-    IO.puts("Loading font from #{font_path}; file exists? #{File.exists?(font_path)}")
-
-    process_command =
-      FFmpex.new_command()
-      |> FFmpex.add_input_file(path)
-      |> FFmpex.add_output_file(media_path)
-      |> FFmpex.add_file_option(
-        FFmpex.Options.Video.option_vf(
-          "drawtext=text='#{identifier}':x=20:y=20:fontfile=#{font_path}:fontsize=24:fontcolor=white:box=1:boxcolor=black@0.25:boxborderw=5"
-        )
-      )
-
-    {:ok, _} = FFmpex.execute(process_command)
-
-    {:ok, out_data} = FFprobe.format(media_path)
-
-    watermarked_hash = hash_sha256_file(media_path)
-    original_hash = hash_sha256_file(path)
+    hash = hash_sha256_file(path)
 
     {duration, _} = Integer.parse(out_data["duration"])
     {size, _} = Integer.parse(out_data["size"])
 
     # Upload to cloud storage
-    {:ok, new_path} = Uploads.WatermarkedMediaVersion.store({media_path, media})
+    {:ok, new_path} = Uploads.WatermarkedMediaVersion.store({path, media})
 
     if store_original do
-      {:ok, _original_path} = Uploads.OriginalMediaVersion.store({media_path, media})
+      {:ok, _original_path} = Uploads.OriginalMediaVersion.store({path, media})
     end
 
-    {:ok, new_path, duration, size, watermarked_hash, original_hash}
+    {:ok, new_path, duration, size, hash}
   end
 end
