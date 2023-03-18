@@ -1139,7 +1139,7 @@ defmodule PlatformWeb.Components do
                     data_descriptions:
                       Jason.encode!(
                         (@attr.option_descriptions || %{})
-                        |> Map.put("[Unset]", "The value is not set")
+                        |> Map.put("[Unset]", "No #{String.downcase(@attr.label)} set")
                       )
                   ) %>
                 </div>

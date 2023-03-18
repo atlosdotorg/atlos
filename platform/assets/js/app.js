@@ -205,19 +205,15 @@ function initializeSmartSelects() {
             ] : [],
             render: {
                 option: function (data, escape) {
-                    let desc = descriptions[data.value] || "";
+                    var desc = descriptions[data.value] || "";
                     if (desc.length != 0) {
                         desc = "— " + desc;
                     }
                     let requiresPrivilege = privileged.indexOf(data.text) >= 0;
 
-                    let effectiveDepth = 0; // TODO: Smart indents currently disabled
-                    let nestingDepth = ["ml-0", "ml-[25px]", "ml-[50px]", "ml-[75px]", "ml-[100px]"][effectiveDepth];
+                    let name = data.text == "[Unset]" ? "None" : data.text;
 
-                    let before = "";
-                    let after = data.text;
-
-                    return '<div class="flex ' + nestingDepth + '"><div><span class="opacity-50">' + escape(before) + '</span><span>' + escape(after) + '</span><span class="text-gray-400">' + (requiresPrivilege ? lockIcon : '') + '&nbsp;' + escape(desc) + '</span></div></div>';
+                    return '<div class="flex"><div><span>' + escape(name) + '</span><span class="text-gray-400">' + (requiresPrivilege ? lockIcon : '') + '&nbsp;' + escape(desc) + '</span></div></div>';
                 },
             }
         });
