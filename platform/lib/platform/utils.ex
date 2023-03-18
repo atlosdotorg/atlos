@@ -205,28 +205,20 @@ defmodule Platform.Utils do
     "allocation #{alloc_id} in region #{region}"
   end
 
-  def text_search(search_terms, queryable, opts \\ []) do
+  def text_search(search_terms, queryable) do
     # First, detect if they have entered a slug with a project code into the query. If so, we add a version of the slug without the project code to the query.
     # This is to make it possible to search for "ATL-123" and get results for "123".
     # This is a bit hacky, but it works.
     search_terms = Regex.replace(@identifier_regex_with_project_and_no_tags, search_terms, "\\2")
 
-    if Keyword.get(opts, :literal, false) do
-      # Manually adding the quotes here make it possible to search for source links directly
-      wrapped =
-        if String.starts_with?(search_terms, "\""), do: search_terms, else: "\"#{search_terms}\""
+    wrapped =
+      if String.starts_with?(search_terms, "\""), do: search_terms, else: "\"#{search_terms}\""
 
-      queryable
-      |> where(
-        [q],
+    queryable
+    |> where(
+      [q],
+      fragment("? @@ websearch_to_tsquery('english', ?)", q.searchable, ^search_terms) or
         fragment("? @@ websearch_to_tsquery('english', ?)", q.searchable, ^wrapped)
-      )
-    else
-      queryable
-      |> where(
-        [q],
-        fragment("? @@ websearch_to_tsquery('english', ?)", q.searchable, ^search_terms)
-      )
-    end
+    )
   end
 end

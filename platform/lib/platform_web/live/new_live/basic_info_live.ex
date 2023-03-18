@@ -3,26 +3,33 @@ defmodule PlatformWeb.NewLive.BasicInfoLive do
   alias Platform.Material
   alias Platform.Material.Attribute
   alias Platform.Auditor
-  alias Platform.Accounts
+  alias Platform.Permissions
+  alias Platform.Projects
 
   def update(assigns, socket) do
     {:ok,
      socket
      |> assign(assigns)
-     |> assign_media()
+     |> assign(
+       :project_options,
+       Projects.list_projects_for_user(assigns.current_user)
+       |> Enum.filter(&Permissions.can_add_media_to_project?(assigns.current_user, &1))
+     )
      |> assign(:disabled, false)
      |> assign(:url_deconfliction, [])
      |> assign_changeset(%{"project_id" => assigns.project_id})}
   end
 
-  defp assign_media(socket) do
-    socket |> assign(:media, %Material.Media{})
-  end
-
   defp assign_changeset(socket, params, opts \\ []) do
-    # Also assigns the @project
+    # Also assigns the @project and @media
 
-    cs = Material.change_media(socket.assigns.media, params, socket.assigns.current_user)
+    project_id =
+      Map.get(params, "project_id") || Enum.at(socket.assigns.project_options, 0, %{id: nil}).id
+
+    project = Platform.Projects.get_project(project_id)
+    media = %Material.Media{project_id: project_id, project: project}
+
+    cs = Material.change_media(media, params, socket.assigns.current_user)
 
     cs =
       if Keyword.get(opts, :validate, false) do
@@ -35,12 +42,10 @@ defmodule PlatformWeb.NewLive.BasicInfoLive do
     url_deconfliction =
       Ecto.Changeset.get_field(cs, :urls_parsed, "")
       |> Enum.map(fn url ->
-        {url, Material.get_media_by_source_url(url)}
+        {url, Material.get_media_by_source_url(url, for_user: socket.assigns.current_user)}
       end)
 
     # If available, assign the project
-    project_id = Ecto.Changeset.get_field(cs, :project_id, nil)
-    project = if is_nil(project_id), do: nil, else: Platform.Projects.get_project!(project_id)
 
     socket
     |> assign(
@@ -55,6 +60,11 @@ defmodule PlatformWeb.NewLive.BasicInfoLive do
       :project,
       project
     )
+    |> assign(
+      :media,
+      media
+    )
+    |> assign(:form, to_form(cs))
   end
 
   def handle_event("validate", %{"media" => media_params}, socket) do
@@ -90,172 +100,185 @@ defmodule PlatformWeb.NewLive.BasicInfoLive do
   def render(assigns) do
     ~H"""
     <div>
-      <.form
-        :let={f}
-        for={@changeset}
-        id="media-form"
-        phx-target={@myself}
-        phx-submit="save"
-        phx-change="validate"
-        class="phx-form"
-      >
-        <div class="space-y-6">
-          <% projects = Platform.Projects.list_projects_for_user(@current_user) %>
-          <%= if not Enum.empty?(projects) do %>
-            <div>
-              <%= label(
-                f,
-                :project_id,
-                "Project"
-              ) %>
-              <div phx-update="ignore" id={"project_select_#{@media.slug}"}>
-                <%= select(
-                  f,
-                  :project_id,
-                  ["No Project": nil] ++ Enum.map(projects, &{"#{&1.name}", &1.id}),
-                  data_descriptions:
-                    Jason.encode!(
-                      Enum.reduce(projects, %{}, fn elem, acc ->
-                        Map.put(acc, elem.id, elem.code)
-                      end)
-                    )
-                ) %>
-              </div>
-              <%= error_tag(f, :project_id) %>
-            </div>
-          <% end %>
-
-          <div>
-            <.edit_attributes
-              attrs={[Attribute.get_attribute(:description)]}
-              form={f}
-              media_slug="NEW"
-              media={nil}
-              optional={false}
-            />
-            <p class="support">
-              Try to be as descriptive as possible. You'll be able to change this later.
+      <%= if Enum.empty?(@project_options) do %>
+        <div class="flex flex-col gap-4 items-center justify-around">
+          <div class="flex flex-col gap-2 items-center justify-around">
+            <Heroicons.archive_box class="w-12 h-12 text-neutral-500" />
+            <h2 class="text-md font-medium">No Projects</h2>
+            <p class="text-sm text-neutral-500 text-center">
+              You don't have any projects yet. You'll need to create one before you can add media.
             </p>
+            <.link href="/projects/new" class="button ~urge @high">Create a Project</.link>
           </div>
-
-          <div>
-            <.edit_attributes
-              attrs={[Attribute.get_attribute(:sensitive)]}
-              form={f}
-              media_slug="NEW"
-              media={nil}
-              optional={false}
-            />
-          </div>
-
-          <div class="flex flex-col gap-1">
-            <label>Source Material <span class="badge ~neutral inline text-xs">Optional</span></label>
-            <.interactive_urldrop
-              form={f}
-              id="urldrop"
-              name={:urls}
-              placeholder="Drop URLs here..."
-              class="input-base"
-            />
-            <p class="support">Atlos will attempt to archive these URLs automatically.</p>
-            <%= error_tag(f, :urls) %>
-            <%= error_tag(f, :urls_parsed) %>
-            <%= if not Enum.empty?(@url_deconfliction) do %>
-              <div class="mt-4">
-                <.multi_deconfliction_warning
-                  url_media_pairs={@url_deconfliction}
-                  current_user={@current_user}
-                />
+        </div>
+      <% else %>
+        <.form
+          for={@form}
+          id="media-form"
+          phx-target={@myself}
+          phx-submit="save"
+          phx-change="validate"
+          class="phx-form"
+        >
+          <div class="space-y-6">
+            <%= if not Enum.empty?(@project_options) do %>
+              <div>
+                <%= label(
+                  @form,
+                  :project_id,
+                  "Project"
+                ) %>
+                <div phx-update="ignore" id={"project_select_#{@media.slug}"}>
+                  <%= select(
+                    @form,
+                    :project_id,
+                    Enum.map(@project_options, &{"#{&1.name}", &1.id}),
+                    data_descriptions:
+                      Jason.encode!(
+                        Enum.reduce(@project_options, %{}, fn elem, acc ->
+                          Map.put(acc, elem.id, elem.code)
+                        end)
+                      )
+                  ) %>
+                </div>
+                <%= error_tag(@form, :project_id) %>
               </div>
             <% end %>
-          </div>
 
-          <div class="p-4 rounded bg-neutral-100 mt-2" x-data="{open: false}">
-            <button
-              type="button"
-              class="text-button w-full block flex gap-1 items-center justify-between cursor-pointer transition-all"
-              x-on:click="open = !open"
-            >
-              Additional attributes
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="currentColor"
-                class="w-6 h-6"
-                x-show="!open"
-              >
-                <path
-                  fill-rule="evenodd"
-                  d="M12 5.25a.75.75 0 01.75.75v5.25H18a.75.75 0 010 1.5h-5.25V18a.75.75 0 01-1.5 0v-5.25H6a.75.75 0 010-1.5h5.25V6a.75.75 0 01.75-.75z"
-                  clip-rule="evenodd"
-                />
-              </svg>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="currentColor"
-                class="w-6 h-6"
-                x-show="open"
-              >
-                <path
-                  fill-rule="evenodd"
-                  d="M5.25 12a.75.75 0 01.75-.75h12a.75.75 0 010 1.5H6a.75.75 0 01-.75-.75z"
-                  clip-rule="evenodd"
-                />
-              </svg>
-            </button>
-            <div class="space-y-6 mt-4" x-transition x-show="open">
-              <hr />
-              <div>
-                <.edit_attributes
-                  attrs={[Attribute.get_attribute(:date)]}
-                  form={f}
-                  media_slug="NEW"
-                  media={nil}
-                  optional={true}
-                />
-              </div>
+            <div>
+              <.edit_attributes
+                attrs={[Attribute.get_attribute(:description)]}
+                form={@form}
+                media_slug="NEW"
+                media={nil}
+                optional={false}
+              />
+              <p class="support">
+                Try to be as descriptive as possible. You'll be able to change this later.
+              </p>
+            </div>
 
-              <%= if Accounts.is_privileged(@current_user) do %>
+            <div>
+              <.edit_attributes
+                attrs={[Attribute.get_attribute(:sensitive)]}
+                form={@form}
+                media_slug="NEW"
+                media={nil}
+                optional={false}
+              />
+            </div>
+
+            <div class="flex flex-col gap-1">
+              <label>
+                Source Material <span class="badge ~neutral inline text-xs">Optional</span>
+              </label>
+              <.interactive_urldrop
+                form={@form}
+                id="urldrop"
+                name={:urls}
+                placeholder="Drop URLs here..."
+                class="input-base"
+              />
+              <p class="support">Atlos will attempt to archive these URLs automatically.</p>
+              <%= error_tag(@form, :urls) %>
+              <%= error_tag(@form, :urls_parsed) %>
+              <%= if not Enum.empty?(@url_deconfliction) do %>
+                <div class="mt-4">
+                  <.multi_deconfliction_warning
+                    url_media_pairs={@url_deconfliction}
+                    current_user={@current_user}
+                  />
+                </div>
+              <% end %>
+            </div>
+
+            <div class="p-4 rounded bg-neutral-100 mt-2" x-data="{open: false}">
+              <button
+                type="button"
+                class="text-button w-full block flex gap-1 items-center justify-between cursor-pointer transition-all"
+                x-on:click="open = !open"
+              >
+                Additional attributes
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                  class="w-6 h-6"
+                  x-show="!open"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M12 5.25a.75.75 0 01.75.75v5.25H18a.75.75 0 010 1.5h-5.25V18a.75.75 0 01-1.5 0v-5.25H6a.75.75 0 010-1.5h5.25V6a.75.75 0 01.75-.75z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                  class="w-6 h-6"
+                  x-show="open"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M5.25 12a.75.75 0 01.75-.75h12a.75.75 0 010 1.5H6a.75.75 0 01-.75-.75z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+              </button>
+              <div class="space-y-6 mt-4" x-transition x-show="open">
+                <hr />
                 <div>
                   <.edit_attributes
-                    attrs={[Attribute.get_attribute(:tags)]}
-                    form={f}
+                    attrs={[Attribute.get_attribute(:date)]}
+                    form={@form}
                     media_slug="NEW"
                     media={nil}
                     optional={true}
                   />
                 </div>
-              <% end %>
 
-              <%= if not is_nil(@project) and not Enum.empty?(@project.attributes) do %>
-                <hr />
-                <div id={"project-attributes-#{@project.id}"}>
-                  <.edit_attributes
-                    attrs={
-                      @project.attributes
-                      |> Enum.map(&Platform.Projects.ProjectAttribute.to_attribute/1)
-                    }
-                    form={f}
-                    media_slug={@project.id}
-                    media={nil}
-                    optional={true}
-                  />
-                </div>
-              <% end %>
+                <%= if Permissions.can_edit_media?(@current_user, @media, Attribute.get_attribute(:tags, project: @project)) do %>
+                  <div>
+                    <.edit_attributes
+                      attrs={[Attribute.get_attribute(:tags, project: @project)]}
+                      form={@form}
+                      media_slug="NEW"
+                      media={nil}
+                      optional={true}
+                    />
+                  </div>
+                <% end %>
+
+                <%= if not is_nil(@project) and not Enum.empty?(@project.attributes) do %>
+                  <hr />
+                  <div id={"project-attributes-#{@project.id}"}>
+                    <.edit_attributes
+                      attrs={
+                        @project.attributes
+                        |> Enum.map(&Platform.Projects.ProjectAttribute.to_attribute/1)
+                      }
+                      form={@form}
+                      media_slug={@project.id}
+                      media={nil}
+                      optional={true}
+                    />
+                  </div>
+                <% end %>
+              </div>
+            </div>
+
+            <div class="md:flex gap-2 items-center justify-between">
+              <%= submit("Create incident",
+                phx_disable_with: "Saving...",
+                class: "button ~urge @high",
+                disabled: @disabled
+              ) %>
+              <p class="support text-neutral-600">You can upload media in the next step</p>
             </div>
           </div>
-
-          <div class="md:flex gap-2 items-center justify-between">
-            <%= submit("Create incident",
-              phx_disable_with: "Saving...",
-              class: "button ~urge @high",
-              disabled: @disabled
-            ) %>
-            <p class="support text-neutral-600">You can upload media in the next step</p>
-          </div>
-        </div>
-      </.form>
+        </.form>
+      <% end %>
     </div>
     """
   end

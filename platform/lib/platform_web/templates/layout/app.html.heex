@@ -1,5 +1,5 @@
 <main class="h-full flex flex-col md:flex-row">
-  <.nav path={@conn.request_path} current_user={@current_user} />
+  <.nav path={@conn.request_path} current_user={@current_user} endpoint={@conn} />
 
   <div class="flex-1 flex flex-col z-0">
     <div class="my-8 w-full">
@@ -14,14 +14,14 @@
         class="fixed z-[9999] relative inset-0 flex items-end px-4 py-6 pointer-events-none sm:p-6 sm:items-start"
       >
         <div class="w-full flex flex-col items-center space-y-4 sm:items-end">
-          <% info = get_flash(@conn, :info) %>
+          <% info = get(@flash, :info) %>
           <%= if info do %>
             <.notification type="info">
               <%= info %>
             </.notification>
           <% end %>
 
-          <% error = get_flash(@conn, :error) %>
+          <% error = get(@flash, :error) %>
           <%= if error do %>
             <.notification type="error">
               <%= error %>

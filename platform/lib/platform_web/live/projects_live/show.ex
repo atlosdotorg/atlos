@@ -5,6 +5,7 @@ defmodule PlatformWeb.ProjectsLive.Show do
   alias Platform.Material.MediaSearch
   alias Platform.Projects
   alias Platform.Material
+  alias Platform.Permissions
 
   def mount(_params, _session, socket) do
     {:ok, socket}
@@ -13,13 +14,30 @@ defmodule PlatformWeb.ProjectsLive.Show do
   def handle_params(%{"id" => id}, _uri, socket) do
     project = Projects.get_project!(id)
 
+    if !Permissions.can_view_project?(socket.assigns.current_user, project) do
+      raise NotFound, "Not found"
+    end
+
     if socket.assigns.live_action == :manage and
-         !Platform.Projects.can_edit_project?(socket.assigns.current_user, project) do
+         !Permissions.can_edit_project_metadata?(socket.assigns.current_user, project) do
       raise NotFound, "Not found"
     end
 
     {query, _} = MediaSearch.search_query(MediaSearch.changeset(%{"project_id" => id}))
     query = MediaSearch.filter_viewable(query, socket.assigns.current_user)
+
+    membership_id =
+      Platform.Projects.get_project_membership_by_user_and_project(
+        socket.assigns.current_user,
+        project
+      ).id
+
+    if socket.assigns.current_user.active_project_membership_id !=
+         membership_id do
+      Platform.Accounts.update_user_preferences(socket.assigns.current_user, %{
+        active_project_membership_id: membership_id
+      })
+    end
 
     {:noreply,
      socket
@@ -33,7 +51,13 @@ defmodule PlatformWeb.ProjectsLive.Show do
        )
      )
      |> assign(:full_width, true)
-     |> assign(:status_statistics, Material.status_overview_statistics(project_id: project.id))}
+     |> assign(
+       :status_statistics,
+       Material.status_overview_statistics(
+         project_id: project.id,
+         for_user: socket.assigns.current_user
+       )
+     )}
   end
 
   def handle_info({:project_saved, project}, socket) do
@@ -82,7 +106,7 @@ defmodule PlatformWeb.ProjectsLive.Show do
                    do %>
                 Export
               <% end %>
-              <%= if Projects.can_edit_project?(@current_user, @project) do %>
+              <%= if Permissions.can_edit_project_metadata?(@current_user, @project) do %>
                 <.link href={"/new?project_id=#{@project.id}"} class="button ~urge @high">
                   New Incident
                 </.link>
@@ -111,7 +135,7 @@ defmodule PlatformWeb.ProjectsLive.Show do
               <span>Map</span>
             </.link>
 
-            <%= if Projects.can_edit_project?(@current_user, @project) do %>
+            <%= if Permissions.can_edit_project_metadata?(@current_user, @project) do %>
               <.link
                 patch={"/projects/#{@project.id}/edit"}
                 class={if @live_action == :edit, do: active_classes, else: inactive_classes}
@@ -128,6 +152,16 @@ defmodule PlatformWeb.ProjectsLive.Show do
               >
                 <Heroicons.user_circle mini class="opacity-75 -ml-0.5 mr-2 h-5 w-5" />
                 <span>Members</span>
+              </.link>
+            <% end %>
+
+            <%= if Permissions.can_view_project_deleted_media?(@current_user, @project) do %>
+              <.link
+                patch={"/projects/#{@project.id}/deleted"}
+                class={if @live_action == :deleted, do: active_classes, else: inactive_classes}
+              >
+                <Heroicons.trash mini class="opacity-75 -ml-0.5 mr-2 h-5 w-5" />
+                <span>Deleted</span>
               </.link>
             <% end %>
 
@@ -232,6 +266,14 @@ defmodule PlatformWeb.ProjectsLive.Show do
             id="project-members"
             current_user={@current_user}
             project={@project}
+          />
+        <% end %>
+        <%= if @live_action == :deleted and Permissions.can_view_project_deleted_media?(@current_user, @project) do %>
+          <.live_component
+            module={PlatformWeb.MediaLive.PaginatedMediaList}
+            id="deleted-media-list"
+            current_user={@current_user}
+            query_params={%{deleted: true, project_id: @project.id}}
           />
         <% end %>
       </article>

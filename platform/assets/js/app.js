@@ -179,13 +179,14 @@ function initializeSmartSelects() {
             return;
         }
 
+        console.log("Initializing", s)
+
         let prompt = "Select...";
         if (s.hasAttribute("multiple")) {
             prompt = "Select all that apply..."
         }
         let descriptions = JSON.parse(s.getAttribute("data-descriptions")) || {};
         let privileged = JSON.parse(s.getAttribute("data-privileged")) || [];
-        let indent = JSON.parse(s.getAttribute("data-indent")) || false;
 
         let x = new TomSelect(`#${s.id}`, {
             maxOptions: null,
@@ -203,27 +204,16 @@ function initializeSmartSelects() {
             ] : [],
             render: {
                 option: function (data, escape) {
-                    let desc = descriptions[data.value] || "";
+                    var desc = descriptions[data.value] || "";
                     if (desc.length != 0) {
                         desc = "— " + desc;
                     }
                     let requiresPrivilege = privileged.indexOf(data.text) >= 0;
 
-                    let effectiveDepth = 0; // TODO: Smart indents currently disabled
-                    let nestingDepth = ["ml-0", "ml-[25px]", "ml-[50px]", "ml-[75px]", "ml-[100px]"][effectiveDepth];
+                    let name = data.text == "[Unset]" ? "None" : data.text;
 
-                    let before = "";
-                    let after = data.text;
-
-                    return '<div class="flex rounded ' + nestingDepth + '"><div><span class="opacity-50">' + escape(before) + '</span><span>' + escape(after) + '</span><span class="text-gray-400">' + (requiresPrivilege ? lockIcon : '') + '&nbsp;' + escape(desc) + '</span></div></div>';
+                    return '<div class="flex"><div><span>' + escape(name) + '</span><span class="text-gray-400">' + (requiresPrivilege ? lockIcon : '') + '&nbsp;' + escape(desc) + '</span></div></div>';
                 },
-            },
-            onChange(value) {
-                if (!s.hasAttribute("multiple")) {
-                    setTimeout(() => {
-                        x.close(); // Close the dropdown after a delay, so that the user can see the selection
-                    }, 25);
-                }
             }
         });
         x.control_input.setAttribute("phx-debounce", "blur");
@@ -441,14 +431,18 @@ function initializeMaps() {
 
 let _searchHighlighter = null;
 function applySearchHighlighting() {
-    if (_searchHighlighter !== null) {
-        _searchHighlighter.unmark();
-    }
-    let query = new URLSearchParams(window.location.search).get("query");
-    if (query !== null) {
-        _searchHighlighter = new Mark(document.querySelectorAll(".search-highlighting"), { accuracy: "exactly" });
-        _searchHighlighter.mark(query)
-    }
+    setTimeout(() => {
+        console.log("Applying search highlighting...")
+        if (_searchHighlighter !== null) {
+            _searchHighlighter.unmark();
+        }
+        let query = new URLSearchParams(window.location.search).get("query");
+        console.log("Query is " + query)
+        if (query !== null) {
+            _searchHighlighter = new Mark(document.querySelectorAll(".search-highlighting"), { accuracy: "exactly" });
+            _searchHighlighter.mark(query)
+        }
+    }, 25);
 }
 
 function applyVegaCharts() {
@@ -470,7 +464,9 @@ function debounce(func, timeout = 25) {
 window.closeModal = debounce((event) => {
     // Find the target, if possible.
     let elem = event.target;
-    if (confirm("Are you sure you want to exit? Any unsaved changes will be lost.")) {
+    let parentModal = elem.closest("[data-is-modal]");
+
+    if ((parentModal && !document.elementContainsActiveUnsavedForms(parentModal)) || confirm("Are you sure you want to exit? Any unsaved changes will be lost.")) {
         let event = new CustomEvent("modal:close", { detail: { elem } });
         window.dispatchEvent(event);
     }

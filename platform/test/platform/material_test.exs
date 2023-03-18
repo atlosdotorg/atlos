@@ -1,12 +1,14 @@
 defmodule Platform.MaterialTest do
   use Platform.DataCase
 
+  alias Platform.Projects
   alias Platform.Material
   alias Platform.Updates
   alias Platform.Accounts
 
   import Platform.MaterialFixtures
   import Platform.AccountsFixtures
+  import Platform.ProjectsFixtures
 
   describe "media" do
     alias Platform.Material.Media
@@ -31,7 +33,8 @@ defmodule Platform.MaterialTest do
     test "create_media/1 with valid data creates a media" do
       valid_attrs = %{
         attr_description: "some description",
-        attr_sensitive: ["Not Sensitive"]
+        attr_sensitive: ["Not Sensitive"],
+        project_id: project_fixture().id
       }
 
       assert {:ok, %Media{} = media} = Material.create_media(valid_attrs)
@@ -168,7 +171,7 @@ defmodule Platform.MaterialTest do
 
     test "a user modifying an attribute (audited) creates an update" do
       user = user_fixture()
-      media = media_fixture()
+      media = media_fixture(%{}, for_user: user)
       attribute = Material.Attribute.get_attribute(:sensitive)
 
       {:ok, updated} =
@@ -201,7 +204,7 @@ defmodule Platform.MaterialTest do
 
     test "an admin modifying a protected attribute (audited) works" do
       user = admin_user_fixture()
-      media = media_fixture()
+      media = media_fixture(%{project_id: project_fixture(%{}, owner: user).id})
       attribute = Material.Attribute.get_attribute(:restrictions)
 
       assert {:ok, updated} =
@@ -215,7 +218,7 @@ defmodule Platform.MaterialTest do
 
     test "a user cannot edit frozen media" do
       admin = admin_user_fixture()
-      media = media_fixture()
+      media = media_fixture(%{project_id: project_fixture(%{}, owner: admin).id})
       attribute = Material.Attribute.get_attribute(:restrictions)
 
       assert {:ok, updated} =
@@ -227,6 +230,12 @@ defmodule Platform.MaterialTest do
       assert updated.attr_restrictions == ["Frozen"]
 
       user = user_fixture()
+
+      Platform.Projects.create_project_membership(%{
+        username: user.username,
+        project_id: media.project_id,
+        role: :editor
+      })
 
       assert {:error, changeset} =
                Material.update_media_attribute_audited(
@@ -245,8 +254,15 @@ defmodule Platform.MaterialTest do
 
     test "normal users cannot edit restricted attributes" do
       admin = admin_user_fixture()
-      media = media_fixture()
+      media = media_fixture(%{project_id: project_fixture(%{}, owner: admin).id})
       user = user_fixture()
+
+      Platform.Projects.create_project_membership(%{
+        username: user.username,
+        project_id: media.project_id,
+        role: :editor
+      })
+
       attribute = Material.Attribute.get_attribute(:restrictions)
 
       assert {:error, changeset} =
@@ -268,8 +284,8 @@ defmodule Platform.MaterialTest do
     end
 
     test "a muted user cannot edit media" do
-      media = media_fixture()
       user = user_fixture()
+      media = media_fixture(%{}, for_user: user)
       attribute = Material.Attribute.get_attribute(:sensitive)
 
       assert {:ok, _} =
@@ -430,12 +446,26 @@ defmodule Platform.MaterialTest do
       user = user_fixture()
       admin = admin_user_fixture()
 
+      project = project_fixture()
+
+      Projects.create_project_membership(%{
+        username: user.username,
+        project_id: project.id,
+        role: :viewer
+      })
+
+      Projects.create_project_membership(%{
+        username: admin.username,
+        project_id: project.id,
+        role: :owner
+      })
+
       Enum.map(1..50, fn _ ->
-        media_fixture()
+        media_fixture(%{project_id: project.id})
       end)
 
       Enum.map(1..10, fn _ ->
-        media_fixture()
+        media_fixture(%{project_id: project.id})
       end)
       |> Enum.map(
         &Material.update_media_attribute(&1, Material.Attribute.get_attribute(:restrictions), %{
@@ -452,19 +482,33 @@ defmodule Platform.MaterialTest do
       user = user_fixture()
       admin = admin_user_fixture()
 
+      project = project_fixture()
+
+      Projects.create_project_membership(%{
+        username: user.username,
+        project_id: project.id,
+        role: :editor
+      })
+
+      Projects.create_project_membership(%{
+        username: admin.username,
+        project_id: project.id,
+        role: :owner
+      })
+
       Enum.map(1..50, fn _ ->
-        media_fixture(%{attr_description: "description is foo bar!"})
+        media_fixture(%{attr_description: "description is foo bar!", project_id: project.id})
       end)
 
       Enum.map(1..50, fn _ ->
-        media_fixture(%{attr_description: "description is bing bong!"})
+        media_fixture(%{attr_description: "description is bing bong!", project_id: project.id})
       end)
 
       (Enum.map(1..10, fn _ ->
-         media_fixture(%{attr_description: "description is foo bar!"})
+         media_fixture(%{attr_description: "description is foo bar!", project_id: project.id})
        end) ++
          Enum.map(1..10, fn _ ->
-           media_fixture(%{attr_description: "description is bing bong!"})
+           media_fixture(%{attr_description: "description is bing bong!", project_id: project.id})
          end))
       |> Enum.map(
         &Material.update_media_attribute(&1, Material.Attribute.get_attribute(:restrictions), %{
@@ -477,14 +521,14 @@ defmodule Platform.MaterialTest do
       {query, _} =
         Material.MediaSearch.search_query(Material.MediaSearch.changeset(%{query: "bing bong"}))
 
-      assert length(query |> Material.MediaSearch.filter_viewable(user) |> Material.query_media()) ==
-               50
-
       assert length(
                query
                |> Material.MediaSearch.filter_viewable(admin)
                |> Material.query_media()
              ) == 60
+
+      assert length(query |> Material.MediaSearch.filter_viewable(user) |> Material.query_media()) ==
+               50
     end
 
     test "query_media_paginated/0 paginates" do

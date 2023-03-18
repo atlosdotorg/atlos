@@ -31,7 +31,7 @@ defmodule PlatformWeb.AdminlandLive.AnnouncementsLive do
 
     if cs.valid? do
       message = Ecto.Changeset.get_field(cs, :message)
-      Notifications.send_message_notification(message)
+      Notifications.send_message_notification_to_all_users(message)
 
       # Create announcement
       {:noreply,

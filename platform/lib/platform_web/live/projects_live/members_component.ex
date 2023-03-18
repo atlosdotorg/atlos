@@ -4,14 +4,20 @@ defmodule PlatformWeb.ProjectsLive.MembersComponent do
   alias Platform.Projects.ProjectMembership
   alias Platform.Auditor
   alias Platform.Projects
+  alias Platform.Permissions
 
   def update(assigns, socket) do
     {:ok,
      socket
      |> assign(assigns)
-     |> assign(:memberships, Projects.get_project_memberships(assigns.project))
+     |> assign(
+       :memberships,
+       Projects.get_project_memberships(assigns.project)
+       |> Enum.sort_by(&if &1.user_id == assigns.current_user.id, do: 0, else: 1)
+     )
      |> assign(:changeset, nil)
-     |> assign(:editing, nil)}
+     |> assign(:editing, nil)
+     |> assign_can_remove_self()}
   end
 
   def assign_changeset(socket, changeset) do
@@ -20,14 +26,32 @@ defmodule PlatformWeb.ProjectsLive.MembersComponent do
     |> assign(:form, if(not is_nil(changeset), do: changeset |> to_form(), else: nil))
   end
 
+  def assign_can_remove_self(socket) do
+    own_membership =
+      Enum.find(socket.assigns.memberships, fn m ->
+        m.user_id == socket.assigns.current_user.id
+      end)
+
+    total_owners =
+      Enum.filter(socket.assigns.memberships, fn m -> m.role == :owner end) |> length()
+
+    socket
+    |> assign(:can_remove_self, total_owners > 1 or own_membership.role != :owner)
+  end
+
   def changeset(socket, params \\ %{}) do
     params = params |> Map.put("project_id", socket.assigns.project.id)
+
+    if not can_edit(socket) do
+      raise PlatformWeb.Errors.Unauthorized, "You do not have permission to edit this project"
+    end
 
     case socket.assigns.editing do
       nil ->
         Projects.change_project_membership(
           %ProjectMembership{},
-          params
+          params,
+          all_memberships: socket.assigns.memberships
         )
 
       username ->
@@ -35,7 +59,8 @@ defmodule PlatformWeb.ProjectsLive.MembersComponent do
           Enum.find(socket.assigns.memberships, fn m ->
             String.downcase(m.user.username) == String.downcase(username)
           end),
-          params
+          params,
+          all_memberships: socket.assigns.memberships
         )
     end
   end
@@ -51,6 +76,48 @@ defmodule PlatformWeb.ProjectsLive.MembersComponent do
      |> assign(:editing, nil)}
   end
 
+  def handle_event("delete_member", %{"username" => username}, socket) do
+    if not can_edit(socket) do
+      raise PlatformWeb.Errors.Unauthorized, "You do not have permission to edit this project"
+    end
+
+    # Don't allow the last owner to be removed
+    owners = socket.assigns.memberships |> Enum.filter(&(&1.role == :owner))
+
+    if length(owners) == 1 and hd(owners).user.username == username do
+      raise PlatformWeb.Errors.Unauthorized, "You cannot remove the last owner"
+    end
+
+    membership =
+      Enum.find(socket.assigns.memberships, fn m ->
+        String.downcase(m.user.username) == String.downcase(username)
+      end)
+
+    Projects.delete_project_membership(membership)
+
+    Auditor.log(
+      :project_membership_changed,
+      socket.assigns.current_user,
+      %{
+        project_id: socket.assigns.project.id,
+        user_id: membership.user_id,
+        project_membership_id: membership.id
+      }
+    )
+
+    if socket.assigns.current_user.username == username do
+      {:noreply,
+       socket
+       |> redirect(to: "/")
+       |> put_flash(:info, "You have successfully removed yourself from the project.")}
+    else
+      {:noreply,
+       socket
+       |> assign(:memberships, Projects.get_project_memberships(socket.assigns.project))
+       |> assign_can_remove_self()}
+    end
+  end
+
   def handle_event("edit_member", %{"username" => username}, socket) do
     socket =
       socket
@@ -59,6 +126,32 @@ defmodule PlatformWeb.ProjectsLive.MembersComponent do
     {:noreply,
      socket
      |> assign_changeset(changeset(socket))}
+  end
+
+  def handle_event("leave_project", _params, socket) do
+    if not socket.assigns.can_remove_self do
+      raise PlatformWeb.Errors.Unauthorized, "You cannot remove yourself from this project"
+    end
+
+    # Regardless of their ability to edit the project, they should be able to leave
+    membership =
+      Projects.get_project_membership_by_user_and_project(
+        socket.assigns.current_user,
+        socket.assigns.project
+      )
+
+    {:ok, _} = Projects.delete_project_membership(membership)
+
+    Auditor.log(
+      :project_left,
+      %{user_id: socket.assigns.current_user.id, project_id: socket.assigns.project.id},
+      socket
+    )
+
+    {:noreply,
+     socket
+     |> redirect(to: "/")
+     |> put_flash(:info, "You have successfully removed yourself from the project.")}
   end
 
   def handle_event("validate", %{"project_membership" => params}, socket) do
@@ -74,11 +167,13 @@ defmodule PlatformWeb.ProjectsLive.MembersComponent do
   def handle_event("save", %{"project_membership" => params}, socket) do
     cs = changeset(socket, params)
 
+    is_creation = is_nil(socket.assigns.editing)
+
     if cs.valid? do
       params = params |> Map.put("project_id", socket.assigns.project.id)
 
       result =
-        if is_nil(socket.assigns.editing),
+        if is_creation,
           do: Projects.create_project_membership(params),
           else:
             Projects.update_project_membership(
@@ -86,7 +181,8 @@ defmodule PlatformWeb.ProjectsLive.MembersComponent do
                 String.downcase(m.user.username) ==
                   String.downcase(Ecto.Changeset.get_field(cs, :username))
               end),
-              params
+              params,
+              all_memberships: socket.assigns.memberships
             )
 
       case result do
@@ -101,11 +197,20 @@ defmodule PlatformWeb.ProjectsLive.MembersComponent do
             }
           )
 
+          if is_creation do
+            # Send a notification to the invited user
+            Platform.Notifications.send_message_notification_to_user(
+              Platform.Accounts.get_user!(membership.user_id),
+              "You have been added to the project [#{socket.assigns.project.name |> Phoenix.HTML.html_escape() |> Phoenix.HTML.safe_to_string()}](/projects/#{socket.assigns.project.id}) by [#{socket.assigns.current_user.username}](/profile/#{socket.assigns.current_user.username})."
+            )
+          end
+
           {:noreply,
            socket
            |> assign_changeset(nil)
            |> assign(:editing, nil)
-           |> assign(:memberships, Projects.get_project_memberships(socket.assigns.project))}
+           |> assign(:memberships, Projects.get_project_memberships(socket.assigns.project))
+           |> assign_can_remove_self()}
 
         {:error, changeset} ->
           {:noreply, socket |> assign_changeset(changeset |> Map.put(:action, :validate))}
@@ -115,9 +220,14 @@ defmodule PlatformWeb.ProjectsLive.MembersComponent do
     end
   end
 
+  def can_edit(socket) do
+    Permissions.can_edit_project_members?(socket.assigns.current_user, socket.assigns.project)
+  end
+
   def render(assigns) do
     ~H"""
     <section>
+      <% can_edit = Permissions.can_edit_project_members?(@current_user, @project) %>
       <div class="sm:flex sm:items-center">
         <div class="sm:flex-auto">
           <h1 class="sec-head">Members</h1>
@@ -125,98 +235,90 @@ defmodule PlatformWeb.ProjectsLive.MembersComponent do
             View and manage the users who have access to the project.
           </p>
         </div>
-        <div class="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
-          <button type="button" class="button ~urge @high" phx-click="add_member" phx-target={@myself}>
-            Add member
-          </button>
+        <div>
+          <div class="mt-4 sm:mt-0 sm:ml-16 flex gap-4">
+            <%= if can_edit do %>
+              <button
+                type="button"
+                class="button ~urge @high"
+                phx-click="add_member"
+                phx-target={@myself}
+              >
+                Add Member
+              </button>
+            <% end %>
+            <%= if @can_remove_self do %>
+              <button
+                type="button"
+                class="button ~critical @high"
+                phx-click="leave_project"
+                data-confirm="Are you sure you want to leave this project? To rejoin it, you will need to be invited again."
+                phx-target={@myself}
+              >
+                Leave Project
+              </button>
+            <% end %>
+          </div>
         </div>
       </div>
       <div class="mt-8 flow-root">
         <div class="pb-4">
-          <div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8 rounded-lg bg-white border p-2 shadow-sm">
-            <table class="min-w-full divide-y divide-gray-300">
-              <thead>
-                <tr>
-                  <th
-                    scope="col"
-                    class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-0"
-                  >
-                    User
-                  </th>
-                  <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                    MFA
-                  </th>
-                  <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                    Role
-                  </th>
-                  <th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-0">
-                    <span class="sr-only">Edit</span>
-                  </th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-gray-200 bg-white">
-                <%= for membership <- @memberships do %>
-                  <tr>
-                    <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm sm:pl-0">
-                      <div class="flex items-center">
-                        <div class="h-10 w-10 flex-shrink-0">
-                          <img
-                            class="h-10 w-10 rounded-full"
-                            src={Platform.Accounts.get_profile_photo_path(membership.user)}
-                            alt={"Profile photo of " <> membership.user.username}
-                          />
-                        </div>
-                        <div class="ml-4">
-                          <div class="font-medium text-gray-900">
-                            <.user_text user={membership.user} />
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-                    <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                      <%= if membership.user.has_mfa do %>
-                        <span class="chip ~positive">Enabled</span>
-                      <% else %>
-                        <span class="chip ~critical">Disabled</span>
-                      <% end %>
-                    </td>
-                    <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+          <div class="inline-block min-w-full">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <%= for membership <- @memberships do %>
+                <article class="text-sm rounded-lg shadow-sm border flex flex-col overflow-hidden">
+                  <div class="bg-white p-2 grow">
+                    <.user_card user={membership.user} />
+                  </div>
+                  <div class="flex justify-between items-center bg-white border-t p-4">
+                    <div>
                       <%= case membership.role do %>
                         <% :owner -> %>
-                          Owner
-                        <% :admin -> %>
-                          Admin
-                        <% :member -> %>
-                          Member
+                          <span class="chip ~critical @high">Owner</span>
+                        <% :manager -> %>
+                          <span class="chip ~critical @low">Manager</span>
+                        <% :editor -> %>
+                          <span class="chip ~info @high">Editor</span>
                         <% :viewer -> %>
-                          Viewer
+                          <span class="chip ~neutral @high">Viewer</span>
                       <% end %>
-                    </td>
-                    <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-0">
-                      <button
-                        phx-target={@myself}
-                        class="text-button"
-                        phx-click="edit_member"
-                        phx-value-username={membership.user.username}
-                      >
-                        Edit<span class="sr-only">, <%= membership.user.username %></span>
-                      </button>
-                    </td>
-                  </tr>
-                <% end %>
-                <%= if Enum.empty?(@memberships) do %>
-                  <tr>
-                    <td class="py-4 text-sm text-gray-500" colspan="4">
-                      No members found.
-                    </td>
-                  </tr>
-                <% end %>
-              </tbody>
-            </table>
+                    </div>
+                    <div>
+                      <%= if can_edit do %>
+                        <button
+                          phx-target={@myself}
+                          class="text-button"
+                          phx-click="edit_member"
+                          phx-value-username={membership.user.username}
+                        >
+                          Edit<span class="sr-only">, <%= membership.user.username %></span>
+                        </button>
+                        <%= if not (membership.role == :owner and Enum.filter(@memberships, & &1.role == :owner) |> length() == 1) do %>
+                          <button
+                            phx-target={@myself}
+                            class="text-button text-critical-600 ml-2"
+                            phx-click="delete_member"
+                            phx-value-username={membership.user.username}
+                            data-confirm={"Are you sure that you want to remove #{membership.user.username} from #{@project.name}?"}
+                          >
+                            Remove<span class="sr-only">, <%= membership.user.username %></span>
+                          </button>
+                        <% end %>
+                      <% end %>
+                    </div>
+                  </div>
+                </article>
+              <% end %>
+              <%= if Enum.empty?(@memberships) do %>
+                <div class="text-sm text-gray-500">
+                  No members found.
+                </div>
+              <% end %>
+            </div>
           </div>
         </div>
       </div>
-      <%= if @changeset do %>
+      <%= if not is_nil(@changeset) and can_edit do %>
         <.modal target={} close_confirmation="Your changes will be lost. Are you sure?">
           <div class="mb-8">
             <p class="sec-head">
@@ -250,7 +352,7 @@ defmodule PlatformWeb.ProjectsLive.MembersComponent do
                 <%= error_tag(@form, :username) %>
               </div>
             <% else %>
-              <div class="rounded-lg border shadow-sm">
+              <div class="rounded-lg border shadow-sm text-sm">
                 <%= hidden_input(@form, :username, value: @editing) %>
                 <.user_card user={Enum.find(@memberships, &(&1.user.username == @editing)).user} />
               </div>
@@ -267,11 +369,20 @@ defmodule PlatformWeb.ProjectsLive.MembersComponent do
                   @form,
                   :role,
                   [
-                    {"Owner", "owner"},
-                    {"Manager", "manager"},
+                    {"Viewer", "viewer"},
                     {"Editor", "editor"},
-                    {"Viewer", "viewer"}
-                  ]
+                    {"Manager", "manager"},
+                    {"Owner", "owner"}
+                  ],
+                  "data-descriptions":
+                    Jason.encode!(%{
+                      "viewer" => "Can view and comment, but not edit or create",
+                      "editor" => "Can view, comment, and edit, but not mark as complete",
+                      "manager" =>
+                        "Can view, comment, edit, mark as complete, and edit completed incidents",
+                      "owner" =>
+                        "Everything managers can do, plus add and remove members to the project"
+                    })
                 ) %>
               </div>
               <%= error_tag(@form, :role) %>

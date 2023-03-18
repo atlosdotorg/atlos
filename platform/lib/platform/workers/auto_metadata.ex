@@ -2,12 +2,13 @@ defmodule Platform.Workers.AutoMetadata do
   alias Platform.Material
 
   require Logger
+  use Memoize
 
   use Oban.Worker,
     queue: :auto_metadata,
     priority: 3
 
-  defp reverse_geocode(lat, lon, opts \\ []) do
+  defmemo reverse_geocode(lat, lon, opts \\ []), expires_in: 60 * 1000 do
     with {:ok, status, _headers, body} when status in 200..299 <-
            :hackney.get(
              "https://nominatim.openstreetmap.org/reverse?#{URI.encode_query(lat: lat, lon: lon, format: "json")}",
@@ -37,7 +38,7 @@ defmodule Platform.Workers.AutoMetadata do
 
   @impl Oban.Worker
   def perform(%Oban.Job{args: %{"media_id" => id} = _args}) do
-    media = Material.get_media!(id) |> Platform.Repo.preload(:project)
+    media = Material.get_media!(id) |> Platform.Repo.preload([:project, :versions])
 
     Logger.info("Updating metadata for #{media.slug}.")
 
@@ -58,14 +59,19 @@ defmodule Platform.Workers.AutoMetadata do
           nil
       end
 
-    Logger.info("Updated metadata for #{media.slug}!")
-
     Material.update_media_auto_metadata(media, %{
       time_generated: DateTime.utc_now() |> DateTime.to_iso8601(),
       geocoding: geocoding,
       displayed_slug: Platform.Material.Media.slug_to_display(media),
-      project_code: (Platform.Projects.get_project(media.project_id) || %{code: nil}).code
+      project_code: (Platform.Projects.get_project(media.project_id) || %{code: nil}).code,
+      source_urls:
+        Enum.map(
+          media.versions |> Enum.filter(&(&1.visibility == :visible)),
+          & &1.source_url
+        )
     })
+
+    Logger.info("Updated metadata for #{media.slug}!")
 
     :ok
   end

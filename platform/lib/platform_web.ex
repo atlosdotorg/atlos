@@ -98,6 +98,9 @@ defmodule PlatformWeb do
       # Import ~p
       import Phoenix.VerifiedRoutes
 
+      # Import Flashes
+      import Phoenix.Flash
+
       # Import our custom helper components
       import PlatformWeb.Components
 

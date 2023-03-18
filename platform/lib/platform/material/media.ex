@@ -5,9 +5,8 @@ defmodule Platform.Material.Media do
   alias Platform.Utils
   alias Platform.Material.Attribute
   alias Platform.Material.MediaSubscription
-  alias Platform.Accounts.User
-  alias Platform.Accounts
   alias Platform.Projects
+  alias Platform.Permissions
   alias __MODULE__
 
   schema "media" do
@@ -95,36 +94,25 @@ defmodule Platform.Material.Media do
     ])
 
     # These are special attributes, since we define it at creation time. Eventually, it'd be nice to unify this logic with the attribute-specific editing logic.
-    |> Attribute.validate_attribute(Attribute.get_attribute(:description),
+    |> Attribute.validate_attribute(Attribute.get_attribute(:description), media,
       user: user,
       required: true
     )
-    |> Attribute.validate_attribute(Attribute.get_attribute(:sensitive),
+    |> Attribute.validate_attribute(Attribute.get_attribute(:sensitive), media,
       user: user,
       required: true
     )
-    |> Attribute.validate_attribute(Attribute.get_attribute(:date), user: user, required: false)
+    |> Attribute.validate_attribute(Attribute.get_attribute(:date), media,
+      user: user,
+      required: false
+    )
+    |> validate_required([:project_id], message: "Please select a project")
     |> validate_project(user, media)
     |> parse_and_validate_validate_json_array(:urls, :urls_parsed)
     |> validate_url_list(:urls_parsed)
     |> then(fn cs ->
-      attr = Attribute.get_attribute(:tags)
-
-      if !is_nil(user) && Attribute.can_user_edit(attr, user, media) do
-        cs
-        # TODO: This is a good refactoring opportunity with the logic above
-        |> cast(attrs, [:attr_tags])
-        |> Attribute.validate_attribute(Attribute.get_attribute(:tags),
-          user: user,
-          required: false
-        )
-      else
-        cs
-      end
-    end)
-    |> then(fn cs ->
-      project_id = Ecto.Changeset.get_change(cs, :project_id)
-      project = if is_nil(project_id), do: nil, else: Projects.get_project!(project_id)
+      project_id = Ecto.Changeset.get_field(cs, :project_id)
+      project = Projects.get_project(project_id)
 
       if is_nil(project),
         do: cs,
@@ -137,6 +125,29 @@ defmodule Platform.Material.Media do
             user: user,
             verify_change_exists: false
           )
+    end)
+    |> then(fn cs ->
+      project_id = Ecto.Changeset.get_field(cs, :project_id, nil)
+
+      attr =
+        Attribute.get_attribute(:tags,
+          project: Ecto.Changeset.get_field(cs, :project_id, nil) |> Projects.get_project()
+        )
+
+      # We manually insert the project ID because the media hasn't been inserted yet,
+      # so we can't get it from the media itself. Still, we want to check the user's permissions.
+      if !is_nil(user) &&
+           Permissions.can_edit_media?(user, %{media | project_id: project_id}, attr) do
+        cs
+        # TODO: This is a good refactoring opportunity with the logic above
+        |> cast(attrs, [:attr_tags])
+        |> Attribute.validate_attribute(Attribute.get_attribute(:tags), media,
+          user: user,
+          required: false
+        )
+      else
+        cs
+      end
     end)
   end
 
@@ -186,22 +197,26 @@ defmodule Platform.Material.Media do
         original_project = Projects.get_project(original_project_id)
 
         cond do
-          !is_nil(media) && !is_nil(user) && !can_user_edit(media, user) ->
+          !is_nil(media) && !is_nil(user) && !Permissions.can_edit_media?(user, media) ->
             changeset
-            |> add_error(:project_id, "You cannot edit this media")
+            |> add_error(:project_id, "You cannot edit this incidents's project.")
 
           !is_nil(project_id) && is_nil(new_project) ->
             changeset
             |> add_error(:project_id, "Project does not exist")
 
-          !is_nil(user) && !is_nil(new_project) && !Projects.can_edit_media?(user, new_project) ->
+          !is_nil(user) && !is_nil(new_project) &&
+              !Permissions.can_add_media_to_project?(user, new_project) ->
             changeset
-            |> add_error(:project_id, "Only administrators can add incidents to this project.")
+            |> add_error(:project_id, "You cannot add incidents to this project.")
 
-          !is_nil(user) && !is_nil(original_project) &&
-              !Projects.can_edit_media?(user, original_project) ->
+          !is_nil(user) && !is_nil(original_project) ->
             changeset
-            |> add_error(:project_id, "You cannot remove media from this project!")
+            |> add_error(:project_id, "You cannot remove media from projects!")
+
+          is_nil(new_project) ->
+            changeset
+            |> add_error(:project_id, "You must select a project.")
 
           true ->
             changeset
@@ -294,100 +309,6 @@ defmodule Platform.Material.Media do
     end
   end
 
-  @doc """
-  Can the user view the media?
-  """
-  def can_user_view(%Media{} = media, %User{} = user) do
-    can_user_view_media_base(media, user) &&
-      (is_nil(media.project) ||
-         Platform.Projects.can_view_project?(user, media.project))
-  end
-
-  defp can_user_view_media_base(%Media{} = media, %User{} = user) do
-    # Can the user view the media, independent of which project it's a part of?
-    case {media.attr_restrictions, media.deleted} do
-      {nil, false} ->
-        true
-
-      {_, true} ->
-        Enum.member?(user.roles || [], :admin)
-
-      {values, false} ->
-        # Restrictions are present.
-        if Enum.member?(values, "Hidden") do
-          Accounts.is_privileged(user)
-        else
-          true
-        end
-    end
-  end
-
-  @doc """
-  Can the given user edit the media? This includes uploading new media versions as well as editing attributes.
-  """
-  def can_user_edit(%Media{} = media, %User{} = user) do
-    # This logic would be nice to refactor into a `with` statement
-    case Platform.Security.get_security_mode_state() do
-      :normal ->
-        case Enum.member?(user.restrictions || [], :muted) do
-          true ->
-            false
-
-          false ->
-            if Accounts.is_privileged(user) do
-              true
-            else
-              not (Enum.member?(media.attr_restrictions || [], "Hidden") ||
-                     Enum.member?(media.attr_restrictions || [], "Frozen") ||
-                     media.attr_status == "Completed" || media.attr_status == "Cancelled")
-            end
-        end
-
-      _ ->
-        Accounts.is_admin(user)
-    end
-  end
-
-  @doc """
-  Can the user comment on the media?
-  """
-  def can_user_comment(%Media{} = media, %User{} = user) do
-    case Platform.Security.get_security_mode_state() do
-      :normal ->
-        case Enum.member?(user.restrictions || [], :muted) do
-          true ->
-            false
-
-          false ->
-            case media.attr_restrictions do
-              nil ->
-                true
-
-              values ->
-                # Restrictions are present.
-                if Enum.member?(values, "Hidden") || Enum.member?(values, "Frozen") do
-                  Accounts.is_privileged(user)
-                else
-                  true
-                end
-            end
-        end
-
-      _ ->
-        Accounts.is_admin(user)
-    end
-  end
-
-  def can_user_create(%User{} = user) do
-    case Platform.Security.get_security_mode_state() do
-      :normal ->
-        true
-
-      _ ->
-        Accounts.is_admin(user)
-    end
-  end
-
   def has_restrictions(%Media{} = media) do
     length(media.attr_restrictions || []) > 0
   end
@@ -400,24 +321,7 @@ defmodule Platform.Material.Media do
   Perform a text search on the given queryable. Will also query associated media versions.
   """
   def text_search(search_terms, queryable \\ Media) do
-    media_via_associated_media_versions =
-      from(
-        version in subquery(
-          Utils.text_search(search_terms, Platform.Material.MediaVersion, literal: true)
-        ),
-        where: version.visibility == :visible,
-        join: media in assoc(version, :media),
-        select: media
-      )
-
-    from(
-      u in subquery(
-        Ecto.Query.union(
-          Utils.text_search(search_terms, queryable),
-          ^media_via_associated_media_versions
-        )
-      )
-    )
+    Utils.text_search(search_terms, queryable)
   end
 
   def slug_to_display(media) do
@@ -437,7 +341,6 @@ defimpl Jason.Encoder, for: Platform.Material.Media do
     migrated_pairs = Platform.Utils.migrated_attributes(media)
 
     Enum.reduce(migrated_pairs, map, fn {old_attr, new_attr}, map ->
-      dbg(old_attr.schema_field)
       Map.put(map, old_attr.schema_field, Platform.Material.get_attribute_value(media, new_attr))
     end)
   end

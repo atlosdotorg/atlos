@@ -21,6 +21,10 @@ document.cancelFormEvent = function (event) {
     }
 }
 
+document.elementContainsActiveUnsavedForms = (elem) => {
+    return document._unsavedForms.some(form => elem.contains(form));
+}
+
 function hasActiveUnsavedForms() {
     return false;
     // We will enable this once we have a better way to detect if a form is dirty; right now this is unreliable

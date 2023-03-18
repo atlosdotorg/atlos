@@ -71,7 +71,7 @@ defmodule PlatformWeb.ExportController do
     c = MediaSearch.changeset(params)
     {full_query, _} = MediaSearch.search_query(c)
     final_query = MediaSearch.filter_viewable(full_query, conn.assigns.current_user)
-    results = Material.query_media(final_query)
+    results = Material.query_media(final_query, for_user: conn.assigns.current_user)
 
     max_num_versions =
       Enum.max(

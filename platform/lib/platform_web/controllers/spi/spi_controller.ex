@@ -2,15 +2,38 @@ defmodule PlatformWeb.SPIController do
   use PlatformWeb, :controller
   require Ecto.Query
 
-  alias Platform.Accounts
+  alias Platform.Projects
+  alias Platform.Permissions
 
   def user_search(conn, params) do
     query = Map.get(params, "query", "") |> String.downcase()
 
-    # TODO: Could improve this to do the search at the database level.
+    project_id = Map.get(params, "project_id", nil)
+
+    get_project_users = fn project ->
+      if is_nil(project) or
+           not Permissions.can_view_project?(conn.assigns.current_user, project) do
+        raise PlatformWeb.Errors.NotFound, "Project not found"
+      end
+
+      Projects.get_project_users(project)
+    end
+
+    # If the project is present, we get the users for the project. Otherwise, we get the users for all the projects the user is a member of.
+    users =
+      if not is_nil(project_id) do
+        project = Projects.get_project!(project_id)
+        get_project_users.(project)
+      else
+        projects = Projects.list_projects_for_user(conn.assigns.current_user)
+
+        Enum.map(projects, get_project_users)
+        |> List.flatten()
+      end
+
     json(conn, %{
       results:
-        Accounts.get_all_users()
+        users
         |> Enum.filter(&String.starts_with?(&1.username |> String.downcase(), query))
         |> Enum.take(5)
         |> Enum.map(&%{username: &1.username, bio: &1.bio, flair: &1.flair})

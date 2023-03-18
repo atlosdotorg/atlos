@@ -12,15 +12,16 @@ defmodule PlatformWeb.Components do
   alias Platform.Notifications
   alias Platform.Uploads
   alias PlatformWeb.Router.Helpers, as: Routes
+  alias Platform.Permissions
 
   def navlink(%{request_path: path, to: to} = assigns) do
     active = String.starts_with?(path, to) and !String.equivalent?(path, "/")
 
     classes =
       if active do
-        "self-start bg-neutral-800 text-white group w-full p-3 rounded-md flex flex-col items-center text-xs font-medium"
+        "transition self-start bg-neutral-800 text-white group w-full p-3 rounded-md flex flex-col items-center text-xs font-medium"
       else
-        "self-start text-neutral-100 hover:bg-neutral-800 hover:text-white group w-full p-3 rounded-md flex flex-col items-center text-xs font-medium"
+        "transition self-start text-neutral-100 hover:bg-neutral-800 hover:text-white group w-full p-3 rounded-md flex flex-col items-center text-xs font-medium"
       end
 
     assigns = assign(assigns, :classes, classes)
@@ -44,6 +45,7 @@ defmodule PlatformWeb.Components do
       role="dialog"
       aria-modal="true"
       phx-hook="Modal"
+      data-is-modal
       id={"modal-" <> @id}
       x-data
     >
@@ -305,7 +307,20 @@ defmodule PlatformWeb.Components do
             </svg>
           </.navlink>
 
-          <.navlink to="/incidents" label="Incidents" request_path={@path}>
+          <.navlink
+            to={
+              if String.starts_with?(@path, "/incidents"),
+                do: "/incidents",
+                else:
+                  Routes.live_path(
+                    @endpoint,
+                    PlatformWeb.MediaLive.Index,
+                    Accounts.active_incidents_params(@current_user)
+                  )
+            }
+            label="Incidents"
+            request_path={@path}
+          >
             <svg
               xmlns="http://www.w3.org/2000/svg"
               class="text-neutral-300 group-hover:text-white h-6 w-6"
@@ -618,6 +633,7 @@ defmodule PlatformWeb.Components do
         assign(assigns, :n_attributes, n_attributes)
         |> assign(:attributes, attributes)
         |> assign(:head, head)
+        |> assign(:can_user_change_visibility, false)
 
       ~H"""
       <li x-data="{expanded: false}" id={"collapsed-update-#{@head.id}"}>
@@ -693,7 +709,6 @@ defmodule PlatformWeb.Components do
               update={sub_update}
               show_line={true}
               show_media={false}
-              can_user_change_visibility={@can_user_change_visibility}
               target={@target}
               socket={@socket}
               left_indicator={:dot}
@@ -704,8 +719,17 @@ defmodule PlatformWeb.Components do
       </li>
       """
     else
+      assigns =
+        assigns
+        |> assign_new(
+          :can_user_change_visibility,
+          fn ->
+            Permissions.can_user_change_update_visibility?(assigns.current_user, assigns.update)
+          end
+        )
+
       ~H"""
-      <% can_user_view = Platform.Updates.Update.can_user_view(@update, @current_user) %>
+      <% can_user_view = Permissions.can_view_update?(@current_user, @update) %>
       <li class={"transition-all " <> (if @update.hidden and can_user_view, do: "opacity-50", else: "")}>
         <div class={"relative group word-breaks " <> (if @show_line, do: "pb-8", else: "")}>
           <%= if @show_line do %>
@@ -871,7 +895,7 @@ defmodule PlatformWeb.Components do
                   <span class="font-medium text-gray-800">
                     You do not have permission to see this update.
                   </span>
-                  The incident may have been removed, or the update may have been hidden.
+                  The incident may have been removed, you may have been removed from the project, or the update may have been hidden.
                 </p>
               </div>
             <% end %>
@@ -1045,6 +1069,146 @@ defmodule PlatformWeb.Components do
     """
   end
 
+  def attr_filter(assigns) do
+    assigns =
+      assign(
+        assigns,
+        :is_active,
+        Ecto.Changeset.get_change(assigns.form.source, assigns.attr.schema_field) != nil or
+          (assigns.attr.type == :date and
+             (Ecto.Changeset.get_change(assigns.form.source, :attr_date_min) != nil or
+                Ecto.Changeset.get_change(assigns.form.source, :attr_date_max) != nil))
+      )
+
+    ~H"""
+    <article
+      class="relative inline-block text-left overflow-visible"
+      x-data="{open: false}"
+      x-on:click.away="open = false"
+      id={@id}
+    >
+      <div>
+        <button
+          type="button"
+          class={"inline-flex border shadow-sm rounded-lg py-1 px-2 w-full justify-center gap-x-1 text-sm text-gray-900 " <>
+            if @is_active do
+              "text-white bg-urge-500 border-urge-500"
+            else
+              "bg-white"
+            end}
+          aria-haspopup="true"
+          x-on:click="open = !open"
+        >
+          <%= @attr.label %>
+          <svg
+            class="-mr-1 h-5 w-5 opacity-75"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+            aria-hidden="true"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
+              clip-rule="evenodd"
+            />
+          </svg>
+        </button>
+      </div>
+      <div
+        class="absolute right-0 z-[10000] overflow-visible mt-2 w-96 origin-top-right rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
+        role="menu"
+        x-transition
+        aria-orientation="vertical"
+        tabindex="-1"
+        x-show="open"
+        x-cloak
+      >
+        <div class="p-2" role="none">
+          <p class="text-xs font-medium uppercase tracking-wide text-gray-500 mb-1">
+            Filter <%= @attr.label %> to...
+          </p>
+          <div>
+            <%= case @attr.type do %>
+              <% x when x == :multi_select or x == :select -> %>
+                <div phx-update="ignore" id={"attr_select_#{@attr.name}"} class="phx-form">
+                  <%= multiple_select(
+                    @form,
+                    @attr.schema_field,
+                    Attribute.options(@attr) ++ if(not @attr.required, do: ["[Unset]"], else: []),
+                    id: "attr_select_#{@attr.name}_input",
+                    data_descriptions:
+                      Jason.encode!(
+                        (@attr.option_descriptions || %{})
+                        |> Map.put("[Unset]", "No #{String.downcase(@attr.label)} set")
+                      )
+                  ) %>
+                </div>
+              <% :location -> %>
+                <div>
+                  <div class="flex flex-col gap-2 items-center ts-ignore">
+                    <%= text_input(
+                      @form,
+                      :attr_geolocation,
+                      class: "input-base grow",
+                      "phx-debounce": "500"
+                    ) %>
+                    <span class="text-gray-600 text-sm">within</span>
+                    <%= select(
+                      @form,
+                      :attr_geolocation_radius,
+                      [
+                        {"1 km", 1},
+                        {"5 km", 5},
+                        {"10 km", 10},
+                        {"25 km", 25},
+                        {"50 km", 50},
+                        {"100 km", 100},
+                        {"250 km", 250},
+                        {"500 km", 500},
+                        {"1000 km", 1000}
+                      ],
+                      default: 10,
+                      class: "input-base shrink"
+                    ) %>
+                  </div>
+                  <p class="support text-gray-600 my-1">
+                    Input the location in the format: <code>latitude, longitude</code>
+                  </p>
+                  <p class="support text-critical-600">
+                    <%= error_tag(@form, :attr_geolocation) %>
+                  </p>
+                </div>
+              <% :date -> %>
+                <div>
+                  <div class="flex gap-2 items-center">
+                    <%= date_input(
+                      @form,
+                      :attr_date_min,
+                      id: "search-form-date-min",
+                      class: "input-base inline-flex items-center"
+                    ) %>
+                    <span class="text-sm text-gray-600">until</span>
+                    <%= date_input(
+                      @form,
+                      :attr_date_max,
+                      id: "search-form-date-max",
+                      class: "input-base inline-flex items-center"
+                    ) %>
+                  </div>
+                  <p class="support text-gray-600 mt-1">
+                    For an open ended range, leave the field blank.
+                  </p>
+                </div>
+              <% _ -> %>
+                TODO
+            <% end %>
+          </div>
+        </div>
+      </div>
+    </article>
+    """
+  end
+
   def attr_display_row(assigns) do
     attr = Map.get(assigns, :attr)
 
@@ -1113,7 +1277,7 @@ defmodule PlatformWeb.Components do
           <% end %>
         </span>
         <span class="ml-4 flex-shrink-0">
-          <%= if Attribute.can_user_edit(@attr, @current_user, @media) and not @immutable do %>
+          <%= if Permissions.can_edit_media?(@current_user, @media, @attr) and not @immutable do %>
             <%= live_patch("Update",
               class: "text-button mt-1 inline-block",
               to: Routes.media_show_path(@socket, :edit, @media.slug, @attr.name),
@@ -1563,7 +1727,7 @@ defmodule PlatformWeb.Components do
         Note that media at this URL has already been uploaded. While you can still upload the media, take care to ensure it is not a duplicate.
       </p>
       <div class="grid grid-cols-1 gap-4 mt-4">
-        <%= for dupe <- @duplicates do %>
+        <%= for dupe <- @duplicates |> Enum.filter(& Permissions.can_view_media?(@current_user, &1)) do %>
           <div data-confirm="Open the incident in a new tab? Your current upload won't be affected.">
             <.media_card media={dupe} current_user={@current_user} target="_blank" />
           </div>
@@ -1579,7 +1743,15 @@ defmodule PlatformWeb.Components do
   def multi_deconfliction_warning(%{url_media_pairs: pairs, current_user: _} = assigns) do
     assigns =
       assigns
-      |> assign(:has_dupes, Enum.any?(pairs, fn {_url, media} -> not Enum.empty?(media) end))
+      |> assign(
+        :has_dupes,
+        Enum.any?(pairs, fn {_url, media} ->
+          not Enum.empty?(
+            media
+            |> Enum.filter(&Permissions.can_view_media?(assigns.current_user, &1))
+          )
+        end)
+      )
 
     ~H"""
     <div>
@@ -1587,15 +1759,16 @@ defmodule PlatformWeb.Components do
         <div class="rounded-md bg-yellow-50 px-4 py-3 border-yellow-300 border">
           <div class="grid grid-cols-1 gap-8">
             <%= for {url, dupes} <- @url_media_pairs do %>
-              <%= if not Enum.empty?(dupes) do %>
+              <% media = Enum.filter(dupes, &Permissions.can_view_media?(@current_user, &1)) %>
+              <%= if not Enum.empty?(media) do %>
                 <div>
                   <div class="text-yellow-800 text-sm">
                     <.url_icon url={url} class="h-4 w-4 inline mb-px" />
                     <a href={url} target="_blank" class="font-medium"><%= url %></a>
-                    has already been added to Atlos
+                    has already been added to Atlos. While you can still add it, take care to ensure it is not a duplicate.
                   </div>
                   <div class="grid grid-cols-1 gap-4 mt-2">
-                    <%= for dupe <- dupes do %>
+                    <%= for dupe <- media do %>
                       <div data-confirm="Open the incident in a new tab? Your current tab won't be affected.">
                         <.media_card media={dupe} current_user={@current_user} target="_blank" />
                       </div>
@@ -1629,7 +1802,7 @@ defmodule PlatformWeb.Components do
               <h3 class="text-sm font-medium text-green-800">No duplicates detected</h3>
               <div class="mt-2 text-sm text-green-700">
                 <p>
-                  These URLs have not been previously uploaded to Atlos.
+                  These URLs have not been previously uploaded to your projects on Atlos.
                 </p>
               </div>
             </div>
@@ -1677,7 +1850,7 @@ defmodule PlatformWeb.Components do
       end %>
     <tr
       class={"search-highlighting group transition-all " <> background_color}
-      id={"table-row-" <> @media.slug}
+      id={@id}
       x-data={"{selected: #{@is_selected}}"}
       x-bind:class={"{'!bg-urge-50': (selected || #{@is_selected})}"}
     >
@@ -1687,25 +1860,23 @@ defmodule PlatformWeb.Components do
         x-bind:class={"{'!bg-urge-50': (selected || #{@is_selected})}"}
       >
         <div class="flex items-center gap-1">
-          <%= if Platform.Accounts.is_privileged(@current_user) do %>
-            <div
-              class="flex-shrink-0 w-5 mr-2 group-hover:block"
-              x-bind:class={"{'hidden': !(selected || #{@is_selected})}"}
-              data-tooltip="Select this incident"
-              x-cloak
-            >
-              <input
-                phx-click="select"
-                phx-value-slug={@media.slug}
-                x-on:change="selected = $event.target.checked"
-                checked={@is_selected}
-                type="checkbox"
-                class="h-4 w-4 mb-1 rounded border-gray-300 text-urge-600 focus:ring-urge-600"
-              />
-            </div>
-          <% end %>
           <div
-            class={"flex-shrink-0 w-5 mr-2 " <> (if Platform.Accounts.is_privileged(@current_user), do: "group-hover:hidden", else: "")}
+            class="flex-shrink-0 w-5 mr-2 group-hover:block"
+            x-bind:class={"{'hidden': !(selected || #{@is_selected})}"}
+            data-tooltip="Select this incident"
+            x-cloak
+          >
+            <input
+              phx-click="select"
+              phx-value-slug={@media.slug}
+              x-on:change="selected = $event.target.checked"
+              checked={@is_selected}
+              type="checkbox"
+              class="h-4 w-4 mb-1 rounded border-gray-300 text-urge-600 focus:ring-urge-600"
+            />
+          </div>
+          <div
+            class="flex-shrink-0 w-5 mr-2 group-hover:hidden"
             x-bind:class={"{'hidden': (selected || #{@is_selected})}"}
             data-tooltip={"Last modified by #{List.last(@media.updates).user.username}"}
           >
@@ -1769,7 +1940,7 @@ defmodule PlatformWeb.Components do
         <td
           class="border-b cursor-pointer p-0"
           phx-click={
-            if Platform.Material.Attribute.can_user_edit(attr, @current_user, @media),
+            if Permissions.can_edit_media?(@current_user, @media, attr),
               do: "edit_attribute",
               else: nil
           }
@@ -1790,7 +1961,7 @@ defmodule PlatformWeb.Components do
       <% end %>
       <% versions =
         @media.versions
-        |> Enum.filter(&Material.MediaVersion.can_user_view(&1, @current_user)) %>
+        |> Enum.filter(&Permissions.can_view_media_version?(@current_user, &1)) %>
       <%= for idx <- 0..@source_cols do %>
         <td
           class="border-b cursor-pointer p-0"
@@ -1834,8 +2005,11 @@ defmodule PlatformWeb.Components do
     """
   end
 
-  def search_form(%{changeset: _, query_params: _, socket: _, display: _} = assigns) do
-    assigns = assign_new(assigns, :exclude, fn -> [] end)
+  def search_form(%{changeset: c, query_params: _, socket: _, display: _} = assigns) do
+    assigns =
+      assign_new(assigns, :exclude, fn -> [] end)
+      |> assign(:changeset, Map.put(c, :action, :validate))
+
     # We assign the ID to the top-level div to fix a Safari rendering bug
 
     ~H"""
@@ -1870,11 +2044,12 @@ defmodule PlatformWeb.Components do
           phx-change={JS.push("validate") |> JS.dispatch("atlos:updating", to: "body")}
           phx-submit={JS.push("save") |> JS.dispatch("atlos:updating", to: "body")}
           data-no-warn="true"
+          class="w-full"
         >
-          <section class="md:flex w-full max-w-7xl mx-auto flex-wrap md:flex-nowrap gap-2 items-center">
-            <div class="flex divide-y md:divide-y-0 md:divide-x flex-col flex-grow md:flex-row rounded-lg bg-white shadow-sm border overflow-hidden">
+          <section class="flex flex-col items-start w-full max-w-7xl mx-auto flex-wrap md:flex-nowrap gap-2 items-center">
+            <div class="flex w-full divide-y md:divide-y-0 flex-col flex-grow md:flex-row rounded-lg bg-white shadow-sm border">
               <%= if not Enum.member?(@exclude, :display) do %>
-                <div class="flex px-2 py-1 pd:my-0 ">
+                <div class="flex px-2 py-1 pd:my-0 md:border-r">
                   <nav class="flex items-center gap-px" aria-label="Tabs">
                     <%= label do %>
                       <div
@@ -1957,6 +2132,26 @@ defmodule PlatformWeb.Components do
                   </nav>
                 </div>
               <% end %>
+              <div class={if Enum.member?(@exclude, :project), do: "hidden", else: ""}>
+                <div class="ts-ignore pl-3 py-2 group md:border-r min-w-[8rem]">
+                  <%= label(f, :project_id, "Project",
+                    class: "block text-xs font-medium text-gray-900 group-focus-within:text-urge-600"
+                  ) %>
+                  <%= select(
+                    f,
+                    :project_id,
+                    [{"All", nil}] ++
+                      (Platform.Projects.list_projects_for_user(@current_user)
+                       |> Enum.map(fn p -> {p.code <> ": " <> p.name, p.id} end)
+                       |> Enum.map(fn {name, id} -> {Utils.truncate(name, 20), id} end)),
+                    id:
+                      "search-form-project-select-#{Ecto.Changeset.get_field(f.source, :project_id)}",
+                    class:
+                      "block bg-transparent w-full border-0 py-0 pl-0 pr-7 text-gray-900 placeholder-gray-500 focus:ring-0 sm:text-sm"
+                  ) %>
+                </div>
+                <%= error_tag(f, :project_id) %>
+              </div>
               <div class={"flex-grow " <> (if Enum.member?(@exclude, :query), do: "hidden", else: "")}>
                 <div class="px-3 h-full group flex flex-col md:flex-row py-2 items-center">
                   <%= label(f, :query, "Search",
@@ -1973,41 +2168,8 @@ defmodule PlatformWeb.Components do
                 </div>
                 <%= error_tag(f, :query) %>
               </div>
-              <div class={if Enum.member?(@exclude, :status), do: "hidden", else: ""}>
-                <div class="ts-ignore pl-3 py-2 group">
-                  <%= label(f, :attr_status, "Status",
-                    class: "block text-xs font-medium text-gray-900 group-focus-within:text-urge-600"
-                  ) %>
-                  <%= select(
-                    f,
-                    :attr_status,
-                    ["Any"] ++ Attribute.options(Attribute.get_attribute(:status)),
-                    class:
-                      "block bg-transparent w-full border-0 py-0 pl-0 pr-7 text-gray-900 placeholder-gray-500 focus:ring-0 sm:text-sm"
-                  ) %>
-                </div>
-                <%= error_tag(f, :status) %>
-              </div>
-              <div class={if Enum.member?(@exclude, :project), do: "hidden", else: ""}>
-                <div class="ts-ignore pl-3 py-2 group">
-                  <%= label(f, :project_id, "Project",
-                    class: "block text-xs font-medium text-gray-900 group-focus-within:text-urge-600"
-                  ) %>
-                  <%= select(
-                    f,
-                    :project_id,
-                    [{"All", nil}, {"No Project", "unset"}] ++
-                      (Platform.Projects.list_projects_for_user(@current_user)
-                       |> Enum.map(fn p -> {p.code <> ": " <> p.name, p.id} end)
-                       |> Enum.map(fn {name, id} -> {Utils.truncate(name, 20), id} end)),
-                    class:
-                      "block bg-transparent w-full border-0 py-0 pl-0 pr-7 text-gray-900 placeholder-gray-500 focus:ring-0 sm:text-sm"
-                  ) %>
-                </div>
-                <%= error_tag(f, :project_id) %>
-              </div>
               <div class={if Enum.member?(@exclude, :sort), do: "hidden", else: ""}>
-                <div class="ts-ignore pl-3 py-2 group">
+                <div class="ts-ignore pl-3 py-2 group border-x">
                   <%= label(f, :sort, "Sort",
                     class: "block text-xs font-medium text-gray-900 group-focus-within:text-urge-600"
                   ) %>
@@ -2029,73 +2191,64 @@ defmodule PlatformWeb.Components do
                 <%= error_tag(f, :sort) %>
               </div>
               <div
-                class={"flex place-self-center w-full md:w-auto h-full px-2 text-sm md:py-[14px] py-4 " <>
+                class={"flex place-self-center w-full md:w-auto h-full pr-2 pl-1 text-sm md:py-[14px] py-4 pl-2 " <>
                   (if Enum.member?(@exclude, :more_options), do: "hidden", else: "")}
                 x-data="{open: false}"
               >
                 <div class="text-left z-10">
-                  <div class="h-full">
-                    <button
-                      x-on:click="open = !open"
-                      type="button"
+                  <div class="h-full flex gap-1">
+                    <%= button type: "button", to: Routes.export_path(@socket, :create, @query_params),
+                      class: "rounded-full flex items-center align-center text-gray-600 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-urge-500",
+                      role: "menuitem",
+                      method: :post,
+                      "x-cloak": true,
+                      data_tooltip: "Export Incidents"
+                    do %>
+                      <Heroicons.arrow_down_tray mini class="h-5 w-5" />
+                      <span class="sr-only">Export Incidents</span>
+                    <% end %>
+                    <.link
+                      patch="/incidents"
                       class="rounded-full flex items-center align-center text-gray-600 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-urge-500"
-                      id="menu-button"
-                      aria-expanded="true"
-                      aria-haspopup="true"
+                      role="menuitem"
+                      data-tooltip="Reset Filters"
                     >
-                      <span class="sr-only">Open options</span>
-                      <!-- Heroicon name: solid/dots-vertical -->
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                        fill="currentColor"
-                        class="w-6 h-6"
-                      >
-                        <path
-                          fill-rule="evenodd"
-                          d="M10.5 6a1.5 1.5 0 113 0 1.5 1.5 0 01-3 0zm0 6a1.5 1.5 0 113 0 1.5 1.5 0 01-3 0zm0 6a1.5 1.5 0 113 0 1.5 1.5 0 01-3 0z"
-                          clip-rule="evenodd"
-                        />
-                      </svg>
-
-                      <span class="md:hidden text-neutral-800 ml-1">Additional options</span>
-                    </button>
+                      <Heroicons.x_mark mini class="h-6 w-6" />
+                      <span class="sr-only">Reset Filters</span>
+                    </.link>
                   </div>
-
-                  <div
-                    x-show="open"
-                    x-on:click.outside="open = false"
-                    x-transition
-                    x-cloak
-                    class="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none"
-                    role="menu"
-                    aria-orientation="vertical"
-                    aria-labelledby="menu-button"
-                    tabindex="-1"
-                  >
-                    <div class="py-1" role="none">
-                      <%= button type: "button", to: Routes.export_path(@socket, :create, @query_params),
-                  class: "text-gray-700 group w-full hover:bg-gray-100 flex items-center px-4 py-2 text-sm",
-                  role: "menuitem",
-                  method: :post,
-                  "x-cloak": true
-                   do %>
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          class="mr-3 h-5 w-5 text-gray-400 group-hover:text-gray-500"
-                          viewBox="0 0 20 20"
-                          fill="currentColor"
-                        >
-                          <path
-                            fill-rule="evenodd"
-                            d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"
-                            clip-rule="evenodd"
-                          />
-                        </svg>
-                        Export Incidents
-                      <% end %>
-                    </div>
-                  </div>
+                </div>
+              </div>
+            </div>
+            <div class={"flex bg-white border rounded sm:border-none sm:rounded-none sm:bg-transparent p-4 sm:p-0 justify-between gap-4 items-center w-full flex-col-reverse sm:flex-row " <> if Enum.member?(@exclude, :pagination) and Enum.member?(@exclude, :filters), do: "hidden", else: ""}>
+              <div class={if Enum.member?(@exclude, :pagination), do: "hidden", else: ""}>
+                <%= if assigns[:pagination] do %>
+                  <%= render_slot(@pagination) %>
+                <% end %>
+              </div>
+              <div class={if Enum.member?(@exclude, :filters), do: "hidden", else: ""}>
+                <div class="relative flex flex-wrap items-center h-full gap-2">
+                  <.attr_filter id="status_filter" form={f} attr={Attribute.get_attribute(:status)} />
+                  <.attr_filter
+                    id="geolocation_filter"
+                    form={f}
+                    attr={Attribute.get_attribute(:geolocation)}
+                  />
+                  <.attr_filter id="date_filter" form={f} attr={Attribute.get_attribute(:date)} />
+                  <.attr_filter
+                    id="tags_filter"
+                    form={f}
+                    attr={
+                      Attribute.get_attribute(:tags,
+                        projects: Platform.Projects.list_projects_for_user(@current_user)
+                      )
+                    }
+                  />
+                  <.attr_filter
+                    id="sensitive_filter"
+                    form={f}
+                    attr={Attribute.get_attribute(:sensitive)}
+                  />
                 </div>
               </div>
             </div>
@@ -2191,7 +2344,7 @@ defmodule PlatformWeb.Components do
       href={if @link, do: "/incidents/#{@media.slug}", else: nil}
       target={@target}
     >
-      <%= if Media.can_user_view(@media, @current_user) do %>
+      <%= if Permissions.can_view_media?(@current_user, @media) do %>
         <div class="p-2 flex flex-col w-3/4 gap-2 relative">
           <section>
             <p class="font-mono text-xs text-gray-500 flex items-center gap-1">
@@ -2350,11 +2503,6 @@ defmodule PlatformWeb.Components do
       </svg>
       <h3 class="mt-2 font-medium text-gray-900">No results</h3>
       <p class="mt-1 text-gray-500">No incidents matched this criteria</p>
-      <div class="mt-6">
-        <a href="/incidents" class="button ~urge @high">
-          View All &rarr;
-        </a>
-      </div>
     </div>
     """
   end
@@ -2368,7 +2516,7 @@ defmodule PlatformWeb.Components do
         <%= if @dynamic do %>
           <.popover class="inline">
             <img
-              class={"relative z-30 inline-block h-5 w-5 rounded-full ring-2 " <> Map.get(assigns, :ring_class, "ring-white")}
+              class={"relative z-30 inline-block rounded-full ring-2 " <> Map.get(assigns, :size_classes, "h-5 w-5") <> " " <> Map.get(assigns, :ring_class, "ring-white")}
               src={Accounts.get_profile_photo_path(user)}
               alt={"Profile photo for #{user.username}"}
             />
@@ -2378,26 +2526,18 @@ defmodule PlatformWeb.Components do
           </.popover>
         <% else %>
           <img
-            class={"relative z-30 inline-block h-5 w-5 rounded-full ring-2 " <> Map.get(assigns, :ring_class, "ring-white")}
+            class={"relative z-30 inline-block rounded-full ring-2 " <> Map.get(assigns, :size_classes, "h-5 w-5") <> " " <> Map.get(assigns, :ring_class, "ring-white")}
             src={Accounts.get_profile_photo_path(user)}
             alt={"Profile photo for #{user.username}"}
           />
         <% end %>
       <% end %>
       <%= if length(@users) > @max do %>
-        <div class={"bg-gray-300 text-gray-700 text-xl rounded-full mt-1 h-5 w-5 z-30 ring-2 flex items-center justify-center"  <> Map.get(assigns, :ring_class, "ring-white")}>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-3 w-3"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path
-              fill-rule="evenodd"
-              d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
-              clip-rule="evenodd"
-            />
-          </svg>
+        <div
+          class={"bg-gray-200 text-gray-700 text-xl rounded-full z-30 ring-2 flex items-center justify-center " <> Map.get(assigns, :size_classes, "h-5 w-5") <>" " <> Map.get(assigns, :ring_class, "ring-white")}
+          data-tooltip={"Shared with #{length(@users) - 5} more user#{if length(@users) - 5 == 1, do: "", else: "s"}"}
+        >
+          <Heroicons.ellipsis_horizontal mini class="h-4 w-4" />
         </div>
       <% end %>
     </div>
@@ -2440,7 +2580,7 @@ defmodule PlatformWeb.Components do
     ~H"""
     <section
       id={"version-#{@version.id}"}
-      class="py-4 target:outline outline-2 outline-urge-600 rounded outline-offset-2"
+      class="py-2 target:outline outline-2 outline-urge-600 rounded outline-offset-2"
       x-data={"{grayscale: true, hidden: #{@should_blur_js_bool}}"}
     >
       <% loc = Material.media_version_location(@version, @media) %>
@@ -2451,7 +2591,7 @@ defmodule PlatformWeb.Components do
       </span>
       <div class="relative">
         <%= if @media_to_show do %>
-          <div id={media_id} x-bind:class="hidden ? 'min-h-[10rem] invisible' : 'min-h-[10rem]'">
+          <div id={media_id} class="min-h-[10rem] p-1 z-[1]">
             <div x-bind:class="grayscale ? 'grayscale' : ''">
               <%= if String.starts_with?(@version.mime_type, "image/") do %>
                 <%= if @dynamic_src do %>
@@ -2777,7 +2917,7 @@ defmodule PlatformWeb.Components do
                           clip-rule="evenodd"
                         />
                       </svg>
-                      Hide
+                      Minimize
                     </button>
                   <% end %>
                   <%= if @version.visibility == :hidden and @show_controls do %>
@@ -2802,10 +2942,10 @@ defmodule PlatformWeb.Components do
                           clip-rule="evenodd"
                         />
                       </svg>
-                      Unhide
+                      Unminimize
                     </button>
                   <% end %>
-                  <%= if Accounts.is_privileged(@current_user) and @show_controls do %>
+                  <%= if Platform.Permissions.can_change_media_version_visibility?(@current_user, @version) and @show_controls do %>
                     <button
                       type="button"
                       data-confirm="Are you sure you want to change the visibility of this media?"
@@ -3000,9 +3140,9 @@ defmodule PlatformWeb.Components do
           <%= label(@f, @schema_field, @label) %>
           <%= case @attr.input_type || :textarea do %>
             <% :textarea -> %>
-              <%= textarea(@f, @schema_field, rows: 3) %>
+              <%= textarea(@f, @schema_field, rows: 3, phx_debounce: 200) %>
             <% :short_text -> %>
-              <%= text_input(@f, @schema_field) %>
+              <%= text_input(@f, @schema_field, phx_debounce: 200) %>
           <% end %>
           <%= error_tag(@f, @schema_field) %>
         <% :select -> %>
@@ -3136,7 +3276,7 @@ defmodule PlatformWeb.Components do
   def user_card(%{user: %Accounts.User{} = _} = assigns) do
     ~H"""
     <.link navigate={"/profile/" <> @user.username}>
-      <div class="flex items-center gap-4 p-2">
+      <div class="flex items-center gap-4 p-2 overflow-hidden">
         <div class="w-12">
           <img
             class="relative z-30 inline-block h-12 w-12 rounded-full ring-2 ring-white"
@@ -3144,9 +3284,9 @@ defmodule PlatformWeb.Components do
             alt={"Profile photo for #{@user.username}"}
           />
         </div>
-        <div class="flex flex-col gap-1">
+        <div class="flex flex-col gap-1 max-w-full">
           <.user_name_display user={@user} />
-          <p class="text-neutral-600">
+          <p class="text-neutral-600 break-words max-w-full">
             <%= if is_nil(@user.bio) or String.length(@user.bio |> String.trim()) == 0,
               do: "",
               else: @user.bio %>
@@ -3380,38 +3520,45 @@ defmodule PlatformWeb.Components do
           </.link>
         <% end %>
         <div>
-          <%= render_slot(@actions) || "" %>
+          <.user_stack users={@project.memberships |> Enum.map(& &1.user)} size_classes="h-7 w-7" />
         </div>
       </div>
     </div>
     """
   end
 
+  def project_card_inner(assigns) do
+    # Like <.project_card> below, but without a link.
+    ~H"""
+    <div class="bg-white rounded-lg shadow overflow-hidden p-4 flex-col gap-2 min-w-[15rem]">
+      <p class="font-mono text-xs text-neutral-600"><%= @project.code %></p>
+      <p class="font-medium text-lg inline-flex items-center">
+        <%= @project.name %>
+        <span style={"color: #{@project.color}"}>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+            class="w-5 h-5 ml-px"
+          >
+            <circle cx="10" cy="10" r="6" />
+          </svg>
+        </span>
+      </p>
+      <% total_incidents = Material.total_media_in_project!(@project) %>
+      <p class="support font-base text-neutral-600">
+        <%= total_incidents |> Formatter.format_number() %> <%= if total_incidents == 1,
+          do: "incident",
+          else: "incidents" %>
+      </p>
+    </div>
+    """
+  end
+
   def project_card(assigns) do
     ~H"""
-    <.link class="bg-white rounded-lg shadow overflow-hidden" href={"/projects/#{@project.id}"}>
-      <div class="p-4 flex-col gap-2 min-w-[15rem]">
-        <p class="font-mono text-xs text-neutral-600"><%= @project.code %></p>
-        <p class="font-medium text-lg inline-flex items-center">
-          <%= @project.name %>
-          <span style={"color: #{@project.color}"}>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-              class="w-5 h-5 ml-px"
-            >
-              <circle cx="10" cy="10" r="6" />
-            </svg>
-          </span>
-        </p>
-        <% total_incidents = Material.total_media_in_project!(@project) %>
-        <p class="support font-base text-neutral-600">
-          <%= total_incidents |> Formatter.format_number() %> <%= if total_incidents == 1,
-            do: "incident",
-            else: "incidents" %>
-        </p>
-      </div>
+    <.link href={"/projects/#{@project.id}"}>
+      <.project_card_inner project={@project} />
     </.link>
     """
   end
@@ -3503,6 +3650,12 @@ defmodule PlatformWeb.Components do
             <%= (@pagination_index * @pagination_metadata.limit +
                    @currently_displayed_results)
             |> Formatter.format_number() %>
+          </span>
+          of
+          <span class="font-medium">
+            <%= @pagination_metadata.total_count |> Formatter.format_number() %><%= if @pagination_metadata.total_count_cap_exceeded,
+              do: "+",
+              else: "" %>
           </span>
         </p>
       </div>

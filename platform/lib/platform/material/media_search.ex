@@ -12,7 +12,13 @@ defmodule Platform.Material.MediaSearch do
   @types %{
     query: :string,
     sort: :string,
-    attr_status: :string,
+    attr_status: {:array, :string},
+    attr_tags: {:array, :string},
+    attr_sensitive: {:array, :string},
+    attr_date_min: :date,
+    attr_date_max: :date,
+    attr_geolocation: :string,
+    attr_geolocation_radius: :integer,
     project_id: :string,
     no_media_versions: :boolean,
     only_subscribed: :boolean,
@@ -25,6 +31,18 @@ defmodule Platform.Material.MediaSearch do
 
     {data, @types}
     |> Ecto.Changeset.cast(params, Map.keys(@types))
+    |> Ecto.Changeset.validate_change(:attr_geolocation, fn _, value ->
+      case parse_location(value) do
+        :error ->
+          [
+            attr_geolocation:
+              "Invalid location. Please enter a valid latitude and longitude, separated by a comma."
+          ]
+
+        _ ->
+          []
+      end
+    end)
     |> Ecto.Changeset.validate_length(:query, max: 256)
     |> Ecto.Changeset.validate_inclusion(:sort, [
       "uploaded_desc",
@@ -34,6 +52,32 @@ defmodule Platform.Material.MediaSearch do
       "description_desc",
       "description_asc"
     ])
+  end
+
+  defp parse_location(location_string) do
+    coords =
+      (location_string || "")
+      |> String.trim()
+      |> String.split(",")
+
+    case coords do
+      [""] ->
+        nil
+
+      [lat_string, lon_string] ->
+        with {lat, ""} <- Float.parse(lat_string |> String.trim()),
+             {lon, ""} <- Float.parse(lon_string |> String.trim()) do
+          %Geo.Point{
+            coordinates: {lon, lat},
+            srid: 4326
+          }
+        else
+          _ -> :error
+        end
+
+      _ ->
+        :error
+    end
   end
 
   defp apply_query_component(queryable, changeset, :query) do
@@ -46,8 +90,81 @@ defmodule Platform.Material.MediaSearch do
   defp apply_query_component(queryable, changeset, :attr_status) do
     case Map.get(changeset.changes, :attr_status) do
       nil -> queryable
-      "Any" -> queryable
-      query -> where(queryable, [m], m.attr_status == ^query)
+      [] -> queryable
+      query -> where(queryable, [m], m.attr_status in ^query)
+    end
+  end
+
+  defp apply_query_component(queryable, changeset, :attr_date_min) do
+    case Map.get(changeset.changes, :attr_date_min) do
+      nil -> queryable
+      query -> where(queryable, [m], m.attr_date >= ^query)
+    end
+  end
+
+  defp apply_query_component(queryable, changeset, :attr_date_max) do
+    case Map.get(changeset.changes, :attr_date_max) do
+      nil -> queryable
+      query -> where(queryable, [m], m.attr_date <= ^query)
+    end
+  end
+
+  defp apply_query_component(queryable, changeset, :attr_tags) do
+    case Map.get(changeset.changes, :attr_tags) do
+      nil ->
+        queryable
+
+      [] ->
+        queryable
+
+      # Or, there must be some intersection between the two arrays
+      values ->
+        where(
+          queryable,
+          [m],
+          fragment("? && ?", m.attr_tags, ^values) or
+            ("[Unset]" in ^values and (is_nil(m.attr_tags) or m.attr_tags == ^[]))
+        )
+    end
+  end
+
+  defp apply_query_component(queryable, changeset, :attr_sensitive) do
+    case Map.get(changeset.changes, :attr_sensitive) do
+      nil ->
+        queryable
+
+      [] ->
+        queryable
+
+      # Or, there must be some intersection between the two arrays
+      values ->
+        where(
+          queryable,
+          [m],
+          fragment("? && ?", m.attr_sensitive, ^values) or
+            ("[Unset]" in ^values and (is_nil(m.attr_sensitive) or m.attr_sensitive == ^[]))
+        )
+    end
+  end
+
+  defp apply_query_component(queryable, changeset, :attr_geolocation) do
+    case parse_location(Map.get(changeset.changes, :attr_geolocation)) do
+      # Or, there must be some intersection between the two arrays
+      %Geo.Point{coordinates: {lon, lat}} ->
+        where(
+          queryable,
+          [m],
+          fragment(
+            "ST_DWithin(?, St_SetSRID(ST_MakePoint(?, ?), 4326), ?)",
+            m.attr_geolocation,
+            ^lon,
+            ^lat,
+            ^(Map.get(changeset.changes, :attr_geolocation_radius, 10) * (0.01 / 1.11))
+          )
+        )
+
+      _ ->
+        queryable
     end
   end
 
@@ -147,6 +264,11 @@ defmodule Platform.Material.MediaSearch do
     queryable
     |> apply_query_component(cs, :query)
     |> apply_query_component(cs, :attr_status)
+    |> apply_query_component(cs, :attr_tags)
+    |> apply_query_component(cs, :attr_sensitive)
+    |> apply_query_component(cs, :attr_date_min)
+    |> apply_query_component(cs, :attr_date_max)
+    |> apply_query_component(cs, :attr_geolocation)
     |> apply_query_component(cs, :no_media_versions)
     |> apply_query_component(cs, :project_id)
     |> apply_query_component(cs, :only_subscribed, current_user)
@@ -158,10 +280,6 @@ defmodule Platform.Material.MediaSearch do
   Filters the query results so that they are viewable to the given user
   """
   def filter_viewable(queryable \\ Media, %Platform.Accounts.User{} = user) do
-    if Enum.member?(user.roles || [], :admin) or Enum.member?(user.roles || [], :trusted) do
-      queryable
-    else
-      queryable |> where([m], ^"Hidden" not in m.attr_restrictions or is_nil(m.attr_restrictions))
-    end
+    queryable |> Platform.Material.maybe_filter_accessible_to_user(for_user: user)
   end
 end

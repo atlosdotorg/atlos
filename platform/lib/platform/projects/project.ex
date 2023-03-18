@@ -13,6 +13,7 @@ defmodule Platform.Projects.Project do
     embeds_many(:attributes, Platform.Projects.ProjectAttribute, on_replace: :delete)
 
     has_many(:media, Platform.Material.Media)
+    has_many(:memberships, Platform.Projects.ProjectMembership)
 
     timestamps()
   end

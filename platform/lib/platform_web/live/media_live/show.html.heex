@@ -1,19 +1,5 @@
 <div>
-  <.project_bar project={@media.project}>
-    <:actions>
-      <%= if is_nil(@media.project) do %>
-        <.link patch={"/incidents/#{@media.slug}/project"} class="text-button text-sm">
-          + Add to Project
-        </.link>
-      <% else %>
-        <%= if Platform.Projects.can_edit_media?(@current_user, @media.project) do %>
-          <.link patch={"/incidents/#{@media.slug}/project"} class="text-button text-sm">
-            Update
-          </.link>
-        <% end %>
-      <% end %>
-    </:actions>
-  </.project_bar>
+  <.project_bar project={@media.project} />
   <article class="w-full lg:max-w-screen-xl px-8 lg:mx-auto mt-8">
     <div class="lg:flex lg:items-center lg:justify-between">
       <div class="flex-1 min-w-0 max-w-full" x-data="{pulse: false}">
@@ -36,7 +22,7 @@
           "text-xl font-medium leading-7 text-gray-700 sm:text-3xl block transition p-1 rounded " <>
             if @media.deleted, do: "line-through ", else: "" %>
         <%= if(
-        Attribute.can_user_edit(Attribute.get_attribute(:description), @current_user, @media)
+       Permissions.can_edit_media?(@current_user, @media, Attribute.get_attribute(:description))
       ) do %>
           <%= live_patch(class: title_classes <> "hover:bg-neutral-200 focus:bg-neutral-200",
               to: Routes.media_show_path(@socket, :edit, @media.slug, :description),
@@ -114,7 +100,7 @@
           not_subscribed_classes="base-button"
           show_icon={false}
         />
-        <%= if Accounts.is_privileged(@current_user) do %>
+        <%= if Permissions.can_delete_media?(@current_user, @media) do %>
           <div
             class="flex place-self-center w-full md:w-auto h-full px-2 text-sm relative"
             x-data="{open: false}"
@@ -259,7 +245,7 @@
             id="comment-box"
             media={@media}
             current_user={@current_user}
-            disabled={!Media.can_user_comment(@media, @current_user)}
+            disabled={!Permissions.can_comment_on_media?(@current_user, @media)}
           />
         </.card>
       </div>
@@ -315,7 +301,7 @@
                 <span class="mt-2 block text-sm font-medium text-gray-700">
                   No media uploaded
                 </span>
-                <%= if Media.can_user_edit(@media, @current_user) do %>
+                <%= if Permissions.can_edit_media?(@current_user, @media) do %>
                   <%= live_patch("+ Upload Media",
                     class: "text-button text-sm",
                     to: Routes.media_show_path(@socket, :upload, @media.slug)
@@ -331,7 +317,7 @@
                     current_user={@current_user}
                   />
                 <% end %>
-                <%= if Media.can_user_edit(@media, @current_user) do %>
+                <%= if Permissions.can_edit_media?(@current_user, @media) do %>
                   <section class="pt-2 pb-4 text-sm overflow-visible">
                     <%= live_patch("+ Upload More Media",
                       class: "text-button mt-1 inline-block",
@@ -343,7 +329,7 @@
             <% end %>
             <%= if length(hidden_versions) > 0 do %>
               <details class="mb-4">
-                <summary class="cursor-pointer text-button text-sm">View hidden media</summary>
+                <summary class="cursor-pointer text-button text-sm">View minimized media</summary>
                 <div class="divide-gray-200 grid grid-cols-1 divide-y divide-dashed">
                   <%= for version <- hidden_versions do %>
                     <.media_version_display
@@ -475,7 +461,7 @@
               <p class="sec-subhead"><%= attr.description %></p>
             </div>
             <div class="sm:mr-8">
-              <%= if Attribute.can_user_edit(attr, @current_user, @media) do %>
+              <%= if Permissions.can_edit_media?(@current_user, @media, attr) do %>
                 <%= live_patch("Edit",
                   class: "base-button",
                   to: Routes.media_show_path(@socket, :edit, @media.slug, attr.name),
@@ -523,24 +509,6 @@
         />
       </.modal>
     <% end %>
-    <%= if @live_action == :project do %>
-      <.modal target={} close_confirmation="">
-        <div class="mb-8">
-          <div>
-            <p class="support font-mono"><%= Media.slug_to_display(@media) %></p>
-            <p class="sec-head">
-              Project: <%= @media.attr_description %>
-            </p>
-          </div>
-        </div>
-        <.live_component
-          module={PlatformWeb.MediaLive.ManageProjectsLive}
-          id="manage-projects"
-          current_user={@current_user}
-          media={@media}
-        />
-      </.modal>
-    <% end %>
     <%= if @live_action == :auto_metadata do %>
       <.modal target={} close_confirmation="">
         <div class="mb-8">
@@ -568,19 +536,19 @@
       <%= if @media.deleted do %>
         <.floating_warning>
           <strong>This incident is marked as deleted.</strong>
-          Only admins can now edit its attributes or upload new media.
+          Only project managers and owners can edit its content.
         </.floating_warning>
       <% end %>
       <%= if @media.attr_status == "Completed" do %>
         <.floating_info>
           <strong>This incident is marked as completed.</strong>
-          Only moderators can now edit its attributes or upload new media.
+          Only project managers and owners can edit its content.
         </.floating_info>
       <% end %>
       <%= if @media.attr_status == "Cancelled" do %>
         <.floating_info>
           <strong>This incident is marked as cancelled.</strong>
-          Only moderators can now edit its attributes or upload new media.
+          Only project managers and owners can edit its content.
         </.floating_info>
       <% end %>
       <%= if Media.has_restrictions(@media) do %>

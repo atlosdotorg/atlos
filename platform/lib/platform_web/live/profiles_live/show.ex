@@ -1,5 +1,6 @@
 defmodule PlatformWeb.ProfilesLive.Show do
   use PlatformWeb, :live_view
+  alias Platform.Projects
   alias Platform.Accounts
   alias Platform.Updates
   alias PlatformWeb.ProfilesLive.EditComponent
@@ -15,7 +16,24 @@ defmodule PlatformWeb.ProfilesLive.Show do
      socket
      |> assign(:username, username)
      |> assign(:title, username)
-     |> assign_user()}
+     |> assign_user()
+     |> then(fn socket ->
+       current_user_projects =
+         Projects.get_users_project_memberships(socket.assigns.current_user)
+         |> Enum.map(fn pm -> pm.project end)
+         |> MapSet.new()
+
+       user_projects =
+         Projects.get_users_project_memberships(socket.assigns.user)
+         |> Enum.map(fn pm -> pm.project end)
+         |> MapSet.new()
+
+       socket
+       |> assign(
+         :shared_projects,
+         MapSet.intersection(current_user_projects, user_projects)
+       )
+     end)}
   end
 
   defp assign_user(socket) do

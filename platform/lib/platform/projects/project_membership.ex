@@ -14,7 +14,9 @@ defmodule Platform.Projects.ProjectMembership do
   end
 
   @doc false
-  def changeset(project_membership, attrs) do
+  def changeset(project_membership, attrs, opts \\ []) do
+    all_memberships = Keyword.get(opts, :all_memberships, [])
+
     project_membership
     |> cast(attrs, [:role, :username, :project_id])
     |> validate_required([:role])
@@ -22,14 +24,35 @@ defmodule Platform.Projects.ProjectMembership do
     |> validate_username()
     |> validate_required([:user_id, :project_id])
     |> unique_constraint([:user_id, :project_id],
+      error_key: :username,
       message: "This user is already a member of this project."
     )
+    # If they are the owner and they are the only owner, don't allow them to change their role
+    |> validate_change(:role, fn :role, _value ->
+      if is_list(all_memberships) and project_membership.role == :owner and
+           Enum.filter(all_memberships, fn pm -> pm.role == :owner end) |> Enum.count() == 1 do
+        [
+          role:
+            "You are the only owner of this project, so you cannot change your role. To change your role, you must first add another owner."
+        ]
+      else
+        []
+      end
+    end)
   end
 
   def validate_username(changeset) do
     username = get_change(changeset, :username)
 
     if username do
+      # If the username starts with a @, remove it
+      username =
+        if String.starts_with?(username, "@") do
+          String.replace_prefix(username, "@", "")
+        else
+          username
+        end
+
       case Platform.Accounts.get_user_by_username(username) do
         nil ->
           add_error(changeset, :username, "This user does not exist.")

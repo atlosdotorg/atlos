@@ -7,6 +7,7 @@ defmodule Platform.Material.Attribute do
   alias Platform.Accounts.User
   alias Platform.Accounts
   alias Platform.Material
+  alias Platform.Permissions
 
   alias Platform.Projects.ProjectAttribute
 
@@ -30,7 +31,7 @@ defmodule Platform.Material.Attribute do
     # boolean for deprecated attributes
     :deprecated,
     :add_none,
-    :required_roles,
+    :is_restricted,
     :explanation_required,
     # for selects and multiple selects -- the values which require the user to have special privileges
     :privileged_values,
@@ -129,7 +130,7 @@ defmodule Platform.Material.Attribute do
         pane: :metadata,
         required: false,
         name: :tags,
-        required_roles: [:admin, :trusted],
+        is_restricted: true,
         allow_user_defined_options: true,
         description: "Use tags to help organize incidents on Atlos."
       },
@@ -423,7 +424,7 @@ defmodule Platform.Material.Attribute do
         name: :restrictions,
         # NOTE: Editing these values also requires editing the perm checks in `media.ex`
         options: ["Frozen", "Hidden"],
-        required_roles: [:admin, :trusted]
+        is_restricted: true
       },
       %Attribute{
         schema_field: :attr_sensitive,
@@ -529,7 +530,30 @@ defmodule Platform.Material.Attribute do
         name_or_id
       end
 
-    Enum.find(attributes(opts), &(&1.name |> to_string() == real_name))
+    value = Enum.find(attributes(opts), &(&1.name |> to_string() == real_name))
+
+    case value do
+      nil ->
+        nil
+
+      %Attribute{} = attr ->
+        project = Keyword.get(opts, :project)
+        projects = Keyword.get(opts, :projects, if(is_nil(project), do: [], else: [project]))
+
+        if not Enum.empty?(projects) and allow_user_defined_options(attr) and
+             attr.type == :multi_select do
+          options =
+            List.flatten(
+              projects
+              |> Enum.map(&Material.get_values_of_attribute_cached(attr, project: &1))
+            )
+
+          attr
+          |> Map.put(:options, options)
+        else
+          attr
+        end
+    end
   end
 
   @doc """
@@ -564,7 +588,7 @@ defmodule Platform.Material.Attribute do
     |> cast(%{}, [])
     |> populate_virtual_data(attribute)
     |> cast_attribute(attribute, attrs)
-    |> validate_attribute(attribute, opts)
+    |> validate_attribute(attribute, media, opts)
     |> cast_and_validate_virtual_explanation(attrs, attribute)
     |> update_from_virtual_data(attribute)
     |> verify_user_can_edit(attribute, user, media)
@@ -738,7 +762,7 @@ defmodule Platform.Material.Attribute do
   Checks whether the given user can edit the given attribute.
   """
   def verify_user_can_edit(changeset, attribute, user, media) do
-    if is_nil(user) || can_user_edit(attribute, user, media) do
+    if is_nil(user) || Permissions.can_edit_media?(user, media, attribute) do
       changeset
     else
       changeset
@@ -882,13 +906,6 @@ defmodule Platform.Material.Attribute do
       end
 
     options =
-      if Attribute.allow_user_defined_options(attribute) and attribute.type == :multi_select do
-        options ++ Material.get_values_of_attribute_cached(attribute)
-      else
-        options
-      end
-
-    options =
       if attribute.add_none do
         [attribute.add_none] ++ options
       else
@@ -910,7 +927,7 @@ defmodule Platform.Material.Attribute do
   * `:required` - whether the attribute is required. Defaults to true.
   * `:allow_invalid_selects` - whether to allow invalid options in multi- and single-selects. Defaults to false.
   """
-  def validate_attribute(changeset, %Attribute{} = attribute, opts \\ []) do
+  def validate_attribute(changeset, %Attribute{} = attribute, %Media{} = media, opts \\ []) do
     user = Keyword.get(opts, :user, nil)
     required = Keyword.get(opts, :required, true)
 
@@ -952,7 +969,7 @@ defmodule Platform.Material.Attribute do
               []
             end
           end)
-          |> validate_privileged_values(attribute, user)
+          |> validate_privileged_values(attribute, user, media)
 
         :select ->
           changeset
@@ -968,7 +985,7 @@ defmodule Platform.Material.Attribute do
               )
             end
           end)
-          |> validate_privileged_values(attribute, user)
+          |> validate_privileged_values(attribute, user, media)
 
         :text ->
           changeset
@@ -1022,12 +1039,17 @@ defmodule Platform.Material.Attribute do
     end
   end
 
-  defp validate_privileged_values(changeset, %Attribute{} = attribute, %User{} = user)
+  defp validate_privileged_values(
+         changeset,
+         %Attribute{} = attribute,
+         %User{} = user,
+         %Media{} = media
+       )
        when is_list(attribute.privileged_values) do
     # Some attributes have values that can only be set by privileged users. This function
     # validates that the values are not set by non-privileged users.
 
-    if Accounts.is_privileged(user) do
+    if Permissions.can_set_restricted_attribute_values?(user, media, attribute) do
       # Changes by a privileged user can do anything
       changeset
     else
@@ -1042,7 +1064,7 @@ defmodule Platform.Material.Attribute do
             changeset
             |> add_error(
               attribute.schema_field,
-              "Only moderators can set the following values: " <>
+              "Only project managers and owners can set the following values: " <>
                 Enum.join(requires_privilege, ", ")
             )
           else
@@ -1054,7 +1076,7 @@ defmodule Platform.Material.Attribute do
             changeset
             |> add_error(
               attribute.schema_field,
-              "Only moderators can set the value to '" <> v <> "'"
+              "Only project managers and owners can set the value to '" <> v <> "'"
             )
           else
             changeset
@@ -1063,7 +1085,7 @@ defmodule Platform.Material.Attribute do
     end
   end
 
-  defp validate_privileged_values(changeset, _attribute, _user) do
+  defp validate_privileged_values(changeset, _attribute, _user, _media) do
     # When attribute and user aren't provided, or there are no privileged values,
     # then there is nothing to validate.
 
@@ -1079,23 +1101,6 @@ defmodule Platform.Material.Attribute do
       |> add_error(hd(attributes).schema_field, "A change is required to post an update.")
     else
       changeset
-    end
-  end
-
-  @doc """
-  Can the given user edit the given attribute for the given media? This also checks
-  whether they are allowed to edit the given media.
-  """
-  def can_user_edit(%Attribute{} = attribute, %User{} = user, %Media{} = media) do
-    user_roles = user.roles || []
-
-    with true <- Media.can_user_edit(media, user) do
-      case attribute.required_roles || [] do
-        [] -> true
-        [hd | tail] -> Enum.any?([hd] ++ tail, &Enum.member?(user_roles, &1))
-      end
-    else
-      _ -> false
     end
   end
 
@@ -1141,7 +1146,7 @@ defmodule Platform.Material.Attribute do
   Checks whether the attribute requires special privileges to edit.
   """
   def requires_privileges_to_edit(%Attribute{} = attr) do
-    is_list(attr.required_roles) and not Enum.empty?(attr.required_roles)
+    attr.is_restricted
   end
 
   @doc """

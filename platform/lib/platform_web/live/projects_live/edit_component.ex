@@ -4,12 +4,13 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
   alias Platform.Projects.ProjectAttribute
   alias Platform.Auditor
   alias Platform.Projects
+  alias Platform.Permissions
 
   def update(assigns, socket) do
     assigns = Map.put_new(assigns, :project, %Projects.Project{})
 
     if not is_nil(assigns.project) and
-         not Projects.can_edit_project?(assigns.current_user, assigns.project) do
+         not Permissions.can_edit_project_metadata?(assigns.current_user, assigns.project) do
       raise PlatformWeb.Errors.Unauthorized, "You do not have permission to edit this project"
     end
 
@@ -52,7 +53,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
   end
 
   def handle_event("delete", _params, socket) do
-    if Projects.can_edit_project?(socket.assigns.current_user, socket.assigns.project) do
+    if Permissions.can_delete_project?(socket.assigns.current_user, socket.assigns.project) do
       Projects.delete_project(socket.assigns.project)
       Auditor.log(:project_deleted, %{project: socket.assigns.project}, socket)
       send(self(), {:project_deleted, nil})
@@ -189,7 +190,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
           @f_attr,
           :type,
           type_mapping()
-          |> Enum.filter(fn {_, v} -> v != :location end)
+          |> Enum.filter(fn {_, v} -> v != :location and v != :date end)
           |> Enum.map(fn {k, v} ->
             [
               key: k,
@@ -409,7 +410,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                   </p>
                 </div>
               <% end %>
-              <%= if ProjectAttribute.does_project_have_default_attributes?(@project) do %>
+              <%= if ProjectAttribute.does_project_have_default_attributes?(@project) and Permissions.can_edit_project_metadata?(@current_user, @project) do %>
                 <div class="rounded-md bg-blue-50 p-4 border-blue-600 border">
                   <div class="flex">
                     <div class="flex-shrink-0">
@@ -423,7 +424,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                   </div>
                 </div>
               <% end %>
-              <fieldset class="flex flex-col">
+              <fieldset class="flex flex-col mb-32">
                 <div class="flow-root">
                   <div class="-mx-4 overflow-x-auto sm:-mx-6 lg:-mx-8">
                     <div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">

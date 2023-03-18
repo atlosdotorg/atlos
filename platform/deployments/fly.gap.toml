@@ -56,6 +56,7 @@ processes = []
     }
   """
   AUTOTAG_USER_INCIDENTS = "[\"Volunteer\"]"
+  RESTRICT_PROJECT_CREATION = "true"
 
 [experimental]
   allowed_public_ports = []

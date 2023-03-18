@@ -2,6 +2,7 @@ defmodule PlatformWeb.UpdatesLive.UpdateFeed do
   use PlatformWeb, :live_component
   alias Platform.Accounts
   alias Platform.Updates
+  alias Platform.Permissions
 
   def update(
         assigns,
@@ -13,10 +14,6 @@ defmodule PlatformWeb.UpdatesLive.UpdateFeed do
      |> assign_new(:show_final_line, fn -> true end)
      |> assign_new(:reverse, fn -> false end)
      |> assign_new(:show_media, fn -> false end)}
-  end
-
-  def can_user_change_visibility(user) do
-    Accounts.is_privileged(user)
   end
 
   defp can_combine(old_update, new_update) do
@@ -56,9 +53,10 @@ defmodule PlatformWeb.UpdatesLive.UpdateFeed do
   end
 
   def handle_event("change_visibility", %{"update" => update_id}, socket) do
-    with true <- can_user_change_visibility(socket.assigns.current_user) do
-      update = Updates.get_update!(update_id)
+    update = Updates.get_update!(update_id)
 
+    with true <-
+           Permissions.can_user_change_update_visibility?(socket.assigns.current_user, update) do
       case Updates.update_update_from_changeset(
              Updates.change_update_visibility(update, !update.hidden)
            ) do
@@ -88,7 +86,7 @@ defmodule PlatformWeb.UpdatesLive.UpdateFeed do
   def render(assigns) do
     to_show =
       assigns.updates
-      |> Enum.filter(&Updates.can_user_view(&1, assigns.current_user))
+      |> Enum.filter(&Permissions.can_view_update?(assigns.current_user, &1))
       |> combine_and_sort_updates(Map.get(assigns, :should_combine, true))
       |> reorder(assigns.reverse)
       |> Enum.with_index()
@@ -99,7 +97,7 @@ defmodule PlatformWeb.UpdatesLive.UpdateFeed do
     <div class="flow-root">
       <ul role="list" class="-mb-8">
         <%= if length(@to_show) == 0 do %>
-          <p class="mb-8 text-gray-600">There are no updates to show.</p>
+          <p class="text-gray-600">There are no recent updates to show.</p>
         <% end %>
         <%= for {update, idx} <- @to_show do %>
           <.update_entry
@@ -107,7 +105,6 @@ defmodule PlatformWeb.UpdatesLive.UpdateFeed do
             current_user={@current_user}
             show_line={idx != length(@to_show) - 1 || @show_final_line}
             show_media={@show_media}
-            can_user_change_visibility={can_user_change_visibility(@current_user)}
             target={@myself}
             socket={@socket}
             left_indicator={:profile}

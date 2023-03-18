@@ -1,4 +1,4 @@
-<article class={"w-full px-4 md:px-8 " <> (if @full_width, do: "mt-8", else: "")}>
+<article class={"w-full min-h-[90vh] px-4 md:px-8 " <> (if @full_width, do: "mt-8", else: "")}>
   <% next_link =
     Routes.live_path(
       @socket,
@@ -17,8 +17,8 @@
       |> Map.put(:ac, nil)
       |> Map.put(:pi, @pagination_index - 1)
     ) %>
-  <div class="relative z-[1000] 2xl:max-w-[1210px] mx-auto h-[5.5rem]">
-    <%= if @selected_ids != [] and Platform.Accounts.is_privileged(@current_user) do %>
+  <div class="relative z-[1000] 2xl:max-w-[1210px] mx-auto h-[9rem]">
+    <%= if @selected_ids != [] do %>
       <div class="mb-4 w-full flex text-sm items-center divide-x border bg-white shadow-sm rounded-lg transition-all">
         <p class="p-4 text-urge-600">
           <span class="font-medium">
@@ -46,29 +46,6 @@
                 phx-click="apply_tag"
                 x-bind:phx-value-tag="tag"
                 x-bind:data-confirm={"\"Are you sure you want to apply the tag \" + tag + \" to the #{length(@selected_ids)} selected incident(s)?\""}
-                x-on:click="open = false; window.topbar.show()"
-                phx-disable-with="Working..."
-              >
-                Apply
-              </button>
-            </div>
-          </.dropdown>
-        </div>
-        <div class="p-4 hover:bg-neutral-50 transition">
-          <.dropdown label="Add to project">
-            <div class="p-4 ts-ignore flex flex-col gap-4" x-data="{project_id: null}">
-              <select x-model="project_id" class="w-full input-base" id="project-select">
-                <option value="">Select a project</option>
-                <%= for project <- @addable_projects do %>
-                  <option value={project.id}><%= project.name %></option>
-                <% end %>
-              </select>
-              <button
-                class="button ~urge @high"
-                x-bind:disabled="project_id == null || project_id == ''"
-                phx-click="apply_project"
-                x-bind:phx-value-project-id="project_id"
-                x-bind:data-confirm={"\"Are you sure you want to add #{length(@selected_ids)} selected incident(s) to this project? Incidents already in a project will not be moved.\""}
                 x-on:click="open = false; window.topbar.show()"
                 phx-disable-with="Working..."
               >
@@ -117,21 +94,27 @@
         socket={@socket}
         current_user={@current_user}
         display={@display}
-      />
+        active_project={@active_project}
+      >
+        <:pagination>
+          <%= if @display != "map" do %>
+            <div class="flex items-center">
+              <div>
+                <.pagination_controls
+                  next_link={next_link}
+                  prev_link={prev_link}
+                  pagination_metadata={@results.metadata}
+                  pagination_index={@pagination_index}
+                  currently_displayed_results={length(@media)}
+                  id="pagination-table"
+                />
+              </div>
+            </div>
+          <% end %>
+        </:pagination>
+      </.search_form>
     <% end %>
   </div>
-  <%= if @pagination_index > 0 and @display == "cards" do %>
-    <div class="text-xs mb-4 w-full">
-      <.pagination_controls
-        next_link={next_link}
-        prev_link={prev_link}
-        pagination_metadata={@results.metadata}
-        pagination_index={@pagination_index}
-        currently_displayed_results={length(@media)}
-        id="pagination-top"
-      />
-    </div>
-  <% end %>
   <section>
     <%= if (not Enum.empty?(@media)) or @display == "map" do %>
       <%= case @display do %>
@@ -155,7 +138,7 @@
           <div class="flex justify-around">
             <%= if Ecto.Changeset.get_change(@changeset, :query) != nil and nongeolocated_length > 0 do %>
               <button
-                class="relative text-sm focus:outline shadow md:-mt-4 z-[1000] bg-white py-2 px-4 rounded-full text-center mx-auto text-neutral-600"
+                class="relative text-sm focus:outline shadow md:-mt-4 z-[10] bg-white py-2 px-4 rounded-full text-center mx-auto text-neutral-600"
                 type="button"
                 x-on:click="document.getElementById('search-form-cards-button').click()"
               >
@@ -166,7 +149,7 @@
               </button>
             <% end %>
             <%= if Enum.empty?(@media) do %>
-              <div class="relative text-sm shadow md:-mt-4 z-[1000] bg-white py-2 px-4 rounded-full text-center mx-auto text-neutral-600">
+              <div class="relative text-sm shadow md:-mt-4 z-[10] bg-white py-2 px-4 rounded-full text-center mx-auto text-neutral-600">
                 No results found
               </div>
             <% end %>
@@ -180,74 +163,92 @@
             <% end %>
           </div>
         <% "table" -> %>
-          <section class="-mx-4 md:-mx-8">
-            <div class="h-[40px] flex md:justify-between items-center w-full text-sm p-2 z-[100]">
-              <div class="text-neutral-600">
-                <.pagination_controls
-                  next_link={next_link}
-                  prev_link={prev_link}
-                  pagination_metadata={@results.metadata}
-                  pagination_index={@pagination_index}
-                  currently_displayed_results={length(@media)}
-                  id="pagination-table"
-                />
-              </div>
-              <%= if is_nil(@active_project) do %>
-                <div class="flex items-center ml-4 md:ml-16 md:mr-8">
-                  <Heroicons.information_circle mini class="h-5 w-5 text-neutral-400" />
-                  <span class="ml-1">
-                    To see project attributes, refine your search to a project.
-                  </span>
-                </div>
-              <% end %>
-            </div>
-            <div class="overflow-x-scroll overflow-y-visible w-full">
-              <div class="inline-block align-middle w-full">
-                <div class="!shadow-inner ring-1 ring-black ring-opacity-5 max-h-[calc(100vh-10rem-8px)] relative w-full mb-2">
-                  <table class="border-separate sticky-headers w-full" style="border-spacing: 0">
-                    <thead class="bg-gray-200 whitespace-nowrap">
-                      <tr>
-                        <th
-                          scope="col"
-                          class="md:sticky left-0 z-[101] top-0 border-b border-t border-neutral-200 bg-neutral-100 px-2 py-3 font-medium text-sm text-left"
+          <%= if is_nil(@active_project) do %>
+            <div class="flex justify-center">
+              <div class="flex flex-col items-center justify-around h-full min-h-[60vh]">
+                <div class="flex flex-col justify-around items-center gap-4">
+                  <Heroicons.squares_2x2 class="h-16 w-16 text-neutral-400" />
+                  <h2 class="text-lg font-medium text-center">Select a project</h2>
+                  <p class="text-sm text-neutral-600 mb-8 text-center">
+                    Every project has a different schema &mdash; select a project to view these incidents in a table.
+                  </p>
+                  <%= if not Enum.empty?(@user_projects) do %>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                      <%= for project <- @user_projects |> Enum.sort_by(& &1.updated_at, {:desc, NaiveDateTime}) do %>
+                        <.link
+                          href={
+                            Routes.live_path(
+                              @socket,
+                              PlatformWeb.MediaLive.Index,
+                              @query_params
+                              |> Map.put(:project_id, project.id)
+                            )
+                          }
+                          replace={true}
                         >
-                          Incident
-                        </th>
-                        <%= for attr <- @attributes do %>
-                          <th
-                            scope="col"
-                            class="md:sticky z-[100] top-0 border-b border-t border-neutral-200 bg-neutral-100 bg-opacity-[95%] px-2 py-3 font-medium text-sm text-left"
-                          >
-                            <%= attr.label %>
-                          </th>
-                        <% end %>
-                        <%= for idx <- 0..@source_cols do %>
-                          <th
-                            scope="col"
-                            class="md:sticky z-[100] top-0 border-b border-t border-neutral-200 bg-neutral-100 bg-opacity-[95%] px-4 py-3 font-medium text-sm text-left"
-                          >
-                            Source <%= idx + 1 %>
-                          </th>
-                        <% end %>
-                      </tr>
-                    </thead>
-                    <tbody class="bg-white" id="table-body">
-                      <div class="top-scroll-anchor"></div>
-                      <%= for media <- @media do %>
-                        <.media_table_row
-                          media={media}
-                          current_user={@current_user}
-                          attributes={@attributes}
-                          source_cols={@source_cols}
-                          is_selected={Enum.member?(@selected_ids, media.id)}
-                        />
+                          <.project_card_inner project={project} />
+                        </.link>
                       <% end %>
-                    </tbody>
-                  </table>
+                    </div>
+                  <% else %>
+                    <p class="italic text-sm text-neutral-600 text-center">
+                      You don't have any projects.
+                    </p>
+                  <% end %>
                 </div>
               </div>
             </div>
-          </section>
+          <% else %>
+            <section class="-mx-4 md:-mx-8">
+              <div class="overflow-x-scroll overflow-y-visible w-full">
+                <div class="inline-block align-middle w-full">
+                  <div class="!shadow-inner ring-1 ring-black ring-opacity-5 max-h-[calc(100vh-11rem)] relative w-full">
+                    <table class="border-separate sticky-headers w-full" style="border-spacing: 0">
+                      <thead class="bg-gray-200 whitespace-nowrap">
+                        <tr>
+                          <th
+                            scope="col"
+                            class="md:sticky left-0 z-[101] top-0 border-b border-t border-neutral-200 bg-neutral-100 px-2 py-3 font-medium text-sm text-left"
+                          >
+                            Incident
+                          </th>
+                          <%= for attr <- @attributes do %>
+                            <th
+                              scope="col"
+                              class="md:sticky z-[100] top-0 border-b border-t border-neutral-200 bg-neutral-100 bg-opacity-[95%] px-2 py-3 font-medium text-sm text-left"
+                            >
+                              <%= attr.label %>
+                            </th>
+                          <% end %>
+                          <%= for idx <- 0..@source_cols do %>
+                            <th
+                              scope="col"
+                              class="md:sticky z-[100] top-0 border-b border-t border-neutral-200 bg-neutral-100 bg-opacity-[95%] px-4 py-3 font-medium text-sm text-left"
+                            >
+                              Source <%= idx + 1 %>
+                            </th>
+                          <% end %>
+                        </tr>
+                      </thead>
+                      <div class="top-scroll-anchor"></div>
+                      <tbody class="bg-white" id="media-list-table-body" phx-update="stream">
+                        <%= for {dom_id, media} <- @streams.media_stream do %>
+                          <.media_table_row
+                            id={dom_id}
+                            media={media}
+                            current_user={@current_user}
+                            attributes={@attributes}
+                            source_cols={@source_cols}
+                            is_selected={Enum.member?(@selected_ids, media.id)}
+                          />
+                        <% end %>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </section>
+          <% end %>
       <% end %>
     <% else %>
       <.no_media_results />
@@ -271,7 +272,7 @@
       id="edit-attribute"
       media={media}
       name={attribute_name}
-      target={@myself}
+      target={@root_pid}
       current_user={@current_user}
     />
   <% end %>

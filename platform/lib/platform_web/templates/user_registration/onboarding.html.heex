@@ -6,14 +6,17 @@
   attr_equipment: ["Munition/Cluster"],
   attr_impact: ["Structure/Transit Station", "Injury/Civilian"],
   attr_geolocation: Geo.WKT.decode!("POINT(-122.1635 37.4200)"),
+  attr_date: ~D[2023-01-01],
   updates: [
     %Platform.Updates.Update{
       type: :create,
-      user: Platform.Accounts.get_auto_account()
+      user: Platform.Accounts.get_auto_account(),
+      inserted_at: DateTime.utc_now()
     },
     %Platform.Updates.Update{
       type: :create,
-      user: @current_user
+      user: @current_user,
+      inserted_at: DateTime.utc_now()
     }
   ],
   updated_at: DateTime.utc_now() |> DateTime.add(-2, :hour),
@@ -112,14 +115,6 @@
             with media, attributes, metadata, and comments.
           </span>
         </p>
-        <div class="relative">
-          <.media_card
-            border={true}
-            link={false}
-            media={example_media}
-            current_user={@current_user}
-          />
-        </div>
         <p class="flex gap-2 sm:gap-4 items-center">
           <span class="text-3xl">📌</span>
           <span>
@@ -262,14 +257,6 @@
             </span>
           </p>
         <% end %>
-        <p class="flex gap-2 sm:gap-4 items-center">
-          <span class="text-3xl">📘</span>
-          <span>
-            Bookmark the
-            <a href="https://atlos.org/guide" class="font-semibold underline">user guide</a>
-            for more info about how to use Atlos. You can also repeat this onboarding by visiting your settings.
-          </span>
-        </p>
         <p class="flex gap-2 sm:gap-4 items-center">
           <span class="text-3xl">✅</span>
           <span>

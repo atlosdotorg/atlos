@@ -9,6 +9,9 @@ defmodule Platform.Projects do
 
   alias Platform.Projects.Project
   alias Platform.Accounts
+  alias Platform.Permissions
+
+  use Memoize
 
   @doc """
   Returns the list of projects.
@@ -24,7 +27,16 @@ defmodule Platform.Projects do
   end
 
   def list_projects_for_user(%Accounts.User{} = user) do
-    list_projects() |> Enum.filter(&can_view_project?(user, &1))
+    get_users_project_memberships(user)
+    |> Enum.sort_by(
+      &if(user.active_project_membership_id == &1.id,
+        do: NaiveDateTime.local_now(),
+        else: &1.updated_at
+      ),
+      {:desc, NaiveDateTime}
+    )
+    |> Enum.map(& &1.project)
+    |> Enum.filter(&Permissions.can_view_project?(user, &1))
   end
 
   @doc """
@@ -60,7 +72,7 @@ defmodule Platform.Projects do
   def get_project(id), do: Repo.get(Project, id)
 
   @doc """
-  Creates a project.
+  Creates a project. If the user is not nil, it will add the user as an owner of the project.
 
   ## Examples
 
@@ -73,14 +85,32 @@ defmodule Platform.Projects do
   """
   def create_project(attrs \\ %{}, user \\ nil) do
     # Verify the user has permission to create
-    unless is_nil(user) || can_create_project?(user) do
+    unless is_nil(user) || Permissions.can_create_project?(user) do
       raise "User does not have permission to create a project"
     end
 
-    %Project{}
-    |> Project.changeset(attrs)
-    |> Ecto.Changeset.put_embed(:attributes, ProjectAttribute.default_attributes())
-    |> Repo.insert()
+    result =
+      %Project{}
+      |> Project.changeset(attrs)
+      |> Ecto.Changeset.put_embed(:attributes, ProjectAttribute.default_attributes())
+      |> Repo.insert()
+
+    # If the user is not nil, add them as an owner of the project
+    case result do
+      {:ok, project} ->
+        if not is_nil(user) do
+          create_project_membership(%{
+            project_id: project.id,
+            username: user.username,
+            role: :owner
+          })
+        end
+
+        {:ok, project}
+
+      {:error, changeset} ->
+        {:error, changeset}
+    end
   end
 
   @doc """
@@ -97,7 +127,7 @@ defmodule Platform.Projects do
   """
   def update_project(%Project{} = project, attrs, user \\ nil) do
     # Verify the user has permission to edit the project
-    unless is_nil(user) || can_edit_project?(user, project) do
+    unless is_nil(user) || Permissions.can_edit_project_metadata?(user, project) do
       raise "User does not have permission to edit this project"
     end
 
@@ -135,7 +165,7 @@ defmodule Platform.Projects do
   """
   def delete_project_attribute(%Project{} = project, id, user \\ nil) do
     # Verify the user has permission to edit the project
-    unless is_nil(user) || can_edit_project?(user, project) do
+    unless is_nil(user) || Permissions.can_edit_project_metadata?(user, project) do
       raise "User does not have permission to edit this project"
     end
 
@@ -171,35 +201,6 @@ defmodule Platform.Projects do
   """
   def change_project(%Project{} = project, attrs \\ %{}) do
     Project.changeset(project, attrs)
-  end
-
-  @doc """
-  Returns whether the given user can edit a project's media.
-  """
-  def can_edit_media?(%Accounts.User{} = _user, %Project{} = _project) do
-    # TODO: Eventually we will handle permissions on a per-project basis.
-    true
-  end
-
-  @doc """
-  Returns whether the given user can edit a project.
-  """
-  def can_edit_project?(%Accounts.User{} = user, %Project{} = _project) do
-    Accounts.is_privileged(user)
-  end
-
-  @doc """
-  Returns whether the given user create a new project.
-  """
-  def can_create_project?(%Accounts.User{} = user) do
-    Accounts.is_privileged(user)
-  end
-
-  @doc """
-  Returns whether the given user can view the project.
-  """
-  def can_view_project?(%Accounts.User{} = _user, %Project{} = _project) do
-    true
   end
 
   alias Platform.Projects.ProjectMembership
@@ -240,12 +241,42 @@ defmodule Platform.Projects do
     do: Repo.get!(ProjectMembership |> preload_project_memberships(), id)
 
   @doc """
+  Gets a single project_membership by the user and project.
+  """
+  def get_project_membership_by_user_and_project(%Accounts.User{} = user, %Project{} = project),
+    do: get_project_membership_by_user_and_project_id(user, project.id)
+
+  def get_project_membership_by_user_and_project(_, _), do: nil
+
+  def get_project_membership_by_user_and_project_id(_, nil), do: nil
+
+  def get_project_membership_by_user_and_project_id(%Accounts.User{} = user, project_id) do
+    get_project_membership_by_user_id_and_project_id(user.id, project_id)
+  end
+
+  defmemo get_project_membership_by_user_id_and_project_id(user_id, project_id), expires_in: 1000 do
+    if Accounts.get_auto_account().id == user_id do
+      %ProjectMembership{
+        user_id: user_id,
+        project_id: project_id,
+        role: :manager
+      }
+    else
+      Repo.get_by(ProjectMembership |> preload_project_memberships(),
+        user_id: user_id,
+        project_id: project_id
+      )
+    end
+  end
+
+  @doc """
   Gets the project relationships for a given project.
   """
   def get_project_memberships(%Project{} = project) do
     Repo.all(
-      from pm in (ProjectMembership |> preload_project_memberships()),
+      from(pm in (ProjectMembership |> preload_project_memberships()),
         where: pm.project_id == ^project.id
+      )
     )
   end
 
@@ -254,8 +285,9 @@ defmodule Platform.Projects do
   """
   def get_users_project_memberships(%Accounts.User{} = user) do
     Repo.all(
-      from pm in (ProjectMembership |> preload_project_memberships()),
+      from(pm in (ProjectMembership |> preload_project_memberships()),
         where: pm.user_id == ^user.id
+      )
     )
   end
 
@@ -282,6 +314,18 @@ defmodule Platform.Projects do
   end
 
   @doc """
+  Get the users for a project.
+  """
+  def get_project_users(%Project{} = project) do
+    Repo.all(
+      from(pm in (ProjectMembership |> preload_project_memberships()),
+        where: pm.project_id == ^project.id
+      )
+    )
+    |> Enum.map(fn pm -> pm.user end)
+  end
+
+  @doc """
   Updates a project_membership.
 
   ## Examples
@@ -293,9 +337,9 @@ defmodule Platform.Projects do
       {:error, %Ecto.Changeset{}}
 
   """
-  def update_project_membership(%ProjectMembership{} = project_membership, attrs) do
+  def update_project_membership(%ProjectMembership{} = project_membership, attrs, opts \\ []) do
     project_membership
-    |> ProjectMembership.changeset(attrs)
+    |> ProjectMembership.changeset(attrs, opts)
     |> Repo.update()
     |> case do
       {:ok, val} -> {:ok, Repo.preload(val, [:user, :project])}
@@ -328,7 +372,11 @@ defmodule Platform.Projects do
       %Ecto.Changeset{data: %ProjectMembership{}}
 
   """
-  def change_project_membership(%ProjectMembership{} = project_membership, attrs \\ %{}) do
-    ProjectMembership.changeset(project_membership, attrs)
+  def change_project_membership(
+        %ProjectMembership{} = project_membership,
+        attrs \\ %{},
+        opts \\ []
+      ) do
+    ProjectMembership.changeset(project_membership, attrs, opts)
   end
 end
