@@ -308,11 +308,16 @@ defmodule PlatformWeb.Components do
           </.navlink>
 
           <.navlink
-            to={if String.starts_with?(@path, "/incidents"), do: "/incidents", else: Routes.live_path(
-            @endpoint,
-            PlatformWeb.MediaLive.Index,
-            Accounts.active_incidents_params(@current_user)
-          )}
+            to={
+              if String.starts_with?(@path, "/incidents"),
+                do: "/incidents",
+                else:
+                  Routes.live_path(
+                    @endpoint,
+                    PlatformWeb.MediaLive.Index,
+                    Accounts.active_incidents_params(@current_user)
+                  )
+            }
             label="Incidents"
             request_path={@path}
           >
@@ -1722,7 +1727,7 @@ defmodule PlatformWeb.Components do
         Note that media at this URL has already been uploaded. While you can still upload the media, take care to ensure it is not a duplicate.
       </p>
       <div class="grid grid-cols-1 gap-4 mt-4">
-        <%= for dupe <- @duplicates do %>
+        <%= for dupe <- @duplicates |> Enum.filter(& Permissions.can_view_media?(@current_user, &1)) do %>
           <div data-confirm="Open the incident in a new tab? Your current upload won't be affected.">
             <.media_card media={dupe} current_user={@current_user} target="_blank" />
           </div>
@@ -1738,7 +1743,15 @@ defmodule PlatformWeb.Components do
   def multi_deconfliction_warning(%{url_media_pairs: pairs, current_user: _} = assigns) do
     assigns =
       assigns
-      |> assign(:has_dupes, Enum.any?(pairs, fn {_url, media} -> not Enum.empty?(media) end))
+      |> assign(
+        :has_dupes,
+        Enum.any?(pairs, fn {_url, media} ->
+          not Enum.empty?(
+            media
+            |> Enum.filter(&Permissions.can_view_media?(assigns.current_user, &1))
+          )
+        end)
+      )
 
     ~H"""
     <div>
@@ -1746,15 +1759,16 @@ defmodule PlatformWeb.Components do
         <div class="rounded-md bg-yellow-50 px-4 py-3 border-yellow-300 border">
           <div class="grid grid-cols-1 gap-8">
             <%= for {url, dupes} <- @url_media_pairs do %>
-              <%= if not Enum.empty?(dupes) do %>
+              <% media = Enum.filter(dupes, &Permissions.can_view_media?(@current_user, &1)) %>
+              <%= if not Enum.empty?(media) do %>
                 <div>
                   <div class="text-yellow-800 text-sm">
                     <.url_icon url={url} class="h-4 w-4 inline mb-px" />
                     <a href={url} target="_blank" class="font-medium"><%= url %></a>
-                    has already been added to Atlos
+                    has already been added to Atlos. While you can still add it, take care to ensure it is not a duplicate.
                   </div>
                   <div class="grid grid-cols-1 gap-4 mt-2">
-                    <%= for dupe <- dupes do %>
+                    <%= for dupe <- media do %>
                       <div data-confirm="Open the incident in a new tab? Your current tab won't be affected.">
                         <.media_card media={dupe} current_user={@current_user} target="_blank" />
                       </div>
@@ -2192,13 +2206,13 @@ defmodule PlatformWeb.Components do
                       <span class="sr-only">Export Incidents</span>
                     <% end %>
                     <.link
-                        patch="/incidents"
-                        class="rounded-full flex items-center align-center text-gray-600 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-urge-500"
-                        role="menuitem"
-                        data-tooltip="Reset Filters"
-                      >
-                        <Heroicons.x_mark mini class="h-6 w-6" />
-                        <span class="sr-only">Reset Filters</span>
+                      patch="/incidents"
+                      class="rounded-full flex items-center align-center text-gray-600 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-urge-500"
+                      role="menuitem"
+                      data-tooltip="Reset Filters"
+                    >
+                      <Heroicons.x_mark mini class="h-6 w-6" />
+                      <span class="sr-only">Reset Filters</span>
                     </.link>
                   </div>
                 </div>
@@ -2213,10 +2227,26 @@ defmodule PlatformWeb.Components do
               <div class={if Enum.member?(@exclude, :filters), do: "hidden", else: ""}>
                 <div class="relative flex flex-wrap items-center h-full gap-2">
                   <.attr_filter id="status_filter" form={f} attr={Attribute.get_attribute(:status)} />
-                  <.attr_filter id="geolocation_filter" form={f} attr={Attribute.get_attribute(:geolocation)} />
+                  <.attr_filter
+                    id="geolocation_filter"
+                    form={f}
+                    attr={Attribute.get_attribute(:geolocation)}
+                  />
                   <.attr_filter id="date_filter" form={f} attr={Attribute.get_attribute(:date)} />
-                  <.attr_filter id="tags_filter" form={f} attr={Attribute.get_attribute(:tags, projects: Platform.Projects.list_projects_for_user(@current_user))} />
-                  <.attr_filter id="sensitive_filter" form={f} attr={Attribute.get_attribute(:sensitive)} />
+                  <.attr_filter
+                    id="tags_filter"
+                    form={f}
+                    attr={
+                      Attribute.get_attribute(:tags,
+                        projects: Platform.Projects.list_projects_for_user(@current_user)
+                      )
+                    }
+                  />
+                  <.attr_filter
+                    id="sensitive_filter"
+                    form={f}
+                    attr={Attribute.get_attribute(:sensitive)}
+                  />
                 </div>
               </div>
             </div>
