@@ -431,14 +431,18 @@ function initializeMaps() {
 
 let _searchHighlighter = null;
 function applySearchHighlighting() {
-    if (_searchHighlighter !== null) {
-        _searchHighlighter.unmark();
-    }
-    let query = new URLSearchParams(window.location.search).get("query");
-    if (query !== null) {
-        _searchHighlighter = new Mark(document.querySelectorAll(".search-highlighting"), { accuracy: "exactly" });
-        _searchHighlighter.mark(query)
-    }
+    setTimeout(() => {
+        console.log("Applying search highlighting...")
+        if (_searchHighlighter !== null) {
+            _searchHighlighter.unmark();
+        }
+        let query = new URLSearchParams(window.location.search).get("query");
+        console.log("Query is " + query)
+        if (query !== null) {
+            _searchHighlighter = new Mark(document.querySelectorAll(".search-highlighting"), { accuracy: "exactly" });
+            _searchHighlighter.mark(query)
+        }
+    }, 25);
 }
 
 function applyVegaCharts() {

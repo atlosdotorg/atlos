@@ -174,15 +174,18 @@
                   </p>
                   <%= if not Enum.empty?(@user_projects) do %>
                     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                      <%= for project <- @user_projects do %>
-                        <.link patch={
-                          Routes.live_path(
-                            @socket,
-                            PlatformWeb.MediaLive.Index,
-                            @query_params
-                            |> Map.put(:project_id, project.id)
-                          )
-                        }>
+                      <%= for project <- @user_projects |> Enum.sort_by(& &1.updated_at, {:desc, NaiveDateTime}) do %>
+                        <.link
+                          href={
+                            Routes.live_path(
+                              @socket,
+                              PlatformWeb.MediaLive.Index,
+                              @query_params
+                              |> Map.put(:project_id, project.id)
+                            )
+                          }
+                          replace={true}
+                        >
                           <.project_card_inner project={project} />
                         </.link>
                       <% end %>
@@ -227,17 +230,18 @@
                           <% end %>
                         </tr>
                       </thead>
-                      <tbody class="bg-white" id="table-body" phx-update="stream">
-                        <div class="top-scroll-anchor"></div>
-                        <.media_table_row
-                          :for={{dom_id, media} <- @streams.media_stream}
-                          id={dom_id}
-                          media={media}
-                          current_user={@current_user}
-                          attributes={@attributes}
-                          source_cols={@source_cols}
-                          is_selected={Enum.member?(@selected_ids, media.id)}
-                        />
+                      <div class="top-scroll-anchor"></div>
+                      <tbody class="bg-white" id="media-list-table-body" phx-update="stream">
+                        <%= for {dom_id, media} <- @streams.media_stream do %>
+                          <.media_table_row
+                            id={dom_id}
+                            media={media}
+                            current_user={@current_user}
+                            attributes={@attributes}
+                            source_cols={@source_cols}
+                            is_selected={Enum.member?(@selected_ids, media.id)}
+                          />
+                        <% end %>
                       </tbody>
                     </table>
                   </div>

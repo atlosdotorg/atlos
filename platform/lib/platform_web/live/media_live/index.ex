@@ -113,6 +113,8 @@ defmodule PlatformWeb.MediaLive.Index do
   end
 
   defp assign_media(socket, media) do
+    IO.puts("Assigning media: length is #{Enum.count(media)}")
+
     existing_media = Map.get(socket.assigns, :media, [])
 
     socket
@@ -255,7 +257,9 @@ defmodule PlatformWeb.MediaLive.Index do
       |> Map.delete("ac")
       |> Map.delete("pi")
 
-    {:noreply, socket |> push_patch(to: Routes.live_path(socket, __MODULE__, merged_params))}
+    {:noreply,
+     socket
+     |> push_redirect(to: Routes.live_path(socket, __MODULE__, merged_params), replace: true)}
   end
 
   def handle_event(
