@@ -52,10 +52,13 @@ defmodule Platform.Workers.Archiver do
 
   @impl Oban.Worker
   def perform(%Oban.Job{args: %{"media_version_id" => id} = args}) do
+    Logger.info("Archiving media version #{id}...")
     version = Material.get_media_version!(id)
 
     with %MediaVersion{status: :pending, media_id: media_id} <- version do
       media = Material.get_media!(media_id)
+
+      Logger.info("Archiving media version #{id}... (got media #{media_id})")
 
       hide_version_on_failure = Map.get(args, "hide_version_on_failure", false)
 
@@ -75,15 +78,25 @@ defmodule Platform.Workers.Archiver do
           # Download the media (either from S3 for user-provided files, from the original source, or, if we're cloning from an existing media version, then from that media version)
           case version.upload_type do
             :user_provided ->
+              Logger.info("Archiving media version #{id}... (downloading from S3)")
+
               # If we're merging, grab the original version from the source rather than from the given media version
               url =
                 case Map.get(args, "clone_from_media_version_id") do
                   nil ->
+                    Logger.info(
+                      "Archiving media version #{id}... (downloading from S3) (not cloning)"
+                    )
+
                     Uploads.OriginalMediaVersion.url({version.file_location, media},
                       signed: true
                     )
 
                   id ->
+                    Logger.info(
+                      "Archiving media version #{id}... (downloading from S3) (cloning from #{id})"
+                    )
+
                     source_version = Material.get_media_version!(id)
 
                     Uploads.OriginalMediaVersion.url(
@@ -92,6 +105,8 @@ defmodule Platform.Workers.Archiver do
                       signed: true
                     )
                 end
+
+              Logger.info("Archiving media version #{id}... (downloading from S3) (url: #{url})")
 
               {_, 0} = download_file(url, Path.join(temp_dir, version.file_location))
 
@@ -105,6 +120,10 @@ defmodule Platform.Workers.Archiver do
           file_path = Path.join(temp_dir, file_name)
           mime = MIME.from_path(file_path)
 
+          Logger.info(
+            "Archiving media version #{id}... (got file #{file_name} with mime #{mime})"
+          )
+
           # Process + upload it (only store original if upload_type is direct/not user provided, *or* we're cloning)
           {:ok, identifier, duration, size, hash} =
             process_uploaded_media(
@@ -115,6 +134,10 @@ defmodule Platform.Workers.Archiver do
               version.upload_type == :direct or
                 not is_nil(Map.get(args, "clone_from_media_version_id"))
             )
+
+          Logger.info(
+            "Got identifier #{identifier}, duration #{duration}, size #{size}, hash #{hash}"
+          )
 
           # Update the media version to reflect the change
           {:ok, new_version} =
@@ -185,7 +208,7 @@ defmodule Platform.Workers.Archiver do
 
     hash = hash_sha256_file(path)
 
-    {duration, _} = Integer.parse(out_data["duration"])
+    {duration, _} = Integer.parse(out_data["duration"] || "0")
     {size, _} = Integer.parse(out_data["size"])
 
     # Upload to cloud storage
