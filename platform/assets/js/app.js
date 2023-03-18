@@ -176,7 +176,6 @@ function initializeSmartSelects() {
     // Make smart-selects interactive
     document.querySelectorAll("select:not(.ts-ignore *)").forEach(s => {
         if (s.tomselect) {
-            console.log("Already initialized", s)
             return;
         }
 
