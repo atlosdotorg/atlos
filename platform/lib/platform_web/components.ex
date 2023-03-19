@@ -1974,7 +1974,19 @@ defmodule PlatformWeb.Components do
         >
           <% version = Enum.at(@versions, idx) %>
           <%= if not is_nil(version) do %>
-            <.popover class="inline">
+            <div class="text-sm flex items-center text-gray-900 px-4 whitespace-nowrap text-ellipsis overflow-hidden h-6 w-[12rem]">
+              <a
+                href={version.source_url}
+                target="_blank"
+                rel="nofollow"
+                class="truncate"
+                data-confirm="This will open the source media in a new tab. Are you sure?"
+              >
+                <.url_icon url={version.source_url} class="h-4 w-4 inline mb-px" />
+                <%= version.source_url %>
+              </a>
+            </div>
+            <%!-- <.popover class="inline">
               <div class="text-sm flex items-center text-gray-900 px-4 whitespace-nowrap text-ellipsis overflow-hidden h-6 w-[12rem]">
                 <a
                   href={version.source_url}
@@ -1998,7 +2010,7 @@ defmodule PlatformWeb.Components do
                   />
                 </div>
               </:display>
-            </.popover>
+            </.popover> --%>
           <% else %>
             <span class="text-neutral-400 px-4">
               &mdash;
@@ -2165,7 +2177,7 @@ defmodule PlatformWeb.Components do
                   ) %>
                   <%= text_input(f, :query,
                     placeholder: "Search for anything...",
-                    phx_debounce: "1000",
+                    phx_debounce: "250",
                     id: "search-form-query-input",
                     class:
                       "block w-full border-0 p-0 bg-transparent text-gray-900 placeholder-gray-500 focus:ring-0 sm:text-sm"
