@@ -542,14 +542,11 @@ defmodule Platform.Material.Attribute do
 
         if not Enum.empty?(projects) and allow_user_defined_options(attr) and
              attr.type == :multi_select do
-          options =
-            List.flatten(
-              projects
-              |> Enum.map(&Material.get_values_of_attribute_cached(attr, project: &1))
-            )
-
-          attr
-          |> Map.put(:options, options)
+          Map.put(
+            attr,
+            :options,
+            Material.get_values_of_attribute_cached(attr, projects: projects)
+          )
         else
           attr
         end

@@ -1961,7 +1961,7 @@ defmodule PlatformWeb.Components do
       <% end %>
       <% versions =
         @media.versions
-        |> Enum.filter(&Permissions.can_view_media_version?(@current_user, &1)) %>
+        |> Enum.filter(&(&1.visibility == :visible)) %>
       <%= for idx <- 0..@source_cols do %>
         <td
           class="border-b cursor-pointer p-0"
@@ -2576,6 +2576,10 @@ defmodule PlatformWeb.Components do
       |> assign(:should_blur_js_bool, if(Media.is_graphic(media), do: "true", else: "false"))
       # Whether to show controls for hiding, adding media (requires that the caller be able to handle the events)
       |> assign(:show_controls, Map.get(assigns, :show_controls, true))
+      |> assign(:loc, Material.media_version_location(version, media))
+      |> assign(:thumbnail, Material.media_version_location(version, media, :thumb))
+      |> assign(:media_id, "version-#{version.id}-media")
+      |> assign(:human_name, Material.get_human_readable_media_version_name(media, version))
 
     ~H"""
     <section
@@ -2583,30 +2587,27 @@ defmodule PlatformWeb.Components do
       class="py-2 target:outline outline-2 outline-urge-600 rounded outline-offset-2"
       x-data={"{grayscale: true, hidden: #{@should_blur_js_bool}}"}
     >
-      <% loc = Material.media_version_location(@version, @media) %>
-      <% thumbnail = Material.media_version_location(@version, @media, :thumb) %>
-      <% media_id = "version-#{@version.id}-media" %>
       <span class="font-mono text-sm">
-        <%= Material.get_human_readable_media_version_name(@media, @version) %>
+        <%= @human_name %>
       </span>
       <div class="relative">
         <%= if @media_to_show do %>
-          <div id={media_id} class="min-h-[10rem] p-1 z-[1]">
+          <div id={@media_id} class="min-h-[10rem] p-1 z-[1]">
             <div x-bind:class="grayscale ? 'grayscale' : ''">
               <%= if String.starts_with?(@version.mime_type, "image/") do %>
                 <%= if @dynamic_src do %>
-                  <dynamic tag="img" src={loc} class="w-full" />
+                  <dynamic tag="img" src={@loc} class="w-full" />
                 <% else %>
-                  <img src={loc} class="w-full" />
+                  <img src={@loc} class="w-full" />
                 <% end %>
               <% else %>
                 <%= if @dynamic_src do %>
                   <video controls preload="auto" muted>
-                    <dynamic tag="source" src={loc} class="w-full" />
+                    <dynamic tag="source" src={@loc} class="w-full" />
                   </video>
                 <% else %>
-                  <video controls preload="auto" poster={thumbnail} muted>
-                    <source src={loc} class="w-full" />
+                  <video controls preload="auto" poster={@thumbnail} muted>
+                    <source src={@loc} class="w-full" />
                   </video>
                 <% end %>
               <% end %>
@@ -2825,7 +2826,7 @@ defmodule PlatformWeb.Components do
                     </a>
                     <a
                       target="_blank"
-                      href={loc}
+                      href={@loc}
                       rel="nofollow"
                       role="menuitem"
                       title="Download"
@@ -2945,7 +2946,7 @@ defmodule PlatformWeb.Components do
                       Unminimize
                     </button>
                   <% end %>
-                  <%= if Platform.Permissions.can_change_media_version_visibility?(@current_user, @version) and @show_controls do %>
+                  <%= if @show_controls and Platform.Permissions.can_change_media_version_visibility?(@current_user, @version) do %>
                     <button
                       type="button"
                       data-confirm="Are you sure you want to change the visibility of this media?"
@@ -3252,7 +3253,7 @@ defmodule PlatformWeb.Components do
     """
   end
 
-  defp user_name_display(%{user: %Accounts.User{}} = assigns) do
+  defp user_name_display(assigns) do
     ~H"""
     <a
       class="font-medium text-gray-900 hover:text-urge-600 inline-flex gap-1 flex-wrap"

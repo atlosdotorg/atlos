@@ -36,7 +36,6 @@ defmodule Platform.Projects do
       {:desc, NaiveDateTime}
     )
     |> Enum.map(& &1.project)
-    |> Enum.filter(&Permissions.can_view_project?(user, &1))
   end
 
   @doc """
@@ -254,7 +253,7 @@ defmodule Platform.Projects do
     get_project_membership_by_user_id_and_project_id(user.id, project_id)
   end
 
-  defmemo get_project_membership_by_user_id_and_project_id(user_id, project_id), expires_in: 1000 do
+  defmemo get_project_membership_by_user_id_and_project_id(user_id, project_id), expires_in: 5000 do
     if Accounts.get_auto_account().id == user_id do
       %ProjectMembership{
         user_id: user_id,

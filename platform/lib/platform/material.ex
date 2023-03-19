@@ -1129,12 +1129,12 @@ defmodule Platform.Material do
   Get the unique values of the given attribute across *all* media. Will hit the database.
   """
   def get_values_of_attribute(%Attribute{type: :multi_select} = attribute, opts \\ []) do
-    project = Keyword.get(opts, :project)
+    projects = Keyword.get(opts, :projects)
 
     Media
     |> then(fn query ->
-      if project do
-        from(m in query, where: m.project_id == ^project.id)
+      if projects do
+        from(m in query, where: m.project_id in ^Enum.map(projects, & &1.id))
       else
         query
       end
