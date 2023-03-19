@@ -232,10 +232,10 @@
                       </thead>
                       <div class="top-scroll-anchor"></div>
                       <tbody class="bg-white" id="media-list-table-body" phx-update="stream">
-                        <%= for {dom_id, media} <- @streams.media_stream do %>
+                        <%= for media <- @media do %>
                           <.media_table_row
-                            id={dom_id}
                             media={media}
+                            id={"incident-row-#{media.slug}"}
                             current_user={@current_user}
                             attributes={@attributes}
                             source_cols={@source_cols}

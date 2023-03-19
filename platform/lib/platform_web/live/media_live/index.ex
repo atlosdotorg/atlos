@@ -259,7 +259,7 @@ defmodule PlatformWeb.MediaLive.Index do
 
     {:noreply,
      socket
-     |> push_redirect(to: Routes.live_path(socket, __MODULE__, merged_params), replace: true)}
+     |> push_patch(to: Routes.live_path(socket, __MODULE__, merged_params), replace: true)}
   end
 
   def handle_event(

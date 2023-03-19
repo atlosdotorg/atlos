@@ -13,7 +13,7 @@ defmodule PlatformWeb.ProjectsLive.MembersComponent do
      |> assign(
        :memberships,
        Projects.get_project_memberships(assigns.project)
-       |> Enum.sort_by(&if &1.user_id == assigns.current_user.id, do: 0, else: 1)
+       |> Enum.sort_by(& &1.user.username)
      )
      |> assign(:changeset, nil)
      |> assign(:editing, nil)

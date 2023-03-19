@@ -1839,6 +1839,14 @@ defmodule PlatformWeb.Components do
   end
 
   def media_table_row(%{media: _, current_user: _, attributes: _, source_cols: _} = assigns) do
+    assigns =
+      assigns
+      |> Map.put(
+        :versions,
+        assigns.media.versions
+        |> Enum.filter(&(&1.visibility == :visible))
+      )
+
     ~H"""
     <% is_subscribed = @media.has_subscription %>
     <% has_unread_notification = @media.has_unread_notification %>
@@ -1959,17 +1967,26 @@ defmodule PlatformWeb.Components do
           </div>
         </td>
       <% end %>
-      <% versions =
-        @media.versions
-        |> Enum.filter(&Permissions.can_view_media_version?(@current_user, &1)) %>
       <%= for idx <- 0..@source_cols do %>
         <td
           class="border-b cursor-pointer p-0"
           id={"table-row-" <> @media.slug <> "-source-" <> to_string(idx)}
         >
-          <% version = Enum.at(versions, idx) %>
+          <% version = Enum.at(@versions, idx) %>
           <%= if not is_nil(version) do %>
-            <.popover class="inline">
+            <div class="text-sm flex items-center text-gray-900 px-4 whitespace-nowrap text-ellipsis overflow-hidden h-6 w-[12rem]">
+              <a
+                href={version.source_url}
+                target="_blank"
+                rel="nofollow"
+                class="truncate"
+                data-confirm="This will open the source media in a new tab. Are you sure?"
+              >
+                <.url_icon url={version.source_url} class="h-4 w-4 inline mb-px" />
+                <%= version.source_url %>
+              </a>
+            </div>
+            <%!-- <.popover class="inline">
               <div class="text-sm flex items-center text-gray-900 px-4 whitespace-nowrap text-ellipsis overflow-hidden h-6 w-[12rem]">
                 <a
                   href={version.source_url}
@@ -1993,7 +2010,7 @@ defmodule PlatformWeb.Components do
                   />
                 </div>
               </:display>
-            </.popover>
+            </.popover> --%>
           <% else %>
             <span class="text-neutral-400 px-4">
               &mdash;
@@ -2162,6 +2179,7 @@ defmodule PlatformWeb.Components do
                     placeholder: "Search for anything...",
                     phx_debounce: "1000",
                     id: "search-form-query-input",
+                    "x-on:keydown.enter": "window.triggerSubmitEvent($event.target)",
                     class:
                       "block w-full border-0 p-0 bg-transparent text-gray-900 placeholder-gray-500 focus:ring-0 sm:text-sm"
                   ) %>
@@ -2576,6 +2594,10 @@ defmodule PlatformWeb.Components do
       |> assign(:should_blur_js_bool, if(Media.is_graphic(media), do: "true", else: "false"))
       # Whether to show controls for hiding, adding media (requires that the caller be able to handle the events)
       |> assign(:show_controls, Map.get(assigns, :show_controls, true))
+      |> assign(:loc, Material.media_version_location(version, media))
+      |> assign(:thumbnail, Material.media_version_location(version, media, :thumb))
+      |> assign(:media_id, "version-#{version.id}-media")
+      |> assign(:human_name, Material.get_human_readable_media_version_name(media, version))
 
     ~H"""
     <section
@@ -2583,30 +2605,27 @@ defmodule PlatformWeb.Components do
       class="py-2 target:outline outline-2 outline-urge-600 rounded outline-offset-2"
       x-data={"{grayscale: true, hidden: #{@should_blur_js_bool}}"}
     >
-      <% loc = Material.media_version_location(@version, @media) %>
-      <% thumbnail = Material.media_version_location(@version, @media, :thumb) %>
-      <% media_id = "version-#{@version.id}-media" %>
       <span class="font-mono text-sm">
-        <%= Material.get_human_readable_media_version_name(@media, @version) %>
+        <%= @human_name %>
       </span>
       <div class="relative">
         <%= if @media_to_show do %>
-          <div id={media_id} class="min-h-[10rem] p-1 z-[1]">
+          <div id={@media_id} class="min-h-[10rem] p-1 z-[1]">
             <div x-bind:class="grayscale ? 'grayscale' : ''">
               <%= if String.starts_with?(@version.mime_type, "image/") do %>
                 <%= if @dynamic_src do %>
-                  <dynamic tag="img" src={loc} class="w-full" />
+                  <dynamic tag="img" src={@loc} class="w-full" />
                 <% else %>
-                  <img src={loc} class="w-full" />
+                  <img src={@loc} class="w-full" />
                 <% end %>
               <% else %>
                 <%= if @dynamic_src do %>
                   <video controls preload="auto" muted>
-                    <dynamic tag="source" src={loc} class="w-full" />
+                    <dynamic tag="source" src={@loc} class="w-full" />
                   </video>
                 <% else %>
-                  <video controls preload="auto" poster={thumbnail} muted>
-                    <source src={loc} class="w-full" />
+                  <video controls preload="auto" poster={@thumbnail} muted>
+                    <source src={@loc} class="w-full" />
                   </video>
                 <% end %>
               <% end %>
@@ -2825,7 +2844,7 @@ defmodule PlatformWeb.Components do
                     </a>
                     <a
                       target="_blank"
-                      href={loc}
+                      href={@loc}
                       rel="nofollow"
                       role="menuitem"
                       title="Download"
@@ -2945,7 +2964,7 @@ defmodule PlatformWeb.Components do
                       Unminimize
                     </button>
                   <% end %>
-                  <%= if Platform.Permissions.can_change_media_version_visibility?(@current_user, @version) and @show_controls do %>
+                  <%= if @show_controls and Platform.Permissions.can_change_media_version_visibility?(@current_user, @version) do %>
                     <button
                       type="button"
                       data-confirm="Are you sure you want to change the visibility of this media?"
@@ -3252,7 +3271,7 @@ defmodule PlatformWeb.Components do
     """
   end
 
-  defp user_name_display(%{user: %Accounts.User{}} = assigns) do
+  defp user_name_display(assigns) do
     ~H"""
     <a
       class="font-medium text-gray-900 hover:text-urge-600 inline-flex gap-1 flex-wrap"

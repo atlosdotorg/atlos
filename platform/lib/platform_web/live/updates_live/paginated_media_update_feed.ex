@@ -105,15 +105,15 @@ defmodule PlatformWeb.UpdatesLive.PaginatedMediaUpdateFeed do
       <% end %>
       <div class="mx-auto mt-4 mb-8 text-center text-xs">
         <%= if @additional_results_available do %>
-          <div
-            phx-hook="InfiniteScroll"
+          <button
             id="feed-load-more"
-            data-page={@pagination_index}
+            phx-click="load_more"
             phx-target={@myself}
-            class="flex items-center justify-around"
+            class="text-button"
+            phx-disable-with="Loading..."
           >
-            <.loading_spinner />
-          </div>
+            Load More
+          </button>
         <% end %>
       </div>
     </div>
