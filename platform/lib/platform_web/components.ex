@@ -2177,8 +2177,9 @@ defmodule PlatformWeb.Components do
                   ) %>
                   <%= text_input(f, :query,
                     placeholder: "Search for anything...",
-                    phx_debounce: "250",
+                    phx_debounce: "1000",
                     id: "search-form-query-input",
+                    "x-on:keydown.enter": "window.triggerSubmitEvent($event.target)",
                     class:
                       "block w-full border-0 p-0 bg-transparent text-gray-900 placeholder-gray-500 focus:ring-0 sm:text-sm"
                   ) %>
