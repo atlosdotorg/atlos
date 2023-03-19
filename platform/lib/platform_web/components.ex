@@ -1839,6 +1839,14 @@ defmodule PlatformWeb.Components do
   end
 
   def media_table_row(%{media: _, current_user: _, attributes: _, source_cols: _} = assigns) do
+    assigns =
+      assigns
+      |> Map.put(
+        :versions,
+        assigns.media.versions
+        |> Enum.filter(&(&1.visibility == :visible))
+      )
+
     ~H"""
     <% is_subscribed = @media.has_subscription %>
     <% has_unread_notification = @media.has_unread_notification %>
@@ -1959,15 +1967,12 @@ defmodule PlatformWeb.Components do
           </div>
         </td>
       <% end %>
-      <% versions =
-        @media.versions
-        |> Enum.filter(&(&1.visibility == :visible)) %>
       <%= for idx <- 0..@source_cols do %>
         <td
           class="border-b cursor-pointer p-0"
           id={"table-row-" <> @media.slug <> "-source-" <> to_string(idx)}
         >
-          <% version = Enum.at(versions, idx) %>
+          <% version = Enum.at(@versions, idx) %>
           <%= if not is_nil(version) do %>
             <.popover class="inline">
               <div class="text-sm flex items-center text-gray-900 px-4 whitespace-nowrap text-ellipsis overflow-hidden h-6 w-[12rem]">
