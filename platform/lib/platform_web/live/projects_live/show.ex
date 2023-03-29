@@ -206,7 +206,7 @@ defmodule PlatformWeb.ProjectsLive.Show do
                     <.link
                       href={
                         Routes.live_path(@socket, PlatformWeb.MediaLive.Index, %{
-                          attr_status: status,
+                          attr_status: [status],
                           project_id: @project.id,
                           display: :cards
                         })
