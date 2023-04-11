@@ -13,7 +13,8 @@ defmodule PlatformWeb.UpdatesLive.UpdateFeed do
      |> assign(assigns)
      |> assign_new(:show_final_line, fn -> true end)
      |> assign_new(:reverse, fn -> false end)
-     |> assign_new(:show_media, fn -> false end)}
+     |> assign_new(:show_media, fn -> false end)
+     |> assign_new(:ignore_permissions, fn -> false end)}
   end
 
   defp can_combine(old_update, new_update) do
@@ -86,7 +87,9 @@ defmodule PlatformWeb.UpdatesLive.UpdateFeed do
   def render(assigns) do
     to_show =
       assigns.updates
-      |> Enum.filter(&Permissions.can_view_update?(assigns.current_user, &1))
+      |> Enum.filter(
+        &(assigns.ignore_permissions or Permissions.can_view_update?(assigns.current_user, &1))
+      )
       |> combine_and_sort_updates(Map.get(assigns, :should_combine, true))
       |> reorder(assigns.reverse)
       |> Enum.with_index()
@@ -108,6 +111,7 @@ defmodule PlatformWeb.UpdatesLive.UpdateFeed do
             target={@myself}
             socket={@socket}
             left_indicator={:profile}
+            ignore_permissions={@ignore_permissions}
           />
         <% end %>
       </ul>

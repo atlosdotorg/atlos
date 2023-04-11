@@ -616,7 +616,9 @@ defmodule PlatformWeb.Components do
 
     update = Map.get(assigns, :update)
 
-    assigns = assign(assigns, :profile_ring_classes, profile_ring_classes)
+    assigns =
+      assign(assigns, :profile_ring_classes, profile_ring_classes)
+      |> assign_new(:ignore_permissions, fn -> false end)
 
     if is_list(update) do
       [head | _] = update
@@ -737,7 +739,7 @@ defmodule PlatformWeb.Components do
             </span>
           <% end %>
           <div class="relative flex items-start space-x-2">
-            <%= if can_user_view do %>
+            <%= if can_user_view or @ignore_permissions do %>
               <%= case @left_indicator do %>
                 <% :profile -> %>
                   <div class="relative">
