@@ -90,6 +90,7 @@ defmodule PlatformWeb.AdminlandLive.ActivityFeedLive do
             reverse={true}
             show_media={true}
             show_final_line={false}
+            ignore_permissions={true}
             id="adminland-updates-feed"
           />
           <div class="mx-auto mt-8 text-center text-xs">
