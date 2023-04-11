@@ -873,16 +873,25 @@ defmodule PlatformWeb.Components do
                               signed: true,
                               expires_in: 60 * 60 * 6
                             ) %>
-                          <a class="rounded overflow-hidden max-h-64 cursor" href={url} target="_blank">
-                            <%= if String.ends_with?(attachment, ".jpg") || String.ends_with?(attachment, ".jpeg") || String.ends_with?(attachment, ".png") do %>
-                              <img src={url} />
-                            <% else %>
-                              <.document_preview
-                                file_name={"Attachment #" <> to_string(idx + 1)}
-                                description="PDF Document"
-                              />
+                          <div class="rounded overflow-hidden max-h-64 cursor">
+                            <%= cond do %>
+                              <% String.ends_with?(attachment, ".jpg") || String.ends_with?(attachment, ".jpeg") || String.ends_with?(attachment, ".png") -> %>
+                                <a href={url} target="_blank">
+                                  <img src={url} />
+                                </a>
+                              <% String.ends_with?(attachment, ".mp4") -> %>
+                                <video controls preload="auto" muted>
+                                  <source src={url} />
+                                </video>
+                              <% true -> %>
+                                <a href={url} target="_blank">
+                                  <.document_preview
+                                    file_name={"Attachment #" <> to_string(idx + 1)}
+                                    description="PDF Document"
+                                  />
+                                </a>
                             <% end %>
-                          </a>
+                          </div>
                         <% end %>
                       </div>
                     <% end %>
