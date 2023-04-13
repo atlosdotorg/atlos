@@ -17,6 +17,44 @@ defmodule Platform.Workers.Archiver do
     |> Base.encode16(case: :lower)
   end
 
+  def archive_page(url) do
+    temp_dir = Temp.mkdir!()
+
+    # Browsertrix is a docker container that crawls a page and generates a WACZ file.
+    # It already has good support for crawling pages with media, so we use it here.
+    # We also use it to generate thumbnails, which we'll use for the preview image.
+    # It also generates a text index of the page, and a full-page screenshot.
+    # It has a 90 second timeout to prevent it from hanging on pages that take too long to load.
+    command =
+      "run -v #{temp_dir}:/crawls/ webrecorder/browsertrix-crawler crawl  --generateWACZ --text --screenshot thumbnail,view,fullPage --behaviors autoscroll,autoplay,autofetch,siteSpecific --url"
+
+    {_, 0} = System.cmd("docker", String.split(command) ++ [url], into: IO.stream())
+
+    # The crawl folder is temp_dir/collections/<first_file>/
+    collections_folder = Path.join(temp_dir, "collections")
+    crawl_folder = Path.join(collections_folder, File.ls!(collections_folder) |> List.first())
+    pages_jsonl = Path.join(crawl_folder, "pages/pages.jsonl")
+
+    wacz_file_name =
+      File.ls!(crawl_folder) |> Enum.filter(&String.ends_with?(&1, ".wacz")) |> List.first()
+
+    wacz_file_path = Path.join(crawl_folder, wacz_file_name)
+
+    jsonl_contents =
+      File.read!(pages_jsonl)
+      |> String.split("\n")
+      |> Enum.map(&String.trim(&1))
+      |> Enum.filter(&(String.length(&1) != 0))
+      |> Enum.map(&Jason.decode!/1)
+
+    # We need to grab the pages.jsonl file, and the WACZ file. The pages.jsonl file contains the metadata for the page.
+    IO.puts("Got files: #{inspect(File.ls!(temp_dir))} (in dir #{inspect(temp_dir)})")
+    IO.puts("Does wacz exist? #{File.exists?(wacz_file_path)}")
+    dbg(jsonl_contents)
+
+    %{wacz: wacz_file_path, page_metadata: jsonl_contents}
+  end
+
   defp download_file(from_url, into_file) do
     {_, 0} =
       System.cmd(
@@ -42,9 +80,7 @@ defmodule Platform.Workers.Archiver do
           "--max-filesize",
           "500m",
           "--merge-output-format",
-          "mp4",
-          "-I",
-          ":1"
+          "mp4"
         ],
         into: IO.stream()
       )
