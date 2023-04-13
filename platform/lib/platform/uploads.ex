@@ -54,17 +54,17 @@ defmodule Platform.Uploads.WatermarkedMediaVersion do
   end
 end
 
-defmodule Platform.Uploads.OriginalMediaVersion do
+defmodule Platform.Uploads.MediaVersionArtifact do
   use Waffle.Definition
 
   @versions [:original]
 
-  def filename(version, {file, _scope}) do
-    "#{file.file_name}-#{version}"
+  def filename(version, {file, scope}) do
+    "#{file.file_name}-#{version}-#{scope.id}"
   end
 
   def storage_dir(_version, {_file, scope}) do
-    "media/#{scope.slug}/original/"
+    "artifacts/#{scope.id}/"
   end
 
   def s3_object_headers(_version, {file, _scope}) do
