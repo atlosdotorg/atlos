@@ -26,7 +26,7 @@ defmodule Platform.Workers.Archiver do
     # It also generates a text index of the page, and a full-page screenshot.
     # It has a 90 second timeout to prevent it from hanging on pages that take too long to load.
     command =
-      "run -v #{temp_dir}:/crawls/ webrecorder/browsertrix-crawler crawl  --generateWACZ --text --screenshot thumbnail,view,fullPage --behaviors autoscroll,autoplay,autofetch,siteSpecific --url"
+      "run -v #{temp_dir}:/crawls/ webrecorder/browsertrix-crawler crawl  --generateWACZ --text --screenshot thumbnail,view,fullPage --behaviors autoscroll,autoplay,autofetch,siteSpecific --timeLimit 60 --maxDepth 1 --pageLimit 1 --url"
 
     {_, 0} = System.cmd("docker", String.split(command) ++ [url], into: IO.stream())
 
@@ -50,26 +50,11 @@ defmodule Platform.Workers.Archiver do
     # We need to grab the pages.jsonl file, and the WACZ file. The pages.jsonl file contains the metadata for the page.
     IO.puts("Got files: #{inspect(File.ls!(temp_dir))} (in dir #{inspect(temp_dir)})")
     IO.puts("Does wacz exist? #{File.exists?(wacz_file_path)}")
-    dbg(jsonl_contents)
 
     %{wacz: wacz_file_path, page_metadata: jsonl_contents}
   end
 
-  defp download_file(from_url, into_file) do
-    {_, 0} =
-      System.cmd(
-        "curl",
-        [
-          "-L",
-          from_url,
-          "-o",
-          into_file
-        ],
-        into: IO.stream()
-      )
-  end
-
-  defp extract_media_from_url(from_url, into_folder) do
+  defp archive_page_videos(from_url, into_folder) do
     {_, 0} =
       System.cmd(
         "yt-dlp",
@@ -81,6 +66,20 @@ defmodule Platform.Workers.Archiver do
           "500m",
           "--merge-output-format",
           "mp4"
+        ],
+        into: IO.stream()
+      )
+  end
+
+  defp download_file(from_url, into_file) do
+    {_, 0} =
+      System.cmd(
+        "curl",
+        [
+          "-L",
+          from_url,
+          "-o",
+          into_file
         ],
         into: IO.stream()
       )
@@ -111,80 +110,15 @@ defmodule Platform.Workers.Archiver do
           # Setup tempfiles for media download
           temp_dir = Temp.mkdir!()
 
-          # Download the media (either from S3 for user-provided files, from the original source, or, if we're cloning from an existing media version, then from that media version)
+          # Download the media data
           case version.upload_type do
             :user_provided ->
-              Logger.info("Archiving media version #{id}... (downloading from S3)")
-
-              # If we're merging, grab the original version from the source rather than from the given media version
-              url =
-                case Map.get(args, "clone_from_media_version_id") do
-                  nil ->
-                    Logger.info(
-                      "Archiving media version #{id}... (downloading from S3) (not cloning)"
-                    )
-
-                    Uploads.OriginalMediaVersion.url({version.file_location, media},
-                      signed: true
-                    )
-
-                  id ->
-                    Logger.info(
-                      "Archiving media version #{id}... (downloading from S3) (cloning from #{id})"
-                    )
-
-                    source_version = Material.get_media_version!(id)
-
-                    Uploads.OriginalMediaVersion.url(
-                      {source_version.file_location,
-                       Material.get_media!(source_version.media_id)},
-                      signed: true
-                    )
-                end
-
-              Logger.info("Archiving media version #{id}... (downloading from S3) (url: #{url})")
-
-              {_, 0} = download_file(url, Path.join(temp_dir, version.file_location))
+              # Nothing to do here, we already have the media
+              # Perhaps take hashes + index
 
             :direct ->
-              # When merging media we pulled from the source, we just re-pull, hence why there are no additional conditions here
-              {_, 0} = extract_media_from_url(version.source_url, temp_dir)
+              # Archive the page, and download the media from it
           end
-
-          # Figure out what we downloaded
-          [file_name] = File.ls!(temp_dir)
-          file_path = Path.join(temp_dir, file_name)
-          mime = MIME.from_path(file_path)
-
-          Logger.info(
-            "Archiving media version #{id}... (got file #{file_name} with mime #{mime})"
-          )
-
-          # Process + upload it (only store original if upload_type is direct/not user provided, *or* we're cloning)
-          {:ok, identifier, duration, size, hash} =
-            process_uploaded_media(
-              file_path,
-              mime,
-              media,
-              version,
-              version.upload_type == :direct or
-                not is_nil(Map.get(args, "clone_from_media_version_id"))
-            )
-
-          Logger.info(
-            "Got identifier #{identifier}, duration #{duration}, size #{size}, hash #{hash}"
-          )
-
-          # Update the media version to reflect the change
-          {:ok, new_version} =
-            Material.update_media_version(version, %{
-              file_location: identifier,
-              file_size: size,
-              status: :complete,
-              duration_seconds: duration,
-              mime_type: mime,
-              hashes: %{sha256: hash}
-            })
 
           # Track event
           Auditor.log(:archive_success, %{
@@ -231,29 +165,5 @@ defmodule Platform.Workers.Archiver do
         Logger.error("Media version #{id} is not pending, skipping.")
         {:ok, version}
     end
-  end
-
-  @doc """
-  Process the media at the given path. Also called by the manual media uploader.
-  """
-  def process_uploaded_media(path, _mime, media, _version, store_original \\ true) do
-    # Preprocesses the given media and uploads it to persistent storage.
-    # Returns {:ok, file_path, thumbnail_path, duration}
-
-    {:ok, out_data} = FFprobe.format(path)
-
-    hash = hash_sha256_file(path)
-
-    {duration, _} = Integer.parse(out_data["duration"] || "0")
-    {size, _} = Integer.parse(out_data["size"])
-
-    # Upload to cloud storage
-    {:ok, new_path} = Uploads.WatermarkedMediaVersion.store({path, media})
-
-    if store_original do
-      {:ok, _original_path} = Uploads.OriginalMediaVersion.store({path, media})
-    end
-
-    {:ok, new_path, duration, size, hash}
   end
 end

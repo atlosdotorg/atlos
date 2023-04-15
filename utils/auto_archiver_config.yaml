@@ -1,0 +1,39 @@
+steps:
+  # only 1 feeder allowed
+  feeder: cli_feeder # defaults to cli_feeder
+  archivers: # order matters, uncomment to activate
+    # - vk_archiver
+    # - telethon_archiver
+    # - telegram_archiver
+    - twitter_archiver
+    # - twitter_api_archiver
+    # - instagram_tbot_archiver
+    # - instagram_archiver
+    - tiktok_archiver
+    - youtubedl_archiver
+    # - wayback_archiver_enricher
+  enrichers:
+    - hash_enricher
+    # - screenshot_enricher
+    # - thumbnail_enricher
+    # - wayback_archiver_enricher
+    # - wacz_enricher
+
+  formatter: mute_formatter # defaults to mute_formatter
+  storages:
+    - local_storage
+    # - s3_storage
+    # - gdrive_storage
+  databases:
+    - console_db
+    - csv_db
+    # - gsheet_db
+    # - mongo_db
+configurations:
+  hash_enricher:
+    algorithm: "SHA-256"
+  local_storage:
+    save_to: "./auto_archiver"
+    save_absolute: true
+    filename_generator: static
+    path_generator: flat

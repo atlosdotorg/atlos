@@ -19,7 +19,8 @@ defmodule Platform.Material.MediaVersion do
       field(:file_size, :integer)
       field(:mime_type, :string)
       field(:metadata, :map, default: %{})
-      field(:type, Ecto.Enum, values: [:webarchive, :media, :other], default: :other)
+      field(:type, Ecto.Enum, values: [:webarchive, :media, :upload, :other], default: :other)
+      timestamps()
     end
 
     field(:status, Ecto.Enum, values: [:pending, :complete, :error], default: :complete)
@@ -44,23 +45,15 @@ defmodule Platform.Material.MediaVersion do
   def changeset(media_version, attrs) do
     media_version
     |> cast(attrs, [
-      :file_location,
-      :file_size,
       :upload_type,
       :status,
-      :duration_seconds,
       :source_url,
-      :mime_type,
-      :client_name,
       :media_id,
       :visibility,
       :scoped_id,
-      :hashes,
       :explanation
     ])
-    |> validate_required([:source_url],
-      message: "Please add a link."
-    )
+    |> cast_embed(:artifacts)
     |> validate_required([
       :status,
       :upload_type,
