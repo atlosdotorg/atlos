@@ -231,7 +231,7 @@ def run(url, out, auto_archiver_config):
 
             for file in auto_archiver_archive["files"]:
                 checksum = compute_checksum(file)
-                path = f"{checksum[:32]}-media-{os.path.basename(file)}"
+                path = os.path.basename(file)
                 shutil.copyfile(
                     file,
                     os.path.join(out, path),
