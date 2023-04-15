@@ -63,14 +63,20 @@ def archive_page_using_browsertrix(url: str) -> dict:
 
     os.mkdir("crawls")
 
-    docker_args = f"run -v {os.path.abspath('crawls')}:/crawls/ webrecorder/browsertrix-crawler crawl --generateWACZ --timeLimit 60 --pageLimit 1 --maxDepth 1 --scopeType page --text --screenshot thumbnail,view,fullPage --behaviors autoscroll,autoplay,autofetch,siteSpecific --url"
+    docker_args = f"run -v {os.path.abspath('crawls')}:/crawls/ webrecorder/browsertrix-crawler crawl --generateWACZ --timeLimit 60 --userAgent fake --pageLimit 1 --maxDepth 1 --scopeType page --text --screenshot thumbnail,view,fullPage --behaviors autoscroll,autoplay,autofetch,siteSpecific --url"
 
     # Run the command in a subprocess
-    result = subprocess.run(
-        ["docker", *docker_args.split(), url], timeout=60 * 60, capture_output=True
-    )  # NOTE: URL is UNTRUSTED. Do NOT put it in a shell command.
+    try:
+        result = subprocess.run(
+            ["docker", *docker_args.split(), url], timeout=60 * 5, capture_output=False
+        )  # NOTE: URL is UNTRUSTED. Do NOT put it in a shell command.
+    except subprocess.TimeoutExpired:
+        logger.warning("Crawl timed out")
+        return dict(success=False)
 
-    result.check_returncode()  # Raise an exception if the command failed.
+    if result.returncode != 0:
+        logger.warning("Crawl failed")
+        return dict(success=False)
 
     # The crawl folder is crawls/collections/<first_file>/
     collections_folder = "crawls/collections/"
@@ -106,7 +112,7 @@ def archive_page_using_browsertrix(url: str) -> dict:
                         outfile.write(record.content_stream().read())
                         screenshots.append(dict(file=file_path, kind=kind))
 
-    return dict(data=data, wacz_file=wacz_file, screenshots=screenshots)
+    return dict(success=True, data=data, wacz_file=wacz_file, screenshots=screenshots)
 
 
 def archive_using_auto_archiver(
@@ -125,19 +131,25 @@ def archive_using_auto_archiver(
 
     os.mkdir("auto_archiver")
 
-    # Run the command in a subprocess
-    result = subprocess.run(
-        [
-            "auto-archiver",
-            "--config",
-            config,
-            f'--cli_feeder.urls="{url}"',
-        ],
-        timeout=60 * 60,
-        capture_output=True,
-    )  # NOTE: URL is UNTRUSTED. Do NOT put it in a shell command.
+    try:
+        # Run the command in a subprocess
+        result = subprocess.run(
+            [
+                "auto-archiver",
+                "--config",
+                config,
+                f'--cli_feeder.urls="{url}"',
+            ],
+            timeout=60 * 60,
+            capture_output=True,
+        )  # NOTE: URL is UNTRUSTED. Do NOT put it in a shell command.
+    except subprocess.TimeoutExpired:
+        logger.warning("Auto archive timed out")
+        return dict(success=False)
 
-    result.check_returncode()  # Raise an exception if the command failed.
+    if result.returncode != 0:
+        logger.warning("Auto archive failed")
+        return dict(success=False)
 
     # Read the database
     with open("db.csv", "rb") as infile:
@@ -150,7 +162,7 @@ def archive_using_auto_archiver(
     # Find all the output files
     files = [os.path.join("auto_archiver", p) for p in os.listdir("auto_archiver")]
 
-    return dict(metadata=objects, files=files)
+    return dict(success=True, metadata=objects, files=files)
 
 
 def generate_perceptual_hashes(path: str) -> dict:
@@ -204,53 +216,59 @@ def run(url, out, auto_archiver_config):
                 os.mkdir(out)
 
             artifacts = []
-            for screenshot in browsertrix_crawler_archive["screenshots"]:
+            if browsertrix_crawler_archive["success"]:
+                for screenshot in browsertrix_crawler_archive["screenshots"]:
+                    shutil.copyfile(
+                        screenshot["file"],
+                        os.path.join(out, os.path.basename(screenshot["file"])),
+                    )
+                    artifacts.append(
+                        dict(
+                            kind=screenshot["kind"],
+                            sha256=compute_checksum(screenshot["file"]),
+                            file=os.path.basename(screenshot["file"]),
+                        )
+                    )
+
                 shutil.copyfile(
-                    screenshot["file"],
-                    os.path.join(out, os.path.basename(screenshot["file"])),
+                    browsertrix_crawler_archive["wacz_file"],
+                    os.path.join(out, "archive.wacz"),
                 )
                 artifacts.append(
                     dict(
-                        kind=screenshot["kind"],
-                        sha256=compute_checksum(screenshot["file"]),
-                        file=os.path.basename(screenshot["file"]),
+                        kind="wacz",
+                        file="archive.wacz",
+                        sha256=compute_checksum(
+                            browsertrix_crawler_archive["wacz_file"]
+                        ),
                     )
                 )
 
-            shutil.copyfile(
-                browsertrix_crawler_archive["wacz_file"],
-                os.path.join(out, "archive.wacz"),
-            )
-            artifacts.append(
-                dict(
-                    kind="wacz",
-                    file="archive.wacz",
-                    sha256=compute_checksum(browsertrix_crawler_archive["wacz_file"]),
-                )
-            )
-
-            for file in auto_archiver_archive["files"]:
-                path = os.path.basename(file)
-                shutil.copyfile(
-                    file,
-                    os.path.join(out, path),
-                )
-                artifacts.append(
-                    dict(
-                        kind="media",
-                        file=path,
-                        sha256=compute_checksum(file),
-                        perceptual_hashes=generate_perceptual_hashes(file),
+            if auto_archiver_archive["success"]:
+                for file in auto_archiver_archive["files"]:
+                    path = os.path.basename(file)
+                    shutil.copyfile(
+                        file,
+                        os.path.join(out, path),
                     )
-                )
+                    artifacts.append(
+                        dict(
+                            kind="media",
+                            file=path,
+                            sha256=compute_checksum(file),
+                            perceptual_hashes=generate_perceptual_hashes(file),
+                        )
+                    )
 
             # Write the metadata
             with open(os.path.join(out, "metadata.json"), "w") as outfile:
                 json.dump(
                     dict(
-                        page_data=browsertrix_crawler_archive["data"],
+                        page_data=browsertrix_crawler_archive.get("data"),
                         artifacts=artifacts,
-                        metadata=auto_archiver_archive["metadata"],
+                        metadata=auto_archiver_archive.get("metadata"),
+                        crawl_successful=browsertrix_crawler_archive["success"],
+                        auto_archive_successful=auto_archiver_archive["success"],
                     ),
                     outfile,
                 )
