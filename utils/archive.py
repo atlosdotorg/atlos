@@ -157,7 +157,6 @@ def generate_perceptual_hashes(path: str) -> dict:
     """Generates a perceptual hash for the given file."""
 
     mime_type = mimetypes.guess_type(path)[0]
-    print(mime_type)
 
     if mime_type.startswith("image"):
         hasher = hashers.PHash()
@@ -165,11 +164,9 @@ def generate_perceptual_hashes(path: str) -> dict:
         return [dict(kind="phash", hash=perceptual_hash)]
     elif mime_type.startswith("video"):
         perceptual_hash_l1 = hashers.TMKL1().compute(path)
-        perceptual_hash_l2 = hashers.TMKL2().compute(path)
 
         return [
             dict(kind="tmkl1", hash=perceptual_hash_l1),
-            dict(kind="tmkl2", hash=perceptual_hash_l2),
         ]
     return []
 
@@ -243,7 +240,7 @@ def run(url, out, auto_archiver_config):
                     dict(
                         kind="media",
                         file=path,
-                        sha256=compute_checksum(),
+                        sha256=compute_checksum(file),
                         perceptual_hashes=generate_perceptual_hashes(file),
                     )
                 )
@@ -252,7 +249,7 @@ def run(url, out, auto_archiver_config):
             with open(os.path.join(out, "metadata.json"), "w") as outfile:
                 json.dump(
                     dict(
-                        data=browsertrix_crawler_archive["data"],
+                        page_data=browsertrix_crawler_archive["data"],
                         artifacts=artifacts,
                         metadata=auto_archiver_archive["metadata"],
                     ),
