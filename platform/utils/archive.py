@@ -110,7 +110,7 @@ def archive_page_using_browsertrix(url: str) -> dict:
                     file_path = f"crawls/{kind}.{file_extension}"
                     with open(file_path, "wb") as outfile:
                         outfile.write(record.content_stream().read())
-                        screenshots.append(dict(file=file_path, kind=kind))
+                        screenshots.append(dict(file=file_path, kind=kind.lower()))
 
     return dict(success=True, data=data, wacz_file=wacz_file, screenshots=screenshots)
 
@@ -264,11 +264,12 @@ def run(url, out, auto_archiver_config):
             with open(os.path.join(out, "metadata.json"), "w") as outfile:
                 json.dump(
                     dict(
-                        page_data=browsertrix_crawler_archive.get("data"),
+                        page_info=browsertrix_crawler_archive.get("data"),
                         artifacts=artifacts,
-                        metadata=auto_archiver_archive.get("metadata"),
+                        content_info=auto_archiver_archive.get("metadata"),
                         crawl_successful=browsertrix_crawler_archive["success"],
                         auto_archive_successful=auto_archiver_archive["success"],
+                        is_likely_authwalled=is_likely_authwalled(url),
                     ),
                     outfile,
                 )

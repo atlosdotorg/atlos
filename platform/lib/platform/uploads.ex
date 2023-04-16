@@ -60,7 +60,7 @@ defmodule Platform.Uploads.MediaVersionArtifact do
   @versions [:original]
 
   def filename(version, {file, scope}) do
-    "#{file.file_name}-#{version}-#{scope.id}"
+    "#{file.file_name}-#{version}"
   end
 
   def storage_dir(_version, {_file, scope}) do

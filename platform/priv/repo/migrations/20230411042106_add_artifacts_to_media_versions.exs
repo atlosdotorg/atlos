@@ -3,7 +3,7 @@ defmodule Platform.Repo.Migrations.AddArtifactsToMediaVersions do
 
   def change do
     alter table(:media_versions) do
-      add :artifacts, :map, default: %{}
+      add(:artifacts, :map, default: nil)
     end
   end
 end

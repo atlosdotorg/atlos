@@ -10,81 +10,6 @@ defmodule Platform.Workers.Archiver do
     queue: :media_archival,
     priority: 3
 
-  defp hash_sha256_file(file_path) do
-    File.stream!(file_path)
-    |> Enum.reduce(:crypto.hash_init(:sha256), &:crypto.hash_update(&2, &1))
-    |> :crypto.hash_final()
-    |> Base.encode16(case: :lower)
-  end
-
-  def archive_page(url) do
-    temp_dir = Temp.mkdir!()
-
-    # Browsertrix is a docker container that crawls a page and generates a WACZ file.
-    # It already has good support for crawling pages with media, so we use it here.
-    # We also use it to generate thumbnails, which we'll use for the preview image.
-    # It also generates a text index of the page, and a full-page screenshot.
-    # It has a 90 second timeout to prevent it from hanging on pages that take too long to load.
-    command =
-      "run -v #{temp_dir}:/crawls/ webrecorder/browsertrix-crawler crawl  --generateWACZ --text --screenshot thumbnail,view,fullPage --behaviors autoscroll,autoplay,autofetch,siteSpecific --timeLimit 60 --maxDepth 1 --pageLimit 1 --url"
-
-    {_, 0} = System.cmd("docker", String.split(command) ++ [url], into: IO.stream())
-
-    # The crawl folder is temp_dir/collections/<first_file>/
-    collections_folder = Path.join(temp_dir, "collections")
-    crawl_folder = Path.join(collections_folder, File.ls!(collections_folder) |> List.first())
-    pages_jsonl = Path.join(crawl_folder, "pages/pages.jsonl")
-
-    wacz_file_name =
-      File.ls!(crawl_folder) |> Enum.filter(&String.ends_with?(&1, ".wacz")) |> List.first()
-
-    wacz_file_path = Path.join(crawl_folder, wacz_file_name)
-
-    jsonl_contents =
-      File.read!(pages_jsonl)
-      |> String.split("\n")
-      |> Enum.map(&String.trim(&1))
-      |> Enum.filter(&(String.length(&1) != 0))
-      |> Enum.map(&Jason.decode!/1)
-
-    # We need to grab the pages.jsonl file, and the WACZ file. The pages.jsonl file contains the metadata for the page.
-    IO.puts("Got files: #{inspect(File.ls!(temp_dir))} (in dir #{inspect(temp_dir)})")
-    IO.puts("Does wacz exist? #{File.exists?(wacz_file_path)}")
-
-    %{wacz: wacz_file_path, page_metadata: jsonl_contents}
-  end
-
-  defp archive_page_videos(from_url, into_folder) do
-    {_, 0} =
-      System.cmd(
-        "yt-dlp",
-        [
-          from_url,
-          "-o",
-          Path.join(into_folder, "out.%(ext)s"),
-          "--max-filesize",
-          "500m",
-          "--merge-output-format",
-          "mp4"
-        ],
-        into: IO.stream()
-      )
-  end
-
-  defp download_file(from_url, into_file) do
-    {_, 0} =
-      System.cmd(
-        "curl",
-        [
-          "-L",
-          from_url,
-          "-o",
-          into_file
-        ],
-        into: IO.stream()
-      )
-  end
-
   @impl Oban.Worker
   def perform(%Oban.Job{args: %{"media_version_id" => id} = args}) do
     Logger.info("Archiving media version #{id}...")
@@ -112,22 +37,81 @@ defmodule Platform.Workers.Archiver do
 
           # Download the media data
           case version.upload_type do
-            :user_provided ->
-              # Nothing to do here, we already have the media
-              # Perhaps take hashes + index
-
             :direct ->
               # Archive the page, and download the media from it
+              temp_dir = Temp.mkdir!()
+              utils_dir = "utils"
+
+              {_, 0} =
+                System.cmd(
+                  "poetry",
+                  [
+                    "run",
+                    "./archive.py",
+                    "--out",
+                    temp_dir,
+                    "--auto-archiver-config",
+                    "auto_archiver_config.yaml",
+                    "--url",
+                    version.source_url
+                  ],
+                  cd: utils_dir
+                )
+
+              metadata_file = Path.join(temp_dir, "metadata.json")
+              metadata = File.read!(metadata_file) |> Jason.decode!()
+
+              # Upload the artifacts
+              artifacts =
+                Enum.map(metadata["artifacts"], fn artifact ->
+                  id = Ecto.UUID.generate()
+                  loc = Path.join(temp_dir, artifact["file"])
+
+                  {:ok, remote_path} = Uploads.MediaVersionArtifact.store({loc, %{id: id}})
+
+                  %{size: size} = File.stat!(loc)
+
+                  %{
+                    id: id,
+                    file_location: remote_path,
+                    file_hash_sha256: artifact["sha256"],
+                    file_size: size,
+                    mime_type: MIME.from_path(artifact["file"]),
+                    perceptual_hashes: %{computed: Map.get(artifact, "perceptual_hashes", [])},
+                    type: String.to_existing_atom(artifact["kind"])
+                  }
+                end)
+
+              # Update the media version
+              version_map = %{
+                status: :complete,
+                artifacts: artifacts,
+                metadata: %{
+                  auto_archive_successful: Map.get(metadata, "auto_archive_successful", false),
+                  crawl_successful: Map.get(metadata, "crawl_successful", false),
+                  page_info: Map.get(metadata, "page_data"),
+                  content_info: Map.get(metadata, "content_data"),
+                  is_likely_authwalled: Map.get(metadata, "is_likely_authwalled", false)
+                }
+              }
+
+              {:ok, version} = Material.update_media_version(version, version_map)
+
+              version
+
+            _ ->
+              # Ignore
+              version
           end
 
           # Track event
           Auditor.log(:archive_success, %{
             media_id: media_id,
-            source_url: new_version.source_url,
-            media_version: new_version
+            source_url: version.source_url,
+            media_version: version
           })
 
-          {:ok, new_version}
+          {:ok, version}
         rescue
           val ->
             # Some error happened! Log it and update the media version appropriately.
