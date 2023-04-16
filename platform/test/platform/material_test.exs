@@ -77,11 +77,8 @@ defmodule Platform.MaterialTest do
     alias Platform.Material.MediaVersion
 
     @invalid_attrs %{
-      file_location: nil,
-      file_size: nil,
-      perceptual_hash: nil,
       source_url: nil,
-      type: nil
+      status: :other
     }
 
     test "list_media_versions/0 returns all media_versions" do
@@ -105,13 +102,8 @@ defmodule Platform.MaterialTest do
 
     test "create_media_version/1 with valid data creates a media_version" do
       valid_attrs = %{
-        file_location: "some file_location",
-        file_size: 42,
         source_url: "some source_url",
-        type: :image,
-        duration_seconds: 30,
-        mime_type: "image/png",
-        client_name: "upload.png"
+        type: :image
       }
 
       media = media_fixture()
@@ -119,8 +111,6 @@ defmodule Platform.MaterialTest do
       assert {:ok, %MediaVersion{} = media_version} =
                Material.create_media_version(media, valid_attrs)
 
-      assert media_version.file_location == "some file_location"
-      assert media_version.file_size == 42
       assert media_version.source_url == "some source_url"
     end
 
@@ -133,19 +123,12 @@ defmodule Platform.MaterialTest do
       media_version = media_version_fixture()
 
       update_attrs = %{
-        file_location: "some updated file_location",
-        file_size: 43,
-        source_url: "some updated source_url",
-        duration_seconds: 30,
-        mime_type: "image/png",
-        client_name: "upload.png"
+        source_url: "some updated source_url"
       }
 
       assert {:ok, %MediaVersion{} = media_version} =
                Material.update_media_version(media_version, update_attrs)
 
-      assert media_version.file_location == "some updated file_location"
-      assert media_version.file_size == 43
       assert media_version.source_url == "some updated source_url"
     end
 
