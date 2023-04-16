@@ -11,7 +11,7 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
      socket
      |> assign(:form_id, Utils.generate_random_sequence(10))
      |> allow_upload(:media_upload,
-       accept: ~w(.png .jpg .jpeg .gif .avi .mp4 .webm),
+       accept: :any,
        max_entries: 1,
        max_file_size: 250_000_000,
        auto_upload: false,
@@ -125,16 +125,31 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
 
       Task.start(fn ->
         try do
+          artifact_id = Ecto.UUID.generate()
+          %{size: size} = File.stat!(local_path)
+
           # Store the file in S3
           {:ok, remote_path} =
-            Uploads.OriginalMediaVersion.store({local_path, socket.assigns.media})
+            Uploads.MediaVersionArtifact.store({local_path, %{id: artifact_id}})
 
           # Update the media version
           {:ok, version} =
             Material.create_media_version_audited(
               socket.assigns.media,
               socket.assigns.current_user,
-              Map.merge(params, %{"file_location" => remote_path})
+              Map.merge(params, %{
+                "file_location" => remote_path,
+                "artifacts" => [
+                  %{
+                    "id" => artifact_id,
+                    "file_location" => remote_path,
+                    "file_hash_sha256" => Platform.Utils.hash_sha256(local_path),
+                    "file_size" => size,
+                    "mime_type" => MIME.from_path(local_path),
+                    "type" => "media"
+                  }
+                ]
+              })
             )
 
           Material.archive_media_version(version)
@@ -359,7 +374,7 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
                       </label>
                       <p class="pl-1 text-center">or drag and drop</p>
                     </div>
-                    <p class="text-xs text-gray-500">PNG, JPG, GIF, MP4, or AVI up to 250MB</p>
+                    <p class="text-xs text-gray-500">Any file up to 250MB</p>
                   </div>
               <% end %>
             </div>

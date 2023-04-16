@@ -100,7 +100,15 @@ defmodule Platform.Workers.Archiver do
               version
 
             _ ->
-              # Ignore
+              # Update the media version to have status complete
+              # In the future, this is where we could do some more advanced
+              # processing of the media (for user provided media)
+              version_map = %{
+                status: :complete
+              }
+
+              {:ok, version} = Material.update_media_version(version, version_map)
+
               version
           end
 

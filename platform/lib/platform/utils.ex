@@ -57,6 +57,10 @@ defmodule Platform.Utils do
     end
   end
 
+  def hash_sha256(filepath) do
+    :crypto.hash(:sha256, File.read!(filepath)) |> Base.encode16() |> String.downcase()
+  end
+
   def format_date(value) do
     case value do
       %Date{} ->

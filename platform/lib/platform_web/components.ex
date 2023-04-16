@@ -1029,7 +1029,7 @@ defmodule PlatformWeb.Components do
   end
 
   def url_icon(%{url: url} = assigns) do
-    parsed = URI.parse(url)
+    parsed = URI.parse(url || "https://example.com")
     loc = "https://s2.googleusercontent.com/s2/favicons?domain=#{parsed.host}&sz=256"
 
     assigns = assign(assigns, :loc, loc)
@@ -2598,15 +2598,20 @@ defmodule PlatformWeb.Components do
   end
 
   def media_version_display(%{version: version, media: media} = assigns) do
+    artifacts_to_show = version.artifacts |> Enum.filter(&(&1.type == :thumbnail))
+
     assigns =
       assign_new(assigns, :dynamic_src, fn -> false end)
       # Verify it was archived successfully
-      |> assign(:media_to_show, version.status == :complete && !is_nil(version.mime_type))
+
+      |> assign(
+        :artifacts_to_show,
+        version.status == :complete && not Enum.empty?(artifacts_to_show)
+      )
+      |> assign(:artifacts, artifacts_to_show)
       |> assign(:should_blur_js_bool, if(Media.is_graphic(media), do: "true", else: "false"))
       # Whether to show controls for hiding, adding media (requires that the caller be able to handle the events)
       |> assign(:show_controls, Map.get(assigns, :show_controls, true))
-      |> assign(:loc, Material.media_version_location(version, media))
-      |> assign(:thumbnail, Material.media_version_location(version, media, :thumb))
       |> assign(:media_id, "version-#{version.id}-media")
       |> assign(:human_name, Material.get_human_readable_media_version_name(media, version))
 
@@ -2620,28 +2625,30 @@ defmodule PlatformWeb.Components do
         <%= @human_name %>
       </span>
       <div class="relative">
-        <%= if @media_to_show do %>
-          <div id={@media_id} class="min-h-[10rem] p-1 z-[1]">
+        <%= if @artifacts_to_show do %>
+          <%= for artifact <- @artifacts do %>
+          <div id={"artifact-#{artifact.id}"} class="h-40 overflow-hidden p-1 z-[1] border rounded-lg">
             <div x-bind:class="grayscale ? 'grayscale' : ''">
-              <%= if String.starts_with?(@version.mime_type, "image/") do %>
+              <%= if String.starts_with?(artifact.mime_type, "image/") do %>
                 <%= if @dynamic_src do %>
-                  <dynamic tag="img" src={@loc} class="w-full" />
+                  <dynamic tag="img" src={Material.media_version_artifact_location(artifact)} class="w-full" />
                 <% else %>
-                  <img src={@loc} class="w-full" />
+                  <img src={Material.media_version_artifact_location(artifact)} class="w-full object-cover object-top" />
                 <% end %>
               <% else %>
                 <%= if @dynamic_src do %>
                   <video controls preload="auto" muted>
-                    <dynamic tag="source" src={@loc} class="w-full" />
+                    <dynamic tag="source" src={Material.media_version_artifact_location(artifact)} class="w-full" />
                   </video>
                 <% else %>
-                  <video controls preload="auto" poster={@thumbnail} muted>
-                    <source src={@loc} class="w-full" />
+                  <video controls preload="auto" muted>
+                    <source src={Material.media_version_artifact_location(artifact)} class="w-full" />
                   </video>
                 <% end %>
               <% end %>
             </div>
           </div>
+          <% end %>
         <% end %>
         <%= if @version.status != :pending do %>
           <div
@@ -2678,7 +2685,7 @@ defmodule PlatformWeb.Components do
             </div>
           </div>
         <% end %>
-        <%= if not @media_to_show do %>
+        <%= if not @artifacts_to_show do %>
           <div class="w-full h-40 bg-neutral-50 border rounded-lg flex items-center justify-around">
             <%= if @version.status == :pending do %>
               <div class="text-center w-48">
@@ -2782,7 +2789,7 @@ defmodule PlatformWeb.Components do
             </div>
           <% end %>
         </span>
-        <%= if @media_to_show or @show_controls do %>
+        <%= if @artifacts_to_show or @show_controls do %>
           <div class="flex gap-1 items-center">
             <div class="relative inline-block text-left" x-data="{open: false}">
               <div>
@@ -2816,7 +2823,7 @@ defmodule PlatformWeb.Components do
                 x-transition
               >
                 <div class="py-1" role="none">
-                  <%= if @media_to_show do %>
+                  <%= if @artifacts_to_show do %>
                     <button
                       type="button"
                       rel="nofollow"
@@ -2853,63 +2860,6 @@ defmodule PlatformWeb.Components do
                       </svg>
                       View Source
                     </a>
-                    <a
-                      target="_blank"
-                      href={@loc}
-                      rel="nofollow"
-                      role="menuitem"
-                      title="Download"
-                      class="text-gray-700 px-2 py-2 text-sm flex items-center gap-2 hover:bg-gray-100 w-full"
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                        fill="currentColor"
-                        class="h-5 w-5 text-neutral-500"
-                      >
-                        <path
-                          fill-rule="evenodd"
-                          d="M19.5 21a3 3 0 003-3V9a3 3 0 00-3-3h-5.379a.75.75 0 01-.53-.22L11.47 3.66A2.25 2.25 0 009.879 3H4.5a3 3 0 00-3 3v12a3 3 0 003 3h15zm-6.75-10.5a.75.75 0 00-1.5 0v4.19l-1.72-1.72a.75.75 0 00-1.06 1.06l3 3a.75.75 0 001.06 0l3-3a.75.75 0 10-1.06-1.06l-1.72 1.72V10.5z"
-                          clip-rule="evenodd"
-                        />
-                      </svg>
-                      Download
-                    </a>
-                    <button
-                      type="button"
-                      rel="nofollow"
-                      role="menuitem"
-                      title="Copy Hash Information"
-                      class="text-gray-700 px-2 py-2 text-sm flex items-center gap-2 hover:bg-gray-100 w-full"
-                      onclick={
-                      "window.setClipboard(JSON.stringify(" <>
-                        Jason.encode!(
-                          if @version.hashes == %{},
-                            do: %{error: "no hash information available"},
-                            else: @version.hashes
-                        ) <>
-                        ", null, 4))"
-                    }
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                        fill="currentColor"
-                        class="w-5 h-5 text-neutral-500"
-                      >
-                        <path
-                          fill-rule="evenodd"
-                          d="M7.502 6h7.128A3.375 3.375 0 0118 9.375v9.375a3 3 0 003-3V6.108c0-1.505-1.125-2.811-2.664-2.94a48.972 48.972 0 00-.673-.05A3 3 0 0015 1.5h-1.5a3 3 0 00-2.663 1.618c-.225.015-.45.032-.673.05C8.662 3.295 7.554 4.542 7.502 6zM13.5 3A1.5 1.5 0 0012 4.5h4.5A1.5 1.5 0 0015 3h-1.5z"
-                          clip-rule="evenodd"
-                        />
-                        <path
-                          fill-rule="evenodd"
-                          d="M3 9.375C3 8.339 3.84 7.5 4.875 7.5h9.75c1.036 0 1.875.84 1.875 1.875v11.25c0 1.035-.84 1.875-1.875 1.875h-9.75A1.875 1.875 0 013 20.625V9.375zm9.586 4.594a.75.75 0 00-1.172-.938l-2.476 3.096-.908-.907a.75.75 0 00-1.06 1.06l1.5 1.5a.75.75 0 001.116-.062l3-3.75z"
-                          clip-rule="evenodd"
-                        />
-                      </svg>
-                      Copy Hash Info
-                    </button>
                   <% end %>
                   <button
                     type="button"

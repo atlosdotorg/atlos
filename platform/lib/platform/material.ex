@@ -862,6 +862,25 @@ defmodule Platform.Material do
   end
 
   @doc """
+  Get a signed URL for the media version artifact.
+  """
+  defmemo media_version_artifact_location(artifact), expires_in: 60 * 1000 do
+    cond do
+      is_nil(artifact.file_location) ->
+        nil
+
+      String.starts_with?(artifact.file_location, "https://") ->
+        artifact.file_location
+
+      true ->
+        Uploads.MediaVersionArtifact.url({artifact.file_location, artifact},
+          signed: true,
+          expires_in: 60 * 60 * 6
+        )
+    end
+  end
+
+  @doc """
   Changeset for multiple media attributes at a time. Delegates most functionality to change_media_attribute, so it also checks permissions.
   """
   def change_media_attributes(
