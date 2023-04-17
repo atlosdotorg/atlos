@@ -572,6 +572,14 @@
             </dd>
           </div>
         </dl>
+        <hr class="my-4" />
+        <div class="flex flex-col gap-4">
+          <%= for artifact <- version.artifacts do %>
+            <article>
+              (artifact)
+            </article>
+          <% end %>
+        </div>
       </.modal>
     <% end %>
     <.floating_bottom>
