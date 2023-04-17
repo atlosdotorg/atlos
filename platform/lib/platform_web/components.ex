@@ -2627,27 +2627,41 @@ defmodule PlatformWeb.Components do
       <div class="relative">
         <%= if @artifacts_to_show do %>
           <%= for artifact <- @artifacts do %>
-          <div id={"artifact-#{artifact.id}"} class="h-40 overflow-hidden p-1 z-[1] border rounded-lg">
-            <div x-bind:class="grayscale ? 'grayscale' : ''">
-              <%= if String.starts_with?(artifact.mime_type, "image/") do %>
-                <%= if @dynamic_src do %>
-                  <dynamic tag="img" src={Material.media_version_artifact_location(artifact)} class="w-full" />
+            <div
+              id={"artifact-#{artifact.id}"}
+              class="h-40 overflow-hidden p-1 z-[1] border rounded-lg"
+            >
+              <div x-bind:class="grayscale ? 'grayscale' : ''">
+                <%= if String.starts_with?(artifact.mime_type, "image/") do %>
+                  <%= if @dynamic_src do %>
+                    <dynamic
+                      tag="img"
+                      src={Material.media_version_artifact_location(artifact)}
+                      class="w-full"
+                    />
+                  <% else %>
+                    <img
+                      src={Material.media_version_artifact_location(artifact)}
+                      class="w-full object-cover object-top"
+                    />
+                  <% end %>
                 <% else %>
-                  <img src={Material.media_version_artifact_location(artifact)} class="w-full object-cover object-top" />
+                  <%= if @dynamic_src do %>
+                    <video controls preload="auto" muted>
+                      <dynamic
+                        tag="source"
+                        src={Material.media_version_artifact_location(artifact)}
+                        class="w-full"
+                      />
+                    </video>
+                  <% else %>
+                    <video controls preload="auto" muted>
+                      <source src={Material.media_version_artifact_location(artifact)} class="w-full" />
+                    </video>
+                  <% end %>
                 <% end %>
-              <% else %>
-                <%= if @dynamic_src do %>
-                  <video controls preload="auto" muted>
-                    <dynamic tag="source" src={Material.media_version_artifact_location(artifact)} class="w-full" />
-                  </video>
-                <% else %>
-                  <video controls preload="auto" muted>
-                    <source src={Material.media_version_artifact_location(artifact)} class="w-full" />
-                  </video>
-                <% end %>
-              <% end %>
+              </div>
             </div>
-          </div>
           <% end %>
         <% end %>
         <%= if @version.status != :pending do %>

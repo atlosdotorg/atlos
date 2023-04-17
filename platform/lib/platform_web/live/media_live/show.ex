@@ -27,6 +27,8 @@ defmodule PlatformWeb.MediaLive.Show do
        |> assign(:full_width, true)
        |> assign(:slug, slug)
        |> assign(:attribute, Map.get(params, "attribute"))
+       # For /detail
+       |> assign(:scoped_id, Map.get(params, "scoped_id"))
        |> assign(:title, "Incident #{slug}")
        |> assign_media_and_updates()}
     end

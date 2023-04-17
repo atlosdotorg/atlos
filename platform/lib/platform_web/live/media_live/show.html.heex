@@ -527,6 +527,53 @@
         </div>
       </.modal>
     <% end %>
+    <%= if @live_action == :media_version_detail do %>
+      <% version = Enum.find(@media.versions, &(to_string(&1.scoped_id) == @scoped_id)) %>
+      <.modal target={} close_confirmation="">
+        <div class="mb-4">
+          <p class="font-mono text-xs text-neutral-500 flex items-center gap-2">
+            <.url_icon url={version.source_url} class="h-4" />
+            <%= Platform.Material.get_human_readable_media_version_name(@media, version) %>
+          </p>
+          <p class="max-w-full truncate mt-1">
+            <a href={version.source_url} target="_blank" rel="noopener noreferrer">
+              <%= version.source_url %>
+            </a>
+          </p>
+        </div>
+        <dl class="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div class="flex w-full flex items-center gap-x-2">
+            <dt class="flex-none">
+              <span class="sr-only">Added</span>
+              <Heroicons.calendar mini class="h-5 w-5 text-gray-400" />
+            </dt>
+            <dd class="text-sm leading-6 text-gray-500">
+              <.rel_time time={version.inserted_at} />
+            </dd>
+          </div>
+          <div class="flex w-full flex items-center gap-x-2">
+            <dt class="flex-none">
+              <span class="sr-only">Artifacts</span>
+              <Heroicons.cloud mini class="h-5 w-5 text-gray-400" />
+            </dt>
+            <dd class="text-sm leading-6 text-gray-500">
+              <%= length(version.artifacts) %> artifacts
+            </dd>
+          </div>
+          <div class="flex w-full flex items-center gap-x-2">
+            <dt class="flex-none">
+              <span class="sr-only">Upload Type</span>
+              <Heroicons.archive_box mini class="h-5 w-5 text-gray-400" />
+            </dt>
+            <dd class="text-sm leading-6 text-gray-500">
+              <%= if version.upload_type == :user_provided,
+                do: "Uploaded",
+                else: "Archive by Atlos" %>
+            </dd>
+          </div>
+        </dl>
+      </.modal>
+    <% end %>
     <.floating_bottom>
       <%= if Platform.Accounts.is_muted(@current_user) do %>
         <.floating_warning>

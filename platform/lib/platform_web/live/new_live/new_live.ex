@@ -1,7 +1,6 @@
 defmodule PlatformWeb.NewLive do
   use PlatformWeb, :live_view
 
-  alias Platform.Accounts
   alias Platform.Permissions
 
   def mount(params, _session, socket) do

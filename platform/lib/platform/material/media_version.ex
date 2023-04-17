@@ -9,7 +9,7 @@ defmodule Platform.Material.MediaVersion do
 
     field(:upload_type, Ecto.Enum, values: [:user_provided, :direct], default: :user_provided)
     field(:source_url, :string)
-    field(:hashes, :map, default: %{})
+    field(:metadata, :map, default: %{})
 
     @primary_key {:id, :binary_id, autogenerate: false}
     embeds_many :artifacts, Platform.Material.MediaVersionArtifact do
