@@ -89,11 +89,14 @@ ENV MIX_ENV="prod"
 
 # Only copy the final release from the build stage
 COPY --from=builder --chown=nobody:root /app/_build/${MIX_ENV}/rel/platform ./
+COPY utils utils
 
 # Install packages needed for runtime environment
-RUN apt-get update -y && apt-get install -y ffmpeg imagemagick curl python3 \
-  && apt-get clean && rm -f /var/lib/apt/lists/*_*
-RUN curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /usr/local/bin/yt-dlp && chmod a+rx /usr/local/bin/yt-dlp
+RUN apt-get update -y && apt-get install -y ffmpeg imagemagick curl python3 python3-pip docker.io \
+  && apt-get clean && rm -f /var/lib/apt/lists/*_* && python3 -m pip install poetry
+
+# Install and setup Poetry+Python for the `utils/` scripts (archiver, etc.)
+RUN cd /app/utils && poetry install
 
 USER nobody
 
