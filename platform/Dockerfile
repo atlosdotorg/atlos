@@ -66,6 +66,7 @@ RUN mix release
 
 # start a new build stage so that the final image will only contain
 # the compiled release and other runtime necessities
+FROM docker:20
 FROM ${RUNNER_IMAGE}
 
 ARG APP_REVISION="unset"

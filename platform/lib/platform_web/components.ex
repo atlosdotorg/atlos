@@ -36,7 +36,9 @@ defmodule PlatformWeb.Components do
 
   def modal(assigns) do
     assigns =
-      assign_new(assigns, :id, fn -> "default" end) |> assign_new(:js_on_close, fn -> "" end)
+      assign_new(assigns, :id, fn -> "default" end)
+      |> assign_new(:js_on_close, fn -> "" end)
+      |> assign_new(:wide, fn -> false end)
 
     ~H"""
     <div
@@ -73,7 +75,7 @@ defmodule PlatformWeb.Components do
         </span>
 
         <div
-          class="relative inline-block opacity-0 scale-75 align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-xl sm:w-full sm:p-6"
+          class={"relative inline-block opacity-0 scale-75 align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left shadow-xl transform transition-all sm:my-8 sm:align-middle md:ml-28 sm:max-w-xl sm:w-full sm:p-6 overflow-hidden max-w-full" <> if @wide, do: "md:max-w-3xl lg:max-w-4xl xl:max-w-5xl", else: ""}
           phx-mounted={
             JS.transition({"ease-out duration-75", "opacity-0 scale-75", "opacity-100 scale-100"},
               time: 75
