@@ -77,7 +77,7 @@ defmodule Platform.Workers.Archiver do
                     file_hash_sha256: artifact["sha256"],
                     file_size: size,
                     mime_type: MIME.from_path(artifact["file"]),
-                    perceptual_hashes: %{computed: Map.get(artifact, "perceptual_hashes", [])},
+                    perceptual_hashes: %{"computed" => Map.get(artifact, "perceptual_hashes", [])},
                     type: String.to_existing_atom(artifact["kind"])
                   }
                 end)

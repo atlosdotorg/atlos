@@ -63,7 +63,7 @@ def archive_page_using_browsertrix(url: str) -> dict:
 
     os.mkdir("crawls")
 
-    docker_args = f"run -v {os.path.abspath('crawls')}:/crawls/ webrecorder/browsertrix-crawler crawl --generateWACZ --timeLimit 60 --userAgent fake --pageLimit 1 --maxDepth 1 --scopeType page --text --screenshot thumbnail,view,fullPage --behaviors autoscroll,autoplay,autofetch,siteSpecific --url"
+    docker_args = f"run -v {os.path.abspath('crawls')}:/crawls/ webrecorder/browsertrix-crawler crawl --generateWACZ --timeLimit 60 --userAgent fake --pageLimit 1 --maxDepth 1 --scopeType page --text --screenshot fullPage --behaviors autoscroll,autoplay,autofetch,siteSpecific --url"
 
     # Run the command in a subprocess
     try:

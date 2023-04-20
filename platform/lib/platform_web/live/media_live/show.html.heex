@@ -533,17 +533,17 @@
         <div class="flex flex-col md:flex-row max-h-[85vh]">
           <section class="border-r w-[15rem] -my-8 py-8">
             <div class="mb-4">
-              <p class="font-mono text-xs text-neutral-500 flex items-center gap-2">
+              <p class="font-mono text-sm text-neutral-500 flex items-center gap-2">
                 <.url_icon url={version.source_url} class="h-4" />
                 <%= Platform.Material.get_human_readable_media_version_name(@media, version) %>
               </p>
-              <p class="max-w-full truncate mt-1">
+              <p class="overflow-hidden break-words mr-4 mt-1">
                 <a href={version.source_url} target="_blank" rel="noopener noreferrer">
-                  <%= version.source_url %>
+                  <%= version.source_url |> Platform.Utils.truncate(80) %>
                 </a>
               </p>
             </div>
-            <dl class="grid grid-cols-1 gap-8">
+            <dl class="grid grid-cols-1 gap-4 mt-8">
               <div class="flex w-full flex items-center gap-x-2">
                 <dt class="flex-none">
                   <span class="sr-only">Added</span>
@@ -575,10 +575,124 @@
               </div>
             </dl>
           </section>
-          <section class="grow flex flex-col gap-4 bg-neutral-50 -mr-8 -my-8 pr-8 py-8 overflow-y-auto max-h-full">
+          <section class="grow flex flex-col bg-neutral-50 -mr-6 -my-8 py-8 overflow-y-auto max-h-full">
             <%= for artifact <- version.artifacts do %>
-              <article class="my-[10rem]">
-                (artifact)
+              <article class="py-2 border-b border-dashed">
+                <div class="m-4">
+                  <!-- Show the media itself -->
+                  <section class="max-h-[28rem] mx-auto border rounded-lg overflow-hidden bg-neutral-100">
+                    <%= cond do %>
+                      <% String.starts_with?(artifact.mime_type, "image") -> %>
+                        <a
+                          href={Material.media_version_artifact_location(artifact)}
+                          target="_blank"
+                          class="group relative block"
+                          rel="noopener noreferrer"
+                        >
+                          <img
+                            src={Material.media_version_artifact_location(artifact)}
+                            class="w-full object-contain overflow-hidden max-h-[28rem]"
+                          />
+                          <div class="opacity-0 group-hover:opacity-100 block absolute inset-0 bg-black bg-opacity-50 flex flex-col gap-2 items-center justify-center w-full h-full transition-all">
+                            <Heroicons.link class="h-8 w-8 text-white" />
+                            <span class="text-white">Open full image in new tab</span>
+                          </div>
+                        </a>
+                      <% String.starts_with?(artifact.mime_type, "video") -> %>
+                        <video controls preload="auto" muted>
+                          <source
+                            src={Material.media_version_artifact_location(artifact)}
+                            class="w-full"
+                          />
+                        </video>
+                      <% String.starts_with?(artifact.mime_type, "audio") -> %>
+                        <audio controls preload="auto" muted>
+                          <source
+                            src={Material.media_version_artifact_location(artifact)}
+                            class="w-full"
+                          />
+                        </audio>
+                      <% true -> %>
+                        <!-- Show some kind of file preview -->
+                        <div class="flex flex-col md:flex-row items-center m-4 gap-2 md:gap-4">
+                          <Heroicons.archive_box class="h-12 w-12 text-neutral-500" />
+                          <div class="grow">
+                            <p class="font-medium">
+                              <%= artifact.file_location %>
+                            </p>
+                            <p class="text-xs text-neutral-500">
+                              <%= case artifact.type do %>
+                                <% :wacz -> %>
+                                  Interactive Page Snapshot
+                                <% _ -> %>
+                                  <%= artifact.type |> Atom.to_string() |> String.capitalize() %>
+                              <% end %>
+                            </p>
+                          </div>
+                          <%= if artifact.type == :wacz do %>
+                            <a
+                              href={"https://replayweb.page/?#{URI.encode_query(%{source: Material.media_version_artifact_location(artifact)})}#view=pages&#{URI.encode_query(%{url: version.source_url})}"}
+                              class="base-button"
+                              target="_blank"
+                              data-confirm="This will open up the archived page in a new tab, run by the third-party service ReplayWeb.Page. Are you sure?"
+                            >
+                              <Heroicons.play mini class="h-4 w-4 mr-1" /> Replay Page
+                            </a>
+                          <% end %>
+                        </div>
+                    <% end %>
+                  </section>
+                  <!-- Show the metadata -->
+                  <dl class="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 truncate uppercase font-mono text-sm">
+                    <div>
+                      <dt class="text-neutral-500">Artifact Type</dt>
+                      <dd><%= artifact.type %></dd>
+                    </div>
+                    <div>
+                      <dt class="text-neutral-500">File Size</dt>
+                      <dd>
+                        <%= (artifact.file_size / 1_000_000)
+                        |> Formatter.format_number(decimal_places: 2) %> MB
+                      </dd>
+                    </div>
+                    <div>
+                      <dt class="text-neutral-500">MIME Type</dt>
+                      <dd><%= artifact.mime_type %></dd>
+                    </div>
+                    <div>
+                      <dt class="text-neutral-500">SHA256 Hash</dt>
+                      <dd class="overflow-hidden truncate max-w-full">
+                        <%= artifact.file_hash_sha256 %>
+                      </dd>
+                    </div>
+                    <div>
+                      <dt class="text-neutral-500">Perceptual Hashes</dt>
+                      <dd class="overflow-hidden truncate max-w-full">
+                        <%= if artifact.perceptual_hashes != nil and Map.get(artifact.perceptual_hashes, "computed") != [] do %>
+                          <%= for hash <- Map.get(artifact.perceptual_hashes, "computed") do %>
+                            <p><%= Map.get(hash, "kind") %>: <%= Map.get(hash, "hash") %></p>
+                          <% end %>
+                        <% else %>
+                          <p>None</p>
+                        <% end %>
+                      </dd>
+                    </div>
+                    <div>
+                      <dt class="text-neutral-500">Actions</dt>
+                      <dd class="overflow-hidden truncate max-w-full">
+                        <p>
+                          <a
+                            href={Material.media_version_artifact_location(artifact)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            Download &nearr;
+                          </a>
+                        </p>
+                      </dd>
+                    </div>
+                  </dl>
+                </div>
               </article>
             <% end %>
           </section>
