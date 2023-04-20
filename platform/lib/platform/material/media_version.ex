@@ -55,6 +55,7 @@ defmodule Platform.Material.MediaVersion do
       :media_id,
       :visibility,
       :scoped_id,
+      :metadata,
       :explanation
     ])
     |> cast_embed(:artifacts, with: &artifact_changeset/2)

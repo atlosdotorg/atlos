@@ -89,8 +89,8 @@ defmodule Platform.Workers.Archiver do
                 metadata: %{
                   auto_archive_successful: Map.get(metadata, "auto_archive_successful", false),
                   crawl_successful: Map.get(metadata, "crawl_successful", false),
-                  page_info: Map.get(metadata, "page_data"),
-                  content_info: Map.get(metadata, "content_data"),
+                  page_info: Map.get(metadata, "page_info"),
+                  content_info: Map.get(metadata, "content_info"),
                   is_likely_authwalled: Map.get(metadata, "is_likely_authwalled", false)
                 }
               }

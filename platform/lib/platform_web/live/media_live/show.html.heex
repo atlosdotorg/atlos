@@ -530,18 +530,21 @@
     <%= if @live_action == :media_version_detail do %>
       <% version = Enum.find(@media.versions, &(to_string(&1.scoped_id) == @scoped_id)) %>
       <.modal target={} close_confirmation="" wide={true}>
-        <div class="flex flex-col md:flex-row max-h-[85vh]">
-          <section class="border-r w-[15rem] -my-8 py-8">
+        <div class="flex flex-col md:flex-row max-h-[85vh] h-full">
+          <section class="border-r w-[15rem] -my-8 py-8 flex flex-col self-stretch">
             <div class="mb-4">
               <p class="font-mono text-sm text-neutral-500 flex items-center gap-2">
                 <.url_icon url={version.source_url} class="h-4" />
                 <%= Platform.Material.get_human_readable_media_version_name(@media, version) %>
               </p>
-              <p class="overflow-hidden break-words mr-4 mt-1">
+              <div class="overflow-hidden break-words mr-4 mt-2">
                 <a href={version.source_url} target="_blank" rel="noopener noreferrer">
-                  <%= version.source_url |> Platform.Utils.truncate(80) %>
+                  <p class="leading-snug text-lg my-2"><%= Platform.Material.get_media_version_title(version) |> Platform.Utils.truncate(80) %></p>
+                  <%= if Platform.Material.get_media_version_title(version) != version.source_url do %>
+                    <p class="text-neutral-500 text-sm"><%= version.source_url |> Platform.Utils.truncate(80) %></p>
+                  <% end %>
                 </a>
-              </p>
+              </div>
             </div>
             <dl class="grid grid-cols-1 gap-4 mt-8">
               <div class="flex w-full flex items-center gap-x-2">
@@ -550,7 +553,7 @@
                   <Heroicons.calendar mini class="h-5 w-5 text-gray-400" />
                 </dt>
                 <dd class="text-sm leading-6 text-gray-500">
-                  <.rel_time time={version.inserted_at} />
+                  Added <.rel_time time={version.inserted_at} />
                 </dd>
               </div>
               <div class="flex w-full flex items-center gap-x-2">
@@ -569,11 +572,17 @@
                 </dt>
                 <dd class="text-sm leading-6 text-gray-500">
                   <%= if version.upload_type == :user_provided,
-                    do: "Uploaded",
-                    else: "Archive by Atlos" %>
+                    do: "Manually Uploaded",
+                    else: "Archived by Atlos" %>
                 </dd>
               </div>
             </dl>
+            <div class="grow">
+              <% dbg(version.metadata) %>
+            </div>
+            <p class="text-xs text-neutral-500">
+              Atlos provides best-effort archival. Archives may be incomplete or missing, and should not be relied on for legal evidence.
+            </p>
           </section>
           <section class="grow flex flex-col bg-neutral-50 -mr-6 -my-8 py-8 overflow-y-auto max-h-full">
             <%= for artifact <- version.artifacts do %>
@@ -599,10 +608,9 @@
                           </div>
                         </a>
                       <% String.starts_with?(artifact.mime_type, "video") -> %>
-                        <video controls preload="auto" muted>
+                        <video controls preload="auto" muted                             class="w-full object-contain mx-auto overflow-hidden max-h-[28rem]">
                           <source
                             src={Material.media_version_artifact_location(artifact)}
-                            class="w-full"
                           />
                         </video>
                       <% String.starts_with?(artifact.mime_type, "audio") -> %>
@@ -667,10 +675,10 @@
                     </div>
                     <div>
                       <dt class="text-neutral-500">Perceptual Hashes</dt>
-                      <dd class="overflow-hidden truncate max-w-full">
+                      <dd>
                         <%= if artifact.perceptual_hashes != nil and Map.get(artifact.perceptual_hashes, "computed") != [] do %>
                           <%= for hash <- Map.get(artifact.perceptual_hashes, "computed") do %>
-                            <p><%= Map.get(hash, "kind") %>: <%= Map.get(hash, "hash") %></p>
+                            <p class="overflow-hidden truncate max-w-full"><%= Map.get(hash, "kind") %>: <%= Map.get(hash, "hash") %></p>
                           <% end %>
                         <% else %>
                           <p>None</p>

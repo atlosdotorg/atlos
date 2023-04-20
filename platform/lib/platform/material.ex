@@ -1210,7 +1210,7 @@ defmodule Platform.Material do
   Get the human-readable name of the media version (e.g., ABCDEF/1). The media must match the version.
   """
   def get_human_readable_media_version_name(%Media{} = media, %MediaVersion{} = version) do
-    "#{media.slug}/#{version.scoped_id}"
+    "#{Media.slug_to_display(media)}/#{version.scoped_id}"
   end
 
   @doc """
@@ -1242,5 +1242,28 @@ defmodule Platform.Material do
       end
     end)
     |> Repo.all()
+  end
+
+  def get_media_version_tags(%MediaVersion{} = version) do
+    tags = []
+
+    case version.visibility do
+      :hidden -> tags = ["Removed" | tags]
+      _ -> tags
+    end
+
+    case Map.get(version.metadata, "is_likely_authwalled") do
+      true -> tags = ["Authwall" | tags]
+      _ -> tags
+    end
+
+    case Map.get(version.metadata, "crawl_successful") do
+      false -> tags = ["Snapshot Unavailable" | tags]
+      _ -> tags
+    end
+  end
+
+  def get_media_version_title(%MediaVersion{} = version) do
+    (Map.get(version.metadata || %{}, "page_info") || %{}) |> Map.get("title", version.source_url)
   end
 end
