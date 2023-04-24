@@ -80,7 +80,7 @@ ENV LANG en_US.UTF-8
 ENV LANGUAGE en_US:en
 ENV LC_ALL en_US.UTF-8
 
-RUN echo 'manylinux1_compatible = True' > /usr/local/lib/python3.10/site-packages/_manylinux.py
+RUN echo 'manylinux1_compatible = True' > /usr/lib/python3.10/site-packages/_manylinux.py
 
 WORKDIR "/app"
 RUN chown nobody /app
