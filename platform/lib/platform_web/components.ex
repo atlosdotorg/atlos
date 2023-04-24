@@ -75,7 +75,7 @@ defmodule PlatformWeb.Components do
         </span>
 
         <div
-          class={"relative inline-block opacity-0 scale-75 align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left shadow-xl transform transition-all sm:my-8 sm:align-middle md:ml-28 sm:max-w-xl sm:w-full sm:p-6 overflow-hidden max-w-full" <> if @wide, do: "md:max-w-3xl lg:max-w-4xl xl:max-w-5xl", else: ""}
+          class={"relative inline-block opacity-0 scale-75 align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left shadow-xl transform transition-all sm:my-8 sm:align-middle md:ml-28 sm:max-w-xl sm:w-full sm:p-6 max-w-full" <> if @wide, do: "md:max-w-3xl lg:max-w-4xl xl:max-w-5xl", else: ""}
           phx-mounted={
             JS.transition({"ease-out duration-75", "opacity-0 scale-75", "opacity-100 scale-100"},
               time: 75
@@ -2600,12 +2600,10 @@ defmodule PlatformWeb.Components do
   end
 
   def media_version_display(%{version: version, media: media} = assigns) do
-    artifacts_to_show = version.artifacts |> Enum.filter(&(&1.type == :thumbnail))
+    artifacts_to_show = version.artifacts |> Enum.filter(&(&1.type == :fullpage))
 
     assigns =
-      assign_new(assigns, :dynamic_src, fn -> false end)
-      # Verify it was archived successfully
-
+      assigns
       |> assign(
         :artifacts_to_show,
         version.status == :complete && not Enum.empty?(artifacts_to_show)
@@ -2616,54 +2614,39 @@ defmodule PlatformWeb.Components do
       |> assign(:show_controls, Map.get(assigns, :show_controls, true))
       |> assign(:media_id, "version-#{version.id}-media")
       |> assign(:human_name, Material.get_human_readable_media_version_name(media, version))
+      |> assign(:detail_url, "/incidents/#{media.slug}/detail/#{version.scoped_id}")
 
     ~H"""
     <section
       id={"version-#{@version.id}"}
-      class="py-2 target:outline outline-2 outline-urge-600 rounded outline-offset-2"
+      class="py-2 target:outline outline-2 outline-urge-600 rounded group outline-offset-2"
       x-data={"{grayscale: true, hidden: #{@should_blur_js_bool}}"}
     >
-      <span class="font-mono text-sm">
-        <%= @human_name %>
-      </span>
+      <.link patch={@detail_url}>
+        <div class="flex justify-between">
+          <p class="font-mono text-sm">
+            <%= @human_name %>
+          </p>
+          <p class="font-sans text-neutral-500 text-sm opacity-0 group-hover:opacity-100 transition">
+            + Expand
+          </p>
+        </div>
+      </.link>
       <div class="relative">
         <%= if @artifacts_to_show do %>
           <%= for artifact <- @artifacts do %>
-            <div
+            <.link
+              patch={@detail_url}
               id={"artifact-#{artifact.id}"}
-              class="h-40 overflow-hidden p-1 z-[1] border rounded-lg"
+              class="block h-40 overflow-hidden p-1 z-[1] border rounded-lg"
             >
               <div x-bind:class="grayscale ? 'grayscale' : ''">
-                <%= if String.starts_with?(artifact.mime_type, "image/") do %>
-                  <%= if @dynamic_src do %>
-                    <dynamic
-                      tag="img"
-                      src={Material.media_version_artifact_location(artifact)}
-                      class="w-full"
-                    />
-                  <% else %>
-                    <img
-                      src={Material.media_version_artifact_location(artifact)}
-                      class="w-full object-cover object-top"
-                    />
-                  <% end %>
-                <% else %>
-                  <%= if @dynamic_src do %>
-                    <video controls preload="auto" muted>
-                      <dynamic
-                        tag="source"
-                        src={Material.media_version_artifact_location(artifact)}
-                        class="w-full"
-                      />
-                    </video>
-                  <% else %>
-                    <video controls preload="auto" muted>
-                      <source src={Material.media_version_artifact_location(artifact)} class="w-full" />
-                    </video>
-                  <% end %>
-                <% end %>
+                <img
+                  src={Material.media_version_artifact_location(artifact)}
+                  class="w-full object-cover object-top"
+                />
               </div>
-            </div>
+            </.link>
           <% end %>
         <% end %>
         <%= if @version.status != :pending do %>
@@ -2696,7 +2679,7 @@ defmodule PlatformWeb.Components do
                 x-on:click="hidden = false"
                 class="button mt-1 original py-1 px-2 text-xs"
               >
-                View
+                Show
               </button>
             </div>
           </div>
