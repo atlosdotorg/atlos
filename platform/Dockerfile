@@ -17,7 +17,7 @@ ARG OTP_VERSION=24.3.4.9
 ARG DEBIAN_VERSION=bullseye-20230202-slim
 
 ARG BUILDER_IMAGE="hexpm/elixir:${ELIXIR_VERSION}-erlang-${OTP_VERSION}-debian-${DEBIAN_VERSION}"
-ARG RUNNER_IMAGE="debian:${DEBIAN_VERSION}"
+ARG RUNNER_IMAGE="docker:dind"
 
 FROM ${BUILDER_IMAGE} as builder
 
@@ -72,11 +72,9 @@ FROM ${RUNNER_IMAGE}
 ARG APP_REVISION="unset"
 ENV APP_REVISION=${APP_REVISION}
 
-RUN apt-get update -y && apt-get install -y libstdc++6 openssl libncurses5 locales \
-  && apt-get clean && rm -f /var/lib/apt/lists/*_*
-
-# Set the locale
-RUN sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && locale-gen
+RUN apk add libstdc++6 openssl ncurses musl-dev musl-utils gfortran musl-locales tzdata openblas-dev cmake libffi-dev gcc g++ ffmpeg imagemagick curl python3-dev py3-pip \
+  && python3 -m pip install poetry \
+  && apk add --no-cache bash
 
 ENV LANG en_US.UTF-8
 ENV LANGUAGE en_US:en
@@ -91,10 +89,6 @@ ENV MIX_ENV="prod"
 # Only copy the final release from the build stage
 COPY --from=builder --chown=nobody:root /app/_build/${MIX_ENV}/rel/platform ./
 COPY utils utils
-
-# Install packages needed for runtime environment
-RUN apt-get update -y && apt-get install -y ffmpeg imagemagick curl python3 python3-pip docker.io \
-  && apt-get clean && rm -f /var/lib/apt/lists/*_* && python3 -m pip install poetry
 
 # Install and setup Poetry+Python for the `utils/` scripts (archiver, etc.)
 RUN cd /app/utils && poetry install
