@@ -1247,20 +1247,22 @@ defmodule Platform.Material do
   def get_media_version_tags(%MediaVersion{} = version) do
     tags = []
 
-    case version.visibility do
-      :hidden -> tags = ["Removed" | tags]
+    tags = case version.visibility do
+      :hidden -> ["Removed" | tags]
       _ -> tags
     end
 
-    case Map.get(version.metadata, "is_likely_authwalled") do
-      true -> tags = ["Authwall" | tags]
+    tags = case Map.get(version.metadata, "is_likely_authwalled") do
+      true -> ["Authwall" | tags]
       _ -> tags
     end
 
-    case Map.get(version.metadata, "crawl_successful") do
-      false -> tags = ["Snapshot Unavailable" | tags]
+    tags = case Map.get(version.metadata, "crawl_successful") do
+      false ->  ["Snapshot Unavailable" | tags]
       _ -> tags
     end
+
+    tags
   end
 
   def get_media_version_title(%MediaVersion{} = version) do

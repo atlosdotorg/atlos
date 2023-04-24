@@ -2600,15 +2600,25 @@ defmodule PlatformWeb.Components do
   end
 
   def media_version_display(%{version: version, media: media} = assigns) do
-    artifacts_to_show = version.artifacts |> Enum.filter(&(&1.type == :fullpage))
+    artifact_to_show = cond do
+      # If available, show a screenshot
+      version.artifacts |> Enum.find(&(&1.type == :fullpage)) != nil ->
+        version.artifacts |> Enum.find(&(&1.type == :fullpage))
+
+      # Otherwise show the first artifact
+      not Enum.empty?(version.artifacts) -> hd(version.artifacts)
+
+      # Otherwise show nothing
+      true -> nil
+    end
 
     assigns =
       assigns
       |> assign(
-        :artifacts_to_show,
-        version.status == :complete && not Enum.empty?(artifacts_to_show)
+        :artifact_to_show,
+        version.status == :complete && artifact_to_show != nil
       )
-      |> assign(:artifacts, artifacts_to_show)
+      |> assign(:artifact, artifact_to_show)
       |> assign(:should_blur_js_bool, if(Media.is_graphic(media), do: "true", else: "false"))
       # Whether to show controls for hiding, adding media (requires that the caller be able to handle the events)
       |> assign(:show_controls, Map.get(assigns, :show_controls, true))
@@ -2620,7 +2630,7 @@ defmodule PlatformWeb.Components do
     <section
       id={"version-#{@version.id}"}
       class="py-2 target:outline outline-2 outline-urge-600 rounded group outline-offset-2"
-      x-data={"{grayscale: true, hidden: #{@should_blur_js_bool}}"}
+      x-data={"{hidden: #{@should_blur_js_bool}}"}
     >
       <.link patch={@detail_url}>
         <div class="flex justify-between">
@@ -2633,21 +2643,33 @@ defmodule PlatformWeb.Components do
         </div>
       </.link>
       <div class="relative">
-        <%= if @artifacts_to_show do %>
-          <%= for artifact <- @artifacts do %>
-            <.link
-              patch={@detail_url}
-              id={"artifact-#{artifact.id}"}
-              class="block h-40 overflow-hidden p-1 z-[1] border rounded-lg"
-            >
-              <div x-bind:class="grayscale ? 'grayscale' : ''">
+        <%= if @artifact_to_show do %>
+          <.link
+            patch={@detail_url}
+            id={"artifact-#{@artifact.id}"}
+            class="block h-40 overflow-hidden p-1 z-[1] border rounded-lg"
+          >
+            <%= if String.starts_with?(@artifact.mime_type, "image/") do %>
+              <div class="grayscle">
                 <img
-                  src={Material.media_version_artifact_location(artifact)}
+                  src={Material.media_version_artifact_location(@artifact)}
                   class="w-full object-cover object-top"
                 />
               </div>
-            </.link>
-          <% end %>
+            <% else %>
+              <div class="h-full w-full flex items-center justify-center">
+                <Heroicons.archive_box class="h-8 w-8 text-neutral-500" />
+                <p class="text-sm text-neutral-500"><%= length(@version.artifacts) %> artifact<%= if length(@version.artifacts) != 1 do %>s<% end %></p>
+              </div>
+            <% end %>
+          </.link>
+        <% else %>
+          <div class="h-40 w-full bg-gray-200 rounded-lg">
+            <div class="h-full w-full flex items-center justify-center">
+              <Heroicons.archive_box_x_mark class="h-8 w-8 text-neutral-500" />
+              <p class="text-sm text-neutral-500">No artifacts available</p>
+            </div>
+          </div>
         <% end %>
         <%= if @version.status != :pending do %>
           <div
@@ -2684,7 +2706,7 @@ defmodule PlatformWeb.Components do
             </div>
           </div>
         <% end %>
-        <%= if not @artifacts_to_show do %>
+        <%= if not @artifact_to_show do %>
           <div class="w-full h-40 bg-neutral-50 border rounded-lg flex items-center justify-around">
             <%= if @version.status == :pending do %>
               <div class="text-center w-48">
@@ -2788,7 +2810,7 @@ defmodule PlatformWeb.Components do
             </div>
           <% end %>
         </span>
-        <%= if @artifacts_to_show or @show_controls do %>
+        <%= if @artifact_to_show or @show_controls do %>
           <div class="flex gap-1 items-center">
             <div class="relative inline-block text-left" x-data="{open: false}">
               <div>
@@ -2822,44 +2844,25 @@ defmodule PlatformWeb.Components do
                 x-transition
               >
                 <div class="py-1" role="none">
-                  <%= if @artifacts_to_show do %>
-                    <button
-                      type="button"
-                      rel="nofollow"
-                      title="Toggle Color"
-                      x-on:click="grayscale = !grayscale"
-                      class="text-gray-700 px-2 py-2 text-sm flex items-center gap-2 hover:bg-gray-100 w-full"
+                  <a
+                    target="_blank"
+                    href={@version.source_url}
+                    rel="nofollow"
+                    title="Source"
+                    role="menuitem"
+                    class="text-gray-700 px-2 py-2 text-sm flex items-center gap-2 hover:bg-gray-100"
+                    data-confirm="This link will open an external site in a new tab. Are you sure?"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                      class="w-5 h-5 text-neutral-500"
                     >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                        class="h-5 w-5 text-neutral-500"
-                        fill="currentColor"
-                      >
-                        <path fill="none" d="M0 0h24v24H0z" /><path d="M12 2c5.522 0 10 3.978 10 8.889a5.558 5.558 0 0 1-5.556 5.555h-1.966c-.922 0-1.667.745-1.667 1.667 0 .422.167.811.422 1.1.267.3.434.689.434 1.122C13.667 21.256 12.9 22 12 22 6.478 22 2 17.522 2 12S6.478 2 12 2zM7.5 12a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3zm9 0a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3zM12 9a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z" />
-                      </svg>
-                      Toggle Color
-                    </button>
-                    <a
-                      target="_blank"
-                      href={@version.source_url}
-                      rel="nofollow"
-                      title="Source"
-                      role="menuitem"
-                      class="text-gray-700 px-2 py-2 text-sm flex items-center gap-2 hover:bg-gray-100"
-                      data-confirm="This link will open an external site in a new tab. Are you sure?"
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                        fill="currentColor"
-                        class="w-5 h-5 text-neutral-500"
-                      >
-                        <path d="M11.47 1.72a.75.75 0 011.06 0l3 3a.75.75 0 01-1.06 1.06l-1.72-1.72V7.5h-1.5V4.06L9.53 5.78a.75.75 0 01-1.06-1.06l3-3zM11.25 7.5V15a.75.75 0 001.5 0V7.5h3.75a3 3 0 013 3v9a3 3 0 01-3 3h-9a3 3 0 01-3-3v-9a3 3 0 013-3h3.75z" />
-                      </svg>
-                      View Source
-                    </a>
-                  <% end %>
+                      <path d="M11.47 1.72a.75.75 0 011.06 0l3 3a.75.75 0 01-1.06 1.06l-1.72-1.72V7.5h-1.5V4.06L9.53 5.78a.75.75 0 01-1.06-1.06l3-3zM11.25 7.5V15a.75.75 0 001.5 0V7.5h3.75a3 3 0 013 3v9a3 3 0 01-3 3h-9a3 3 0 01-3-3v-9a3 3 0 013-3h3.75z" />
+                    </svg>
+                    View Source
+                  </a>
                   <button
                     type="button"
                     rel="nofollow"

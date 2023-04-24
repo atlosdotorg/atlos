@@ -590,7 +590,15 @@
             </p>
           </section>
           <section class="grow flex flex-col bg-neutral-50 border-l my-2 mr-2 rounded-r-lg overflow-y-auto max-h-full pt-8">
-            <%= for artifact <- version.artifacts do %>
+            <%= for artifact <- version.artifacts |> Enum.sort_by(fn artifact ->
+              case artifact.type do
+                :upload -> 0
+                :media -> 1
+                :fullpage -> 2
+                :wacz -> 3
+                _ -> 4
+              end
+            end) do %>
               <article class="py-2 border-b border-dashed">
                 <% is_media = String.starts_with?(artifact.mime_type, "video") or String.starts_with?(artifact.mime_type, "image") %>
                 <div class="m-4" x-data={"{grayscale: #{is_media}, hidden: #{Media.is_graphic(@media)}}"}>

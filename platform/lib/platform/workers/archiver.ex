@@ -16,8 +16,6 @@ defmodule Platform.Workers.Archiver do
     version = Material.get_media_version!(id)
 
     with %MediaVersion{status: :pending, media_id: media_id} <- version do
-      media = Material.get_media!(media_id)
-
       Logger.info("Archiving media version #{id}... (got media #{media_id})")
 
       hide_version_on_failure = Map.get(args, "hide_version_on_failure", false)
@@ -31,9 +29,6 @@ defmodule Platform.Workers.Archiver do
         try do
           # Submit to the Internet Archive for archival
           Material.submit_for_external_archival(version)
-
-          # Setup tempfiles for media download
-          temp_dir = Temp.mkdir!()
 
           # Download the media data
           case version.upload_type do
