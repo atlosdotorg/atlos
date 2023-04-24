@@ -17,7 +17,7 @@ ARG OTP_VERSION=24.3.4.9
 ARG DEBIAN_VERSION=bullseye-20230202-slim
 
 ARG BUILDER_IMAGE="hexpm/elixir:${ELIXIR_VERSION}-erlang-${OTP_VERSION}-debian-${DEBIAN_VERSION}"
-ARG RUNNER_IMAGE="docker:dind"
+ARG RUNNER_IMAGE="docker:23"
 
 FROM ${BUILDER_IMAGE} as builder
 
@@ -72,7 +72,7 @@ FROM ${RUNNER_IMAGE}
 ARG APP_REVISION="unset"
 ENV APP_REVISION=${APP_REVISION}
 
-RUN apk add libstdc++6 openssl ncurses musl-dev musl-utils gfortran musl-locales tzdata openblas-dev cmake libffi-dev gcc g++ ffmpeg imagemagick curl python3-dev py3-pip \
+RUN apk add libstdc++6 openssl ncurses musl-dev musl-utils gfortran musl-locales gcompat tzdata openblas-dev libffi-dev gcc g++ libstdc++ ffmpeg imagemagick curl python3-dev py3-pip make \
   && python3 -m pip install poetry \
   && apk add --no-cache bash
 
