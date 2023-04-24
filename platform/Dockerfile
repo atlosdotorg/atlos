@@ -72,7 +72,7 @@ FROM ${RUNNER_IMAGE}
 ARG APP_REVISION="unset"
 ENV APP_REVISION=${APP_REVISION}
 
-RUN apk add libstdc++6 openssl ncurses musl-dev musl-utils gfortran musl-locales gcompat tzdata openblas-dev libffi-dev gcc g++ libstdc++ ffmpeg imagemagick curl 'python3-dev==3.10.11-r0' py3-pip make \
+RUN apk add libstdc++6 openssl ncurses musl-dev musl-utils gfortran musl-locales gcompat tzdata openblas-dev libffi-dev gcc g++ libstdc++ ffmpeg imagemagick curl 'python3-dev==3.10.11-r0' py3-pip py3-setuptools make \
   && python3 -m pip install poetry \
   && apk add --no-cache bash
 
