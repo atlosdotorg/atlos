@@ -532,7 +532,7 @@
       <.modal target={} close_confirmation="" wide={true}>
         <div class="flex flex-col md:flex-row max-h-[85vh] h-full rounded-lg overflow-hidden -m-8">
           <section class="w-[15rem] flex flex-col self-stretch p-8">
-            <div class="mb-4">
+            <div>
               <p class="font-mono text-sm text-neutral-500 flex items-center gap-2">
                 <.url_icon url={version.source_url} class="h-4" />
                 <%= Platform.Material.get_human_readable_media_version_name(@media, version) %>
@@ -585,7 +585,7 @@
             <div class="grow">
               <% dbg(version.metadata) %>
             </div>
-            <p class="text-xs text-neutral-500">
+            <p class="text-xs text-neutral-500 mt-8">
               Atlos provides best-effort archival. Archives may be incomplete or missing, and should not be relied on for legal evidence.
             </p>
           </section>

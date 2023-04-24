@@ -2657,56 +2657,13 @@ defmodule PlatformWeb.Components do
                 />
               </div>
             <% else %>
-              <div class="h-full w-full flex items-center justify-center">
-                <Heroicons.archive_box class="h-8 w-8 text-neutral-500" />
-                <p class="text-sm text-neutral-500"><%= length(@version.artifacts) %> artifact<%= if length(@version.artifacts) != 1 do %>s<% end %></p>
+              <div class="h-full w-full flex flex-col items-center justify-center">
+                <Heroicons.archive_box class="h-10 w-10 mb-2 text-neutral-500" />
+                <p class="text-neutral-500"><%= length(@version.artifacts) %> artifact<%= if length(@version.artifacts) != 1 do %>s<% end %></p>
               </div>
             <% end %>
           </.link>
         <% else %>
-          <div class="h-40 w-full bg-gray-200 rounded-lg">
-            <div class="h-full w-full flex items-center justify-center">
-              <Heroicons.archive_box_x_mark class="h-8 w-8 text-neutral-500" />
-              <p class="text-sm text-neutral-500">No artifacts available</p>
-            </div>
-          </div>
-        <% end %>
-        <%= if @version.status != :pending do %>
-          <div
-            class="w-full z-[2] h-full absolute bg-neutral-50 border rounded-lg flex items-center justify-around top-0"
-            x-show="hidden"
-          >
-            <!-- Overlay for potentially graphic content -->
-            <div class="text-center w-48">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="mx-auto h-8 w-8 text-critical-600"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                stroke-width="2"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
-                />
-              </svg>
-              <h3 class="mt-2 font-medium text-gray-900 text-sm">Potentially Graphic</h3>
-              <p class="mt-1 text-gray-500 text-sm">
-                This media may be graphic. Please proceed with caution.
-              </p>
-              <button
-                type="button"
-                x-on:click="hidden = false"
-                class="button mt-1 original py-1 px-2 text-xs"
-              >
-                Show
-              </button>
-            </div>
-          </div>
-        <% end %>
-        <%= if not @artifact_to_show do %>
           <div class="w-full h-40 bg-neutral-50 border rounded-lg flex items-center justify-around">
             <%= if @version.status == :pending do %>
               <div class="text-center w-48">
@@ -2746,8 +2703,7 @@ defmodule PlatformWeb.Components do
                   View Directly
                 </a>
               </div>
-            <% end %>
-            <%= if @version.status == :error do %>
+            <% else %>
               <a
                 target="_blank"
                 href={@version.source_url}
@@ -2757,6 +2713,9 @@ defmodule PlatformWeb.Components do
               >
                 <.url_icon url={@version.source_url} class="mx-auto h-10 w-10 shadow-sm" />
                 <h3 class="mt-2 break-all font-medium text-gray-900 text-sm">External Media</h3>
+                <p class="mt-1 text-gray-500 text-sm">
+                  Unable to archive this media automatically.
+                </p>
                 <span class="button mt-1 original py-1 px-2 text-xs">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
