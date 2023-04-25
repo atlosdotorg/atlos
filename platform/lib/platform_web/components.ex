@@ -795,16 +795,15 @@ defmodule PlatformWeb.Components do
                         moved this incident from <.project_text project={@update.old_project} /> into
                         <.project_text project={@update.new_project} />
                       <% :upload_version -> %>
-                        added
-                        <a
-                          href={
-                          Routes.media_show_path(@socket, :show, @update.media.slug) <>
-                            "#version-#{@update.media_version.id}"
+                        uploaded
+                        <.link
+                          patch={
+                          Routes.media_show_path(@socket, :media_version_detail, @update.media.slug, @update.media_version.scoped_id)
                         }
                           class="text-button text-gray-800"
                         >
-                          Media &nearr;
-                        </a>
+                          <span><%= Material.get_human_readable_media_version_name(@update.media, @update.media_version) %></span> &nearr;
+                        </.link>
                       <% :comment -> %>
                         commented
                     <% end %>
