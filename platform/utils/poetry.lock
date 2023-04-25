@@ -2359,6 +2359,24 @@ files = [
 six = "*"
 
 [[package]]
+name = "webdriver-manager"
+version = "3.8.6"
+description = "Library provides the way to automatically manage drivers for different browsers"
+category = "main"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "webdriver_manager-3.8.6-py2.py3-none-any.whl", hash = "sha256:7d3aa8d67bd6c92a5d25f4abd75eea2c6dd24ea6617bff986f502280903a0e2b"},
+    {file = "webdriver_manager-3.8.6.tar.gz", hash = "sha256:ee788d389b8f45222a8a62f6f39b579360a1f87be46dad6da89918354af3ce73"},
+]
+
+[package.dependencies]
+packaging = "*"
+python-dotenv = "*"
+requests = "*"
+tqdm = "*"
+
+[[package]]
 name = "websockets"
 version = "11.0.2"
 description = "An implementation of the WebSocket Protocol (RFC 6455 & 7692)"
@@ -2525,4 +2543,4 @@ testing = ["big-O", "flake8 (<5)", "jaraco.functools", "jaraco.itertools", "more
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "6eea1fefc3b3da54576fd2b23c9086b743ff1401cccfe13b8c599b02686a2ae6"
+content-hash = "a3a21011ab93c3eefc15e87953569a94a10308e9bce5d39724b80badf186166d"

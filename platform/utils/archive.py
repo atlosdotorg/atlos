@@ -8,9 +8,11 @@ import json
 import mimetypes
 import os
 import re
+import base64
 import shutil
 import subprocess
 import sys
+from time import sleep
 from loguru import logger
 import socket
 from urllib.parse import urlparse
@@ -20,6 +22,11 @@ from perception import hashers
 import click
 import tempfile
 import hashlib
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options as ChromeOptions
+from selenium.webdriver.chrome.service import Service as ChromiumService
+from webdriver_manager.chrome import ChromeDriverManager
+from webdriver_manager.core.utils import ChromeType
 
 # From https://github.com/bellingcat/auto-archiver/blob/dockerize/src/auto_archiver/utils/url.py#L3
 is_telegram_private = re.compile(r"https:\/\/t\.me(\/c)\/(.+)\/(\d+)")
@@ -55,64 +62,74 @@ def find_json_objects(s):
     return json_objects
 
 
-def archive_page_using_browsertrix(url: str) -> dict:
-    """Archives the given URL using browsertrix-crawler. Extracts screenshots."""
+def archive_page_using_selenium(url: str) -> dict:
+    """Archives the given URL using Selenium."""
 
-    if os.path.exists("crawls"):
-        raise RuntimeError("crawls folder already exists")
-
-    os.mkdir("crawls")
-
-    docker_args = f"run -v {os.path.abspath('crawls')}:/crawls/ webrecorder/browsertrix-crawler crawl --generateWACZ --timeLimit 60 --userAgent fake --pageLimit 1 --maxDepth 1 --scopeType page --text --screenshot fullPage --behaviors autoscroll,autoplay,autofetch,siteSpecific --url"
-
-    # Run the command in a subprocess
     try:
-        result = subprocess.run(
-            ["docker", *docker_args.split(), url], timeout=60 * 5, capture_output=False
-        )  # NOTE: URL is UNTRUSTED. Do NOT put it in a shell command.
-    except subprocess.TimeoutExpired:
-        logger.warning("Crawl timed out")
+        # Setup driver
+        options = ChromeOptions()
+        options.add_argument("--headless=new")
+        driver = webdriver.Chrome(
+            service=ChromiumService(
+                ChromeDriverManager(chrome_type=ChromeType.CHROMIUM).install()
+            ),
+            options=options,
+        )
+        driver.set_window_size(1600, 1200)
+
+        # Load the page
+        driver.get(url)
+        driver.implicitly_wait(5)
+
+        # Wait for a bit
+        sleep(5)
+
+        # If there is an element with `aria-label="Close"` and `role="button"`, click it
+        try:
+            close_button = driver.find_element(
+                "xpath", '//*[@aria-label="Close" and @role="button"]'
+            )
+            close_button.click()
+            sleep(1)
+        except:
+            print("No close button found")
+
+        # Press the escape key, just in case
+        driver.find_element("tag name", "body").send_keys("\ue00c")
+        sleep(1)
+
+        # Save page data
+        title = driver.title
+        body_text = driver.find_element("tag name", "body").text
+
+        pdf_base64 = driver.print_page()
+        with open("page.pdf", "wb") as outfile:
+            outfile.write(base64.b64decode(pdf_base64))
+
+        driver.get_screenshot_as_file("viewport.png")
+
+        # Get a full page screenshot
+        driver.execute_script("window.scrollTo(0, 0);")
+        total_width = driver.execute_script("return document.body.offsetWidth")
+        total_height = driver.execute_script(
+            "return document.body.parentNode.scrollHeight"
+        )
+
+        driver.set_window_size(total_width, total_height)
+        driver.save_screenshot("fullpage.png")
+
+        return dict(
+            success=True,
+            data=dict(title=title, text=body_text),
+            screenshots=[
+                dict(file="viewport.png", kind="viewport"),
+                dict(file="fullpage.png", kind="fullpage"),
+            ],
+            pdf="page.pdf",
+        )
+    except Exception as e:
+        logger.exception(f"Failed to archive page: {e}")
         return dict(success=False)
-
-    if result.returncode != 0:
-        logger.warning("Crawl failed")
-        return dict(success=False)
-
-    # The crawl folder is crawls/collections/<first_file>/
-    collections_folder = "crawls/collections/"
-    first_file = os.listdir(collections_folder)[0]
-    crawl_folder = os.path.join(collections_folder, first_file)
-    archive_folder = os.path.join(crawl_folder, "archive")
-
-    # Find the files we need
-    pages_jsonl_file = os.path.join(crawl_folder, "pages/pages.jsonl")
-    wacz_file = os.path.join(
-        crawl_folder,
-        list(filter(lambda k: k.endswith(".wacz"), os.listdir(crawl_folder)))[0],
-    )
-    screenshots_warc_file = os.path.join(archive_folder, "screenshots.warc.gz")
-
-    # Read the pages.jsonl file
-    with open(pages_jsonl_file, "r") as infile:
-        pages_jsonl = infile.readlines()
-        data = [json.loads(line) for line in pages_jsonl][1]
-
-    # Extract the screenshots
-    screenshots = []
-    with open(screenshots_warc_file, "rb") as infile:
-        for record in warcio.ArchiveIterator(infile):
-            target = record.rec_headers.get_header("WARC-Target-URI", "")
-
-            for kind in ["view", "fullPage", "thumbnail"]:
-                if target.startswith(f"urn:{kind}"):
-                    content_type = record.rec_headers.get_header("Content-Type", "")
-                    file_extension = content_type.split("/")[-1]
-                    file_path = f"crawls/{kind}.{file_extension}"
-                    with open(file_path, "wb") as outfile:
-                        outfile.write(record.content_stream().read())
-                        screenshots.append(dict(file=file_path, kind=kind.lower()))
-
-    return dict(success=True, data=data, wacz_file=wacz_file, screenshots=screenshots)
 
 
 def archive_using_auto_archiver(
@@ -202,7 +219,7 @@ def run(url, out, auto_archiver_config):
         try:
             # Archive the page using browsertrix-crawler
             logger.info("Archiving the page using browsertrix-crawler...")
-            browsertrix_crawler_archive = archive_page_using_browsertrix(url)
+            selenium_archive = archive_page_using_selenium(url)
 
             # Archive the page using the Bellingcat auto-archiver
             logger.info("Archiving the page using the Bellingcat auto-archiver...")
@@ -216,8 +233,8 @@ def run(url, out, auto_archiver_config):
                 os.mkdir(out)
 
             artifacts = []
-            if browsertrix_crawler_archive["success"]:
-                for screenshot in browsertrix_crawler_archive["screenshots"]:
+            if selenium_archive["success"]:
+                for screenshot in selenium_archive["screenshots"]:
                     shutil.copyfile(
                         screenshot["file"],
                         os.path.join(out, os.path.basename(screenshot["file"])),
@@ -231,15 +248,15 @@ def run(url, out, auto_archiver_config):
                     )
 
                 shutil.copyfile(
-                    browsertrix_crawler_archive["wacz_file"],
-                    os.path.join(out, "archive.wacz"),
+                    selenium_archive["pdf"],
+                    os.path.join(out, "page.pdf"),
                 )
                 artifacts.append(
                     dict(
-                        kind="wacz",
-                        file="archive.wacz",
+                        kind="pdf",
+                        file="page.pdf",
                         sha256=compute_checksum(
-                            browsertrix_crawler_archive["wacz_file"]
+                            selenium_archive["pdf"]
                         ),
                     )
                 )
@@ -264,10 +281,10 @@ def run(url, out, auto_archiver_config):
             with open(os.path.join(out, "metadata.json"), "w") as outfile:
                 json.dump(
                     dict(
-                        page_info=browsertrix_crawler_archive.get("data"),
+                        page_info=selenium_archive.get("data"),
                         artifacts=artifacts,
                         content_info=auto_archiver_archive.get("metadata"),
-                        crawl_successful=browsertrix_crawler_archive["success"],
+                        crawl_successful=selenium_archive["success"],
                         auto_archive_successful=auto_archiver_archive["success"],
                         is_likely_authwalled=is_likely_authwalled(url),
                     ),
