@@ -2660,7 +2660,7 @@ defmodule PlatformWeb.Components do
           <.link
             patch={@detail_url}
             id={"artifact-#{@artifact.id}"}
-            class="block h-40 overflow-hidden p-1 z-[1] border rounded-lg"
+            class="block h-40 overflow-hidden z-[1] border rounded-lg"
           >
             <%= cond do %>
               <% String.starts_with?(@artifact.mime_type, "image/") or String.starts_with?(@artifact.mime_type, "video/") -> %>
