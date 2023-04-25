@@ -103,8 +103,7 @@ RUN apt-get update -y && apt-get install -y ffmpeg imagemagick curl python3 pyth
 USER atlos
 
 # Install and setup Poetry+Python for the `utils/` scripts (archiver, etc.)
-RUN cd /app/utils && poetry config virtualenvs.create false \
-  && poetry install --no-dev --no-interaction --no-ansi
+RUN cd /app/utils && poetry install --no-dev --no-interaction --no-ansi
 
 RUN echo $APP_REVISION > APP_REVISION
 RUN echo APP_REVISION=${APP_REVISION}
