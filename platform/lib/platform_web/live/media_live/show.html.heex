@@ -530,8 +530,8 @@
     <%= if @live_action == :media_version_detail do %>
       <% version = Enum.find(@media.versions, &(to_string(&1.scoped_id) == @scoped_id)) %>
       <.modal target={} close_confirmation="" wide={true}>
-        <div class="flex flex-col md:flex-row max-h-[85vh] h-full rounded-lg overflow-hidden -m-8">
-          <section class="w-[15rem] flex flex-col self-stretch p-8">
+        <div class="flex flex-col md:flex-row md:max-h-[85vh] h-full rounded-lg md:overflow-hidden md:-m-8">
+          <section class="md:w-[20rem] flex flex-col self-stretch p-8">
             <div>
               <p class="font-mono text-sm text-neutral-500 flex items-center gap-2">
                 <.url_icon url={version.source_url} class="h-4" />
@@ -539,9 +539,13 @@
               </p>
               <div class="overflow-hidden break-words mr-4 mt-2">
                 <a href={version.source_url} target="_blank" rel="noopener noreferrer">
-                  <p class="leading-snug text-lg my-2">
-                    <%= Platform.Material.get_media_version_title(version)
-                    |> Platform.Utils.truncate(80) %>
+                  <p class="leading-snug text-base my-2">
+                    <%= if Platform.Material.get_media_version_title(version) != nil do %>
+                      <%= Platform.Material.get_media_version_title(version)
+                      |> Platform.Utils.truncate(100) %>
+                    <% else %>
+                      Uploaded File
+                    <% end %>
                   </p>
                   <%= if Platform.Material.get_media_version_title(version) != version.source_url do %>
                     <p class="text-neutral-500 text-sm">
@@ -551,7 +555,7 @@
                 </a>
               </div>
             </div>
-            <dl class="grid grid-cols-1 gap-4 mt-8">
+            <dl class="grid grid-cols-1 gap-4 my-8">
               <div class="flex w-full flex items-center gap-x-2">
                 <dt class="flex-none">
                   <span class="sr-only">Added</span>
@@ -582,14 +586,82 @@
                 </dd>
               </div>
             </dl>
-            <div class="grow">
-              <% dbg(version.metadata) %>
+            <div class="grow" />
+            <div class="flex flex-wrap gap-2">
+              <%= if version.source_url != nil do %>
+                <a
+                  href={"https://web.archive.org/*/" <> URI.encode(version.source_url)}
+                  role="menuitem"
+                  title="Open on Archive.org"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="base-button flex gap-2 text-xs"
+                >
+                  <Heroicons.archive_box mini class="w-4 h-4 text-neutral-500" /> Archive.org
+                </a>
+                <button
+                  type="button"
+                  rel="nofollow"
+                  role="menuitem"
+                  title="Copy Hash Information"
+                  class="base-button flex gap-2 text-xs"
+                  onclick={
+                      "window.setClipboard(" <>
+                        Jason.encode!(version.source_url) <>
+                        ")"
+                    }
+                >
+                  <Heroicons.link mini class="w-4 h-4 text-neutral-500" /> Copy URL
+                </button>
+              <% end %>
+              <%= if version.visibility == :visible do %>
+                <button
+                  type="button"
+                  data-confirm="Are you sure you want to change the visibility of this media for all users on Atlos?"
+                  phx-click="set_media_visibility"
+                  phx-value-version={version.id}
+                  phx-value-state="hidden"
+                  class="base-button flex gap-2 text-xs"
+                  title="Hide"
+                >
+                  <Heroicons.minus_circle mini class="w-4 h-4 text-neutral-500" /> Minimize
+                </button>
+              <% end %>
+              <%= if version.visibility == :hidden do %>
+                <button
+                  type="button"
+                  data-confirm="Are you sure you want to change the visibility of this media?"
+                  phx-click="set_media_visibility"
+                  phx-value-version={version.id}
+                  phx-value-state="visible"
+                  class="base-button flex gap-2 text-xs"
+                  title="Unhide"
+                >
+                  <Heroicons.plus_circle mini class="w-4 h-4 text-neutral-500" /> Unminimize
+                </button>
+              <% end %>
+              <%= if Platform.Permissions.can_change_media_version_visibility?(@current_user, version) do %>
+                <button
+                  type="button"
+                  data-confirm="Are you sure you want to change the visibility of this media?"
+                  phx-click="set_media_visibility"
+                  phx-value-version={version.id}
+                  phx-value-state={
+                    if version.visibility == :removed, do: "visible", else: "removed"
+                  }
+                  title={if version.visibility == :removed, do: "Undo Removal", else: "Remove"}
+                  class="base-button flex gap-2 text-xs"
+                >
+                  <Heroicons.eye_slash mini class="w-4 h-4 text-neutral-500" />
+                  <%= if version.visibility == :removed, do: "Undo Removal", else: "Remove" %>
+                </button>
+              <% end %>
             </div>
             <p class="text-xs text-neutral-500 mt-8">
               Atlos provides best-effort archival. Archives may be incomplete or missing, and should not be relied on for legal evidence.
             </p>
           </section>
-          <section class="grow flex flex-col bg-neutral-50 border-l my-2 mr-2 rounded-r-lg overflow-y-auto max-h-full pt-8">
+          <section class="grow flex flex-col bg-neutral-50 md:border-l my-2 mr-2 rounded-lg md:rounded-l-none rounded-r-lg md:overflow-y-auto md:max-h-full pt-8">
             <%= for artifact <- version.artifacts |> Enum.sort_by(fn artifact ->
               case artifact.type do
                 :upload -> 0
@@ -601,8 +673,13 @@
               end
             end) do %>
               <article class="py-2 border-b border-dashed">
-                <% is_media = String.starts_with?(artifact.mime_type, "video") or String.starts_with?(artifact.mime_type, "image") %>
-                <div class="m-4" x-data={"{grayscale: #{is_media}, hidden: #{Media.is_graphic(@media)}}"}>
+                <% is_media =
+                  String.starts_with?(artifact.mime_type, "video") or
+                    String.starts_with?(artifact.mime_type, "image") %>
+                <div
+                  class="m-4"
+                  x-data={"{grayscale: #{is_media}, hidden: #{Media.is_graphic(@media)}}"}
+                >
                   <!-- Show the media itself -->
                   <section class="max-h-[28rem] mx-auto border rounded-lg overflow-hidden bg-neutral-100 relative">
                     <%= if is_media do %>
@@ -626,7 +703,9 @@
                               d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
                             />
                           </svg>
-                          <h3 class="mt-2 font-medium text-gray-900 text-sm">Potentially Graphic</h3>
+                          <h3 class="mt-2 font-medium text-gray-900 text-sm">
+                            Potentially Graphic
+                          </h3>
                           <p class="mt-1 text-gray-500 text-sm">
                             This media may be graphic. Please proceed with caution.
                           </p>
@@ -687,13 +766,13 @@
                               <%= artifact.type |> Atom.to_string() |> String.upcase() %>
                             </p>
                           </div>
-                            <a
-                              href={Material.media_version_artifact_location(artifact)}
-                              class="base-button"
-                              target="_blank"
-                            >
-                              <Heroicons.arrow_up_right mini class="h-4 w-4 mr-1" /> Open
-                            </a>
+                          <a
+                            href={Material.media_version_artifact_location(artifact)}
+                            class="base-button"
+                            target="_blank"
+                          >
+                            <Heroicons.arrow_up_right mini class="h-4 w-4 mr-1" /> Open
+                          </a>
                         </div>
                     <% end %>
                   </section>

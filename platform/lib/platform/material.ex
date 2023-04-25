@@ -1118,7 +1118,9 @@ defmodule Platform.Material do
 
   def media_thumbnail(%Media{} = media) do
     case Enum.find(
-           media.versions |> Enum.sort_by(& &1.inserted_at, {:desc, NaiveDateTime}) |> Enum.reverse(),
+           media.versions
+           |> Enum.sort_by(& &1.inserted_at, {:desc, NaiveDateTime})
+           |> Enum.reverse(),
            &(!(&1.visibility != :visible or is_nil(&1.file_location)))
          ) do
       nil ->
@@ -1247,20 +1249,23 @@ defmodule Platform.Material do
   def get_media_version_tags(%MediaVersion{} = version) do
     tags = []
 
-    tags = case version.visibility do
-      :hidden -> ["Removed" | tags]
-      _ -> tags
-    end
+    tags =
+      case version.visibility do
+        :hidden -> ["Removed" | tags]
+        _ -> tags
+      end
 
-    tags = case Map.get(version.metadata, "is_likely_authwalled") do
-      true -> ["Authwall" | tags]
-      _ -> tags
-    end
+    tags =
+      case Map.get(version.metadata, "is_likely_authwalled") do
+        true -> ["Authwall" | tags]
+        _ -> tags
+      end
 
-    tags = case Map.get(version.metadata, "crawl_successful") do
-      false ->  ["Snapshot Unavailable" | tags]
-      _ -> tags
-    end
+    tags =
+      case Map.get(version.metadata, "crawl_successful") do
+        false -> ["Snapshot Unavailable" | tags]
+        _ -> tags
+      end
 
     tags
   end

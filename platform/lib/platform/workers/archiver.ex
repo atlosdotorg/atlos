@@ -35,7 +35,7 @@ defmodule Platform.Workers.Archiver do
             :direct ->
               # Archive the page, and download the media from it
               temp_dir = Temp.mkdir!()
-              utils_dir = "utils"
+              utils_dir = System.get_env("UTILS_DIR", "utils")
 
               {_, 0} =
                 System.cmd(

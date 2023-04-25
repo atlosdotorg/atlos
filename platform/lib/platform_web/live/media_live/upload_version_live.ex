@@ -44,8 +44,7 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
   end
 
   defp handle_static_file(%{path: path}, client_name) do
-    # TODO: Do something to create a better filename?
-    to_path = Temp.path!(%{prefix: "user_provided", suffix: client_name})
+    to_path = Temp.path!(%{suffix: client_name})
     File.cp!(path, to_path)
     {:ok, to_path}
   end
@@ -146,7 +145,7 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
                     "file_hash_sha256" => Platform.Utils.hash_sha256(local_path),
                     "file_size" => size,
                     "mime_type" => MIME.from_path(local_path),
-                    "type" => "media"
+                    "type" => "upload"
                   }
                 ]
               })

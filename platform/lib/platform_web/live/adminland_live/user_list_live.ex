@@ -8,7 +8,9 @@ defmodule PlatformWeb.AdminlandLive.UserListLive do
      |> assign(assigns)
      |> assign(
        :results,
-       Accounts.get_all_users() |> Enum.sort_by(& &1.inserted_at, {:desc, NaiveDateTime}) |> Enum.reverse()
+       Accounts.get_all_users()
+       |> Enum.sort_by(& &1.inserted_at, {:desc, NaiveDateTime})
+       |> Enum.reverse()
      )}
   end
 

@@ -75,7 +75,7 @@ defmodule PlatformWeb.Components do
         </span>
 
         <div
-          class={"relative inline-block opacity-0 scale-75 align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left shadow-xl transform transition-all sm:my-8 sm:align-middle md:ml-28 sm:max-w-xl sm:w-full sm:p-6 max-w-full" <> if @wide, do: "md:max-w-3xl lg:max-w-4xl xl:max-w-5xl", else: ""}
+          class={"mt-24 mb-8 md:mt-0 relative inline-block opacity-0 scale-75 align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left shadow-xl transform transition-all sm:align-middle md:ml-28 sm:max-w-xl sm:w-full sm:p-6 max-w-full" <> if @wide, do: "md:max-w-3xl lg:max-w-4xl xl:max-w-5xl", else: ""}
           phx-mounted={
             JS.transition({"ease-out duration-75", "opacity-0 scale-75", "opacity-100 scale-100"},
               time: 75
@@ -2600,17 +2600,20 @@ defmodule PlatformWeb.Components do
   end
 
   def media_version_display(%{version: version, media: media} = assigns) do
-    artifact_to_show = cond do
-      # If available, show a screenshot
-      version.artifacts |> Enum.find(&(&1.type == :viewport)) != nil ->
-        version.artifacts |> Enum.find(&(&1.type == :viewport))
+    artifact_to_show =
+      cond do
+        # If available, show a screenshot
+        version.artifacts |> Enum.find(&(&1.type == :viewport)) != nil ->
+          version.artifacts |> Enum.find(&(&1.type == :viewport))
 
-      # Otherwise show the first artifact
-      not Enum.empty?(version.artifacts) -> hd(version.artifacts)
+        # Otherwise show the first artifact
+        not Enum.empty?(version.artifacts) ->
+          hd(version.artifacts)
 
-      # Otherwise show nothing
-      true -> nil
-    end
+        # Otherwise show nothing
+        true ->
+          nil
+      end
 
     assigns =
       assigns
@@ -2649,18 +2652,42 @@ defmodule PlatformWeb.Components do
             id={"artifact-#{@artifact.id}"}
             class="block h-40 overflow-hidden p-1 z-[1] border rounded-lg"
           >
-            <%= if String.starts_with?(@artifact.mime_type, "image/") do %>
-              <div class="grayscle">
-                <img
-                  src={Material.media_version_artifact_location(@artifact)}
-                  class="w-full object-cover"
-                />
-              </div>
-            <% else %>
-              <div class="h-full w-full flex flex-col items-center justify-center">
-                <Heroicons.archive_box class="h-10 w-10 mb-2 text-neutral-500" />
-                <p class="text-neutral-500"><%= length(@version.artifacts) %> artifact<%= if length(@version.artifacts) != 1 do %>s<% end %></p>
-              </div>
+            <%= cond do %>
+              <% String.starts_with?(@artifact.mime_type, "image/") -> %>
+                <div class="grayscle">
+                  <img
+                    src={Material.media_version_artifact_location(@artifact)}
+                    class="w-full object-cover"
+                  />
+                </div>
+              <% String.starts_with?(@artifact.mime_type, "video/") -> %>
+                <div class="grayscle">
+                  <video
+                    src={Material.media_version_artifact_location(@artifact)}
+                    class="w-full object-cover"
+                    loop
+                    muted
+                  />
+                </div>
+              <% length(@version.artifacts) == 1 -> %>
+                <div class="h-full w-full flex flex-col items-center justify-center">
+                  <Heroicons.archive_box class="h-10 w-10 mb-2 text-neutral-500" />
+                  <p class="text-neutral-700 text-center text-sm font-medium mb-2 uppercase">
+                    <%= @artifact.file_location %>
+                  </p>
+                  <p class="text-neutral-500 text-center text-xs font-mono uppercase">
+                    <%= @artifact.mime_type %>
+                  </p>
+                </div>
+              <% true -> %>
+                <div class="h-full w-full flex flex-col items-center justify-center">
+                  <Heroicons.archive_box class="h-10 w-10 mb-2 text-neutral-500" />
+                  <p class="text-neutral-500">
+                    <%= length(@version.artifacts) %> artifact<%= if length(@version.artifacts) != 1 do %>
+                      s
+                    <% end %>
+                  </p>
+                </div>
             <% end %>
           </.link>
         <% else %>
