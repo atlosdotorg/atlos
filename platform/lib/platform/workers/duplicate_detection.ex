@@ -14,6 +14,14 @@ defmodule Platform.Workers.DuplicateDetector do
 
     Logger.info("Checking for duplicate artifacts: #{media.slug}")
 
-    :ok
+    # First, we find all the perceptual hashes for the media version.
+    hashes =
+      Enum.map(version.artifacts, fn artifact ->
+        artifact.perceptual_hashes |> Map.get("computed", [])
+      end)
+      |> List.flatten()
+
+    # Next, we search for media versions that have perceptual hashes that are similar to these
+    # perceptual hashes.
   end
 end

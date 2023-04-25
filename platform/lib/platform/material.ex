@@ -772,9 +772,14 @@ defmodule Platform.Material do
 
   """
   def update_media_version(%MediaVersion{} = media_version, attrs) do
-    media_version
-    |> MediaVersion.changeset(attrs)
-    |> Repo.update()
+    res =
+      media_version
+      |> MediaVersion.changeset(attrs)
+      |> Repo.update()
+
+    schedule_media_auto_metadata_update(media_version.media_id)
+
+    res
   end
 
   @doc """
@@ -832,7 +837,13 @@ defmodule Platform.Material do
   Options:
   - priority: 0-3, the priority (default 1)
   """
-  def schedule_media_auto_metadata_update(%Media{id: id} = _media, opts \\ []) do
+  def schedule_media_auto_metadata_update(id, opts \\ [])
+
+  def schedule_media_auto_metadata_update(%Media{id: id} = _media, opts) do
+    schedule_media_auto_metadata_update(id, opts)
+  end
+
+  def schedule_media_auto_metadata_update(id, opts) do
     Logger.info("Scheduling auto-metadata update for media #{id}")
 
     %{
@@ -1123,7 +1134,8 @@ defmodule Platform.Material do
            media.versions
            |> Enum.sort_by(& &1.inserted_at, {:desc, NaiveDateTime})
            |> Enum.reverse(),
-           &(!(&1.visibility != :visible or Enum.empty?(Enum.filter(&1.artifacts, fn x -> (x.type == :media) end))))
+           &(!(&1.visibility != :visible or
+                 Enum.empty?(Enum.filter(&1.artifacts, fn x -> x.type == :media end))))
          ) do
       nil ->
         nil
