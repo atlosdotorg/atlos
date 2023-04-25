@@ -41,8 +41,6 @@ defmodule Platform.Workers.Archiver do
                 System.cmd(
                   "./archive.py",
                   [
-                    "run",
-                    "./archive.py",
                     "--out",
                     temp_dir,
                     "--auto-archiver-config",
