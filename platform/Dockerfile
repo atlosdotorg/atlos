@@ -97,13 +97,13 @@ COPY utils utils
 ENV UTILS_DIR="/app/utils"
 
 # Install packages needed for runtime environment
-RUN apt-get update -y && apt-get install -y ffmpeg imagemagick curl python3 python3-pip docker.io \
+RUN apt-get update -y && apt-get install -y ffmpeg imagemagick curl python3 python3-pip chromium-browser \
   && apt-get clean && rm -f /var/lib/apt/lists/*_* && python3 -m pip install poetry
 
 USER atlos
 
 # Install and setup Poetry+Python for the `utils/` scripts (archiver, etc.)
-RUN cd /app/utils && poetry install --no-dev --no-interaction --no-ansi
+RUN cd /app/utils && poetry install --only main --no-interaction --no-ansi
 
 RUN echo $APP_REVISION > APP_REVISION
 RUN echo APP_REVISION=${APP_REVISION}
