@@ -20,7 +20,7 @@ defmodule Platform.Material.MediaVersion do
       field(:perceptual_hashes, :map, default: nil)
 
       field(:type, Ecto.Enum,
-        values: [:wacz, :media, :upload, :thumbnail, :fullpage, :view, :other],
+        values: [:pdf, :media, :upload, :viewport, :fullpage, :wacz, :other],
         default: :other
       )
 

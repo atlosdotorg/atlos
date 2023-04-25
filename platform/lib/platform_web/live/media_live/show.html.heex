@@ -594,8 +594,9 @@
               case artifact.type do
                 :upload -> 0
                 :media -> 1
-                :fullpage -> 2
-                :wacz -> 3
+                :viewport -> 2
+                :fullpage -> 3
+                :pdf -> 4
                 _ -> 4
               end
             end) do %>
@@ -683,24 +684,16 @@
                               <%= artifact.file_location %>
                             </p>
                             <p class="text-xs text-neutral-500">
-                              <%= case artifact.type do %>
-                                <% :wacz -> %>
-                                  Interactive Page Snapshot
-                                <% _ -> %>
-                                  <%= artifact.type |> Atom.to_string() |> String.capitalize() %>
-                              <% end %>
+                              <%= artifact.type |> Atom.to_string() |> String.upcase() %>
                             </p>
                           </div>
-                          <%= if artifact.type == :wacz do %>
                             <a
-                              href={"https://replayweb.page/?#{URI.encode_query(%{source: Material.media_version_artifact_location(artifact)})}#view=pages&#{URI.encode_query(%{url: version.source_url})}"}
+                              href={Material.media_version_artifact_location(artifact)}
                               class="base-button"
                               target="_blank"
-                              data-confirm="This will open up the archived page in a new tab, run by the third-party service ReplayWeb.Page. Are you sure?"
                             >
-                              <Heroicons.play mini class="h-4 w-4 mr-1" /> Replay Page
+                              <Heroicons.arrow_up_right mini class="h-4 w-4 mr-1" /> Open
                             </a>
-                          <% end %>
                         </div>
                     <% end %>
                   </section>

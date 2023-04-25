@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# This script is used to archive a page using Bellingcat's auto-archiver and the browsertrix-crawler Docker image.
+# This script is used to archive a page using Bellingcat's auto-archiver and Selenium.
 # It also computes perceptual hashes of the extracted media.
 
 import ipaddress
@@ -217,8 +217,8 @@ def run(url, out, auto_archiver_config):
         os.chdir(t)
 
         try:
-            # Archive the page using browsertrix-crawler
-            logger.info("Archiving the page using browsertrix-crawler...")
+            # Archive the page using Selenium
+            logger.info("Archiving the page using Selenium...")
             selenium_archive = archive_page_using_selenium(url)
 
             # Archive the page using the Bellingcat auto-archiver

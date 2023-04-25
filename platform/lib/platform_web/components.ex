@@ -2602,8 +2602,8 @@ defmodule PlatformWeb.Components do
   def media_version_display(%{version: version, media: media} = assigns) do
     artifact_to_show = cond do
       # If available, show a screenshot
-      version.artifacts |> Enum.find(&(&1.type == :fullpage)) != nil ->
-        version.artifacts |> Enum.find(&(&1.type == :fullpage))
+      version.artifacts |> Enum.find(&(&1.type == :viewport)) != nil ->
+        version.artifacts |> Enum.find(&(&1.type == :viewport))
 
       # Otherwise show the first artifact
       not Enum.empty?(version.artifacts) -> hd(version.artifacts)
@@ -2653,7 +2653,7 @@ defmodule PlatformWeb.Components do
               <div class="grayscle">
                 <img
                   src={Material.media_version_artifact_location(@artifact)}
-                  class="w-full object-cover object-top"
+                  class="w-full object-cover"
                 />
               </div>
             <% else %>
