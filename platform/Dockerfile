@@ -83,13 +83,16 @@ ENV LANGUAGE en_US:en
 ENV LC_ALL en_US.UTF-8
 
 WORKDIR "/app"
-RUN chown nobody /app
+
+# Add the atlos user
+RUN useradd --create-home atlos
+RUN chown atlos /app
 
 # set runner ENV
 ENV MIX_ENV="prod"
 
 # Only copy the final release from the build stage
-COPY --from=builder --chown=nobody:root /app/_build/${MIX_ENV}/rel/platform ./
+COPY --from=builder --chown=atlos:root /app/_build/${MIX_ENV}/rel/platform ./
 COPY utils utils
 ENV UTILS_DIR="/app/utils"
 
@@ -100,7 +103,7 @@ RUN apt-get update -y && apt-get install -y ffmpeg imagemagick curl python3 pyth
 # Install and setup Poetry+Python for the `utils/` scripts (archiver, etc.)
 RUN cd /app/utils && poetry install
 
-USER nobody
+USER atlos
 
 RUN echo $APP_REVISION > APP_REVISION
 RUN echo APP_REVISION=${APP_REVISION}
