@@ -39,7 +39,7 @@ defmodule Platform.Workers.Archiver do
 
               {_, 0} =
                 System.cmd(
-                  "poetry",
+                  "./archive.py",
                   [
                     "run",
                     "./archive.py",

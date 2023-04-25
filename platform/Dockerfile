@@ -100,12 +100,11 @@ ENV UTILS_DIR="/app/utils"
 RUN apt-get update -y && apt-get install -y ffmpeg imagemagick curl python3 python3-pip docker.io \
   && apt-get clean && rm -f /var/lib/apt/lists/*_* && python3 -m pip install poetry
 
+USER atlos
+
 # Install and setup Poetry+Python for the `utils/` scripts (archiver, etc.)
 RUN cd /app/utils && poetry config virtualenvs.create false \
   && poetry install --no-dev --no-interaction --no-ansi
-
-
-USER atlos
 
 RUN echo $APP_REVISION > APP_REVISION
 RUN echo APP_REVISION=${APP_REVISION}
