@@ -534,8 +534,21 @@
           <section class="md:w-[20rem] flex flex-col self-stretch p-8">
             <div>
               <p class="font-mono text-sm text-neutral-500 flex items-center gap-2">
-                <.url_icon url={version.source_url} class="h-4" />
-                <%= Platform.Material.get_human_readable_media_version_name(@media, version) %>
+                <%= if version.source_url != nil do %>
+                  <.url_icon url={version.source_url} class="h-4" />
+                <% end %>
+                <span class="grow">
+                  <%= Platform.Material.get_human_readable_media_version_name(@media, version) %>
+                </span>
+                <span class="font-sans">
+                  <%= case version.status do %>
+                    <% :pending -> %>
+                      <span class="chip ~info">Pending Archival</span>
+                    <% :error -> %>
+                      <span class="chip ~critical">Error</span>
+                    <% _ -> %>
+                  <% end %>
+                </span>
               </p>
               <div class="overflow-hidden break-words mr-4 mt-2">
                 <a href={version.source_url} target="_blank" rel="noopener noreferrer">
@@ -662,6 +675,14 @@
             </p>
           </section>
           <section class="grow flex flex-col bg-neutral-50 md:border-l my-2 mr-2 rounded-lg md:rounded-l-none rounded-r-lg md:overflow-y-auto md:max-h-full pt-8">
+            <%= if Enum.empty?(version.artifacts) do %>
+              <div class="flex flex-col items-center justify-center h-full">
+                <Heroicons.cloud class="w-16 h-16 text-neutral-300" />
+                <p class="text-sm text-neutral-500 mt-4">
+                  No artifacts available
+                </p>
+              </div>
+            <% end %>
             <%= for artifact <- version.artifacts |> Enum.sort_by(fn artifact ->
               case artifact.type do
                 :upload -> 0
@@ -744,6 +765,9 @@
                           muted
                           class="w-full object-contain mx-auto overflow-hidden max-h-[28rem]"
                           x-bind:class="grayscale ? 'grayscale' : ''"
+                          poster={
+                            Material.media_version_artifact_location(artifact, version: :thumbnail)
+                          }
                         >
                           <source src={Material.media_version_artifact_location(artifact)} />
                         </video>

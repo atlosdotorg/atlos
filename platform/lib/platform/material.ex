@@ -864,7 +864,7 @@ defmodule Platform.Material do
   @doc """
   Get a signed URL for the media version artifact.
   """
-  defmemo media_version_artifact_location(artifact), expires_in: 60 * 1000 do
+  defmemo media_version_artifact_location(artifact, opts \\ []), expires_in: 60 * 1000 do
     cond do
       is_nil(artifact.file_location) ->
         nil
@@ -873,7 +873,9 @@ defmodule Platform.Material do
         artifact.file_location
 
       true ->
-        Uploads.MediaVersionArtifact.url({artifact.file_location, artifact},
+        Uploads.MediaVersionArtifact.url(
+          {artifact.file_location, artifact},
+          Keyword.get(opts, :version, :original),
           signed: true,
           expires_in: 60 * 60 * 6
         )
@@ -1121,20 +1123,24 @@ defmodule Platform.Material do
            media.versions
            |> Enum.sort_by(& &1.inserted_at, {:desc, NaiveDateTime})
            |> Enum.reverse(),
-           &(!(&1.visibility != :visible or is_nil(&1.file_location)))
+           &(!(&1.visibility != :visible or Enum.empty?(Enum.filter(&1.artifacts, fn x -> (x.type == :media) end))))
          ) do
       nil ->
         nil
 
       val ->
-        if String.starts_with?(val.file_location, "https://"),
-          # This allows us to have easy demo data — just give a raw HTTPS URL
-          do: val.file_location,
-          else:
-            Uploads.WatermarkedMediaVersion.url({val.file_location, media}, :thumb,
-              signed: true,
-              expires_in: 60 * 60 * 6
-            )
+        # Find an appropriate artifact
+        artifact =
+          Enum.find(
+            val.artifacts,
+            &(&1.type == :media)
+          )
+
+        if artifact do
+          media_version_artifact_location(artifact, version: :thumbnail)
+        else
+          nil
+        end
     end
   end
 

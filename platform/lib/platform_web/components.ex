@@ -798,11 +798,22 @@ defmodule PlatformWeb.Components do
                         uploaded
                         <.link
                           patch={
-                          Routes.media_show_path(@socket, :media_version_detail, @update.media.slug, @update.media_version.scoped_id)
-                        }
+                            Routes.media_show_path(
+                              @socket,
+                              :media_version_detail,
+                              @update.media.slug,
+                              @update.media_version.scoped_id
+                            )
+                          }
                           class="text-button text-gray-800"
                         >
-                          <span><%= Material.get_human_readable_media_version_name(@update.media, @update.media_version) %></span> &nearr;
+                          <span>
+                            <%= Material.get_human_readable_media_version_name(
+                              @update.media,
+                              @update.media_version
+                            ) %>
+                          </span>
+                          &nearr;
                         </.link>
                       <% :comment -> %>
                         commented
@@ -2652,20 +2663,11 @@ defmodule PlatformWeb.Components do
             class="block h-40 overflow-hidden p-1 z-[1] border rounded-lg"
           >
             <%= cond do %>
-              <% String.starts_with?(@artifact.mime_type, "image/") -> %>
+              <% String.starts_with?(@artifact.mime_type, "image/") or String.starts_with?(@artifact.mime_type, "video/") -> %>
                 <div class="grayscle">
                   <img
-                    src={Material.media_version_artifact_location(@artifact)}
+                    src={Material.media_version_artifact_location(@artifact, version: :thumbnail)}
                     class="w-full object-cover"
-                  />
-                </div>
-              <% String.starts_with?(@artifact.mime_type, "video/") -> %>
-                <div class="grayscle">
-                  <video
-                    src={Material.media_version_artifact_location(@artifact)}
-                    class="w-full object-cover"
-                    loop
-                    muted
                   />
                 </div>
               <% length(@version.artifacts) == 1 -> %>
