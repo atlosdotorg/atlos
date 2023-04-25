@@ -104,6 +104,11 @@ defmodule Platform.Workers.Archiver do
 
               {:ok, version} = Material.update_media_version(version, version_map)
 
+              # Schedule duplicate detection
+              Platform.Workers.DuplicateDetector.new(%{
+                "media_version_id" => version.id
+              })
+
               version
           end
 
