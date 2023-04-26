@@ -90,7 +90,7 @@ defmodule PlatformWeb.Components do
           <div class="hidden sm:block absolute z-50 top-0 right-0 pt-4 pr-4">
             <button
               type="button"
-              class="text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-urge-500 p-1"
+              class="text-gray-400 bg-white/75 backdrop-blur rounded-full hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-urge-500 p-1"
               x-on:click={"window.closeModal($event); " <> @js_on_close}
               phx-target={@target}
             >
