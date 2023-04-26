@@ -27,6 +27,7 @@ from selenium.webdriver.chrome.options import Options as ChromeOptions
 from selenium.webdriver.chrome.service import Service as ChromiumService
 from webdriver_manager.chrome import ChromeDriverManager
 from webdriver_manager.core.utils import ChromeType
+from selenium.webdriver.common.print_page_options import PrintOptions
 
 # From https://github.com/bellingcat/auto-archiver/blob/dockerize/src/auto_archiver/utils/url.py#L3
 is_telegram_private = re.compile(r"https:\/\/t\.me(\/c)\/(.+)\/(\d+)")
@@ -102,10 +103,6 @@ def archive_page_using_selenium(url: str) -> dict:
         title = driver.title
         body_text = driver.find_element("tag name", "body").text
 
-        pdf_base64 = driver.print_page()
-        with open("page.pdf", "wb") as outfile:
-            outfile.write(base64.b64decode(pdf_base64))
-
         driver.get_screenshot_as_file("viewport.png")
 
         # Get a full page screenshot
@@ -117,6 +114,14 @@ def archive_page_using_selenium(url: str) -> dict:
 
         driver.set_window_size(total_width, total_height)
         driver.save_screenshot("fullpage.png")
+
+        # Get a PDF
+        print_options = PrintOptions()
+        print_options.page_height = total_height / 20
+        print_options.page_width = total_width / 50
+        pdf_base64 = driver.print_page(print_options=print_options)
+        with open("page.pdf", "wb") as outfile:
+            outfile.write(base64.b64decode(pdf_base64))
 
         return dict(
             success=True,
@@ -255,9 +260,7 @@ def run(url, out, auto_archiver_config):
                     dict(
                         kind="pdf",
                         file="page.pdf",
-                        sha256=compute_checksum(
-                            selenium_archive["pdf"]
-                        ),
+                        sha256=compute_checksum(selenium_archive["pdf"]),
                     )
                 )
 
