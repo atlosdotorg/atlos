@@ -2632,7 +2632,7 @@ defmodule PlatformWeb.Components do
         version.status == :complete && artifact_to_show != nil
       )
       |> assign(:artifact, artifact_to_show)
-      |> assign(:should_blur_js_bool, if(Media.is_graphic(media), do: "true", else: "false"))
+      |> assign(:is_graphic, Media.is_graphic(media))
       # Whether to show controls for hiding, adding media (requires that the caller be able to handle the events)
       |> assign(:show_controls, Map.get(assigns, :show_controls, true))
       |> assign(:media_id, "version-#{version.id}-media")
@@ -2643,7 +2643,6 @@ defmodule PlatformWeb.Components do
     <section
       id={"version-#{@version.id}"}
       class="py-2 target:outline outline-2 outline-urge-600 rounded group outline-offset-2"
-      x-data={"{hidden: #{@should_blur_js_bool}}"}
     >
       <.link patch={@detail_url}>
         <div class="flex justify-between">
@@ -2663,7 +2662,7 @@ defmodule PlatformWeb.Components do
             class="block h-40 overflow-hidden z-[1] border rounded-lg"
           >
             <%= cond do %>
-              <% String.starts_with?(@artifact.mime_type, "image/") or String.starts_with?(@artifact.mime_type, "video/") -> %>
+              <% not @is_graphic and (String.starts_with?(@artifact.mime_type, "image/") or String.starts_with?(@artifact.mime_type, "video/")) -> %>
                 <div class="grayscle">
                   <img
                     src={Material.media_version_artifact_location(@artifact, version: :thumbnail)}
@@ -2681,82 +2680,85 @@ defmodule PlatformWeb.Components do
                   </p>
                 </div>
               <% true -> %>
-                <div class="h-full w-full flex flex-col items-center justify-center">
+                <div class="h-full w-full flex flex-col items-center justify-center p-2">
                   <Heroicons.archive_box class="h-10 w-10 mb-2 text-neutral-500" />
-                  <p class="text-neutral-500">
-                    <%= length(@version.artifacts) %> artifact<%= if length(@version.artifacts) != 1 do %>
-                      s
-                    <% end %>
+                  <p class="font-medium text-center text-sm">
+                    <%= Material.get_media_version_title(@version) |> Utils.truncate(40) %>
+                  </p>
+                  <p class="text-neutral-500 text-sm">
+                    <%= length(@version.artifacts) %>
+                    <%= if length(@version.artifacts) != 1, do: "artifacts", else: "artifact" %>
                   </p>
                 </div>
             <% end %>
           </.link>
         <% else %>
           <div class="w-full h-40 bg-neutral-50 border rounded-lg flex items-center justify-around">
-            <%= if @version.status == :pending do %>
-              <div class="text-center w-48">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="mx-auto h-8 w-8 text-gray-400 animate-pulse"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  stroke-width="2"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"
-                  />
-                </svg>
-                <h3 class="mt-2 font-medium text-gray-900 text-sm">Processing</h3>
-                <p class="mt-1 text-gray-500 text-sm">
-                  Archival in progress. Check back soon.
-                </p>
+            <%= cond do %>
+              <% @version.status == :pending -> %>
+                <div class="text-center w-48">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="mx-auto h-8 w-8 text-gray-400 animate-pulse"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"
+                    />
+                  </svg>
+                  <h3 class="mt-2 font-medium text-gray-900 text-sm">Processing</h3>
+                  <p class="mt-1 text-gray-500 text-sm">
+                    Archival in progress. Check back soon.
+                  </p>
+                  <a
+                    target="_blank"
+                    href={@version.source_url}
+                    rel="nofollow"
+                    class="button mt-1 original py-1 px-2 text-xs"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="h-4 w-4 text-neutral-500 mr-1"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
+                      <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
+                    </svg>
+                    View Directly
+                  </a>
+                </div>
+              <% true -> %>
                 <a
                   target="_blank"
                   href={@version.source_url}
                   rel="nofollow"
-                  class="button mt-1 original py-1 px-2 text-xs"
+                  class="text-center w-48 block"
+                  data-confirm="This link will open an external site in a new tab. Are you sure?"
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="h-4 w-4 text-neutral-500 mr-1"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                  >
-                    <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
-                    <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
-                  </svg>
-                  View Directly
+                  <.url_icon url={@version.source_url} class="mx-auto h-10 w-10 shadow-sm" />
+                  <h3 class="mt-2 break-all font-medium text-gray-900 text-sm">External Media</h3>
+                  <p class="mt-1 text-gray-500 text-sm">
+                    Unable to archive this media automatically.
+                  </p>
+                  <span class="button mt-1 original py-1 px-2 text-xs">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="h-4 w-4 text-neutral-500 mr-1"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
+                      <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
+                    </svg>
+                    View Directly
+                  </span>
                 </a>
-              </div>
-            <% else %>
-              <a
-                target="_blank"
-                href={@version.source_url}
-                rel="nofollow"
-                class="text-center w-48 block"
-                data-confirm="This link will open an external site in a new tab. Are you sure?"
-              >
-                <.url_icon url={@version.source_url} class="mx-auto h-10 w-10 shadow-sm" />
-                <h3 class="mt-2 break-all font-medium text-gray-900 text-sm">External Media</h3>
-                <p class="mt-1 text-gray-500 text-sm">
-                  Unable to archive this media automatically.
-                </p>
-                <span class="button mt-1 original py-1 px-2 text-xs">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="h-4 w-4 text-neutral-500 mr-1"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                  >
-                    <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
-                    <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
-                  </svg>
-                  View Directly
-                </span>
-              </a>
             <% end %>
           </div>
         <% end %>
