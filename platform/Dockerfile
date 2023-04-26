@@ -97,7 +97,7 @@ COPY utils utils
 ENV UTILS_DIR="/app/utils"
 
 # Install packages needed for runtime environment
-RUN apt-get update -y && apt-get install -y ffmpeg imagemagick curl python3 python3-pip chromium-browser \
+RUN apt-get update -y && apt-get install -y ffmpeg imagemagick curl python3 python3-pip chromium \
   && apt-get clean && rm -f /var/lib/apt/lists/*_* && python3 -m pip install poetry
 
 USER atlos
