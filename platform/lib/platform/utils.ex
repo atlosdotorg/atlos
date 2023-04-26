@@ -93,10 +93,19 @@ defmodule Platform.Utils do
     end)
   end
 
+  def is_processable_image(mime_type) do
+    mime_type in ["image/jpeg", "image/png", "image/gif", "image/tiff", "image/bmp"]
+  end
+
+  def is_processable_media(mime_type) do
+    is_processable_image(mime_type) or
+      String.starts_with?(mime_type, "video/")
+  end
+
   def slugify(string) do
     string
     |> String.downcase()
-    |> String.replace(~r/[^a-zA-Z0-9 &]/, "")
+    |> String.replace(~r/[^a-zA-Z0-9 &\.]/, "")
     |> String.replace("&", "and")
     |> String.split()
     |> Enum.join("-")

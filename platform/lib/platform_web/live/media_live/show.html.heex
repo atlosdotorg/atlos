@@ -552,7 +552,7 @@
               </p>
               <div class="overflow-hidden break-words mr-4 mt-2">
                 <a href={version.source_url} target="_blank" rel="noopener noreferrer">
-                  <p class="leading-snug text-base my-2">
+                  <p class="leading-snug font-medium text-lg my-2">
                     <%= if Platform.Material.get_media_version_title(version) != nil do %>
                       <%= Platform.Material.get_media_version_title(version)
                       |> Platform.Utils.truncate(100) %>
@@ -674,7 +674,7 @@
               Atlos provides best-effort archival. Archives may be incomplete or missing, and should not be relied on for legal evidence.
             </p>
           </section>
-          <section class="grow flex flex-col bg-neutral-50 md:border-l my-2 mr-2 rounded-lg md:rounded-l-none rounded-r-lg md:overflow-y-auto md:max-h-full pt-8">
+          <section class="grow flex flex-col bg-neutral-50 md:border-l my-2 mr-2 rounded-lg md:rounded-l-none rounded-r-lg md:overflow-y-auto md:max-h-full">
             <%= if Enum.empty?(version.artifacts) do %>
               <div class="flex flex-col items-center justify-center h-full">
                 <Heroicons.cloud class="w-16 h-16 text-neutral-300" />
@@ -697,8 +697,21 @@
                 <% is_media =
                   String.starts_with?(artifact.mime_type, "video") or
                     String.starts_with?(artifact.mime_type, "image") %>
-                <h3 class="m-4 text-base font-medium text-neutral-900 uppercase font-mono">
-                  <%= artifact.type %>
+                <h3 class="m-4 text-base font-medium text-neutral-900">
+                  <%= case artifact.type do %>
+                    <% :pdf -> %>
+                      PDF
+                    <% :media -> %>
+                      Source Media
+                    <% :upload -> %>
+                      File Upload
+                    <% :viewport -> %>
+                      Viewport Screenshot
+                    <% :fullpage -> %>
+                      Full Page Screenshot
+                    <% _ -> %>
+                      <%= artifact.type %>
+                  <% end %>
                 </h3>
                 <div
                   class="m-4"
@@ -758,7 +771,9 @@
                           />
                           <div class="border rounded-lg opacity-0 overflow-hidden group-hover:opacity-100 block absolute inset-0 backdrop-blur-sm transition bg-white/50 flex flex-col gap-2 items-center justify-center w-full h-full">
                             <Heroicons.link class="h-8 w-8 text-neutral-600" />
-                            <span class="text-neutral-600">Open full image in new tab (in color)</span>
+                            <span class="text-neutral-600">
+                              Open full image in new tab (in color)
+                            </span>
                           </div>
                         </a>
                       <% String.starts_with?(artifact.mime_type, "video") -> %>

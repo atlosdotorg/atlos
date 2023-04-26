@@ -2657,7 +2657,7 @@ defmodule PlatformWeb.Components do
             class="block h-40 overflow-hidden z-[1] border rounded-lg"
           >
             <%= cond do %>
-              <% not @is_graphic and (String.starts_with?(@artifact.mime_type, "image/") or String.starts_with?(@artifact.mime_type, "video/")) -> %>
+              <% not @is_graphic and Platform.Utils.is_processable_media(@artifact.mime_type) -> %>
                 <div class="grayscale">
                   <img
                     src={Material.media_version_artifact_location(@artifact, version: :thumbnail)}
@@ -2732,7 +2732,7 @@ defmodule PlatformWeb.Components do
                     View Directly
                   </a>
                 </div>
-              <% true -> %>
+              <% @version.source_url != nil -> %>
                 <a
                   target="_blank"
                   href={@version.source_url}
@@ -2758,23 +2758,46 @@ defmodule PlatformWeb.Components do
                     View Directly
                   </span>
                 </a>
+              <% true -> %>
+                <div class="text-center w-48">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="mx-auto h-8 w-8 text-gray-400 animate-pulse"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"
+                    />
+                  </svg>
+                  <h3 class="mt-2 font-medium text-gray-900 text-sm">Processing Error</h3>
+                  <p class="mt-1 text-gray-500 text-sm">
+                    Unable to process this source material
+                  </p>
+                </div>
             <% end %>
           </div>
         <% end %>
       </div>
       <div class="flex gap-1 mt-1 text-sm max-w-full items-center justify-between">
         <span class="flex items-center gap-2 overflow-hidden">
-          <%= if @version.status != :error do %>
+          <%= if @version.status != :error and @version.source_url != nil do %>
             <.url_icon url={@version.source_url} class="h-6" />
           <% end %>
-          <a
-            class="text-neutral-600 truncate"
-            href={@version.source_url}
-            target="_blank"
-            data-confirm="This link will open an external site in a new tab. Are you sure?"
-          >
-            <%= @version.source_url %>
-          </a>
+          <%= if @version.source_url != nil do %>
+            <a
+              class="text-neutral-600 truncate"
+              href={@version.source_url}
+              target="_blank"
+              data-confirm="This link will open an external site in a new tab. Are you sure?"
+            >
+              <%= @version.source_url %>
+            </a>
+          <% end %>
           <%= if @version.upload_type == :user_provided do %>
             <span class="badge ~neutral self-start shrink-0">User Upload</span>
           <% end %>

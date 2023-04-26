@@ -63,7 +63,7 @@ defmodule Platform.Uploads.MediaVersionArtifact do
     mime = MIME.from_path(file.file_name)
 
     cond do
-      String.starts_with?(mime, "image/") ->
+      Platform.Utils.is_processable_image(mime) ->
         {:ffmpeg,
          fn input, output ->
            "-i #{input} -f apng #{output}"

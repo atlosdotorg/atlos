@@ -44,7 +44,7 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
   end
 
   defp handle_static_file(%{path: path}, client_name) do
-    to_path = Temp.path!(%{suffix: client_name})
+    to_path = Path.join(Temp.mkdir!(), Utils.slugify(client_name))
     File.cp!(path, to_path)
     {:ok, to_path}
   end
