@@ -6,6 +6,7 @@ defmodule Platform.Utils do
 
   @tag_regex ~r/((?:\[\[))(@([A-Za-z0-9_]+)(?:\]\]))/
   @identifier_regex ~r/(?:\[\[)((?:[A-Z0-9]{1,5}-)?[A-Z0-9]{6})(?:\]\])/
+  @identifier_with_media_version_regex ~r/(?:\[\[)((?:[A-Z0-9]{1,5}-)?([A-Z0-9]{6})\/(\d+))(?:\]\])/
   @identifier_regex_with_project_and_no_tags ~r/((?:[A-Z0-9]{1,5}-)([A-Z0-9]{6}))/
 
   def get_tag_regex(), do: @tag_regex
@@ -140,6 +141,13 @@ defmodule Platform.Utils do
 
     # Second, link ATL identifiers.
     markdown = Regex.replace(@identifier_regex, markdown, " [\\1](/incidents/\\1)")
+
+    markdown =
+      Regex.replace(
+        @identifier_with_media_version_regex,
+        markdown,
+        " [\\1](/incidents/\\2/detail/\\3)"
+      )
 
     # Third, turn @'s into links.
     markdown = Regex.replace(@tag_regex, markdown, " [@\\3](/profile/\\3)")

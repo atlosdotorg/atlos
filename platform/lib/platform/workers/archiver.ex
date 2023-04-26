@@ -104,11 +104,6 @@ defmodule Platform.Workers.Archiver do
 
               {:ok, version} = Material.update_media_version(version, version_map)
 
-              # Schedule duplicate detection
-              Platform.Workers.DuplicateDetector.new(%{
-                "media_version_id" => version.id
-              })
-
               version
           end
 
@@ -118,6 +113,12 @@ defmodule Platform.Workers.Archiver do
             source_url: version.source_url,
             media_version: version
           })
+
+          # Schedule duplicate detection
+          Platform.Workers.DuplicateDetector.new(%{
+            "media_version_id" => id
+          })
+          |> Oban.insert!()
 
           {:ok, version}
         rescue

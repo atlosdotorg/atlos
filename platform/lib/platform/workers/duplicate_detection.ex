@@ -21,14 +21,14 @@ defmodule Platform.Workers.DuplicateDetector do
     version = Material.get_media_version!(id)
     media = Material.get_media!(version.media_id) |> Platform.Repo.preload([:project, :versions])
 
-    Logger.info("Checking for duplicate artifacts: #{media.slug}")
+    Logger.info("Checking for duplicate artifacts: #{media.slug} (version id=#{version.id})")
 
     # First, we find all the perceptual hashes for the media version.
     hashes = get_hashes(version)
 
     # Next, we search for media versions that have perceptual hashes that are similar to these
     # perceptual hashes.
-    results =
+    candidate_media =
       Enum.map(hashes, fn hash ->
         {query, _} =
           Platform.Material.MediaSearch.search_query(
@@ -42,15 +42,20 @@ defmodule Platform.Workers.DuplicateDetector do
       end)
       |> List.flatten()
       |> Enum.uniq_by(& &1.id)
-      |> Enum.filter(&(&1.id != version.id))
-      |> Enum.filter(&(&1.visibility == :visible))
-      |> Enum.map(& &1.media_versions)
+      |> Enum.filter(&(&1.id != version.media_id))
+      |> Enum.filter(&(&1.deleted == false and not Material.Media.has_restrictions(&1)))
+
+    results =
+      candidate_media
+      |> Enum.map(& &1.versions)
       |> List.flatten()
       |> Enum.filter(&(&1.visibility == :visible))
       |> Enum.filter(fn version ->
         sub_hashes = get_hashes(version)
         Enum.any?(sub_hashes, fn sub_hash -> Enum.member?(hashes, sub_hash) end)
       end)
+
+    Logger.info("Found #{Enum.count(results)} potential duplicates for #{media.slug}")
 
     # If we found any results, we go through and check which media version matched. We then verify that
     # the media version is visible.
@@ -62,7 +67,7 @@ defmodule Platform.Workers.DuplicateDetector do
       # We then post a comment on the media version with the results.
       Platform.Updates.post_bot_comment(
         media,
-        "Some source material in [#{Platform.Material.get_human_readable_media_version_name(media, version)}] may have already been added to incidents in this project. Please check the following incidents for duplicates:\n\n#{Enum.map(results, fn version -> "* #{Platform.Material.get_human_readable_media_version_name(media, version)}" end) |> Enum.join("\n")}"
+        "Source material in [[#{Platform.Material.get_human_readable_media_version_name(media, version)}]] may have already been added to incidents in this project. Please check the following source material for possible duplicates: #{Enum.map(results, fn v -> "[[#{Platform.Material.get_human_readable_media_version_name(Enum.find(candidate_media, &(&1.id == v.media_id)), v)}]]" end) |> Enum.join(", ")}"
       )
     end
 
