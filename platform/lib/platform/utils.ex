@@ -5,9 +5,9 @@ defmodule Platform.Utils do
   import Ecto.Query, warn: false
 
   @tag_regex ~r/((?:\[\[))(@([A-Za-z0-9_]+)(?:\]\]))/
-  @identifier_regex ~r/(?:\[\[)((?:[A-Z0-9]{1,5}-)?[A-Z0-9]{6})(?:\]\])/
-  @identifier_with_media_version_regex ~r/(?:\[\[)((?:[A-Z0-9]{1,5}-)?([A-Z0-9]{6})\/(\d+))(?:\]\])/
-  @identifier_regex_with_project_and_no_tags ~r/((?:[A-Z0-9]{1,5}-)([A-Z0-9]{6}))/
+  @identifier_regex ~r/(?:\[\[)((?:[A-Za-z0-9]{1,5}-)?[A-Z0-9]{6})(?:\]\])/
+  @identifier_with_media_version_regex ~r/(?:\[\[)((?:[A-Za-z0-9]{1,5}-)?([A-Z0-9]{6})\/(\d+))(?:\]\])/
+  @identifier_regex_with_project_and_no_tags ~r/((?:[A-Za-z0-9]{1,5}-)([A-Z0-9]{6}))/
 
   def get_tag_regex(), do: @tag_regex
   def get_identifier_regex(), do: @identifier_regex
