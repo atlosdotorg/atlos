@@ -2661,7 +2661,7 @@ defmodule PlatformWeb.Components do
                 <div class="grayscale">
                   <img
                     src={Material.media_version_artifact_location(@artifact, version: :thumbnail)}
-                    class="w-full object-cover"
+                    class="w-full object-cover scale-[1.1] origin-top"
                   />
                 </div>
               <% length(@version.artifacts) == 1 -> %>
