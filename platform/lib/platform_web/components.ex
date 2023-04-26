@@ -2645,14 +2645,9 @@ defmodule PlatformWeb.Components do
       class="py-2 target:outline outline-2 outline-urge-600 rounded group outline-offset-2"
     >
       <.link patch={@detail_url}>
-        <div class="flex justify-between">
-          <p class="font-mono text-sm">
-            <%= @human_name %>
-          </p>
-          <p class="font-sans text-neutral-500 text-sm opacity-0 group-hover:opacity-100 transition">
-            + Expand
-          </p>
-        </div>
+        <p class="font-mono text-sm">
+          <%= @human_name %>
+        </p>
       </.link>
       <div class="relative">
         <%= if @artifact_to_show do %>
@@ -2691,6 +2686,10 @@ defmodule PlatformWeb.Components do
                   </p>
                 </div>
             <% end %>
+            <div class="border rounded-lg opacity-0 overflow-hidden group-hover:opacity-100 group-focus:opacity-100 group-focus-within:opacity-100 block absolute inset-0 backdrop-blur-sm transition bg-white/50 flex flex-col gap-2 items-center justify-center w-full h-full">
+              <Heroicons.plus_circle mini class="h-5 w-5 text-neutral-600" />
+              <span class="text-neutral-600">View details and artifacts</span>
+            </div>
           </.link>
         <% else %>
           <div class="w-full h-40 bg-neutral-50 border rounded-lg flex items-center justify-around">
