@@ -2249,7 +2249,7 @@ defmodule PlatformWeb.Components do
                       <span class="sr-only">Export Incidents</span>
                     <% end %>
                     <.link
-                      patch="/incidents"
+                      patch={"/incidents?display=#{Ecto.Changeset.get_field(f.source, :display, "cards")}"}
                       class="rounded-full flex items-center align-center text-gray-600 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-urge-500"
                       role="menuitem"
                       data-tooltip="Reset Filters"
