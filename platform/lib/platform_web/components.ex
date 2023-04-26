@@ -2663,7 +2663,7 @@ defmodule PlatformWeb.Components do
           >
             <%= cond do %>
               <% not @is_graphic and (String.starts_with?(@artifact.mime_type, "image/") or String.starts_with?(@artifact.mime_type, "video/")) -> %>
-                <div class="grayscle">
+                <div class="grayscale">
                   <img
                     src={Material.media_version_artifact_location(@artifact, version: :thumbnail)}
                     class="w-full object-cover"
