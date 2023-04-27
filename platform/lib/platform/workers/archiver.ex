@@ -74,16 +74,24 @@ defmodule Platform.Workers.Archiver do
 
                   %{size: size} = File.stat!(loc)
 
-                  %{
-                    id: id,
-                    file_location: remote_path,
-                    file_hash_sha256: artifact["sha256"],
-                    file_size: size,
-                    mime_type: MIME.from_path(artifact["file"]),
-                    perceptual_hashes: %{"computed" => Map.get(artifact, "perceptual_hashes", [])},
-                    type: String.to_existing_atom(artifact["kind"])
-                  }
+                  # If the file is bigger than 5GB, we don't want to store it
+                  if size > 5 * 1024 * 1024 * 1024 do
+                    :skip
+                  else
+                    %{
+                      id: id,
+                      file_location: remote_path,
+                      file_hash_sha256: artifact["sha256"],
+                      file_size: size,
+                      mime_type: MIME.from_path(artifact["file"]),
+                      perceptual_hashes: %{
+                        "computed" => Map.get(artifact, "perceptual_hashes", [])
+                      },
+                      type: String.to_existing_atom(artifact["kind"])
+                    }
+                  end
                 end)
+                |> Enum.filter(&(&1 != :skip))
 
               # Update the media version
               version_map = %{
@@ -102,7 +110,7 @@ defmodule Platform.Workers.Archiver do
 
               version
 
-            _ ->
+            :user_provided ->
               # Update the media version to have status complete
               # In the future, this is where we could do some more advanced
               # processing of the media (for user provided media)
