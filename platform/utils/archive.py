@@ -56,9 +56,9 @@ def maybe_download_file(url: str) -> Optional[str]:
     if content_type is None or content_type.startswith("text/html"):
         return None
 
-    suffix = mimetypes.guess_extension(content_type) or "bin"
+    suffix = mimetypes.guess_extension(content_type) or ".bin"
 
-    output = f"file.{suffix}"
+    output = f"file{suffix}"
     with open(output, "wb") as outfile:
         outfile.write(resp.content)
         return output
