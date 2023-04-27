@@ -4,6 +4,7 @@
 # It also computes perceptual hashes of the extracted media.
 
 import json
+from timeout import timeout
 import mimetypes
 import os
 import re
@@ -150,6 +151,8 @@ def archive_page_using_selenium(url: str) -> dict:
             ],
             pdf="page.pdf",
         )
+    except TimeoutError as e:
+        raise e
     except Exception as e:
         logger.exception(f"Failed to archive page: {e}")
         return dict(success=False)
@@ -223,6 +226,7 @@ def generate_perceptual_hashes(path: str) -> dict:
     return []
 
 
+@timeout(60 * 3)
 @click.command()
 @click.option("--url", type=str)
 @click.option("--out", type=click.Path())
