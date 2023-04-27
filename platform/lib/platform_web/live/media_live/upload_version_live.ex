@@ -380,7 +380,7 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
           </div>
           <%= if not @processing do %>
             <div>
-              <%= label(f, :source_url, "Where did this media come from?") %>
+              <%= label(f, :source_url, "Where did this media come from? (Optional)") %>
               <%= url_input(f, :source_url,
                 placeholder: "https://example.com/...",
                 phx_debounce: "250"
