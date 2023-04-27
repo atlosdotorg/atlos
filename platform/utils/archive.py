@@ -3,7 +3,6 @@
 # This script is used to archive a page using Bellingcat's auto-archiver and Selenium.
 # It also computes perceptual hashes of the extracted media.
 
-import ipaddress
 import json
 import mimetypes
 import os
@@ -13,14 +12,13 @@ import shutil
 import subprocess
 import sys
 from time import sleep
+from typing import Optional
 from loguru import logger
-import socket
-from urllib.parse import urlparse
-import warcio
 import unicodecsv as csv
 from perception import hashers
 import click
 import tempfile
+import requests
 import hashlib
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options as ChromeOptions
@@ -44,6 +42,26 @@ def compute_checksum(path: str) -> str:
     """Computes the SHA256 checksum of the file at the given path."""
     with open(path, "rb") as infile:
         return hashlib.sha256(infile.read()).hexdigest()
+
+
+def maybe_download_file(url: str) -> Optional[str]:
+    """Downloads the file at the given URL to a tempfile."""
+
+    resp = requests.get(url, allow_redirects=True, timeout=10)
+    if resp.status_code != 200:
+        return None
+
+    content_type = resp.headers.get("content-type")
+
+    if content_type is None or content_type.startswith("text/html"):
+        return None
+
+    suffix = mimetypes.guess_extension(content_type) or "bin"
+
+    output = f"file.{suffix}"
+    with open(output, "wb") as outfile:
+        outfile.write(resp.content)
+        return output
 
 
 def find_json_objects(s):
@@ -93,7 +111,7 @@ def archive_page_using_selenium(url: str) -> dict:
             close_button.click()
             sleep(1)
         except:
-            print("No close button found")
+            logger.debug("No close button found")
 
         # Press the escape key, just in case
         driver.find_element("tag name", "body").send_keys("\ue00c")
@@ -222,6 +240,16 @@ def run(url, out, auto_archiver_config):
         os.chdir(t)
 
         try:
+            # Archive the file directly, if possible/needed
+            logger.info("Archiving the data directly...")
+            direct_archive = maybe_download_file(url)
+            if direct_archive is None:
+                logger.info("No direct archive available/necessary for this URL")
+            else:
+                logger.info(
+                    "Direct archive available/necessary for this URL (is not HTML)"
+                )
+
             # Archive the page using Selenium
             logger.info("Archiving the page using Selenium...")
             selenium_archive = archive_page_using_selenium(url)
@@ -279,6 +307,21 @@ def run(url, out, auto_archiver_config):
                             perceptual_hashes=generate_perceptual_hashes(file),
                         )
                     )
+
+            if direct_archive is not None:
+                path = os.path.basename(direct_archive)
+                shutil.copyfile(
+                    direct_archive,
+                    os.path.join(out, path),
+                )
+                artifacts.append(
+                    dict(
+                        kind="direct_file",
+                        file=path,
+                        sha256=compute_checksum(direct_archive),
+                        perceptual_hashes=generate_perceptual_hashes(direct_archive),
+                    )
+                )
 
             # Write the metadata
             with open(os.path.join(out, "metadata.json"), "w") as outfile:
