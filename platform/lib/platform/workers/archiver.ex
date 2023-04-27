@@ -42,6 +42,11 @@ defmodule Platform.Workers.Archiver do
                   "env",
                   [
                     "-i",
+                    "HOME=#{System.get_env("HOME")}",
+                    "PATH=#{System.get_env("PATH")}",
+                    "USER=#{System.get_env("USER")}",
+                    "LANG=#{System.get_env("LANG")}",
+                    "LC_CTYPE=#{System.get_env("LANG")}",
                     "poetry",
                     "run",
                     "./archive.py",
@@ -51,7 +56,8 @@ defmodule Platform.Workers.Archiver do
                     "auto_archiver_config.yaml",
                     "--url",
                     version.source_url
-                  ],
+                  ]
+                  |> dbg(),
                   cd: utils_dir
                 )
 
