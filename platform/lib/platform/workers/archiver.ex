@@ -232,13 +232,15 @@ defmodule Platform.Workers.Archiver do
 
               # Actually update the media version
               {:ok, new_version} = Material.update_media_version(version, new_version_map)
+
+              {:ok, new_version}
             else
               Logger.info(
                 "Not updating media version (even though we failed) #{id} because this is a rearchive request."
               )
-            end
 
-            {:ok, new_version}
+              {:ok, version}
+            end
         end
 
       # Push update to viewers
