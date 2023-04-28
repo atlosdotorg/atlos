@@ -247,12 +247,11 @@ defmodule Platform.Workers.Archiver do
       Temp.cleanup()
       result
     else
-      _ ->
-        Logger.info(
-          "Media version #{id} is not pending, and this is not a rearchive request. Skipping."
-        )
+      Logger.info(
+        "Media version #{id} is not pending, and this is not a rearchive request. Skipping."
+      )
 
-        {:ok, version}
+      {:ok, version}
     end
   end
 end
