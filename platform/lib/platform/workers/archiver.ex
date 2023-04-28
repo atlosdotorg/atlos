@@ -26,10 +26,14 @@ defmodule Platform.Workers.Archiver do
 
   @impl Oban.Worker
   def perform(%Oban.Job{args: %{"media_version_id" => id} = args}) do
+    is_rearchive_request = Map.get(args, "rearchive", false)
+
     Logger.info("Archiving media version #{id}...")
     version = Material.get_media_version!(id)
 
-    with %MediaVersion{status: :pending, media_id: media_id} <- version do
+    %MediaVersion{status: status, media_id: media_id} = version
+
+    if not (status != :pending and not is_rearchive_request) do
       Logger.info("Archiving media version #{id}... (got media #{media_id})")
 
       hide_version_on_failure = Map.get(args, "hide_version_on_failure", false)
@@ -212,21 +216,27 @@ defmodule Platform.Workers.Archiver do
 
             Auditor.log(:archive_failed, %{error: inspect(val), version: version})
 
-            # Update the media version.
-            version_map = %{
-              status: :error
-            }
+            if not is_rearchive_request do
+              # Update the media version.
+              version_map = %{
+                status: :error
+              }
 
-            # If we're supposed to hide versions on failure, we do so here.
-            new_version_map =
-              if hide_version_on_failure && version.visibility == :visible do
-                Map.put(version_map, :visibility, :hidden)
-              else
-                version_map
-              end
+              # If we're supposed to hide versions on failure, we do so here.
+              new_version_map =
+                if hide_version_on_failure && version.visibility == :visible do
+                  Map.put(version_map, :visibility, :hidden)
+                else
+                  version_map
+                end
 
-            # Actually update the media version
-            {:ok, new_version} = Material.update_media_version(version, new_version_map)
+              # Actually update the media version
+              {:ok, new_version} = Material.update_media_version(version, new_version_map)
+            else
+              Logger.info(
+                "Not updating media version (even though we failed) #{id} because this is a rearchive request."
+              )
+            end
 
             {:ok, new_version}
         end
@@ -238,7 +248,10 @@ defmodule Platform.Workers.Archiver do
       result
     else
       _ ->
-        Logger.error("Media version #{id} is not pending, skipping.")
+        Logger.info(
+          "Media version #{id} is not pending, and this is not a rearchive request. Skipping."
+        )
+
         {:ok, version}
     end
   end

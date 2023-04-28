@@ -24,6 +24,7 @@ defmodule Platform.DataMigrations.MediaVersionsMigrator do
   def migrate_media_version(%MediaVersion{} = version) do
     Temp.track!()
     temp_dir = Temp.mkdir!()
+    id = Ecto.UUID.generate()
 
     # HTTPS URL to the file
     old_file_location_url = Material.media_version_location(version, version.media)
@@ -35,15 +36,25 @@ defmodule Platform.DataMigrations.MediaVersionsMigrator do
     # Get the file size
     %{size: size} = File.stat!(local_path)
 
+    # Store the file as an artifact
+    {:ok, remote_path} = Platform.Uploads.MediaVersionArtifact.store({local_path, %{id: id}})
+
     artifact_data = %{
-      "id" => Ecto.UUID.generate(),
-      "file_location" => nil,
+      "id" => id,
+      "file_location" => remote_path,
       "file_hash_sha256" => Platform.Utils.hash_sha256(local_path),
       "file_size" => size,
       "mime_type" => MIME.from_path(local_path),
       "type" => "upload"
     }
 
-    Uploads.Logger.info("Good to go!")
+    # Update the media version
+    Platform.Material.update_media_version(version, %{
+      artifacts: [artifact_data]
+    })
+
+    # Schedule for rearchival
+    Platform.Workers.Archiver.new(%{"media_version_id" => version.id, "rearchive" => true})
+    |> Oban.insert!()
   end
 end
