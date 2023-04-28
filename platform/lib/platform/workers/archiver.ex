@@ -10,6 +10,20 @@ defmodule Platform.Workers.Archiver do
     queue: :media_archival,
     priority: 3
 
+  defp download_file(from_url, into_file) do
+    {_, 0} =
+      System.cmd(
+        "curl",
+        [
+          "-L",
+          from_url,
+          "-o",
+          into_file
+        ],
+        into: IO.stream()
+      )
+  end
+
   @impl Oban.Worker
   def perform(%Oban.Job{args: %{"media_version_id" => id} = args}) do
     Logger.info("Archiving media version #{id}...")
@@ -30,13 +44,13 @@ defmodule Platform.Workers.Archiver do
           # Submit to the Internet Archive for archival
           Material.submit_for_external_archival(version)
 
+          # Archive the page, and download the media from it
+          temp_dir = Temp.mkdir!()
+          utils_dir = System.get_env("UTILS_DIR", "utils")
+
           # Download the media data
           case version.upload_type do
             :direct ->
-              # Archive the page, and download the media from it
-              temp_dir = Temp.mkdir!()
-              utils_dir = System.get_env("UTILS_DIR", "utils")
-
               {_, 0} =
                 System.cmd(
                   "env",
@@ -56,8 +70,7 @@ defmodule Platform.Workers.Archiver do
                     "auto_archiver_config.yaml",
                     "--url",
                     version.source_url
-                  ]
-                  |> dbg(),
+                  ],
                   cd: utils_dir
                 )
 
@@ -96,7 +109,8 @@ defmodule Platform.Workers.Archiver do
               # Update the media version
               version_map = %{
                 status: :complete,
-                artifacts: artifacts,
+                # Append the artifacts; some may already exist
+                artifacts: (version.artifacts || []) ++ artifacts,
                 metadata: %{
                   auto_archive_successful: Map.get(metadata, "auto_archive_successful", false),
                   crawl_successful: Map.get(metadata, "crawl_successful", false),
@@ -111,11 +125,64 @@ defmodule Platform.Workers.Archiver do
               version
 
             :user_provided ->
-              # Update the media version to have status complete
-              # In the future, this is where we could do some more advanced
-              # processing of the media (for user provided media)
+              new_artifacts =
+                Enum.map(version.artifacts, fn artifact ->
+                  file_out_loc = Path.join(temp_dir, artifact.file_location)
+
+                  # Download the media
+                  download_file(
+                    Material.media_version_artifact_location(artifact),
+                    file_out_loc
+                  )
+
+                  {_, 0} =
+                    System.cmd(
+                      "env",
+                      [
+                        "-i",
+                        "HOME=#{System.get_env("HOME")}",
+                        "PATH=#{System.get_env("PATH")}",
+                        "USER=#{System.get_env("USER")}",
+                        "LANG=#{System.get_env("LANG")}",
+                        "LC_CTYPE=#{System.get_env("LANG")}",
+                        "poetry",
+                        "run",
+                        "./archive.py",
+                        "--out",
+                        temp_dir,
+                        "--auto-archiver-config",
+                        "auto_archiver_config.yaml",
+                        "--file",
+                        file_out_loc
+                      ],
+                      cd: utils_dir
+                    )
+
+                  %{size: size} = File.stat!(file_out_loc)
+
+                  metadata_file = Path.join(temp_dir, "metadata.json")
+                  metadata = File.read!(metadata_file) |> Jason.decode!()
+
+                  data =
+                    Map.get(metadata, "artifacts", [])
+                    |> Enum.find(&(&1["sha256"] == artifact.file_hash_sha256))
+
+                  %{
+                    id: artifact.id,
+                    file_location: artifact.file_location,
+                    file_hash_sha256: artifact.file_hash_sha256,
+                    file_size: size,
+                    mime_type: MIME.from_path(file_out_loc),
+                    perceptual_hashes: %{
+                      "computed" => Map.get(data, "perceptual_hashes", [])
+                    },
+                    type: artifact.type
+                  }
+                end)
+
               version_map = %{
-                status: :complete
+                status: :complete,
+                artifacts: new_artifacts
               }
 
               {:ok, version} = Material.update_media_version(version, version_map)

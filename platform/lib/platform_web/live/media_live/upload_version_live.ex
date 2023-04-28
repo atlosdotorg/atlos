@@ -137,7 +137,6 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
               socket.assigns.media,
               socket.assigns.current_user,
               Map.merge(params, %{
-                "file_location" => remote_path,
                 "artifacts" => [
                   %{
                     "id" => artifact_id,

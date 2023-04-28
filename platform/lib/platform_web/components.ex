@@ -2249,7 +2249,7 @@ defmodule PlatformWeb.Components do
                       <span class="sr-only">Export Incidents</span>
                     <% end %>
                     <.link
-                      patch={"/incidents?display=#{Ecto.Changeset.get_field(f.source, :display, "cards")}"}
+                      href={"/incidents?display=#{Ecto.Changeset.get_field(f.source, :display, "cards")}"}
                       class="rounded-full flex items-center align-center text-gray-600 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-urge-500"
                       role="menuitem"
                       data-tooltip="Reset Filters"
@@ -2760,20 +2760,7 @@ defmodule PlatformWeb.Components do
                 </a>
               <% true -> %>
                 <div class="text-center w-48">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="mx-auto h-8 w-8 text-gray-400 animate-pulse"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    stroke-width="2"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"
-                    />
-                  </svg>
+                  <Heroicons.exclamation_circle class="mx-auto h-8 w-8 text-gray-400" />
                   <h3 class="mt-2 font-medium text-gray-900 text-sm">Processing Error</h3>
                   <p class="mt-1 text-gray-500 text-sm">
                     Unable to process this source material
