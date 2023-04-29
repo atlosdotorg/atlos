@@ -717,6 +717,7 @@ defmodule PlatformWeb.Components do
               socket={@socket}
               left_indicator={:dot}
               current_user={@current_user}
+              ignore_permissions={@ignore_permissions}
             />
           <% end %>
         </ul>
