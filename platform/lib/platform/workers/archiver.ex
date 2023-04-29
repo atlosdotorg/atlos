@@ -114,7 +114,7 @@ defmodule Platform.Workers.Archiver do
               version_map = %{
                 status: :complete,
                 # Append the artifacts; some may already exist
-                artifacts: (version.artifacts || []) ++ artifacts,
+                artifacts: Enum.map(version.artifacts || [], &Map.from_struct(&1)) ++ artifacts,
                 metadata: %{
                   auto_archive_successful: Map.get(metadata, "auto_archive_successful", false),
                   crawl_successful: Map.get(metadata, "crawl_successful", false),

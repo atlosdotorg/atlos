@@ -181,7 +181,7 @@ def archive_using_auto_archiver(
                 "auto-archiver",
                 "--config",
                 config,
-                f'--cli_feeder.urls="{url}"',
+                f"--cli_feeder.urls={url}",
             ],
             timeout=60 * 60,
             capture_output=True,
@@ -268,109 +268,113 @@ def run(url, file, out, auto_archiver_config):
         selenium_archive = {}
         auto_archiver_archive = {}
 
-        try:
-            # First, archive the file, if given
-            if file is not None:
-                logger.info("Archiving the file...")
-                if os.path.join(out, os.path.basename(file)) != file:
-                    shutil.copyfile(
-                        file,
-                        os.path.join(out, os.path.basename(file)),
-                    )
-                artifacts.append(
-                    analyze_artifact(file, perceptually_hash=True, kind="file")
+        # try:
+        # First, archive the file, if given
+        if file is not None:
+            logger.info("Archiving the file...")
+            if os.path.join(out, os.path.basename(file)) != file:
+                shutil.copyfile(
+                    file,
+                    os.path.join(out, os.path.basename(file)),
+                )
+            artifacts.append(
+                analyze_artifact(file, perceptually_hash=True, kind="file")
+            )
+
+        # Then, archive the URL, if given
+        if url is not None:
+            # Archive the file directly, if possible/needed
+            logger.info("Archiving the data directly...")
+            direct_archive = maybe_download_file(url)
+            if direct_archive is None:
+                logger.info("No direct archive available/necessary for this URL")
+            else:
+                logger.info(
+                    "Direct archive available/necessary for this URL (is not HTML)"
                 )
 
-            # Then, archive the URL, if given
-            if url is not None:
-                # Archive the file directly, if possible/needed
-                logger.info("Archiving the data directly...")
-                direct_archive = maybe_download_file(url)
-                if direct_archive is None:
-                    logger.info("No direct archive available/necessary for this URL")
-                else:
-                    logger.info(
-                        "Direct archive available/necessary for this URL (is not HTML)"
-                    )
+            # Archive the page using Selenium
+            logger.info("Archiving the page using Selenium...")
+            selenium_archive = archive_page_using_selenium(url)
 
-                # Archive the page using Selenium
-                logger.info("Archiving the page using Selenium...")
-                selenium_archive = archive_page_using_selenium(url)
+            # Archive the page using the Bellingcat auto-archiver
+            logger.info("Archiving the page using the Bellingcat auto-archiver...")
+            auto_archiver_archive = archive_using_auto_archiver(
+                url, config=auto_archiver_config
+            )
 
-                # Archive the page using the Bellingcat auto-archiver
-                logger.info("Archiving the page using the Bellingcat auto-archiver...")
-                auto_archiver_archive = archive_using_auto_archiver(
-                    url, config=auto_archiver_config
-                )
+            # Merge all the artifacts into a nice output folder
+            logger.info("Finalizing screenshots and page pdf...")
 
-                # Merge all the artifacts into a nice output folder
-                logger.info("Finalizing artifacts...")
-
-                if selenium_archive["success"]:
-                    for screenshot in selenium_archive["screenshots"]:
-                        shutil.copyfile(
-                            screenshot["file"],
-                            os.path.join(out, os.path.basename(screenshot["file"])),
-                        )
-                        artifacts.append(
-                            analyze_artifact(
-                                screenshot["file"],
-                                perceptually_hash=False,
-                                kind=screenshot["kind"],
-                            )
-                        )
-
+            if selenium_archive["success"]:
+                for screenshot in selenium_archive["screenshots"]:
                     shutil.copyfile(
-                        selenium_archive["pdf"],
-                        os.path.join(out, "page.pdf"),
+                        screenshot["file"],
+                        os.path.join(out, os.path.basename(screenshot["file"])),
                     )
                     artifacts.append(
                         analyze_artifact(
-                            "page.pdf", perceptually_hash=False, kind="pdf"
+                            screenshot["file"],
+                            perceptually_hash=False,
+                            kind=screenshot["kind"],
                         )
                     )
 
-                if auto_archiver_archive["success"]:
-                    for file in auto_archiver_archive["files"]:
-                        path = os.path.basename(file)
-                        shutil.copyfile(
-                            file,
-                            os.path.join(out, path),
-                        )
-                        artifacts.append(analyze_artifact(path, kind="media"))
-
-                if direct_archive is not None:
-                    path = os.path.basename(direct_archive)
-                    shutil.copyfile(
-                        direct_archive,
-                        os.path.join(out, path),
+                shutil.copyfile(
+                    selenium_archive["pdf"],
+                    os.path.join(out, "page.pdf"),
+                )
+                artifacts.append(
+                    analyze_artifact(
+                        selenium_archive["pdf"], perceptually_hash=False, kind="pdf"
                     )
-                    artifacts.append(analyze_artifact(path, kind="direct_file"))
-
-            # Write the metadata
-            with open(os.path.join(out, "metadata.json"), "w") as outfile:
-                json.dump(
-                    dict(
-                        page_info=selenium_archive.get("data"),
-                        artifacts=artifacts,
-                        content_info=auto_archiver_archive.get("metadata"),
-                        crawl_successful=selenium_archive.get("success"),
-                        auto_archive_successful=auto_archiver_archive.get("success"),
-                        is_likely_authwalled=is_likely_authwalled(url)
-                        if url is not None
-                        else False,
-                    ),
-                    outfile,
                 )
 
-            did_finish = True
-            logger.success("Processing complete")
-        except Exception as e:
-            logger.error(str(e.with_traceback(None)))
-        finally:
-            if not did_finish:
-                logger.error("Processing failed")
-                sys.exit(1)
+            logger.info("Finalizing auto archiver files...")
+
+            if auto_archiver_archive["success"]:
+                for file in auto_archiver_archive["files"]:
+                    path = os.path.basename(file)
+                    shutil.copyfile(
+                        file,
+                        os.path.join(out, path),
+                    )
+                    artifacts.append(analyze_artifact(file, kind="media"))
+
+            logger.info("Finalizing direct archive (if applicable)...")
+
+            if direct_archive is not None:
+                path = os.path.basename(direct_archive)
+                shutil.copyfile(
+                    direct_archive,
+                    os.path.join(out, path),
+                )
+                artifacts.append(analyze_artifact(direct_archive, kind="direct_file"))
+
+        # Write the metadata
+        with open(os.path.join(out, "metadata.json"), "w") as outfile:
+            json.dump(
+                dict(
+                    page_info=selenium_archive.get("data"),
+                    artifacts=artifacts,
+                    content_info=auto_archiver_archive.get("metadata"),
+                    crawl_successful=selenium_archive.get("success"),
+                    auto_archive_successful=auto_archiver_archive.get("success"),
+                    is_likely_authwalled=is_likely_authwalled(url)
+                    if url is not None
+                    else False,
+                ),
+                outfile,
+            )
+
+        did_finish = True
+        logger.success("Processing complete")
+        # except Exception as e:
+        #     logger.error(str(e.with_traceback(None)))
+        # finally:
+        #     if not did_finish:
+        #         logger.error("Processing failed")
+        #         sys.exit(1)
 
 
 if __name__ == "__main__":

@@ -5,6 +5,8 @@ defmodule Platform.DataMigrations.MediaVersionsMigrator do
   alias Platform.Updates
   alias Platform.Accounts
 
+  import Ecto.Query
+
   require Logger
 
   defp download_file(from_url, into_file) do
@@ -56,5 +58,16 @@ defmodule Platform.DataMigrations.MediaVersionsMigrator do
     # Schedule for rearchival
     Platform.Workers.Archiver.new(%{"media_version_id" => version.id, "rearchive" => true})
     |> Oban.insert!()
+  end
+
+  def get_media_versions_to_migrate() do
+    # Get all media versions that are not user provided
+    query =
+      from mv in MediaVersion,
+        where: not is_nil(mv.file_location) and is_nil(mv.artifacts),
+        preload: [:media]
+
+    Platform.Repo.all(query)
+    |> Enum.filter(&(not String.starts_with?(&1.file_location, "https://")))
   end
 end
