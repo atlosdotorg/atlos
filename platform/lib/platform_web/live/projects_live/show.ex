@@ -115,9 +115,9 @@ defmodule PlatformWeb.ProjectsLive.Show do
           </div>
           <nav class="flex space-x-8 mt-8 overflow-x-auto" aria-label="Tabs">
             <% inactive_classes =
-              "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 group inline-flex items-center py-4 px-1 border-b-2 font-medium text-sm" %>
+              "transition-all border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 group inline-flex items-center py-4 px-1 border-b-2 font-medium text-sm" %>
             <% active_classes =
-              "border-urge-500 text-urge-600 group inline-flex items-center py-4 px-1 border-b-2 font-medium text-sm" %>
+              "transition-all border-urge-500 text-urge-600 group inline-flex items-center py-4 px-1 border-b-2 font-medium text-sm" %>
 
             <.link
               patch={"/projects/#{@project.id}"}
@@ -133,6 +133,14 @@ defmodule PlatformWeb.ProjectsLive.Show do
             >
               <Heroicons.map mini class="opacity-75 -ml-0.5 mr-2 h-5 w-5" />
               <span>Map</span>
+            </.link>
+
+            <.link
+              patch={"/projects/#{@project.id}/queue"}
+              class={if @live_action == :queue, do: active_classes, else: inactive_classes}
+            >
+              <Heroicons.queue_list mini class="opacity-75 -ml-0.5 mr-2 h-5 w-5" />
+              <span>Queue</span>
             </.link>
 
             <%= if Permissions.can_edit_project_metadata?(@current_user, @project) do %>
@@ -251,6 +259,14 @@ defmodule PlatformWeb.ProjectsLive.Show do
           <div class="w-full h-full">
             <.map_events map_data={map_data} />
           </div>
+        <% end %>
+        <%= if @live_action == :queue do %>
+          <.live_component
+            module={PlatformWeb.MediaLive.GroupedMediaList}
+            id="project-queue"
+            current_user={@current_user}
+            params={%{"project_id" => @project.id}}
+          />
         <% end %>
         <%= if @live_action == :edit do %>
           <.live_component

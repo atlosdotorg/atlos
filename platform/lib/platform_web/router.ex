@@ -140,9 +140,6 @@ defmodule PlatformWeb.Router do
 
       live("/new", NewLive)
 
-      live("/queue", MediaLive.Queue)
-      live("/queue/:which", MediaLive.Queue)
-
       live("/incidents", MediaLive.Index)
 
       live("/incidents/:slug", MediaLive.Show, :show)
@@ -163,6 +160,7 @@ defmodule PlatformWeb.Router do
       live("/projects/:id/edit", ProjectsLive.Show, :edit)
       live("/projects/:id/members", ProjectsLive.Show, :members)
       live("/projects/:id/deleted", ProjectsLive.Show, :deleted)
+      live("/projects/:id/queue", ProjectsLive.Show, :queue)
 
       live("/profile/:username", ProfilesLive.Show, :show)
       live("/profile/:username/edit", ProfilesLive.Show, :edit)

@@ -4,26 +4,27 @@ defmodule PlatformWeb.MediaLive.GroupedMediaList do
 
   def groups(%Platform.Accounts.User{} = user) do
     [
-      {"Unclaimed", "/queue/unclaimed", %{"attr_status" => "Unclaimed"}},
-      {"In Progress", "/queue/in_progress", %{"attr_status" => "In Progress"}},
-      {"Help Needed", "/queue/help_needed", %{"attr_status" => "Help Needed"}}
-    ] ++
-      if Platform.Accounts.is_privileged(user),
-        do: [{"Ready for Review", "/queue/review", %{"attr_status" => "Ready for Review"}}],
-        else: []
+      {"Unclaimed", %{"attr_status" => ["Unclaimed"]}},
+      {"In Progress", %{"attr_status" => ["In Progress"]}},
+      {"Help Needed", %{"attr_status" => ["Help Needed"]}},
+      {"Ready for Review", %{"attr_status" => ["Ready for Review"]}}
+    ]
   end
 
-  def update(%{current_user: user} = assigns, socket) do
-    socket = socket |> assign(:current_user, user)
+  def update(assigns, socket) do
+    socket =
+      socket
+      |> assign(assigns)
 
     {:ok,
      socket
-     |> assign(assigns)
      |> assign(
        :groups,
-       Enum.map(groups(user), fn {label, link, params} ->
-         {label, link, params,
-          search_media(socket, Material.MediaSearch.changeset(params), limit: 4).entries}
+       Enum.map(groups(assigns.current_user), fn {label, params} ->
+         combined_params = Map.merge(assigns.params, params)
+
+         {label, combined_params,
+          search_media(socket, Material.MediaSearch.changeset(combined_params), limit: 4).entries}
        end)
      )}
   end
@@ -42,9 +43,10 @@ defmodule PlatformWeb.MediaLive.GroupedMediaList do
 
   def render(assigns) do
     ~H"""
-    <section class="flex flex-col mx-auto gap-8 w-full">
-      <%= for {label, link, _params, media} <- @groups do %>
-        <div class="rounded-lg border bg-neutral-100 p-4">
+    <section class="flex flex-col mx-auto gap-16 mb-16 w-full">
+      <%= for {label, params, media} <- @groups do %>
+        <% link = Routes.live_path(@socket, PlatformWeb.MediaLive.Index, params) %>
+        <div>
           <div>
             <div class="mb-4 md:flex md:justify-between md:items-center">
               <.link
