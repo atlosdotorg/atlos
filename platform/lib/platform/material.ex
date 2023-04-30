@@ -721,13 +721,11 @@ defmodule Platform.Material do
       create_media_version_audited(
         destination,
         user,
-        Map.merge(Map.from_struct(media_version), %{
-          status: :pending,
-          hashes: nil
-        })
+        Map.from_struct(
+          media_version
+          |> Map.put(:artifacts, Enum.map(media_version.artifacts || [], &Map.from_struct/1))
+        )
       )
-
-    archive_media_version(new_version, clone_from: media_version.id)
 
     {:ok, new_version}
   end
@@ -742,7 +740,7 @@ defmodule Platform.Material do
 
       for version <-
             get_media_versions_by_media(source) |> Enum.filter(&(&1.visibility == :visible)) do
-        if not Enum.member?(destination_urls, version.source_url) do
+        if is_nil(version.source_url) or not Enum.member?(destination_urls, version.source_url) do
           {:ok, _} = copy_media_version_to_new_media_audited(version, destination, user)
         end
       end
