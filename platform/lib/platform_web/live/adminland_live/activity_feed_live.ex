@@ -24,11 +24,13 @@ defmodule PlatformWeb.AdminlandLive.ActivityFeedLive do
     )
   end
 
-  defp assign_statistics(socket) do
+  defp assign_statistics(socket, filter \\ fn _ -> true end) do
     recent_updates =
-      Updates.list_updates(inserted_after: NaiveDateTime.add(NaiveDateTime.utc_now(), -7, :day))
+      Updates.list_updates(inserted_after: NaiveDateTime.add(NaiveDateTime.utc_now(), -14, :day))
+      |> Enum.filter(filter)
 
     socket
+    |> assign(:projects, recent_updates |> Enum.map(& &1.media.project) |> Enum.uniq_by(& &1.id))
     |> assign(
       :active_projects_count,
       recent_updates |> Enum.map(& &1.media.project_id) |> Enum.uniq() |> length()
@@ -77,7 +79,7 @@ defmodule PlatformWeb.AdminlandLive.ActivityFeedLive do
         <.card>
           <:header>
             <p class="sec-head">Statistics</p>
-            <p class="sec-subhead">Usage over the past seven days.</p>
+            <p class="sec-subhead">Usage over the past two weeks.</p>
           </:header>
           <dl class="mx-auto grid grid-cols-1 gap-px bg-gray-900/5 sm:grid-cols-2 lg:grid-cols-4 -m-5">
             <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2 bg-white px-4 py-10 sm:px-6 xl:px-8">
@@ -105,6 +107,21 @@ defmodule PlatformWeb.AdminlandLive.ActivityFeedLive do
               </dd>
             </div>
           </dl>
+        </.card>
+        <.card>
+          <:header>
+            <p class="sec-head">Projects</p>
+            <p class="sec-subhead">Projects with activity in the last two weeks.</p>
+          </:header>
+          <div class="grid grid-cols-1 gap-8 md:grid-cols-2">
+            <%= for project <- @projects do %>
+              <div>
+                <.project_card project={project} />
+                <hr class="sep h-2" />
+                <.user_stack users={Platform.Projects.get_project_users(project)} />
+              </div>
+            <% end %>
+          </div>
         </.card>
         <.card>
           <:header>

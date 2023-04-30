@@ -2555,7 +2555,7 @@ defmodule PlatformWeb.Components do
     assigns = assign_new(assigns, :dynamic, fn -> true end) |> assign_new(:max, fn -> 5 end)
 
     ~H"""
-    <div class="flex -space-x-1 relative z-0 items-center">
+    <div class="flex -space-x-1 relative z-0 place-items-end">
       <%= for user <- @users |> Enum.take(5) do %>
         <%= if @dynamic do %>
           <.popover class="inline">
@@ -2578,7 +2578,7 @@ defmodule PlatformWeb.Components do
       <% end %>
       <%= if length(@users) > @max do %>
         <div
-          class={"bg-gray-200 text-gray-700 text-xl rounded-full z-30 ring-2 flex items-center justify-center " <> Map.get(assigns, :size_classes, "h-5 w-5") <>" " <> Map.get(assigns, :ring_class, "ring-white")}
+          class={"relative bg-gray-200 text-gray-700 text-xl rounded-full z-30 ring-2 flex items-center justify-center " <> Map.get(assigns, :size_classes, "h-5 w-5") <>" " <> Map.get(assigns, :ring_class, "ring-white")}
           data-tooltip={"Shared with #{length(@users) - 5} more user#{if length(@users) - 5 == 1, do: "", else: "s"}"}
         >
           <Heroicons.ellipsis_horizontal mini class="h-4 w-4" />
