@@ -207,7 +207,7 @@ defmodule PlatformWeb.MediaLive.Show do
      socket
      |> put_flash(
        :info,
-       "Copy complete. The new incident is [available here](/incidents/#{new_media.slug})."
+       "Copy complete. The new incident is [#{new_media.slug}](/incidents/#{new_media.slug})."
      )
      |> push_patch(
        to: Routes.media_show_path(socket, :show, socket.assigns.media.slug),

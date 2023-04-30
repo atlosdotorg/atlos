@@ -17,14 +17,20 @@
           <% info = get(@flash, :info) %>
           <%= if info do %>
             <.notification type="info">
-              <%= info %>
+              <%= raw(
+                info
+                |> Platform.Utils.render_markdown()
+              ) %>
             </.notification>
           <% end %>
 
           <% error = get(@flash, :error) %>
           <%= if error do %>
             <.notification type="error">
-              <%= error %>
+              <%= raw(
+                error
+                |> Platform.Utils.render_markdown()
+              ) %>
             </.notification>
           <% end %>
         </div>

@@ -224,9 +224,9 @@ defmodule PlatformWeb.Components do
           </div>
           <div class="ml-3 w-0 flex-1 pt-0.5">
             <%= if String.length(@title) > 0 do %>
-              <p class="text-sm font-medium text-gray-900 mb-1"><%= @title %></p>
+              <div class="!text-sm font-medium text-gray-900 mb-1"><%= @title %></div>
             <% end %>
-            <p class="text-sm text-gray-500"><%= render_slot(@inner_block) %></p>
+            <div class="!text-sm text-gray-500"><%= render_slot(@inner_block) %></div>
           </div>
           <%= render_slot(@right) %>
         </div>
