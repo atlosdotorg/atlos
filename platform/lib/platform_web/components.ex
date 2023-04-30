@@ -1209,14 +1209,16 @@ defmodule PlatformWeb.Components do
                       @form,
                       :attr_date_min,
                       id: "search-form-date-min",
-                      class: "input-base inline-flex items-center"
+                      class: "input-base inline-flex items-center",
+                      phx_debounce: 2000
                     ) %>
                     <span class="text-sm text-gray-600">until</span>
                     <%= date_input(
                       @form,
                       :attr_date_max,
                       id: "search-form-date-max",
-                      class: "input-base inline-flex items-center"
+                      class: "input-base inline-flex items-center",
+                      phx_debounce: 2000
                     ) %>
                   </div>
                   <p class="support text-gray-600 mt-1">
