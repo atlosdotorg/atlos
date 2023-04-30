@@ -236,6 +236,9 @@ defmodule PlatformWeb.ProjectsLive.Show do
                       </dd>
                     </.link>
                   <% end %>
+                  <.link patch={"/projects/#{@project.id}/queue"} class="text-button p-2">
+                    View in queue &rarr;
+                  </.link>
                 </dl>
               </div>
             </div>
