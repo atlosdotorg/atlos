@@ -148,6 +148,7 @@ defmodule PlatformWeb.Router do
       live("/incidents/:slug/history/:attribute", MediaLive.Show, :history)
       live("/incidents/:slug/upload", MediaLive.Show, :upload)
       live("/incidents/:slug/upload/merge", MediaLive.Show, :merge)
+      live("/incidents/:slug/upload/copy", MediaLive.Show, :copy)
       live("/incidents/:slug/auto_metadata", MediaLive.Show, :auto_metadata)
       live("/incidents/:slug/detail/:scoped_id", MediaLive.Show, :media_version_detail)
 

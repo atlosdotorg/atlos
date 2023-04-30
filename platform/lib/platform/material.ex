@@ -734,7 +734,12 @@ defmodule Platform.Material do
   Merges the source media versions into the destination media. If a media version's URL is already present on a media version
   in the destination, it will not be copied.
   """
-  def merge_media_versions_audited(%Media{} = source, %Media{} = destination, %User{} = user) do
+  def merge_media_versions_audited(
+        %Media{} = source,
+        %Media{} = destination,
+        %User{} = user,
+        opts \\ []
+      ) do
     Repo.transaction(fn ->
       destination_urls = get_media_versions_by_media(destination) |> Enum.map(& &1.source_url)
 
@@ -745,15 +750,55 @@ defmodule Platform.Material do
         end
       end
 
+      if Keyword.get(opts, :post_comments, true) do
+        Updates.post_bot_comment(
+          source,
+          "[[@#{user.username}]] merged this incident's media into [[#{Media.slug_to_display(destination)}]]."
+        )
+
+        Updates.post_bot_comment(
+          destination,
+          "[[@#{user.username}]] merged [[#{Media.slug_to_display(source)}]]'s media into this incident."
+        )
+      end
+    end)
+  end
+
+  @doc """
+  Copies the given media into the given project.
+  """
+  def copy_media_to_project_audited(
+        %Media{} = source,
+        %Projects.Project{} = destination,
+        %User{} = user
+      ) do
+    Repo.transaction(fn ->
+      {:ok, new_media} =
+        create_media_audited(
+          user,
+          Map.from_struct(%{
+            source
+            | project_id: destination.id,
+              id: nil,
+              slug: nil,
+              auto_metadata: nil,
+              project_attributes: nil
+          })
+        )
+
+      {:ok, _} = merge_media_versions_audited(source, new_media, user, post_comments: false)
+
       Updates.post_bot_comment(
         source,
-        "[[@#{user.username}]] merged this incident's media into [[#{destination.slug}]]."
+        "[[@#{user.username}]] copied this incident to create [[#{Media.slug_to_display(new_media |> Map.put(:project, destination))}]]."
       )
 
       Updates.post_bot_comment(
-        destination,
-        "[[@#{user.username}]] merged [[#{source.slug}]]'s media into this incident."
+        new_media,
+        "[[@#{user.username}]] created this incident by copying [[#{Media.slug_to_display(source)}]]."
       )
+
+      new_media
     end)
   end
 

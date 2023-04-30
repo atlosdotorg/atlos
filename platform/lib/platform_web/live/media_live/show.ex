@@ -202,6 +202,19 @@ defmodule PlatformWeb.MediaLive.Show do
      )}
   end
 
+  def handle_info({:copy_completed, new_media}, socket) do
+    {:noreply,
+     socket
+     |> put_flash(
+       :info,
+       "Copy complete. The new incident is [available here](/incidents/#{new_media.slug})."
+     )
+     |> push_patch(
+       to: Routes.media_show_path(socket, :show, socket.assigns.media.slug),
+       replace: true
+     )}
+  end
+
   def handle_info({:version_creation_failed, _changeset}, socket) do
     {:noreply,
      socket

@@ -194,6 +194,15 @@
                     </svg>
                     Merge Media
                   </.link>
+                  <.link
+                    patch={Routes.media_show_path(@socket, :copy, @media.slug)}
+                    class="text-gray-700 group w-full hover:bg-gray-100 flex items-center px-4 py-2 text-sm"
+                    role="menuitem"
+                    replace={true}
+                  >
+                    <Heroicons.arrow_right_on_rectangle mini class="mr-3 h-5 w-5 text-gray-400 group-hover:text-gray-500" />
+                    Copy to Another Project
+                  </.link>
                 </div>
               </div>
             </div>
@@ -516,6 +525,27 @@
         <.live_component
           module={PlatformWeb.MediaLive.MergeVersionsLive}
           id="merge-versions"
+          current_user={@current_user}
+          source={@media}
+        />
+      </.modal>
+    <% end %>
+    <%= if @live_action == :copy do %>
+      <.modal target={} close_confirmation="">
+        <div class="mb-8">
+          <div>
+            <p class="support font-mono"><%= Media.slug_to_display(@media) %></p>
+            <p class="sec-head">
+              Copy Incident
+            </p>
+            <p class="sec-subhead">
+              Copy this incident into another project. Note that media that has been hidden from view (i.e., marked as hidden or removed) will not be copied.
+            </p>
+          </div>
+        </div>
+        <.live_component
+          module={PlatformWeb.MediaLive.CopyMediaLive}
+          id="copy_media"
           current_user={@current_user}
           source={@media}
         />
