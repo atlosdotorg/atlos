@@ -786,6 +786,40 @@ defmodule Platform.Material do
           })
         )
 
+      # Rip through all the old attributes, and try to copy them to the new media
+      new_proj_attributes = Attribute.active_attributes(project: destination)
+
+      Enum.map(Attribute.set_for_media(source, project: source.project), fn attr ->
+        equivalent_attr = Enum.find(new_proj_attributes, &(&1.label == attr.label))
+
+        # Try to set the attribute; no worries if it fails (they might not have permission to edit it, or it may be an invalid option)
+        if equivalent_attr do
+          update_media_attribute_audited(
+            new_media,
+            equivalent_attr,
+            user,
+            cond do
+              equivalent_attr.schema_field == :project_attributes ->
+                %{
+                  "project_attributes" => %{
+                    equivalent_attr.name => %{
+                      "id" => equivalent_attr.name,
+                      "value" => get_attribute_value(source, attr)
+                    }
+                  }
+                }
+
+              equivalent_attr.schema_field == :attr_geolocation ->
+                {lng, lat} = get_attribute_value(source, attr).coordinates
+                %{"location" => "#{lat}, #{lng}"}
+
+              true ->
+                %{to_string(equivalent_attr.schema_field) => get_attribute_value(source, attr)}
+            end
+          )
+        end
+      end)
+
       {:ok, _} = merge_media_versions_audited(source, new_media, user, post_comments: false)
 
       Updates.post_bot_comment(

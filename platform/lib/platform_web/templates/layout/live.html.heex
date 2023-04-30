@@ -19,7 +19,7 @@
           <% info = live_flash(@flash, :info) %>
           <%= if info do %>
             <.notification type="info">
-               <%= raw(
+              <%= raw(
                 info
                 |> Platform.Utils.render_markdown()
               ) %>
@@ -50,7 +50,7 @@
           <% error = live_flash(@flash, :error) %>
           <%= if error do %>
             <.notification type="error">
-               <%= raw(
+              <%= raw(
                 error
                 |> Platform.Utils.render_markdown()
               ) %>
