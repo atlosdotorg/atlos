@@ -4,6 +4,7 @@ defmodule Platform.Material do
   """
 
   import Ecto.Query, warn: false
+  alias Platform.Auditor
   alias Platform.Repo
   alias Platform.Projects
   require Logger
@@ -857,6 +858,26 @@ defmodule Platform.Material do
     schedule_media_auto_metadata_update(media_version.media_id)
 
     res
+  end
+
+  @doc """
+  Schedules a given media version for rearchival.
+  """
+  def rearchive_media_version(%MediaVersion{} = media_version) do
+    Auditor.log(
+      :media_version_rearchive,
+      %{
+        "media_version_id" => media_version.id
+      }
+    )
+
+    if media_version.status == :error do
+      # Change status to pending
+      {:ok, _} = update_media_version(media_version, %{status: :pending})
+    end
+
+    Platform.Workers.Archiver.new(%{"media_version_id" => media_version.id, "rearchive" => true})
+    |> Oban.insert!()
   end
 
   @doc """

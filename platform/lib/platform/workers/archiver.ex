@@ -216,7 +216,9 @@ defmodule Platform.Workers.Archiver do
 
             Auditor.log(:archive_failed, %{error: inspect(val), version: version})
 
-            if not is_rearchive_request do
+            # If this is a rearchive request, we don't want to update the media version's status
+            # unless it's marked as pending (in which case we should mark it as errored).
+            if not is_rearchive_request or version.status == :pending do
               # Update the media version.
               version_map = %{
                 status: :error

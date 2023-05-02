@@ -56,8 +56,7 @@ defmodule Platform.DataMigrations.MediaVersionsMigrator do
     })
 
     # Schedule for rearchival
-    Platform.Workers.Archiver.new(%{"media_version_id" => version.id, "rearchive" => true})
-    |> Oban.insert!()
+    Material.rearchive_media_version(version)
   end
 
   def get_media_versions_to_migrate() do

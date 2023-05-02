@@ -298,6 +298,12 @@ defmodule Platform.Permissions do
     end
   end
 
+  def can_rearchive_media_version?(%User{} = user, %MediaVersion{} = version) do
+    # They can view it, and its status is :error
+    can_view_media_version?(user, version) and version.status == :error and
+      version.upload_type == :direct
+  end
+
   def can_user_change_update_visibility?(%User{} = user, %Update{} = update) do
     media = _get_media_from_id(update.media_id)
 

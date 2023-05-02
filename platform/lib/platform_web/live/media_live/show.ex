@@ -151,6 +151,28 @@ defmodule PlatformWeb.MediaLive.Show do
     end
   end
 
+  def handle_event(
+        "rearchive_media_version",
+        %{"version" => version} = _params,
+        socket
+      ) do
+    version = Material.get_media_version!(version)
+
+    if !Permissions.can_rearchive_media_version?(
+         socket.assigns.current_user,
+         version
+       ) do
+      {:noreply, socket |> put_flash(:error, "You cannot rearchive this source material.")}
+    else
+      %Oban.Job{} = Material.rearchive_media_version(version)
+
+      {:noreply,
+       socket
+       |> assign_media_and_updates()
+       |> put_flash(:info, "Atlos will rearchive the source material.")}
+    end
+  end
+
   def handle_info({:version_add_complete, version}, socket) do
     {:noreply,
      socket

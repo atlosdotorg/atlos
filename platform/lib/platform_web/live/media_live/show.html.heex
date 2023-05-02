@@ -713,6 +713,17 @@
                   <%= if version.visibility == :removed, do: "Undo Removal", else: "Remove" %>
                 </button>
               <% end %>
+              <%= if Platform.Permissions.can_rearchive_media_version?(@current_user, version) do %>
+                <button
+                  type="button"
+                  data-confirm="Are you sure you want to rearchive this media?"
+                  phx-click="rearchive_media_version"
+                  phx-value-version={version.id}
+                  class="base-button flex gap-2 text-xs"
+                >
+                  <Heroicons.arrow_path mini class="w-4 h-4 text-neutral-500" /> Rearchive
+                </button>
+              <% end %>
             </div>
             <p class="text-xs text-neutral-500 mt-8">
               Atlos provides best-effort archival. Archives may be incomplete or missing, and should not be relied on for legal evidence.
