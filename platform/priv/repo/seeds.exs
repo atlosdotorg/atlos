@@ -10,6 +10,7 @@
 # We recommend using the bang functions (`insert!`, `update!`
 # and so on) as they will fail if something goes wrong.
 
+alias Platform.Projects
 alias Platform.Accounts
 alias Platform.Material
 
@@ -51,7 +52,7 @@ alias Platform.Material
 {:ok, suspended} = Accounts.update_user_admin(suspended, %{restrictions: [:suspended]})
 
 random_users =
-  Enum.map(1..50, fn _ ->
+  Enum.map(1..20, fn _ ->
     {:ok, account} =
       Accounts.register_user(%{
         email: Faker.Internet.email(),
@@ -69,6 +70,30 @@ random_users =
     account_updated
   end)
 
+random_projects =
+  Enum.map(1..50, fn _ ->
+    {:ok, project} =
+      Projects.create_project(
+        %{
+          "code" => Faker.Lorem.characters(3..5) |> to_string() |> String.upcase(),
+          "name" => Faker.Company.name()
+        },
+        admin
+      )
+
+    # Add every user to the project
+    Enum.each(random_users, fn user ->
+      {:ok, _} =
+        Projects.create_project_membership(%{
+          username: user.username,
+          project_id: project.id,
+          role: :editor
+        })
+    end)
+
+    project
+  end)
+
 random_media =
   Enum.map(1..10000, fn _ ->
     creator = Enum.random(random_users)
@@ -76,6 +101,7 @@ random_media =
     {:ok, media} =
       Material.create_media_audited(creator, %{
         attr_description: Faker.StarWars.quote() |> String.slice(0..230),
+        project_id: Enum.random(random_projects).id,
         attr_sensitive:
           if(Enum.random(0..10) < 2,
             do: [
@@ -122,13 +148,12 @@ random_media =
     if Enum.random(0..9) < 8 do
       attr = Material.Attribute.get_attribute(:status)
 
-      {:ok, _} =
-        Material.update_media_attribute_audited(
-          media,
-          attr,
-          # Only admins can apply certain statuses
-          admin,
-          %{"attr_status" => Enum.random(attr.options)}
-        )
+      Material.update_media_attribute_audited(
+        media,
+        attr,
+        # Only admins can apply certain statuses
+        admin,
+        %{"attr_status" => Enum.random(attr.options)}
+      )
     end
   end)
