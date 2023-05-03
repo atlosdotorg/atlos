@@ -45,6 +45,7 @@ defmodule Platform.MixProject do
       {:floki, "~> 0.33", only: :test},
       {:phoenix_live_dashboard, "~> 0.7"},
       {:esbuild, "~> 0.5", runtime: Mix.env() == :dev},
+      {:sobelow, "~> 0.12", only: [:dev, :test], runtime: false},
       {:swoosh, "~> 1.8"},
       {:telemetry_metrics, "~> 0.6"},
       {:telemetry_poller, "~> 1.0"},
