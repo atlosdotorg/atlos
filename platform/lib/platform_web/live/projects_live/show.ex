@@ -208,37 +208,38 @@ defmodule PlatformWeb.ProjectsLive.Show do
                       <h3 class="mt-2 text-sm font-medium text-gray-900">No data to display</h3>
                       <p class="mt-1 text-sm text-gray-500">Get started by creating an incident</p>
                     </div>
+                  <% else %>
+                    <%= for {status, count} <- @status_statistics |> Enum.sort_by(fn {status, _count} -> Enum.find_index(["Unclaimed", "In Progress", "Help Needed", "Ready for Review", "Completed", "Cancelled"], fn x -> x == status end) || -1 end) do %>
+                      <% status_color = Platform.Material.Attribute.attr_color(:status, status) %>
+                      <.link
+                        href={
+                          Routes.live_path(@socket, PlatformWeb.MediaLive.Index, %{
+                            attr_status: [status],
+                            project_id: @project.id,
+                            display: :cards
+                          })
+                        }
+                        class="relative overflow-hidden rounded-lg group p-2 hover:bg-neutral-100 transition"
+                      >
+                        <dt>
+                          <div class={"absolute rounded-md p-3 mt-[2px] section @high opacity-50 " <> status_color}>
+                            <.attribute_icon name={:status} value={status} />
+                          </div>
+                          <p class="ml-16 truncate text-sm font-medium text-gray-500">
+                            <%= status %>
+                          </p>
+                        </dt>
+                        <dd class="ml-16 flex items-baseline">
+                          <p class="text-2xl font-medium text-gray-900">
+                            <%= count |> Formatter.format_number() %>
+                          </p>
+                        </dd>
+                      </.link>
+                      <.link patch={"/projects/#{@project.id}/queue"} class="text-button p-2">
+                        View in queue &rarr;
+                      </.link>
+                    <% end %>
                   <% end %>
-                  <%= for {status, count} <- @status_statistics |> Enum.sort_by(fn {status, _count} -> Enum.find_index(["Unclaimed", "In Progress", "Help Needed", "Ready for Review", "Completed", "Cancelled"], fn x -> x == status end) || -1 end) do %>
-                    <% status_color = Platform.Material.Attribute.attr_color(:status, status) %>
-                    <.link
-                      href={
-                        Routes.live_path(@socket, PlatformWeb.MediaLive.Index, %{
-                          attr_status: [status],
-                          project_id: @project.id,
-                          display: :cards
-                        })
-                      }
-                      class="relative overflow-hidden rounded-lg group p-2 hover:bg-neutral-100 transition"
-                    >
-                      <dt>
-                        <div class={"absolute rounded-md p-3 mt-[2px] section @high opacity-50 " <> status_color}>
-                          <.attribute_icon name={:status} value={status} />
-                        </div>
-                        <p class="ml-16 truncate text-sm font-medium text-gray-500">
-                          <%= status %>
-                        </p>
-                      </dt>
-                      <dd class="ml-16 flex items-baseline">
-                        <p class="text-2xl font-medium text-gray-900">
-                          <%= count |> Formatter.format_number() %>
-                        </p>
-                      </dd>
-                    </.link>
-                  <% end %>
-                  <.link patch={"/projects/#{@project.id}/queue"} class="text-button p-2">
-                    View in queue &rarr;
-                  </.link>
                 </dl>
               </div>
             </div>
