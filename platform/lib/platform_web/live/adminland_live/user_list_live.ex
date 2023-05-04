@@ -10,7 +10,6 @@ defmodule PlatformWeb.AdminlandLive.UserListLive do
        :results,
        Accounts.get_all_users()
        |> Enum.sort_by(& &1.inserted_at, {:desc, NaiveDateTime})
-       |> Enum.reverse()
      )}
   end
 
