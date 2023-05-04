@@ -62,9 +62,10 @@ defmodule Platform.DataMigrations.MediaVersionsMigrator do
   def get_media_versions_to_migrate() do
     # Get all media versions that are not user provided
     query =
-      from mv in MediaVersion,
+      from(mv in MediaVersion,
         where: not is_nil(mv.file_location) and is_nil(mv.artifacts),
         preload: [:media]
+      )
 
     Platform.Repo.all(query)
     |> Enum.filter(&(not String.starts_with?(&1.file_location, "https://")))
@@ -77,8 +78,11 @@ defmodule Platform.DataMigrations.MediaVersionsMigrator do
 
     Logger.info("Migrating #{length(to_migrate)} media versions...")
 
-    to_migrate
-    |> Enum.each(&migrate_media_version/1)
+    Enum.zip(to_migrate, 1..length(to_migrate))
+    |> Enum.each(fn {version, index} ->
+      Logger.info("Migrating media version #{index} of #{length(to_migrate)}...")
+      migrate_media_version(version)
+    end)
 
     Logger.info("Done migrating media versions.")
   end
