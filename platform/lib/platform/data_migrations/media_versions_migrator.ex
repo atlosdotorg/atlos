@@ -80,7 +80,10 @@ defmodule Platform.DataMigrations.MediaVersionsMigrator do
 
     Enum.zip(to_migrate, 1..length(to_migrate))
     |> Enum.each(fn {version, index} ->
-      Logger.info("Migrating media version #{index} of #{length(to_migrate)}...")
+      Logger.info(
+        "Migrating media version #{index} of #{length(to_migrate)}; available at /incidents/#{version.media.slug}/detail/#{version.scoped_id}"
+      )
+
       migrate_media_version(version)
     end)
 
