@@ -69,4 +69,17 @@ defmodule Platform.DataMigrations.MediaVersionsMigrator do
     Platform.Repo.all(query)
     |> Enum.filter(&(not String.starts_with?(&1.file_location, "https://")))
   end
+
+  def migrate_all_media_versions() do
+    Logger.info("Migrating media versions...")
+
+    to_migrate = get_media_versions_to_migrate()
+
+    Logger.info("Migrating #{length(to_migrate)} media versions...")
+
+    to_migrate
+    |> Enum.each(&migrate_media_version/1)
+
+    Logger.info("Done migrating media versions.")
+  end
 end
