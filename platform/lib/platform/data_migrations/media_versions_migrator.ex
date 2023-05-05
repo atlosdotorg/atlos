@@ -90,7 +90,7 @@ defmodule Platform.DataMigrations.MediaVersionsMigrator do
       try do
         migrate_media_version(version)
       rescue
-        e in Ecto.ConstraintError ->
+        e ->
           Logger.error("Failed to migrate media version #{version.id}: #{inspect(e)}")
       end
     end)
