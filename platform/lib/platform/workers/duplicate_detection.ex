@@ -9,7 +9,7 @@ defmodule Platform.Workers.DuplicateDetector do
 
   def get_hashes(media_version) do
     Enum.map(media_version.artifacts, fn artifact ->
-      artifact.perceptual_hashes
+      (artifact.perceptual_hashes || %{})
       |> Map.get("computed", [])
       |> Enum.map(fn %{"hash" => hash} -> hash end)
     end)
