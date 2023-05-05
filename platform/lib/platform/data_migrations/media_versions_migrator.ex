@@ -57,6 +57,9 @@ defmodule Platform.DataMigrations.MediaVersionsMigrator do
 
     # Schedule for rearchival
     Material.rearchive_media_version(version)
+
+    # Cleanup
+    Temp.cleanup()
   end
 
   def get_media_versions_to_migrate() do
