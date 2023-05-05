@@ -4,6 +4,7 @@ defmodule Platform.Material do
   """
 
   import Ecto.Query, warn: false
+  alias Platform.Auditor
   alias Platform.Repo
   alias Platform.Projects
   require Logger
@@ -721,13 +722,11 @@ defmodule Platform.Material do
       create_media_version_audited(
         destination,
         user,
-        Map.merge(Map.from_struct(media_version), %{
-          status: :pending,
-          hashes: nil
-        })
+        Map.from_struct(
+          media_version
+          |> Map.put(:artifacts, Enum.map(media_version.artifacts || [], &Map.from_struct/1))
+        )
       )
-
-    archive_media_version(new_version, clone_from: media_version.id)
 
     {:ok, new_version}
   end
@@ -736,26 +735,105 @@ defmodule Platform.Material do
   Merges the source media versions into the destination media. If a media version's URL is already present on a media version
   in the destination, it will not be copied.
   """
-  def merge_media_versions_audited(%Media{} = source, %Media{} = destination, %User{} = user) do
+  def merge_media_versions_audited(
+        %Media{} = source,
+        %Media{} = destination,
+        %User{} = user,
+        opts \\ []
+      ) do
     Repo.transaction(fn ->
       destination_urls = get_media_versions_by_media(destination) |> Enum.map(& &1.source_url)
 
       for version <-
             get_media_versions_by_media(source) |> Enum.filter(&(&1.visibility == :visible)) do
-        if not Enum.member?(destination_urls, version.source_url) do
+        if is_nil(version.source_url) or not Enum.member?(destination_urls, version.source_url) do
           {:ok, _} = copy_media_version_to_new_media_audited(version, destination, user)
         end
       end
 
+      if Keyword.get(opts, :post_comments, true) do
+        Updates.post_bot_comment(
+          source,
+          "[[@#{user.username}]] merged this incident's media into [[#{Media.slug_to_display(destination)}]]."
+        )
+
+        Updates.post_bot_comment(
+          destination,
+          "[[@#{user.username}]] merged [[#{Media.slug_to_display(source)}]]'s media into this incident."
+        )
+      end
+    end)
+  end
+
+  @doc """
+  Copies the given media into the given project.
+  """
+  def copy_media_to_project_audited(
+        %Media{} = source,
+        %Projects.Project{} = destination,
+        %User{} = user
+      ) do
+    Repo.transaction(fn ->
+      {:ok, new_media} =
+        create_media_audited(
+          user,
+          Map.from_struct(%{
+            source
+            | project_id: destination.id,
+              id: nil,
+              slug: nil,
+              auto_metadata: nil,
+              project_attributes: nil
+          })
+        )
+
+      # Rip through all the old attributes, and try to copy them to the new media
+      new_proj_attributes = Attribute.active_attributes(project: destination)
+
+      Enum.map(Attribute.set_for_media(source, project: source.project), fn attr ->
+        equivalent_attr = Enum.find(new_proj_attributes, &(&1.label == attr.label))
+
+        # Try to set the attribute; no worries if it fails (they might not have permission to edit it, or it may be an invalid option)
+        if equivalent_attr do
+          update_media_attribute_audited(
+            new_media,
+            equivalent_attr,
+            user,
+            cond do
+              equivalent_attr.schema_field == :project_attributes ->
+                %{
+                  "project_attributes" => %{
+                    equivalent_attr.name => %{
+                      "id" => equivalent_attr.name,
+                      "value" => get_attribute_value(source, attr)
+                    }
+                  }
+                }
+
+              equivalent_attr.schema_field == :attr_geolocation ->
+                {lng, lat} = get_attribute_value(source, attr).coordinates
+                %{"location" => "#{lat}, #{lng}"}
+
+              true ->
+                %{to_string(equivalent_attr.schema_field) => get_attribute_value(source, attr)}
+            end
+          )
+        end
+      end)
+
+      {:ok, _} = merge_media_versions_audited(source, new_media, user, post_comments: false)
+
       Updates.post_bot_comment(
         source,
-        "[[@#{user.username}]] merged this incident's media into [[#{destination.slug}]]."
+        "[[@#{user.username}]] copied this incident to create [[#{Media.slug_to_display(new_media |> Map.put(:project, destination))}]]."
       )
 
       Updates.post_bot_comment(
-        destination,
-        "[[@#{user.username}]] merged [[#{source.slug}]]'s media into this incident."
+        new_media,
+        "[[@#{user.username}]] created this incident by copying [[#{Media.slug_to_display(source)}]]."
       )
+
+      new_media
     end)
   end
 
@@ -772,9 +850,34 @@ defmodule Platform.Material do
 
   """
   def update_media_version(%MediaVersion{} = media_version, attrs) do
-    media_version
-    |> MediaVersion.changeset(attrs)
-    |> Repo.update()
+    res =
+      media_version
+      |> MediaVersion.changeset(attrs)
+      |> Repo.update()
+
+    schedule_media_auto_metadata_update(media_version.media_id)
+
+    res
+  end
+
+  @doc """
+  Schedules a given media version for rearchival.
+  """
+  def rearchive_media_version(%MediaVersion{} = media_version) do
+    Auditor.log(
+      :media_version_rearchive,
+      %{
+        "media_version_id" => media_version.id
+      }
+    )
+
+    if media_version.status == :error do
+      # Change status to pending
+      {:ok, _} = update_media_version(media_version, %{status: :pending})
+    end
+
+    Platform.Workers.Archiver.new(%{"media_version_id" => media_version.id, "rearchive" => true})
+    |> Oban.insert!()
   end
 
   @doc """
@@ -832,7 +935,13 @@ defmodule Platform.Material do
   Options:
   - priority: 0-3, the priority (default 1)
   """
-  def schedule_media_auto_metadata_update(%Media{id: id} = _media, opts \\ []) do
+  def schedule_media_auto_metadata_update(id, opts \\ [])
+
+  def schedule_media_auto_metadata_update(%Media{id: id} = _media, opts) do
+    schedule_media_auto_metadata_update(id, opts)
+  end
+
+  def schedule_media_auto_metadata_update(id, opts) do
     Logger.info("Scheduling auto-metadata update for media #{id}")
 
     %{
@@ -855,6 +964,27 @@ defmodule Platform.Material do
 
       true ->
         Uploads.WatermarkedMediaVersion.url({version.file_location, media}, type,
+          signed: true,
+          expires_in: 60 * 60 * 6
+        )
+    end
+  end
+
+  @doc """
+  Get a signed URL for the media version artifact.
+  """
+  defmemo media_version_artifact_location(artifact, opts \\ []), expires_in: 60 * 1000 do
+    cond do
+      is_nil(artifact.file_location) ->
+        nil
+
+      String.starts_with?(artifact.file_location, "https://") ->
+        artifact.file_location
+
+      true ->
+        Uploads.MediaVersionArtifact.url(
+          {artifact.file_location, artifact},
+          Keyword.get(opts, :version, :original),
           signed: true,
           expires_in: 60 * 60 * 6
         )
@@ -1099,21 +1229,28 @@ defmodule Platform.Material do
 
   def media_thumbnail(%Media{} = media) do
     case Enum.find(
-           media.versions |> Enum.sort_by(& &1.inserted_at) |> Enum.reverse(),
-           &(!(&1.visibility != :visible or is_nil(&1.file_location)))
+           media.versions
+           |> Enum.sort_by(& &1.inserted_at, {:desc, NaiveDateTime})
+           |> Enum.reverse(),
+           &(!(&1.visibility != :visible or
+                 Enum.empty?(Enum.filter(&1.artifacts, fn x -> x.type == :media end))))
          ) do
       nil ->
         nil
 
       val ->
-        if String.starts_with?(val.file_location, "https://"),
-          # This allows us to have easy demo data — just give a raw HTTPS URL
-          do: val.file_location,
-          else:
-            Uploads.WatermarkedMediaVersion.url({val.file_location, media}, :thumb,
-              signed: true,
-              expires_in: 60 * 60 * 6
-            )
+        # Find an appropriate artifact
+        artifact =
+          Enum.find(
+            val.artifacts,
+            &(&1.type == :media)
+          )
+
+        if artifact do
+          media_version_artifact_location(artifact, version: :thumbnail)
+        else
+          nil
+        end
     end
   end
 
@@ -1191,7 +1328,7 @@ defmodule Platform.Material do
   Get the human-readable name of the media version (e.g., ABCDEF/1). The media must match the version.
   """
   def get_human_readable_media_version_name(%Media{} = media, %MediaVersion{} = version) do
-    "#{media.slug}/#{version.scoped_id}"
+    "#{Media.slug_to_display(media)}/#{version.scoped_id}"
   end
 
   @doc """
@@ -1223,5 +1360,33 @@ defmodule Platform.Material do
       end
     end)
     |> Repo.all()
+  end
+
+  def get_media_version_tags(%MediaVersion{} = version) do
+    tags = []
+
+    tags =
+      case version.visibility do
+        :hidden -> ["Removed" | tags]
+        _ -> tags
+      end
+
+    tags =
+      case Map.get(version.metadata, "is_likely_authwalled") do
+        true -> ["Authwall" | tags]
+        _ -> tags
+      end
+
+    tags =
+      case Map.get(version.metadata, "crawl_successful") do
+        false -> ["Snapshot Unavailable" | tags]
+        _ -> tags
+      end
+
+    tags
+  end
+
+  def get_media_version_title(%MediaVersion{} = version) do
+    (Map.get(version.metadata || %{}, "page_info") || %{}) |> Map.get("title", version.source_url)
   end
 end

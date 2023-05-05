@@ -7,6 +7,8 @@ defmodule PlatformWeb.NewLive.BasicInfoLive do
   alias Platform.Projects
 
   def update(assigns, socket) do
+    dbg("input is running")
+
     {:ok,
      socket
      |> assign(assigns)
@@ -93,7 +95,8 @@ defmodule PlatformWeb.NewLive.BasicInfoLive do
          )}
 
       {:error, %Ecto.Changeset{} = changeset} ->
-        {:noreply, assign(socket, :changeset, changeset |> Map.put(:action, :validate))}
+        cs = changeset |> Map.put(:action, :validate)
+        {:noreply, assign(socket, :changeset, cs) |> assign(:form, to_form(cs))}
     end
   end
 

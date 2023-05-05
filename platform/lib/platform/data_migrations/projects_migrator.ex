@@ -1,4 +1,4 @@
-defmodule Platform.Workers.Migrator do
+defmodule Platform.DataMigrations.ProjectsMigrator do
   alias Platform.Material
   alias Platform.Updates
   alias Platform.Accounts

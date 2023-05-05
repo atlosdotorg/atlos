@@ -104,7 +104,7 @@ defmodule PlatformWeb.UpdatesLive.PaginatedMediaUpdateFeed do
         </div>
       <% end %>
       <div class="mx-auto mt-4 mb-8 text-center text-xs">
-        <%= if @additional_results_available do %>
+        <%= if not Enum.empty?(@media) and @additional_results_available do %>
           <button
             id="feed-load-more"
             phx-click="load_more"

@@ -37,7 +37,7 @@ defmodule PlatformWeb.ExportController do
          name = k |> to_string()
 
          if String.starts_with?(name, "attr_") do
-           {String.slice(name, 5..String.length(name)) |> String.to_atom(), v}
+           {String.slice(name, 5..String.length(name)) |> String.to_existing_atom(), v}
          else
            {k, v}
          end

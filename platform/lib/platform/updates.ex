@@ -25,8 +25,17 @@ defmodule Platform.Updates do
       [%Update{}, ...]
 
   """
-  def list_updates do
-    Repo.all(Update |> preload_fields())
+  def list_updates(opts \\ []) do
+    query = Update |> preload_fields()
+
+    query =
+      if Keyword.get(opts, :inserted_after) do
+        query |> where([u], u.inserted_at > ^opts[:inserted_after])
+      else
+        query
+      end
+
+    Repo.all(query)
   end
 
   defp preload_fields(queryable) do

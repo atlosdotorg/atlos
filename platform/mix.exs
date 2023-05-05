@@ -36,8 +36,8 @@ defmodule Platform.MixProject do
       {:bcrypt_elixir, "~> 3.0"},
       {:phoenix, "~> 1.7.0"},
       {:phoenix_ecto, "~> 4.4"},
-      {:ecto_sql, "~> 3.9.0"},
-      {:postgrex, ">= 0.0.0"},
+      {:ecto_sql, "~> 3.10.0"},
+      {:postgrex, "~> 0.16.0"},
       {:phoenix_html, "~> 3.0"},
       {:phoenix_live_reload, "~> 1.2", only: :dev},
       {:phoenix_live_view, "~> 0.18"},
@@ -45,6 +45,7 @@ defmodule Platform.MixProject do
       {:floki, "~> 0.33", only: :test},
       {:phoenix_live_dashboard, "~> 0.7"},
       {:esbuild, "~> 0.5", runtime: Mix.env() == :dev},
+      {:sobelow, "~> 0.12", only: [:dev, :test], runtime: false},
       {:swoosh, "~> 1.8"},
       {:telemetry_metrics, "~> 0.6"},
       {:telemetry_poller, "~> 1.0"},
@@ -69,12 +70,12 @@ defmodule Platform.MixProject do
       {:oban, "~> 2.13"},
       {:html_sanitize_ex, "~> 1.4"},
       {:eqrcode, "~> 0.1.10"},
-      {:nimble_totp, "~> 0.2.0"},
+      {:nimble_totp, "~> 1.0.0"},
       {:memoize, "~> 1.4"},
       {:libcluster, "~> 3.3"},
       {:heroicons, "~> 0.5.1"},
-      {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
-      {:vega_lite, "~> 0.1.6"}
+      {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
+      {:vega_lite, "~> 0.1.7"}
     ]
   end
 

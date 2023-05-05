@@ -71,6 +71,14 @@ defmodule Formatter do
         Keyword.get(options, :decimal_separator, ".")
       end
 
-    to_string([parts["sign"], formatted_int, decimal_separator, parts["frac"]])
+    to_string([
+      parts["sign"],
+      formatted_int,
+      decimal_separator,
+      parts["frac"]
+      |> to_string()
+      |> String.trim_trailing("0")
+      |> String.slice(0, Keyword.get(options, :decimal_places, 8))
+    ])
   end
 end

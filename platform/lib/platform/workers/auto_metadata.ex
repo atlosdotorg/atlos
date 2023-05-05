@@ -68,7 +68,19 @@ defmodule Platform.Workers.AutoMetadata do
         Enum.map(
           media.versions |> Enum.filter(&(&1.visibility == :visible)),
           & &1.source_url
-        )
+        ),
+      artifacts:
+        Enum.map(media.versions, fn version ->
+          %{
+            perceptual_hashes:
+              Enum.map(version.artifacts, fn artifact ->
+                %{
+                  perceptual_hashes: artifact.perceptual_hashes
+                }
+              end),
+            page_title: Material.get_media_version_title(version)
+          }
+        end)
     })
 
     Logger.info("Updated metadata for #{media.slug}!")

@@ -5,8 +5,9 @@ defmodule Platform.Utils do
   import Ecto.Query, warn: false
 
   @tag_regex ~r/((?:\[\[))(@([A-Za-z0-9_]+)(?:\]\]))/
-  @identifier_regex ~r/(?:\[\[)((?:[A-Z0-9]{1,5}-)?[A-Z0-9]{6})(?:\]\])/
-  @identifier_regex_with_project_and_no_tags ~r/((?:[A-Z0-9]{1,5}-)([A-Z0-9]{6}))/
+  @identifier_regex ~r/(?:\[\[)((?:[A-Za-z0-9]{1,5}-)?[A-Z0-9]{6})(?:\]\])/
+  @identifier_with_media_version_regex ~r/(?:\[\[)((?:[A-Za-z0-9]{1,5}-)?([A-Z0-9]{6})\/(\d+))(?:\]\])/
+  @identifier_regex_with_project_and_no_tags ~r/((?:[A-Za-z0-9]{1,5}-)([A-Z0-9]{6}))/
 
   def get_tag_regex(), do: @tag_regex
   def get_identifier_regex(), do: @identifier_regex
@@ -57,6 +58,10 @@ defmodule Platform.Utils do
     end
   end
 
+  def hash_sha256(filepath) do
+    :crypto.hash(:sha256, File.read!(filepath)) |> Base.encode16() |> String.downcase()
+  end
+
   def format_date(value) do
     case value do
       %Date{} ->
@@ -88,10 +93,19 @@ defmodule Platform.Utils do
     end)
   end
 
+  def is_processable_image(mime_type) do
+    mime_type in ["image/jpeg", "image/png", "image/gif", "image/tiff", "image/bmp"]
+  end
+
+  def is_processable_media(mime_type) do
+    is_processable_image(mime_type) or
+      String.starts_with?(mime_type, "video/")
+  end
+
   def slugify(string) do
     string
     |> String.downcase()
-    |> String.replace(~r/[^a-zA-Z0-9 &]/, "")
+    |> String.replace(~r/[^a-zA-Z0-9 &\.]/, "")
     |> String.replace("&", "and")
     |> String.split()
     |> Enum.join("-")
@@ -136,6 +150,13 @@ defmodule Platform.Utils do
 
     # Second, link ATL identifiers.
     markdown = Regex.replace(@identifier_regex, markdown, " [\\1](/incidents/\\1)")
+
+    markdown =
+      Regex.replace(
+        @identifier_with_media_version_regex,
+        markdown,
+        " [\\1](/incidents/\\2/detail/\\3)"
+      )
 
     # Third, turn @'s into links.
     markdown = Regex.replace(@tag_regex, markdown, " [@\\3](/profile/\\3)")

@@ -54,17 +54,38 @@ defmodule Platform.Uploads.WatermarkedMediaVersion do
   end
 end
 
-defmodule Platform.Uploads.OriginalMediaVersion do
+defmodule Platform.Uploads.MediaVersionArtifact do
   use Waffle.Definition
 
-  @versions [:original]
+  @versions [:original, :thumbnail]
+
+  def transform(:thumbnail, {file, _}) do
+    mime = MIME.from_path(file.file_name)
+
+    cond do
+      Platform.Utils.is_processable_image(mime) ->
+        {:ffmpeg,
+         fn input, output ->
+           "-i #{input} -f apng #{output}"
+         end, :png}
+
+      String.starts_with?(mime, "video/") ->
+        {:ffmpeg,
+         fn input, output ->
+           "-i #{input} -ss 00:00:01.000 -vframes 1 -f apng #{output}"
+         end, :png}
+
+      true ->
+        :skip
+    end
+  end
 
   def filename(version, {file, _scope}) do
-    "#{file.file_name}-#{version}"
+    "#{version}-#{file.file_name}"
   end
 
   def storage_dir(_version, {_file, scope}) do
-    "media/#{scope.slug}/original/"
+    "artifacts/#{scope.id}/"
   end
 
   def s3_object_headers(_version, {file, _scope}) do

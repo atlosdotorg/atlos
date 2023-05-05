@@ -234,6 +234,17 @@ defmodule Platform.Permissions do
     end
   end
 
+  def can_copy_media?(%User{} = user, %Media{} = media) do
+    membership = Projects.get_project_membership_by_user_and_project_id(user, media.project_id)
+
+    with false <- is_nil(membership),
+         true <- can_edit_media?(user, media) do
+      membership.role == :owner or membership.role == :manager
+    else
+      _ -> false
+    end
+  end
+
   def can_create_media?(%User{} = user) do
     # Separate from `can_add_media_to_project?` because this is for creating media that is not yet associated with a project.
     not Enum.member?(user.restrictions || [], :muted)
@@ -285,6 +296,12 @@ defmodule Platform.Permissions do
     else
       _ -> false
     end
+  end
+
+  def can_rearchive_media_version?(%User{} = user, %MediaVersion{} = version) do
+    # They can view it, and its status is :error
+    can_view_media_version?(user, version) and version.status == :error and
+      version.upload_type == :direct
   end
 
   def can_user_change_update_visibility?(%User{} = user, %Update{} = update) do

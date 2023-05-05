@@ -12,9 +12,9 @@
 #   - https://pkgs.org/ - resource for finding needed packages
 #   - Ex: hexpm/elixir:1.13.4-erlang-24.3.3-debian-bullseye-20210902-slim
 #
-ARG ELIXIR_VERSION=1.14.3
-ARG OTP_VERSION=24.3.4.9
-ARG DEBIAN_VERSION=bullseye-20230202-slim
+ARG ELIXIR_VERSION=1.14.4
+ARG OTP_VERSION=24.3.4.11
+ARG DEBIAN_VERSION=bullseye-20230227-slim
 
 ARG BUILDER_IMAGE="hexpm/elixir:${ELIXIR_VERSION}-erlang-${OTP_VERSION}-debian-${DEBIAN_VERSION}"
 ARG RUNNER_IMAGE="debian:${DEBIAN_VERSION}"
@@ -22,8 +22,11 @@ ARG RUNNER_IMAGE="debian:${DEBIAN_VERSION}"
 FROM ${BUILDER_IMAGE} as builder
 
 # install build dependencies
-RUN apt-get update -y && apt-get install -y build-essential git npm \
+RUN apt-get update -y && apt-get install -y build-essential git curl gnupg \
   && apt-get clean && rm -f /var/lib/apt/lists/*_*
+
+RUN curl -sL https://deb.nodesource.com/setup_18.x  | bash -
+RUN apt-get -y install nodejs
 
 # prepare build dir
 WORKDIR /app
@@ -66,6 +69,7 @@ RUN mix release
 
 # start a new build stage so that the final image will only contain
 # the compiled release and other runtime necessities
+FROM docker:20
 FROM ${RUNNER_IMAGE}
 
 ARG APP_REVISION="unset"
@@ -82,20 +86,27 @@ ENV LANGUAGE en_US:en
 ENV LC_ALL en_US.UTF-8
 
 WORKDIR "/app"
-RUN chown nobody /app
+
+# Add the atlos user
+RUN useradd --create-home atlos
+RUN chown atlos /app
 
 # set runner ENV
 ENV MIX_ENV="prod"
 
 # Only copy the final release from the build stage
-COPY --from=builder --chown=nobody:root /app/_build/${MIX_ENV}/rel/platform ./
+COPY --from=builder --chown=atlos:root /app/_build/${MIX_ENV}/rel/platform ./
+COPY utils utils
+ENV UTILS_DIR="/app/utils"
 
 # Install packages needed for runtime environment
-RUN apt-get update -y && apt-get install -y ffmpeg imagemagick curl python3 \
-  && apt-get clean && rm -f /var/lib/apt/lists/*_*
-RUN curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /usr/local/bin/yt-dlp && chmod a+rx /usr/local/bin/yt-dlp
+RUN apt-get update -y && apt-get install -y ffmpeg imagemagick curl python3 python3-pip chromium \
+  && apt-get clean && rm -f /var/lib/apt/lists/*_* && python3 -m pip install poetry
 
-USER nobody
+USER atlos
+
+# Install and setup Poetry+Python for the `utils/` scripts (archiver, etc.)
+RUN cd /app/utils && poetry install --only main --no-interaction --no-ansi
 
 RUN echo $APP_REVISION > APP_REVISION
 RUN echo APP_REVISION=${APP_REVISION}

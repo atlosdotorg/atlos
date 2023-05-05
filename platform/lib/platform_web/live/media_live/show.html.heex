@@ -194,6 +194,17 @@
                     </svg>
                     Merge Media
                   </.link>
+                  <.link
+                    patch={Routes.media_show_path(@socket, :copy, @media.slug)}
+                    class="text-gray-700 group w-full hover:bg-gray-100 flex items-center px-4 py-2 text-sm"
+                    role="menuitem"
+                    replace={true}
+                  >
+                    <Heroicons.arrow_right_on_rectangle
+                      mini
+                      class="mr-3 h-5 w-5 text-gray-400 group-hover:text-gray-500"
+                    /> Copy to Another Project
+                  </.link>
                 </div>
               </div>
             </div>
@@ -206,9 +217,6 @@
         <.card>
           <:header>
             <h3 class="sec-head">Attributes</h3>
-            <p class="sec-subhead">
-              This information is inferred based on the uploaded media, news reporting, and other public information.
-            </p>
           </:header>
           <div class="border-gray-200">
             <.attr_display_block
@@ -230,6 +238,23 @@
           <:header>
             <div class="flex justify-between items-center">
               <h3 class="sec-head">Feed</h3>
+              <%= if length(@updates) > 5 do %>
+                <a class="text-button flex text-sm items-center" href="#feed-bottom">
+                  Jump to Latest
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-4 w-4 ml-1"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fill-rule="evenodd"
+                      d="M15.707 4.293a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-5-5a1 1 0 011.414-1.414L10 8.586l4.293-4.293a1 1 0 011.414 0zm0 6a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-5-5a1 1 0 111.414-1.414L10 14.586l4.293-4.293a1 1 0 011.414 0z"
+                      clip-rule="evenodd"
+                    />
+                  </svg>
+                </a>
+              <% end %>
             </div>
           </:header>
           <.live_component
@@ -253,7 +278,6 @@
         <.card>
           <:header>
             <h3 class="sec-head">Metadata</h3>
-            <p class="sec-subhead">This information is used to coordinate work.</p>
           </:header>
           <div class="border-gray-200">
             <.attr_display_block
@@ -273,8 +297,7 @@
         </.card>
         <.card>
           <:header>
-            <h3 class="sec-head">Media</h3>
-            <p class="sec-subhead">This media should depict the incident.</p>
+            <h3 class="sec-head">Source Material</h3>
           </:header>
           <div class="-mt-10 pt-5 -mb-5">
             <% versions =
@@ -509,6 +532,27 @@
         />
       </.modal>
     <% end %>
+    <%= if @live_action == :copy do %>
+      <.modal target={} close_confirmation="">
+        <div class="mb-8">
+          <div>
+            <p class="support font-mono"><%= Media.slug_to_display(@media) %></p>
+            <p class="sec-head">
+              Copy Incident
+            </p>
+            <p class="sec-subhead">
+              Copy this incident into another project. Note that restrictions (i.e., whether the incident is hidden or frozen) and media that has been hidden from view (i.e., marked as hidden or removed) will not be copied. Attributes will be copied when possible.
+            </p>
+          </div>
+        </div>
+        <.live_component
+          module={PlatformWeb.MediaLive.CopyMediaLive}
+          id="copy_media"
+          current_user={@current_user}
+          source={@media}
+        />
+      </.modal>
+    <% end %>
     <%= if @live_action == :auto_metadata do %>
       <.modal target={} close_confirmation="">
         <div class="mb-8">
@@ -524,6 +568,365 @@
         </div>
         <div class="font-mono text-gray-600 text-sm break-all overflow-auto">
           <pre><%= Jason.encode!(@media.auto_metadata, pretty: true) %></pre>
+        </div>
+      </.modal>
+    <% end %>
+    <%= if @live_action == :media_version_detail do %>
+      <% version = Enum.find(@media.versions, &(to_string(&1.scoped_id) == @scoped_id)) %>
+      <.modal target={} close_confirmation="" wide={true}>
+        <div class="flex flex-col md:flex-row md:max-h-[85vh] h-full rounded-lg md:overflow-hidden -m-8">
+          <section class="md:max-w-[20rem] md:min-w-[15rem] flex flex-col self-stretch p-8">
+            <div>
+              <p class="font-mono text-sm text-neutral-500 flex items-center gap-2">
+                <%= if version.source_url != nil do %>
+                  <.url_icon url={version.source_url} class="h-4" />
+                <% end %>
+                <span class="grow">
+                  <%= Platform.Material.get_human_readable_media_version_name(@media, version) %>
+                </span>
+                <span class="font-sans">
+                  <%= case version.status do %>
+                    <% :pending -> %>
+                      <span class="chip ~info">Pending Archival</span>
+                    <% :error -> %>
+                      <span class="chip ~critical">Error</span>
+                    <% _ -> %>
+                  <% end %>
+                </span>
+              </p>
+              <div class="overflow-hidden break-words mr-4 mt-2">
+                <a href={version.source_url} target="_blank" rel="noopener noreferrer">
+                  <p class="leading-snug font-medium text-lg my-2">
+                    <%= if Platform.Material.get_media_version_title(version) != nil do %>
+                      <%= Platform.Material.get_media_version_title(version)
+                      |> Platform.Utils.truncate(100) %>
+                    <% else %>
+                      Uploaded File
+                    <% end %>
+                  </p>
+                  <%= if Platform.Material.get_media_version_title(version) != version.source_url do %>
+                    <p class="text-neutral-500 text-sm">
+                      <%= version.source_url |> Platform.Utils.truncate(80) %>
+                    </p>
+                  <% end %>
+                </a>
+              </div>
+            </div>
+            <dl class="grid grid-cols-1 gap-4 my-8">
+              <div class="flex w-full flex items-center gap-x-2">
+                <dt class="flex-none">
+                  <span class="sr-only">Added</span>
+                  <Heroicons.calendar mini class="h-5 w-5 text-gray-400" />
+                </dt>
+                <dd class="text-sm text-gray-500">
+                  Added <.rel_time time={version.inserted_at} />
+                </dd>
+              </div>
+              <div class="flex w-full flex items-center gap-x-2">
+                <dt class="flex-none">
+                  <span class="sr-only">Artifacts</span>
+                  <Heroicons.rectangle_group mini class="h-5 w-5 text-gray-400" />
+                </dt>
+                <dd class="text-sm text-gray-500">
+                  <%= length(version.artifacts) %> artifacts
+                </dd>
+              </div>
+              <div class="flex w-full flex items-center gap-x-2">
+                <dt class="flex-none">
+                  <span class="sr-only">Upload Type</span>
+                  <Heroicons.archive_box mini class="h-5 w-5 text-gray-400" />
+                </dt>
+                <dd class="text-sm text-gray-500">
+                  <%= if version.upload_type == :user_provided,
+                    do: "Manually Uploaded",
+                    else: "Archived by Atlos" %>
+                </dd>
+              </div>
+            </dl>
+            <div class="grow" />
+            <div class="flex flex-wrap gap-2">
+              <%= if version.source_url != nil do %>
+                <a
+                  href={"https://web.archive.org/*/" <> URI.encode(version.source_url)}
+                  role="menuitem"
+                  title="Open on Archive.org"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="base-button flex gap-2 text-xs"
+                >
+                  <Heroicons.arrow_up_right mini class="w-4 h-4 text-neutral-500" /> Archive.org
+                </a>
+                <button
+                  type="button"
+                  rel="nofollow"
+                  role="menuitem"
+                  title="Copy Hash Information"
+                  class="base-button flex gap-2 text-xs"
+                  onclick={
+                      "window.setClipboard(" <>
+                        Jason.encode!(version.source_url) <>
+                        ")"
+                    }
+                >
+                  <Heroicons.link mini class="w-4 h-4 text-neutral-500" /> Copy URL
+                </button>
+              <% end %>
+              <%= if version.visibility == :visible do %>
+                <button
+                  type="button"
+                  data-confirm="Are you sure you want to change the visibility of this media for all users on Atlos?"
+                  phx-click="set_media_visibility"
+                  phx-value-version={version.id}
+                  phx-value-state="hidden"
+                  class="base-button flex gap-2 text-xs"
+                  title="Hide"
+                >
+                  <Heroicons.minus_circle mini class="w-4 h-4 text-neutral-500" /> Minimize
+                </button>
+              <% end %>
+              <%= if version.visibility == :hidden do %>
+                <button
+                  type="button"
+                  data-confirm="Are you sure you want to change the visibility of this media?"
+                  phx-click="set_media_visibility"
+                  phx-value-version={version.id}
+                  phx-value-state="visible"
+                  class="base-button flex gap-2 text-xs"
+                  title="Unhide"
+                >
+                  <Heroicons.plus_circle mini class="w-4 h-4 text-neutral-500" /> Unminimize
+                </button>
+              <% end %>
+              <%= if Platform.Permissions.can_change_media_version_visibility?(@current_user, version) do %>
+                <button
+                  type="button"
+                  data-confirm="Are you sure you want to change the visibility of this media?"
+                  phx-click="set_media_visibility"
+                  phx-value-version={version.id}
+                  phx-value-state={
+                    if version.visibility == :removed, do: "visible", else: "removed"
+                  }
+                  title={if version.visibility == :removed, do: "Undo Removal", else: "Remove"}
+                  class="base-button flex gap-2 text-xs"
+                >
+                  <Heroicons.eye_slash mini class="w-4 h-4 text-neutral-500" />
+                  <%= if version.visibility == :removed, do: "Undo Removal", else: "Remove" %>
+                </button>
+              <% end %>
+              <%= if Platform.Permissions.can_rearchive_media_version?(@current_user, version) do %>
+                <button
+                  type="button"
+                  data-confirm="Are you sure you want to rearchive this media?"
+                  phx-click="rearchive_media_version"
+                  phx-value-version={version.id}
+                  class="base-button flex gap-2 text-xs"
+                >
+                  <Heroicons.arrow_path mini class="w-4 h-4 text-neutral-500" /> Rearchive
+                </button>
+              <% end %>
+            </div>
+            <p class="text-xs text-neutral-500 mt-8">
+              Atlos provides best-effort archival. Archives may be incomplete or missing, and should not be relied on for legal evidence.
+            </p>
+          </section>
+          <section class="grow flex flex-col bg-neutral-50 md:border-l m-4 md:m-2 rounded-lg md:rounded-l-none rounded-r-lg md:overflow-y-auto md:max-h-full">
+            <%= if Enum.empty?(version.artifacts) do %>
+              <div class="flex flex-col items-center justify-center h-full">
+                <Heroicons.cloud class="w-16 h-16 text-neutral-300" />
+                <p class="text-sm text-neutral-500 mt-4">
+                  No artifacts available
+                </p>
+              </div>
+            <% end %>
+            <%= for artifact <- version.artifacts |> Enum.sort_by(fn artifact ->
+              case artifact.type do
+                :upload -> 0
+                :media -> 1
+                :viewport -> 2
+                :fullpage -> 3
+                :pdf -> 4
+                _ -> 4
+              end
+            end) do %>
+              <article class="py-2 border-b border-dashed">
+                <% is_media =
+                  String.starts_with?(artifact.mime_type, "video") or
+                    String.starts_with?(artifact.mime_type, "image") %>
+                <h3 class="m-4 text-base font-medium text-neutral-900">
+                  <%= case artifact.type do %>
+                    <% :pdf -> %>
+                      PDF
+                    <% :media -> %>
+                      Source Media
+                    <% :upload -> %>
+                      File Upload
+                    <% :viewport -> %>
+                      Viewport Screenshot
+                    <% :fullpage -> %>
+                      Full Page Screenshot
+                    <% _ -> %>
+                      <%= artifact.type %>
+                  <% end %>
+                </h3>
+                <div
+                  class="m-4"
+                  x-data={"{grayscale: #{is_media}, hidden: #{Media.is_graphic(@media)}}"}
+                >
+                  <!-- Show the media itself -->
+                  <section class="max-h-[28rem] mx-auto border rounded-lg overflow-hidden bg-neutral-100 relative">
+                    <%= if is_media do %>
+                      <div
+                        class="w-full z-[2] h-full absolute bg-neutral-50 rounded-lg flex items-center justify-around top-0"
+                        x-show="hidden"
+                      >
+                        <!-- Overlay for potentially graphic content -->
+                        <div class="text-center w-48">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            class="mx-auto h-8 w-8 text-critical-600"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            stroke-width="2"
+                          >
+                            <path
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
+                            />
+                          </svg>
+                          <h3 class="mt-2 font-medium text-gray-900 text-sm">
+                            Potentially Graphic
+                          </h3>
+                          <p class="mt-1 text-gray-500 text-sm">
+                            This media may be graphic. Please proceed with caution.
+                          </p>
+                          <button
+                            type="button"
+                            x-on:click="hidden = false"
+                            class="button mt-1 original py-1 px-2 text-xs"
+                          >
+                            Show
+                          </button>
+                        </div>
+                      </div>
+                    <% end %>
+                    <%= cond do %>
+                      <% String.starts_with?(artifact.mime_type, "image") -> %>
+                        <a
+                          href={Material.media_version_artifact_location(artifact)}
+                          target="_blank"
+                          class="group relative block"
+                          rel="noopener noreferrer"
+                        >
+                          <img
+                            src={Material.media_version_artifact_location(artifact)}
+                            class="w-full object-contain overflow-hidden max-h-[28rem]"
+                            x-bind:class="grayscale ? 'grayscale' : ''"
+                          />
+                          <div class="border rounded-lg opacity-0 overflow-hidden group-hover:opacity-100 block absolute inset-0 backdrop-blur-sm transition bg-white/50 flex flex-col gap-2 items-center justify-center w-full h-full">
+                            <Heroicons.link class="h-8 w-8 text-neutral-600" />
+                            <span class="text-neutral-600">
+                              Open full image in new tab (in color)
+                            </span>
+                          </div>
+                        </a>
+                      <% String.starts_with?(artifact.mime_type, "video") -> %>
+                        <video
+                          controls
+                          preload="auto"
+                          muted
+                          class="w-full object-contain mx-auto overflow-hidden max-h-[28rem]"
+                          x-bind:class="grayscale ? 'grayscale' : ''"
+                          poster={
+                            Material.media_version_artifact_location(artifact, version: :thumbnail)
+                          }
+                        >
+                          <source src={Material.media_version_artifact_location(artifact)} />
+                        </video>
+                      <% String.starts_with?(artifact.mime_type, "audio") -> %>
+                        <audio controls preload="auto" muted>
+                          <source
+                            src={Material.media_version_artifact_location(artifact)}
+                            class="w-full"
+                          />
+                        </audio>
+                      <% true -> %>
+                        <!-- Show some kind of file preview -->
+                        <div class="flex flex-col md:flex-row items-center m-4 gap-2 md:gap-4">
+                          <Heroicons.archive_box class="h-12 w-12 text-neutral-500" />
+                          <div class="grow">
+                            <p class="font-medium">
+                              <%= artifact.file_location %>
+                            </p>
+                            <p class="text-xs text-neutral-500">
+                              <%= artifact.type |> Atom.to_string() |> String.upcase() %>
+                            </p>
+                          </div>
+                          <a
+                            href={Material.media_version_artifact_location(artifact)}
+                            class="base-button"
+                            target="_blank"
+                          >
+                            <Heroicons.arrow_up_right mini class="h-4 w-4 mr-1" /> Open
+                          </a>
+                        </div>
+                    <% end %>
+                  </section>
+                  <!-- Actions -->
+                  <div class="flex flex-grap gap-4 mt-4">
+                    <a
+                      href={Material.media_version_artifact_location(artifact)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="base-button bg-neutral-50 text-xs"
+                    >
+                      <Heroicons.archive_box_arrow_down mini class="opacity-75 h-4 w-4 mr-1" />
+                      Download
+                    </a>
+                    <%= if is_media do %>
+                      <button
+                        x-on:click="grayscale = !grayscale"
+                        class="base-button bg-neutral-50 text-xs"
+                      >
+                        <Heroicons.swatch mini class="opacity-75 h-4 w-4 mr-1" />
+                        <span x-text="grayscale ? 'Show Color' : 'Hide Color'">Show Color</span>
+                      </button>
+                    <% end %>
+                  </div>
+                  <!-- Show the metadata -->
+                  <dl class="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 truncate uppercase font-mono text-sm">
+                    <div>
+                      <dt class="text-neutral-500">File Size</dt>
+                      <dd>
+                        <%= (artifact.file_size / 1_000_000)
+                        |> Formatter.format_number(decimal_places: 2) %> MB
+                      </dd>
+                    </div>
+                    <div>
+                      <dt class="text-neutral-500">File Type</dt>
+                      <dd><%= artifact.mime_type %></dd>
+                    </div>
+                    <div class="lg:col-span-2">
+                      <dt class="text-neutral-500">Hashes</dt>
+                      <dd class="overflow-hidden truncate max-w-full">
+                        <p class="overflow-hidden truncate max-w-full">
+                          SHA256: <%= artifact.file_hash_sha256 %>
+                        </p>
+                        <%= if artifact.perceptual_hashes != nil and Map.get(artifact.perceptual_hashes, "computed") != [] do %>
+                          <%= for hash <- Map.get(artifact.perceptual_hashes, "computed") do %>
+                            <p class="overflow-hidden truncate max-w-full">
+                              <%= Map.get(hash, "kind") %>: <%= Map.get(hash, "hash") %>
+                            </p>
+                          <% end %>
+                        <% end %>
+                      </dd>
+                    </div>
+                  </dl>
+                </div>
+              </article>
+            <% end %>
+          </section>
         </div>
       </.modal>
     <% end %>

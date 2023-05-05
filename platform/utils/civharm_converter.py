@@ -51,9 +51,7 @@ def run(civharm, outfile):
             else:
                 location = f"Reported near {location}."
 
-            more_info = (
-                f"Corresponds to **{identifier}**. {location}"
-            )
+            more_info = f"Corresponds to **{identifier}**. {location}"
 
             if len(more_info) >= 2750:
                 more_info = more_info[:2750] + "…"
@@ -73,22 +71,29 @@ def run(civharm, outfile):
             impact_mapping = {
                 "Roads/Highways": ["Roads/Highways/Transport"],
                 "Undefined": [],
-                "": []
+                "": [],
             }
 
-            impact = [row["Type of area affected"]] if row["Type of area affected"] not in impact_mapping else impact_mapping[row["Type of area affected"]]
+            impact = (
+                [row["Type of area affected"]]
+                if row["Type of area affected"] not in impact_mapping
+                else impact_mapping[row["Type of area affected"]]
+            )
 
-            equipment_mapping = {
-                "Undefined": [],
-                "": []
-            }
+            equipment_mapping = {"Undefined": [], "": []}
 
-            equipment = [row["Weapon System"]] if row["Weapon System"] not in equipment_mapping else equipment_mapping[row["Weapon System"]]
+            equipment = (
+                [row["Weapon System"]]
+                if row["Weapon System"] not in equipment_mapping
+                else equipment_mapping[row["Weapon System"]]
+            )
 
             type = ["Civilian Harm"]
 
             try:
-                date = date_parse(row["Reported Date"], dayfirst=True).strftime("%Y-%m-%d")
+                date = date_parse(row["Reported Date"], dayfirst=True).strftime(
+                    "%Y-%m-%d"
+                )
             except:
                 date = ""
 
@@ -109,7 +114,9 @@ def run(civharm, outfile):
                 "status": status,
                 "latitude": strip_to_float(row["Lat"]),
                 "longitude": strip_to_float(row["Lon"]),
-                "location": f"{strip_to_float(row['Lat'])}, {strip_to_float(row['Lon'])}" if len(strip_to_float(row['Lon'])) > 0 else "",
+                "location": f"{strip_to_float(row['Lat'])}, {strip_to_float(row['Lon'])}"
+                if len(strip_to_float(row["Lon"])) > 0
+                else "",
                 "tags": "CIVHARM, Bulk Import",
             }
 

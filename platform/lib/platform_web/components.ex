@@ -36,7 +36,9 @@ defmodule PlatformWeb.Components do
 
   def modal(assigns) do
     assigns =
-      assign_new(assigns, :id, fn -> "default" end) |> assign_new(:js_on_close, fn -> "" end)
+      assign_new(assigns, :id, fn -> "default" end)
+      |> assign_new(:js_on_close, fn -> "" end)
+      |> assign_new(:wide, fn -> false end)
 
     ~H"""
     <div
@@ -73,7 +75,7 @@ defmodule PlatformWeb.Components do
         </span>
 
         <div
-          class="relative inline-block opacity-0 scale-75 align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-xl sm:w-full sm:p-6"
+          class={"mt-24 mb-8 md:mt-0 relative inline-block opacity-0 scale-75 align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left shadow-xl transform transition-all sm:align-middle md:ml-28 sm:max-w-xl sm:w-full sm:p-6 max-w-full " <> if @wide, do: "md:max-w-3xl lg:max-w-4xl xl:max-w-5xl", else: ""}
           phx-mounted={
             JS.transition({"ease-out duration-75", "opacity-0 scale-75", "opacity-100 scale-100"},
               time: 75
@@ -88,7 +90,7 @@ defmodule PlatformWeb.Components do
           <div class="hidden sm:block absolute z-50 top-0 right-0 pt-4 pr-4">
             <button
               type="button"
-              class="text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-urge-500 p-1"
+              class="text-gray-400 bg-white/75 backdrop-blur rounded-full hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-urge-500 p-1"
               x-on:click={"window.closeModal($event); " <> @js_on_close}
               phx-target={@target}
             >
@@ -222,9 +224,9 @@ defmodule PlatformWeb.Components do
           </div>
           <div class="ml-3 w-0 flex-1 pt-0.5">
             <%= if String.length(@title) > 0 do %>
-              <p class="text-sm font-medium text-gray-900 mb-1"><%= @title %></p>
+              <div class="!text-sm font-medium text-gray-900 mb-1"><%= @title %></div>
             <% end %>
-            <p class="text-sm text-gray-500"><%= render_slot(@inner_block) %></p>
+            <div class="!text-sm text-gray-500"><%= render_slot(@inner_block) %></div>
           </div>
           <%= render_slot(@right) %>
         </div>
@@ -715,6 +717,7 @@ defmodule PlatformWeb.Components do
               socket={@socket}
               left_indicator={:dot}
               current_user={@current_user}
+              ignore_permissions={@ignore_permissions}
             />
           <% end %>
         </ul>
@@ -793,16 +796,26 @@ defmodule PlatformWeb.Components do
                         moved this incident from <.project_text project={@update.old_project} /> into
                         <.project_text project={@update.new_project} />
                       <% :upload_version -> %>
-                        added
-                        <a
-                          href={
-                          Routes.media_show_path(@socket, :show, @update.media.slug) <>
-                            "#version-#{@update.media_version.id}"
-                        }
+                        uploaded
+                        <.link
+                          patch={
+                            Routes.media_show_path(
+                              @socket,
+                              :media_version_detail,
+                              @update.media.slug,
+                              @update.media_version.scoped_id
+                            )
+                          }
                           class="text-button text-gray-800"
                         >
-                          Media &nearr;
-                        </a>
+                          <span>
+                            <%= Material.get_human_readable_media_version_name(
+                              @update.media,
+                              @update.media_version
+                            ) %>
+                          </span>
+                          &nearr;
+                        </.link>
                       <% :comment -> %>
                         commented
                     <% end %>
@@ -1029,7 +1042,7 @@ defmodule PlatformWeb.Components do
   end
 
   def url_icon(%{url: url} = assigns) do
-    parsed = URI.parse(url)
+    parsed = URI.parse(url || "https://example.com")
     loc = "https://s2.googleusercontent.com/s2/favicons?domain=#{parsed.host}&sz=256"
 
     assigns = assign(assigns, :loc, loc)
@@ -1196,14 +1209,16 @@ defmodule PlatformWeb.Components do
                       @form,
                       :attr_date_min,
                       id: "search-form-date-min",
-                      class: "input-base inline-flex items-center"
+                      class: "input-base inline-flex items-center",
+                      phx_debounce: 2000
                     ) %>
                     <span class="text-sm text-gray-600">until</span>
                     <%= date_input(
                       @form,
                       :attr_date_max,
                       id: "search-form-date-max",
-                      class: "input-base inline-flex items-center"
+                      class: "input-base inline-flex items-center",
+                      phx_debounce: 2000
                     ) %>
                   </div>
                   <p class="support text-gray-600 mt-1">
@@ -2237,7 +2252,7 @@ defmodule PlatformWeb.Components do
                       <span class="sr-only">Export Incidents</span>
                     <% end %>
                     <.link
-                      patch="/incidents"
+                      href={"/incidents?display=#{Ecto.Changeset.get_field(f.source, :display, "cards")}"}
                       class="rounded-full flex items-center align-center text-gray-600 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-urge-500"
                       role="menuitem"
                       data-tooltip="Reset Filters"
@@ -2540,7 +2555,7 @@ defmodule PlatformWeb.Components do
     assigns = assign_new(assigns, :dynamic, fn -> true end) |> assign_new(:max, fn -> 5 end)
 
     ~H"""
-    <div class="flex -space-x-1 relative z-0 items-center">
+    <div class="flex -space-x-1 relative z-0 place-items-end">
       <%= for user <- @users |> Enum.take(5) do %>
         <%= if @dynamic do %>
           <.popover class="inline">
@@ -2563,7 +2578,7 @@ defmodule PlatformWeb.Components do
       <% end %>
       <%= if length(@users) > @max do %>
         <div
-          class={"bg-gray-200 text-gray-700 text-xl rounded-full z-30 ring-2 flex items-center justify-center " <> Map.get(assigns, :size_classes, "h-5 w-5") <>" " <> Map.get(assigns, :ring_class, "ring-white")}
+          class={"relative bg-gray-200 text-gray-700 text-xl rounded-full z-30 ring-2 flex items-center justify-center " <> Map.get(assigns, :size_classes, "h-5 w-5") <>" " <> Map.get(assigns, :ring_class, "ring-white")}
           data-tooltip={"Shared with #{length(@users) - 5} more user#{if length(@users) - 5 == 1, do: "", else: "s"}"}
         >
           <Heroicons.ellipsis_horizontal mini class="h-4 w-4" />
@@ -2598,167 +2613,181 @@ defmodule PlatformWeb.Components do
   end
 
   def media_version_display(%{version: version, media: media} = assigns) do
+    artifact_to_show =
+      cond do
+        # If available, show a screenshot
+        version.artifacts |> Enum.find(&(&1.type == :viewport)) != nil ->
+          version.artifacts |> Enum.find(&(&1.type == :viewport))
+
+        # Otherwise show the first artifact
+        not Enum.empty?(version.artifacts) ->
+          hd(version.artifacts)
+
+        # Otherwise show nothing
+        true ->
+          nil
+      end
+
     assigns =
-      assign_new(assigns, :dynamic_src, fn -> false end)
-      # Verify it was archived successfully
-      |> assign(:media_to_show, version.status == :complete && !is_nil(version.mime_type))
-      |> assign(:should_blur_js_bool, if(Media.is_graphic(media), do: "true", else: "false"))
+      assigns
+      |> assign(
+        :artifact_to_show,
+        version.status == :complete && artifact_to_show != nil
+      )
+      |> assign(:artifact, artifact_to_show)
+      |> assign(:is_graphic, Media.is_graphic(media))
       # Whether to show controls for hiding, adding media (requires that the caller be able to handle the events)
       |> assign(:show_controls, Map.get(assigns, :show_controls, true))
-      |> assign(:loc, Material.media_version_location(version, media))
-      |> assign(:thumbnail, Material.media_version_location(version, media, :thumb))
       |> assign(:media_id, "version-#{version.id}-media")
       |> assign(:human_name, Material.get_human_readable_media_version_name(media, version))
+      |> assign(:detail_url, "/incidents/#{media.slug}/detail/#{version.scoped_id}")
 
     ~H"""
     <section
       id={"version-#{@version.id}"}
-      class="py-2 target:outline outline-2 outline-urge-600 rounded outline-offset-2"
-      x-data={"{grayscale: true, hidden: #{@should_blur_js_bool}}"}
+      class="py-2 target:outline outline-2 outline-urge-600 rounded group outline-offset-2"
     >
-      <span class="font-mono text-sm">
-        <%= @human_name %>
-      </span>
+      <.link patch={@detail_url}>
+        <p class="font-mono text-sm">
+          <%= @human_name %>
+        </p>
+      </.link>
       <div class="relative">
-        <%= if @media_to_show do %>
-          <div id={@media_id} class="min-h-[10rem] p-1 z-[1]">
-            <div x-bind:class="grayscale ? 'grayscale' : ''">
-              <%= if String.starts_with?(@version.mime_type, "image/") do %>
-                <%= if @dynamic_src do %>
-                  <dynamic tag="img" src={@loc} class="w-full" />
-                <% else %>
-                  <img src={@loc} class="w-full" />
-                <% end %>
-              <% else %>
-                <%= if @dynamic_src do %>
-                  <video controls preload="auto" muted>
-                    <dynamic tag="source" src={@loc} class="w-full" />
-                  </video>
-                <% else %>
-                  <video controls preload="auto" poster={@thumbnail} muted>
-                    <source src={@loc} class="w-full" />
-                  </video>
-                <% end %>
-              <% end %>
-            </div>
-          </div>
-        <% end %>
-        <%= if @version.status != :pending do %>
-          <div
-            class="w-full z-[2] h-full absolute bg-neutral-50 border rounded-lg flex items-center justify-around top-0"
-            x-show="hidden"
+        <%= if @artifact_to_show do %>
+          <.link
+            patch={@detail_url}
+            id={"artifact-#{@artifact.id}"}
+            class="block h-40 overflow-hidden z-[1] border rounded-lg"
           >
-            <!-- Overlay for potentially graphic content -->
-            <div class="text-center w-48">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="mx-auto h-8 w-8 text-critical-600"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                stroke-width="2"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
-                />
-              </svg>
-              <h3 class="mt-2 font-medium text-gray-900 text-sm">Potentially Graphic</h3>
-              <p class="mt-1 text-gray-500 text-sm">
-                This media may be graphic. Please proceed with caution.
-              </p>
-              <button
-                type="button"
-                x-on:click="hidden = false"
-                class="button mt-1 original py-1 px-2 text-xs"
-              >
-                View
-              </button>
-            </div>
-          </div>
-        <% end %>
-        <%= if not @media_to_show do %>
-          <div class="w-full h-40 bg-neutral-50 border rounded-lg flex items-center justify-around">
-            <%= if @version.status == :pending do %>
-              <div class="text-center w-48">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="mx-auto h-8 w-8 text-gray-400 animate-pulse"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  stroke-width="2"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"
+            <%= cond do %>
+              <% not @is_graphic and Platform.Utils.is_processable_media(@artifact.mime_type) -> %>
+                <div class="grayscale">
+                  <img
+                    src={Material.media_version_artifact_location(@artifact, version: :thumbnail)}
+                    class="w-full object-cover scale-[1.1] origin-top"
                   />
-                </svg>
-                <h3 class="mt-2 font-medium text-gray-900 text-sm">Processing</h3>
-                <p class="mt-1 text-gray-500 text-sm">
-                  Archival in progress. Check back soon.
-                </p>
+                </div>
+              <% length(@version.artifacts) == 1 -> %>
+                <div class="h-full w-full flex flex-col items-center justify-center">
+                  <Heroicons.archive_box class="h-10 w-10 mb-2 text-neutral-500" />
+                  <p class="text-neutral-700 text-center text-sm font-medium mb-2 uppercase">
+                    <%= @artifact.file_location %>
+                  </p>
+                  <p class="text-neutral-500 text-center text-xs font-mono uppercase">
+                    <%= @artifact.mime_type %>
+                  </p>
+                </div>
+              <% true -> %>
+                <div class="h-full w-full flex flex-col items-center justify-center p-2">
+                  <Heroicons.archive_box class="h-10 w-10 mb-2 text-neutral-500" />
+                  <p class="font-medium text-center text-sm">
+                    <%= Material.get_media_version_title(@version) |> Utils.truncate(40) %>
+                  </p>
+                  <p class="text-neutral-500 text-sm">
+                    <%= length(@version.artifacts) %>
+                    <%= if length(@version.artifacts) != 1, do: "artifacts", else: "artifact" %>
+                  </p>
+                </div>
+            <% end %>
+            <div class="border rounded-lg opacity-0 overflow-hidden group-hover:opacity-100 group-focus:opacity-100 group-focus-within:opacity-100 block absolute inset-0 backdrop-blur-sm transition bg-white/50 flex flex-col gap-2 items-center justify-center w-full h-full">
+              <Heroicons.plus_circle mini class="h-5 w-5 text-neutral-600" />
+              <span class="text-neutral-600">View details and artifacts</span>
+            </div>
+          </.link>
+        <% else %>
+          <div class="w-full h-40 bg-neutral-50 border rounded-lg flex items-center justify-around">
+            <%= cond do %>
+              <% @version.status == :pending -> %>
+                <div class="text-center w-48">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="mx-auto h-8 w-8 text-gray-400 animate-pulse"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"
+                    />
+                  </svg>
+                  <h3 class="mt-2 font-medium text-gray-900 text-sm">Processing</h3>
+                  <p class="mt-1 text-gray-500 text-sm">
+                    Archival in progress. Check back soon.
+                  </p>
+                  <a
+                    target="_blank"
+                    href={@version.source_url}
+                    rel="nofollow"
+                    class="button mt-1 original py-1 px-2 text-xs"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="h-4 w-4 text-neutral-500 mr-1"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
+                      <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
+                    </svg>
+                    View Directly
+                  </a>
+                </div>
+              <% @version.source_url != nil -> %>
                 <a
                   target="_blank"
                   href={@version.source_url}
                   rel="nofollow"
-                  class="button mt-1 original py-1 px-2 text-xs"
+                  class="text-center w-48 block"
+                  data-confirm="This link will open an external site in a new tab. Are you sure?"
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="h-4 w-4 text-neutral-500 mr-1"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                  >
-                    <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
-                    <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
-                  </svg>
-                  View Directly
+                  <.url_icon url={@version.source_url} class="mx-auto h-10 w-10 shadow-sm" />
+                  <h3 class="mt-2 break-all font-medium text-gray-900 text-sm">External Media</h3>
+                  <p class="mt-1 text-gray-500 text-sm">
+                    Unable to archive this media automatically.
+                  </p>
+                  <span class="button mt-1 original py-1 px-2 text-xs">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="h-4 w-4 text-neutral-500 mr-1"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
+                      <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
+                    </svg>
+                    View Directly
+                  </span>
                 </a>
-              </div>
-            <% end %>
-            <%= if @version.status == :error do %>
-              <a
-                target="_blank"
-                href={@version.source_url}
-                rel="nofollow"
-                class="text-center w-48 block"
-                data-confirm="This link will open an external site in a new tab. Are you sure?"
-              >
-                <.url_icon url={@version.source_url} class="mx-auto h-10 w-10 shadow-sm" />
-                <h3 class="mt-2 break-all font-medium text-gray-900 text-sm">External Media</h3>
-                <span class="button mt-1 original py-1 px-2 text-xs">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="h-4 w-4 text-neutral-500 mr-1"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                  >
-                    <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
-                    <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
-                  </svg>
-                  View Directly
-                </span>
-              </a>
+              <% true -> %>
+                <div class="text-center w-48">
+                  <Heroicons.exclamation_circle class="mx-auto h-8 w-8 text-gray-400" />
+                  <h3 class="mt-2 font-medium text-gray-900 text-sm">Processing Error</h3>
+                  <p class="mt-1 text-gray-500 text-sm">
+                    Unable to process this source material
+                  </p>
+                </div>
             <% end %>
           </div>
         <% end %>
       </div>
       <div class="flex gap-1 mt-1 text-sm max-w-full items-center justify-between">
         <span class="flex items-center gap-2 overflow-hidden">
-          <%= if @version.status != :error do %>
+          <%= if @version.status != :error and @version.source_url != nil do %>
             <.url_icon url={@version.source_url} class="h-6" />
           <% end %>
-          <a
-            class="text-neutral-600 truncate"
-            href={@version.source_url}
-            target="_blank"
-            data-confirm="This link will open an external site in a new tab. Are you sure?"
-          >
-            <%= @version.source_url %>
-          </a>
+          <%= if @version.source_url != nil do %>
+            <a
+              class="text-neutral-600 truncate"
+              href={@version.source_url}
+              target="_blank"
+              data-confirm="This link will open an external site in a new tab. Are you sure?"
+            >
+              <%= @version.source_url %>
+            </a>
+          <% end %>
           <%= if @version.upload_type == :user_provided do %>
             <span class="badge ~neutral self-start shrink-0">User Upload</span>
           <% end %>
@@ -2782,7 +2811,7 @@ defmodule PlatformWeb.Components do
             </div>
           <% end %>
         </span>
-        <%= if @media_to_show or @show_controls do %>
+        <%= if @artifact_to_show or @show_controls do %>
           <div class="flex gap-1 items-center">
             <div class="relative inline-block text-left" x-data="{open: false}">
               <div>
@@ -2816,101 +2845,25 @@ defmodule PlatformWeb.Components do
                 x-transition
               >
                 <div class="py-1" role="none">
-                  <%= if @media_to_show do %>
-                    <button
-                      type="button"
-                      rel="nofollow"
-                      title="Toggle Color"
-                      x-on:click="grayscale = !grayscale"
-                      class="text-gray-700 px-2 py-2 text-sm flex items-center gap-2 hover:bg-gray-100 w-full"
+                  <a
+                    target="_blank"
+                    href={@version.source_url}
+                    rel="nofollow"
+                    title="Source"
+                    role="menuitem"
+                    class="text-gray-700 px-2 py-2 text-sm flex items-center gap-2 hover:bg-gray-100"
+                    data-confirm="This link will open an external site in a new tab. Are you sure?"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                      class="w-5 h-5 text-neutral-500"
                     >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                        class="h-5 w-5 text-neutral-500"
-                        fill="currentColor"
-                      >
-                        <path fill="none" d="M0 0h24v24H0z" /><path d="M12 2c5.522 0 10 3.978 10 8.889a5.558 5.558 0 0 1-5.556 5.555h-1.966c-.922 0-1.667.745-1.667 1.667 0 .422.167.811.422 1.1.267.3.434.689.434 1.122C13.667 21.256 12.9 22 12 22 6.478 22 2 17.522 2 12S6.478 2 12 2zM7.5 12a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3zm9 0a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3zM12 9a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z" />
-                      </svg>
-                      Toggle Color
-                    </button>
-                    <a
-                      target="_blank"
-                      href={@version.source_url}
-                      rel="nofollow"
-                      title="Source"
-                      role="menuitem"
-                      class="text-gray-700 px-2 py-2 text-sm flex items-center gap-2 hover:bg-gray-100"
-                      data-confirm="This link will open an external site in a new tab. Are you sure?"
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                        fill="currentColor"
-                        class="w-5 h-5 text-neutral-500"
-                      >
-                        <path d="M11.47 1.72a.75.75 0 011.06 0l3 3a.75.75 0 01-1.06 1.06l-1.72-1.72V7.5h-1.5V4.06L9.53 5.78a.75.75 0 01-1.06-1.06l3-3zM11.25 7.5V15a.75.75 0 001.5 0V7.5h3.75a3 3 0 013 3v9a3 3 0 01-3 3h-9a3 3 0 01-3-3v-9a3 3 0 013-3h3.75z" />
-                      </svg>
-                      View Source
-                    </a>
-                    <a
-                      target="_blank"
-                      href={@loc}
-                      rel="nofollow"
-                      role="menuitem"
-                      title="Download"
-                      class="text-gray-700 px-2 py-2 text-sm flex items-center gap-2 hover:bg-gray-100 w-full"
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                        fill="currentColor"
-                        class="h-5 w-5 text-neutral-500"
-                      >
-                        <path
-                          fill-rule="evenodd"
-                          d="M19.5 21a3 3 0 003-3V9a3 3 0 00-3-3h-5.379a.75.75 0 01-.53-.22L11.47 3.66A2.25 2.25 0 009.879 3H4.5a3 3 0 00-3 3v12a3 3 0 003 3h15zm-6.75-10.5a.75.75 0 00-1.5 0v4.19l-1.72-1.72a.75.75 0 00-1.06 1.06l3 3a.75.75 0 001.06 0l3-3a.75.75 0 10-1.06-1.06l-1.72 1.72V10.5z"
-                          clip-rule="evenodd"
-                        />
-                      </svg>
-                      Download
-                    </a>
-                    <button
-                      type="button"
-                      rel="nofollow"
-                      role="menuitem"
-                      title="Copy Hash Information"
-                      class="text-gray-700 px-2 py-2 text-sm flex items-center gap-2 hover:bg-gray-100 w-full"
-                      onclick={
-                      "window.setClipboard(JSON.stringify(" <>
-                        Jason.encode!(
-                          if @version.hashes == %{},
-                            do: %{error: "no hash information available"},
-                            else: @version.hashes
-                        ) <>
-                        ", null, 4))"
-                    }
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                        fill="currentColor"
-                        class="w-5 h-5 text-neutral-500"
-                      >
-                        <path
-                          fill-rule="evenodd"
-                          d="M7.502 6h7.128A3.375 3.375 0 0118 9.375v9.375a3 3 0 003-3V6.108c0-1.505-1.125-2.811-2.664-2.94a48.972 48.972 0 00-.673-.05A3 3 0 0015 1.5h-1.5a3 3 0 00-2.663 1.618c-.225.015-.45.032-.673.05C8.662 3.295 7.554 4.542 7.502 6zM13.5 3A1.5 1.5 0 0012 4.5h4.5A1.5 1.5 0 0015 3h-1.5z"
-                          clip-rule="evenodd"
-                        />
-                        <path
-                          fill-rule="evenodd"
-                          d="M3 9.375C3 8.339 3.84 7.5 4.875 7.5h9.75c1.036 0 1.875.84 1.875 1.875v11.25c0 1.035-.84 1.875-1.875 1.875h-9.75A1.875 1.875 0 013 20.625V9.375zm9.586 4.594a.75.75 0 00-1.172-.938l-2.476 3.096-.908-.907a.75.75 0 00-1.06 1.06l1.5 1.5a.75.75 0 001.116-.062l3-3.75z"
-                          clip-rule="evenodd"
-                        />
-                      </svg>
-                      Copy Hash Info
-                    </button>
-                  <% end %>
+                      <path d="M11.47 1.72a.75.75 0 011.06 0l3 3a.75.75 0 01-1.06 1.06l-1.72-1.72V7.5h-1.5V4.06L9.53 5.78a.75.75 0 01-1.06-1.06l3-3zM11.25 7.5V15a.75.75 0 001.5 0V7.5h3.75a3 3 0 013 3v9a3 3 0 01-3 3h-9a3 3 0 01-3-3v-9a3 3 0 013-3h3.75z" />
+                    </svg>
+                    View Source
+                  </a>
                   <button
                     type="button"
                     rel="nofollow"

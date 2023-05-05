@@ -846,7 +846,7 @@ defmodule Platform.Material.Attribute do
     media_or_changeset
     # Explanation is a virtual field! We cast here so we can validate.
     # TODO: Is there an idiomatic way to clean this up?
-    |> cast(attrs, [:explanation], message: "Unable to parse explanation.")
+    |> cast(attrs, [:explanation])
     |> then(fn changeset ->
       cond do
         # TODO: streamline location logic; this is janky
