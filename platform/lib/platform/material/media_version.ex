@@ -3,7 +3,7 @@ defmodule Platform.Material.MediaVersion do
   import Ecto.Changeset
   alias Platform.Material.Media
 
-  @derive {Jason.Encoder, except: [:__meta__, :client_name, :file_location, :media]}
+  @derive {Jason.Encoder, except: [:__meta__, :client_name, :file_location, :media, :artifacts]}
   schema "media_versions" do
     field(:scoped_id, :integer)
 
