@@ -11,9 +11,9 @@
 
 <br>
 
-## Motivation
+## About
 
-Atlos helps open-source conflict researchers collaborate to preserve the historical record. Today, researchers locate, verify, and catalog media in private databases, on Twitter, and in several different Discord servers. This means that the same arduous geolocation process might happen many times for the same video. Atlos puts everything in one place.
+Atlos is a non-profit platform used by investigators to catalog and verify eyewitness media at scale. Atlos is specialized to the needs of visual investigations: The platform automatically archives source media and implements industry-standard researcher safety measures by default. While other systems are dedicated collaborative tools or databases, Atlos does both. Atlos powers Bellingcat's sprawling investigation into civilian harm in Ukraine.
 
 You can learn more about Atlos at https://atlos.org.
 
