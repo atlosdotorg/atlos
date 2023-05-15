@@ -325,8 +325,8 @@ defmodule Platform.Material do
     # and look up the media by the slug without the prefix
 
     case String.split(slug, "-", parts: 2) do
-      [prefix, slug] when prefix != "ATL" -> slug
-      _ -> slug
+      [prefix, slug] when prefix != "ATL" -> slug |> String.upcase()
+      _ -> slug |> String.upcase()
     end
   end
 
