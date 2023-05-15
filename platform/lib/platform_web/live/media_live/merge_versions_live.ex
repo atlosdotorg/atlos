@@ -38,7 +38,7 @@ defmodule PlatformWeb.MediaLive.MergeVersionsLive do
         slug ->
           case Material.get_full_media_by_slug(slug) do
             nil ->
-              [{field, "This incident doesn't seem to exist. Is the ATL code correct?"}]
+              [{field, "This incident doesn't seem to exist. Is the six-character correct?"}]
 
             media ->
               if media.id == source.id do

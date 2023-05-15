@@ -156,9 +156,6 @@ defmodule PlatformWeb.NewLive.BasicInfoLive do
                 media={nil}
                 optional={false}
               />
-              <p class="support">
-                Try to be as descriptive as possible. You'll be able to change this later.
-              </p>
             </div>
 
             <div>
