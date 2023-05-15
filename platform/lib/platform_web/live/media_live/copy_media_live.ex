@@ -45,7 +45,7 @@ defmodule PlatformWeb.MediaLive.CopyMediaLive do
         slug ->
           case Projects.get_project(slug) do
             nil ->
-              [{field, "This project doesn't seem to exist. Is the ATL code correct?"}]
+              [{field, "This project doesn't seem to exist. Is the six-character code correct?"}]
 
             project ->
               if project.id == source.project_id do
