@@ -52,7 +52,7 @@ export default function Home() {
           </p>
           <div className='text-white text-md flex flex-col space-y-3'>
             <p>
-              Geolocate media, build on other researchers&apos; findings, and double-check everyone&apos;s work. Search your catalog to piece together the bigger picture.
+              Catalog, verify, and share eyewitness media across your team. Search your data to piece together the bigger picture.
             </p>
             <p>
               Investigators still rely on spreadsheets to organize their investigations. But Google Sheets wasn&apos;t built for video &mdash; or for deliberation and consensus.
