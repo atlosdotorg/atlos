@@ -30,7 +30,13 @@ defmodule PlatformWeb.AdminlandLive.ActivityFeedLive do
       |> Enum.filter(filter)
 
     socket
-    |> assign(:projects, recent_updates |> Enum.map(& &1.media.project) |> Enum.uniq_by(& &1.id))
+    |> assign(
+      :projects,
+      recent_updates
+      |> Enum.map(& &1.media.project)
+      |> Enum.filter(&(not is_nil(&1)))
+      |> Enum.uniq_by(& &1.id)
+    )
     |> assign(
       :active_projects_count,
       recent_updates |> Enum.map(& &1.media.project_id) |> Enum.uniq() |> length()
