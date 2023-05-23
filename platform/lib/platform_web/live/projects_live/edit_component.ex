@@ -374,7 +374,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                   <div>
                     <button
                       phx-click="delete"
-                      data-confirm="Are you sure you want to delete this project? This action cannot be undone. This will not delete the incidents that are part of this project."
+                      data-confirm="Are you sure you want to delete this project? This action cannot be undone, and will delete all the incidents that are part of this project."
                       class="button ~critical @high"
                       type="button"
                       phx-target={@myself}

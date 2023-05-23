@@ -249,6 +249,8 @@ defmodule Platform.Projects do
 
   def get_project_membership_by_user_and_project_id(_, nil), do: nil
 
+  def get_project_membership_by_user_and_project_id(_, ""), do: nil
+
   def get_project_membership_by_user_and_project_id(%Accounts.User{} = user, project_id) do
     get_project_membership_by_user_id_and_project_id(user.id, project_id)
   end

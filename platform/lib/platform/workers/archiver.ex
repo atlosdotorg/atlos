@@ -248,7 +248,21 @@ defmodule Platform.Workers.Archiver do
       # Push update to viewers
       Material.broadcast_media_updated(media_id)
 
+      # Cleanup any known tempfiles
       Temp.cleanup()
+
+      # Cleanup tempfiles older than five minutes (we have to be extremely aggressive here because we're using Chrome and other external tools to do much of our archival)
+      # We cleanup using the `tmpreaper` utility (https://manpages.ubuntu.com/manpages/bionic/man8/tmpreaper.8.html)
+      {_, 0} =
+        System.cmd(
+          "tmpreaper",
+          [
+            "-m",
+            "5m",
+            "/tmp"
+          ]
+        )
+
       result
     else
       Logger.info(

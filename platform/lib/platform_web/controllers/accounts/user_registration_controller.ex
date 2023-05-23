@@ -59,7 +59,7 @@ defmodule PlatformWeb.UserRegistrationController do
       render(conn, "new.html",
         changeset:
           Accounts.change_user_registration(%User{}, user_params)
-          |> Ecto.Changeset.add_error(:captcha, "Invalid captcha!")
+          |> Ecto.Changeset.add_error(:captcha, "Invalid captcha. Please try again.")
           |> Map.put(:action, :save),
         title: "Register"
       )
