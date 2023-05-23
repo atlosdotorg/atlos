@@ -91,7 +91,7 @@ defmodule Platform.Material.Media do
       :project_id,
       :urls
     ])
-
+    |> validate_required([:project_id], message: "Please select a project")
     # These are special attributes, since we define it at creation time. Eventually, it'd be nice to unify this logic with the attribute-specific editing logic.
     |> Attribute.validate_attribute(Attribute.get_attribute(:description), media,
       user: user,
@@ -105,7 +105,6 @@ defmodule Platform.Material.Media do
       user: user,
       required: false
     )
-    |> validate_required([:project_id], message: "Please select a project")
     |> validate_project(user, media)
     |> parse_and_validate_validate_json_array(:urls, :urls_parsed)
     |> validate_url_list(:urls_parsed)
