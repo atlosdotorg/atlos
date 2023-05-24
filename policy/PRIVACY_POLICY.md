@@ -247,7 +247,7 @@ your personal information.
 If you have any questions about this Policy or our data practices, please email our Data Protection
 Officer at contact@atlos.org.
 
-You can also write to us at:
+You can also write to us at:         
 Atlos, Inc.        
 2108 N ST       
 STE # 5207              
