@@ -2,6 +2,7 @@
 We take your privacy seriously. The full version is below, but the simple version is this: Atlos tries to collect as little information from our users as possible. Unless you pay for the platform, we don't even ask for your name. Atlos is a non-profit, open source project. Our goal isn't to sell you targeted ads — it's only to support your visual investigations. If you have any questions, feel free to reach out to contact@atlos.org.
 
 ## Changelog
+You can view a history of the changes made to these terms on [GitHub](https://github.com/milesmcc/atlos/blame/main/policy/PRIVACY_POLICY.md).
 
 ## Introduction
 The Privacy Policy describes how Atlos (“Atlos,” “we” and “us”) collects, uses, protects, and discloses
