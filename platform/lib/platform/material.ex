@@ -254,7 +254,7 @@ defmodule Platform.Material do
     |> Repo.insert()
   end
 
-  def create_media_audited(%User{} = user, attrs \\ %{}) do
+  def create_media_audited(%User{} = user, attrs \\ %{}, opts \\ []) do
     changeset =
       %Media{}
       |> Media.changeset(attrs, user)
@@ -271,9 +271,11 @@ defmodule Platform.Material do
             changeset
             |> Repo.insert()
 
-          {:ok, _} =
-            Updates.change_from_media_creation(media, user)
-            |> Updates.create_update_from_changeset()
+          if Keyword.get(opts, :post_updates, true) do
+            {:ok, _} =
+              Updates.change_from_media_creation(media, user)
+              |> Updates.create_update_from_changeset()
+          end
 
           # Automatically tag new incidents created by regular users, if desirable
           user_project_membership =
@@ -654,14 +656,20 @@ defmodule Platform.Material do
   def create_media_version_audited(
         %Media{} = media,
         %User{} = user,
-        attrs \\ %{}
+        attrs \\ %{},
+        opts \\ []
       ) do
     if Permissions.can_edit_media?(user, media) do
       Repo.transaction(fn ->
         with {:ok, version} <- create_media_version(media, attrs),
              update_changeset <-
                Updates.change_from_media_version_upload(media, user, version, attrs),
-             {:ok, _} <- Updates.create_update_from_changeset(update_changeset) do
+             {:ok, _} <-
+               if(
+                 Keyword.get(opts, :post_updates, true),
+                 do: Updates.create_update_from_changeset(update_changeset),
+                 else: {:ok, 0}
+               ) do
           Updates.subscribe_if_first_interaction(media, user)
           schedule_media_auto_metadata_update(media)
           version
@@ -717,7 +725,8 @@ defmodule Platform.Material do
   def copy_media_version_to_new_media_audited(
         %MediaVersion{} = media_version,
         %Media{} = destination,
-        %User{} = user
+        %User{} = user,
+        opts
       ) do
     {:ok, new_version} =
       create_media_version_audited(
@@ -726,7 +735,8 @@ defmodule Platform.Material do
         Map.from_struct(
           media_version
           |> Map.put(:artifacts, Enum.map(media_version.artifacts || [], &Map.from_struct/1))
-        )
+        ),
+        post_updates: Keyword.get(opts, :post_updates, true)
       )
 
     {:ok, new_version}
@@ -748,11 +758,14 @@ defmodule Platform.Material do
       for version <-
             get_media_versions_by_media(source) |> Enum.filter(&(&1.visibility == :visible)) do
         if is_nil(version.source_url) or not Enum.member?(destination_urls, version.source_url) do
-          {:ok, _} = copy_media_version_to_new_media_audited(version, destination, user)
+          {:ok, _} =
+            copy_media_version_to_new_media_audited(version, destination, user,
+              post_updates: Keyword.get(opts, :post_updates, true)
+            )
         end
       end
 
-      if Keyword.get(opts, :post_comments, true) do
+      if Keyword.get(opts, :post_updates, true) do
         Updates.post_bot_comment(
           source,
           "[[@#{user.username}]] merged this incident's media into [[#{Media.slug_to_display(destination)}]]."
@@ -786,7 +799,8 @@ defmodule Platform.Material do
               slug: nil,
               auto_metadata: nil,
               project_attributes: nil
-          })
+          }),
+          post_updates: Keyword.get(opts, :post_updates, true)
         )
 
       # Rip through all the old attributes, and try to copy them to the new media
@@ -818,14 +832,18 @@ defmodule Platform.Material do
 
               true ->
                 %{to_string(equivalent_attr.schema_field) => get_attribute_value(source, attr)}
-            end
+            end,
+            post_updates: Keyword.get(opts, :post_updates, true)
           )
         end
       end)
 
-      {:ok, _} = merge_media_versions_audited(source, new_media, user, post_comments: false)
+      {:ok, _} =
+        merge_media_versions_audited(source, new_media, user,
+          post_updates: Keyword.get(opts, :post_updates, true)
+        )
 
-      if Keyword.get(opts, :leave_comments, true) do
+      if Keyword.get(opts, :post_updates, true) do
         Updates.post_bot_comment(
           source,
           "[[@#{user.username}]] copied this incident to create [[#{Media.slug_to_display(new_media |> Map.put(:project, destination))}]]."
@@ -1111,14 +1129,20 @@ defmodule Platform.Material do
   @doc """
   Do an audited update of the given attribute. Will broadcast change via PubSub.
   """
-  def update_media_attribute_audited(media, %Attribute{} = attribute, %User{} = user, attrs) do
-    update_media_attributes_audited(media, [attribute], user, attrs)
+  def update_media_attribute_audited(
+        media,
+        %Attribute{} = attribute,
+        %User{} = user,
+        attrs,
+        opts \\ []
+      ) do
+    update_media_attributes_audited(media, [attribute], user, attrs, opts)
   end
 
   @doc """
   Do an audited update of the given attributes. Will broadcast change via PubSub.
   """
-  def update_media_attributes_audited(media, attributes, %User{} = user, attrs) do
+  def update_media_attributes_audited(media, attributes, %User{} = user, attrs, opts \\ []) do
     media_changeset = change_media_attributes(media, attributes, attrs, user: user)
 
     update_changeset =
@@ -1146,7 +1170,10 @@ defmodule Platform.Material do
                 attrs
               )
 
-            {:ok, _} = Updates.create_update_from_changeset(update_changeset)
+            if Keyword.get(opts, :post_updates, true) do
+              {:ok, _} = Updates.create_update_from_changeset(update_changeset)
+            end
+
             {:ok, res} = update_media_attributes(media, attributes, attrs, user: user)
             Updates.subscribe_if_first_interaction(media, user)
             res
@@ -1398,7 +1425,7 @@ defmodule Platform.Material do
     # First we copy the media itself; we already have a mechanism to do this
     {:ok, new_media} =
       copy_media_to_project_audited(media, into_project, Accounts.get_auto_account(),
-        leave_comments: false
+        post_updates: false
       )
 
     # Now we just need to copy all the updates
@@ -1423,7 +1450,8 @@ defmodule Platform.Material do
           Platform.Updates.Update.raw_changeset(
             %Platform.Updates.Update{},
             Jason.decode!(new_update_json)
-            |> Map.put("media_id", new_media.id)
+            |> Map.put("media_id", new_media.id),
+            cast_sensitive_data: true
           )
         )
     end

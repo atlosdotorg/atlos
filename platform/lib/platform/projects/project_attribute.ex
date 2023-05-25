@@ -26,16 +26,21 @@ defmodule Platform.Projects.ProjectAttribute do
     end
   end
 
+  @doc """
+  Changeset for project attributes. Note that to change options, you must pass
+  in a JSON array of options (in the `options_json` field), rather than the
+  options themselves.
+  """
   def changeset(%__MODULE__{} = attribute, attrs \\ %{}) do
-    options =
+    json_options =
       Map.get(attrs, "options_json", Jason.encode!(attribute.options))
       |> then(&if &1 == "", do: Jason.encode!(attribute.options), else: &1)
 
     attribute
     |> cast(attrs, [:name, :type, :options_json, :id, :description])
-    |> cast(%{options_json: options}, [:options_json])
+    |> cast(%{options_json: json_options}, [:options_json])
     |> cast(
-      %{options: Jason.decode!(options)},
+      %{options: Jason.decode!(json_options)},
       [:options]
     )
     |> validate_required([:name, :type])

@@ -82,7 +82,7 @@ defmodule Platform.Projects do
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_project(attrs \\ %{}, user \\ nil) do
+  def create_project(attrs \\ %{}, user \\ nil, opts \\ []) do
     # Verify the user has permission to create
     unless is_nil(user) || Permissions.can_create_project?(user) do
       raise "User does not have permission to create a project"
@@ -91,7 +91,10 @@ defmodule Platform.Projects do
     result =
       %Project{}
       |> Project.changeset(attrs)
-      |> Ecto.Changeset.put_embed(:attributes, ProjectAttribute.default_attributes())
+      |> Ecto.Changeset.put_embed(
+        :attributes,
+        Keyword.get(opts, :default_attributes, ProjectAttribute.default_attributes())
+      )
       |> Repo.insert()
 
     # If the user is not nil, add them as an owner of the project
@@ -394,18 +397,16 @@ defmodule Platform.Projects do
   """
   def clone_project(%Project{} = project) do
     {:ok, new_project} =
-      create_project(%{
-        name: project.name,
-        code: project.code,
-        description: project.description,
-        color: project.color
-      })
-
-    # Update the attributes
-    {:ok, new_project} =
-      update_project(new_project, %{
-        attributes: project.attributes |> Enum.map(&Map.from_struct/1)
-      })
+      create_project(
+        %{
+          name: project.name,
+          code: project.code,
+          description: project.description,
+          color: project.color
+        },
+        nil,
+        default_attributes: project.attributes |> Enum.map(&Map.put(&1, :id, nil))
+      )
 
     # Clone all the non-deleted media
     {query, opts} =
@@ -418,5 +419,31 @@ defmodule Platform.Projects do
     end
 
     {:ok, new_project}
+  end
+
+  def create_onboarding_project_for_user(%Accounts.User{} = user) do
+    with onboarding_project_id when not is_nil(onboarding_project_id) <-
+           System.get_env("ONBOARDING_PROJECT_ID"),
+         onboarding_project when not is_nil(onboarding_project) <-
+           get_project(onboarding_project_id) do
+      # First, clone the project
+      {:ok, new_project} = clone_project(onboarding_project)
+
+      # Second, rename the project
+      {:ok, new_project} = update_project(new_project, %{name: "Demo Project (#{user.username})"})
+
+      # Third, add the user to the project
+      {:ok, _} =
+        create_project_membership(%{
+          username: user.username,
+          project_id: new_project.id,
+          role: :owner
+        })
+
+      {:ok, new_project}
+    else
+      err ->
+        {:error, "Could not create onboarding project for user #{user.username}", err}
+    end
   end
 end

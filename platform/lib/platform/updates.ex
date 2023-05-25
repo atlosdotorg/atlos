@@ -429,7 +429,7 @@ defmodule Platform.Updates do
   Change the visibility (per the `hidden` field) of the given media.
   """
   def change_update_visibility(%Update{} = update, hidden) do
-    Update.raw_changeset(update, %{hidden: hidden})
+    Update.raw_changeset(update, %{hidden: hidden}, cast_sensitive_data: true)
   end
 
   @doc """

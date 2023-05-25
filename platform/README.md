@@ -32,6 +32,7 @@ Ready to run in production? Please [check our deployment guides](https://hexdocs
 - `DEVELOPMENT_MODE` — whether to run Atlos in development mode (e.g., `TESTING` becomes a valid invite code)
 - `HIGHLIGHT_CODE` — Code for [Highlight](https://highlight.run) analytics and monitoring
 - `RESTRICT_PROJECT_CREATION` — whether to restrict project creation to privileged users only (to enable, set to `true`)
+- `ONBOARDING_PROJECT_ID` — the ID of the demo onboarding project template; if unset, the onboarding project will not be created.
 
 ## Learn more
 

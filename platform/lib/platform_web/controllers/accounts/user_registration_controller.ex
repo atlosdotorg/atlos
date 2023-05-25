@@ -42,10 +42,14 @@ defmodule PlatformWeb.UserRegistrationController do
         {:ok, user} ->
           Auditor.log(:user_registered, %{email: user.email, username: user.username}, conn)
 
-          Accounts.deliver_user_confirmation_instructions(
-            user,
-            &Routes.user_confirmation_url(conn, :edit, &1)
-          )
+          Task.start(fn ->
+            Accounts.deliver_user_confirmation_instructions(
+              user,
+              &Routes.user_confirmation_url(conn, :edit, &1)
+            )
+
+            Platform.Projects.create_onboarding_project_for_user(user)
+          end)
 
           conn
           |> put_flash(:info, "Account created successfully.")
