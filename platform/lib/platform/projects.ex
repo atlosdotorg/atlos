@@ -429,10 +429,7 @@ defmodule Platform.Projects do
       # First, clone the project
       {:ok, new_project} = clone_project(onboarding_project)
 
-      # Second, rename the project
-      {:ok, new_project} = update_project(new_project, %{name: "Demo Project (#{user.username})"})
-
-      # Third, add the user to the project
+      # Second, add the user to the project
       {:ok, _} =
         create_project_membership(%{
           username: user.username,
