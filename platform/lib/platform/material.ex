@@ -7,6 +7,7 @@ defmodule Platform.Material do
   alias Platform.Auditor
   alias Platform.Repo
   alias Platform.Projects
+  alias Platform.Projects.Project
   require Logger
   use Memoize
 
@@ -771,7 +772,8 @@ defmodule Platform.Material do
   def copy_media_to_project_audited(
         %Media{} = source,
         %Projects.Project{} = destination,
-        %User{} = user
+        %User{} = user,
+        opts \\ []
       ) do
     Repo.transaction(fn ->
       {:ok, new_media} =
@@ -823,15 +825,17 @@ defmodule Platform.Material do
 
       {:ok, _} = merge_media_versions_audited(source, new_media, user, post_comments: false)
 
-      Updates.post_bot_comment(
-        source,
-        "[[@#{user.username}]] copied this incident to create [[#{Media.slug_to_display(new_media |> Map.put(:project, destination))}]]."
-      )
+      if Keyword.get(opts, :leave_comments, true) do
+        Updates.post_bot_comment(
+          source,
+          "[[@#{user.username}]] copied this incident to create [[#{Media.slug_to_display(new_media |> Map.put(:project, destination))}]]."
+        )
 
-      Updates.post_bot_comment(
-        new_media,
-        "[[@#{user.username}]] created this incident by copying [[#{Media.slug_to_display(source)}]]."
-      )
+        Updates.post_bot_comment(
+          new_media,
+          "[[@#{user.username}]] created this incident by copying [[#{Media.slug_to_display(source)}]]."
+        )
+      end
 
       new_media
     end)
@@ -1388,5 +1392,42 @@ defmodule Platform.Material do
 
   def get_media_version_title(%MediaVersion{} = version) do
     (Map.get(version.metadata || %{}, "page_info") || %{}) |> Map.get("title", version.source_url)
+  end
+
+  def clone_media(%Media{} = media, %Project{} = into_project) do
+    # First we copy the media itself; we already have a mechanism to do this
+    {:ok, new_media} =
+      copy_media_to_project_audited(media, into_project, Accounts.get_auto_account(),
+        leave_comments: false
+      )
+
+    # Now we just need to copy all the updates
+    for update <- media.updates do
+      old_update_json = Jason.encode!(update)
+
+      # Here's a horrible hack. We need to change the IDs of attributes in the update JSON to match the IDs of the attributes in the new project.
+      # So we do a string find-and-replace.
+      new_update_json =
+        Enum.reduce(into_project.attributes, old_update_json, fn attribute, json ->
+          old_attribute = Enum.find(media.project.attributes, &(&1.name == attribute.name))
+
+          if not is_nil(old_attribute) do
+            String.replace(json, "#{old_attribute.id}", "#{attribute.id}")
+          else
+            json
+          end
+        end)
+
+      {:ok, _} =
+        Platform.Updates.create_update_from_changeset(
+          Platform.Updates.Update.raw_changeset(
+            %Platform.Updates.Update{},
+            Jason.decode!(new_update_json)
+            |> Map.put("media_id", new_media.id)
+          )
+        )
+    end
+
+    {:ok, new_media}
   end
 end

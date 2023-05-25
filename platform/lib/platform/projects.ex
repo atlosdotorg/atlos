@@ -380,4 +380,43 @@ defmodule Platform.Projects do
       ) do
     ProjectMembership.changeset(project_membership, attrs, opts)
   end
+
+  @doc """
+  Clones the *content* of a given project, but not its members. Deleted incidents will not be copied.
+
+  This is currently used for creating the "starter" project for new users.
+
+  Cloning involves:
+
+  * Creating a new project with the same name, slug, and description
+  * Cloning all the project's incidents
+    * For each incident, cloning all the incident's updates and media versions
+  """
+  def clone_project(%Project{} = project) do
+    {:ok, new_project} =
+      create_project(%{
+        name: project.name,
+        code: project.code,
+        description: project.description,
+        color: project.color
+      })
+
+    # Update the attributes
+    {:ok, new_project} =
+      update_project(new_project, %{
+        attributes: project.attributes |> Enum.map(&Map.from_struct/1)
+      })
+
+    # Clone all the non-deleted media
+    {query, opts} =
+      Platform.Material.MediaSearch.changeset(%{project_id: project.id})
+      |> Platform.Material.MediaSearch.search_query()
+
+    for media <-
+          Platform.Material.query_media(query, opts) do
+      {:ok, _} = Platform.Material.clone_media(media, new_project)
+    end
+
+    {:ok, new_project}
+  end
 end
