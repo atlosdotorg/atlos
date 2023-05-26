@@ -76,6 +76,13 @@ defmodule Platform.Permissions do
     end
   end
 
+  def can_bulk_upload_media_to_project?(%User{} = user, %Project{} = project) do
+    case Projects.get_project_membership_by_user_and_project(user, project) do
+      %Projects.ProjectMembership{role: :owner} -> true
+      _ -> false
+    end
+  end
+
   def can_delete_media?(%User{} = user, %Media{} = media) do
     case Projects.get_project_membership_by_user_and_project_id(user, media.project_id) do
       %Projects.ProjectMembership{role: :owner} -> true
@@ -192,34 +199,38 @@ defmodule Platform.Permissions do
   end
 
   def can_comment_on_media?(%User{} = user, %Media{} = media) do
-    # This logic would be nice to refactor into a `with` statement
-    case Platform.Security.get_security_mode_state() do
-      :normal ->
-        case Enum.member?(user.restrictions || [], :muted) do
-          true ->
-            false
+    if Accounts.is_auto_account(user) do
+      true
+    else
+      # This logic would be nice to refactor into a `with` statement
+      case Platform.Security.get_security_mode_state() do
+        :normal ->
+          case Enum.member?(user.restrictions || [], :muted) do
+            true ->
+              false
 
-          false ->
-            case media.attr_restrictions do
-              nil ->
-                can_view_media?(user, media)
+            false ->
+              case media.attr_restrictions do
+                nil ->
+                  can_view_media?(user, media)
 
-              values ->
-                # Restrictions are present.
-                if not is_nil(media.project) and
-                     (Enum.member?(values, "Hidden") || Enum.member?(values, "Frozen")) do
-                  membership =
-                    Projects.get_project_membership_by_user_and_project(user, media.project)
+                values ->
+                  # Restrictions are present.
+                  if not is_nil(media.project) and
+                       (Enum.member?(values, "Hidden") || Enum.member?(values, "Frozen")) do
+                    membership =
+                      Projects.get_project_membership_by_user_and_project(user, media.project)
 
-                  membership.role == :owner or membership.role == :manager
-                else
-                  true
-                end
-            end
-        end
+                    membership.role == :owner or membership.role == :manager
+                  else
+                    true
+                  end
+              end
+          end
 
-      _ ->
-        Accounts.is_admin(user)
+        _ ->
+          false
+      end
     end
   end
 

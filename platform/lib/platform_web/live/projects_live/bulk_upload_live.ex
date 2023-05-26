@@ -1,17 +1,26 @@
-defmodule PlatformWeb.AdminlandLive.BulkUploadLive do
+defmodule PlatformWeb.ProjectsLive.BulkUploadLive do
   use PlatformWeb, :live_component
 
   alias Platform.Utils
   alias Platform.Material
   alias Platform.Auditor
+  alias Platform.Permissions
 
-  def update(%{parent_socket: parent_socket} = _assigns, socket) do
+  def update(
+        %{project: project, current_user: current_user} = _assigns,
+        socket
+      ) do
+    unless Permissions.can_bulk_upload_media_to_project?(current_user, project) do
+      raise "No permission"
+    end
+
     Temp.track!()
 
     {:ok,
      socket
-     |> assign(parent_socket: parent_socket)
+     |> assign(:project, project)
      |> assign(:stage, "Upload incidents")
+     |> assign(:current_user, current_user)
      |> assign(:processing, false)
      |> assign(:media_processing_error, false)
      |> assign(:decoding_errors, [])
@@ -69,7 +78,9 @@ defmodule PlatformWeb.AdminlandLive.BulkUploadLive do
       changesets =
         rows
         |> Enum.with_index(1)
-        |> Enum.map(fn {{:ok, item}, idx} -> {Material.bulk_import_change(item), idx} end)
+        |> Enum.map(fn {{:ok, item}, idx} ->
+          {Material.bulk_import_change(item, socket.assigns.project), idx}
+        end)
 
       socket
       |> assign(:stage, "Confirm information")
@@ -83,21 +94,33 @@ defmodule PlatformWeb.AdminlandLive.BulkUploadLive do
     {:noreply, socket}
   end
 
+  def handle_event("reset", _params, socket) do
+    {:ok, s} = update(socket.assigns, socket)
+    {:noreply, s}
+  end
+
   def handle_event("save", _params, socket) do
     {:noreply, socket}
   end
 
   def handle_event("publish", _params, socket) do
+    unless Permissions.can_bulk_upload_media_to_project?(
+             socket.assigns.current_user,
+             socket.assigns.project
+           ) do
+      raise "No permission"
+    end
+
     Task.start(fn ->
       Auditor.log(
         :bulk_upload,
         %{num_items: length(socket.assigns.import_items)},
-        socket.assigns.parent_socket
+        socket
       )
 
       socket.assigns.import_items
       |> Enum.map(fn item ->
-        {:ok, _} = item |> Material.bulk_import_create()
+        {:ok, _} = item |> Material.bulk_import_create(socket.assigns.project)
       end)
     end)
 
@@ -152,49 +175,37 @@ defmodule PlatformWeb.AdminlandLive.BulkUploadLive do
       )
 
     ~H"""
-    <section class="max-w-3xl mx-auto">
+    <section class="max-w-prose mt-8 mb-32">
+      <div class="mb-4">
+        <p class="sec-head text-xl">Bulk Import</p>
+        <p class="sec-subhead">Upload many incidents from a CSV file.</p>
+      </div>
       <.card>
-        <:header>
-          <p class="sec-head">Bulk Upload</p>
-          <p class="sec-subhead">Use this tool to upload new incidents in bulk.</p>
-        </:header>
         <.stepper options={["Upload incidents", "Confirm information", "Next steps"]} active={@stage} />
         <hr class="sep" />
         <%= case @stage do %>
           <% "Upload incidents" -> %>
             <form phx-change="validate" phx-submit="save" phx-target={@myself} id="upload-form">
-              <div class="rounded-md bg-urge-50 p-4 mb-4">
+              <div class="rounded-md bg-blue-50 p-4 border-blue-600 border mb-8 -mt-4">
                 <div class="flex">
                   <div class="flex-shrink-0">
-                    <!-- Heroicon name: solid/information-circle -->
-                    <svg
-                      class="h-5 w-5 text-blue-400"
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                      aria-hidden="true"
-                    >
-                      <path
-                        fill-rule="evenodd"
-                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
-                        clip-rule="evenodd"
-                      />
-                    </svg>
+                    <Heroicons.information_circle mini class="h-5 w-5 text-blue-500" />
                   </div>
-                  <div class="ml-3 prose text-sm text-blue-700">
+                  <div class="ml-3 flex-1 md:flex flex-col text-sm text-blue-700 md:justify-between prose prose-sm">
                     <p>
-                      <strong class="text-blue-700">
-                        Atlos requires a very specific format for bulk uploads.
-                      </strong>
-                      You can learn more about the required format below.
+                      Atlos requires a very specific format for bulk uploads.
                     </p>
                     <details class="-mt-2">
-                      <summary class="cursor-pointer font-medium">Required file format</summary>
-                      <p>Atlos can perform bulk imports from CSV files with the following columns:</p>
+                      <summary class="cursor-pointer font-medium">
+                        Learn about the required file format
+                      </summary>
+                      <p>
+                        Atlos can perform bulk imports from CSV files into this project with the following columns:
+                      </p>
                       <ul>
-                        <%= for attr <- Material.Attribute.attribute_names() do %>
+                        <%= for attr <- Material.Attribute.attribute_names(project: @project) do %>
                           <li>
-                            <.attr_explanation name={attr} />
+                            <.attr_explanation name={attr} project={@project} />
                           </li>
                         <% end %>
                         <li>
@@ -223,6 +234,7 @@ defmodule PlatformWeb.AdminlandLive.BulkUploadLive do
               <div
                 class="w-full flex justify-center items-center px-6 pt-5 pb-6 border-2 h-40 border-gray-300 border-dashed rounded-md"
                 phx-drop-target={@uploads.bulk_upload.ref}
+                phx-target={@myself}
               >
                 <%= live_file_input(@uploads.bulk_upload, class: "sr-only") %>
                 <%= if @processing do %>
@@ -411,16 +423,17 @@ defmodule PlatformWeb.AdminlandLive.BulkUploadLive do
                   </ul>
                 </div>
               </div>
-              <%= live_redirect("New Upload",
-                to: Routes.adminland_index_path(@socket, :upload),
-                class: "button ~urge mt-4 @high"
-              ) %>
+              <button type="button" phx-click="reset" phx-target={@myself} class="button ~urge mt-4 @high" )>
+                New Upload
+              </button>
             <% else %>
               <% valid = Enum.filter(@changesets, fn {x, _idx} -> x.valid? end) %>
-              <aside class="aside ~info">
+              <aside class="bg-positive-100 rounded-lg border border-positive-600 text-positive-700 text-sm p-4 -mt-4">
                 <p>
-                  <strong>Found <%= length(@changesets) %> incidents.</strong>
-                  If everything below looks right, click "Publish" to publish these incidents to Atlos. Note that not all media will be automatically archived.
+                  <strong class="font-medium text-positive-800">
+                    Found <%= length(@changesets) %> incidents.
+                  </strong>
+                  If everything below looks right, click "Publish" to publish these incidents to Atlos. Note that media will be archived on a best-effort basis.
                 </p>
               </aside>
               <div class="grid gap-4 grid-cols-1 mt-4">
@@ -433,24 +446,17 @@ defmodule PlatformWeb.AdminlandLive.BulkUploadLive do
                       ) %>
                     </p>
                     <div class="grid gap-2 grid-cols-1 md:grid-cols-3 text-sm p-4">
-                      <%= for {key, value} <- changeset.changes |> Map.to_list() do %>
-                        <%= if String.length(value |> to_string()) > 0 and key != :attr_description do %>
+                      <% applied_media = Ecto.Changeset.apply_changes(changeset) %>
+                      <%= for attr <- Material.Attribute.active_attributes(project: @project) do %>
+                        <% value = Material.get_attribute_value(applied_media, attr) %>
+                        <%= if not is_nil(value) and value != [] and value != "" and attr.schema_field != :attr_description do %>
                           <div class="overflow-hidden max-w-full">
                             <p class="font-medium text-gray-500">
-                              <%= key |> to_string() |> String.replace(~r/^attr_/, "") %>
+                              <%= attr.label %>
                             </p>
-                            <p class="flex">
-                              <% attr = Material.Attribute.get_attribute_by_schema_field(key) %>
-                              <%= if not is_nil(attr) do %>
-                                <.attr_entry name={attr.name} value={value} />
-                              <% else %>
-                                <%= if is_list(value) do %>
-                                  <%= Enum.join(value, ", ") %>
-                                <% else %>
-                                  <%= value |> to_string() %>
-                                <% end %>
-                              <% end %>
-                            </p>
+                            <div>
+                              <.attr_entry name={attr.name} value={value} project={@project} />
+                            </div>
                           </div>
                         <% end %>
                       <% end %>
@@ -458,10 +464,9 @@ defmodule PlatformWeb.AdminlandLive.BulkUploadLive do
                   </div>
                 <% end %>
               </div>
-              <%= live_redirect("Back",
-                to: Routes.adminland_index_path(@socket, :upload),
-                class: "button ~neutral mt-4"
-              ) %>
+              <button type="button" phx-click="reset" phx-target={@myself} class="base-button mt-4" )>
+                Back
+              </button>
               <button
                 type="button"
                 class="button ~urge @high mt-4"
@@ -472,18 +477,15 @@ defmodule PlatformWeb.AdminlandLive.BulkUploadLive do
               </button>
             <% end %>
           <% "Next steps" -> %>
-            <aside class="aside ~positive">
+            <aside class="bg-positive-100 rounded-lg border border-positive-600 text-positive-700 text-sm p-4 -mt-4">
               <p>
-                <strong>Your import has begun!</strong>
+                <strong class="font-medium text-positive-800">Your import has begun!</strong>
                 It will continue in the background. You can safely close this tab.
               </p>
-              <p class="mt-2">
-                You can perform a <%= live_redirect("new upload",
-                  to: Routes.adminland_index_path(@socket, :upload),
-                  class: "inline underline"
-                ) %> or <a href="/incidents" class="underline">view all incidents</a>.
-              </p>
             </aside>
+            <button type="button" phx-click="reset" phx-target={@myself} class="button ~urge @high mt-4" )>
+              New Import
+            </button>
         <% end %>
       </.card>
     </section>

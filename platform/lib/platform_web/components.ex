@@ -1511,13 +1511,15 @@ defmodule PlatformWeb.Components do
     """
   end
 
-  def attr_explanation(%{name: name} = assigns) do
-    assigns = assign(assigns, :attr, Attribute.get_attribute(name))
+  def attr_explanation(%{name: name, project: project} = assigns) do
+    assigns = assign(assigns, :attr, Attribute.get_attribute(name, project: project))
 
     ~H"""
     <span class="inline-flex flex-wrap gap-1">
       <span class="font-medium">
-        <%= @attr.name |> to_string() %>
+        <%= if @attr.schema_field == :project_attributes,
+          do: String.downcase(@attr.label),
+          else: @attr.name |> to_string() %>
       </span>
       &mdash;
       <%= case @attr.type do %>

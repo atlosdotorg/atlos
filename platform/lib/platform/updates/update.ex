@@ -98,7 +98,7 @@ defmodule Platform.Updates.Update do
   end
 
   def validate_access(changeset, %User{} = user, %Media{} = media) do
-    if Permissions.can_edit_media?(user, media) ||
+    if Accounts.is_auto_account(user) || Permissions.can_edit_media?(user, media) ||
          (get_field(changeset, :type) == :comment and
             Permissions.can_comment_on_media?(user, media)) do
       changeset

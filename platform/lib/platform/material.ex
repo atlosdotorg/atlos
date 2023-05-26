@@ -362,8 +362,8 @@ defmodule Platform.Material do
   @doc """
   A changeset meant to be paired with bulk uploads.
   """
-  def bulk_import_change(media \\ %Media{}, attrs) do
-    Media.import_changeset(media, attrs)
+  def bulk_import_change(media \\ %Media{}, attrs, %Project{} = project) do
+    Media.import_changeset(media, attrs, project)
   end
 
   @doc """
@@ -371,11 +371,11 @@ defmodule Platform.Material do
   import data. The Atlos bot account will also leave a comment that links to the
   provided source media URLs.
   """
-  def bulk_import_create(media \\ %Media{}, attrs) do
+  def bulk_import_create(media \\ %Media{}, attrs, %Project{} = project) do
     Repo.transaction(fn ->
       bot_account = Accounts.get_auto_account()
 
-      changeset = Media.import_changeset(media, attrs)
+      changeset = Media.import_changeset(media, attrs, project)
 
       {:ok, media} =
         changeset

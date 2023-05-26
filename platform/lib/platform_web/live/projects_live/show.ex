@@ -279,6 +279,13 @@ defmodule PlatformWeb.ProjectsLive.Show do
             current_user={@current_user}
             project={@project}
           />
+          <hr class="max-w-prose" />
+          <.live_component
+            module={PlatformWeb.ProjectsLive.BulkUploadLive}
+            id="bulk-upload"
+            current_user={@current_user}
+            project={@project}
+          />
         <% end %>
         <%= if @live_action == :members and feature_available?(:project_access_controls) do %>
           <.live_component

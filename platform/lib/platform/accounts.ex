@@ -35,12 +35,15 @@ defmodule Platform.Accounts do
       nil ->
         # No admin! Create the user
         {:ok, user} =
-          register_user(%{
-            username: "Atlos",
-            email: "admin@atlos.org",
-            invite_code: get_valid_invite_code(),
-            password: Utils.generate_secure_code()
-          })
+          register_user(
+            %{
+              username: "Atlos",
+              email: "admin@atlos.org",
+              invite_code: get_valid_invite_code(),
+              password: Utils.generate_secure_code()
+            },
+            allow_special_users: true
+          )
 
         {:ok, user} = update_user_admin(user, %{roles: [:trusted], flair: "Bot"})
 
@@ -118,7 +121,9 @@ defmodule Platform.Accounts do
   ## User registration
 
   @doc """
-  Registers a user.
+  Registers a user. Note that users are not allowed to register with special
+  usernames (specifically, `Atlos`, unless the `allow_special_users` option is
+  set to true).
 
   ## Examples
 
@@ -129,9 +134,9 @@ defmodule Platform.Accounts do
       {:error, %Ecto.Changeset{}}
 
   """
-  def register_user(attrs) do
+  def register_user(attrs, opts \\ []) do
     %User{}
-    |> User.registration_changeset(attrs)
+    |> User.registration_changeset(attrs, opts)
     # We only validate the invite code when they actually submit, to prevent enumeration (at this point, they must have completed the captcha)
     |> User.validate_invite_code()
     |> Repo.insert()
