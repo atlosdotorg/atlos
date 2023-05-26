@@ -2930,6 +2930,20 @@ defmodule PlatformWeb.Components do
                       Unminimize
                     </button>
                   <% end %>
+                  <%= if Permissions.can_rearchive_media_version?(@current_user, @version) do %>
+                    <button
+                      type="button"
+                      data-confirm="Are you sure you want to rearchive this media?"
+                      phx-click="rearchive_media_version"
+                      phx-value-version={@version.id}
+                      phx-value-state="visible"
+                      class="text-gray-700 px-2 py-2 text-sm flex items-center gap-2 hover:bg-gray-100 w-full"
+                      title="Rearchive"
+                    >
+                      <Heroicons.arrow_path mini class="w-5 h-5 text-neutral-500" />
+                      Rearchive
+                    </button>
+                  <% end %>
                   <%= if @show_controls and Platform.Permissions.can_change_media_version_visibility?(@current_user, @version) do %>
                     <button
                       type="button"

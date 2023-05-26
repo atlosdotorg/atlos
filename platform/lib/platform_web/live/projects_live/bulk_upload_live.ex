@@ -423,7 +423,13 @@ defmodule PlatformWeb.ProjectsLive.BulkUploadLive do
                   </ul>
                 </div>
               </div>
-              <button type="button" phx-click="reset" phx-target={@myself} class="button ~urge mt-4 @high" )>
+              <button
+                type="button"
+                phx-click="reset"
+                phx-target={@myself}
+                class="button ~urge mt-4 @high"
+                )
+              >
                 New Upload
               </button>
             <% else %>
@@ -483,7 +489,13 @@ defmodule PlatformWeb.ProjectsLive.BulkUploadLive do
                 It will continue in the background. You can safely close this tab.
               </p>
             </aside>
-            <button type="button" phx-click="reset" phx-target={@myself} class="button ~urge @high mt-4" )>
+            <button
+              type="button"
+              phx-click="reset"
+              phx-target={@myself}
+              class="button ~urge @high mt-4"
+              )
+            >
               New Import
             </button>
         <% end %>
