@@ -127,12 +127,27 @@ defmodule PlatformWeb.ProjectsLive.BulkUploadLive do
     {:noreply, socket |> assign(:stage, "Next steps")}
   end
 
-  defp extract_errors(changeset) do
+  defp extract_errors(changeset, project) do
     Ecto.Changeset.traverse_errors(changeset, fn {msg, opts} ->
       Regex.replace(~r"%{(\w+)}", msg, fn _, key ->
         opts |> Keyword.get(String.to_existing_atom(key), key) |> to_string()
       end)
     end)
+    |> Enum.map(fn {key, value} ->
+      if key == :project_attributes do
+        Enum.map(Enum.with_index(value), fn {errors, idx} ->
+          attr_idx =
+            Ecto.Changeset.get_field(changeset.changes[:project_attributes] |> Enum.at(idx), :id)
+
+          attr = Platform.Material.Attribute.get_attribute(attr_idx, project: project)
+          {attr.label, Map.values(errors)}
+        end)
+      else
+        {key, value}
+      end
+    end)
+    |> List.flatten()
+    |> Enum.into(%{})
   end
 
   def render(assigns) do
@@ -407,11 +422,9 @@ defmodule PlatformWeb.ProjectsLive.BulkUploadLive do
                       <article>
                         <li>
                           <strong class="font-semibold">Row <%= idx %></strong>
-                          <%= for {key, errors} <- extract_errors(changeset) |> Map.to_list() do %>
+                          <%= for {key, errors} <- extract_errors(changeset, @project) |> Map.to_list() |> dbg() do %>
                             <p>
-                              <%= (Material.Attribute.get_attribute_by_schema_field(key) ||
-                                     %{name: key}).name
-                              |> to_string() %>: <%= Enum.join(
+                              <%= key %>: <%= Enum.join(
                                 errors,
                                 ","
                               ) %>
