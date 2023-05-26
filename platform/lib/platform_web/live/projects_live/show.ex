@@ -94,7 +94,7 @@ defmodule PlatformWeb.ProjectsLive.Show do
                   </span>
                 </div>
               </h1>
-              <div class="text-neutral-500 prose mt-6">
+              <div class="text-neutral-500 prose mt-6 leading-snug">
                 <%= @project.description |> Platform.Utils.render_markdown() |> raw() %>
               </div>
             </div>
