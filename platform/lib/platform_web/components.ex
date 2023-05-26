@@ -2855,6 +2855,7 @@ defmodule PlatformWeb.Components do
                     role="menuitem"
                     class="text-gray-700 px-2 py-2 text-sm flex items-center gap-2 hover:bg-gray-100"
                     data-confirm="This link will open an external site in a new tab. Are you sure?"
+                    :if={not is_nil(@version.source_url)}
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -2877,6 +2878,7 @@ defmodule PlatformWeb.Components do
                         Jason.encode!(@version.source_url) <>
                         ")"
                     }
+                    :if={not is_nil(@version.source_url)}
                   >
                     <Heroicons.link mini class="w-5 h-5 text-neutral-500" /> Copy URL
                   </button>
