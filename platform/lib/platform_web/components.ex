@@ -888,7 +888,7 @@ defmodule PlatformWeb.Components do
                               signed: true,
                               expires_in: 60 * 60 * 6
                             ) %>
-                          <div class="rounded overflow-hidden max-h-64 cursor">
+                          <div class="rounded overflow-hidden max-h-64 cursor highlight-block">
                             <%= cond do %>
                               <% String.ends_with?(attachment, ".jpg") || String.ends_with?(attachment, ".jpeg") || String.ends_with?(attachment, ".png") -> %>
                                 <a href={url} target="_blank">
@@ -2663,7 +2663,7 @@ defmodule PlatformWeb.Components do
           >
             <%= cond do %>
               <% not @is_graphic and Platform.Utils.is_processable_media(@artifact.mime_type) -> %>
-                <div class="grayscale">
+                <div class="grayscale highlight-block">
                   <img
                     src={Material.media_version_artifact_location(@artifact, version: :thumbnail)}
                     class="w-full object-cover scale-[1.1] origin-top"
