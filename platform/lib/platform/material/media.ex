@@ -280,7 +280,7 @@ defmodule Platform.Material.Media do
                   # Already split, or the uploader did something wrong (e.g., two columns of the same field)
                   v
                 else
-                  v |> String.split(",") |> Enum.map(&String.trim(&1))
+                  v |> String.split(",") |> Enum.map(&String.trim(&1)) |> Enum.reject(&(&1 == ""))
                 end
 
               _ ->

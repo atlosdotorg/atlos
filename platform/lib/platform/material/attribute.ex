@@ -942,10 +942,11 @@ defmodule Platform.Material.Attribute do
               # enumerable types, not just {:array, _}.
               if Enum.any?(vals, fn val -> not Enum.member?(options(attribute), val) end) and
                    not Keyword.get(opts, :allow_invalid_selects, false) do
+                invalid = Enum.reject(vals, fn val -> Enum.member?(options(attribute), val) end)
+
                 [
                   {attribute.schema_field,
-                   "Includes an invalid value. Valid values are: " <>
-                     Enum.join(options(attribute), ", ")}
+                   "Includes invalid value(s): #{Enum.join(invalid, ", ")}. Valid values are: #{Enum.join(options(attribute), ", ")}"}
                 ]
               else
                 []
