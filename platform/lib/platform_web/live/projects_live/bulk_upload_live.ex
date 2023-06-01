@@ -217,10 +217,19 @@ defmodule PlatformWeb.ProjectsLive.BulkUploadLive do
                       <p>
                         Atlos can perform bulk imports from CSV files into this project with the following columns:
                       </p>
+                      <p class="font-medium">Required</p>
                       <ul>
-                        <%= for attr <- Material.Attribute.attribute_names(project: @project) do %>
+                        <%= for attr <- Material.Attribute.active_attributes(project: @project) |> Enum.filter(& &1.required) do %>
                           <li>
-                            <.attr_explanation name={attr} project={@project} />
+                            <.attr_explanation name={attr.name} project={@project} />
+                          </li>
+                        <% end %>
+                      </ul>
+                      <p class="font-medium">Optional</p>
+                      <ul>
+                        <%= for attr <- Material.Attribute.active_attributes(project: @project) |> Enum.reject(& &1.required) do %>
+                          <li>
+                            <.attr_explanation name={attr.name} project={@project} />
                           </li>
                         <% end %>
                         <li>
