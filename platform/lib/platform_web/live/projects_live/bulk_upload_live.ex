@@ -190,338 +190,353 @@ defmodule PlatformWeb.ProjectsLive.BulkUploadLive do
       )
 
     ~H"""
-    <section class="max-w-prose mt-8 mb-32">
-      <div class="mb-4">
+    <section class="flex flex-col md:flex-row mt-8 mb-32">
+      <div class="mb-4 md:w-[20rem] md:mr-20">
         <p class="sec-head text-xl">Bulk Import</p>
         <p class="sec-subhead">Upload many incidents from a CSV file.</p>
       </div>
-      <.card>
-        <.stepper options={["Upload incidents", "Confirm information", "Next steps"]} active={@stage} />
-        <hr class="sep" />
-        <%= case @stage do %>
-          <% "Upload incidents" -> %>
-            <form phx-change="validate" phx-submit="save" phx-target={@myself} id="upload-form">
-              <div class="rounded-md bg-blue-50 p-4 border-blue-600 border mb-8 -mt-4">
-                <div class="flex">
-                  <div class="flex-shrink-0">
-                    <Heroicons.information_circle mini class="h-5 w-5 text-blue-500" />
-                  </div>
-                  <div class="ml-3 flex-1 md:flex flex-col text-sm text-blue-700 md:justify-between prose prose-sm">
+      <div class="grow">
+        <div class="rounded-md bg-blue-50 p-4 border-blue-600 border mb-8">
+          <div class="flex">
+            <div class="flex-shrink-0">
+              <Heroicons.information_circle mini class="h-5 w-5 text-blue-500" />
+            </div>
+            <div class="ml-3 flex-1 md:flex flex-col text-sm text-blue-700 md:justify-between prose prose-sm">
+              <p>
+                Atlos requires a very specific format for bulk uploads.
+              </p>
+              <details class="-mt-2">
+                <summary class="cursor-pointer font-medium">
+                  Learn about the required file format
+                </summary>
+                <p>
+                  Atlos can perform bulk imports from CSV files into this project with the following columns:
+                </p>
+                <p class="font-medium">Required</p>
+                <ul>
+                  <%= for attr <- Material.Attribute.active_attributes(project: @project) |> Enum.filter(& &1.required) do %>
+                    <li>
+                      <.attr_explanation name={attr.name} project={@project} />
+                    </li>
+                  <% end %>
+                </ul>
+                <p class="font-medium">Optional</p>
+                <ul>
+                  <%= for attr <- Material.Attribute.active_attributes(project: @project) |> Enum.reject(& &1.required) do %>
+                    <li>
+                      <.attr_explanation name={attr.name} project={@project} />
+                    </li>
+                  <% end %>
+                  <li>
+                    <span class="font-medium">sources</span>
+                    &mdash; include sources as URLs in columns named <span class="badge ~urge">source_1</span>, <span class="badge ~urge">source_2</span>, <span class="badge ~urge">source_3</span>, etc.
+                  </li>
+                </ul>
+                <p>Note that this format perfectly matches Atlos' bulk exports.</p>
+              </details>
+            </div>
+          </div>
+        </div>
+        <.card class="grow border">
+          <.stepper
+            options={["Upload incidents", "Confirm information", "Next steps"]}
+            active={@stage}
+          />
+          <hr class="sep" />
+          <%= case @stage do %>
+            <% "Upload incidents" -> %>
+              <form phx-change="validate" phx-submit="save" phx-target={@myself} id="upload-form">
+                <%= if length(@decoding_errors) > 0 do %>
+                  <aside class="aside ~critical mb-8">
                     <p>
-                      Atlos requires a very specific format for bulk uploads.
+                      <strong>We encountered errors while processing your upload.</strong>
+                      Please correct the errors below and re-upload your CSV.
                     </p>
-                    <details class="-mt-2">
-                      <summary class="cursor-pointer font-medium">
-                        Learn about the required file format
-                      </summary>
-                      <p>
-                        Atlos can perform bulk imports from CSV files into this project with the following columns:
-                      </p>
-                      <p class="font-medium">Required</p>
-                      <ul>
-                        <%= for attr <- Material.Attribute.active_attributes(project: @project) |> Enum.filter(& &1.required) do %>
-                          <li>
-                            <.attr_explanation name={attr.name} project={@project} />
-                          </li>
-                        <% end %>
-                      </ul>
-                      <p class="font-medium">Optional</p>
-                      <ul>
-                        <%= for attr <- Material.Attribute.active_attributes(project: @project) |> Enum.reject(& &1.required) do %>
-                          <li>
-                            <.attr_explanation name={attr.name} project={@project} />
-                          </li>
-                        <% end %>
-                        <li>
-                          <span class="font-medium">sources</span>
-                          &mdash; include sources as URLs in columns named <span class="badge ~urge">source_1</span>, <span class="badge ~urge">source_2</span>, <span class="badge ~urge">source_3</span>, etc.
-                        </li>
-                      </ul>
-                      <p>Note that this format perfectly matches Atlos' bulk exports.</p>
-                    </details>
-                  </div>
-                </div>
-              </div>
-              <%= if length(@decoding_errors) > 0 do %>
-                <aside class="aside ~critical mb-8">
-                  <p>
-                    <strong>We encountered errors while processing your upload.</strong>
-                    Please correct the errors below and re-upload your CSV.
-                  </p>
-                  <ol class="list-decimal mt-4 ml-8">
-                    <%= for error <- @decoding_errors do %>
-                      <li><%= error %></li>
-                    <% end %>
-                  </ol>
-                </aside>
-              <% end %>
-              <div
-                class="w-full flex justify-center items-center px-6 pt-5 pb-6 border-2 h-40 border-gray-300 border-dashed rounded-md"
-                phx-drop-target={@uploads.bulk_upload.ref}
-                phx-target={@myself}
-              >
-                <%= live_file_input(@uploads.bulk_upload, class: "sr-only") %>
-                <%= if @processing do %>
-                  <div>
-                    <div class="space-y-1 text-center">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        class="mx-auto h-12 w-12 text-urge-400 animate-spin"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        stroke-width="2"
-                      >
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
-                        />
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                        />
-                      </svg>
-                      <div class="w-full text-sm text-gray-600">
-                        <div class="w-42 mt-2 text-center">
-                          <p class="font-medium text-neutral-800 mb-1">Processing your upload...</p>
-                          <p>
-                            This might take a moment. Please keep the window open.
-                          </p>
+                    <ol class="list-decimal mt-4 ml-8">
+                      <%= for error <- @decoding_errors do %>
+                        <li><%= error %></li>
+                      <% end %>
+                    </ol>
+                  </aside>
+                <% end %>
+                <div
+                  class="w-full flex justify-center items-center px-6 pt-5 pb-6 border-2 h-40 border-gray-300 border-dashed rounded-md"
+                  phx-drop-target={@uploads.bulk_upload.ref}
+                  phx-target={@myself}
+                >
+                  <%= live_file_input(@uploads.bulk_upload, class: "sr-only") %>
+                  <%= if @processing do %>
+                    <div>
+                      <div class="space-y-1 text-center">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          class="mx-auto h-12 w-12 text-urge-400 animate-spin"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                          stroke-width="2"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+                          />
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                          />
+                        </svg>
+                        <div class="w-full text-sm text-gray-600">
+                          <div class="w-42 mt-2 text-center">
+                            <p class="font-medium text-neutral-800 mb-1">Processing your upload...</p>
+                            <p>
+                              This might take a moment. Please keep the window open.
+                            </p>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                <% else %>
-                  <%= cond do %>
-                    <% @is_complete -> %>
-                      <div class="space-y-1 text-center phx-only-during-reg">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          class="mx-auto h-12 w-12 text-positive-600"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                          stroke-width="2"
-                        >
-                          <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                          />
-                        </svg>
-                        <div class="w-full text-sm text-gray-600">
-                          <%= for entry <- @uploads.bulk_upload.entries do %>
-                            <div class="w-42 mt-4 text-center">
-                              <p>Uploaded <%= Utils.truncate(entry.client_name) %>.</p>
-                            </div>
-                          <% end %>
-                        </div>
-                        <div>
-                          <%= @cancel_upload %>
-                        </div>
-                      </div>
-                    <% @is_invalid -> %>
-                      <div class="space-y-1 text-center phx-only-during-reg">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          class="mx-auto h-12 w-12 text-critical-600"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                          stroke-width="2"
-                        >
-                          <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                          />
-                        </svg>
-                        <div class="w-full text-sm text-gray-600">
-                          <p>Something went wrong while processing your upload.</p>
-                          <%= for entry <- @uploads.bulk_upload.entries do %>
-                            <%= for err <- upload_errors(@uploads.bulk_upload, entry) do %>
-                              <p class="my-2"><%= friendly_error(err) %></p>
-                            <% end %>
-                          <% end %>
-                          <label
-                            for={@uploads.bulk_upload.ref}
-                            class="relative cursor-pointer bg-white rounded-md font-medium !text-urge-600 hover:text-urge-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-urge-500"
+                  <% else %>
+                    <%= cond do %>
+                      <% @is_complete -> %>
+                        <div class="space-y-1 text-center phx-only-during-reg">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            class="mx-auto h-12 w-12 text-positive-600"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            stroke-width="2"
                           >
-                            <span>Upload another file</span>
-                          </label>
-                        </div>
-                      </div>
-                    <% @is_uploading -> %>
-                      <div class="space-y-1 text-center w-full phx-only-during-reg">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          aria-hidden="true"
-                          class="mx-auto h-12 w-12 text-gray-400 animate-pulse"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                          stroke-width="2"
-                        >
-                          <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
-                          />
-                        </svg>
-                        <div class="w-full text-sm text-gray-600">
-                          <%= for entry <- @uploads.bulk_upload.entries do %>
-                            <%= if entry.progress < 100 and entry.progress > 0 do %>
+                            <path
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                            />
+                          </svg>
+                          <div class="w-full text-sm text-gray-600">
+                            <%= for entry <- @uploads.bulk_upload.entries do %>
                               <div class="w-42 mt-4 text-center">
-                                <p>Uploading <%= Utils.truncate(entry.client_name) %></p>
-                                <progress value={entry.progress} max="100" class="progress ~urge mt-2">
-                                  <%= entry.progress %>%
-                                </progress>
+                                <p>Uploaded <%= Utils.truncate(entry.client_name) %>.</p>
                               </div>
                             <% end %>
-                          <% end %>
+                          </div>
+                          <div>
+                            <%= @cancel_upload %>
+                          </div>
                         </div>
-                        <div>
-                          <%= @cancel_upload %>
-                        </div>
-                      </div>
-                    <% true -> %>
-                      <div class="space-y-1 text-center phx-only-during-reg">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          aria-hidden="true"
-                          class="mx-auto h-12 w-12 text-gray-400"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                          stroke-width="2"
-                        >
-                          <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
-                          />
-                        </svg>
-                        <div class="flex text-sm text-gray-600 justify-center">
-                          <label
-                            for={@uploads.bulk_upload.ref}
-                            class="relative cursor-pointer bg-white rounded-md font-medium !text-urge-600 hover:text-urge-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-urge-500"
+                      <% @is_invalid -> %>
+                        <div class="space-y-1 text-center phx-only-during-reg">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            class="mx-auto h-12 w-12 text-critical-600"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            stroke-width="2"
                           >
-                            <span>Upload a file</span>
-                          </label>
-                          <p class="pl-1 text-center">or drag and drop</p>
+                            <path
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                            />
+                          </svg>
+                          <div class="w-full text-sm text-gray-600">
+                            <p>Something went wrong while processing your upload.</p>
+                            <%= for entry <- @uploads.bulk_upload.entries do %>
+                              <%= for err <- upload_errors(@uploads.bulk_upload, entry) do %>
+                                <p class="my-2"><%= friendly_error(err) %></p>
+                              <% end %>
+                            <% end %>
+                            <label
+                              for={@uploads.bulk_upload.ref}
+                              class="relative cursor-pointer bg-white rounded-md font-medium !text-urge-600 hover:text-urge-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-urge-500"
+                            >
+                              <span>Upload another file</span>
+                            </label>
+                          </div>
                         </div>
-                        <p class="text-xs text-gray-500">CSV up to 250MB</p>
-                      </div>
-                  <% end %>
-                <% end %>
-              </div>
-            </form>
-          <% "Confirm information" -> %>
-            <% invalid = Enum.filter(@changesets, fn {x, _idx} -> not x.valid? end) %>
-            <%= if length(invalid) > 0 do %>
-              <div class="aside ~critical text-sm">
-                <h3>
-                  There were errors processing your upload. Please review the errors and try again.
-                </h3>
-                <div class="mt-2">
-                  <ul role="list" class="list-disc pl-5 space-y-1">
-                    <%= for {changeset, idx} <- invalid do %>
-                      <article>
-                        <li>
-                          <strong class="font-semibold">Row <%= idx %></strong>
-                          <%= for {key, errors} <- extract_errors(changeset, @project) |> Map.to_list() |> dbg() do %>
-                            <p>
-                              <%= key %>: <%= Enum.join(
-                                errors,
-                                ","
-                              ) %>
-                            </p>
-                          <% end %>
-                        </li>
-                      </article>
+                      <% @is_uploading -> %>
+                        <div class="space-y-1 text-center w-full phx-only-during-reg">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            aria-hidden="true"
+                            class="mx-auto h-12 w-12 text-gray-400 animate-pulse"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            stroke-width="2"
+                          >
+                            <path
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
+                            />
+                          </svg>
+                          <div class="w-full text-sm text-gray-600">
+                            <%= for entry <- @uploads.bulk_upload.entries do %>
+                              <%= if entry.progress < 100 and entry.progress > 0 do %>
+                                <div class="w-42 mt-4 text-center">
+                                  <p>Uploading <%= Utils.truncate(entry.client_name) %></p>
+                                  <progress
+                                    value={entry.progress}
+                                    max="100"
+                                    class="progress ~urge mt-2"
+                                  >
+                                    <%= entry.progress %>%
+                                  </progress>
+                                </div>
+                              <% end %>
+                            <% end %>
+                          </div>
+                          <div>
+                            <%= @cancel_upload %>
+                          </div>
+                        </div>
+                      <% true -> %>
+                        <div class="space-y-1 text-center phx-only-during-reg">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            aria-hidden="true"
+                            class="mx-auto h-12 w-12 text-gray-400"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            stroke-width="2"
+                          >
+                            <path
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
+                            />
+                          </svg>
+                          <div class="flex text-sm text-gray-600 justify-center">
+                            <label
+                              for={@uploads.bulk_upload.ref}
+                              class="relative cursor-pointer bg-white rounded-md font-medium !text-urge-600 hover:text-urge-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-urge-500"
+                            >
+                              <span>Upload a file</span>
+                            </label>
+                            <p class="pl-1 text-center">or drag and drop</p>
+                          </div>
+                          <p class="text-xs text-gray-500">CSV up to 250MB</p>
+                        </div>
                     <% end %>
-                  </ul>
+                  <% end %>
                 </div>
-              </div>
+              </form>
+            <% "Confirm information" -> %>
+              <% invalid = Enum.filter(@changesets, fn {x, _idx} -> not x.valid? end) %>
+              <%= if length(invalid) > 0 do %>
+                <div class="aside ~critical text-sm">
+                  <h3>
+                    There were errors processing your upload. Please review the errors and try again.
+                  </h3>
+                  <div class="mt-2">
+                    <ul role="list" class="list-disc pl-5 space-y-1">
+                      <%= for {changeset, idx} <- invalid do %>
+                        <article>
+                          <li>
+                            <strong class="font-semibold">Row <%= idx %></strong>
+                            <%= for {key, errors} <- extract_errors(changeset, @project) |> Map.to_list() |> dbg() do %>
+                              <p>
+                                <%= key %>: <%= Enum.join(
+                                  errors,
+                                  ","
+                                ) %>
+                              </p>
+                            <% end %>
+                          </li>
+                        </article>
+                      <% end %>
+                    </ul>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  phx-click="reset"
+                  phx-target={@myself}
+                  class="button ~urge mt-4 @high"
+                  )
+                >
+                  New Upload
+                </button>
+              <% else %>
+                <% valid = Enum.filter(@changesets, fn {x, _idx} -> x.valid? end) %>
+                <aside class="bg-positive-100 rounded-lg border border-positive-600 text-positive-700 text-sm p-4 -mt-4">
+                  <p>
+                    <strong class="font-medium text-positive-800">
+                      Found <%= length(@changesets) %> incidents.
+                    </strong>
+                    If everything below looks right, click "Publish" to publish these incidents to Atlos. Note that media will be archived on a best-effort basis.
+                  </p>
+                </aside>
+                <div class="grid gap-4 grid-cols-1 mt-4">
+                  <%= for {changeset, idx} <- valid do %>
+                    <div class="rounded shadow border">
+                      <p class="sec-head text-md p-4 border-b text-sm">
+                        <span class="text-gray-500">Row <%= idx %>:</span> <%= Ecto.Changeset.get_field(
+                          changeset,
+                          :attr_description
+                        ) %>
+                      </p>
+                      <div class="grid gap-2 grid-cols-1 md:grid-cols-3 text-sm p-4">
+                        <% applied_media = Ecto.Changeset.apply_changes(changeset) %>
+                        <%= for attr <- Material.Attribute.active_attributes(project: @project) do %>
+                          <% value = Material.get_attribute_value(applied_media, attr) %>
+                          <%= if not is_nil(value) and value != [] and value != "" and attr.schema_field != :attr_description do %>
+                            <div class="overflow-hidden max-w-full">
+                              <p class="font-medium text-gray-500">
+                                <%= attr.label %>
+                              </p>
+                              <div>
+                                <.attr_entry name={attr.name} value={value} project={@project} />
+                              </div>
+                            </div>
+                          <% end %>
+                        <% end %>
+                      </div>
+                    </div>
+                  <% end %>
+                </div>
+                <button
+                  type="button"
+                  phx-click="reset"
+                  phx-target={@myself}
+                  class="base-button mt-4"
+                  )
+                >
+                  Back
+                </button>
+                <button
+                  type="button"
+                  class="button ~urge @high mt-4"
+                  phx-target={@myself}
+                  phx-click="publish"
+                >
+                  Publish to Atlos
+                </button>
+              <% end %>
+            <% "Next steps" -> %>
+              <aside class="bg-positive-100 rounded-lg border border-positive-600 text-positive-700 text-sm p-4 -mt-4">
+                <p>
+                  <strong class="font-medium text-positive-800">Your import has begun!</strong>
+                  It will continue in the background. You can safely close this tab.
+                </p>
+              </aside>
               <button
                 type="button"
                 phx-click="reset"
                 phx-target={@myself}
-                class="button ~urge mt-4 @high"
+                class="button ~urge @high mt-4"
                 )
               >
-                New Upload
+                New Import
               </button>
-            <% else %>
-              <% valid = Enum.filter(@changesets, fn {x, _idx} -> x.valid? end) %>
-              <aside class="bg-positive-100 rounded-lg border border-positive-600 text-positive-700 text-sm p-4 -mt-4">
-                <p>
-                  <strong class="font-medium text-positive-800">
-                    Found <%= length(@changesets) %> incidents.
-                  </strong>
-                  If everything below looks right, click "Publish" to publish these incidents to Atlos. Note that media will be archived on a best-effort basis.
-                </p>
-              </aside>
-              <div class="grid gap-4 grid-cols-1 mt-4">
-                <%= for {changeset, idx} <- valid do %>
-                  <div class="rounded shadow border">
-                    <p class="sec-head text-md p-4 border-b text-sm">
-                      <span class="text-gray-500">Row <%= idx %>:</span> <%= Ecto.Changeset.get_field(
-                        changeset,
-                        :attr_description
-                      ) %>
-                    </p>
-                    <div class="grid gap-2 grid-cols-1 md:grid-cols-3 text-sm p-4">
-                      <% applied_media = Ecto.Changeset.apply_changes(changeset) %>
-                      <%= for attr <- Material.Attribute.active_attributes(project: @project) do %>
-                        <% value = Material.get_attribute_value(applied_media, attr) %>
-                        <%= if not is_nil(value) and value != [] and value != "" and attr.schema_field != :attr_description do %>
-                          <div class="overflow-hidden max-w-full">
-                            <p class="font-medium text-gray-500">
-                              <%= attr.label %>
-                            </p>
-                            <div>
-                              <.attr_entry name={attr.name} value={value} project={@project} />
-                            </div>
-                          </div>
-                        <% end %>
-                      <% end %>
-                    </div>
-                  </div>
-                <% end %>
-              </div>
-              <button type="button" phx-click="reset" phx-target={@myself} class="base-button mt-4" )>
-                Back
-              </button>
-              <button
-                type="button"
-                class="button ~urge @high mt-4"
-                phx-target={@myself}
-                phx-click="publish"
-              >
-                Publish to Atlos
-              </button>
-            <% end %>
-          <% "Next steps" -> %>
-            <aside class="bg-positive-100 rounded-lg border border-positive-600 text-positive-700 text-sm p-4 -mt-4">
-              <p>
-                <strong class="font-medium text-positive-800">Your import has begun!</strong>
-                It will continue in the background. You can safely close this tab.
-              </p>
-            </aside>
-            <button
-              type="button"
-              phx-click="reset"
-              phx-target={@myself}
-              class="button ~urge @high mt-4"
-              )
-            >
-              New Import
-            </button>
-        <% end %>
-      </.card>
+          <% end %>
+        </.card>
+      </div>
     </section>
     """
   end
