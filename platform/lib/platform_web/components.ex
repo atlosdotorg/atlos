@@ -1552,9 +1552,6 @@ defmodule PlatformWeb.Components do
           date, in the format
           <div class="badge ~urge inline-block">YYYY-MM-DD</div>
       <% end %>
-      <%= if @attr.required do %>
-        (required)
-      <% end %>
     </span>
     """
   end
