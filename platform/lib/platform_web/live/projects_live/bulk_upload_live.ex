@@ -191,7 +191,7 @@ defmodule PlatformWeb.ProjectsLive.BulkUploadLive do
 
     ~H"""
     <section class="flex flex-col md:flex-row mt-8 mb-32">
-      <div class="mb-4 md:w-[20rem] md:mr-20">
+      <div class="mb-4 md:w-[20rem] md:min-w-[20rem] md:mr-20">
         <p class="sec-head text-xl">Bulk Import</p>
         <p class="sec-subhead">Upload many incidents from a CSV file.</p>
       </div>
@@ -429,28 +429,43 @@ defmodule PlatformWeb.ProjectsLive.BulkUploadLive do
             <% "Confirm information" -> %>
               <% invalid = Enum.filter(@changesets, fn {x, _idx} -> not x.valid? end) %>
               <%= if length(invalid) > 0 do %>
-                <div class="aside ~critical text-sm">
-                  <h3>
-                    There were errors processing your upload. Please review the errors and try again.
-                  </h3>
-                  <div class="mt-2">
-                    <ul role="list" class="list-disc pl-5 space-y-1">
-                      <%= for {changeset, idx} <- invalid do %>
-                        <article>
-                          <li>
-                            <strong class="font-semibold">Row <%= idx %></strong>
-                            <%= for {key, errors} <- extract_errors(changeset, @project) |> Map.to_list() |> dbg() do %>
-                              <p>
-                                <%= key %>: <%= Enum.join(
-                                  errors,
-                                  ","
-                                ) %>
-                              </p>
-                            <% end %>
-                          </li>
-                        </article>
-                      <% end %>
-                    </ul>
+                <div class="rounded-md bg-critical-50 p-4 border-critical-600 border mb-8">
+                  <div class="flex">
+                    <div class="flex-shrink-0">
+                      <Heroicons.exclamation_circle mini class="h-5 w-5 text-critical-500" />
+                    </div>
+                    <div class="ml-3 flex-1 md:flex flex-col text-sm text-critical-700 md:justify-between prose prose-sm max-w-full">
+                      <p>
+                        There were errors processing your upload. Please review the errors and try again.
+                      </p>
+                      <div>
+                        <div class="flex flex-col divide-y">
+                          <%= for {changeset, idx} <- invalid do %>
+                            <article class="py-2 border-t border-t-critical-300 flex flex-col md:flex-row">
+                              <strong class="font-semibold text-critical-600 md:w-1/6 mt-2">
+                                Row <%= idx %>
+                              </strong>
+                              <div class="-mt-2">
+                                <%= for {key, errors} <- extract_errors(changeset, @project) |> Map.to_list() do %>
+                                  <p>
+                                    <% label = to_string(key) %>
+                                    <span class="badge ~critical">
+                                      <%= if String.starts_with?(label, "attr_"),
+                                        do: String.slice(label, 5..String.length(label)),
+                                        else: label %>
+                                    </span>
+                                    <%= Enum.join(
+                                      errors,
+                                      ","
+                                    ) %>
+                                  </p>
+                                <% end %>
+                              </div>
+                            </article>
+                          <% end %>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
                 <button
@@ -474,20 +489,20 @@ defmodule PlatformWeb.ProjectsLive.BulkUploadLive do
                 </aside>
                 <div class="grid gap-4 grid-cols-1 mt-4">
                   <%= for {changeset, idx} <- valid do %>
-                    <div class="rounded shadow border">
+                    <div class="rounded-lg border">
                       <p class="sec-head text-md p-4 border-b text-sm">
                         <span class="text-gray-500">Row <%= idx %>:</span> <%= Ecto.Changeset.get_field(
                           changeset,
                           :attr_description
                         ) %>
                       </p>
-                      <div class="grid gap-2 grid-cols-1 md:grid-cols-3 text-sm p-4">
+                      <div class="grid gap-4 grid-cols-1 md:grid-cols-3 text-sm p-4">
                         <% applied_media = Ecto.Changeset.apply_changes(changeset) %>
                         <%= for attr <- Material.Attribute.active_attributes(project: @project) do %>
                           <% value = Material.get_attribute_value(applied_media, attr) %>
                           <%= if not is_nil(value) and value != [] and value != "" and attr.schema_field != :attr_description do %>
                             <div class="overflow-hidden max-w-full">
-                              <p class="font-medium text-gray-500">
+                              <p class="text-gray-600 font-medium mb-1">
                                 <%= attr.label %>
                               </p>
                               <div>
