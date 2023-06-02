@@ -279,7 +279,7 @@ defmodule PlatformWeb.ProjectsLive.Show do
             current_user={@current_user}
             project={@project}
           />
-          <hr class="max-w-prose" />
+          <hr />
           <.live_component
             module={PlatformWeb.ProjectsLive.BulkUploadLive}
             id="bulk-upload"
