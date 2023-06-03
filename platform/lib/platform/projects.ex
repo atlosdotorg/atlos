@@ -82,7 +82,7 @@ defmodule Platform.Projects do
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_project(attrs \\ %{}, user \\ nil) do
+  def create_project(attrs \\ %{}, user \\ nil, opts \\ []) do
     # Verify the user has permission to create
     unless is_nil(user) || Permissions.can_create_project?(user) do
       raise "User does not have permission to create a project"
@@ -91,7 +91,10 @@ defmodule Platform.Projects do
     result =
       %Project{}
       |> Project.changeset(attrs)
-      |> Ecto.Changeset.put_embed(:attributes, ProjectAttribute.default_attributes())
+      |> Ecto.Changeset.put_embed(
+        :attributes,
+        Keyword.get(opts, :default_attributes, ProjectAttribute.default_attributes())
+      )
       |> Repo.insert()
 
     # If the user is not nil, add them as an owner of the project
@@ -379,5 +382,65 @@ defmodule Platform.Projects do
         opts \\ []
       ) do
     ProjectMembership.changeset(project_membership, attrs, opts)
+  end
+
+  @doc """
+  Clones the *content* of a given project, but not its members. Deleted incidents will not be copied.
+
+  This is currently used for creating the "starter" project for new users.
+
+  Cloning involves:
+
+  * Creating a new project with the same name, slug, and description
+  * Cloning all the project's incidents
+    * For each incident, cloning all the incident's updates and media versions
+  """
+  def clone_project(%Project{} = project) do
+    {:ok, new_project} =
+      create_project(
+        %{
+          name: project.name,
+          code: project.code,
+          description: project.description,
+          color: project.color
+        },
+        nil,
+        default_attributes: project.attributes |> Enum.map(&Map.put(&1, :id, nil))
+      )
+
+    # Clone all the non-deleted media
+    {query, opts} =
+      Platform.Material.MediaSearch.changeset(%{project_id: project.id})
+      |> Platform.Material.MediaSearch.search_query()
+
+    for media <-
+          Platform.Material.query_media(query, opts) do
+      {:ok, _} = Platform.Material.clone_media(media, new_project)
+    end
+
+    {:ok, new_project}
+  end
+
+  def create_onboarding_project_for_user(%Accounts.User{} = user) do
+    with onboarding_project_id when not is_nil(onboarding_project_id) <-
+           System.get_env("ONBOARDING_PROJECT_ID"),
+         onboarding_project when not is_nil(onboarding_project) <-
+           get_project(onboarding_project_id) do
+      # First, clone the project
+      {:ok, new_project} = clone_project(onboarding_project)
+
+      # Second, add the user to the project
+      {:ok, _} =
+        create_project_membership(%{
+          username: user.username,
+          project_id: new_project.id,
+          role: :owner
+        })
+
+      {:ok, new_project}
+    else
+      err ->
+        {:error, "Could not create onboarding project for user #{user.username}", err}
+    end
   end
 end

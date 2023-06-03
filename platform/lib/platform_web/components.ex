@@ -888,7 +888,7 @@ defmodule PlatformWeb.Components do
                               signed: true,
                               expires_in: 60 * 60 * 6
                             ) %>
-                          <div class="rounded overflow-hidden max-h-64 cursor">
+                          <div class="rounded overflow-hidden max-h-64 cursor highlight-block">
                             <%= cond do %>
                               <% String.ends_with?(attachment, ".jpg") || String.ends_with?(attachment, ".jpeg") || String.ends_with?(attachment, ".png") -> %>
                                 <a href={url} target="_blank">
@@ -1511,13 +1511,15 @@ defmodule PlatformWeb.Components do
     """
   end
 
-  def attr_explanation(%{name: name} = assigns) do
-    assigns = assign(assigns, :attr, Attribute.get_attribute(name))
+  def attr_explanation(%{name: name, project: project} = assigns) do
+    assigns = assign(assigns, :attr, Attribute.get_attribute(name, project: project))
 
     ~H"""
     <span class="inline-flex flex-wrap gap-1">
       <span class="font-medium">
-        <%= @attr.name |> to_string() %>
+        <%= if @attr.schema_field == :project_attributes,
+          do: String.downcase(@attr.label),
+          else: @attr.name |> to_string() %>
       </span>
       &mdash;
       <%= case @attr.type do %>
@@ -1549,9 +1551,6 @@ defmodule PlatformWeb.Components do
         <% :date -> %>
           date, in the format
           <div class="badge ~urge inline-block">YYYY-MM-DD</div>
-      <% end %>
-      <%= if @attr.required do %>
-        (required)
       <% end %>
     </span>
     """
@@ -2661,7 +2660,7 @@ defmodule PlatformWeb.Components do
           >
             <%= cond do %>
               <% not @is_graphic and Platform.Utils.is_processable_media(@artifact.mime_type) -> %>
-                <div class="grayscale">
+                <div class="grayscale highlight-block">
                   <img
                     src={Material.media_version_artifact_location(@artifact, version: :thumbnail)}
                     class="w-full object-cover scale-[1.1] origin-top"
@@ -2846,6 +2845,7 @@ defmodule PlatformWeb.Components do
               >
                 <div class="py-1" role="none">
                   <a
+                    :if={not is_nil(@version.source_url)}
                     target="_blank"
                     href={@version.source_url}
                     rel="nofollow"
@@ -2865,6 +2865,7 @@ defmodule PlatformWeb.Components do
                     View Source
                   </a>
                   <button
+                    :if={not is_nil(@version.source_url)}
                     type="button"
                     rel="nofollow"
                     role="menuitem"
@@ -2926,6 +2927,19 @@ defmodule PlatformWeb.Components do
                         />
                       </svg>
                       Unminimize
+                    </button>
+                  <% end %>
+                  <%= if Permissions.can_rearchive_media_version?(@current_user, @version) do %>
+                    <button
+                      type="button"
+                      data-confirm="Are you sure you want to rearchive this media?"
+                      phx-click="rearchive_media_version"
+                      phx-value-version={@version.id}
+                      phx-value-state="visible"
+                      class="text-gray-700 px-2 py-2 text-sm flex items-center gap-2 hover:bg-gray-100 w-full"
+                      title="Rearchive"
+                    >
+                      <Heroicons.arrow_path mini class="w-5 h-5 text-neutral-500" /> Rearchive
                     </button>
                   <% end %>
                   <%= if @show_controls and Platform.Permissions.can_change_media_version_visibility?(@current_user, @version) do %>

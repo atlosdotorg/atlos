@@ -40,14 +40,6 @@
     </div>
     <%= error_tag(f, :terms_agree) %>
 
-    <%#
-    <div class="rounded bg-blue-100 text-blue-700 text-sm p-4 flex flex-col gap-2 mt-4">
-      <p><strong class="font-semibold">Like any web platform, using Atlos carries risk.</strong></p>
-      <p>If you're conducting a sensitive investigation, or are concerned about anonymity, we encourage you to sign up under a pseudonym and use a VPN.</p>
-      <p><a href="https://github.com/atlosdotorg/atlos/blob/main/policy/RISK.md" class="font-medium">Learn more about your security &amp; safety on Atlos &rarr;</a></p>
-    </div>
-    %>
-
     <div class="mt-4">
       <.hcaptcha />
       <%= error_tag(f, :captcha) %>

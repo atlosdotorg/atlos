@@ -59,6 +59,14 @@ defmodule Platform.Accounts.User do
   def registration_changeset(user, attrs, opts \\ []) do
     user
     |> cast(attrs, [:email, :password, :username, :invite_code, :terms_agree])
+    |> validate_change(:username, fn :username, value ->
+      if String.downcase(value) in ["atlos", "admin"] and
+           not Keyword.get(opts, :allow_special_users, false) do
+        [username: "This username is reserved."]
+      else
+        []
+      end
+    end)
     |> validate_email()
     |> validate_username()
     |> validate_terms_agreement()

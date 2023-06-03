@@ -18,7 +18,7 @@ defmodule PlatformWeb.ExportController do
       |> Enum.filter(&(&1.schema_field == :project_attributes))
 
     name_for_custom_attribute = fn attr ->
-      "#{attr.label} (#{media.project.name})"
+      "#{attr.label}"
     end
 
     field_list =

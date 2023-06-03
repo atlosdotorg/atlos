@@ -294,7 +294,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
   def render(assigns) do
     ~H"""
     <article>
-      <div class="grid grid-cols-1 gap-8 max-w-prose divide-y">
+      <div class="grid grid-cols-1 gap-8 divide-y">
         <%= if Enum.member?(@show_panes, :general) do %>
           <.form
             :let={f}
@@ -303,90 +303,92 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
             phx-target={@myself}
             phx-submit="save_general"
             phx-change="validate_general"
-            class="phx-form flex flex-col gap-4"
+            class="phx-form flex flex-col md:flex-row gap-4"
           >
             <%= if length(@show_panes) > 1 do %>
-              <div class="mb-4">
+              <div class="mb-4 md:w-[20rem] md:mr-16">
                 <p class="sec-head text-xl">General</p>
                 <p class="sec-subhead">General information about the project.</p>
               </div>
             <% end %>
-            <div>
-              <%= label(f, :name) %>
-              <%= text_input(f, :name, placeholder: "What should we call this project?") %>
-              <%= error_tag(f, :name) %>
-            </div>
-            <div>
-              <%= label(f, :code) %>
-              <%= text_input(f, :code, class: "uppercase font-mono", placeholder: "E.g., CIV") %>
-              <%= error_tag(f, :code) %>
-              <p class="support">
-                This is a short code that will be used to identify this project in incident IDs. E.g., CIV-1234.
-              </p>
-            </div>
-            <div>
-              <%= label(f, :description) %>
-              <%= textarea(f, :description,
-                placeholder: "Provide a short description for the project..."
-              ) %>
-              <%= error_tag(f, :description) %>
-            </div>
-            <div>
-              <%= label(f, :color) %>
-              <div id="color-picker" phx-update="ignore">
-                <div
-                  class="flex gap-1 flex-wrap items-center"
-                  x-data={"{active: '#{Ecto.Changeset.get_field(@general_changeset, :color)}'}"}
-                >
-                  <%= for color <- ["#fb923c", "#fbbf24", "#a3e635", "#4ade80", "#2dd4bf", "#22d3ee", "#60a5fa", "#818cf8", "#a78bfa", "#c084fc", "#e879f9", "#f472b6"] do %>
-                    <label class="!mt-0 cursor-pointer">
-                      <%= radio_button(f, :color, color, "x-model": "active", class: "hidden") %>
-                      <svg
-                        viewBox="0 0 100 100"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill={color}
-                        class="h-7 w-7"
-                        x-show={"active !== '#{color}'"}
+            <div class="flex flex-col gap-4 grow">
+              <div>
+                <%= label(f, :name) %>
+                <%= text_input(f, :name, placeholder: "What should we call this project?") %>
+                <%= error_tag(f, :name) %>
+              </div>
+              <div>
+                <%= label(f, :code) %>
+                <%= text_input(f, :code, class: "uppercase font-mono", placeholder: "E.g., CIV") %>
+                <%= error_tag(f, :code) %>
+                <p class="support">
+                  This is a short code that will be used to identify this project in incident IDs. E.g., CIV-1234.
+                </p>
+              </div>
+              <div>
+                <%= label(f, :description) %>
+                <%= textarea(f, :description,
+                  placeholder: "Provide a short description for the project..."
+                ) %>
+                <%= error_tag(f, :description) %>
+              </div>
+              <div>
+                <%= label(f, :color) %>
+                <div id="color-picker" phx-update="ignore">
+                  <div
+                    class="flex gap-1 flex-wrap items-center"
+                    x-data={"{active: '#{Ecto.Changeset.get_field(@general_changeset, :color)}'}"}
+                  >
+                    <%= for color <- ["#fb923c", "#fbbf24", "#a3e635", "#4ade80", "#2dd4bf", "#22d3ee", "#60a5fa", "#818cf8", "#a78bfa", "#c084fc", "#e879f9", "#f472b6"] do %>
+                      <label class="!mt-0 cursor-pointer">
+                        <%= radio_button(f, :color, color, "x-model": "active", class: "hidden") %>
+                        <svg
+                          viewBox="0 0 100 100"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill={color}
+                          class="h-7 w-7"
+                          x-show={"active !== '#{color}'"}
+                        >
+                          <circle cx="50" cy="50" r="40" />
+                        </svg>
+                        <Heroicons.check_circle
+                          mini
+                          class="h-7 w-7"
+                          style={"color: #{color}"}
+                          x-show={"active === '#{color}'"}
+                        />
+                      </label>
+                    <% end %>
+                  </div>
+                </div>
+                <%= error_tag(f, :color) %>
+                <p class="support">
+                  This color will help visually identify the project.
+                </p>
+              </div>
+              <div class="mt-8">
+                <div class="flex justify-between gap-4 flex-wrap">
+                  <div>
+                    <%= submit("Save", class: "button ~urge @high") %>
+                  </div>
+                  <%= if @project.id do %>
+                    <div>
+                      <button
+                        phx-click="delete"
+                        data-confirm="Are you sure you want to delete this project? This action cannot be undone, and will delete all the incidents that are part of this project."
+                        class="button ~critical @high"
+                        type="button"
+                        phx-target={@myself}
                       >
-                        <circle cx="50" cy="50" r="40" />
-                      </svg>
-                      <Heroicons.check_circle
-                        mini
-                        class="h-7 w-7"
-                        style={"color: #{color}"}
-                        x-show={"active === '#{color}'"}
-                      />
-                    </label>
+                        Delete
+                      </button>
+                    </div>
+                  <% else %>
+                    <button phx-click="close" class="base-button" type="button" phx-target={@myself}>
+                      Cancel
+                    </button>
                   <% end %>
                 </div>
-              </div>
-              <%= error_tag(f, :color) %>
-              <p class="support">
-                This color will help visually identify the project.
-              </p>
-            </div>
-            <div class="mt-8">
-              <div class="flex justify-between gap-4 flex-wrap">
-                <div>
-                  <%= submit("Save", class: "button ~urge @high") %>
-                </div>
-                <%= if @project.id do %>
-                  <div>
-                    <button
-                      phx-click="delete"
-                      data-confirm="Are you sure you want to delete this project? This action cannot be undone, and will delete all the incidents that are part of this project."
-                      class="button ~critical @high"
-                      type="button"
-                      phx-target={@myself}
-                    >
-                      Delete
-                    </button>
-                  </div>
-                <% else %>
-                  <button phx-click="close" class="base-button" type="button" phx-target={@myself}>
-                    Cancel
-                  </button>
-                <% end %>
               </div>
             </div>
           </.form>
@@ -401,30 +403,30 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
             phx-change="validate_custom_attributes"
             class="phx-form"
           >
-            <div class="flex flex-col gap-4 pt-8">
+            <div class="flex flex-col md:flex-row gap-4 pt-8">
               <%= if length(@show_panes) > 1 do %>
-                <div class="mb-4">
+                <div class="mb-4 md:w-[20rem] md:mr-16">
                   <p class="sec-head text-xl">Attributes</p>
                   <p class="sec-subhead">
                     Define the data model for incidents in this project. You can add new attributes, or edit the existing ones.
                   </p>
                 </div>
               <% end %>
-              <%= if ProjectAttribute.does_project_have_default_attributes?(@project) and Permissions.can_edit_project_metadata?(@current_user, @project) do %>
-                <div class="rounded-md bg-blue-50 p-4 border-blue-600 border">
-                  <div class="flex">
-                    <div class="flex-shrink-0">
-                      <Heroicons.information_circle mini class="h-5 w-5 text-blue-500" />
-                    </div>
-                    <div class="ml-3 flex-1 md:flex md:justify-between">
-                      <p class="text-sm text-blue-700">
-                        We've provided some default suggested attributes for this project. You can edit these attributes, or add new ones.
-                      </p>
+              <fieldset class="flex flex-col mb-8">
+                <%= if ProjectAttribute.does_project_have_default_attributes?(@project) and Permissions.can_edit_project_metadata?(@current_user, @project) do %>
+                  <div class="rounded-md bg-blue-50 p-4 border-blue-600 border mb-8">
+                    <div class="flex">
+                      <div class="flex-shrink-0">
+                        <Heroicons.information_circle mini class="h-5 w-5 text-blue-500" />
+                      </div>
+                      <div class="ml-3 flex-1 md:flex md:justify-between">
+                        <p class="text-sm text-blue-700">
+                          We've provided some default suggested attributes for this project. You can edit these attributes, or add new ones.
+                        </p>
+                      </div>
                     </div>
                   </div>
-                </div>
-              <% end %>
-              <fieldset class="flex flex-col mb-32">
+                <% end %>
                 <div class="flow-root">
                   <div class="-mx-4 overflow-x-auto sm:-mx-6 lg:-mx-8">
                     <div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">

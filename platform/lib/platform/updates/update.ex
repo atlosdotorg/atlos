@@ -7,6 +7,7 @@ defmodule Platform.Updates.Update do
   alias Platform.Material
   alias Platform.Permissions
 
+  @derive {Jason.Encoder, except: [:__meta__, :user, :media, :media_version]}
   schema "updates" do
     field(:search_metadata, :string, default: "")
     field(:explanation, :string)
@@ -49,18 +50,18 @@ defmodule Platform.Updates.Update do
   end
 
   @doc false
-  def changeset(update, attrs, %User{} = user, %Media{} = media) do
+  def changeset(update, attrs, %User{} = user, %Media{} = media, opts \\ []) do
     hydrated_attrs =
       attrs
       |> Map.put("user_id", user.id)
       |> Map.put("media_id", media.id)
 
     update
-    |> raw_changeset(hydrated_attrs)
+    |> raw_changeset(hydrated_attrs, opts)
     |> validate_access(user, media)
   end
 
-  def raw_changeset(update, attrs) do
+  def raw_changeset(update, attrs, opts \\ []) do
     changeset =
       update
       |> cast(attrs, [
@@ -73,11 +74,16 @@ defmodule Platform.Updates.Update do
         :user_id,
         :media_id,
         :media_version_id,
-        # TODO: does this being here allow anyone to sneak `:hidden` in when creating an update? Not a big deal, but worth investigating.
-        :hidden,
         :old_project_id,
         :new_project_id
       ])
+      |> then(fn cs ->
+        if Keyword.get(opts, :cast_sensitive_data, false) do
+          cs |> cast(attrs, [:hidden, :inserted_at])
+        else
+          cs
+        end
+      end)
       |> validate_required([:old_value, :new_value, :type, :user_id, :media_id])
       |> validate_explanation()
 
@@ -92,7 +98,7 @@ defmodule Platform.Updates.Update do
   end
 
   def validate_access(changeset, %User{} = user, %Media{} = media) do
-    if Permissions.can_edit_media?(user, media) ||
+    if Accounts.is_auto_account(user) || Permissions.can_edit_media?(user, media) ||
          (get_field(changeset, :type) == :comment and
             Permissions.can_comment_on_media?(user, media)) do
       changeset

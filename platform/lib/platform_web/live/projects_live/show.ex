@@ -94,7 +94,7 @@ defmodule PlatformWeb.ProjectsLive.Show do
                   </span>
                 </div>
               </h1>
-              <div class="text-neutral-500 prose mt-6">
+              <div class="text-neutral-500 prose mt-6 leading-snug">
                 <%= @project.description |> Platform.Utils.render_markdown() |> raw() %>
               </div>
             </div>
@@ -276,6 +276,13 @@ defmodule PlatformWeb.ProjectsLive.Show do
           <.live_component
             module={PlatformWeb.ProjectsLive.EditComponent}
             id="edit-project"
+            current_user={@current_user}
+            project={@project}
+          />
+          <hr />
+          <.live_component
+            module={PlatformWeb.ProjectsLive.BulkUploadLive}
+            id="bulk-upload"
             current_user={@current_user}
             project={@project}
           />
