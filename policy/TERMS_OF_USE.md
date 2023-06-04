@@ -1,243 +1,176 @@
-# Atlos Terms of Use
+# Terms of Use
+These terms describe our reponsibility to our users. The full, binding text is below but the simple version is this: we offer access to the Atlos platform to help visual investigators catalog, verify, and share eyewitness media across their teams. To protect your security and privacy, we don't moderate content added to the platform, except in cases where we're legally obligated to. That means that if you use Atlos, you're responsible for the content you add to it. If you have any questions, please reach out at contact@atlos.org. 
 
-These Terms of Use are a derivative of "[Terms of Use](https://foundation.wikimedia.org/wiki/Terms_of_Use/en)" by the Wikimedia Foundation, available under the Creative Commons Attribution-ShareAlike License. You can view a history of the changes made to these terms [on GitHub](https://github.com/milesmcc/atlos/blame/main/policy/TERMS_OF_USE.md).
+## Changelog
+You can view a history of the changes made to these terms [on GitHub](https://github.com/milesmcc/atlos/blame/main/policy/TERMS_OF_USE.md).
 
-## About These Terms
+## Introduction 
+These Terms of Service contain an arbitration provision. Please review the Arbitration section for details. 
 
-Welcome to Atlos! Atlos is a project of Politiwatch, Inc. ("we" or "us").
+These Terms of Service (“Terms”) govern your use of the Atlos website located at atlos.org (“Site”), any Atlos mobile application, application programming interfaces and other services offered by Atlos, Inc. (collectively with the Site, the “Services”). Atlos, Inc. (“Atlos”, “we,” “us” or “our”) provides the Services.  “You” refers to you as a user of the Services.
 
-To support our vibrant community, we provide the essential infrastructure and organizational framework for the construction of a catalog relevant to conflict and other notable events relevant to the public interest. We welcome you ("you" or the "user") as a researcher or contributor of the Atlos catalog. Before you participate, however, we ask that you please read and agree to the following Terms of Use ("Terms of Use").
+By using the services, you are agreeing to these terms.  We encourage you to read them carefully.
 
-Atlos is an open source platform for visual investigations. By using the Atlos platform (the "Platform" or "Project"), you agree to these terms. These terms do not apply to unofficial Atlos instances (e.g., those not managed hosted on the atlos.org domain), though the [LICENSE](LICENSE.md) for the source code still applies.
+## 1. Eligibility
+You must be at least 18 years old or the age of majority in your state of residence to use the Services. 
 
-## Overview
+## 2. Additional Terms
+Some of our Services have additional terms and conditions (“Additional Terms”).  Where Additional Terms apply to a Service, we will make them available for you to read through your use of that Service.  By using that Service, you agree to the Additional Terms.
 
-These Terms of Use tell you about our services at Atlos (provided by Politiwatch), our relationship to you as a user, and the rights and responsibilities that guide us both. Generally we do not contribute, monitor, or delete content (with the rare exception of policies like these Terms of Use or legal compliance for DMCA notices). This means that editorial control is in the hands of you and your fellow users who create and manage the content. We merely host this content.
+## 3. Functionality
+The Service enables its users to create individual “incidents” on the Service where User Content may be uploaded, hosted and modified. Users may create groups of incidents, or projects (each, a “Project”). A creator of a Project will have the ability to allow other users of the Service to access the Project (“Collaborators”). The Projects are designed to be private, such that members of the public and other users (other than the creator and the Collaborators) may not access or view content within the Project. The creator of a Project will be able to exercise certain administrative functions with respect to such Project, including setting certain permissions for Collaborators (e.g., rights to view, rights to edit, etc.). 
 
-The community — the network of users who are constantly building and using the Atlos catalog — are the principal means through which our mission is achieved. The community contributes to and helps govern our platform. The community undertakes the critical function of enforcing Atlos policies.
+## 4. Acceptable Use of the Services
+You are responsible for your use of the Services, and for any use of the Services made using your account.  Our goal is to create a positive, useful, and safe user experience.  To promote this goal, we prohibit certain kinds of conduct that may be harmful to other users or to us.  When you use the Services, you may not:
+- violate any law or regulation;
+- violate, infringe, or misappropriate other people’s intellectual property, privacy, publicity, or other legal rights;
+- post or share anything that is illegal, abusive, harassing, harmful to reputation, pornographic, indecent, profane, obscene, hateful, racist, or otherwise objectionable;
+- intentionally or knowingly post content that constitutes libel or defamation;
+- posting content that is false or inaccurate with the intent to deceive;
+- send unsolicited or unauthorized advertising or commercial communications, such as spam;
+- engage in spidering or harvesting, or participate in the use of software, including spyware, designed to collect data from the Services;
+- transmit any viruses or other computer instructions or technological means whose purpose is to disrupt, damage, or interfere with the use of computers or related systems;
+- stalk, harass, or harm another individual;
+- impersonate any person or entity, misrepresent your affiliation with any individual or entity, or use the username of another user with the intent to deceive, or perform any other similar fraudulent activity, such as phishing;
+- use any means to scrape or crawl any Web pages contained in the Site;
+- disrupt the Service by inundating Atlos with communications or other traffic that suggests no serious intent to use the Service for its stated purpose
+- knowingly access, tamper with, or use any of our non-public areas in our computer systems without authorization
+- attempt to circumvent any technological measure implemented by us or any of our providers or any other third party (including another user) to protect the  Services; or
+- advocate, encourage, or assist any third party in doing any of the foregoing.
+We reserve the right to exercise our enforcement discretion with respect to the above restrictions.
 
-You are welcome to join as a researcher, contributor or editor, but you should follow the policies that govern Atlos. Because we are dedicated to making content freely accessible to a wide audience, we generally require that all content you contribute is available under a free license or in the public domain.
+## 5. User Content
+The Services allow you to upload, submit, store, send, or receive content and data (“User Content”).  You retain ownership of any intellectual property rights that you hold in that User Content.  
 
-Please be aware that you are legally responsible for all of your contributions, edits, and re-use of Atlos content under the laws of the United States of America and other applicable laws (which may include the laws where you live or where you view or edit content). This means it is important that you use caution when posting content. In light of this responsibility, we have some rules about what you cannot post, most of which is either for your own protection or for the protection of other users like yourself. Please keep in mind that the content we host is for general informational purposes only, so if you need expert advice for a particular question you should seek the help of a licensed or qualified professional. We also include other important notices and disclaimers, so please read these Terms of Use in their entirety.
+When you upload, submit, store, send, or receive User Content to or through the Services, you give us permission to reproduce and use your User Content as follows:  you grant to us, entities we work with, and the Collaborators of the Workspace to which you upload your User Content, a license to use, host, store, reproduce, modify, create derivative works (such as translations, adaptations, or other changes we make so that User Content works better with the Services), publicly perform, publicly display, and distribute your User Content; provided, however, that we will not display your User Content outside of the Workspace you uploaded it to, unless the Service enables embedding on third party platforms and you choose to so embed your User Content.  This license is for the limited purpose of operating, promoting, and improving the Services, and to develop new Services.  Our license to your User Content is non-exclusive, meaning you may use the User Content for your own purposes or let others use your User Content for their purposes.  This license is fully-paid and royalty free, meaning we do not owe you anything else in connection with our use of your User Content.  We may exercise our rights under this license anywhere in the world and in any media.  Lastly, this license is perpetual, meaning that our rights under this license continue even after you stop using the Services.  In general, however, we will only need to use your User Content for as long as you choose to store it with us using the Services.
 
-## 1\. Our Services
+You represent and warrant that:
+- you own all rights to your User Content or, alternatively, that you have the right to give us the rights described above; and
+- your User Content (and our permitted use of it) does not and will not infringe the intellectual property rights, privacy rights, publicity rights, or other legal rights of any third party.
+We may refuse to accept or transmit User Content for any reason.  We may remove User Content from the Services for any reason.  
 
-Atlos acts only as a hosting service, maintaining the infrastructure and organizational framework that allows our users to build the Atlos catalog by contributing and editing content themselves. Because of our unique role, there are a couple of things you should be aware of when considering our relationship to you, the Atlos catalog, and the other users:
+## 6. Ownership; License
+Other than User Content, we own or license all right, title, and interest in and to (a) the Services, including all software, text, media, and other content available on the Services (“Our Content”); and (b) our trademarks, logos, and brand elements (“Marks”).  The Services, Our Content, and Marks are all protected under U.S. and international laws.  The look and feel of the Site and Services are copyright © Atlos, Inc..  All rights reserved.   The Service contains software licensed under the GNU General Public License (https://www.gnu.org/licenses/gpl-3.0.en.html) (the “GPL”). Your use of the source code of the Service is subject to the terms and conditions of the GPL. In the event of any conflict between any provision of these Terms and any provision of the GPL as it relates to your use of such source code, the relevant provision of the GPL shall control. 
 
-1.  We do not take an editorial role: Because Atlos is collaboratively edited, all of the content that we host is provided by users like yourself, and we do not take an editorial role. This means that we generally do not monitor or edit media, attributes, or updates, and we do not take any responsibility for this content. Similarly, we do not endorse any opinions expressed via our services, and we do not represent or guarantee the truthfulness, accuracy, or reliability of any submitted community content. Instead, we simply provide access to the content that your fellow users have contributed and edited.
+## 7. Copyright and Intellectual Property Policy
+We respond to notices of alleged copyright infringement and terminate accounts of repeat infringers according to the process set out in the U.S. Digital Millennium Copyright Act.  If you believe that your work has been copied in a way that constitutes copyright infringement, please forward the following information to the Copyright Agent named below:
+- Your address, telephone number, and email address. 
+- A description of the copyrighted work that you claim has been infringed.
+- A description of where the alleged infringing material is located.
+- A statement by you that you have a good faith belief that the disputed use is not authorized by you, the copyright owner, its agent, or the law.
+- An electronic or physical signature of the person authorized to act on behalf of the owner of the copyright interest.
+- A statement by you, made under penalty of perjury, that the above information is accurate and that you are the copyright owner or authorized to act on behalf of the copyright owner.
 
-2.  You are responsible for your own actions: You are legally responsible for your edits and contributions to Atlos, so for your own protection you should exercise caution and avoid contributing any content that may result in criminal or civil liability under any applicable laws. For clarity, applicable law includes at least the laws of the United States of America. Although we may not agree with such actions, we warn editors and contributors that authorities may seek to apply other country laws to you, including local laws where you live or where you view or edit content. Atlos (and Politiwatch) generally cannot offer any protection, guarantee, immunity or indemnification.
+Copyright Agent:
 
-## 2\. Privacy Policy
+Atlos Copyright Compliance             
+Atlos, Inc.          
+2108 N St.       
+Ste. # 5207      
+Sacramento, CA 95816.   
 
-Because our services are used by people all over the world, personal information that we collect may be stored and processed in the United States of America or any other country in which we or our agents maintain facilities. By using our services, you consent to any such transfer of information outside your country.
 
-## 3\. Content We Host
+For clarity, only copyright infringement notices should go to our Copyright Agent.  You acknowledge that if you fail to comply with all of the requirements of this section your notice may not be valid.
 
-1.  You may find some material objectionable or erroneous: Because we provide a wide array of content that is produced or gathered by fellow users, you may encounter material that you find offensive, erroneous, misleading, mislabeled, or otherwise objectionable. We therefore ask that you use common sense and proper judgment when using our services.
+If you believe the content that was removed (or to which access was disabled) is not infringing, or that you have the authorization from the copyright owner, the copyright owner's agent, or pursuant to the law, to post and use such content, you may submit a counter-notice to the address listed above containing the following information:
+- Your physical or electronic signature; 
+- Identification of the content that has been removed or to which access has been disabled and the location at which the content appeared before it was removed or disabled; 
+- A statement that you have a good faith belief that the content was removed or disabled as a result of mistake or a misidentification of the content; and 
+- Your name, physical address, telephone number, and e-mail address, a statement that you consent to the jurisdiction of the federal court in Los Angeles, California, and a statement that you will accept service of process from the person who provided notification of the alleged infringement. 
 
-2.  Our content is for general informational purposes only: Although we host a great deal of information, this content is presented for general informational purposes only. It should not be taken as professional, military, or legal advice. Please seek independent professional counseling from someone who is licensed or qualified in the applicable area in lieu of acting on any information, opinion, or advice contained on Atlos.
+After we receive your counter-notification, we will forward it to the party who submitted the original claim of copyright infringement.  Please note that when we forward the counter-notification, it includes your personal information.  By submitting a counter-notification, you consent to having your information revealed in this way.  We will not forward the counter-notification to any party other than the original claimant.
 
-## 4\. Refraining from Certain Activities
+After we send out the counter-notification, the claimant must then notify us within 10 days that he or she has filed an action seeking a court order to restrain you from engaging in infringing activity relating to the content that was removed or disabled.  If we receive such notification we will be unable to restore the material.  If we do not receive such notification, we may reinstate the material.
 
-The Atlos catalog only exists because of the vibrant community of users like you who collaborate to write, edit, and curate the content. We happily welcome your participation in this community. We encourage you to be civil and polite in your interactions with others in the community, to act in good faith, and to make edits and contributions aimed at furthering the mission of the shared project.
+## 8. Paid Services
+The Services may make certain content, features and functionalities available to users on a subscription basis (the “Subscription Service”). To the extent the Subscription Service is provided, the following terms shall apply:
 
-Certain activities, whether legal or illegal, may be harmful to other users and violate our rules, and some activities may also subject you to liability. Therefore, for your own protection and for that of other users, you may not engage in such activities on our sites. These activities include, but are not limited to:
+### Subscription; Billing.
+In order to access the Subscription Service, you will be required to provide a current, valid, accepted method of payment, as may be updated from time to time. Such payment method will be charged the applicable subscription fee for each billing period on the specific billing date indicated on your "Account" page on the Service, unless and until you cancel your subscription in accordance with the “Cancellation” section below. You remain responsible for any uncollected amounts. If payment is not received by us from your authorized payment method (due to expiration, insufficient funds or otherwise), you agree to promptly pay all amounts due upon demand by us, and we may suspend your access to the Subscription Service until we have successfully charged a valid payment method. We may change the fee charged for access to the Subscription Service at any time upon 30 days’ prior notice. You may cancel your subscription prior to the effective date of such change to avoid being charged the modified fee. Please note that payments are nonrefundable and we will not issue a refund or credit for partially used billing periods. By signing up for an account with the Subscription Service, you are granting a license to us (as further detailed in our [Privacy Policy](https://github.com/atlosdotorg/atlos/blob/main/policy/PRIVACY_POLICY.md)) to use, process, and share with our service providers and relevant billing vendors your account information in order to provide the Subscription Service. 
 
-Harassing and Abusing Others
+### Free Trials. 
+We may offer free trials to the Subscription Service. The duration of the free trial period will be as specified at the time you sign up for the Subscription Service. Eligibility for a free trial is determined by us at our sole discretion. At the conclusion of the free trial period, your subscription will automatically renew and you will be charged the subscription fee for your next billing cycle, unless you cancel your subscription (as instructed in the “Cancellation” section below) before the end of the free trial period. You can view the end date of your free trial period in your “Account” page on the Service.
 
-- Engaging in harassment, threats, stalking, spamming, or vandalism; and
+### Cancellation. 
+If you sign up for a Subscription Service offered by us, you must cancel your subscription before it renews in order to avoid billing of the subscription fees for the next billing cycle to the payment method you provided. You may cancel your subscription at any time and you will continue to have access to the Subscription Service until the end of your billing period, at which time your subscription will automatically end. You may cancel by following the instructions for cancellation on your "Account" page on the Service.
 
-- Transmitting chain mail, junk mail, or spam to other users.
+Updates to Payment Method; Customer Service. You may update the payment method associated with your account via your "Account" page on the Service. Your payment service providers may also provide us with updated information, which we may use to update the payment information associated with your account. For any billing or other customer service matters relating to your use of the Subscription Services, please contact: contact@atlos.org.
 
-Violating the Privacy of Others
+## 9. No Editorial Control; User Responsibilities
+Generally, we do not contribute, monitor, or delete User Content, except pursuant to policies like these Terms, for legal compliance and/or to enforce our rights. Editorial control is in the hands of you and your fellow users who create and manage the User Content. We merely host the User Content and do not take any responsibility for it. We do not endorse any opinions expressed via the Service, and we do not represent or guarantee the truthfulness, accuracy, or reliability of any User Content. You are legally responsible for your edits and contributions to Atlos. 
 
-- Infringing the privacy rights of others under the laws of the United States of America or other applicable laws (which may include the laws where you live or where you view or edit content);
+## 10. Privacy; User Account 
+Your privacy is very important to us.  Our [Privacy Policy](https://github.com/atlosdotorg/atlos/blob/main/policy/PRIVACY_POLICY.md)) explains how we collect, use, protect, and when we share your personal information and other data with others.  You are responsible for maintaining the confidentiality of your account information, including your username and password.  You are responsible for all activities that occur under your account and you agree to notify us immediately of any unauthorized access or use of your account.  We are not responsible or liable for any damage or loss related to any unauthorized access or use of your account.
 
-- Soliciting personally identifiable information for purposes of harassment, exploitation, violation of privacy, or any promotional or commercial purpose not explicitly approved by Atlos; and
+## 11. Links
+The Services may contain links to other websites and online resources.  A link to a third party’s website does not mean that we endorse it, are affiliated with it or control it. We are not responsible or liable for any damage or loss related to the use of any third-party website. You should always read the terms and conditions and privacy policy of a third-party website before using it.  
 
-- Soliciting personally identifiable information from anyone under the age of 18 for an illegal purpose or violating any applicable law regarding the health or well-being of minors.
+## 12. Changes to the Services
+We may enhance, update or discontinue the Services at any time, with or without notice to you.
 
-Engaging in False Statements, Impersonation, or Fraud
+## 13. Termination
+We reserve the right to not provide the Services to any person.  We also reserve the right to terminate any user’s right to access the Services at any time, in our discretion.  If you violate any of these Terms, your permission to use the Services automatically terminates.
 
-- Intentionally or knowingly posting content that constitutes libel or defamation;
+## 14. Disclaimer and Limitations on Our Liability
+YOU USE THE SERVICES AT YOUR OWN RISK.  THE SERVICES ARE PROVIDED ON AN “AS IS” AND “AS AVAILABLE” BASIS.  TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, ATLOS AND ITS OFFICERS, EMPLOYEES, DIRECTORS, PARENTS, SUBSIDIARIES, AFFILIATES, AGENTS, AND LICENSORS (“AFFILIATES”) DISCLAIMS ALL WARRANTIES, CONDITIONS, AND REPRESENTATIONS OF ANY KIND, WHETHER EXPRESS, IMPLIED, STATUTORY, OR OTHERWISE, INCLUDING THOSE RELATED TO MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT AND THOSE ARISING OUT OF COURSE OF DEALING OR USAGE OF TRADE.  
 
-- With the intent to deceive, posting content that is false or inaccurate;
+IN PARTICULAR, TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, ATLOS AND ITS AFFILIATES MAKE NO REPRESENTATIONS OR WARRANTIES ABOUT THE ACCURACY OR COMPLETENESS OF CONTENT AVAILABLE ON OR THROUGH THE SERVICES, OR THE CONTENT OF ANY WEBSITES OR ONLINE SERVICES LINKED TO OR INTEGRATED WITH THE SERVICES.  OUR COMPANY AND ITS AFFILIATES WILL HAVE NO LIABILITY FOR ANY:  (A) ERRORS, MISTAKES, OR INACCURACIES OF CONTENT; (b) PERSONAL INJURY OR PROPERTY DAMAGE RESULTING FROM YOUR ACCESS TO OR USE OF THE SERVICES; (c) ANY UNAUTHORIZED ACCESS TO OR USE OF OUR SERVERS OR OF ANY PERSONAL INFORMATION OR USER DATA; (d) ANY INTERRUPTION OF TRANSMISSION TO OR FROM THE SERVICES; (e) ANY BUGS, VIRUSES, TROJAN HORSES, OR THE LIKE WHICH MAY BE TRANSMITTED ON OR THROUGH THE SERVICES BY ANY THIRD PARTY; OR (f) ANY LOSS OR DAMAGE OF ANY KIND INCURRED AS A RESULT OF THE USE OF ANY CONTENT POSTED OR SHARED THROUGH THE SERVICES. 
 
-- Attempting to impersonate another user or individual, misrepresenting your affiliation with any individual or entity, or using the username of another user with the intent to deceive; and
+YOU UNDERSTAND AND AGREE THAT, TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, ANY MATERIAL OR INFORMATION DOWNLOADED OR OTHERWISE OBTAINED THROUGH THE USE OF THE SERVICES IS DONE AT YOUR OWN RISK AND THAT YOU WILL BE SOLELY RESPONSIBLE FOR ANY DAMAGE ARISING FROM DOING SO.  NO ADVICE OR INFORMATION, WHETHER ORAL OR WRITTEN, OBTAINED BY YOU FROM US OR THROUGH THE SITE OR SERVICES WILL CREATE ANY WARRANTY NOT EXPRESSLY MADE.
 
-- Engaging in fraud.
+TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, IN NO EVENT WILL WE BE LIABLE TO YOU OR TO ANY THIRD PARTY FOR ANY INDIRECT, SPECIAL, INCIDENTAL, PUNITIVE, OR CONSEQUENTIAL DAMAGES (INCLUDING FOR LOSS OF PROFITS, REVENUE, OR DATA) OR FOR THE COST OF OBTAINING SUBSTITUTE PRODUCTS ARISING OUT OF OR IN CONNECTION WITH THESE TERMS, HOWEVER CAUSED, WHETHER SUCH LIABILITY ARISES FROM ANY CLAIM BASED UPON CONTRACT, WARRANTY, TORT (INCLUDING NEGLIGENCE), STRICT LIABILITY OR OTHERWISE, AND WHETHER OR NOT WE’VE BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.  
 
-Committing Infringement
+TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, OUR TOTAL CUMULATIVE LIABILITY TO YOU OR ANY THIRD PARTY UNDER THESE TERMS, FROM ALL CAUSES OF ACTION AND ALL THEORIES OF LIABILITY, WILL BE LIMITED TO AND WILL NOT EXCEED THE FEES YOU HAVE ACTUALLY PAID US DURING THE TWELVE (12) MONTHS PRECEDING THE CLAIM GIVING RISE TO SUCH LIABILITY.  
 
-- Infringing copyrights, trademarks, patents, or other proprietary rights under applicable law.
+You understand and agree that we have set our prices and entered into these Terms with you in reliance upon the limitations of liability set forth in these Terms, which allocate risk between us and form the basis of a bargain between the parties. 
 
-Misusing Our Services for Other Illegal Purposes
+## 15. Indemnification
+To the maximum extent permitted by applicable law, you agree to indemnify and hold harmless Atlos and its Affiliates from and against any and all claims, costs, proceedings, demands, losses, damages, and expenses (including, without limitation, reasonable attorney’s fees and legal costs) of any kind or nature, relating to, any actual or alleged breach of these Terms by you or anyone using your account.  If we assume the defense of such a matter, you will reasonably cooperate with us in such defense.
 
-- Posting child pornography or any other content that violates applicable law concerning child sexual abuse material;
+## 16. Informal Dispute Resolution
+We try to address any disputes without the need to initiate a formal legal case. In the event you have any dispute with us, you shall first try in good faith to settle such dispute by providing written notice to us describing the facts of the dispute (including any relevant documentation) and allowing us thirty (30) days to respond before initiating any formal dispute resolution proceeding. Notices to us must be sent by mail to       
+Attn: Atlos Legal                  
+Northwest Registered Agent, Inc. (#C3184722)                      
+2108 N St, Suite N                      
+Sacramento, CA 95816.             
 
-- Posting or trafficking in obscene material that is unlawful under applicable law; and
+We will send any dispute related notice to you at the contact information we have for you. If for some reason the dispute is not resolved satisfactorily within thirty (30) days after receipt, any further dispute resolution will occur according to the provisions below. Engaging in this informal dispute resolution process is a requirement that must be fulfilled before commencing a formal dispute resolution proceeding, such as an arbitration or small claims court proceeding.
 
-- Using the services in a manner that is inconsistent with applicable law.
+## 17. Arbitration Agreement & Waiver of Certain Rights
+Except as set forth below, you and Atlos agree that we will resolve any controversies, claims, counterclaims, or other disputes between you and us or you and a third-party agent of ours (each a “Claim”) through binding and final arbitration, instead of through court proceedings, in accordance with the Consumer Arbitration Rules of the American Arbitration Association (“AAA Rules”).  This arbitration agreement applies to any existing or future Claims that you have not individually filed in a court of law prior to the date you agreed to these Terms.  The AAA Rules are available at www.adr.org or by calling 1-800-778-7879.  You and we hereby waive any right to a jury trial of any Claim.  The arbitration will be heard and determined by a single arbitrator.  The arbitrator's decision in any such arbitration will be final and binding upon the parties and may be enforced in any court of competent jurisdiction.  You and we agree that the arbitration proceedings will be kept confidential and that the existence of the proceeding and any element of it (including, without limitation, any pleadings, briefs or other documents submitted or exchanged and any testimony or other oral submissions and awards) will not be disclosed beyond the arbitration proceedings, except as may lawfully be required in judicial proceedings relating to the arbitration, by applicable disclosure rules and regulations of securities regulatory authorities or other governmental agencies, or as specifically permitted by state law.  The Federal Arbitration Act and federal arbitration law apply to this agreement.  However, the Arbitrator, and not any federal, state, or local court or agency, shall have the exclusive authority to resolve any dispute relating to the interpretation, validity, applicability, enforceability, or formation of this Agreement including, but not limited to, a claim that all or any part of this Agreement is void or voidable.
+To begin an arbitration proceeding, you must send us an individual letter signed by you requesting arbitration and describing your claim at      
+Attn: Atlos Legal                                       
+Northwest Registered Agent, Inc. (#C3184722)                                  
+2108 N ST, STE N                                                    
+Sacramento, CA 95816.                              
 
-Engaging in Disruptive and Illegal Misuse of Facilities
+This letter must be sent at least five (5) days before you initiate an arbitration proceeding against us.
+Any party to the arbitration may, at any time more than ten (10) days before arbitration, serve an offer of compromise in writing upon any other party to the action. Offers of compromise pursuant to these Terms will be adjudicated and interpreted in accordance with California Code of Civil Procedure section 998.
 
-- Posting or distributing content that contains any viruses, malware, worms, Trojan horses, malicious code, or other device that could harm our technical infrastructure or system or that of our users;
+If you demonstrate that the costs of arbitration will be prohibitive as compared to the costs of litigation, we will pay as much of the administrative costs and arbitrator's fees required for the arbitration as the arbitrator deems necessary to prevent the cost of the arbitration from being prohibitive.  In the final award, the arbitrator may apportion the costs of arbitration and the compensation of the arbitrator among the parties in such amounts as the arbitrator deems appropriate. 
 
-- Engaging in automated uses of the site that are abusive or disruptive of the services and have not been approved by Atlos;
+This arbitration agreement does not preclude either party from seeking action by federal, state, or local government agencies.  You and we also have the right to bring qualifying claims in small claims court or transfer qualifying claims to small claims court.  In addition, you and we retain the right to apply to any court of competent jurisdiction for provisional relief, including pre-arbitral attachments or preliminary injunctions, and any such request shall not be deemed incompatible with these Terms, nor a waiver of the right to have disputes submitted to arbitration as provided in these Terms.
 
-- Disrupting the services by placing an undue burden on Atlos or the networks or servers connected with Atlos;
+Neither you nor we may act as a class representative or private attorney general, nor participate as a member of a class of claimants, with respect to any Claim.  You may not bring Claims in arbitration on a class, consolidated or representative basis.  The arbitrator can decide only your and/or our individual Claims.  The arbitrator may not consolidate or join the claims of other persons or parties who may be similarly situated without prior written consent of the parties.  The arbitrator may award in the arbitration the same damages or other relief available under applicable law, including injunctive and declaratory relief, as if the action were brought in court on an individual basis.  Notwithstanding anything to the contrary in the foregoing or herein, the arbitrator may not issue a “public injunction” and any such “public injunction” may be awarded only by a federal or state court.  If either party seeks a “public injunction,” all other claims and prayers for relief must be adjudicated in arbitration first and any prayer or claim for a “public injunction” in federal or state court stayed until the arbitration is completed, after which the federal or state court can adjudicate the party’s claim or prayer for “public injunctive relief.”  In doing so, the federal or state court is bound under principles of claim or issue preclusion by the decision of the arbitrator.
 
-- Disrupting the services by inundating Atlos with communications or other traffic that suggests no serious intent to use Atlos for its stated purpose;
+If any provision of this Section is found to be invalid or unenforceable, then that specific provision shall be of no force and effect and shall be severed, but the remainder of this Section shall continue in full force and effect.  No waiver of any provision of this Section of the Terms will be effective or enforceable unless recorded in a writing signed by the party waiving such a right or requirement.  Such a waiver shall not waive or affect any other portion of these Terms.  This Section of the Terms will survive the termination of your relationship with us.
 
-- Knowingly accessing, tampering with, or using any of our non-public areas in our computer systems without authorization; and
+THIS SECTION LIMITS CERTAIN RIGHTS, INCLUDING THE RIGHT TO MAINTAIN A COURT ACTION, THE RIGHT TO A JURY TRIAL, THE RIGHT TO PARTICIPATE IN ANY FORM OF CLASS OR REPRESENTATIVE CLAIM, THE RIGHT TO ENGAGE IN DISCOVERY EXCEPT AS PROVIDED IN AAA RULES, AND THE RIGHT TO CERTAIN REMEDIES AND FORMS OF RELIEF.  OTHER RIGHTS THAT YOU OR WE WOULD HAVE IN COURT ALSO MAY NOT BE AVAILABLE IN ARBITRATION.
 
-- Probing, scanning, or testing the vulnerability of any of our technical systems or networks unless all the following conditions are met:
+## 18. Other Provisions
+Under no circumstances will we be held liable for any delay or failure in performance due in whole or in part to any acts of nature or other causes beyond our reasonable control.
 
-  - such actions do not unduly abuse or disrupt our technical systems or networks;
+These Terms will be governed by and construed in accordance with the laws of the State of California, without giving effect to any conflict of laws, rules or provisions.  
 
-  - such actions are not for personal gain (except for credit for your work);
+You agree that any action of whatever nature relating to these Terms or the Services, except as otherwise set forth herein, will be filed only in the state or federal courts located in San Francisco, California.  You consent and submit to the personal jurisdiction of such courts for the purposes of any such action.  
 
-  - you report any vulnerabilities to Atlos (contact@atlos.org); and
+If any provision of these Terms is found to be unlawful or unenforceable, then that provision will be deemed severable from these Terms and will not affect the enforceability of any other provisions.  
 
-  - you do not undertake such actions with malicious or destructive intent.
+The failure by us to enforce any right or provision of these Terms will not prevent us from enforcing such right or provision in the future.
+We may assign our rights and obligations under these Terms, including in connection with a merger, acquisition, sale of assets or equity, or by operation of law.
 
-We reserve the right to exercise our enforcement discretion with respect to the above terms.
-
-## 5\. Password Security
-
-You are responsible for safeguarding your own password and should never disclose it to any third party.
-
-## 6\. Licensing of Content
-
-To further the Atlos mission, all users contributing to the Atlos catalog are required to grant broad permissions to the general public to re-distribute and re-use their contributions freely, so long as that use is properly attributed and the same freedom to re-use and re-distribute is granted to any derivative works. In keeping with our goal of providing free information to the widest possible audience, we require that when necessary all submitted content be licensed so that it is freely reusable by anyone who cares to access it.
-
-You agree to the following licensing requirements:
-
-- Text to which you hold the copyright: When you submit text to which you hold the copyright, you agree to license it under:
-
-- [Creative Commons Attribution 4.0 International License](https://creativecommons.org/licenses/by/4.0/) ("CC BY 4.0"), and
-
-- [GNU Free Documentation License](https://www.gnu.org/copyleft/fdl.html) ("GFDL") (unversioned, with no invariant sections, front-cover texts, or back-cover texts).
-
-(Re-users may comply with either license or both.)\
-Please note that these licenses do allow commercial uses of your contributions, as long as such uses are compliant with the terms.
-
-- Attribution: Attribution is an important part of these licenses. We consider it giving credit where credit is due -- to authors like yourself. When you contribute text, you agree to be attributed in any of the following fashions:
-
-1.  Through hyperlink (where possible) or URL to the incident to which you contributed (since each incident has a feed that lists all contributors);
-
-2.  Through a list of all authors (but please note that any list of authors may be filtered to exclude very small or irrelevant contributions);
-
-3.  Through a reference to Atlos
-
-- Importing text: You may import text that you have found elsewhere or that you have co-authored with others, but in such case you warrant that the text is available under terms that are compatible with the CC BY 4.0 license ("CC BY"). Content available only under GFDL is not permissible.
-
-  You agree that, if you import text under a CC BY license that requires attribution, you must credit the author(s) in a reasonable fashion. It is sufficient to give attribution in an update, which is recorded in the incident feed, when importing the text. The attribution requirements are sometimes too intrusive for particular circumstances (regardless of the license), and there may be instances where the Atlos community decides that imported text cannot be used for that reason.
-
-- Non-text media: Non-text media in the Atlos catalog are available under a variety of different licenses that support the general goal of allowing unrestricted re-use and re-distribution. When you contribute non-text media, you agree to contribute and attribute media: 1) under a license that permits its unrestricted re-use and re-distribution, 2) that is in the public domain, or 3) that falls under "fair use" doctrine.
-
-- No revocation of license: Except as consistent with your license, you agree that you will not unilaterally revoke or seek invalidation of any license that you have granted under these Terms of Use for text content or non-text media contributed to Atlos, even if you terminate use of our services.
-
-- Public domain content: Content that is in the public domain is welcome! It is important however that you confirm the public domain status of the content under the law of the United States of America. When you contribute content that is in the public domain, you warrant that the material is actually in the public domain, and you agree to label it appropriately.
-
-- Re-use: Re-use of content that we host is welcome, though exceptions exist for content contributed under "fair use" or similar exemptions under copyright law. Any re-use must comply with the underlying license(s).\
-  When you re-use or re-distribute content developed by the Atlos community, you agree to attribute the authors in any of the following fashions:
-
-1.  Through hyperlink (where possible) or URL to the page or pages that you are re-using (since each page has a feed that lists all authors and editors);
-
-2.  Through a list of all authors (but please note that any list of authors may be filtered to exclude very small or irrelevant contributions);
-
-3.  Through a reference to Atlos
-
-- If the text content was imported from another source, it is possible that the content is licensed under a compatible CC BY license but not GFDL (as described in "Importing text," above). In that case, you agree to comply with the compatible CC BY license and do not have the option to re-license it under GFDL. To determine the license that applies to the content that you seek to re-use or re-distribute, you should review the incident's feed and updates. In addition, please be aware that text that originated from external sources and was imported into Atlos may be under a license that attaches additional attribution requirements. Users agree to indicate these additional attribution requirements clearly. For any non-text media, you agree to comply with whatever license under which the work has been made available. When re-using any content that we host, you agree to comply with the relevant attribution requirements as they pertain to the underlying license or licenses.
-
-- Modifications or additions to material that you re-use: When modifying or making additions to text that you have obtained from Atlos, you agree to license the modified or added content under CC BY 4.0 or later.\
-  When modifying or making additions to any non-text media that you have obtained from Atlos, you agree to license the modified or added content in accordance with whatever license under which the work has been made available.\
-  With both text content and non-text media, you agree to clearly indicate that the original work has been modified. For each copy or modified version that you distribute, you agree to include a licensing notice stating which license the work is released under, along with either a hyperlink or URL to the text of the license or a copy of the license itself.
-
-Note, however, that Atlos reserves the right to restrict who is able to access and interact with the Atlos platform.
-
-## 7\. DMCA Compliance
-
-Atlos wants to ensure that the content that we host can be re-used by other users without fear of liability and that it is not infringing the proprietary rights of others. In fairness to our users, as well as to other creators and copyright holders, our policy is to respond to notices of alleged infringement that comply with the formalities of the Digital Millennium Copyright Act (DMCA). Pursuant to the DMCA, we will terminate, in appropriate circumstances, users and account holders of our system and network who are repeat infringers.
-
-However, we also recognize that not every takedown notice is valid or in good faith. In such cases, we strongly encourage users to file counter-notifications when they appropriately believe a DMCA takedown demand is invalid or improper. If you are the owner of content that is being improperly used on Atlos without your permission, you may request that the content be removed under the DMCA. To make such a request, please email us at contact@atlos.org.
-
-## 8\. Third-party Websites and Resources
-
-You are solely responsible for your use of any third-party websites or resources. Although the Atlos catalog contains links to third-party websites and resources, we do not endorse and are not responsible or liable for their availability, accuracy, or the related content, products, or services (including, without limitation, any viruses or other disabling features), nor do we have any obligation to monitor such third-party content.
-
-## 9\. Management of Websites
-
-The community has the primary role in enforcing Atlos policies. We rarely intervene in community decisions about policy and its enforcement. In an unusual case, the need may arise, or the community may ask us, to address an especially problematic user because of significant disturbance or dangerous behavior. In such cases, we reserve the right, but do not have the obligation to:
-
-- Investigate your use of the service (a) to determine whether a violation of these Terms of Use or other applicable law or policy has occurred, or (b) to comply with any applicable law, legal process, or appropriate governmental request;
-
-- Detect, prevent, or otherwise address fraud, security, or technical issues or respond to user support requests;
-
-- Refuse, disable, or restrict access to the contribution of any user who violates these Terms of Use;
-
-- Ban a user from editing or contributing or block a user's account or access for actions violating these Terms of Use, including repeat copyright infringement;
-
-- Take legal action against users who violate these Terms of Use (including reports to law enforcement authorities); and
-
-- Manage otherwise Atlos in a manner designed to facilitate their proper functioning and protect the rights, property, and safety of ourselves and our users, licensors, partners, and the public.
-
-In the interests of our users and the Atlos catalog, in the extreme circumstance that any individual has had his or her account or access blocked under this provision, he or she is prohibited from creating or using another account on or seeking access to Atlos, unless we provide explicit permission.
-
-The Atlos community and its members may also take action when so allowed by Atlos policies, including but not limited to warning, investigating, blocking, or banning users who violate those policies. You agree to comply with the final decisions of dispute resolution bodies that are established by the community.
-
-The blocking of an account or access or the banning of a user under this provision shall be in accordance with Section 11 of these Terms of Use.
-
-## 10\. Resolutions and Project Policies
-
-Atlos releases official policies from time to time. Some of these policies may be mandatory, and, when they are, you agree to abide by them as applicable.
-
-## 11\. Termination
-
-Though we hope you will stay and continue to contribute to Atlos, you can stop using our services any time. In certain (hopefully unlikely) circumstances it may be necessary for either ourselves or the Atlos community or its members (as described in Section 10) to terminate part or all of our services, terminate these Terms of Use, block your account or access, or ban you as a user. If your account or access is blocked or otherwise terminated for any reason, your contributions will remain visible to other users (subject to applicable policies). In such circumstances, however, you may not be able to access your account or settings. We reserve the right to suspend or end the services at any time, with or without cause, and with or without notice. Even after your use and participation are banned, blocked or otherwise suspended, these Terms of Use will remain in effect with respect to relevant provisions, including Sections 1, 3, 4, 6, 7, 9-15, and 17.
-
-## 13\. Disputes and Jurisdiction
-
-We hope that no serious disagreements arise involving you, but, in the event there is a dispute, we encourage you to seek resolution through the dispute resolution procedures or mechanisms provided by Atlos. If you seek to file a legal claim against us, you agree to file and resolve it exclusively in a state or federal court located in New York County, New York. You also agree that the laws of the State of New York and, to the extent applicable, the laws of the United States of America will govern these Terms of Use, as well as any legal claim that might arise between you and us (without reference to conflict of laws principles). You agree to submit to the personal jurisdiction of, and agree that venue is proper in, the courts located in New York County, New York, in any legal action or proceeding relating to us or these Terms of Use.
-
-To ensure that disputes are dealt with soon after they arise, you agree that regardless of any statute or law to the contrary, any claim or cause of action you might have arising out of or related to use of our services or these Terms of Use must be filed within the applicable statute of limitations or, if earlier, one (1) year after the pertinent facts underlying such claim or cause of action could have been discovered with reasonable diligence (or be forever barred).
-
-## 14\. Disclaimers
-
-We do our best to serve researchers, but your use of our services is at your sole risk. We provide these services on an "as is" and "as available" basis, and we expressly disclaim all express or implied warranties of all kinds, including but not limited to the implied warranties of merchantability, fitness for a particular purpose, and non-infringement. We make no warranty that our services will meet your requirements, be safe, secure, uninterrupted, timely, accurate, or error-free, or that your information will be secure.
-
-We are not responsible for the content, data, or actions of third parties, and you release us, our directors, officers, employees, and agents from any claims and damages, known and unknown, arising out of or in any way connected with any claim you have against any such third parties. No advice or information, whether oral or written, obtained by you from us or through or from our services creates any warranty not expressly stated in these Terms of Use.
-
-Any material downloaded or otherwise obtained through your use of our services is done at your own discretion and risk, and you will be solely responsible for any damage to your computer system or loss of data that results from the download of any such material. You agree that we have no responsibility or liability for the deletion of, or the failure to store or to transmit, any content or communication maintained by the service. We retain the right to create limits on use and storage at our sole discretion at any time with or without notice.
-
-Some states or jurisdictions do not allow the types of disclaimers in this section, so they may not apply to you either in part or in full depending on the law.
-
-## 15\. Limitation on Liability
-
-We will not be liable to you or to any other party for any direct, indirect, incidental, special, consequential or exemplary damages, including but not limited to, damages for loss of profits, goodwill, use, data, or other intangible losses, regardless of whether we were advised of the possibility of such damage. In no event shall our liability exceed one thousand U.S. dollars (USD 1000.00) in aggregate. In the case that applicable law may not allow the limitation or exclusion of liability or incidental or consequential damages, the above limitation or exclusion may not apply to you, although our liability will be limited to the fullest extent permitted by applicable law.
-
-## 16\. Modifications to these Terms of Use
-
-Just as the Atlos community's input is essential for the growth and maintenance of the Atlos catalog, we believe that community input is essential for these Terms of Use to properly serve our users. It is also essential for a fair contract. Therefore, we will provide these Terms of Use, as well as any substantial future revisions of these Terms of Use, to the community for comment at least five (5) days before the end of the comment period. For changes for legal or administrative reasons, to correct an inaccurate statement, or changes in response to community comments, we will provide at least three (3) days' notice.
-
-Because it may be necessary to modify these Terms of Use from time to time, we will provide notice of such modifications and the opportunity to comment via the Atlos platform. However, we ask that you please periodically review the most up-to-date version of these Terms of Use. Your continued use of our services after the new Terms of Use become official following the notice and review period constitutes an acceptance of these Terms of Use on your part. For the protection of Atlos and other users like yourself, if you do not agree with our Terms of Use, you cannot use our services.
-
-## 17\. Other Terms
-
-These Terms of Use do not create an employment, agency, partnership, or joint venture relationship between you and us. If you have not signed a separate agreement with us, these Terms of Use are the entire agreement between you and us. If there is any conflict between these Terms of Use and a signed written agreement between you and us, the signed agreement will control.
-
-You agree that we may provide you with notices, including those regarding changes to the Terms of Use, by email or postings on the Atlos website.
-
-If in any circumstance, we do not apply or enforce any provision of these Terms of Use, it is not a waiver of that provision.
-
-You understand that, unless otherwise agreed to in writing by us, you have no expectation of compensation for any activity, contribution, or idea that you provide to us, the community, or the Atlos catalog.
-
-Notwithstanding any provision to the contrary in these Terms of Use, we and you agree not to modify the applicable terms and requirements of any free license that is employed on Atlos when such free license is authorized by these Terms of Use.
-
-If any provision or part of a provision of these Terms of Use is found unlawful, void, or unenforceable, that provision or part of the provision is deemed severable from these Terms of Use and will be enforced to the maximum extent permissible, and all other provisions of these Terms of Use will remain in full force and effect.
+## 19. Changes to these Terms
+From time to time, we may change these Terms or other policies incorporated in these Terms, like our [Privacy Policy](https://github.com/atlosdotorg/atlos/blob/main/policy/PRIVACY_POLICY.md)).  If we change these Terms, we will give you notice by posting the revised Terms on the Site and notifying you within the Atlos platform.  Those changes will go into effect on the Revision Date shown in the revised Terms.  By continuing to use the Services after the revised Terms are posted on the Site, or by visiting, interacting with, or purchasing from us in any of our stores or elsewhere after we have sent you written notice of the revised Terms, you are agreeing to the revised Terms. 
 
 ## Thank You!
-
-We appreciate your taking the time to read these Terms of Use, and we are very happy to have you contributing to the Atlos catalog and using our services.
+We appreciate your taking the time to read these Terms of Use, and we are very happy to have you using Atlos.
