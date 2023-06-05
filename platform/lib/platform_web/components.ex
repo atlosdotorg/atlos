@@ -3429,15 +3429,14 @@ defmodule PlatformWeb.Components do
     ~H"""
     <div class="text-center text-xs mt-4">
       <p>
-        Atlos is <a href="https://github.com/milesmcc/atlos" class="underline">open source</a>.
+        Atlos is <a href="https://github.com/atlosdotorg/atlos" class="underline">open source</a>.
       </p>
       <p>
-        By using Atlos, you agree to our <a
-          href="https://github.com/milesmcc/atlos/blob/main/policy/TERMS_OF_USE.md"
-          class="underline"
-        >
-          Terms of Use
-        </a>.
+        By using Atlos, you agree to our
+        <a href="https://github.com/atlosdotorg/atlos/blob/main/policy/TERMS_OF_USE.md">
+          <span class="underline">Terms</span>
+        </a>
+        and <a href="https://github.com/atlosdotorg/atlos/blob/main/policy/PRIVACY_POLICY.md"><span class="underline">Privacy Policy</span></a>.
       </p>
     </div>
     """
@@ -3447,25 +3446,32 @@ defmodule PlatformWeb.Components do
     ~H"""
     <footer class="place-self-center max-w-lg mx-auto mt-8 text-gray-500 text-xs">
       <div class="grid grid-cols-3 text-center gap-4 md:flex md:justify-between">
-        <a href="https://github.com/milesmcc/atlos" class="hover:text-gray-600" target="_blank">
+        <a href="https://github.com/atlosdotorg/atlos" class="hover:text-gray-600" target="_blank">
           Source Code
         </a>
         <a
-          href="https://github.com/milesmcc/atlos/blob/main/policy/TERMS_OF_USE.md"
+          href="https://github.com/atlosdotorg/atlos/blob/main/policy/TERMS_OF_USE.md"
           class="hover:text-gray-600 transition"
           target="_blank"
         >
-          Terms of Use
+          Terms
         </a>
         <a
-          href="https://github.com/milesmcc/atlos/blob/main/policy/RESILIENCE.md"
+          href="https://github.com/atlosdotorg/atlos/blob/main/policy/PRIVACY_POLICY.md"
+          class="hover:text-gray-600 transition"
+          target="_blank"
+        >
+          Privacy
+        </a>
+        <a
+          href="https://github.com/atlosdotorg/atlos/blob/main/policy/RESILIENCE.md"
           class="hover:text-gray-600 transition"
           target="_blank"
         >
           Resilience
         </a>
         <a
-          href="https://github.com/milesmcc/atlos/discussions"
+          href="https://github.com/atlosdotorg/atlos/discussions"
           class="hover:text-gray-600 transition"
           target="_blank"
         >
