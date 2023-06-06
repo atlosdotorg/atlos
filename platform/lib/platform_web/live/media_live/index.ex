@@ -108,7 +108,7 @@ defmodule PlatformWeb.MediaLive.Index do
              :source_cols,
              Enum.min([
                Enum.max(results.entries |> Enum.map(&length(&1.versions)), &>=/2, fn -> 0 end),
-               2
+               20
              ])
            ),
          else: s
