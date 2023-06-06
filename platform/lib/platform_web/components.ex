@@ -2001,7 +2001,7 @@ defmodule PlatformWeb.Components do
         >
           <% version = Enum.at(@versions, idx) %>
           <%= cond do %>
-            <% length(@versions) > @source_cols && idx == @source_cols -> %>
+            <% length(@versions) > @source_cols + 1 && idx == @source_cols -> %>
               <span class="text-neutral-400 px-4 text-sm whitespace-nowrap">
                 <%= length(@versions) - @source_cols %> more source(s) available on the incident page
               </span>
