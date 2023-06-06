@@ -658,6 +658,7 @@ defmodule PlatformWeb.Components do
                     class={"h-10 w-10 rounded-full bg-gray-400 flex items-center justify-center shadow " <> @profile_ring_classes}
                     src={Accounts.get_profile_photo_path(@head.user)}
                     alt={"Profile photo for #{@head.user.username}"}
+                    loading="lazy"
                   />
                 </a>
               </div>
@@ -751,6 +752,7 @@ defmodule PlatformWeb.Components do
                         class={"h-10 w-10 rounded-full bg-gray-400 flex items-center justify-center " <> @profile_ring_classes}
                         src={Accounts.get_profile_photo_path(@update.user)}
                         alt={"Profile photo for #{@update.user.username}"}
+                        loading="lazy"
                       />
                     </a>
                   </div>
@@ -892,7 +894,7 @@ defmodule PlatformWeb.Components do
                             <%= cond do %>
                               <% String.ends_with?(attachment, ".jpg") || String.ends_with?(attachment, ".jpeg") || String.ends_with?(attachment, ".png") -> %>
                                 <a href={url} target="_blank">
-                                  <img src={url} />
+                                  <img src={url} loading="lazy" />
                                 </a>
                               <% String.ends_with?(attachment, ".mp4") -> %>
                                 <video controls preload="auto" muted>
@@ -1048,7 +1050,7 @@ defmodule PlatformWeb.Components do
     assigns = assign(assigns, :loc, loc)
 
     ~H"""
-    <img src={@loc} class={"rounded " <> @class} />
+    <img src={@loc} loading="lazy" class={"rounded " <> @class} />
     """
   end
 
@@ -1998,20 +2000,12 @@ defmodule PlatformWeb.Components do
           id={"table-row-" <> @media.slug <> "-source-" <> to_string(idx)}
         >
           <% version = Enum.at(@versions, idx) %>
-          <%= if not is_nil(version) do %>
-            <div class="text-sm flex items-center text-gray-900 px-4 whitespace-nowrap text-ellipsis overflow-hidden h-6 w-[12rem]">
-              <a
-                href={version.source_url}
-                target="_blank"
-                rel="nofollow"
-                class="truncate"
-                data-confirm="This will open the source media in a new tab. Are you sure?"
-              >
-                <.url_icon url={version.source_url} class="h-4 w-4 inline mb-px" />
-                <%= version.source_url %>
-              </a>
-            </div>
-            <%!-- <.popover class="inline">
+          <%= cond do %>
+            <% length(@versions) > @source_cols + 1 && idx == @source_cols -> %>
+              <span class="text-neutral-400 px-4 text-sm whitespace-nowrap">
+                <%= length(@versions) - @source_cols %> more source(s) available on the incident page
+              </span>
+            <% not is_nil(version) -> %>
               <div class="text-sm flex items-center text-gray-900 px-4 whitespace-nowrap text-ellipsis overflow-hidden h-6 w-[12rem]">
                 <a
                   href={version.source_url}
@@ -2024,22 +2018,10 @@ defmodule PlatformWeb.Components do
                   <%= version.source_url %>
                 </a>
               </div>
-              <:display>
-                <div class="min-w-[20rem]">
-                  <.media_version_display
-                    version={version}
-                    current_user={@current_user}
-                    media={@media}
-                    show_controls={false}
-                    dynamic_src={true}
-                  />
-                </div>
-              </:display>
-            </.popover> --%>
-          <% else %>
-            <span class="text-neutral-400 px-4">
-              &mdash;
-            </span>
+            <% true -> %>
+              <span class="text-neutral-400 px-4">
+                &mdash;
+              </span>
           <% end %>
         </td>
       <% end %>
@@ -2562,6 +2544,7 @@ defmodule PlatformWeb.Components do
               class={"relative z-30 inline-block rounded-full ring-2 " <> Map.get(assigns, :size_classes, "h-5 w-5") <> " " <> Map.get(assigns, :ring_class, "ring-white")}
               src={Accounts.get_profile_photo_path(user)}
               alt={"Profile photo for #{user.username}"}
+              loading="lazy"
             />
             <:display>
               <.user_card user={user} />
@@ -2572,6 +2555,7 @@ defmodule PlatformWeb.Components do
             class={"relative z-30 inline-block rounded-full ring-2 " <> Map.get(assigns, :size_classes, "h-5 w-5") <> " " <> Map.get(assigns, :ring_class, "ring-white")}
             src={Accounts.get_profile_photo_path(user)}
             alt={"Profile photo for #{user.username}"}
+            loading="lazy"
           />
         <% end %>
       <% end %>
@@ -2664,6 +2648,8 @@ defmodule PlatformWeb.Components do
                   <img
                     src={Material.media_version_artifact_location(@artifact, version: :thumbnail)}
                     class="w-full object-cover scale-[1.1] origin-top"
+                    height="160"
+                    loading="lazy"
                   />
                 </div>
               <% length(@version.artifacts) == 1 -> %>
@@ -3429,15 +3415,14 @@ defmodule PlatformWeb.Components do
     ~H"""
     <div class="text-center text-xs mt-4">
       <p>
-        Atlos is <a href="https://github.com/milesmcc/atlos" class="underline">open source</a>.
+        Atlos is <a href="https://github.com/atlosdotorg/atlos" class="underline">open source</a>.
       </p>
       <p>
-        By using Atlos, you agree to our <a
-          href="https://github.com/milesmcc/atlos/blob/main/policy/TERMS_OF_USE.md"
-          class="underline"
-        >
-          Terms of Use
-        </a>.
+        By using Atlos, you agree to our
+        <a href="https://github.com/atlosdotorg/atlos/blob/main/policy/TERMS_OF_USE.md">
+          <span class="underline">Terms</span>
+        </a>
+        and <a href="https://github.com/atlosdotorg/atlos/blob/main/policy/PRIVACY_POLICY.md"><span class="underline">Privacy Policy</span></a>.
       </p>
     </div>
     """
@@ -3447,25 +3432,32 @@ defmodule PlatformWeb.Components do
     ~H"""
     <footer class="place-self-center max-w-lg mx-auto mt-8 text-gray-500 text-xs">
       <div class="grid grid-cols-3 text-center gap-4 md:flex md:justify-between">
-        <a href="https://github.com/milesmcc/atlos" class="hover:text-gray-600" target="_blank">
+        <a href="https://github.com/atlosdotorg/atlos" class="hover:text-gray-600" target="_blank">
           Source Code
         </a>
         <a
-          href="https://github.com/milesmcc/atlos/blob/main/policy/TERMS_OF_USE.md"
+          href="https://github.com/atlosdotorg/atlos/blob/main/policy/TERMS_OF_USE.md"
           class="hover:text-gray-600 transition"
           target="_blank"
         >
-          Terms of Use
+          Terms
         </a>
         <a
-          href="https://github.com/milesmcc/atlos/blob/main/policy/RESILIENCE.md"
+          href="https://github.com/atlosdotorg/atlos/blob/main/policy/PRIVACY_POLICY.md"
+          class="hover:text-gray-600 transition"
+          target="_blank"
+        >
+          Privacy
+        </a>
+        <a
+          href="https://github.com/atlosdotorg/atlos/blob/main/policy/RESILIENCE.md"
           class="hover:text-gray-600 transition"
           target="_blank"
         >
           Resilience
         </a>
         <a
-          href="https://github.com/milesmcc/atlos/discussions"
+          href="https://github.com/atlosdotorg/atlos/discussions"
           class="hover:text-gray-600 transition"
           target="_blank"
         >
