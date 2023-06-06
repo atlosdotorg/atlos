@@ -1998,20 +1998,12 @@ defmodule PlatformWeb.Components do
           id={"table-row-" <> @media.slug <> "-source-" <> to_string(idx)}
         >
           <% version = Enum.at(@versions, idx) %>
-          <%= if not is_nil(version) do %>
-            <div class="text-sm flex items-center text-gray-900 px-4 whitespace-nowrap text-ellipsis overflow-hidden h-6 w-[12rem]">
-              <a
-                href={version.source_url}
-                target="_blank"
-                rel="nofollow"
-                class="truncate"
-                data-confirm="This will open the source media in a new tab. Are you sure?"
-              >
-                <.url_icon url={version.source_url} class="h-4 w-4 inline mb-px" />
-                <%= version.source_url %>
-              </a>
-            </div>
-            <%!-- <.popover class="inline">
+          <%= cond do %>
+            <% length(@versions) > @source_cols && idx == @source_cols -> %>
+              <span class="text-neutral-400 px-4 text-sm whitespace-nowrap">
+                <%= length(@versions) - @source_cols %> more source(s) available on the incident page
+              </span>
+            <% not is_nil(version) -> %>
               <div class="text-sm flex items-center text-gray-900 px-4 whitespace-nowrap text-ellipsis overflow-hidden h-6 w-[12rem]">
                 <a
                   href={version.source_url}
@@ -2024,22 +2016,10 @@ defmodule PlatformWeb.Components do
                   <%= version.source_url %>
                 </a>
               </div>
-              <:display>
-                <div class="min-w-[20rem]">
-                  <.media_version_display
-                    version={version}
-                    current_user={@current_user}
-                    media={@media}
-                    show_controls={false}
-                    dynamic_src={true}
-                  />
-                </div>
-              </:display>
-            </.popover> --%>
-          <% else %>
-            <span class="text-neutral-400 px-4">
-              &mdash;
-            </span>
+            <% true -> %>
+              <span class="text-neutral-400 px-4">
+                &mdash;
+              </span>
           <% end %>
         </td>
       <% end %>
