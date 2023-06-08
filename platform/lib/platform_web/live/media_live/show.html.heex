@@ -297,7 +297,17 @@
         </.card>
         <.card>
           <:header>
-            <h3 class="sec-head">Source Material</h3>
+            <div class="md:flex justify-between items-center mt-1">
+              <h3 class="sec-head">Source Material</h3>
+              <%= if Permissions.can_edit_media?(@current_user, @media) do %>
+                <section class="text-sm overflow-visible">
+                  <%= live_patch("+ Add Material",
+                    class: "text-button inline-block",
+                    to: Routes.media_show_path(@socket, :upload, @media.slug)
+                  ) %>
+                </section>
+              <% end %>
+            </div>
           </:header>
           <div class="-mt-10 pt-5 -mb-5">
             <% versions =
@@ -339,14 +349,6 @@
                     media={@media}
                     current_user={@current_user}
                   />
-                <% end %>
-                <%= if Permissions.can_edit_media?(@current_user, @media) do %>
-                  <section class="pt-2 pb-4 text-sm overflow-visible">
-                    <%= live_patch("+ Upload More Media",
-                      class: "text-button mt-1 inline-block",
-                      to: Routes.media_show_path(@socket, :upload, @media.slug)
-                    ) %>
-                  </section>
                 <% end %>
               </div>
             <% end %>
