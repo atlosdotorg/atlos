@@ -64,7 +64,7 @@ defmodule Platform.Accounts.UserNotifier do
 
     If necessary, you can change your password here: #{change_password_url}
 
-    We know this email might feel excessive. But we take security extremely security at Atlos, and want to make sure that unauthorized logins are detected and remedied quickly.
+    We know this email might feel excessive. But we take security extremely seriously at Atlos, and want to make sure that unauthorized logins are detected and remedied quickly.
 
     Best,
     The Atlos Team
