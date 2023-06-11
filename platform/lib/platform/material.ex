@@ -1330,6 +1330,9 @@ defmodule Platform.Material do
   @doc """
   Submit the given `MediaVersion` for archival by the Internet Archive, if keys are available.
   """
+  def submit_for_external_archival(%MediaVersion{source_url: nil} = _version), do: :ok
+  def submit_for_external_archival(%MediaVersion{source_url: ""} = _version), do: :ok
+
   def submit_for_external_archival(%MediaVersion{source_url: url} = _version) do
     Task.start(fn ->
       key = System.get_env("SPN_ARCHIVE_API_KEY")
