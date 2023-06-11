@@ -211,18 +211,20 @@ def archive_using_auto_archiver(
 def generate_perceptual_hashes(path: str) -> dict:
     """Generates a perceptual hash for the given file."""
 
-    mime_type = mimetypes.guess_type(path)[0]
+    try:
+        mime_type = mimetypes.guess_type(path)[0]
 
-    if mime_type.startswith("image/") and not mime_type.startswith("image/svg"):
-        hasher = hashers.PHash()
-        perceptual_hash = hasher.compute(path)
-        return [dict(kind="phash", hash=perceptual_hash)]
-    elif mime_type.startswith("video/"):
-        perceptual_hash_l1 = hashers.TMKL1().compute(path)
-
-        return [
-            dict(kind="tmkl1", hash=perceptual_hash_l1),
-        ]
+        if mime_type.startswith("image/") and not mime_type.startswith("image/svg"):
+            hasher = hashers.PHash()
+            perceptual_hash = hasher.compute(path)
+            return [dict(kind="phash", hash=perceptual_hash)]
+        elif mime_type.startswith("video/"):
+            perceptual_hash_l1 = hashers.TMKL1().compute(path)
+            return [
+                dict(kind="tmkl1", hash=perceptual_hash_l1),
+            ]
+    except Exception as e:
+        logger.error(f"Failed to generate perceptual hash.")
     return []
 
 
