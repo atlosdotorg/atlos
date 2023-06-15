@@ -31,6 +31,7 @@ jobs:
         with:
           push: true
           tags: atlos.azurecr.io/${{ secrets.AZURE_CONTAINER_REGISTRY_USERNAME }}/platform:${{ github.sha }}
+          context: ./platform
           file: ./Dockerfile
 
   deploy:
