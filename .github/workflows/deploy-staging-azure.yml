@@ -12,7 +12,9 @@ on:
 jobs:
   build:
     runs-on: "ubuntu-latest"
-
+    defaults:
+      run:
+        working-directory: ./platform
     steps:
       - uses: actions/checkout@v2
 
@@ -31,7 +33,6 @@ jobs:
         with:
           push: true
           tags: atlos.azurecr.io/${{ secrets.AZURE_CONTAINER_REGISTRY_USERNAME }}/platform:${{ github.sha }}
-          context: ./platform
           file: ./Dockerfile
 
   deploy:
