@@ -23,14 +23,14 @@ jobs:
         uses: docker/login-action@v2
         with:
           registry: https://atlos.azurecr.io/
-          username: ${{ secrets.AzureAppService_ContainerUsername_1cc713570a104b1e88e405747311fd05 }}
-          password: ${{ secrets.AzureAppService_ContainerPassword_9ef858e77b73419ab732d02b1fda0594 }}
+          username: ${{ secrets.AZURE_CONTAINER_REGISTRY_USERNAME }}
+          password: ${{ secrets.AZURE_CONTAINER_REGISTRY_PASSWORD }}
 
       - name: Build and push container image to registry
         uses: docker/build-push-action@v3
         with:
           push: true
-          tags: atlos.azurecr.io/${{ secrets.AzureAppService_ContainerUsername_1cc713570a104b1e88e405747311fd05 }}/platform:${{ github.sha }}
+          tags: atlos.azurecr.io/${{ secrets.AZURE_CONTAINER_REGISTRY_USERNAME }}/platform:${{ github.sha }}
           file: ./Dockerfile
 
   deploy:
@@ -48,4 +48,4 @@ jobs:
           app-name: "atlos-staging"
           slot-name: "production"
           publish-profile: ${{ secrets.AzureAppService_PublishProfile_70900efc9a264859be1047d3a8237702 }}
-          images: "atlos.azurecr.io/${{ secrets.AzureAppService_ContainerUsername_1cc713570a104b1e88e405747311fd05 }}/platform:${{ github.sha }}"
+          images: "atlos.azurecr.io/${{ secrets.AZURE_CONTAINER_REGISTRY_USERNAME }}/platform:${{ github.sha }}"
