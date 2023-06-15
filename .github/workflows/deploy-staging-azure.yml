@@ -32,8 +32,9 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           push: true
+          context: ./platform
           tags: atlos.azurecr.io/${{ secrets.AZURE_CONTAINER_REGISTRY_USERNAME }}/platform:${{ github.sha }}
-          file: ./Dockerfile
+          file: ./platform/Dockerfile
 
   deploy:
     runs-on: ubuntu-latest
