@@ -35,6 +35,8 @@ jobs:
           context: ./platform
           tags: atlos.azurecr.io/${{ secrets.AZURE_CONTAINER_REGISTRY_USERNAME }}/platform:${{ github.sha }}
           file: ./platform/Dockerfile
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
   deploy:
     runs-on: ubuntu-latest
