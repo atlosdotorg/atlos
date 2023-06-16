@@ -838,10 +838,7 @@ defmodule Platform.Material do
         end
       end)
 
-      {:ok, _} =
-        merge_media_versions_audited(source, new_media, user,
-          post_updates: Keyword.get(opts, :post_updates, true)
-        )
+      {:ok, _} = merge_media_versions_audited(source, new_media, user, post_updates: false)
 
       if Keyword.get(opts, :post_updates, true) do
         Updates.post_bot_comment(

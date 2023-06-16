@@ -14,16 +14,24 @@ end
 
 if config_env() == :prod do
   database_url =
-    System.get_env("DATABASE_URL") ||
-      raise """
-      environment variable DATABASE_URL is missing.
-      For example: ecto://USER:PASS@HOST/DATABASE
-      """
+    cond do
+      not is_nil(System.get_env("DATABASE_URL")) ->
+        System.get_env("DATABASE_URL")
+
+      not is_nil(System.get_env("AZURE_POSTGRESQL_HOST")) ->
+        "postgres://#{System.get_env("AZURE_POSTGRESQL_USERNAME")}@#{System.get_env("AZURE_POSTGRESQL_HOST")}:#{System.get_env("AZURE_POSTGRESQL_PORT")}/#{System.get_env("AZURE_POSTGRESQL_DATABASE")}"
+
+      true ->
+        raise """
+        environment variable DATABASE_URL is missing.
+        For example: ecto://USER:PASS@HOST/DATABASE
+        """
+    end
 
   maybe_ipv6 = if System.get_env("ECTO_IPV6"), do: [:inet6], else: []
 
   config :platform, Platform.Repo,
-    # ssl: true,
+    ssl: System.get_env("AZURE_POSTGRESQL_SSL", "false") == "true",
     url: database_url,
     pool_size: String.to_integer(System.get_env("POOL_SIZE") || "20"),
     socket_options: maybe_ipv6,

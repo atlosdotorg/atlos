@@ -356,6 +356,7 @@ defmodule Platform.Material.Media do
   def slug_to_display(media) do
     case media.project do
       nil -> media.slug |> String.replace("ATL-", "")
+      %Ecto.Association.NotLoaded{} -> media.slug |> String.replace("ATL-", "")
       proj -> proj.code <> "-" <> (media.slug |> String.replace("ATL-", ""))
     end
   end
