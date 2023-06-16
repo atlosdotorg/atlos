@@ -35,7 +35,7 @@ if config_env() == :prod do
     url: database_url,
     pool_size: String.to_integer(System.get_env("POOL_SIZE") || "20"),
     socket_options: maybe_ipv6,
-    types: Platform.Repo.PostgresTypes,
+    types: Platform.Repo.PostgresTypes
 
   # The secret key base is used to sign/encrypt cookies and other secrets.
   # A default value is used in config/dev.exs and config/test.exs but you
