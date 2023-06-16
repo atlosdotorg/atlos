@@ -323,6 +323,16 @@ defmodule Platform.Material do
     end
   end
 
+  def find_raw_slug(slug) do
+    val = String.split(slug, "-", parts: 2) |> tl() |> Enum.join("-")
+
+    cond do
+      Repo.exists?(Media |> where([m], m.slug == ^slug)) -> slug
+      Repo.exists?(Media |> where([m], m.slug == ^val)) -> val
+      true -> slug
+    end
+  end
+
   def get_raw_slug(slug) do
     # If the slug has a prefix that is not ATL, we need to strip it off
     # and look up the media by the slug without the prefix

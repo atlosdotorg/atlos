@@ -17,10 +17,12 @@ defmodule PlatformWeb.MediaLive.Show do
   end
 
   def handle_params(%{"slug" => slug} = params, _uri, socket) do
-    if Material.get_raw_slug(slug) != slug do
+    found_slug = Material.find_raw_slug(slug)
+
+    if found_slug != slug do
       {:noreply,
        socket
-       |> redirect(to: "/incidents/#{Material.get_raw_slug(slug)}")}
+       |> redirect(to: "/incidents/#{found_slug}")}
     else
       {:noreply,
        socket
