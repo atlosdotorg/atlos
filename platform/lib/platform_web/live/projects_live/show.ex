@@ -279,13 +279,15 @@ defmodule PlatformWeb.ProjectsLive.Show do
             current_user={@current_user}
             project={@project}
           />
-          <hr />
-          <.live_component
-            module={PlatformWeb.ProjectsLive.BulkUploadLive}
-            id="bulk-upload"
-            current_user={@current_user}
-            project={@project}
-          />
+          <%= if Permissions.can_bulk_upload_media_to_project?(@current_user, @project) do %>
+            <hr />
+            <.live_component
+              module={PlatformWeb.ProjectsLive.BulkUploadLive}
+              id="bulk-upload"
+              current_user={@current_user}
+              project={@project}
+            />
+          <% end %>
         <% end %>
         <%= if @live_action == :members and feature_available?(:project_access_controls) do %>
           <.live_component
