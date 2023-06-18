@@ -53,7 +53,8 @@ config :phoenix, :json_library, Jason
 # Use Waffle for file uploads
 cond do
   not is_nil(System.get_env("S3_BUCKET")) ->
-    config :waffle, Waffle.Storage.S3,
+    config :waffle,
+      storage: Waffle.Storage.S3,
       bucket: {:system, "S3_BUCKET"},
       virtual_host: true,
       # milliseconds
