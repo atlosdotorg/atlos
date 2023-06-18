@@ -115,7 +115,8 @@ RUN echo APP_REVISION=${APP_REVISION}
 
 # Expose a high port number for inbound connections to avoid permissions issues
 EXPOSE 4000
-# Expose EPMD port for clustering
+# Expose EPMD and Gossip port for clustering
 EXPOSE 4369
+EXPOSE 45892
 
 CMD ["/app/bin/migrate-and-serve"]
