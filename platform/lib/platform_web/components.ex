@@ -2873,7 +2873,8 @@ defmodule PlatformWeb.Components do
                       phx-value-version={@version.id}
                       phx-value-state="hidden"
                       class="text-gray-700 px-2 py-2 text-sm flex items-center gap-2 hover:bg-gray-100 w-full"
-                      title="Hide"
+                      title="Minimize"
+                      data-tooltip="Minimized source material can be viewed by all project members."
                     >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -2898,7 +2899,8 @@ defmodule PlatformWeb.Components do
                       phx-value-version={@version.id}
                       phx-value-state="visible"
                       class="text-gray-700 px-2 py-2 text-sm flex items-center gap-2 hover:bg-gray-100 w-full"
-                      title="Unhide"
+                      title="Unminimize"
+                      data-tooltip="Minimized source material can be viewed by all project members."
                     >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -2937,6 +2939,7 @@ defmodule PlatformWeb.Components do
                       phx-value-state={
                         if @version.visibility == :removed, do: "visible", else: "removed"
                       }
+                      data-tooltip="Removed source material can only be viewed by project owners and managers."
                       title={if @version.visibility == :removed, do: "Undo Removal", else: "Remove"}
                       class="text-gray-700 px-2 py-2 text-sm flex items-center gap-2 hover:bg-gray-100 w-full"
                     >
