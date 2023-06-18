@@ -71,6 +71,8 @@ defmodule PlatformWeb.Router do
 
   scope "/", PlatformWeb do
     get("/health_check", HealthCheckController, :index)
+    # Will return non-200 status code after uptime is > 12 hours
+    get("/health_check/exp", HealthCheckController, :exp)
   end
 
   scope "/spi", PlatformWeb do
