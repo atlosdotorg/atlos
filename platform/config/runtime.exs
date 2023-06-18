@@ -124,18 +124,11 @@ if config_env() == :prod do
         # Always have debug logging
         debug: true,
         topologies: [
-          gossip: [
-            strategy: Cluster.Strategy.Gossip,
-            config: [
-              secret: System.get_env("CLUSTER_SECRET") || raise("CLUSTER_SECRET is missing")
-            ]
-          ],
           dnspoll: [
             strategy: Cluster.Strategy.DNSPoll,
             config: [
               polling_interval: 5_000,
-              query:
-                "#{System.get_env("CONTAINER_APP_NAME")}.internal.#{System.get_env("CONTAINER_APP_ENV_DNS_SUFFIX")}",
+              query: "#{System.get_env("CONTAINER_APP_REVISION")}-headless",
               node_basename: "platform"
             ]
           ]
