@@ -106,6 +106,8 @@ if config_env() == :prod do
       app_name = System.get_env("FLY_APP_NAME")
 
       config :libcluster,
+        # Always have debug logging
+        debug: true,
         topologies: [
           fly6pn: [
             strategy: Cluster.Strategy.DNSPoll,
@@ -119,11 +121,22 @@ if config_env() == :prod do
 
     true ->
       config :libcluster,
+        # Always have debug logging
+        debug: true,
         topologies: [
-          azure: [
+          gossip: [
             strategy: Cluster.Strategy.Gossip,
             config: [
               secret: System.get_env("CLUSTER_SECRET") || raise("CLUSTER_SECRET is missing")
+            ]
+          ],
+          dnspoll: [
+            strategy: Cluster.Strategy.DNSPoll,
+            config: [
+              polling_interval: 5_000,
+              query:
+                "#{System.get_env("CONTAINER_APP_NAME")}.internal.#{System.get_env("CONTAINER_APP_ENV_DNS_SUFFIX")}",
+              node_basename: "platform"
             ]
           ]
         ]
