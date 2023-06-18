@@ -114,6 +114,3 @@ RUN echo $APP_REVISION > APP_REVISION
 RUN echo APP_REVISION=${APP_REVISION}
 
 CMD ["/app/bin/migrate-and-serve"]
-
-ENV ECTO_IPV6 true
-ENV ERL_AFLAGS "-proto_dist inet6_tcp"

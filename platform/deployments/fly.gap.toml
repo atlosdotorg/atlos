@@ -57,6 +57,8 @@ processes = []
   """
   AUTOTAG_USER_INCIDENTS = "[\"Volunteer\"]"
   RESTRICT_PROJECT_CREATION = "true"
+  ECTO_IPV6 = "true"
+  ERL_AFLAGS = "-proto_dist inet6_tcp"
 
 [experimental]
   allowed_public_ports = []

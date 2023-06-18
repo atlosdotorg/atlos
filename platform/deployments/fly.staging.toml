@@ -16,6 +16,8 @@ processes = []
   ENVIRONMENT = "staging"
   ENABLE_CAPTCHAS = "false"
   INSTANCE_NAME = "staging"
+  ECTO_IPV6 = "true"
+  ERL_AFLAGS = "-proto_dist inet6_tcp"
   ONBOARDING_PROJECT_ID = "deb6c474-34f1-47ab-a3b5-3928548178c3"
   ATTRIBUTE_OPTIONS = """
     {

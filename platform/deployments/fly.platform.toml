@@ -17,6 +17,8 @@ processes = []
   ENABLE_CAPTCHAS = "true"
   INSTANCE_NAME = "BETA"
   ONBOARDING_PROJECT_ID = "50fafd8b-96fe-449c-a729-de1e3c5e9bc1"
+  ECTO_IPV6 = "true"
+  ERL_AFLAGS = "-proto_dist inet6_tcp"
 
 [experimental]
   allowed_public_ports = []
