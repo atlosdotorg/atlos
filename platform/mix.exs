@@ -60,6 +60,7 @@ defmodule Platform.MixProject do
       {:ex_aws, "~> 2.4"},
       {:ex_aws_s3, "~> 2.3"},
       {:waffle, "~> 1.1"},
+      {:arc_azure, "~> 0.1.2"},
       {:sweet_xml, "~> 0.7.3"},
       {:gen_smtp, "~> 1.1"},
       {:hackney, "~> 1.18.0"},
