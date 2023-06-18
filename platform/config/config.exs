@@ -51,9 +51,21 @@ config :logger, :console,
 config :phoenix, :json_library, Jason
 
 # Use Waffle for file uploads
-config :waffle,
-  storage: Waffle.Storage.Local,
-  asset_host: "http://localhost:#{System.get_env("PORT", "4000")}/"
+cond do
+  not is_nil(System.get_env("S3_BUCKET")) ->
+    config :waffle, Waffle.Storage.S3,
+      bucket: {:system, "S3_BUCKET"},
+      virtual_host: true,
+      # milliseconds
+      version_timeout: 120_000
+
+  # Perhaps we'll support other storage backends in the future...
+
+  true ->
+    config :waffle,
+      storage: Waffle.Storage.Local,
+      asset_host: "http://localhost:#{System.get_env("PORT", "4000")}/"
+end
 
 config :ex_aws,
   access_key_id: {:system, "AWS_ACCESS_KEY_ID"},

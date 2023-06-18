@@ -99,23 +99,6 @@ if config_env() == :prod do
     access_key: System.get_env("AWS_ACCESS_KEY_ID"),
     secret: System.get_env("AWS_SECRET_ACCESS_KEY")
 
-  # Configure Waffle (file storage)
-  cond do
-    not is_nil(System.get_env("S3_BUCKET")) ->
-      config :waffle, Waffle.Storage.S3,
-        bucket: {:system, "S3_BUCKET"},
-        virtual_host: true,
-        # milliseconds
-        version_timeout: 120_000
-
-    # Perhaps we'll support other storage backends in the future...
-
-    true ->
-      raise """
-      environment variable S3_BUCKET is missing.
-      """
-  end
-
   # Configure libcluster clustering
   cond do
     not is_nil(System.get_env("FLY_APP_NAME")) ->
