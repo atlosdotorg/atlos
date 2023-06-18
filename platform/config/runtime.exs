@@ -98,20 +98,35 @@ if config_env() == :prod do
     secret: System.get_env("AWS_SECRET_ACCESS_KEY")
 
   # Configure libcluster clustering
-  app_name =
-    System.get_env("FLY_APP_NAME") ||
-      raise "FLY_APP_NAME not available"
+  cond do
+    not is_nil(System.get_env("FLY_APP_NAME")) ->
+      # We're running on fly.io
+      app_name = System.get_env("FLY_APP_NAME")
 
-  config :libcluster,
-    debug: true,
-    topologies: [
-      fly6pn: [
-        strategy: Cluster.Strategy.DNSPoll,
-        config: [
-          polling_interval: 5_000,
-          query: "#{app_name}.internal",
-          node_basename: app_name
+      config :libcluster,
+        topologies: [
+          fly6pn: [
+            strategy: Cluster.Strategy.DNSPoll,
+            config: [
+              polling_interval: 5_000,
+              query: "#{app_name}.internal",
+              node_basename: app_name
+            ]
+          ]
         ]
-      ]
-    ]
+
+    System.get_env("WEBSITE_ROLE_INSTANCE_ID") ->
+      # We're running on Azure Web Apps
+      instance_id = System.get_env("WEBSITE_ROLE_INSTANCE_ID")
+
+      config :libcluster,
+        topologies: [
+          azure: [
+            strategy: Cluster.Strategy.Gossip,
+            config: [
+              secret: System.get_env("CLUSTER_SECRET") || raise("CLUSTER_SECRET is missing")
+            ]
+          ]
+        ]
+  end
 end
