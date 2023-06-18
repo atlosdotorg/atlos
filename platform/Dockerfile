@@ -113,6 +113,9 @@ COPY --from=builder --chown=atlos:root /app/_build/${MIX_ENV}/rel/platform ./
 RUN echo $APP_REVISION > APP_REVISION
 RUN echo APP_REVISION=${APP_REVISION}
 
+# Expose a high port number for inbound connections to avoid permissions issues
 EXPOSE 4000
+# Expose EPMD port for clustering
+EXPOSE 4369
 
 CMD ["/app/bin/migrate-and-serve"]
