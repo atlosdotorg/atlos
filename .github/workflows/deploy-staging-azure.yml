@@ -43,6 +43,7 @@ jobs:
           file: ./platform/Dockerfile
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          build-args: APP_REVISION=${{ github.sha }}
 
   deploy:
     runs-on: ubuntu-latest

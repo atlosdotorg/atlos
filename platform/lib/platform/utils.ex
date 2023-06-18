@@ -220,10 +220,7 @@ defmodule Platform.Utils do
   end
 
   def get_runtime_information() do
-    region = System.get_env("FLY_REGION", "unknown")
-    alloc_id = System.get_env("FLY_ALLOC_ID", "unknown")
-
-    "allocation #{alloc_id} in region #{region}"
+    System.get_env("CONTAINER_APP_REPLICA_NAME", "replica info unknown")
   end
 
   def text_search(search_terms, queryable) do
