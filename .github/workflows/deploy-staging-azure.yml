@@ -42,7 +42,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     environment:
-      name: "production" # note: this is still our "staging" instance; production is in an entirely separate resource group
+      name: "staging"
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
 
     steps:
