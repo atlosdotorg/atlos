@@ -131,6 +131,14 @@ if config_env() == :prod do
               query: "#{System.get_env("CONTAINER_APP_REVISION")}-headless",
               node_basename: "platform"
             ]
+          ],
+          k8s_dns: [
+            strategy: Cluster.Strategy.Kubernetes.DNS,
+            config: [
+              polling_interval: 5_000,
+              application_name: "platform",
+              service: "#{System.get_env("CONTAINER_APP_REVISION")}-headless"
+            ]
           ]
         ]
   end
