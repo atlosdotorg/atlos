@@ -42,7 +42,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     concurrency:
-      group: ${{ github.ref }}
+      group: deploy:${{ github.ref }}
     environment:
       name: "staging"
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
