@@ -52,11 +52,8 @@ config :phoenix, :json_library, Jason
 
 # Use Waffle for file uploads
 config :waffle,
-  storage: Waffle.Storage.S3,
-  bucket: {:system, "S3_BUCKET"},
-  virtual_host: true,
-  # milliseconds
-  version_timeout: 120_000
+  storage: Waffle.Storage.Local,
+  asset_host: "http://localhost:#{System.get_env("PORT", "4000")}/"
 
 config :ex_aws,
   access_key_id: {:system, "AWS_ACCESS_KEY_ID"},
