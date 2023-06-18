@@ -108,19 +108,11 @@ if config_env() == :prod do
         # milliseconds
         version_timeout: 120_000
 
-    not is_nil(System.get_env("AZURE_STORAGEBLOB_RESOURCEENDPOINT")) ->
-      config :ex_azure,
-        account: System.get_env("AZURE_STORAGEBLOB_ACCOUNT"),
-        access_key: System.get_env("AZURE_STORAGEBLOB_ACCESS_KEY")
-
-      config :arc_azure,
-        container: System.get_env("AZURE_STORAGEBLOB_CONTAINER", "content"),
-        cdn_url: {:system, "AZURE_STORAGEBLOB_RESOURCEENDPOINT"},
-        version_timeout: 120_000
+    # Perhaps we'll support other storage backends in the future...
 
     true ->
       raise """
-      environment variable S3_BUCKET or AZURE_STORAGEBLOB_RESOURCEENDPOINT is missing.
+      environment variable S3_BUCKET is missing.
       """
   end
 
