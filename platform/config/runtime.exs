@@ -115,10 +115,7 @@ if config_env() == :prod do
           ]
         ]
 
-    System.get_env("WEBSITE_ROLE_INSTANCE_ID") ->
-      # We're running on Azure Web Apps
-      instance_id = System.get_env("WEBSITE_ROLE_INSTANCE_ID")
-
+    true ->
       config :libcluster,
         topologies: [
           azure: [
