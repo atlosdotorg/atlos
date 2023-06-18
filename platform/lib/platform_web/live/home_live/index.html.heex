@@ -104,7 +104,7 @@
           </nav>
         </div>
         <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <%= for incident <- @overview_media |> Enum.take(8) do %>
+          <%= for incident <- @overview_media |> Enum.uniq_by(& &1.id) |> Enum.take(8) do %>
             <.media_card media={incident} current_user={@current_user} />
           <% end %>
         </div>
