@@ -64,21 +64,4 @@ jobs:
           containerAppName: atlos-staging
           resourceGroup: staging
           imageToDeploy: atlos.azurecr.io/platform:${{ github.sha }}
-          environmentVariables:
-            - "APPSIGNAL_APP_ENV=secretref:appsignal-app-env"
-            - "APPSIGNAL_PUSH_API_KEY=secretref:appsignal-push-api-key"
-            - "CLUSTER_SECRET=secretref:cluster-secret"
-            - "COOKIE_SIGNING_SALT=secretref:cookie-signing-salt"
-            - "ENVIRONMENT=staging"
-            - "HCAPTCHA_SECRET=secretref:hcaptcha-secret"
-            - "HCAPTCHA_SITE_KEY=secretref:hcaptcha-site-key"
-            - "HIGHLIGHT_CODE=secretref:highlight-code"
-            - "INSTANCE_NAME=staging"
-            - "LANG=en_US.UTF-8"
-            - "MIX_ENV=prod"
-            - "ONBOARDING_PROJECT_ID=deb6c474-34f1-47ab-a3b5-3928548178c3"
-            - "PHX_HOST=staging.atlos.org"
-            - "PORT=4000"
-            - "SECRET_KEY_BASE=secretref:secret-key-base"
-            - "SLACK_AUDITING_WEBHOOK=secretref:slack-auditing-webhook"
-            - "SPN_ARCHIVE_API_KEY=secretref:spn-archive-api-key"
+          environmentVariables: "APPSIGNAL_APP_ENV=secretref:appsignal-app-env APPSIGNAL_PUSH_API_KEY=secretref:appsignal-push-api-key CLUSTER_SECRET=secretref:cluster-secret COOKIE_SIGNING_SALT=secretref:cookie-signing-salt ENVIRONMENT=staging HCAPTCHA_SECRET=secretref:hcaptcha-secret HCAPTCHA_SITE_KEY=secretref:hcaptcha-site-key HIGHLIGHT_CODE=secretref:highlight-code INSTANCE_NAME=staging LANG=en_US.UTF-8 MIX_ENV=prod ONBOARDING_PROJECT_ID=deb6c474-34f1-47ab-a3b5-3928548178c3 PHX_HOST=staging.atlos.org PORT=4000 SECRET_KEY_BASE=secretref:secret-key-base SLACK_AUDITING_WEBHOOK=secretref:slack-auditing-webhook SPN_ARCHIVE_API_KEY=secretref:spn-archive-api-key"
