@@ -19,7 +19,7 @@ if config_env() == :prod do
         System.get_env("DATABASE_URL")
 
       not is_nil(System.get_env("AZURE_POSTGRESQL_HOST")) ->
-        "postgres://#{System.get_env("AZURE_POSTGRESQL_USERNAME")}:passwordunused@#{System.get_env("AZURE_POSTGRESQL_HOST")}:#{System.get_env("AZURE_POSTGRESQL_PORT")}/#{System.get_env("AZURE_POSTGRESQL_DATABASE")}"
+        "postgres://#{System.get_env("AZURE_POSTGRESQL_USERNAME")}:#{System.get_env("AZURE_POSTGRESQL_PASSWORD")}@#{System.get_env("AZURE_POSTGRESQL_HOST")}:#{System.get_env("AZURE_POSTGRESQL_PORT")}/#{System.get_env("AZURE_POSTGRESQL_DATABASE")}"
 
       true ->
         raise """
