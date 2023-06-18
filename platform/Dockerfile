@@ -94,8 +94,7 @@ RUN chown atlos /app
 # set runner ENV
 ENV MIX_ENV="prod"
 
-# Only copy the final release from the build stage
-COPY --from=builder --chown=atlos:root /app/_build/${MIX_ENV}/rel/platform ./
+# Copy the utils
 COPY utils utils
 ENV UTILS_DIR="/app/utils"
 
@@ -107,6 +106,9 @@ USER atlos
 
 # Install and setup Poetry+Python for the `utils/` scripts (archiver, etc.)
 RUN cd /app/utils && poetry install --only main --no-interaction --no-ansi
+
+# Only copy the final release from the build stage
+COPY --from=builder --chown=atlos:root /app/_build/${MIX_ENV}/rel/platform ./
 
 RUN echo $APP_REVISION > APP_REVISION
 RUN echo APP_REVISION=${APP_REVISION}
