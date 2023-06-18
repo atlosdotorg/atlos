@@ -19,7 +19,7 @@ if config_env() == :prod do
         System.get_env("DATABASE_URL")
 
       not is_nil(System.get_env("AZURE_POSTGRESQL_HOST")) ->
-        "postgres://#{System.get_env("AZURE_POSTGRESQL_USERNAME")}@#{System.get_env("AZURE_POSTGRESQL_HOST")}:#{System.get_env("AZURE_POSTGRESQL_PORT")}/#{System.get_env("AZURE_POSTGRESQL_DATABASE")}"
+        "postgres://#{System.get_env("AZURE_POSTGRESQL_USERNAME")}:passwordunused@#{System.get_env("AZURE_POSTGRESQL_HOST")}:#{System.get_env("AZURE_POSTGRESQL_PORT")}/#{System.get_env("AZURE_POSTGRESQL_DATABASE")}"
 
       true ->
         raise """
@@ -32,6 +32,8 @@ if config_env() == :prod do
 
   config :platform, Platform.Repo,
     ssl: System.get_env("AZURE_POSTGRESQL_SSL", "false") == "true",
+    # Azure does not provide a CA certificate that we can verify against; we have to hope that Azure is not MITM'ing us here.
+    ssl_opts: [verify: :verify_none],
     url: database_url,
     pool_size: String.to_integer(System.get_env("POOL_SIZE") || "20"),
     socket_options: maybe_ipv6,
