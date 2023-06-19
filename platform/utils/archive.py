@@ -89,9 +89,10 @@ def archive_page_using_selenium(url: str) -> dict:
         # Setup driver
         options = ChromeOptions()
         options.add_argument("--headless=new")
+        options.add_argument("--virtual-time-budget=5000")
         driver = webdriver.Chrome(
             service=ChromiumService(
-                ChromeDriverManager(chrome_type=ChromeType.CHROMIUM).install()
+                ChromeDriverManager(version="114").install()
             ),
             options=options,
         )
