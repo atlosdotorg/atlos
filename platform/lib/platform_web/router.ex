@@ -6,6 +6,7 @@ defmodule PlatformWeb.Router do
   alias PlatformWeb.MountHelperLive
 
   pipeline :browser do
+    plug(RemoteIp)
     plug(:accepts, ["html"])
     plug(:fetch_session)
     plug(:fetch_live_flash)
@@ -28,6 +29,7 @@ defmodule PlatformWeb.Router do
   end
 
   pipeline :api do
+    plug(RemoteIp)
     plug(:accepts, ["json"])
   end
 

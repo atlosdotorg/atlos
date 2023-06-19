@@ -58,6 +58,7 @@ defmodule Platform.MixProject do
       {:quarto, "~> 1.1.7"},
       {:faker, "~> 0.17", only: [:dev, :test]},
       {:ex_aws, "~> 2.4"},
+      {:remote_ip, "~> 1.1"},
       {:ex_aws_s3, "~> 2.3"},
       {:waffle, "~> 1.1"},
       {:sweet_xml, "~> 0.7.3"},
