@@ -92,7 +92,7 @@ def archive_page_using_selenium(url: str) -> dict:
         options.add_argument("--virtual-time-budget=5000")
         driver = webdriver.Chrome(
             service=ChromiumService(
-                ChromeDriverManager(version="114").install()
+                ChromeDriverManager(version="114.0.5735.90").install()
             ),
             options=options,
         )
