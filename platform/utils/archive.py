@@ -88,11 +88,19 @@ def archive_page_using_selenium(url: str) -> dict:
     try:
         # Setup driver
         options = ChromeOptions()
+
+        # At a glance, disabling "sandboxing" sounds scary. But don't worry (too much). This is a
+        # requirement since we're running Chromium within a Docker container; to get Chromium
+        # sandboxing to work, we'd need to change the seccomp policy that the Docker container is
+        # running under. We have some protections in place to mitigate some of the fallout of an
+        # attacker finding a Chromium exploit and using it on us (e.g., cleaning the environment
+        # to remove sensitive variables), but this is — to an extent — an acceptable risk
+        # (given the complexity tradeoff).
+        options.add_argument("--no-sandbox")
         options.add_argument("--headless=new")
-        options.add_argument("--virtual-time-budget=5000")
         driver = webdriver.Chrome(
             service=ChromiumService(
-                ChromeDriverManager(version="114.0.5735.90").install()
+                ChromeDriverManager(chrome_type=ChromeType.CHROMIUM).install()
             ),
             options=options,
         )
