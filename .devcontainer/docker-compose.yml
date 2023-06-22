@@ -9,7 +9,7 @@ services:
         # Elixir Version: 1.9, 1.10, 1.10.4, ...
         VARIANT: "1.14.1"
         # Phoenix Version: 1.4.17, 1.5.4, ...
-        PHOENIX_VERSION: "1.6.15"
+        PHOENIX_VERSION: "1.7.6"
         # Node Version: 12, 14, ...
         NODE_VERSION: "16"
 
@@ -29,7 +29,7 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: atlos
+      POSTGRES_DB: platform_dev
 
 volumes:
   postgres-data:
