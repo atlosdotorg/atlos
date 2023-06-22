@@ -39,13 +39,16 @@ alias Platform.Material
   })
 
 {:ok, admin} =
-  Accounts.register_user(%{
-    email: "admin@localhost",
-    username: "admin",
-    password: "localhost123",
-    roles: [:admin],
-    invite_code: Accounts.get_valid_invite_code()
-  }, allow_special_users: true)
+  Accounts.register_user(
+    %{
+      email: "admin@localhost",
+      username: "admin",
+      password: "localhost123",
+      roles: [:admin],
+      invite_code: Accounts.get_valid_invite_code()
+    },
+    allow_special_users: true
+  )
 
 {:ok, admin} = Accounts.update_user_admin(admin, %{roles: [:admin]})
 {:ok, muted} = Accounts.update_user_admin(muted, %{restrictions: [:muted]})
@@ -71,7 +74,7 @@ random_users =
   end)
 
 random_projects =
-  Enum.map(1..50, fn _ ->
+  Enum.map(1..25, fn _ ->
     {:ok, project} =
       Projects.create_project(
         %{
@@ -95,7 +98,7 @@ random_projects =
   end)
 
 random_media =
-  Enum.map(1..10000, fn _ ->
+  Enum.map(1..250, fn _ ->
     creator = Enum.random(random_users)
 
     {:ok, media} =
