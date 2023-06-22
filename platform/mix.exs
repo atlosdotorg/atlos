@@ -76,7 +76,10 @@ defmodule Platform.MixProject do
       {:libcluster, "~> 3.3"},
       {:heroicons, "~> 0.5.1"},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
-      {:vega_lite, "~> 0.1.7"}
+      {:vega_lite, "~> 0.1.7"},
+      # Temporarily set the manager option for this so it compiles
+      # https://elixirforum.com/t/elixir-v1-15-0-released/56584/4?u=axelson
+      {:ssl_verify_fun, ">= 0.0.0", manager: :rebar3, override: true}
     ]
   end
 
