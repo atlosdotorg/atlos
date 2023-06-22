@@ -13,8 +13,7 @@
           x-bind:class="pulse ? 'animate-ping' : ''"
           data-tooltip="Copy information to your clipboard"
           type="button"
-          onclick={"window.setClipboard(#{Jason.encode!(title_for_copying)})"}
-          x-on:click="pulse = true; setTimeout(() => pulse = false, 500)"
+          x-on:click={"window.setClipboard(#{Jason.encode!(title_for_copying)}); pulse = true; setTimeout(() => pulse = false, 500)"}
         >
           <%= Media.slug_to_display(@media) %>
         </button>
@@ -354,7 +353,12 @@
             <% end %>
             <%= if length(hidden_versions) > 0 do %>
               <details class="mb-4">
-                <summary class="cursor-pointer text-button text-sm" data-tooltip="Minimized source material can be viewed by all project members.">View minimized media</summary>
+                <summary
+                  class="cursor-pointer text-button text-sm"
+                  data-tooltip="Minimized source material can be viewed by all project members."
+                >
+                  View minimized media
+                </summary>
                 <div class="divide-gray-200 grid grid-cols-1 divide-y divide-dashed">
                   <%= for version <- hidden_versions do %>
                     <.media_version_display
@@ -368,7 +372,12 @@
             <% end %>
             <%= if length(removed_versions) > 0 do %>
               <details class="mb-4">
-                <summary class="cursor-pointer text-button text-sm" data-tooltip="Removed source material can only be viewed by project owners and managers.">View removed media</summary>
+                <summary
+                  class="cursor-pointer text-button text-sm"
+                  data-tooltip="Removed source material can only be viewed by project owners and managers."
+                >
+                  View removed media
+                </summary>
                 <div class="divide-gray-200 grid grid-cols-1 divide-y divide-dashed">
                   <%= for version <- removed_versions do %>
                     <.media_version_display
@@ -664,7 +673,7 @@
                   role="menuitem"
                   title="Copy Hash Information"
                   class="base-button flex gap-2 text-xs"
-                  onclick={
+                  x-on:click={
                       "window.setClipboard(" <>
                         Jason.encode!(version.source_url) <>
                         ")"

@@ -2857,7 +2857,8 @@ defmodule PlatformWeb.Components do
                     role="menuitem"
                     title="Copy Hash Information"
                     class="text-gray-700 px-2 py-2 text-sm flex items-center gap-2 hover:bg-gray-100 w-full"
-                    onclick={
+                    x-data
+                    x-on:click={
                       "window.setClipboard(" <>
                         Jason.encode!(@version.source_url) <>
                         ")"

@@ -281,7 +281,8 @@ defmodule PlatformWeb.MediaLive.CommentBox do
                     <.live_file_input upload={@uploads.attachments} class="sr-only" />
                     <button
                       type="button"
-                      onclick={"document.getElementById('#{@uploads.attachments.ref}').click()"}
+                      x-data
+                      x-on:click={"document.getElementById('#{@uploads.attachments.ref}').click()"}
                       class="-m-2.5 w-10 h-10 rounded-full flex items-center justify-center text-gray-400 hover:text-gray-500"
                     >
                       <svg
