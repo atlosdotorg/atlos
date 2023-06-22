@@ -45,7 +45,7 @@ alias Platform.Material
     password: "localhost123",
     roles: [:admin],
     invite_code: Accounts.get_valid_invite_code()
-  })
+  }, allow_special_users: true)
 
 {:ok, admin} = Accounts.update_user_admin(admin, %{roles: [:admin]})
 {:ok, muted} = Accounts.update_user_admin(muted, %{restrictions: [:muted]})
