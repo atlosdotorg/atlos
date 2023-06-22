@@ -21,7 +21,7 @@
 		5432
 	],
 	// Use 'postCreateCommand' to run commands after the container is created.
-	"postCreateCommand": "bash -c \"cd platform && mix deps.get && mix ecto.reset && cd assets && npm install\"",
+	"postCreateCommand": "bash -c \"cd platform && mix deps.get && mix ecto.reset && cd assets && npm install && cd ../utils && poetry install\"",
 	// Uncomment to connect as a non-root user. See https://aka.ms/vscode-remote/containers/non-root.
 	"remoteUser": "vscode",
 	"features": {}

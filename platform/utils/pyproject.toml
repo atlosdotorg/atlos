@@ -18,7 +18,6 @@ selenium = "^4.10.0"
 webdriver-manager = "^3.8.6"
 # We do not actually depend on the following dependencies directly, but they are necessary for dependency resolution
 botocore = "^1.29.155"
-uWSGI = "^2.0.21"
 
 [tool.poetry.group.dev.dependencies]
 black = "^23.3.0"

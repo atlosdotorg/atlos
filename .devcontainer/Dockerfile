@@ -56,4 +56,5 @@ RUN su ${USERNAME} -c "mix local.hex --force \
 # Add Atlos-specific dependencies
 RUN apt-get update \
   && export DEBIAN_FRONTEND=noninteractive \
-  && apt-get -y install --no-install-recommends ffmpeg imagemagick curl python3
+  && apt-get -y install --no-install-recommends ffmpeg imagemagick curl python3 python3-dev python3-pip
+RUN pip3 install poetry
