@@ -12,7 +12,12 @@ defmodule PlatformWeb.Router do
     plug(:fetch_live_flash)
     plug(:put_root_layout, {PlatformWeb.LayoutView, :root})
     plug(:protect_from_forgery)
-    plug(:put_secure_browser_headers)
+
+    plug(:put_secure_browser_headers, %{
+      "content-security-policy" =>
+        "object-src 'none'; script-src 'self' js.hcaptcha.com 'unsafe-eval'; base-uri 'none';"
+    })
+
     plug(:fetch_current_user)
   end
 

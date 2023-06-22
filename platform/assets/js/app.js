@@ -492,6 +492,15 @@ document.addEventListener("load", applySearchHighlighting);
 document.addEventListener("phx:update", applyVegaCharts);
 document.addEventListener("load", applyVegaCharts);
 
+// Used to initialize Highlight
+document.addEventListener("load", () => {
+    let highlightElem = document.querySelector("#highlight-script");
+    if (highlightElem != null) {
+        console.log("Initializing Highlight...")
+        window.H.init(highlightElem.getAttribute("data-code"), { enableStrictPrivacy: true });
+    }
+});
+
 initializeKeyboardFormSubmits();
 initializeFormUnloadWarning();
 
