@@ -18,7 +18,7 @@ defmodule PlatformWeb.Router do
       # `default-src 'none'` and removing cdn.jsdelivr.net); this is an opportunity for future improvement. To
       # quote Sobelow, just about any CSP is better than the default (no CSP at all!).
       "content-security-policy" =>
-        "object-src 'none'; script-src 'self' js.hcaptcha.com cdn.jsdelivr.net 'unsafe-eval'; base-uri 'none';"
+        "object-src 'none'; script-src 'self' js.hcaptcha.com cdn.jsdelivr.net 'unsafe-eval' blob:; base-uri 'none';"
     })
 
     plug(:fetch_current_user)
