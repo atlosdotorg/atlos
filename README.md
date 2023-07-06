@@ -19,7 +19,7 @@ You can learn more about Atlos at https://atlos.org.
 
 ## Subprojects
 
-The Atlos platform is in the [`platform/`](platform) subdirectory. The landing page is in the [`landing/`](landing) subdirectory.
+The Atlos platform is in the [`platform/`](platform) subdirectory. The landing page is in the [`landing/`](landing) subdirectory. We have good technical documentation for the platform in the [`platform/`](platform/) subdirectory.
 
 ## License
 
@@ -27,6 +27,7 @@ Atlos is open source, licensed under the GPLv3. We take the license very serious
 
 ## Special Thanks
 
+- We are grateful to [Microsoft](https://microsoft.com) for sponsoring our cloud infrastructure, as well as providing us with technical support and guidance (and a security audit).
 - We are grateful to [AppSignal](https://appsignal.com) for sponsoring our application performance monitoring.
 - We are grateful to [Fly.io](https://fly.io) for sponsoring our infrastructure.
 - We are grateful to [Logtail](https://betterstack.com/logtail) for sponsoring our logging system.
