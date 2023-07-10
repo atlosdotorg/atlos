@@ -23,7 +23,7 @@ Atlos is intentionally simple. Our infrastructure consists of only a few parts:
 * A PostgreSQL database
 * Some kind of object storage (e.g., Amazon AWS)
 * Some kind of way to send emails (e.g., Amazon SES)
-* A few miscelleneous (and optional!) APIs that we can hook into (Slack for audit logging, hCaptcha for captchas, the Internet Archive's Save Page Now API)
+* A few miscellaneous (and optional!) APIs that we can hook into (Slack for audit logging, hCaptcha for captchas, the Internet Archive's Save Page Now API)
 
 There is no Redis server (Elixir obviates that); there is no background processing job worker (Elixir obviates that); there is no Kubernetes (Azure Container Apps/Fly.io obviate that).
 
@@ -41,7 +41,7 @@ G{End User} <--> A
 G <--> F
 ```
 
-If you're familiar with Atlos, you know that archival is a bit part of what we do. But notice that there is no archiver component to the diagram above! That's because archival is directly integrated into the Atlos web application itself. We archive from the very same set of instances from which we serve user requests. This design simplicity helps us avoid difficult-to-deploy (and expensive!) cloud infrastructure.
+If you're familiar with Atlos, you know that archival is a big part of what we do. But notice that there is no archiver component to the diagram above! That's because archival is directly integrated into the Atlos web application itself. We archive from the very same set of instances from which we serve user requests. This design simplicity helps us avoid difficult-to-deploy (and expensive!) cloud infrastructure.
 
 ### Where is this deployed?
 
