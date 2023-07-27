@@ -60,7 +60,7 @@ defmodule PlatformWeb.ProjectsLive.BulkUploadLive do
   defp handle_uploaded_file(socket, entry) do
     path = consume_uploaded_entry(socket, entry, &handle_static_file(&1))
 
-    rows = CSV.decode(File.stream!(path), headers: true)
+    rows = CSV.decode(File.stream!(path), headers: true, unescape_formulas: true)
 
     decoding_errors =
       Enum.filter(rows, fn {k, _v} ->
