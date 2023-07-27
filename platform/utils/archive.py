@@ -25,7 +25,7 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options as ChromeOptions
 from selenium.webdriver.chrome.service import Service as ChromiumService
 from webdriver_manager.chrome import ChromeDriverManager
-from webdriver_manager.core.utils import ChromeType
+from webdriver_manager.core.os_manager import ChromeType
 from selenium.webdriver.common.print_page_options import PrintOptions
 
 # From https://github.com/bellingcat/auto-archiver/blob/dockerize/src/auto_archiver/utils/url.py#L3
@@ -101,7 +101,7 @@ def archive_page_using_selenium(url: str) -> dict:
         options.add_argument("--headless=new")
         driver = webdriver.Chrome(
             service=ChromiumService(
-                ChromeDriverManager(chrome_type=ChromeType.CHROMIUM).install()
+                ChromeDriverManager(chrome_type=ChromeType.CHROMIUM, driver_version="114.0.5735.90").install()
             ),
             options=options,
         )
