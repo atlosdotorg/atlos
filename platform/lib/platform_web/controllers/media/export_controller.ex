@@ -98,7 +98,10 @@ defmodule PlatformWeb.ExportController do
       formatted |> Enum.map(fn {_, fields} -> fields end) |> List.flatten() |> Enum.uniq()
 
     media
-    |> CSV.encode(headers: fields_excluding_custom ++ custom_attribute_names, escape_formulas: true)
+    |> CSV.encode(
+      headers: fields_excluding_custom ++ custom_attribute_names,
+      escape_formulas: true
+    )
     |> Enum.each(&IO.write(file, &1))
 
     :ok = File.close(file)

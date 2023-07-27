@@ -52,7 +52,12 @@
     <div id="tooltips"></div>
     <%= @inner_content %>
     <%= if not is_nil(System.get_env("HIGHLIGHT_CODE")) and (assigns[:iframe_mode] != true) do %>
-      <script src="https://cdn.jsdelivr.net/npm/highlight.run@latest" data-code={System.get_env("HIGHLIGHT_CODE")} id="highlight-script"></script>
+      <script
+        src="https://cdn.jsdelivr.net/npm/highlight.run@latest"
+        data-code={System.get_env("HIGHLIGHT_CODE")}
+        id="highlight-script"
+      >
+      </script>
     <% end %>
   </body>
 </html>
