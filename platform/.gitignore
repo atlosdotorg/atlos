@@ -1,3 +1,6 @@
+# Used locally by Waffle for uploads when testing
+artifacts
+
 # The directory Mix will write compiled artifacts to.
 /_build/
 

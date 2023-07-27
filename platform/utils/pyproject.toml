@@ -11,14 +11,13 @@ unicodecsv = "^0.14.1"
 python-dateutil = "^2.8.2"
 perception = "^0.6.8"
 loguru = "^0.7.0"
-warcio = "^1.7.4"
-auto-archiver = "^0.5.7"
+auto-archiver = "^0.5.28"
 opencv-python = "^4.7.0.72"
-numpy = "^1.24.2"
-selenium = "^4.9.0"
+numpy = "^1.25.0"
+selenium = "^4.10.0"
 webdriver-manager = "^3.8.6"
-
-[tool.poetry.dev-dependencies]
+# We do not actually depend on the following dependencies directly, but they are necessary for dependency resolution
+botocore = "^1.29.155"
 
 [tool.poetry.group.dev.dependencies]
 black = "^23.3.0"

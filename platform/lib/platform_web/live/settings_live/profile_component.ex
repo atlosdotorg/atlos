@@ -114,7 +114,8 @@ defmodule PlatformWeb.SettingsLive.ProfileComponent do
                   <button
                     class="button ~neutral ml-4"
                     type="button"
-                    onclick="document.querySelector('input[name=\'profile_photo_file\']').click()"
+                    x-on:click="document.querySelector('input[name=\'profile_photo_file\']').click()"
+                    x-data
                   >
                     Change
                   </button>

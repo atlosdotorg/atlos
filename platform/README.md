@@ -23,7 +23,7 @@ Atlos is intentionally simple. Our infrastructure consists of only a few parts:
 * A PostgreSQL database
 * Some kind of object storage (e.g., Amazon AWS)
 * Some kind of way to send emails (e.g., Amazon SES)
-* A few miscelleneous (and optional!) APIs that we can hook into (Slack for audit logging, hCaptcha for captchas, the Internet Archive's Save Page Now API)
+* A few miscellaneous (and optional!) APIs that we can hook into (Slack for audit logging, hCaptcha for captchas, the Internet Archive's Save Page Now API)
 
 There is no Redis server (Elixir obviates that); there is no background processing job worker (Elixir obviates that); there is no Kubernetes (Azure Container Apps/Fly.io obviate that).
 
@@ -41,7 +41,7 @@ G{End User} <--> A
 G <--> F
 ```
 
-If you're familiar with Atlos, you know that archival is a bit part of what we do. But notice that there is no archiver component to the diagram above! That's because archival is directly integrated into the Atlos web application itself. We archive from the very same set of instances from which we serve user requests. This design simplicity helps us avoid difficult-to-deploy (and expensive!) cloud infrastructure.
+If you're familiar with Atlos, you know that archival is a big part of what we do. But notice that there is no archiver component to the diagram above! That's because archival is directly integrated into the Atlos web application itself. We archive from the very same set of instances from which we serve user requests. This design simplicity helps us avoid difficult-to-deploy (and expensive!) cloud infrastructure.
 
 ### Where is this deployed?
 
@@ -51,7 +51,7 @@ We are in the middle of a transition of our infrastructure from Fly.io to Azure.
 
 On Azure, we use only three products directly: Azure Container Apps, Azure Database for PostgreSQL, and Azure Container Registry. The Atlos web app runs inside Azure Container Apps; you can see the full CI deploy script inside [/.github/workflows/deploy-staging-azure.yml](/.github/workflows/deploy-staging-azure.yml). Atlos is entirely containerized, and our containers are stored inside Azure Container Registry. As you might expect, we use Azure Database for PostgreSQL for our database. (It helpfully gives us robust backups, point-in-time restores, etc.)
 
-### Environment variables
+### Environment Variables
 
 The Atlos web application will read the following environment variables. Some are absolutely required in production, while others are optional.
 
@@ -163,6 +163,16 @@ Atlos' testing story has two parts: automated tests and manual pre-deploy tests.
 Atlos has hundreds of automated tests. They aren't fool-proof — bugs can certainly slip by — but they will catch many logic and security errors. (We've put particular effort into designing tests that will catch security errors; e.g., users trying to edit data that they should not have corresponding access to). You can run these tests by running `mix test`.
 
 But automated tests certainly won't catch everything (and especially not UI bugs). They're not a substitute for manual testing. We have a manual testing checklist that we run through when deploying a release with a lot of "deep" changes.
+
+### Updating Dependencies
+
+There are five "sets" of dependencies that you need to be mindful of periodically updating:
+
+1. **Elixir, Erlang, and Debian:** We use the latest Debian image as our base image. We also use the latest Elixir and Erlang versions. You should periodically update these versions to the latest stable versions. This is a simple process: just update the version numbers in the `Dockerfile`. Be sure to make a corresponding change to the Codespaces configuration file, too.
+2. **Elixir libraries:** We use the latest stable versions of all Elixir libraries. You can update these by running `mix deps.update --all`. (Note that this will update all dependencies, including `phoenix` and `ecto`.) Some dependencies may require additional changes to the codebase; e.g., if a dependency changes its API, you may need to update your code to match. You can run `mix deps.outdated` to see which dependencies have newer versions available.
+3. **JavaScript libraries:** We use the latest stable versions of all JavaScript libraries. You can update these by running `npm upgrade` inside `/platform/assets`.
+4. **Python libraries:** We use the latest stable versions of all Python libraries. You can update these by running `poetry upgrade`. Some dependencies may require additional changes to the codebase; e.g., if a dependency changes its API, you may need to update your code to match. You can run `poetry show --outdated` to see which dependencies have newer versions available.
+5. **Chromium/ChromeDriver in `archive.py`**: For stability, we use a specific version of Chromium and ChromeDriver in `archive.py`. You can update these by updating the version numbers in `archive.py`.
 
 ## Contributing
 

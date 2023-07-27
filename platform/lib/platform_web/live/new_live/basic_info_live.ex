@@ -7,8 +7,6 @@ defmodule PlatformWeb.NewLive.BasicInfoLive do
   alias Platform.Projects
 
   def update(assigns, socket) do
-    dbg("input is running")
-
     {:ok,
      socket
      |> assign(assigns)

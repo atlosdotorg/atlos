@@ -20,7 +20,7 @@ defmodule Platform.MixProject do
   def application do
     [
       mod: {Platform.Application, []},
-      extra_applications: [:logger, :runtime_tools]
+      extra_applications: [:logger, :runtime_tools, :ssl]
     ]
   end
 
@@ -37,7 +37,7 @@ defmodule Platform.MixProject do
       {:phoenix, "~> 1.7.0"},
       {:phoenix_ecto, "~> 4.4"},
       {:ecto_sql, "~> 3.10.0"},
-      {:postgrex, "~> 0.16.0"},
+      {:postgrex, "~> 0.17.0"},
       {:phoenix_html, "~> 3.0"},
       {:phoenix_live_reload, "~> 1.2", only: :dev},
       {:phoenix_live_view, "~> 0.18"},
@@ -58,6 +58,7 @@ defmodule Platform.MixProject do
       {:quarto, "~> 1.1.7"},
       {:faker, "~> 0.17", only: [:dev, :test]},
       {:ex_aws, "~> 2.4"},
+      {:remote_ip, "~> 1.1"},
       {:ex_aws_s3, "~> 2.3"},
       {:waffle, "~> 1.1"},
       {:sweet_xml, "~> 0.7.3"},
@@ -75,7 +76,10 @@ defmodule Platform.MixProject do
       {:libcluster, "~> 3.3"},
       {:heroicons, "~> 0.5.1"},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
-      {:vega_lite, "~> 0.1.7"}
+      {:vega_lite, "~> 0.1.7"},
+      # Temporarily set the manager option for this so it compiles
+      # https://elixirforum.com/t/elixir-v1-15-0-released/56584/4?u=axelson
+      {:ssl_verify_fun, ">= 0.0.0", manager: :rebar3, override: true}
     ]
   end
 

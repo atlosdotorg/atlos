@@ -6,12 +6,21 @@ defmodule PlatformWeb.Router do
   alias PlatformWeb.MountHelperLive
 
   pipeline :browser do
+    plug(RemoteIp)
     plug(:accepts, ["html"])
     plug(:fetch_session)
     plug(:fetch_live_flash)
     plug(:put_root_layout, {PlatformWeb.LayoutView, :root})
     plug(:protect_from_forgery)
-    plug(:put_secure_browser_headers)
+
+    plug(:put_secure_browser_headers, %{
+      # TODO: There are opportunities to make this content security policy stricter (specifically by adding
+      # `default-src 'none'` and removing cdn.jsdelivr.net); this is an opportunity for future improvement. To
+      # quote Sobelow, just about any CSP is better than the default (no CSP at all!).
+      "content-security-policy" =>
+        "object-src 'none'; script-src 'self' js.hcaptcha.com cdn.jsdelivr.net 'unsafe-eval' blob:; base-uri 'none';"
+    })
+
     plug(:fetch_current_user)
   end
 
@@ -28,6 +37,7 @@ defmodule PlatformWeb.Router do
   end
 
   pipeline :api do
+    plug(RemoteIp)
     plug(:accepts, ["json"])
   end
 
@@ -71,6 +81,8 @@ defmodule PlatformWeb.Router do
 
   scope "/", PlatformWeb do
     get("/health_check", HealthCheckController, :index)
+    # Will return non-200 status code after uptime is > 12 hours
+    get("/health_check/exp", HealthCheckController, :exp)
   end
 
   scope "/spi", PlatformWeb do

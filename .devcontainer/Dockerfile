@@ -1,5 +1,5 @@
 # Update the VARIANT arg in docker-compose.yml to pick an Elixir version: 1.9, 1.10, 1.10.4
-ARG VARIANT="1.14.1"
+ARG VARIANT="1.15.0"
 FROM elixir:${VARIANT}
 
 # This Dockerfile adds a non-root user with sudo access. Update the “remoteUser” property in
@@ -55,6 +55,6 @@ RUN su ${USERNAME} -c "mix local.hex --force \
 
 # Add Atlos-specific dependencies
 RUN apt-get update \
-    && export DEBIAN_FRONTEND=noninteractive \
-    && apt-get -y install --no-install-recommends ffmpeg imagemagick curl python3
-RUN curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /usr/local/bin/yt-dlp && chmod a+rx /usr/local/bin/yt-dlp
+  && export DEBIAN_FRONTEND=noninteractive \
+  && apt-get -y install --no-install-recommends ffmpeg imagemagick curl python3 python3-dev python3-pip chromium
+RUN pip3 install poetry

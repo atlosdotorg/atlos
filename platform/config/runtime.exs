@@ -19,7 +19,7 @@ if config_env() == :prod do
         System.get_env("DATABASE_URL")
 
       not is_nil(System.get_env("AZURE_POSTGRESQL_HOST")) ->
-        "postgres://#{System.get_env("AZURE_POSTGRESQL_USERNAME")}@#{System.get_env("AZURE_POSTGRESQL_HOST")}:#{System.get_env("AZURE_POSTGRESQL_PORT")}/#{System.get_env("AZURE_POSTGRESQL_DATABASE")}"
+        "postgres://#{System.get_env("AZURE_POSTGRESQL_USERNAME")}:#{System.get_env("AZURE_POSTGRESQL_PASSWORD")}@#{System.get_env("AZURE_POSTGRESQL_HOST")}:#{System.get_env("AZURE_POSTGRESQL_PORT")}/#{System.get_env("AZURE_POSTGRESQL_DATABASE")}"
 
       true ->
         raise """
@@ -32,6 +32,8 @@ if config_env() == :prod do
 
   config :platform, Platform.Repo,
     ssl: System.get_env("AZURE_POSTGRESQL_SSL", "false") == "true",
+    # Azure does not provide a CA certificate that we can verify against; we have to hope that Azure is not MITM'ing us here.
+    ssl_opts: [verify: :verify_none],
     url: database_url,
     pool_size: String.to_integer(System.get_env("POOL_SIZE") || "20"),
     socket_options: maybe_ipv6,
@@ -97,21 +99,54 @@ if config_env() == :prod do
     access_key: System.get_env("AWS_ACCESS_KEY_ID"),
     secret: System.get_env("AWS_SECRET_ACCESS_KEY")
 
-  # Configure libcluster clustering
-  app_name =
-    System.get_env("FLY_APP_NAME") ||
-      raise "FLY_APP_NAME not available"
+  config :waffle,
+    storage: Waffle.Storage.S3,
+    bucket: {:system, "S3_BUCKET"},
+    virtual_host: true,
+    # milliseconds
+    version_timeout: 120_000
 
-  config :libcluster,
-    debug: true,
-    topologies: [
-      fly6pn: [
-        strategy: Cluster.Strategy.DNSPoll,
-        config: [
-          polling_interval: 5_000,
-          query: "#{app_name}.internal",
-          node_basename: app_name
+  # Configure libcluster clustering
+  cond do
+    not is_nil(System.get_env("FLY_APP_NAME")) ->
+      # We're running on fly.io
+      app_name = System.get_env("FLY_APP_NAME")
+
+      config :libcluster,
+        # Always have debug logging
+        debug: true,
+        topologies: [
+          fly6pn: [
+            strategy: Cluster.Strategy.DNSPoll,
+            config: [
+              polling_interval: 5_000,
+              query: "#{app_name}.internal",
+              node_basename: app_name
+            ]
+          ]
         ]
-      ]
-    ]
+
+    true ->
+      config :libcluster,
+        # Always have debug logging
+        debug: true,
+        topologies: [
+          dnspoll: [
+            strategy: Cluster.Strategy.DNSPoll,
+            config: [
+              polling_interval: 5_000,
+              query: "#{System.get_env("CONTAINER_APP_REVISION")}-headless",
+              node_basename: "platform"
+            ]
+          ],
+          k8s_dns: [
+            strategy: Cluster.Strategy.Kubernetes.DNS,
+            config: [
+              polling_interval: 5_000,
+              application_name: "platform",
+              service: "#{System.get_env("CONTAINER_APP_REVISION")}-headless"
+            ]
+          ]
+        ]
+  end
 end
