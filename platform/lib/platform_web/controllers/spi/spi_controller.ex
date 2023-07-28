@@ -8,12 +8,13 @@ defmodule PlatformWeb.SPIController do
   def user_search(conn, params) do
     query = Map.get(params, "query", "") |> String.downcase()
 
-    project_id = case Map.get(params, "project_id") do
-      "" -> nil
-      nil -> nil
-      "null" -> nil
-      project_id -> project_id
-    end
+    project_id =
+      case Map.get(params, "project_id") do
+        "" -> nil
+        nil -> nil
+        "null" -> nil
+        project_id -> project_id
+      end
 
     get_project_users = fn project ->
       if is_nil(project) or
@@ -40,7 +41,7 @@ defmodule PlatformWeb.SPIController do
       results:
         users
         |> Enum.filter(&String.starts_with?(&1.username |> String.downcase(), query))
-        |> Enum.uniq_by(&(&1.username))
+        |> Enum.uniq_by(& &1.username)
         |> Enum.take(5)
         |> Enum.map(&%{username: &1.username, bio: &1.bio, flair: &1.flair})
     })
