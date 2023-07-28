@@ -116,13 +116,11 @@ defmodule PlatformWeb.ProjectsLive.Show do
                   role: "menuitem",
                   method: :post
                    do %>
-                   <Heroicons.archive_box mini class="-ml-0.5 mr-2 h-5 w-5 text-neutral-400" />
-                Export
+                <Heroicons.archive_box mini class="-ml-0.5 mr-2 h-5 w-5 text-neutral-400" /> Export
               <% end %>
               <%= if Permissions.can_edit_project_metadata?(@current_user, @project) do %>
                 <.link href={"/new?project_id=#{@project.id}"} class="button ~urge @high">
-                <Heroicons.plus mini class="-ml-0.5 mr-2 text-urge-200 h-5 w-5" />
-                  New Incident
+                  <Heroicons.plus mini class="-ml-0.5 mr-2 text-urge-200 h-5 w-5" /> New Incident
                 </.link>
               <% end %>
             </div>

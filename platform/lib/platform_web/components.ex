@@ -1880,9 +1880,14 @@ defmodule PlatformWeb.Components do
     <% is_sensitive = Material.Media.is_sensitive(@media) %>
     <% background_color =
       case @media.attr_sensitive do
-        x when x == ["Not Sensitive"] or x == [] -> "bg-white group-hover:bg-neutral-50 hover:bg-neutral-50"
-        ["Personal Information Visible"] -> "bg-orange-50"
-        _ -> "bg-red-50"
+        x when x == ["Not Sensitive"] or x == [] ->
+          "bg-white group-hover:bg-neutral-50 hover:bg-neutral-50"
+
+        ["Personal Information Visible"] ->
+          "bg-orange-50"
+
+        _ ->
+          "bg-red-50"
       end %>
     <tr
       class={"search-highlighting group transition-all " <> background_color}

@@ -6,7 +6,7 @@ defmodule PlatformWeb.Endpoint do
   # Set :encryption_salt if you would also like to encrypt it.
   @session_options [
     store: :cookie,
-    max_age: 24*60*60*30,
+    max_age: 24 * 60 * 60 * 30,
     key: "_platform_key",
     signing_salt: System.get_env("COOKIE_SIGNING_SALT", "change this in production")
   ]
