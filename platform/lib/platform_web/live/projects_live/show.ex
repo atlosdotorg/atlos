@@ -99,15 +99,29 @@ defmodule PlatformWeb.ProjectsLive.Show do
               </div>
             </div>
             <div class="flex self-start mt-4 gap-2 flex-wrap">
+              <.link
+                href={
+                  Routes.live_path(@socket, PlatformWeb.MediaLive.Index, %{
+                    project_id: @project.id,
+                    display: :cards
+                  })
+                }
+                class="base-button"
+              >
+                <Heroicons.magnifying_glass mini class="-ml-0.5 mr-2 h-5 w-5 text-neutral-400" />
+                <span>Search</span>
+              </.link>
               <%= button type: "button", to: Routes.export_path(@socket, :create, %{"project_id" => @project.id}),
                   class: "base-button",
                   role: "menuitem",
                   method: :post
                    do %>
+                   <Heroicons.archive_box mini class="-ml-0.5 mr-2 h-5 w-5 text-neutral-400" />
                 Export
               <% end %>
               <%= if Permissions.can_edit_project_metadata?(@current_user, @project) do %>
                 <.link href={"/new?project_id=#{@project.id}"} class="button ~urge @high">
+                <Heroicons.plus mini class="-ml-0.5 mr-2 text-urge-200 h-5 w-5" />
                   New Incident
                 </.link>
               <% end %>
@@ -172,19 +186,6 @@ defmodule PlatformWeb.ProjectsLive.Show do
                 <span>Deleted</span>
               </.link>
             <% end %>
-
-            <.link
-              href={
-                Routes.live_path(@socket, PlatformWeb.MediaLive.Index, %{
-                  project_id: @project.id,
-                  display: :cards
-                })
-              }
-              class={inactive_classes}
-            >
-              <Heroicons.magnifying_glass mini class="opacity-75 -ml-0.5 mr-2 h-5 w-5" />
-              <span>Search&nbsp;&rarr;</span>
-            </.link>
           </nav>
         </article>
       </div>
