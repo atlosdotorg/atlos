@@ -1879,9 +1879,15 @@ defmodule PlatformWeb.Components do
     <% has_unread_notification = @media.has_unread_notification %>
     <% is_sensitive = Material.Media.is_sensitive(@media) %>
     <% background_color =
-      cond do
-        is_sensitive -> "bg-red-50"
-        true -> "bg-white group-hover:bg-neutral-50 hover:bg-neutral-50"
+      case @media.attr_sensitive do
+        x when x == ["Not Sensitive"] or x == [] ->
+          "bg-white group-hover:bg-neutral-50 hover:bg-neutral-50"
+
+        ["Personal Information Visible"] ->
+          "bg-orange-50"
+
+        _ ->
+          "bg-red-50"
       end %>
     <tr
       class={"search-highlighting group transition-all " <> background_color}
@@ -1929,7 +1935,7 @@ defmodule PlatformWeb.Components do
               <%= Media.slug_to_display(@media) %>
             </span>
             <%= if is_sensitive do %>
-              <span data-tooltip="Incident is sensitive" class="text-critical-400">
+              <span data-tooltip={Enum.join(@media.attr_sensitive, ", ")} class="text-critical-400">
                 <Heroicons.shield_exclamation mini class="h-4 w-4" />
               </span>
             <% end %>

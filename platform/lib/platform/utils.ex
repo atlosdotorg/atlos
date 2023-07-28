@@ -145,6 +145,9 @@ defmodule Platform.Utils do
   def render_markdown(markdown) do
     # Safe markdown rendering. No images or headers.
 
+    # Preprocessing: replace single linebreaks with double linebreaks _except_ when the newline is followed by a list item or a digit (i.e. a numbered list)
+    markdown = Regex.replace(~r/([^\n])(\n)(?![0-9]|\*)/, markdown, "\\1\\2\\2")
+
     # First, strip images and turn them into links. Primitive.
     markdown = Regex.replace(~r"!*\[", markdown, "[")
 

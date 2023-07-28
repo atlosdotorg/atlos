@@ -1110,6 +1110,7 @@ defmodule Platform.Material.Attribute do
       :sensitive ->
         case value do
           ["Not Sensitive"] -> "~neutral"
+          ["Personal Information Visible"] -> "~orange"
           _ -> "~critical"
         end
 
