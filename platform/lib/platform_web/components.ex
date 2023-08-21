@@ -309,6 +309,10 @@ defmodule PlatformWeb.Components do
             </svg>
           </.navlink>
 
+          <.navlink to="/my_activity" label="My Activity" request_path={@path}>
+            <Heroicons.user mini class="text-neutral-300 group-hover:text-white h-6 w-6" />
+          </.navlink>
+
           <.navlink
             to={
               if String.starts_with?(@path, "/incidents"),

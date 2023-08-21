@@ -29,12 +29,7 @@ defmodule PlatformWeb.HomeLive.Index do
   defp get_feed_media(socket, opts) do
     Material.get_recently_updated_media_paginated(
       Keyword.merge(opts,
-        for_user: socket.assigns.current_user,
-        restrict_to_user:
-          if(socket.assigns.live_action == :my_activity,
-            do: socket.assigns.current_user,
-            else: nil
-          )
+        for_user: socket.assigns.current_user
       )
     )
     |> Enum.filter(&Permissions.can_view_media?(socket.assigns.current_user, &1))

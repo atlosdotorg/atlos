@@ -1,0 +1,9 @@
+<article class="w-full md:max-w-screen-md md:mx-auto px-4">
+  <h1 class="page-header mb-8">My Activity</h1>
+  <.live_component
+    module={PlatformWeb.UpdatesLive.PaginatedMediaUpdateFeed}
+    current_user={@current_user}
+    restrict_to_user={@current_user}
+    id="my-activity-updates-feed"
+  />
+</article>

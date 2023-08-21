@@ -111,41 +111,11 @@
       </section>
     <% end %>
     <section class="flex flex-col-reverse lg:flex-row gap-8 max-w-full mt-14">
-      <div class="lg:w-2/3">
-        <div class="border-b border-gray-200 mb-4">
-          <nav class="-mb-px flex space-x-8" aria-label="Tabs">
-            <% inactive_classes =
-              "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 group inline-flex items-center py-2 px-1 border-b-2 font-medium text-sm" %>
-            <% active_classes =
-              "border-urge-500 text-urge-600 group inline-flex items-center py-2 px-1 border-b-2 font-medium text-sm" %>
-            <.link
-              patch="/home"
-              class={if @live_action == :all_activity, do: active_classes, else: inactive_classes}
-              aria-current="page"
-            >
-              <Heroicons.clock
-                mini
-                class="opacity-[60%] group-hover:opacity-[80%] transition-all -ml-0.5 mr-2 h-5 w-5"
-              />
-              <span>Recent</span>
-            </.link>
-
-            <.link
-              patch="/home/my_activity"
-              class={if @live_action == :my_activity, do: active_classes, else: inactive_classes}
-            >
-              <Heroicons.user
-                mini
-                class="opacity-[60%] group-hover:opacity-[80%] transition-all -ml-0.5 mr-2 h-5 w-5"
-              />
-              <span>My Activity</span>
-            </.link>
-          </nav>
-        </div>
+      <div class="lg:w-2/3 mt-2">
         <.live_component
           module={PlatformWeb.UpdatesLive.PaginatedMediaUpdateFeed}
           current_user={@current_user}
-          restrict_to_user={if @live_action == :my_activity, do: @current_user, else: nil}
+          restrict_to_user={nil}
           id="project-updates-feed"
         />
       </div>
@@ -228,7 +198,7 @@
                   display: :cards
                 })
               }
-              class="text-button text-sm text-neutral-600"
+              class="text-button text-sm text-neutral-500"
             >
               View all incidents &rarr;
             </.link>
