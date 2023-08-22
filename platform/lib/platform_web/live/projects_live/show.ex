@@ -132,7 +132,7 @@ defmodule PlatformWeb.ProjectsLive.Show do
               "transition-all border-urge-500 text-urge-600 group inline-flex items-center py-4 px-1 border-b-2 font-medium text-sm" %>
 
             <.link
-              patch={"/projects/#{@project.id}"}
+              href={"/projects/#{@project.id}"}
               class={if @live_action == :overview, do: active_classes, else: inactive_classes}
             >
               <Heroicons.chart_bar mini class="opacity-75 -ml-0.5 mr-2 h-5 w-5" />
@@ -140,7 +140,7 @@ defmodule PlatformWeb.ProjectsLive.Show do
             </.link>
 
             <.link
-              patch={"/projects/#{@project.id}/map"}
+              href={"/projects/#{@project.id}/map"}
               class={if @live_action == :map, do: active_classes, else: inactive_classes}
             >
               <Heroicons.map mini class="opacity-75 -ml-0.5 mr-2 h-5 w-5" />
@@ -148,7 +148,7 @@ defmodule PlatformWeb.ProjectsLive.Show do
             </.link>
 
             <.link
-              patch={"/projects/#{@project.id}/queue"}
+              href={"/projects/#{@project.id}/queue"}
               class={if @live_action == :queue, do: active_classes, else: inactive_classes}
             >
               <Heroicons.queue_list mini class="opacity-75 -ml-0.5 mr-2 h-5 w-5" />
@@ -157,7 +157,7 @@ defmodule PlatformWeb.ProjectsLive.Show do
 
             <%= if Permissions.can_edit_project_metadata?(@current_user, @project) do %>
               <.link
-                patch={"/projects/#{@project.id}/edit"}
+                href={"/projects/#{@project.id}/edit"}
                 class={if @live_action == :edit, do: active_classes, else: inactive_classes}
               >
                 <Heroicons.cog_6_tooth mini class="opacity-75 -ml-0.5 mr-2 h-5 w-5" />
@@ -167,7 +167,7 @@ defmodule PlatformWeb.ProjectsLive.Show do
 
             <%= if feature_available?(:project_access_controls) do %>
               <.link
-                patch={"/projects/#{@project.id}/members"}
+                href={"/projects/#{@project.id}/members"}
                 class={if @live_action == :members, do: active_classes, else: inactive_classes}
               >
                 <Heroicons.user_circle mini class="opacity-75 -ml-0.5 mr-2 h-5 w-5" />
@@ -177,7 +177,7 @@ defmodule PlatformWeb.ProjectsLive.Show do
 
             <%= if Permissions.can_view_project_deleted_media?(@current_user, @project) do %>
               <.link
-                patch={"/projects/#{@project.id}/deleted"}
+                href={"/projects/#{@project.id}/deleted"}
                 class={if @live_action == :deleted, do: active_classes, else: inactive_classes}
               >
                 <Heroicons.trash mini class="opacity-75 -ml-0.5 mr-2 h-5 w-5" />
@@ -235,7 +235,7 @@ defmodule PlatformWeb.ProjectsLive.Show do
                         </dd>
                       </.link>
                     <% end %>
-                    <.link patch={"/projects/#{@project.id}/queue"} class="text-button p-2">
+                    <.link href={"/projects/#{@project.id}/queue"} class="text-button p-2">
                       View in queue &rarr;
                     </.link>
                   <% end %>
