@@ -27,6 +27,9 @@ defmodule Platform.NotificationsTest do
 
       %Notification{id: id1} = notification_fixture()
 
+      # Sleep to ensure that the timestamps are different
+      Process.sleep(2000)
+
       assert [
                %Notification{id: ^id1}
              ] =

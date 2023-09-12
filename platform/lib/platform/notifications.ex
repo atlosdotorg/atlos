@@ -55,8 +55,6 @@ defmodule Platform.Notifications do
       preload: [update: [:user, :old_project, :new_project, :media_version, media: [:project]]],
       order_by: [desc: :inserted_at]
     )
-    # Fallback for null/equal values
-    |> order_by(desc: :id)
     |> Repo.paginate(options)
   end
 
@@ -107,7 +105,7 @@ defmodule Platform.Notifications do
 
     # Deduplicate and remove source user
     recipients =
-      recipients |> Enum.sort() |> Enum.dedup() |> Enum.filter(&(&1.id != update.user_id))
+      recipients |> Enum.uniq_by(& &1.id) |> Enum.filter(&(&1.id != update.user_id))
 
     # Post the notifications
     Enum.map(
