@@ -9,7 +9,7 @@ defmodule Platform.Notifications.Notification do
 
     belongs_to :user, Platform.Accounts.User, type: :binary_id
     belongs_to :media, Platform.Material.Media, type: :binary_id
-    belongs_to :update, Platform.Updates.Update
+    belongs_to :update, Platform.Updates.Update, type: :binary_id
 
     timestamps()
   end

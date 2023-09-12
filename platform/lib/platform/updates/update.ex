@@ -8,6 +8,7 @@ defmodule Platform.Updates.Update do
   alias Platform.Permissions
 
   @derive {Jason.Encoder, except: [:__meta__, :user, :media, :media_version]}
+  @primary_key {:id, :binary_id, autogenerate: true}
   schema "updates" do
     field(:search_metadata, :string, default: "")
     field(:explanation, :string)
