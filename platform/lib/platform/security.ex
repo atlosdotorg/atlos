@@ -27,10 +27,23 @@ defmodule Platform.Security do
     passthrough
   end
 
-  defmemo get_current_state(), expires_in: 60 * 1000 do
+  def get_current_state() do
+    # If we are in testing mode, always return the actual state, not the cached state
+    if Mix.env() == :test do
+      get_current_state_raw()
+    else
+      get_current_state_memo()
+    end
+  end
+
+  defmemo get_current_state_memo(), expires_in: 60 * 1000 do
+    get_current_state_raw()
+  end
+
+  defp get_current_state_raw() do
     Repo.one(
       from x in Platform.Security.SecurityMode,
-        order_by: [desc: x.id],
+        order_by: [desc: x.inserted_at],
         limit: 1
     )
   end
