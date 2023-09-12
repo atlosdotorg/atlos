@@ -8,6 +8,7 @@ defmodule Platform.Material.Media do
   alias Platform.Permissions
   alias __MODULE__
 
+  @primary_key {:id, :binary_id, autogenerate: true}
   schema "media" do
     # Core uneditable data
     field(:slug, :string, autogenerate: {Utils, :generate_media_slug, []})

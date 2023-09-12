@@ -6,7 +6,7 @@ defmodule Platform.Material.MediaSubscription do
 
   schema "media_subscriptions" do
     belongs_to :user, User, type: :binary_id
-    belongs_to :media, Media
+    belongs_to :media, Media, type: :binary_id
 
     timestamps()
   end

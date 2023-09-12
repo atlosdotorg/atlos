@@ -40,7 +40,7 @@ defmodule Platform.Material.MediaVersion do
     # Virtual field for when creating new media versions (used by Updates)
     field(:explanation, :string, virtual: true)
 
-    belongs_to(:media, Media)
+    belongs_to(:media, Media, type: :binary_id)
 
     timestamps()
   end

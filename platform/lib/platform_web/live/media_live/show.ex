@@ -44,7 +44,7 @@ defmodule PlatformWeb.MediaLive.Show do
   end
 
   defp sort_by_date(items) do
-    items |> Enum.sort_by(& &1.updated_at) |> Enum.reverse()
+    items |> Enum.sort_by(& &1.updated_at, {:desc, NaiveDateTime})
   end
 
   defp filter_viewable_versions(versions, %User{} = user) do
@@ -69,7 +69,7 @@ defmodule PlatformWeb.MediaLive.Show do
       socket
       |> assign(:media, media)
       |> assign(:active_project, media.project)
-      |> assign(:updates, media.updates |> Enum.sort_by(& &1.inserted_at))
+      |> assign(:updates, media.updates |> Enum.sort_by(& &1.inserted_at, {:asc, NaiveDateTime}))
       |> subscribe_to_media(media)
     else
       _ ->

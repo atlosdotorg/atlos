@@ -8,7 +8,7 @@ defmodule Platform.Notifications.Notification do
     field :type, Ecto.Enum, values: [:update, :message]
 
     belongs_to :user, Platform.Accounts.User, type: :binary_id
-    belongs_to :media, Platform.Material.Media
+    belongs_to :media, Platform.Material.Media, type: :binary_id
     belongs_to :update, Platform.Updates.Update
 
     timestamps()

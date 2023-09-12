@@ -51,32 +51,32 @@ defmodule Platform.Repo.Migrations.MoveUsersToUuidPkey do
     execute "ALTER TABLE updates drop constraint updates_user_id_fkey;"
     execute "ALTER TABLE updates drop column user_id;"
     rename table(:updates), :user_uuid, to: :user_id
-    execute "ALTER TABLE updates RENAME CONSTRAINT updates_user_uuid_fkey TO users_tokens_user_id_fkey;"
+    execute "ALTER TABLE updates RENAME CONSTRAINT updates_user_uuid_fkey TO updates_user_id_fkey;"
 
     execute "ALTER TABLE media_subscriptions drop constraint media_subscriptions_user_id_fkey;"
     execute "ALTER TABLE media_subscriptions drop column user_id;"
     rename table(:media_subscriptions), :user_uuid, to: :user_id
-    execute "ALTER TABLE media_subscriptions RENAME CONSTRAINT media_subscriptions_user_uuid_fkey TO users_tokens_user_id_fkey;"
+    execute "ALTER TABLE media_subscriptions RENAME CONSTRAINT media_subscriptions_user_uuid_fkey TO media_subscriptions_user_id_fkey;"
 
     execute "ALTER TABLE invites drop constraint invites_owner_id_fkey;"
     execute "ALTER TABLE invites drop column owner_id;"
     rename table(:invites), :owner_uuid, to: :owner_id
-    execute "ALTER TABLE invites RENAME CONSTRAINT invites_owner_uuid_fkey TO users_tokens_user_id_fkey;"
+    execute "ALTER TABLE invites RENAME CONSTRAINT invites_owner_uuid_fkey TO invites_user_id_fkey;"
 
     execute "ALTER TABLE security_modes drop constraint security_modes_user_id_fkey;"
     execute "ALTER TABLE security_modes drop column user_id;"
     rename table(:security_modes), :user_uuid, to: :user_id
-    execute "ALTER TABLE security_modes RENAME CONSTRAINT security_modes_user_uuid_fkey TO users_tokens_user_id_fkey;"
+    execute "ALTER TABLE security_modes RENAME CONSTRAINT security_modes_user_uuid_fkey TO security_modes_user_id_fkey;"
 
     execute "ALTER TABLE notifications drop constraint notifications_user_id_fkey;"
     execute "ALTER TABLE notifications drop column user_id;"
     rename table(:notifications), :user_uuid, to: :user_id
-    execute "ALTER TABLE notifications RENAME CONSTRAINT notifications_user_uuid_fkey TO users_tokens_user_id_fkey;"
+    execute "ALTER TABLE notifications RENAME CONSTRAINT notifications_user_uuid_fkey TO notifications_user_id_fkey;"
 
     execute "ALTER TABLE project_memberships drop constraint project_memberships_user_id_fkey;"
     execute "ALTER TABLE project_memberships drop column user_id;"
     rename table(:project_memberships), :user_uuid, to: :user_id
-    execute "ALTER TABLE project_memberships RENAME CONSTRAINT project_memberships_user_uuid_fkey TO users_tokens_user_id_fkey;"
+    execute "ALTER TABLE project_memberships RENAME CONSTRAINT project_memberships_user_uuid_fkey TO project_memberships_user_id_fkey;"
 
     # Drop the old primary key
     execute "ALTER TABLE users drop constraint users_pkey;"
