@@ -1,5 +1,5 @@
 defmodule Platform.APITest do
-  use Platform.DataCase
+  use Platform.DataCase, async: true
 
   alias Platform.API
 

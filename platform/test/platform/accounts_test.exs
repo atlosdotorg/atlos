@@ -1,6 +1,6 @@
 defmodule Platform.AccountsTest do
   alias Ecto.UUID
-  use Platform.DataCase
+  use Platform.DataCase, async: true
 
   alias Platform.Accounts
 

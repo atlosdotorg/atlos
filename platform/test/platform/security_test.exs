@@ -1,5 +1,5 @@
 defmodule Platform.SecurityTest do
-  use Platform.DataCase
+  use Platform.DataCase, async: true
 
   alias Platform.Security
 

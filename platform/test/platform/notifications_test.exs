@@ -1,5 +1,5 @@
 defmodule Platform.NotificationsTest do
-  use Platform.DataCase
+  use Platform.DataCase, async: true
 
   alias Platform.Notifications
 

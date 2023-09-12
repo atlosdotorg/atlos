@@ -1,5 +1,5 @@
 defmodule Platform.ProjectsTest do
-  use Platform.DataCase
+  use Platform.DataCase, async: true
 
   alias Platform.Projects
 

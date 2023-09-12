@@ -1,5 +1,5 @@
 defmodule Platform.PermissionsTest do
-  use Platform.DataCase
+  use Platform.DataCase, async: true
 
   alias Platform.Projects
   alias Platform.Permissions

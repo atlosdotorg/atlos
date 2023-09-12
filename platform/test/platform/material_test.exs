@@ -1,5 +1,5 @@
 defmodule Platform.MaterialTest do
-  use Platform.DataCase
+  use Platform.DataCase, async: true
 
   alias Platform.Projects
   alias Platform.Material
