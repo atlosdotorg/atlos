@@ -104,8 +104,7 @@ defmodule Platform.Notifications do
          |> Enum.filter(&(!is_nil(&1))))
 
     # Deduplicate and remove source user
-    recipients =
-      recipients |> Enum.uniq_by(& &1.id) |> Enum.filter(&(&1.id != update.user_id))
+    recipients = recipients |> Enum.uniq_by(& &1.id) |> Enum.filter(&(&1.id != update.user_id))
 
     # Post the notifications
     Enum.map(

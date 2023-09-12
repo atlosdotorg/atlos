@@ -12,16 +12,19 @@ defmodule Platform.Repo.Migrations.MoveMediaVersionsToUuidPkey do
 
     # Create new UUID columns for all constraints
     alter table(:updates) do
-      add :media_version_uuid, references("media_versions", type: :binary_id, column: :uuid), null: true
+      add :media_version_uuid, references("media_versions", type: :binary_id, column: :uuid),
+        null: true
     end
 
     # Insert the UUIDs into the constraint columns
-    execute "update updates set media_version_uuid = media_versions.uuid from media_versions where updates.media_version_id = media_versions.id", []
+    execute "update updates set media_version_uuid = media_versions.uuid from media_versions where updates.media_version_id = media_versions.id",
+            []
 
     # Drop the old constraint columns
     execute "ALTER TABLE updates drop constraint updates_media_version_id_fkey;"
     execute "ALTER TABLE updates drop column media_version_id;"
     rename table(:updates), :media_version_uuid, to: :media_version_id
+
     execute "ALTER TABLE updates RENAME CONSTRAINT updates_media_version_uuid_fkey TO updates_tokens_media_version_id_fkey;"
 
     # Drop the old primary key

@@ -16,12 +16,14 @@ defmodule Platform.Repo.Migrations.MoveUpdatesToUuidPkey do
     end
 
     # Insert the UUIDs into the constraint columns
-    execute "update notifications set update_uuid = updates.uuid from updates where notifications.update_id = updates.id", []
+    execute "update notifications set update_uuid = updates.uuid from updates where notifications.update_id = updates.id",
+            []
 
     # Drop the old constraint columns
     execute "ALTER TABLE notifications drop constraint notifications_update_id_fkey;"
     execute "ALTER TABLE notifications drop column update_id;"
     rename table(:notifications), :update_uuid, to: :update_id
+
     execute "ALTER TABLE notifications RENAME CONSTRAINT notifications_update_uuid_fkey TO notifications_update_id_fkey;"
 
     # Drop the old primary key

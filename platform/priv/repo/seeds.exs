@@ -161,7 +161,8 @@ random_media =
       new_value = Enum.random(attr.options -- [existing_value])
 
       # If it fails, nbd; the user may not have permission to set the status
-      _ =  Material.update_media_attribute_audited(
+      _ =
+        Material.update_media_attribute_audited(
           media,
           attr,
           Enum.random(random_users),

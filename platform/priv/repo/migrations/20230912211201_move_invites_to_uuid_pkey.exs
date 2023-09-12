@@ -16,7 +16,8 @@ defmodule Platform.Repo.Migrations.MoveInvitesToUuidPkey do
     end
 
     # Insert the UUIDs into the constraint columns
-    execute "update users set invite_uuid = invites.uuid from invites where users.invite_id = invites.id", []
+    execute "update users set invite_uuid = invites.uuid from invites where users.invite_id = invites.id",
+            []
 
     # Drop the old constraint columns
     execute "ALTER TABLE users drop constraint users_invite_id_fkey;"
