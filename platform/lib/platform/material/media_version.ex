@@ -4,6 +4,7 @@ defmodule Platform.Material.MediaVersion do
   alias Platform.Material.Media
 
   @derive {Jason.Encoder, except: [:__meta__, :client_name, :file_location, :media, :artifacts]}
+  @primary_key {:id, :binary_id, autogenerate: true}
   schema "media_versions" do
     field(:scoped_id, :integer)
 

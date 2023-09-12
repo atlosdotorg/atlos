@@ -45,7 +45,7 @@ defmodule Platform.Updates.Update do
     # General association metadata
     belongs_to(:user, Platform.Accounts.User, type: :binary_id)
     belongs_to(:media, Platform.Material.Media, type: :binary_id)
-    belongs_to(:media_version, Platform.Material.MediaVersion)
+    belongs_to(:media_version, Platform.Material.MediaVersion, type: :binary_id)
 
     timestamps()
   end
