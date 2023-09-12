@@ -5,6 +5,7 @@ defmodule Platform.Invites.Invite do
   alias Platform.Accounts
   alias __MODULE__
 
+  @primary_key {:id, :binary_id, autogenerate: true}
   schema "invites" do
     field :active, :boolean, default: true
     field :code, :string, autogenerate: {Invite, :generate_random_code, []}
