@@ -1,4 +1,5 @@
 defmodule Platform.AccountsTest do
+  alias Ecto.UUID
   use Platform.DataCase
 
   alias Platform.Accounts
@@ -38,7 +39,7 @@ defmodule Platform.AccountsTest do
   describe "get_user!/1" do
     test "raises if id is invalid" do
       assert_raise Ecto.NoResultsError, fn ->
-        Accounts.get_user!(-1)
+        Accounts.get_user!(UUID.autogenerate())
       end
     end
 

@@ -6,7 +6,7 @@ defmodule Platform.Security.SecurityMode do
     field :description, :string
     field :mode, Ecto.Enum, values: [:normal, :read_only, :no_access], default: :normal
 
-    belongs_to :user, Platform.Accounts.User
+    belongs_to :user, Platform.Accounts.User, type: :binary_id
 
     timestamps()
   end

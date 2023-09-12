@@ -11,7 +11,7 @@ defmodule Platform.Invites.Invite do
 
     # Accounts who have used the invite code to register
     has_many :users, Accounts.User
-    belongs_to :owner, Accounts.User
+    belongs_to :owner, Accounts.User, type: :binary_id
 
     timestamps()
   end

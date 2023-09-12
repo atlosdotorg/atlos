@@ -5,7 +5,7 @@ defmodule Platform.Material.MediaSubscription do
   alias Platform.Accounts.User
 
   schema "media_subscriptions" do
-    belongs_to :user, User
+    belongs_to :user, User, type: :binary_id
     belongs_to :media, Media
 
     timestamps()

@@ -42,7 +42,7 @@ defmodule Platform.Updates.Update do
     belongs_to(:new_project, Platform.Projects.Project, type: :binary_id)
 
     # General association metadata
-    belongs_to(:user, Platform.Accounts.User)
+    belongs_to(:user, Platform.Accounts.User, type: :binary_id)
     belongs_to(:media, Platform.Material.Media)
     belongs_to(:media_version, Platform.Material.MediaVersion)
 

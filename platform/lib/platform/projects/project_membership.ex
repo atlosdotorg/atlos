@@ -5,7 +5,7 @@ defmodule Platform.Projects.ProjectMembership do
   @primary_key {:id, :binary_id, autogenerate: true}
   schema "project_memberships" do
     field :role, Ecto.Enum, values: [:owner, :manager, :editor, :viewer]
-    belongs_to(:user, Platform.Accounts.User, type: :id)
+    belongs_to(:user, Platform.Accounts.User, type: :binary_id)
     belongs_to(:project, Platform.Projects.Project, type: :binary_id)
 
     field :username, :string, virtual: true

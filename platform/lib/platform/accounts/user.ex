@@ -4,6 +4,7 @@ defmodule Platform.Accounts.User do
   alias Platform.Material
   alias Platform.Invites
 
+  @primary_key {:id, :binary_id, autogenerate: true}
   schema "users" do
     # General metadata
     field(:email, :string)
