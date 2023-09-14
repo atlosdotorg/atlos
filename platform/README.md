@@ -144,7 +144,7 @@ Atlos is deployed using GitHub Actions. We have two main workflows: one for test
 
 Our production environment reads from the `deployments/main` branch. A GitHub action automatically maintains an open pull request from `main` into `deployments/main`. When we want to deploy to production, we merge the pull request.
 
-Note that we currently also run a single-tenant Atlos instance for Bellingcat. This instance is deployed from the `deployments/gap` branch, and is deployed via its own pull request. We typically deploy to main before we deploy to gap, but this is not a hard requirement.
+Note that we currently also run a single-tenant Atlos instance for Bellingcat. This instance is deployed from the `deployments/gap` branch, and is deployed via its own pull request. We typically deploy to main before we deploy to gap, but this is not a hard requirement. This dedicated instance will be retired soon and we will move to a single unified instance for all tenants.
 
 Atlos is meant to be run as a clustered web app with at least two instances. We use Elixir's `libcluster` to cluster our instances together. We use Azure's load balancer to distribute traffic between the instances. Note that clustering is _absolutely required_ for Atlos to run correctly; this clustering is how we run background jobs, real-time syncing, etc.
 
@@ -156,6 +156,15 @@ There is no one-size-fits-all approach to setting up a new Atlos environment; th
 4. Ensure that the Atlos instances can communicate with the database
 
 That's it! You should now have a working Atlos instance. (Again: our infrastructure is intentionally quite simple. If you get stuck, feel free to reach out to us on Discord.)
+
+#### Azure Deployment
+
+Our deployment on Azure — described via the Terraform files in `deployments/` — has the following components:
+
+* A PostgreSQL database (per deployment, via Azure Database for PostgreSQL)
+* A container app (per deployment, via Azure Container Apps)
+
+We still store media in AWS S3 (via the `S3_BUCKET` environment variable), and we still send emails via AWS SES (via the `AWS_MAILER_REGION`, `AWS_ACCESS_KEY_ID`, and `AWS_SECRET_ACCESS_KEY` environment variables).
 
 ### Testing
 
