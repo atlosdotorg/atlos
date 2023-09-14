@@ -1295,6 +1295,7 @@ defmodule PlatformWeb.Components do
               value={Material.get_attribute_value(@media, @attr)}
               project={@media.project}
             />
+            <% end %>
             <%= for child <- @children do %>
               <%= if not is_nil(Map.get(@media, child.schema_field)) do %>
                 <.attr_entry
@@ -1305,7 +1306,6 @@ defmodule PlatformWeb.Components do
                   project={@media.project}
                 />
               <% end %>
-            <% end %>
           <% end %>
         </span>
         <span class="ml-4 flex-shrink-0">
@@ -1605,7 +1605,7 @@ defmodule PlatformWeb.Components do
     assigns = assign(assigns, :diff, diff)
 
     ~H"""
-    <span class="flex flex-wrap gap-1">
+    <span class="inline-flex flex-wrap gap-1">
       <%= for {action, elem} <- @diff do %>
         <%= case action do %>
           <% :eq -> %>
@@ -1708,45 +1708,43 @@ defmodule PlatformWeb.Components do
         )
 
       ~H"""
-      <div class="inline-block">
-        <span>
-          <%= case @attr.type do %>
-            <% :text -> %>
-              <.text_diff old={@old_val} new={@new_val} label={@label} />
-            <% :select -> %>
-              <.list_diff old={[@old_val]} new={[@new_val]} label={@label} />
-            <% :multi_select -> %>
-              <.list_diff
-                old={if is_list(@old_val), do: @old_val, else: [@old_val]}
-                new={if is_list(@new_val), do: @new_val, else: [@new_val]}
-                label={@label}
-              />
-            <% :location -> %>
-              <.location_diff old={@old_val} new={@new_val} label={@label} />
-            <% :time -> %>
-              <.list_diff old={[@old_val]} new={[@new_val]} label={@label} />
-            <% :date -> %>
-              <.list_diff
-                old={[Platform.Utils.format_date(@old_val)]}
-                new={[Platform.Utils.format_date(@new_val)]}
-                label={@label}
-              />
-          <% end %>
-        </span>
+      <span class="inline">
+        <%= case @attr.type do %>
+          <% :text -> %>
+            <.text_diff old={@old_val} new={@new_val} label={@label} />
+          <% :select -> %>
+            <.list_diff old={[@old_val]} new={[@new_val]} label={@label} />
+          <% :multi_select -> %>
+            <.list_diff
+              old={if is_list(@old_val), do: @old_val, else: [@old_val]}
+              new={if is_list(@new_val), do: @new_val, else: [@new_val]}
+              label={@label}
+            />
+          <% :location -> %>
+            <.location_diff old={@old_val} new={@new_val} label={@label} />
+          <% :time -> %>
+            <.list_diff old={[@old_val]} new={[@new_val]} label={@label} />
+          <% :date -> %>
+            <.list_diff
+              old={[Platform.Utils.format_date(@old_val)]}
+              new={[Platform.Utils.format_date(@new_val)]}
+              label={@label}
+            />
+        <% end %>
         <%= if Material.is_combined_update_value(@old) and Material.is_combined_update_value(@new) do %>
-          <%= for child <- @children do %>
+          <%= for child <- dbg(@children) do %>
             <.attr_diff name={child.name} old={@old} new={@new} label={child.label} project={@project} />
           <% end %>
         <% end %>
-      </div>
+      </span>
       """
     else
       ~H"""
-      <div class="inline-block">
+      <span class="inline-block">
         <span class="italic">
           Change is unavailable
         </span>
-      </div>
+      </span>
       """
     end
   end

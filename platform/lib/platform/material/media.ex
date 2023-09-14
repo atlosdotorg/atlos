@@ -21,6 +21,7 @@ defmodule Platform.Material.Media do
     field(:attr_more_info, :string)
     field(:attr_general_location, :string)
     field(:attr_date, :date)
+    field(:attr_time, :time)
     field(:attr_type, {:array, :string})
     field(:attr_impact, {:array, :string})
     field(:attr_equipment, {:array, :string})

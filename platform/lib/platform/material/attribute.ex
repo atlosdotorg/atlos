@@ -107,6 +107,16 @@ defmodule Platform.Material.Attribute do
         required: false,
         name: :date,
         description: "On what date did the incident take place?"
+      },
+      %Attribute{
+        schema_field: :attr_time,
+        type: :time,
+        label: "Time",
+        pane: :not_shown,
+        required: false,
+        name: :time,
+        parent: :date,
+        description: "At what time did the incident take place?"
       }
     ]
 
@@ -472,12 +482,16 @@ defmodule Platform.Material.Attribute do
   def set_for_media(media, opts \\ []) do
     pane = Keyword.get(opts, :pane)
 
-    Enum.filter(attributes(opts), fn attr ->
-      val = Material.get_attribute_value(media, attr)
+    Enum.filter(attributes(opts), fn a ->
+      all_attrs = get_children(a.name) ++ [a]
 
-      val != nil && val != [] && val != %{"day" => "", "month" => "", "year" => ""} &&
-        (pane == nil || attr.pane == pane) &&
-        (attr.deprecated != true || Keyword.get(opts, :include_deprecated_attributes, false))
+      Enum.any?(all_attrs, fn attr ->
+        val = Material.get_attribute_value(media, attr)
+
+        val != nil && val != [] && val != %{"day" => "", "month" => "", "year" => ""} &&
+          (pane == nil || attr.pane == pane || attr.parent == a.name) &&
+          (attr.deprecated != true || Keyword.get(opts, :include_deprecated_attributes, false))
+      end)
     end)
   end
 
@@ -1153,6 +1167,8 @@ defmodule Platform.Material.Attribute do
   distinct attributes into a single editing experience (e.g., geolocation and geolocation accuracy).
   """
   def get_children(parent_name, opts \\ []) do
-    attributes(opts) |> Enum.filter(&(&1.parent == parent_name))
+    # We convert to a string so that we support both atom and string names.
+    name_str = to_string(parent_name)
+    attributes(opts) |> Enum.filter(&(to_string(&1.parent) == name_str))
   end
 end
