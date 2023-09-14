@@ -1295,17 +1295,17 @@ defmodule PlatformWeb.Components do
               value={Material.get_attribute_value(@media, @attr)}
               project={@media.project}
             />
+          <% end %>
+          <%= for child <- @children do %>
+            <%= if not is_nil(Map.get(@media, child.schema_field)) do %>
+              <.attr_entry
+                name={child.name}
+                color={false}
+                value={Map.get(@media, child.schema_field)}
+                label={child.label}
+                project={@media.project}
+              />
             <% end %>
-            <%= for child <- @children do %>
-              <%= if not is_nil(Map.get(@media, child.schema_field)) do %>
-                <.attr_entry
-                  name={child.name}
-                  color={false}
-                  value={Map.get(@media, child.schema_field)}
-                  label={child.label}
-                  project={@media.project}
-                />
-              <% end %>
           <% end %>
         </span>
         <span class="ml-4 flex-shrink-0">
@@ -1732,7 +1732,7 @@ defmodule PlatformWeb.Components do
             />
         <% end %>
         <%= if Material.is_combined_update_value(@old) and Material.is_combined_update_value(@new) do %>
-          <%= for child <- dbg(@children) do %>
+          <%= for child <- @children do %>
             <.attr_diff name={child.name} old={@old} new={@new} label={child.label} project={@project} />
           <% end %>
         <% end %>
