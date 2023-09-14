@@ -2,7 +2,7 @@
 # 
 # We will expand it in the future to also handle deployments for our Atlos-native infrastructure.
 
-name: Build
+name: Build and deploy
 
 on:
   push:

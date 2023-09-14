@@ -25,7 +25,7 @@ resource "azurerm_log_analytics_workspace" "platform" {
   resource_group_name = azurerm_resource_group.platform.name
   sku                 = "PerGB2018"
   retention_in_days   = 90
-  tags = local.default_tags
+  tags                = local.default_tags
 }
 
 # Internal network (VNet)
@@ -34,5 +34,5 @@ resource "azurerm_virtual_network" "vnet" {
   resource_group_name = azurerm_resource_group.platform.name
   location            = azurerm_resource_group.platform.location
   address_space       = ["10.0.0.0/16"]
-  tags = local.default_tags
+  tags                = local.default_tags
 }

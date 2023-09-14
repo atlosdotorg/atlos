@@ -21,7 +21,7 @@ resource "azurerm_subnet" "postgres_storage_subnet" {
 resource "azurerm_private_dns_zone" "database_zone" {
   name                = "${local.stack}-platform-database.postgres.database.azure.com"
   resource_group_name = azurerm_resource_group.platform.name
-  tags = local.default_tags
+  tags                = local.default_tags
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "database_zone_link" {
@@ -29,7 +29,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "database_zone_link" {
   private_dns_zone_name = azurerm_private_dns_zone.database_zone.name
   virtual_network_id    = azurerm_virtual_network.vnet.id
   resource_group_name   = azurerm_resource_group.platform.name
-  tags = local.default_tags
+  tags                  = local.default_tags
 }
 
 resource "azurerm_postgresql_flexible_server" "platform_database" {
@@ -53,4 +53,13 @@ resource "azurerm_postgresql_flexible_server" "platform_database" {
   }
 
   tags = local.default_tags
+}
+
+resource "azurerm_postgresql_database" "platform_database" {
+  name                = "platform-${var.env}"
+  resource_group_name = azurerm_resource_group.platform.name
+  server_name         = azurerm_postgresql_flexible_server.platform_database.name
+  charset             = "UTF8"
+  collation           = "English_United States.1252"
+  depends_on          = [azurerm_postgresql_flexible_server.platform_database]
 }
