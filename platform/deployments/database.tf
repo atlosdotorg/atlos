@@ -5,8 +5,6 @@ resource "azurerm_subnet" "postgres_storage_subnet" {
   address_prefixes     = ["10.0.2.0/24"]
   service_endpoints    = ["Microsoft.Storage"]
 
-  tags = local.default_tags
-
   delegation {
     name = "fs"
     service_delegation {
@@ -39,11 +37,12 @@ resource "azurerm_postgresql_flexible_server" "platform_database" {
   version                      = "15"
   delegated_subnet_id          = azurerm_subnet.postgres_storage_subnet.id
   private_dns_zone_id          = azurerm_private_dns_zone.database_zone.id
+  zone                         = 2
   storage_mb                   = 32768
   auto_grow_enabled            = true
   backup_retention_days        = 35
   geo_redundant_backup_enabled = true
-  sku_name                     = "GP_Standard_D2ds_v4"
+  sku_name                     = var.database_sku
   depends_on                   = [azurerm_private_dns_zone_virtual_network_link.database_zone_link]
 
   authentication {
@@ -55,11 +54,10 @@ resource "azurerm_postgresql_flexible_server" "platform_database" {
   tags = local.default_tags
 }
 
-resource "azurerm_postgresql_database" "platform_database" {
-  name                = "platform-${var.env}"
-  resource_group_name = azurerm_resource_group.platform.name
-  server_name         = azurerm_postgresql_flexible_server.platform_database.name
-  charset             = "UTF8"
-  collation           = "English_United States.1252"
-  depends_on          = [azurerm_postgresql_flexible_server.platform_database]
+resource "azurerm_postgresql_flexible_server_database" "platform_database" {
+  name       = "platform-${var.env}"
+  server_id  = azurerm_postgresql_flexible_server.platform_database.id
+  charset    = "utf8"
+  collation  = "en_US.utf8"
+  depends_on = [azurerm_postgresql_flexible_server.platform_database]
 }

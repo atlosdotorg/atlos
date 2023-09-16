@@ -1,14 +1,14 @@
-resource "random_string" "cookie_signing_salt" {
+resource "random_password" "cookie_signing_salt" {
   length  = 64
   special = true
 }
 
-resource "random_string" "cluster_secret" {
+resource "random_password" "cluster_secret" {
   length  = 64
   special = true
 }
 
-resource "random_string" "secret_key_base" {
+resource "random_password" "secret_key_base" {
   length  = 64
   special = true
 }
@@ -16,7 +16,7 @@ resource "random_string" "secret_key_base" {
 resource "azurerm_app_service_connection" "platform_db_connector" {
   name               = "platform-db-connector-${local.stack}"
   app_service_id     = azurerm_container_app.platform.id
-  target_resource_id = azurerm_postgresql_database.platform_database.id
+  target_resource_id = azurerm_postgresql_flexible_server_database.platform_database.id
 
   authentication {
     type = "systemAssignedIdentity"
@@ -33,26 +33,16 @@ resource "azurerm_container_app_environment" "platform" {
 }
 
 resource "azurerm_container_app" "platform" {
-  name = "container-app-platform-${local.stack}"
+  name = "ca-${local.stack}"
 
   container_app_environment_id = azurerm_container_app_environment.platform.id
   resource_group_name          = azurerm_resource_group.platform.name
   revision_mode                = "Single"
 
-  identity {
-    type         = "UserAssigned"
-    identity_ids = [azurerm_user_assigned_identity.container_app.id]
-  }
-
-  registry {
-    server = "ghcr.io"
-  }
-
   ingress {
     allow_insecure_connections = false
     external_enabled           = true
     target_port                = 4000
-    session_affinity_enabled   = true
     transport                  = "http"
 
     traffic_weight {
@@ -68,34 +58,67 @@ resource "azurerm_container_app" "platform" {
       memory = "2Gi"
 
       liveness_probe {
-        http_get {
-          path = "/health_check/exp"
-          port = 4000
-        }
+        path      = "/health_check/exp"
+        port      = 4000
+        transport = "HTTP"
 
-        initial_delay_seconds = 30
-        period_seconds        = 10
-        timeout_seconds       = 5
-        success_threshold     = 1
-        failure_threshold     = 3
+        initial_delay           = 30
+        interval_seconds        = 10
+        failure_count_threshold = 3
       }
 
       readiness_probe {
-        http_get {
-          path = "/health_check"
-          port = 4000
-        }
+        path      = "/health_check"
+        port      = 4000
+        transport = "HTTP"
 
-        initial_delay_seconds = 30
-        period_seconds        = 10
-        timeout_seconds       = 5
-        success_threshold     = 1
-        failure_threshold     = 3
+        interval_seconds        = 10
+        failure_count_threshold = 3
       }
 
       env {
         name        = "AZURE_POSTGRESQL_HOST"
         secret_name = "azure-postgresql-host"
+      }
+
+      env {
+        name  = "AZURE_POSTGRESQL_SSL"
+        value = "true"
+      }
+
+      env {
+        name  = "ENVIRONMENT"
+        value = var.env
+      }
+
+      env {
+        name  = "INSTANCE_NAME"
+        value = var.instance_name
+      }
+
+      env {
+        name  = "LANG"
+        value = "en_US.UTF-8"
+      }
+
+      env {
+        name  = "MIX_ENV"
+        value = "prod"
+      }
+
+      env {
+        name  = "ONBOARDING_PROJECT_ID"
+        value = var.onboarding_project_id
+      }
+
+      env {
+        name  = "PHX_HOST"
+        value = var.host
+      }
+
+      env {
+        name  = "ENABLE_CAPTCHAS"
+        value = "true"
       }
 
       env {
@@ -145,14 +168,14 @@ resource "azurerm_container_app" "platform" {
 
       env {
         name  = "AZURE_POSTGRESQL_DATABASE"
-        value = azurerm_postgresql_database.platform_database.name
+        value = azurerm_postgresql_flexible_server_database.platform_database.name
       }
     }
   }
 
   secret {
     name  = "azure-postgresql-host"
-    value = azurerm_postgresql_flexible_server.platform_database.fully_qualified_domain_name
+    value = azurerm_postgresql_flexible_server.platform_database.fqdn
   }
 
   secret {
@@ -167,7 +190,7 @@ resource "azurerm_container_app" "platform" {
 
   secret {
     name  = "cookie-signing-salt"
-    value = random_string.cookie_signing_salt.result
+    value = random_password.cookie_signing_salt.result
   }
 
   secret {
@@ -187,7 +210,7 @@ resource "azurerm_container_app" "platform" {
 
   secret {
     name  = "cluster-secret"
-    value = random_string.cluster_secret.result
+    value = random_password.cluster_secret.result
   }
 
   secret {
@@ -197,7 +220,7 @@ resource "azurerm_container_app" "platform" {
 
   secret {
     name  = "secret-key-base"
-    value = random_string.secret_key_base.result
+    value = random_password.secret_key_base.result
   }
 
   tags = local.default_tags
