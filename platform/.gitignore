@@ -4,7 +4,7 @@ avatars
 
 # Terraform
 .terraform/
-.private.tfvars
+*.private.tfvars
 *.tfstate
 
 # The directory Mix will write compiled artifacts to.
