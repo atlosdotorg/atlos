@@ -528,19 +528,19 @@ defmodule PlatformWeb.Components do
         <.media_text class="text-neutral-500" media={@media} />
       </div>
       <.link
-        href={"/incidents/#{@media.slug}"}
+        navigate={"/incidents/#{@media.slug}"}
         class="md:hidden flex items-center flex-shrink-0 text-xs items-center flex-shrink-1 gap-1 justify-right"
       >
         <.media_badges media={@media} only_status={true} />
       </.link>
       <.link
-        href={"/incidents/#{@media.slug}"}
+        navigate={"/incidents/#{@media.slug}"}
         class="font-medium flex-grow-1 hover:text-urge-600 transition flex items-center max-w-full gap-2 grow truncate min-w-0"
       >
         <span class="truncate"><%= @media.attr_description %></span>
       </.link>
       <.link
-        href={"/incidents/#{@media.slug}"}
+        navigate={"/incidents/#{@media.slug}"}
         class="hidden md:block flex items-center flex-shrink-0 text-xs items-center flex-shrink-1 gap-1 justify-right"
       >
         <.media_badges media={@media} only_status={true} />
@@ -555,7 +555,7 @@ defmodule PlatformWeb.Components do
     ~H"""
     <%= if !is_nil(@project) do %>
       <.link
-        href={"/projects/#{@project.id}"}
+        navigate={"/projects/#{@project.id}"}
         class="font-medium inline-flex gap-px text-button text-neutral-800 items-center"
       >
         <%= @project.name %>
@@ -1934,7 +1934,7 @@ defmodule PlatformWeb.Components do
             />
           </div>
           <.link
-            href={"/incidents/#{@media.slug}"}
+            navigate={"/incidents/#{@media.slug}"}
             class="text-button text-sm flex items-center gap-1 mr-px font-mono"
           >
             <span style={"color: #{if @media.project, do: @media.project.color, else: "unset"}"}>
@@ -2245,7 +2245,7 @@ defmodule PlatformWeb.Components do
                       <span class="sr-only">Export Incidents</span>
                     <% end %>
                     <.link
-                      href={"/incidents?display=#{Ecto.Changeset.get_field(f.source, :display, "cards")}"}
+                      navigate={"/incidents?display=#{Ecto.Changeset.get_field(f.source, :display, "cards")}"}
                       class="rounded-full flex items-center align-center text-gray-600 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-urge-500"
                       role="menuitem"
                       data-tooltip="Reset Filters"
@@ -3512,7 +3512,7 @@ defmodule PlatformWeb.Components do
           </div>
         <% else %>
           <.link
-            href={"/projects/#{@project.id}"}
+            navigate={"/projects/#{@project.id}"}
             class="text-neutral-700 pb-1 pt-2 px-3 gap-1 hover:bg-neutral-100 rounded transition"
           >
             <p class="text-xs text-neutral-500">Project</p>
@@ -3571,7 +3571,7 @@ defmodule PlatformWeb.Components do
 
   def project_card(assigns) do
     ~H"""
-    <.link href={"/projects/#{@project.id}"}>
+    <.link navigate={"/projects/#{@project.id}"}>
       <.project_card_inner project={@project} />
     </.link>
     """

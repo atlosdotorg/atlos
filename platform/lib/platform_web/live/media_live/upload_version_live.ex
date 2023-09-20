@@ -415,7 +415,7 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
                 class: "button ~urge @high"
               ) %>
               <a
-                href={"/incidents/#{@media.slug}/"}
+                navigate={"/incidents/#{@media.slug}/"}
                 class="text-button text-sm text-right phx-only-during-reg"
               >
                 Or cancel media upload

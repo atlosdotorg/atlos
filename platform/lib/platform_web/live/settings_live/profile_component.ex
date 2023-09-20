@@ -151,7 +151,7 @@ defmodule PlatformWeb.SettingsLive.ProfileComponent do
               class: "button ~urge @high",
               disabled: !has_changes(@changeset)
             ) %>
-            <.link href={"/profile/#{@current_user.username}"} class="text-button text-sm">
+            <.link navigate={"/profile/#{@current_user.username}"} class="text-button text-sm">
               View my profile and activity &rarr;
             </.link>
           </div>

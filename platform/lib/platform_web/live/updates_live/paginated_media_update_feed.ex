@@ -97,7 +97,7 @@ defmodule PlatformWeb.UpdatesLive.PaginatedMediaUpdateFeed do
             <% end %>
           </ul>
           <.link
-            href={"/incidents/#{incident.slug}#comment-box"}
+            navigate={"/incidents/#{incident.slug}#comment-box"}
             class="text-xs text-neutral-500 mt-2 transition-all hover:text-urge-600 font-medium opacity-0 group-hover:opacity-100 group-focus-within:opacity-100"
           >
             <span x-ref="link">Open incident &rarr;</span>

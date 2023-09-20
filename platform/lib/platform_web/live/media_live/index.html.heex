@@ -176,7 +176,7 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                       <%= for project <- @user_projects |> Enum.sort_by(& &1.updated_at, {:desc, NaiveDateTime}) do %>
                         <.link
-                          href={
+                          navigate={
                             Routes.live_path(
                               @socket,
                               PlatformWeb.MediaLive.Index,
