@@ -3191,30 +3191,25 @@ defmodule PlatformWeb.Components do
         <% :time -> %>
           <%= label(@f, @schema_field, @label) %>
           <div class="flex items-center gap-2 ts-ignore sm:w-64 apply-a17t-fields">
-            <%= time_select(@f, @schema_field,
-              hour: [prompt: "[Unset]"],
-              minute: [prompt: "[Unset]"],
-              class: "select",
-              phx_debounce: 500
+            <%= time_input(@f, @schema_field,
+              "x-ref": "time_input",
+              class: "base-button"
             ) %>
           </div>
           <p class="support">
-            To unset this attribute, set both the hour and minute fields to [Unset].
+            Type or select a time. To unset this attribute, <span x-on:click={'$refs.time_input.value = null; $refs.time_input.dispatchEvent(new Event("input", {bubbles: true}))'} class="cursor-pointer text-urge-600">click here</span>.
           </p>
           <%= error_tag(@f, @schema_field) %>
         <% :date -> %>
           <%= label(@f, @schema_field, @label) %>
           <div class="flex items-center gap-2 ts-ignore apply-a17t-fields">
-            <%= date_select(@f, @schema_field,
-              year: [prompt: "[Unset]", options: DateTime.utc_now().year..1990],
-              month: [prompt: "[Unset]"],
-              day: [prompt: "[Unset]"],
-              class: "select",
-              phx_debounce: 500
+            <%= date_input(@f, @schema_field,
+              "x-ref": "date_input",
+              class: "base-button"
             ) %>
           </div>
           <p class="support">
-            To unset this attribute, set the day, month, and year fields to [Unset].
+            Type or select a date. To unset this attribute, <span x-on:click={'$refs.date_input.value = null; $refs.date_input.dispatchEvent(new Event("input", {bubbles: true}))'} class="cursor-pointer text-urge-600">click here</span>.
           </p>
           <%= error_tag(@f, @schema_field) %>
       <% end %>
