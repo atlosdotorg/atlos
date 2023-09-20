@@ -2457,7 +2457,7 @@ defmodule PlatformWeb.Components do
         <div class="block h-full min-h-[12rem] relative w-1/4 grayscale self-stretch overflow-hidden">
           <%= if thumb do %>
             <%= if Media.is_graphic(@media) do %>
-              <div class="absolute bg-gray-200 flex items-center justify-around h-full w-full text-gray-500">
+              <div class="absolute bg-gray-100 flex items-center justify-around h-full w-full text-gray-500">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   class="h-8 w-8"
@@ -2479,7 +2479,7 @@ defmodule PlatformWeb.Components do
               </div>
             <% end %>
           <% else %>
-            <div class="absolute bg-gray-200 flex items-center justify-around h-full w-full text-gray-500">
+            <div class="absolute bg-gray-100 flex items-center justify-around h-full w-full text-gray-500">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 class="h-8 w-8"

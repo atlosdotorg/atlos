@@ -489,7 +489,7 @@ defmodule Platform.Material.Attribute do
         val = Material.get_attribute_value(media, attr)
 
         val != nil && val != [] && val != %{"day" => "", "month" => "", "year" => ""} &&
-          (pane == nil || attr.pane == pane || attr.parent == a.name) &&
+          (pane == nil || attr.pane == pane || (attr.parent == a.name && a.pane == pane)) &&
           (attr.deprecated != true || Keyword.get(opts, :include_deprecated_attributes, false))
       end)
     end)
