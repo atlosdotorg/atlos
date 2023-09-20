@@ -11,7 +11,8 @@
 			"extensions": [
 				"jakebecker.elixir-ls",
 				"hashicorp.terraform",
-				"GitHub.copilot"
+				"GitHub.copilot",
+				"phoenixframework.phoenix"
 			]
 		}
 	},
