@@ -1,5 +1,5 @@
 resource "azurerm_subnet" "postgres_storage_subnet" {
-  name                 = "storage-${local.stack}"
+  name                 = "pg-subnet-${local.stack}"
   resource_group_name  = azurerm_resource_group.platform.name
   virtual_network_name = azurerm_virtual_network.vnet.name
   address_prefixes     = ["10.0.2.0/24"]
@@ -14,6 +14,11 @@ resource "azurerm_subnet" "postgres_storage_subnet" {
       ]
     }
   }
+}
+
+resource "random_password" "postgres_admin_password" {
+  length  = 64
+  special = true
 }
 
 resource "azurerm_private_dns_zone" "database_zone" {
@@ -46,10 +51,12 @@ resource "azurerm_postgresql_flexible_server" "platform_database" {
   depends_on                   = [azurerm_private_dns_zone_virtual_network_link.database_zone_link]
 
   authentication {
-    active_directory_auth_enabled = true
-    password_auth_enabled         = false
-    tenant_id                     = var.tenant_id
+    active_directory_auth_enabled = false
+    password_auth_enabled         = true
   }
+
+  administrator_login    = "platform"
+  administrator_password = random_password.postgres_admin_password.result
 
   tags = local.default_tags
 }

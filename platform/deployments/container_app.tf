@@ -13,14 +13,11 @@ resource "random_password" "secret_key_base" {
   special = true
 }
 
-resource "azurerm_app_service_connection" "platform_db_connector" {
-  name               = "platform-db-connector-${local.stack}"
-  app_service_id     = azurerm_container_app.platform.id
-  target_resource_id = azurerm_postgresql_flexible_server_database.platform_database.id
-
-  authentication {
-    type = "systemAssignedIdentity"
-  }
+resource "azurerm_subnet" "container_app_subset" {
+  name                 = "ca-subnet-${local.stack}"
+  resource_group_name  = azurerm_resource_group.platform.name
+  virtual_network_name = azurerm_virtual_network.vnet.name
+  address_prefixes     = ["10.0.128.0/21"]
 }
 
 resource "azurerm_container_app_environment" "platform" {
@@ -28,6 +25,7 @@ resource "azurerm_container_app_environment" "platform" {
   location                   = azurerm_resource_group.platform.location
   resource_group_name        = azurerm_resource_group.platform.name
   log_analytics_workspace_id = azurerm_log_analytics_workspace.platform.id
+  infrastructure_subnet_id   = azurerm_subnet.container_app_subset.id
 
   tags = local.default_tags
 }
@@ -54,7 +52,8 @@ resource "azurerm_container_app" "platform" {
     container {
       name   = "platform"
       image  = "ghcr.io/atlosdotorg/atlos:main"
-      cpu    = 1
+      
+      cpu    = 1.0
       memory = "2Gi"
 
       liveness_probe {
@@ -167,8 +166,8 @@ resource "azurerm_container_app" "platform" {
       }
 
       env {
-        name  = "AZURE_POSTGRESQL_DATABASE"
-        value = azurerm_postgresql_flexible_server_database.platform_database.name
+        name        = "DATABASE_URL"
+        secret_name = "database-url"
       }
     }
   }
@@ -221,6 +220,11 @@ resource "azurerm_container_app" "platform" {
   secret {
     name  = "secret-key-base"
     value = random_password.secret_key_base.result
+  }
+
+  secret {
+    name  = "database-url"
+    value = "postgresql://platform:${random_password.postgres_admin_password.result}@${azurerm_postgresql_flexible_server.platform_database.fqdn}/${azurerm_postgresql_flexible_server_database.platform_database.name}"
   }
 
   tags = local.default_tags
