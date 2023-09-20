@@ -27,10 +27,10 @@ defmodule PlatformWeb.Components do
     assigns = assign(assigns, :classes, classes)
 
     ~H"""
-    <%= link to: @to, class: @classes do %>
+    <.link navigate={@to} class={@classes}>
       <%= render_slot(@inner_block) %>
       <span class="mt-2"><%= @label %></span>
-    <% end %>
+    </.link>
     """
   end
 
@@ -252,7 +252,11 @@ defmodule PlatformWeb.Components do
     >
       <div class="w-full pt-6 flex flex-col items-center md:h-full">
         <div class="flex w-full px-4 md:px-0 border-b pb-6 md:pb-0 md:border-0 border-neutral-600 justify-between md:justify-center items-center">
-          <%= link to: "/", class: "flex gap-2 md:gap-0 md:flex-col items-center text-white", title: "Atlos version #{@version} (runtime: #{@runtime})" do %>
+          <.link
+            navigate="/"
+            class="flex gap-2 md:gap-0 md:flex-col items-center text-white"
+            title={"Atlos version #{@version} (runtime: #{@runtime})"}
+          >
             <span class="text-xl py-px px-1 rounded-sm bg-white text-neutral-700 uppercase font-extrabold font-mono">
               Atlos
             </span>
@@ -261,7 +265,7 @@ defmodule PlatformWeb.Components do
                 <%= @name %>
               </span>
             <% end %>
-          <% end %>
+          </.link>
           <div>
             <button type="button" class="md:hidden pt-1" x-on:click="open = true" x-show="!open">
               <svg
@@ -657,14 +661,14 @@ defmodule PlatformWeb.Components do
           <div class="relative flex items-start space-x-2">
             <%= if @left_indicator == :profile do %>
               <div class="relative">
-                <a href={"/profile/#{@head.user.username}"}>
+                <.link navigate={"/profile/#{@head.user.username}"}>
                   <img
                     class={"h-10 w-10 rounded-full bg-gray-400 flex items-center justify-center shadow " <> @profile_ring_classes}
                     src={Accounts.get_profile_photo_path(@head.user)}
                     alt={"Profile photo for #{@head.user.username}"}
                     loading="lazy"
                   />
-                </a>
+                </.link>
               </div>
             <% end %>
             <div class="min-w-0 flex-1 flex flex-col flex-grow group-hover:bg-gray-100 focus-within:bg-gray-100 rounded px-1 py-2 transition-all mt-1">
@@ -751,14 +755,14 @@ defmodule PlatformWeb.Components do
               <%= case @left_indicator do %>
                 <% :profile -> %>
                   <div class="relative">
-                    <a href={"/profile/#{@update.user.username}"}>
+                    <.link navigate={"/profile/#{@update.user.username}"}>
                       <img
                         class={"h-10 w-10 rounded-full bg-gray-400 flex items-center justify-center " <> @profile_ring_classes}
                         src={Accounts.get_profile_photo_path(@update.user)}
                         alt={"Profile photo for #{@update.user.username}"}
                         loading="lazy"
                       />
-                    </a>
+                    </.link>
                   </div>
                 <% :dot -> %>
                   <div class="relative ml-[0.90em] mt-3 mr-4">
@@ -2372,9 +2376,9 @@ defmodule PlatformWeb.Components do
       |> assign(:class, Map.get(assigns, :class, ""))
 
     ~H"""
-    <a
+    <.link
       class={"flex items-stretch group flex-row bg-white overflow-hidden shadow rounded-lg justify-between min-h-[12rem] " <> (if @border, do: "border ", else: "") <> @class}
-      href={if @link, do: "/incidents/#{@media.slug}", else: nil}
+      navigate={if @link, do: "/incidents/#{@media.slug}", else: nil}
       target={@target}
     >
       <%= if Permissions.can_view_media?(@current_user, @media) do %>
@@ -2512,7 +2516,7 @@ defmodule PlatformWeb.Components do
           <span class="mt-2 block text-sm font-medium text-gray-700">Hidden or Unavailable</span>
         </div>
       <% end %>
-    </a>
+    </.link>
     """
   end
 
@@ -3197,7 +3201,14 @@ defmodule PlatformWeb.Components do
             ) %>
           </div>
           <p class="support">
-            Type or select a time. To unset this attribute, <span x-on:click={'$refs.time_input.value = null; $refs.time_input.dispatchEvent(new Event("input", {bubbles: true}))'} class="cursor-pointer text-urge-600">click here</span>.
+            Type or select a time; alternatively,
+            <span
+              x-on:click={'$refs.time_input.value = null; $refs.time_input.dispatchEvent(new Event("input", {bubbles: true}))'}
+              class="cursor-pointer text-urge-600"
+            >
+              unset
+            </span>
+            the time.
           </p>
           <%= error_tag(@f, @schema_field) %>
         <% :date -> %>
@@ -3209,7 +3220,14 @@ defmodule PlatformWeb.Components do
             ) %>
           </div>
           <p class="support">
-            Type or select a date. To unset this attribute, <span x-on:click={'$refs.date_input.value = null; $refs.date_input.dispatchEvent(new Event("input", {bubbles: true}))'} class="cursor-pointer text-urge-600">click here</span>.
+            Type or select a date; alternatively,
+            <span
+              x-on:click={'$refs.date_input.value = null; $refs.date_input.dispatchEvent(new Event("input", {bubbles: true}))'}
+              class="cursor-pointer text-urge-600"
+            >
+              unset
+            </span>
+            the date.
           </p>
           <%= error_tag(@f, @schema_field) %>
       <% end %>
@@ -3244,9 +3262,9 @@ defmodule PlatformWeb.Components do
 
   defp user_name_display(assigns) do
     ~H"""
-    <a
+    <.link
       class="font-medium text-gray-900 hover:text-urge-600 inline-flex gap-1 flex-wrap"
-      href={if is_nil(@user), do: "#", else: "/profile/#{@user.username}"}
+      navigate={if is_nil(@user), do: "#", else: "/profile/#{@user.username}"}
     >
       <%= if is_nil(@user) do %>
         [System]
@@ -3259,7 +3277,7 @@ defmodule PlatformWeb.Components do
           <span class="font-normal text-xs badge ~urge self-center"><%= @user.flair %></span>
         <% end %>
       <% end %>
-    </a>
+    </.link>
     """
   end
 

@@ -44,8 +44,8 @@
         method: :delete,
         class: "button ~urge @high"
       ) %>
-      <a href="/users/settings" class="button ~urge @high">Change password &rarr;</a>
-      <a href="/settings/mfa" class="button ~urge @high">Multi-factor auth &rarr;</a>
+      <.link navigate="/users/settings" class="button ~urge @high">Change password &rarr;</.link>
+      <.link navigate="/settings/mfa" class="button ~urge @high">Multi-factor auth &rarr;</.link>
     </div>
   </.card>
 
@@ -79,7 +79,9 @@
         <span class="text-3xl">🎓</span>
         <span>
           Repeat our brief
-          <a href="/users/onboarding" class="font-semibold text-urge-600">onboarding flow</a>
+          <.link navigate="/users/onboarding" class="font-semibold text-urge-600">
+            onboarding flow
+          </.link>
           to refresh yourself on the basics of Atlos.
         </span>
       </p>
