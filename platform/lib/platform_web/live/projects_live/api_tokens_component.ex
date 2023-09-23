@@ -12,6 +12,7 @@ defmodule PlatformWeb.ProjectsLive.APITokensComponent do
      socket
      |> assign(assigns)
      |> assign_tokens()
+     |> assign(:show_token, nil)
      |> assign(:changeset, nil)}
   end
 
@@ -44,7 +45,7 @@ defmodule PlatformWeb.ProjectsLive.APITokensComponent do
   end
 
   def handle_event("close_modal", _params, socket) do
-    {:noreply, socket |> assign_changeset(nil)}
+    {:noreply, socket |> assign_changeset(nil) |> assign(:show_token, nil)}
   end
 
   def handle_event("add_token", _params, socket) do
@@ -88,6 +89,12 @@ defmodule PlatformWeb.ProjectsLive.APITokensComponent do
      |> assign_changeset(cs)}
   end
 
+  def handle_event("close_token_display", _params, socket) do
+    {:noreply,
+     socket
+     |> assign(:show_token, nil)}
+  end
+
   def handle_event("save", %{"api_token" => params}, socket) do
     cs = changeset(socket, params)
 
@@ -114,6 +121,7 @@ defmodule PlatformWeb.ProjectsLive.APITokensComponent do
           {:noreply,
            socket
            |> assign_changeset(nil)
+           |> assign(:show_token, token)
            |> assign_tokens()}
 
         {:error, changeset} ->
@@ -141,8 +149,43 @@ defmodule PlatformWeb.ProjectsLive.APITokensComponent do
         </div>
         <section class="flex flex-col mb-8 grow">
           <div class="flow-root">
-            <div class="pb-4">
+            <div>
               <div class="inline-block min-w-full">
+                <div class="mb-8 bg-urge-50 border border-urge-400 aside ~urge prose text-sm w-full min-w-full">
+                  <p>
+                    <strong class="text-blue-800">
+                      The Atlos API allows you to connect your project to external services.
+                    </strong>
+                    You can learn more about the API authentication scheme and endpoints below. API tokens are sensitive, as they allow access to your project. Keep them secret!
+                  </p>
+                  <details class="-mt-2">
+                    <summary class="cursor-pointer font-medium">How to use the API</summary>
+                    <p>The Atlos API supports the following endpoints:</p>
+                    <ul>
+                      <li>
+                        <code>GET /api/v2/incidents</code>
+                        &mdash; returns all incidents, with the most recently modified incidents listed first.
+                      </li>
+                      <li>
+                        <code>GET /api/v2/source_material</code>
+                        &mdash; returns all source material, with the most recently modified source material listed first
+                      </li>
+                    </ul>
+                    <p>
+                      All endpoints return 30 results at a time. You can paginate using the
+                      <code>cursor</code>
+                      query parameter, whose value is provided by the <code>next</code>
+                      and <code>previous</code>
+                      keys in the response. Results are available under the <code>results</code>
+                      key.
+                    </p>
+                    <p>
+                      To authenticate against the API, include a <code>Authorization</code>
+                      header and set its value to <code>Bearer &lt;your token&gt;</code>
+                      (without the brackets).
+                    </p>
+                  </details>
+                </div>
                 <%= if Enum.empty?(@tokens) do %>
                   <div class="text-sm text-gray-500">
                     This project has no API tokens.
@@ -265,6 +308,35 @@ defmodule PlatformWeb.ProjectsLive.APITokensComponent do
               </div>
             </div>
           </div>
+          <%= if not is_nil(@show_token) do %>
+          <.modal target={@myself} close_confirmation="Be sure to store your token, as you won't be able to see it again.">
+          <div class="text-center">
+          <p class="flex justify-center">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-12 w-12 text-positive-600"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+          </p>
+          <h2 class="font-mono text-lg font-medium my-2"><%= @show_token.value %></h2>
+          <p class="text-gray-600 text-sm">
+            Your API token "<%= @show_token.name %>" is shown above. Be sure to store it somewhere safe, as you won't be able to see it again.
+          </p>
+          <p class="mt-4">
+            <button type="button" class="text-button text-sm" phx-click="close_token_display">Close</button>
+          </p>
+        </div>
+        </.modal>
+          <% end %>
           <%= if not is_nil(@changeset) and can_edit do %>
             <.modal target={} close_confirmation="Your changes will be lost. Are you sure?">
               <div class="mb-8">

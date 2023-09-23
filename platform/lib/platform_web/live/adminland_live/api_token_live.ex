@@ -74,7 +74,10 @@ defmodule PlatformWeb.AdminlandLive.APITokenLive do
                     <%= for token <- @tokens do %>
                       <tr>
                         <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm sm:pl-6">
-                          <%= token.description %>
+                          <%= token.name %>
+                          (<%= token.description || "no description" %>)
+                          <span class="chip ~warning" :if={token.is_legacy}>Legacy</span>
+                          <span class="chip ~positive" :if={!is_nil(token.project_id)}>Project Based</span>
                         </td>
                         <td class="max-w-md px-3 py-4 text-sm text-gray-500">
                           <.rel_time time={token.inserted_at} />
@@ -82,6 +85,7 @@ defmodule PlatformWeb.AdminlandLive.APITokenLive do
                         <td class="pl-3 pr-4 sm:pr-6">
                           <button
                             phx-click="delete_token"
+                            :if={token.is_legacy}
                             phx-value-token={token.id}
                             phx-target={@myself}
                             data-confirm="Are you sure you want to delete this API token?"
@@ -125,9 +129,9 @@ defmodule PlatformWeb.AdminlandLive.APITokenLive do
             <div class="bg-urge-50 border border-urge-400 mx-auto aside ~urge prose text-sm mt-8 w-full">
               <p>
                 <strong class="text-blue-800">
-                  The Atlos API is a read-only API for administrators.
+                  The Atlos API is a deprecated read-only API for administrators.
                 </strong>
-                You can learn more about the API authentication scheme and endpoints below.
+                You can learn more about the API authentication scheme and endpoints below. Note that this API is deprecated and will be removed in a future release. Please use project-specific API tokens instead.
               </p>
               <details class="-mt-2">
                 <summary class="cursor-pointer font-medium">How to use the API</summary>
