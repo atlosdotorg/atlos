@@ -187,7 +187,7 @@ defmodule PlatformWeb.ProjectsLive.Show do
           </nav>
         </article>
       </div>
-      <article class="w-full xl:max-w-screen-xl md:mx-auto px-4">
+      <article class="w-full xl:max-w-screen-xl md:mx-auto px-4 overflow-x-auto">
         <%= if @live_action == :overview do %>
           <section class="flex flex-col-reverse h-full lg:flex-row gap-8 max-w-full md:divide-x">
             <div class="lg:w-2/3">

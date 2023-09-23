@@ -226,98 +226,127 @@ defmodule PlatformWeb.ProjectsLive.MembersComponent do
 
   def render(assigns) do
     ~H"""
-    <section>
-      <% can_edit = Permissions.can_edit_project_members?(@current_user, @project) %>
-      <div class="sm:flex sm:items-center">
-        <div class="sm:flex-auto">
-          <h1 class="sec-head">Members</h1>
-          <p class="sec-subhead">
-            View and manage the users who have access to the project.
-          </p>
-        </div>
-        <div>
-          <div class="mt-4 sm:mt-0 sm:ml-16 flex gap-4">
-            <%= if can_edit do %>
-              <button
-                type="button"
-                class="button ~urge @high"
-                phx-click="add_member"
-                phx-target={@myself}
-              >
-                Add Member
-              </button>
-            <% end %>
-            <%= if @can_remove_self do %>
-              <button
-                type="button"
-                class="button ~critical @high"
-                phx-click="leave_project"
-                data-confirm="Are you sure you want to leave this project? To rejoin it, you will need to be invited again."
-                phx-target={@myself}
-              >
-                Leave Project
-              </button>
-            <% end %>
-          </div>
-        </div>
+    <div class="flex flex-col md:flex-row gap-4 pt-8 w-full">
+      <div class="mb-4 md:w-[20rem] md:mr-16">
+        <p class="sec-head text-xl">Members</p>
+        <p class="sec-subhead">
+          View and manage the users who have access to the project.
+        </p>
       </div>
-      <div class="mt-8 flow-root">
-        <div class="pb-4">
-          <div class="inline-block min-w-full">
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              <%= for membership <- @memberships do %>
-                <article class="text-sm rounded-lg shadow-sm border flex flex-col overflow-hidden">
-                  <div class="bg-white p-2 grow">
-                    <.user_card user={membership.user} />
-                  </div>
-                  <div class="flex justify-between items-center bg-white border-t p-4">
-                    <div>
-                      <%= case membership.role do %>
-                        <% :owner -> %>
-                          <span class="chip ~critical @high">Owner</span>
-                        <% :manager -> %>
-                          <span class="chip ~critical @low">Manager</span>
-                        <% :editor -> %>
-                          <span class="chip ~info @high">Editor</span>
-                        <% :viewer -> %>
-                          <span class="chip ~neutral @high">Viewer</span>
-                      <% end %>
-                    </div>
-                    <div>
-                      <%= if can_edit do %>
-                        <button
-                          phx-target={@myself}
-                          class="text-button"
-                          phx-click="edit_member"
-                          phx-value-username={membership.user.username}
-                        >
-                          Edit<span class="sr-only">, <%= membership.user.username %></span>
-                        </button>
-                        <%= if not (membership.role == :owner and Enum.filter(@memberships, & &1.role == :owner) |> length() == 1) do %>
-                          <button
-                            phx-target={@myself}
-                            class="text-button text-critical-600 ml-2"
-                            phx-click="delete_member"
-                            phx-value-username={membership.user.username}
-                            data-confirm={"Are you sure that you want to remove #{membership.user.username} from #{@project.name}?"}
-                          >
-                            Remove<span class="sr-only">, <%= membership.user.username %></span>
-                          </button>
-                        <% end %>
-                      <% end %>
-                    </div>
-                  </div>
-                </article>
-              <% end %>
+      <section class="flex flex-col mb-8 grow">
+        <% can_edit = Permissions.can_edit_project_members?(@current_user, @project) %>
+        <div class="flow-root">
+          <div class="pb-4">
+            <div class="inline-block min-w-full">
               <%= if Enum.empty?(@memberships) do %>
                 <div class="text-sm text-gray-500">
-                  No members found.
+                  This project has no members.
+                </div>
+              <% else %>
+                <div class="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8 grow">
+                  <div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
+                    <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
+                      <table class="min-w-full divide-y divide-gray-300">
+                        <thead class="bg-gray-50">
+                          <tr>
+                            <th
+                              scope="col"
+                              class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6"
+                            >
+                              User
+                            </th>
+                            <th
+                              scope="col"
+                              class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
+                            >
+                              Role
+                            </th>
+                            <th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-6 text-right">
+                              <%= if can_edit do %>
+                                <button
+                                  type="button"
+                                  class="button ~urge @high"
+                                  phx-click="add_member"
+                                  phx-target={@myself}
+                                >
+                                  Add Member
+                                </button>
+                              <% end %>
+                              <%= if @can_remove_self do %>
+                                <button
+                                  type="button"
+                                  class="button ~critical @high ml-2"
+                                  phx-click="leave_project"
+                                  data-confirm="Are you sure you want to leave this project? To rejoin it, you will need to be invited again."
+                                  phx-target={@myself}
+                                >
+                                  Leave Project
+                                </button>
+                              <% end %>
+                              <span class="sr-only">Manage</span>
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200 bg-white">
+                          <%= for membership <- @memberships do %>
+                            <tr>
+                              <td class=" py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
+                                <.user_card user={membership.user} />
+                              </td>
+                              <td class="px-3 py-4 text-sm text-gray-500">
+                                <div>
+                                  <%= case membership.role do %>
+                                    <% :owner -> %>
+                                      <span class="chip ~critical @high">Owner</span>
+                                    <% :manager -> %>
+                                      <span class="chip ~critical">Manager</span>
+                                    <% :editor -> %>
+                                      <span class="chip ~info">Editor</span>
+                                    <% :viewer -> %>
+                                      <span class="chip ~neutral">Viewer</span>
+                                  <% end %>
+                                </div>
+                              </td>
+                              <td class="relative  py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
+                                <%= if can_edit do %>
+                                  <button
+                                    phx-target={@myself}
+                                    class="text-button text-neutral-600"
+                                    phx-click="edit_member"
+                                    phx-value-username={membership.user.username}
+                                    data-tooltip={"Change permissions for #{membership.user.username}"}
+                                  >
+                                    <Heroicons.cog_6_tooth mini class="h-5 w-5" />
+                                    <span class="sr-only">Edit <%= membership.user.username %></span>
+                                  </button>
+                                  <%= if not (membership.role == :owner and Enum.filter(@memberships, & &1.role == :owner) |> length() == 1) do %>
+                                    <button
+                                      phx-target={@myself}
+                                      class="text-button text-critical-600 ml-2"
+                                      phx-click="delete_member"
+                                      phx-value-username={membership.user.username}
+                                      data-confirm={"Are you sure that you want to remove #{membership.user.username} from #{@project.name}?"}
+                                      data-tooltip={"Remove #{membership.user.username}"}
+                                    >
+                                      <Heroicons.user_minus mini class="h-5 w-5" />
+                                      <span class="sr-only">Remove <%= membership.user.username %></span>
+                                    </button>
+                                  <% end %>
+                                <% end %>
+                              </td>
+                            </tr>
+                          <% end %>
+                          <!-- More people... -->
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
                 </div>
               <% end %>
             </div>
           </div>
         </div>
-      </div>
+      </section>
       <%= if not is_nil(@changeset) and can_edit do %>
         <.modal target={} close_confirmation="Your changes will be lost. Are you sure?">
           <div class="mb-8">
@@ -397,7 +426,7 @@ defmodule PlatformWeb.ProjectsLive.MembersComponent do
           </.form>
         </.modal>
       <% end %>
-    </section>
+    </div>
     """
   end
 end

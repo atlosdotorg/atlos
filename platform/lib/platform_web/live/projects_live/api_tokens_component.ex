@@ -130,14 +130,14 @@ defmodule PlatformWeb.ProjectsLive.APITokensComponent do
 
   def render(assigns) do
     ~H"""
-    <div class="flex flex-col md:flex-row gap-4 pt-8">
+    <div class="flex flex-col md:flex-row gap-4 pt-8 w-full">
       <div class="mb-4 md:w-[20rem] md:mr-16">
         <p class="sec-head text-xl">API Tokens</p>
         <p class="sec-subhead">
           Use API tokens to connect your project to external services. You can create multiple tokens with different permissions.
         </p>
       </div>
-      <section class="flex flex-col mb-8">
+      <section class="flex flex-col mb-8 grow">
         <% can_edit = Permissions.can_edit_project_api_tokens?(@current_user, @project) %>
         <div class="flow-root">
           <div class="pb-4">
@@ -197,8 +197,14 @@ defmodule PlatformWeb.ProjectsLive.APITokensComponent do
                             <tr>
                               <td class=" py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
                                 <%= token.name %>
-                                <span :if={!is_nil(token.description)} data-tooltip={token.description}>
-                                  <Heroicons.information_circle mini class="h-4 w-4 text-gray-400 inline-block" />
+                                <span
+                                  :if={!is_nil(token.description)}
+                                  data-tooltip={token.description}
+                                >
+                                  <Heroicons.information_circle
+                                    mini
+                                    class="h-4 w-4 text-gray-400 inline-block"
+                                  />
                                 </span>
                                 <%= if token.is_legacy do %>
                                   <span class="chip ~warning ml-2">Legacy</span>
@@ -241,7 +247,7 @@ defmodule PlatformWeb.ProjectsLive.APITokensComponent do
                                     class="text-critical-600 hover:text-critical-900"
                                     data-tooltip={"Deactivate " <> token.name}
                                   >
-                                    <Heroicons.minus_circle mini class="h-5 w-5"/>
+                                    <Heroicons.minus_circle mini class="h-5 w-5" />
                                     <span class="sr-only">Deactivate <%= token.name %></span>
                                   </button>
                                 <% end %>
