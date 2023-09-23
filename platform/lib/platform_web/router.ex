@@ -85,6 +85,7 @@ defmodule PlatformWeb.Router do
 
       get("/source_material", APIV2Controller, :source_material)
       get("/incidents", APIV2Controller, :incidents)
+      post("/add_comment/:slug", APIV2Controller, :add_comment)
     end
   end
 

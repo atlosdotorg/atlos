@@ -157,7 +157,9 @@ defmodule Platform.Material do
   defp preload_media_updates(query) do
     # TODO: should this be pulled into the Updates context somehow?
     query
-    |> preload(updates: [:user, :media_version, :old_project, :new_project, media: [:project]])
+    |> preload(
+      updates: [:user, :media_version, :old_project, :api_token, :new_project, media: [:project]]
+    )
   end
 
   defp preload_media_project(query) do
@@ -235,6 +237,21 @@ defmodule Platform.Material do
 
   """
   def get_media!(id), do: Repo.get!(Media |> hydrate_media_query(), id)
+
+  @doc """
+  Gets a single media.
+
+  Returns `nil` if the Media does not exist.
+
+  ## Examples
+
+      iex> get_media(123)
+      %Media{}
+
+      iex> get_media(456)
+      nil
+  """
+  def get_media(id), do: Repo.get(Media |> hydrate_media_query(), id)
 
   @doc """
   Creates a media.
@@ -588,7 +605,7 @@ defmodule Platform.Material do
     Repo.all(
       from(v in MediaVersion,
         where: v.source_url == ^url,
-        preload: [media: [[updates: :user], :versions, :project]]
+        preload: [media: [[updates: [:user, :api_token]], :versions, :project]]
       )
       |> then(fn query ->
         if is_nil(user) do

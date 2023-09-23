@@ -409,7 +409,8 @@ defimpl Jason.Encoder, for: Platform.Material.Media do
         :attr_sensitive,
         :attr_status,
         :attr_tags,
-        :versions, # TODO: Remove this once we're sure we don't need it (i.e., after legacy API is removed)
+        # TODO: Remove this once we're sure we don't need it (i.e., after legacy API is removed)
+        :versions,
         :inserted_at,
         :updated_at,
         :deleted,
@@ -421,7 +422,8 @@ defimpl Jason.Encoder, for: Platform.Material.Media do
         {key, value} -> {key, value}
       end)
       |> Map.put(:source_material, value.versions)
-      |> insert_deprecated_attributes(value) # TODO: Remove this once we're sure we don't need it (i.e., after legacy API is removed)
+      # TODO: Remove this once we're sure we don't need it (i.e., after legacy API is removed)
+      |> insert_deprecated_attributes(value)
       |> insert_custom_attributes(value),
       opts
     )

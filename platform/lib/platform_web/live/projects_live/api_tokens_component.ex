@@ -170,9 +170,18 @@ defmodule PlatformWeb.ProjectsLive.APITokensComponent do
                         <code>GET /api/v2/source_material</code>
                         &mdash; returns all source material, with the most recently modified source material listed first
                       </li>
+                      <li>
+                        <code>POST /api/v2/add_comment/:slug</code>
+                        with string parameter <code>message</code>
+                        &mdash; adds a comment to the incident with slug <code>:slug</code>
+                        (the slug is the last part of the URL for the incident, and is also available in the
+                        <code>slug</code>
+                        field of the incident object)
+                      </li>
                     </ul>
                     <p>
-                      All endpoints return 30 results at a time. You can paginate using the
+                      All <code>GET</code>
+                      endpoints return 30 results at a time. You can paginate using the
                       <code>cursor</code>
                       query parameter, whose value is provided by the <code>next</code>
                       and <code>previous</code>
@@ -271,7 +280,7 @@ defmodule PlatformWeb.ProjectsLive.APITokensComponent do
                                 </td>
                                 <td class=" px-3 py-4 text-sm text-gray-500">
                                   <.rel_time time={token.inserted_at} /> by
-                                  <.user_name_display user={token.creator} />
+                                  <.user_text user={token.creator} />
                                 </td>
                                 <td class=" px-3 py-4 text-sm text-gray-500 flex flex-wrap gap-1">
                                   <%= for permission <- token.permissions do %>
@@ -309,33 +318,38 @@ defmodule PlatformWeb.ProjectsLive.APITokensComponent do
             </div>
           </div>
           <%= if not is_nil(@show_token) do %>
-          <.modal target={@myself} close_confirmation="Be sure to store your token, as you won't be able to see it again.">
-          <div class="text-center">
-          <p class="flex justify-center">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="h-12 w-12 text-positive-600"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              stroke-width="2"
+            <.modal
+              target={@myself}
+              close_confirmation="Be sure to store your token, as you won't be able to see it again."
             >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
-          </p>
-          <h2 class="font-mono text-lg font-medium my-2"><%= @show_token.value %></h2>
-          <p class="text-gray-600 text-sm">
-            Your API token "<%= @show_token.name %>" is shown above. Be sure to store it somewhere safe, as you won't be able to see it again.
-          </p>
-          <p class="mt-4">
-            <button type="button" class="text-button text-sm" phx-click="close_token_display">Close</button>
-          </p>
-        </div>
-        </.modal>
+              <div class="text-center">
+                <p class="flex justify-center">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-12 w-12 text-positive-600"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                </p>
+                <h2 class="font-mono text-lg font-medium my-2"><%= @show_token.value %></h2>
+                <p class="text-gray-600 text-sm">
+                  Your API token "<%= @show_token.name %>" is shown above. Be sure to store it somewhere safe, as you won't be able to see it again.
+                </p>
+                <p class="mt-4">
+                  <button type="button" class="text-button text-sm" phx-click="close_token_display">
+                    Close
+                  </button>
+                </p>
+              </div>
+            </.modal>
           <% end %>
           <%= if not is_nil(@changeset) and can_edit do %>
             <.modal target={} close_confirmation="Your changes will be lost. Are you sure?">

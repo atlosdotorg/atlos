@@ -5,8 +5,6 @@ defmodule PlatformWeb.APIV1Test do
   alias Platform.Material
 
   test "GET /api/v1/media", %{conn: conn} do
-    # TODO: add tests that also check pagination is working
-
     noauth_conn = get(conn, "/api/v1/media")
     assert json_response(noauth_conn, 401) == %{"error" => "invalid token or token not found"}
 

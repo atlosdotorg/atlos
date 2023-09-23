@@ -74,18 +74,19 @@ defmodule PlatformWeb.AdminlandLive.APITokenLive do
                     <%= for token <- @tokens do %>
                       <tr>
                         <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm sm:pl-6">
-                          <%= token.name %>
-                          (<%= token.description || "no description" %>)
-                          <span class="chip ~warning" :if={token.is_legacy}>Legacy</span>
-                          <span class="chip ~positive" :if={!is_nil(token.project_id)}>Project Based</span>
+                          <%= token.name %> (<%= token.description || "no description" %>)
+                          <span :if={token.is_legacy} class="chip ~warning">Legacy</span>
+                          <span :if={!is_nil(token.project_id)} class="chip ~positive">
+                            Project Based
+                          </span>
                         </td>
                         <td class="max-w-md px-3 py-4 text-sm text-gray-500">
                           <.rel_time time={token.inserted_at} />
                         </td>
                         <td class="pl-3 pr-4 sm:pr-6">
                           <button
-                            phx-click="delete_token"
                             :if={token.is_legacy}
+                            phx-click="delete_token"
                             phx-value-token={token.id}
                             phx-target={@myself}
                             data-confirm="Are you sure you want to delete this API token?"

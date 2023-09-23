@@ -25,8 +25,6 @@ defmodule Platform.API.APIToken do
 
   @doc false
   def changeset(api_token, attrs) do
-    dbg(attrs)
-
     api_token
     |> cast(attrs, [
       :name,
@@ -42,8 +40,6 @@ defmodule Platform.API.APIToken do
     |> validate_length(:description, min: 3, max: 1000)
     # Ensure that the token only contains valid permissions
     |> validate_change(:permissions, fn :permissions, permissions ->
-      dbg(permissions)
-
       if Enum.all?(permissions, &Enum.member?([:read, :comment], &1)) do
         []
       else

@@ -1,6 +1,7 @@
 defmodule Platform.Updates.Update do
   use Ecto.Schema
   import Ecto.Changeset
+  alias Platform.API
   alias Platform.Material.Media
   alias Platform.Accounts.User
   alias Platform.Accounts
@@ -46,6 +47,7 @@ defmodule Platform.Updates.Update do
     belongs_to(:user, Platform.Accounts.User, type: :binary_id)
     belongs_to(:media, Platform.Material.Media, type: :binary_id)
     belongs_to(:media_version, Platform.Material.MediaVersion, type: :binary_id)
+    belongs_to(:api_token, Platform.API.APIToken, type: :binary_id)
 
     timestamps()
   end
@@ -76,7 +78,8 @@ defmodule Platform.Updates.Update do
         :media_id,
         :media_version_id,
         :old_project_id,
-        :new_project_id
+        :new_project_id,
+        :api_token_id
       ])
       |> then(fn cs ->
         if Keyword.get(opts, :cast_sensitive_data, false) do
@@ -85,17 +88,43 @@ defmodule Platform.Updates.Update do
           cs
         end
       end)
-      |> validate_required([:old_value, :new_value, :type, :user_id, :media_id])
+      |> validate_required([:old_value, :new_value, :type, :media_id])
+      # Ensure either user_id or api_token_id is set
+      |> then(fn cs ->
+        validate_change(cs, :user_id, fn :user_id, user_id ->
+          if is_nil(user_id) and is_nil(get_field(cs, :api_token_id)) do
+            [user_id: "Either user_id or api_token_id must be set"]
+          else
+            []
+          end
+        end)
+      end)
+      |> assoc_constraint(:user)
+      |> assoc_constraint(:media)
+      |> assoc_constraint(:media_version)
+      |> assoc_constraint(:old_project)
+      |> assoc_constraint(:new_project)
+      |> assoc_constraint(:api_token)
       |> validate_explanation()
+
+    search_metadata =
+      if(not is_nil(get_field(changeset, :user_id)),
+        do: Accounts.get_user!(get_field(changeset, :user_id)).username,
+        else: ""
+      ) <>
+        " " <>
+        if(not is_nil(get_field(changeset, :api_token_id)),
+          do: API.get_api_token!(get_field(changeset, :api_token_id)).name,
+          else: ""
+        ) <>
+        " " <>
+        Material.get_media!(get_field(changeset, :media_id)).slug
 
     changeset
     |> put_change(
       :search_metadata,
-      Accounts.get_user!(get_field(changeset, :user_id)).username <>
-        " " <> Material.get_media!(get_field(changeset, :media_id)).slug
+      search_metadata
     )
-
-    # TODO: also validate that if type == :comment, then explanation is not empty
   end
 
   def validate_access(changeset, %User{} = user, %Media{} = media) do

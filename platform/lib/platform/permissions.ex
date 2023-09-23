@@ -14,6 +14,7 @@ defmodule Platform.Permissions do
   alias Platform.Updates.Update
   alias Platform.Projects
   alias Platform.Projects.Project
+  alias Platform.API.APIToken
 
   def can_view_project?(%User{} = user, %Project{} = project) do
     not is_nil(Projects.get_project_membership_by_user_and_project(user, project))
@@ -65,6 +66,11 @@ defmodule Platform.Permissions do
       %Projects.ProjectMembership{role: :owner} -> true
       _ -> false
     end
+  end
+
+  def can_api_token_post_comment?(%APIToken{} = token, %Media{} = media) do
+    Enum.member?(token.permissions, :comment) and token.is_active and
+      token.project_id == media.project_id
   end
 
   def can_delete_project?(%User{} = user, %Project{} = project) do

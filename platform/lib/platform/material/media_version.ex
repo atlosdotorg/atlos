@@ -126,7 +126,7 @@ defimpl Jason.Encoder, for: Platform.Material.MediaVersion.MediaVersionArtifact 
         :file_size,
         :mime_type,
         :perceptual_hashes,
-        :type,
+        :type
       ])
       |> Enum.into(%{}, fn
         {key, %Ecto.Association.NotLoaded{}} -> {key, nil}

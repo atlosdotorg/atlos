@@ -329,7 +329,9 @@ defmodule PlatformWeb.ProjectsLive.MembersComponent do
                                       data-tooltip={"Remove #{membership.user.username}"}
                                     >
                                       <Heroicons.user_minus mini class="h-5 w-5" />
-                                      <span class="sr-only">Remove <%= membership.user.username %></span>
+                                      <span class="sr-only">
+                                        Remove <%= membership.user.username %>
+                                      </span>
                                     </button>
                                   <% end %>
                                 <% end %>

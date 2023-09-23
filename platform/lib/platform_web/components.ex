@@ -755,7 +755,7 @@ defmodule PlatformWeb.Components do
               <%= case @left_indicator do %>
                 <% :profile -> %>
                   <div class="relative">
-                    <.link navigate={"/profile/#{@update.user.username}"}>
+                    <.link :if={@update.user} navigate={"/profile/#{@update.user.username}"}>
                       <img
                         class={"h-10 w-10 rounded-full bg-gray-400 flex items-center justify-center " <> @profile_ring_classes}
                         src={Accounts.get_profile_photo_path(@update.user)}
@@ -763,6 +763,17 @@ defmodule PlatformWeb.Components do
                         loading="lazy"
                       />
                     </.link>
+                    <span
+                      :if={@update.api_token}
+                      class="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center"
+                    >
+                      <img
+                        class="h-10 w-10 rounded-full bg-gray-400 flex items-center justify-center "
+                        src="/images/bot_profile.png"
+                        alt="Bot account icon"
+                        loading="lazy"
+                      />
+                    </span>
                   </div>
                 <% :dot -> %>
                   <div class="relative ml-[0.90em] mt-3 mr-4">
@@ -778,7 +789,15 @@ defmodule PlatformWeb.Components do
                     <%= if @show_media do %>
                       <.media_text media={@update.media} />
                     <% end %>
-                    <.user_text user={@update.user} />
+                    <.user_text :if={@update.user} user={@update.user} />
+                    <span
+                      :if={@update.api_token}
+                      class="text-gray-900 font-medium inline-flex gap-1 flex-wrap"
+                      data-tooltip="This action was taken by a bot."
+                    >
+                      <%= @update.api_token.name %>
+                      <span class="font-normal text-xs badge ~urge self-center">Bot</span>
+                    </span>
                     <%= case @update.type do %>
                       <% :update_attribute -> %>
                         <% attr =
@@ -3260,7 +3279,7 @@ defmodule PlatformWeb.Components do
     """
   end
 
-  def user_name_display(%{user: %Accounts.User{} = _} = assigns) do
+  defp user_name_display(%{user: %Accounts.User{} = _} = assigns) do
     ~H"""
     <.link
       class="font-medium text-gray-900 hover:text-urge-600 inline-flex gap-1 flex-wrap"

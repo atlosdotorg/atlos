@@ -15,6 +15,7 @@ defmodule Platform.Updates do
   alias Platform.Material
   alias Platform.Accounts
   alias Platform.Permissions
+  alias Platform.API.APIToken
 
   @doc """
   Returns the list of updates.
@@ -39,7 +40,8 @@ defmodule Platform.Updates do
   end
 
   defp preload_fields(queryable) do
-    queryable |> preload([:user, :media_version, :old_project, :new_project, media: [:project]])
+    queryable
+    |> preload([:user, :media_version, :old_project, :new_project, :api_token, media: [:project]])
   end
 
   @doc """
@@ -454,6 +456,22 @@ defmodule Platform.Updates do
     change_from_comment(media, bot_account, %{
       "explanation" => message
     })
+    |> create_update_from_changeset()
+  end
+
+  @doc """
+  Post a comment on behalf of the given API token.
+  """
+  def post_comment_from_api_token(%Media{} = media, %APIToken{} = token, message) do
+    if not Permissions.can_api_token_post_comment?(token, media) do
+      raise "API token does not have permission to post comment"
+    end
+
+    Update.raw_changeset(
+      %Update{},
+      %{explanation: message, media_id: media.id, api_token_id: token.id, type: :comment},
+      cast_sensitive_data: true
+    )
     |> create_update_from_changeset()
   end
 end

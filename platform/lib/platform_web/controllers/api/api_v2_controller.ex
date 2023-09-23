@@ -1,4 +1,5 @@
 defmodule PlatformWeb.APIV2Controller do
+  alias Platform.Permissions
   use PlatformWeb, :controller
   import Ecto.Query
 
@@ -64,9 +65,10 @@ defmodule PlatformWeb.APIV2Controller do
     pagination_api(conn, params, fn opts ->
       Material.query_media_versions_paginated(
         from(m in Material.MediaVersion,
-        join: incident in assoc(m, :media),
-        where: incident.project_id == ^project_id,
-        order_by: [desc: m.inserted_at]),
+          join: incident in assoc(m, :media),
+          where: incident.project_id == ^project_id,
+          order_by: [desc: m.inserted_at]
+        ),
         opts
       )
     end)
@@ -78,10 +80,57 @@ defmodule PlatformWeb.APIV2Controller do
     pagination_api(conn, params, fn opts ->
       Material.query_media_paginated(
         from(m in Material.Media,
-        where: m.project_id == ^project_id,
-        order_by: [desc: m.inserted_at]),
+          where: m.project_id == ^project_id,
+          order_by: [desc: m.inserted_at]
+        ),
         opts
       )
     end)
+  end
+
+  def add_comment(conn, params) do
+    project_id = conn.assigns.token.project_id
+    message = params["message"]
+
+    media = Material.get_full_media_by_slug(params["slug"])
+
+    cond do
+      is_nil(media) or media.project_id != project_id ->
+        json(conn |> put_status(401), %{error: "incident not found"})
+
+      not Permissions.can_api_token_post_comment?(conn.assigns.token, media) ->
+        json(conn |> put_status(401), %{error: "api token not authorized to post comment"})
+
+      is_nil(message) ->
+        json(conn |> put_status(401), %{error: "message not provided"})
+
+      true ->
+        result = Platform.Updates.post_comment_from_api_token(media, conn.assigns.token, message)
+
+        case result do
+          {:ok, comment} ->
+            json(conn, %{success: true})
+
+          {:error, changeset} ->
+            json(conn |> put_status(401), %{error: render_changeset_errors(changeset)})
+        end
+    end
+  end
+
+  defp render_changeset_errors(changeset) do
+    Enum.map(changeset.errors, fn {field, detail} ->
+      {field, render_detail(detail)}
+    end)
+    |> Enum.into(%{})
+  end
+
+  defp render_detail({message, values}) do
+    Enum.reduce(values, message, fn {k, v}, acc ->
+      String.replace(acc, "%{#{k}}", to_string(v))
+    end)
+  end
+
+  defp render_detail(message) do
+    message
   end
 end
