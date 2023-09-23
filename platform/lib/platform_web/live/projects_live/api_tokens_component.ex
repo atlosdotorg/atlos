@@ -130,206 +130,223 @@ defmodule PlatformWeb.ProjectsLive.APITokensComponent do
 
   def render(assigns) do
     ~H"""
-    <section>
-      <% can_edit = Permissions.can_edit_project_api_tokens?(@current_user, @project) %>
-      <div class="flow-root">
-        <div class="pb-4">
-          <div class="inline-block min-w-full">
-            <%= if Enum.empty?(@tokens) do %>
-              <div class="text-sm text-gray-500">
-                This project has no API tokens.
-              </div>
-            <% else %>
-              <div class="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
-                <div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
-                  <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
-                    <table class="min-w-full divide-y divide-gray-300">
-                      <thead class="bg-gray-50">
-                        <tr>
-                          <th
-                            scope="col"
-                            class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6"
-                          >
-                            Name
-                          </th>
-                          <th
-                            scope="col"
-                            class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
-                          >
-                            Description
-                          </th>
-                          <th
-                            scope="col"
-                            class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
-                          >
-                            Last used
-                          </th>
-                          <th
-                            scope="col"
-                            class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
-                          >
-                            Created
-                          </th>
-                          <th
-                            scope="col"
-                            class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
-                          >
-                            Permissions
-                          </th>
-                          <th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-6 text-right">
-                            <%= if can_edit do %>
-                              <button
-                                type="button"
-                                class="button ~urge @high"
-                                phx-click="add_token"
-                                phx-target={@myself}
-                              >
-                                New Token
-                              </button>
-                            <% end %>
-                            <span class="sr-only">Deactivate</span>
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody class="divide-y divide-gray-200 bg-white">
-                        <%= for token <- @tokens do %>
+    <div class="flex flex-col md:flex-row gap-4 pt-8">
+      <div class="mb-4 md:w-[20rem] md:mr-16">
+        <p class="sec-head text-xl">API Tokens</p>
+        <p class="sec-subhead">
+          Use API tokens to connect your project to external services. You can create multiple tokens with different permissions.
+        </p>
+      </div>
+      <section class="flex flex-col mb-8">
+        <% can_edit = Permissions.can_edit_project_api_tokens?(@current_user, @project) %>
+        <div class="flow-root">
+          <div class="pb-4">
+            <div class="inline-block min-w-full">
+              <%= if Enum.empty?(@tokens) do %>
+                <div class="text-sm text-gray-500">
+                  This project has no API tokens.
+                </div>
+              <% else %>
+                <div class="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+                  <div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
+                    <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
+                      <table class="min-w-full divide-y divide-gray-300">
+                        <thead class="bg-gray-50">
                           <tr>
-                            <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
-                              <%= token.name %>
-                              <%= if token.is_legacy do %>
-                                <span class="chip ~warning ml-2">Legacy</span>
-                              <% end %>
-                              <%= if not token.is_active do %>
-                                <span class="chip ~critical ml-2" data-tooltip="This token has been deactivated and can no longer be used.">Deactivated</span>
-                              <% end %>
-                            </td>
-                            <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                              <%= token.description %>
-                            </td>
-                            <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                              <%= if not is_nil(token.last_used) do %>
-                                <%= token.last_used |> Date.to_string() %>
-                              <% else %>
-                                Never
-                              <% end %>
-                            </td>
-                            <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                              <.rel_time time={token.inserted_at} /> by <.user_name_display user={token.creator} />
-                            </td>
-                            <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 flex flex-wrap gap-1">
-                              <%= for permission <- token.permissions do %>
-                                <span class="chip ~neutral">
-                                  <%= permission %>
-                                </span>
-                              <% end %>
-                            </td>
-                            <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                              <%= if token.is_active do %>
-                                <button type="button" phx-click="deactivate_token" phx-target={@myself} data-confirm={"Are you sure you want to deactivate the token \"#{token.name}\"? This action cannot be undone."} phx-value-id={token.id} class="text-critical-600 hover:text-critical-900">
-                                  Deactivate<span class="sr-only"> <%= token.name %></span>
+                            <th
+                              scope="col"
+                              class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6"
+                            >
+                              Name
+                            </th>
+                            <th
+                              scope="col"
+                              class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
+                            >
+                              Last used
+                            </th>
+                            <th
+                              scope="col"
+                              class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
+                            >
+                              Created
+                            </th>
+                            <th
+                              scope="col"
+                              class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
+                            >
+                              Permissions
+                            </th>
+                            <th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-6 text-right">
+                            <%= if can_edit do %>
+                                <button
+                                  type="button"
+                                  class="button ~urge @high"
+                                  phx-click="add_token"
+                                  phx-target={@myself}
+                                >
+                                  Create
                                 </button>
                               <% end %>
-                            </td>
+                              <span class="sr-only">Deactivate</span>
+                            </th>
                           </tr>
-                        <% end %>
-                        <!-- More people... -->
-                      </tbody>
-                    </table>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200 bg-white">
+                          <%= for token <- @tokens do %>
+                            <tr>
+                              <td class=" py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
+                                <%= token.name %>
+                                <span :if={!is_nil(token.description)} data-tooltip={token.description}>
+                                  <Heroicons.information_circle mini class="h-4 w-4 text-gray-400 inline-block" />
+                                </span>
+                                <%= if token.is_legacy do %>
+                                  <span class="chip ~warning ml-2">Legacy</span>
+                                <% end %>
+                                <%= if not token.is_active do %>
+                                  <span
+                                    class="chip ~critical ml-2"
+                                    data-tooltip="This token has been deactivated and can no longer be used."
+                                  >
+                                    Deactivated
+                                  </span>
+                                <% end %>
+                              </td>
+                              <td class=" px-3 py-4 text-sm text-gray-500">
+                                <%= if not is_nil(token.last_used) do %>
+                                  <%= token.last_used |> Date.to_string() %>
+                                <% else %>
+                                  Never
+                                <% end %>
+                              </td>
+                              <td class=" px-3 py-4 text-sm text-gray-500">
+                                <.rel_time time={token.inserted_at} /> by
+                                <.user_name_display user={token.creator} />
+                              </td>
+                              <td class=" px-3 py-4 text-sm text-gray-500 flex flex-wrap gap-1">
+                                <%= for permission <- token.permissions do %>
+                                  <span class="chip ~neutral">
+                                    <%= permission %>
+                                  </span>
+                                <% end %>
+                              </td>
+                              <td class="relative  py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
+                                <%= if token.is_active do %>
+                                  <button
+                                    type="button"
+                                    phx-click="deactivate_token"
+                                    phx-target={@myself}
+                                    data-confirm={"Are you sure you want to deactivate the token \"#{token.name}\"? This action cannot be undone."}
+                                    phx-value-id={token.id}
+                                    class="text-critical-600 hover:text-critical-900"
+                                    data-tooltip={"Deactivate " <> token.name}
+                                  >
+                                    <Heroicons.minus_circle mini class="h-5 w-5"/>
+                                    <span class="sr-only">Deactivate <%= token.name %></span>
+                                  </button>
+                                <% end %>
+                              </td>
+                            </tr>
+                          <% end %>
+                          <!-- More people... -->
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
                 </div>
-              </div>
-            <% end %>
+              <% end %>
+            </div>
           </div>
         </div>
-      </div>
-      <%= if not is_nil(@changeset) and can_edit do %>
-        <.modal target={} close_confirmation="Your changes will be lost. Are you sure?">
-          <div class="mb-8">
-            <p class="sec-head">
-              Create an API token
-            </p>
-          </div>
-          <.form
-            for={@form}
-            class="flex flex-col space-y-8 phx-form"
-            phx-change="validate"
-            phx-submit="save"
-            phx-target={@myself}
-          >
-            <div>
-              <%= label(
-                @form,
-                :name,
-                "What do you want to call this token?"
-              ) %>
-              <%= text_input(
-                @form,
-                :name,
-                placeholder: "The name of the token...",
-                phx_debounce: 1000
-              ) %>
-              <p class="support">
-                This name will be visible to members of the project and associated with any actions performed by the token.
+        <%= if not is_nil(@changeset) and can_edit do %>
+          <.modal target={} close_confirmation="Your changes will be lost. Are you sure?">
+            <div class="mb-8">
+              <p class="sec-head">
+                Create an API token
               </p>
-              <%= error_tag(@form, :name) %>
             </div>
+            <.form
+              for={@form}
+              class="flex flex-col space-y-8 phx-form"
+              phx-change="validate"
+              phx-submit="save"
+              phx-target={@myself}
+            >
+              <div>
+                <%= label(
+                  @form,
+                  :name,
+                  "What do you want to call this token?"
+                ) %>
+                <%= text_input(
+                  @form,
+                  :name,
+                  placeholder: "The name of the token...",
+                  phx_debounce: 1000
+                ) %>
+                <p class="support">
+                  This name will be visible to members of the project and associated with any actions performed by the token.
+                </p>
+                <%= error_tag(@form, :name) %>
+              </div>
 
-            <div>
-              <%= label(
-                @form,
-                :description,
-                "How will you use this API token?"
-              ) %>
-              <%= textarea(
-                @form,
-                :description,
-                placeholder: "Some information about this token...",
-                phx_debounce: 250,
-                rows: 3
-              ) %>
-              <p class="support">
-                This is just for your reference, so you can remember what this token is for. It will be visible to other project owners.
-              </p>
-              <%= error_tag(@form, :description) %>
-            </div>
+              <div>
+                <%= label(
+                  @form,
+                  :description,
+                  "How will you use this API token?"
+                ) %>
+                <%= textarea(
+                  @form,
+                  :description,
+                  placeholder: "Some information about this token...",
+                  phx_debounce: 250,
+                  rows: 3
+                ) %>
+                <p class="support">
+                  This is just for your reference, so you can remember what this token is for. It will be visible to other project owners.
+                </p>
+                <%= error_tag(@form, :description) %>
+              </div>
 
-            <div>
-              <%= label(
-                @form,
-                :permissions,
-                "What permissions should this token have?"
-              ) %>
-              <div id="permissions-select" phx-update="ignore">
-                <%= multiple_select(
+              <div>
+                <%= label(
                   @form,
                   :permissions,
-                  [
-                    {"Read", "read"},
-                    {"Comment", "comment"}
-                  ],
-                  "data-descriptions":
-                    Jason.encode!(%{
-                      "read" =>
-                        "Can read incidents and comments, including hidden and restricted incidents",
-                      "comment" => "Can add comments to incidents"
-                    }),
-                  "data-required": Jason.encode!(["read"])
+                  "What permissions should this token have?"
+                ) %>
+                <div id="permissions-select" phx-update="ignore">
+                  <%= multiple_select(
+                    @form,
+                    :permissions,
+                    [
+                      {"Read", "read"},
+                      {"Comment", "comment"}
+                    ],
+                    "data-descriptions":
+                      Jason.encode!(%{
+                        "read" =>
+                          "Can read incidents and comments, including hidden and restricted incidents",
+                        "comment" => "Can add comments to incidents"
+                      }),
+                    "data-required": Jason.encode!(["read"])
+                  ) %>
+                </div>
+                <%= error_tag(@form, :permissions) %>
+              </div>
+
+              <div>
+                <%= submit(
+                  "Create Token",
+                  phx_disable_with: "Saving...",
+                  class: "button ~urge @high"
                 ) %>
               </div>
-              <%= error_tag(@form, :permissions) %>
-            </div>
-
-            <div>
-              <%= submit(
-                "Create Token",
-                phx_disable_with: "Saving...",
-                class: "button ~urge @high"
-              ) %>
-            </div>
-          </.form>
-        </.modal>
-      <% end %>
-    </section>
+            </.form>
+          </.modal>
+        <% end %>
+      </section>
+    </div>
     """
   end
 end

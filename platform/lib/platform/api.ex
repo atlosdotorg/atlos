@@ -32,7 +32,9 @@ defmodule Platform.API do
 
   """
   def list_api_tokens_for_project(%Project{} = project) do
-    Repo.all(from(a in APIToken, where: a.project_id == ^project.id, preload: [:project, :creator]))
+    Repo.all(
+      from(a in APIToken, where: a.project_id == ^project.id, preload: [:project, :creator])
+    )
   end
 
   @doc """
