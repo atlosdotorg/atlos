@@ -74,8 +74,17 @@ defmodule PlatformWeb.Router do
     pipe_through([:api, :check_api_token])
 
     scope "/v1" do
+      pipe_through([:require_legacy_token])
+
       get("/media_versions", APIV1Controller, :media_versions)
       get("/media", APIV1Controller, :media)
+    end
+
+    scope "/v2" do
+      pipe_through([:require_project_scoped_token])
+
+      get("/source_material", APIV2Controller, :source_material)
+      get("/incidents", APIV2Controller, :incidents)
     end
   end
 

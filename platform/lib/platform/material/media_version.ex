@@ -3,7 +3,6 @@ defmodule Platform.Material.MediaVersion do
   import Ecto.Changeset
   alias Platform.Material.Media
 
-  @derive {Jason.Encoder, except: [:__meta__, :client_name, :file_location, :media, :artifacts]}
   @primary_key {:id, :binary_id, autogenerate: true}
   schema "media_versions" do
     field(:scoped_id, :integer)
@@ -13,7 +12,7 @@ defmodule Platform.Material.MediaVersion do
     field(:metadata, :map, default: %{})
 
     @primary_key {:id, :binary_id, autogenerate: false}
-    embeds_many :artifacts, Platform.Material.MediaVersionArtifact do
+    embeds_many :artifacts, MediaVersionArtifact do
       field(:file_location, :string)
       field(:file_hash_sha256, :string)
       field(:file_size, :integer)
@@ -91,5 +90,50 @@ defmodule Platform.Material.MediaVersion do
       :mime_type,
       :type
     ])
+  end
+end
+
+defimpl Jason.Encoder, for: Platform.Material.MediaVersion do
+  def encode(value, opts) do
+    Jason.Encode.map(
+      Map.take(value, [
+        :id,
+        :inserted_at,
+        :scoped_id,
+        :source_url,
+        :status,
+        :updated_at,
+        :upload_type,
+        :visibility
+      ])
+      |> Map.put(:incident_id, value.media_id)
+      |> Enum.into(%{}, fn
+        {key, %Ecto.Association.NotLoaded{}} -> {key, nil}
+        {key, value} -> {key, value}
+      end)
+      |> Map.put(:artifacts, value.artifacts),
+      opts
+    )
+  end
+end
+
+defimpl Jason.Encoder, for: Platform.Material.MediaVersion.MediaVersionArtifact do
+  def encode(value, opts) do
+    Jason.Encode.map(
+      Map.take(value, [
+        :id,
+        :file_hash_sha256,
+        :file_size,
+        :mime_type,
+        :perceptual_hashes,
+        :type,
+      ])
+      |> Enum.into(%{}, fn
+        {key, %Ecto.Association.NotLoaded{}} -> {key, nil}
+        {key, value} -> {key, value}
+      end)
+      |> Map.put(:access_url, Platform.Material.media_version_artifact_location(value)),
+      opts
+    )
   end
 end
