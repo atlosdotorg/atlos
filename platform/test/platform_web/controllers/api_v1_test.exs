@@ -16,7 +16,7 @@ defmodule PlatformWeb.APIV1Test do
     noauth_conn = get(put_req_header(conn, "authorization", "Bearer bad"), "/api/v1/media")
     assert json_response(noauth_conn, 401) == %{"error" => "invalid token or token not found"}
 
-    token = api_token_fixture()
+    token = api_token_fixture_legacy()
 
     auth_conn =
       build_conn()
@@ -49,7 +49,7 @@ defmodule PlatformWeb.APIV1Test do
 
     Enum.map(0..(n - 1), fn _ -> media_fixture() end)
 
-    token = api_token_fixture()
+    token = api_token_fixture_legacy()
 
     {media, final_next} =
       Enum.reduce(0..(ceil(n / 50) + 25), {[], :start}, fn _, {elems, next} ->
@@ -84,7 +84,7 @@ defmodule PlatformWeb.APIV1Test do
     noauth_conn = get(conn, "/api/v1/media_versions")
     assert json_response(noauth_conn, 401) == %{"error" => "invalid token or token not found"}
 
-    token = api_token_fixture()
+    token = api_token_fixture_legacy()
 
     auth_conn =
       build_conn()

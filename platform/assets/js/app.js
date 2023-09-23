@@ -187,6 +187,7 @@ function initializeSmartSelects() {
         }
         let descriptions = JSON.parse(s.getAttribute("data-descriptions")) || {};
         let privileged = JSON.parse(s.getAttribute("data-privileged")) || [];
+        let required = JSON.parse(s.getAttribute("data-required")) || [];
 
         let x = new TomSelect(`#${s.id}`, {
             maxOptions: null,
@@ -214,6 +215,13 @@ function initializeSmartSelects() {
 
                     return '<div class="flex"><div><span>' + escape(name) + '</span><span class="text-gray-400">' + (requiresPrivilege ? lockIcon : '') + '&nbsp;' + escape(desc) + '</span></div></div>';
                 },
+            },
+            onItemRemove(item) {
+                if (required.indexOf(item) >= 0) {
+                    alert(`You cannot remove ${item}; it is required.`);
+                    // Add it back
+                    x.addItem(item);
+                }
             }
         });
         x.control_input.setAttribute("phx-debounce", "blur");

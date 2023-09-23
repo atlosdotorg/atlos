@@ -171,7 +171,7 @@ defmodule PlatformWeb.Router do
       live("/projects/:id", ProjectsLive.Show, :overview)
       live("/projects/:id/map", ProjectsLive.Show, :map)
       live("/projects/:id/edit", ProjectsLive.Show, :edit)
-      live("/projects/:id/members", ProjectsLive.Show, :members)
+      live("/projects/:id/access", ProjectsLive.Show, :access)
       live("/projects/:id/deleted", ProjectsLive.Show, :deleted)
       live("/projects/:id/queue", ProjectsLive.Show, :queue)
 

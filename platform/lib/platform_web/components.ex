@@ -3260,7 +3260,7 @@ defmodule PlatformWeb.Components do
     """
   end
 
-  defp user_name_display(assigns) do
+  def user_name_display(%{user: %Accounts.User{} = _} = assigns) do
     ~H"""
     <.link
       class="font-medium text-gray-900 hover:text-urge-600 inline-flex gap-1 flex-wrap"

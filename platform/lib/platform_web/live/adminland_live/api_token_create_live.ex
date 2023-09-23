@@ -21,7 +21,7 @@ defmodule PlatformWeb.AdminlandLive.APITokenCreateLive do
   end
 
   def handle_event("save", %{"api_token" => params}, socket) do
-    with {:ok, value} <- API.create_api_token(params) do
+    with {:ok, value} <- API.create_api_token(params, legacy: true) do
       Auditor.log(
         :api_token_created,
         %{description: value.description},
@@ -47,9 +47,24 @@ defmodule PlatformWeb.AdminlandLive.APITokenCreateLive do
           phx-submit="save"
           class="phx-form"
         >
-          <%= label(f, :description, "What should we call this API token?") %>
-          <%= text_input(f, :description, placeholder: "Some descriptive name...", phx_debounce: "250") %>
+          <%= label(f, :name, "What should we call this token?") %>
+          <%= text_input(f, :name) %>
+          <p class="support">
+            This name will be visible to members of the project and associated with any actions performed by the token.
+          </p>
+          <%= error_tag(f, :name) %>
+
+          <%= label(f, :description, "How will you use this API token?") %>
+          <%= textarea(f, :description,
+            placeholder: "Some information about this token...",
+            phx_debounce: "250",
+            rows: 3
+          ) %>
+          <p class="support">
+            This is just for your reference, so you can remember what this token is for. It will be visible to other project owners.
+          </p>
           <%= error_tag(f, :description) %>
+
           <%= submit(
             "Create API Token",
             phx_disable_with: "Creating...",

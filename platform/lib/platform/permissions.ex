@@ -60,6 +60,13 @@ defmodule Platform.Permissions do
     end
   end
 
+  def can_edit_project_api_tokens?(%User{} = user, %Project{} = project) do
+    case Projects.get_project_membership_by_user_and_project(user, project) do
+      %Projects.ProjectMembership{role: :owner} -> true
+      _ -> false
+    end
+  end
+
   def can_delete_project?(%User{} = user, %Project{} = project) do
     case Projects.get_project_membership_by_user_and_project(user, project) do
       %Projects.ProjectMembership{role: :owner} -> true

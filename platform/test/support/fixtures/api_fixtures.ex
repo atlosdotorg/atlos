@@ -11,9 +11,29 @@ defmodule Platform.APIFixtures do
     {:ok, api_token} =
       attrs
       |> Enum.into(%{
-        description: "some description"
+        name: "some name",
+        description: "some description",
+        project_id: Platform.ProjectsFixtures.project_fixture().id,
+        creator_id: Platform.Accounts.get_auto_account().id
       })
       |> Platform.API.create_api_token()
+
+    api_token
+  end
+
+  @doc """
+  Generate a legacy api_token.
+  """
+  def api_token_fixture_legacy(attrs \\ %{}) do
+    {:ok, api_token} =
+      attrs
+      |> Enum.into(%{
+        name: "some name",
+        description: "some description",
+        project_id: Platform.ProjectsFixtures.project_fixture().id,
+        creator_id: Platform.Accounts.get_auto_account().id
+      })
+      |> Platform.API.create_api_token(legacy: true)
 
     api_token
   end
