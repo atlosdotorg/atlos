@@ -481,7 +481,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                                   js_on_close="document.cancelFormEvent($event)"
                                 >
                                   <section class="mb-4">
-                                    <h2 class="sec-head">Edit Attribute</h2>
+                                    <h2 class="sec-head">Customize Attribute</h2>
                                   </section>
                                   <.edit_custom_project_attribute f_attr={f_attr} />
                                   <div class="mt-8 flex justify-between items-center">
