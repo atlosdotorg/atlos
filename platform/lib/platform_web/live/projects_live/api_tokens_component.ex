@@ -195,11 +195,6 @@ defmodule PlatformWeb.ProjectsLive.APITokensComponent do
                     </p>
                   </details>
                 </div>
-                <%= if Enum.empty?(@tokens) do %>
-                  <div class="text-sm text-gray-500">
-                    This project has no API tokens.
-                  </div>
-                <% else %>
                   <div class="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
                     <div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
                       <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
@@ -246,8 +241,12 @@ defmodule PlatformWeb.ProjectsLive.APITokensComponent do
                             </tr>
                           </thead>
                           <tbody class="divide-y divide-gray-200 bg-white">
-                            <%= for token <- @tokens do %>
-                              <tr>
+                            <tr :if={Enum.empty?(@tokens)} class="text-center py-8 text-gray-500">
+                              <td class="py-4 px-4 bg-neutral-50">
+                                No API tokens have been created for this project.
+                                </td>
+                                </tr>
+                              <tr :for={token <- @tokens} id={token.id}>
                                 <td class=" py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
                                   <%= token.name %>
                                   <span
@@ -306,14 +305,11 @@ defmodule PlatformWeb.ProjectsLive.APITokensComponent do
                                   <% end %>
                                 </td>
                               </tr>
-                            <% end %>
-                            <!-- More people... -->
                           </tbody>
                         </table>
                       </div>
                     </div>
                   </div>
-                <% end %>
               </div>
             </div>
           </div>
@@ -344,7 +340,7 @@ defmodule PlatformWeb.ProjectsLive.APITokensComponent do
                   Your API token "<%= @show_token.name %>" is shown above. Be sure to store it somewhere safe, as you won't be able to see it again.
                 </p>
                 <p class="mt-4">
-                  <button type="button" class="text-button text-sm" phx-click="close_token_display">
+                  <button type="button" class="text-button text-sm" phx-click="close_token_display" phx-target={@myself}>
                     Close
                   </button>
                 </p>
