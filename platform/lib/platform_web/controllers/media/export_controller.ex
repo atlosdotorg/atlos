@@ -121,6 +121,8 @@ defmodule PlatformWeb.ExportController do
 
     Platform.Auditor.log(:bulk_export, params, conn)
 
-    send_download(conn, {:file, path}, filename: "atlos-export.csv")
+    # The filename should be atlos-export-YYYY-MM-DD.csv
+    user_visible_filename = "atlos-export-#{Date.utc_today()}.csv"
+    send_download(conn, {:file, path}, filename: user_visible_filename)
   end
 end
