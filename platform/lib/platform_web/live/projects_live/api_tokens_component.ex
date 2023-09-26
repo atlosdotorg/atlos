@@ -195,121 +195,118 @@ defmodule PlatformWeb.ProjectsLive.APITokensComponent do
                     </p>
                   </details>
                 </div>
-                  <div class="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
-                    <div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
-                      <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
-                        <table class="min-w-full divide-y divide-gray-300">
-                          <thead class="bg-gray-50">
-                            <tr>
-                              <th
-                                scope="col"
-                                class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6"
-                              >
-                                Name
-                              </th>
-                              <th
-                                scope="col"
-                                class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
-                              >
-                                Last used
-                              </th>
-                              <th
-                                scope="col"
-                                class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
-                              >
-                                Created
-                              </th>
-                              <th
-                                scope="col"
-                                class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
-                              >
-                                Permissions
-                              </th>
-                              <th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-6 text-right">
-                                <%= if can_edit do %>
-                                  <button
-                                    type="button"
-                                    class="button ~urge @high"
-                                    phx-click="add_token"
-                                    phx-target={@myself}
-                                  >
-                                    Create
-                                  </button>
-                                <% end %>
-                                <span class="sr-only">Deactivate</span>
-                              </th>
-                            </tr>
-                          </thead>
-                          <tbody class="divide-y divide-gray-200 bg-white">
-                            <tr :if={Enum.empty?(@tokens)} class="text-center py-8 text-gray-500">
-                              <td class="py-4 px-4 bg-neutral-50">
-                                No API tokens have been created for this project.
-                                </td>
-                                </tr>
-                              <tr :for={token <- @tokens} id={token.id}>
-                                <td class=" py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
-                                  <%= token.name %>
-                                  <span
-                                    :if={!is_nil(token.description)}
-                                    data-tooltip={token.description}
-                                  >
-                                    <Heroicons.information_circle
-                                      mini
-                                      class="h-4 w-4 text-gray-400 inline-block"
-                                    />
-                                  </span>
-                                  <%= if token.is_legacy do %>
-                                    <span class="chip ~warning ml-2">Legacy</span>
-                                  <% end %>
-                                  <%= if not token.is_active do %>
-                                    <span
-                                      class="chip ~critical ml-2"
-                                      data-tooltip="This token has been deactivated and can no longer be used."
-                                    >
-                                      Deactivated
-                                    </span>
-                                  <% end %>
-                                </td>
-                                <td class=" px-3 py-4 text-sm text-gray-500">
-                                  <%= if not is_nil(token.last_used) do %>
-                                    <%= token.last_used |> Date.to_string() %>
-                                  <% else %>
-                                    Never
-                                  <% end %>
-                                </td>
-                                <td class=" px-3 py-4 text-sm text-gray-500">
-                                  <.rel_time time={token.inserted_at} /> by
-                                  <.user_text user={token.creator} />
-                                </td>
-                                <td class=" px-3 py-4 text-sm text-gray-500 flex flex-wrap gap-1">
-                                  <%= for permission <- token.permissions do %>
-                                    <span class="chip ~neutral">
-                                      <%= permission %>
-                                    </span>
-                                  <% end %>
-                                </td>
-                                <td class="relative  py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                                  <%= if token.is_active do %>
-                                    <button
-                                      type="button"
-                                      phx-click="deactivate_token"
-                                      phx-target={@myself}
-                                      data-confirm={"Are you sure you want to deactivate the token \"#{token.name}\"? This action cannot be undone."}
-                                      phx-value-id={token.id}
-                                      class="text-critical-600 hover:text-critical-900"
-                                      data-tooltip={"Deactivate " <> token.name}
-                                    >
-                                      <Heroicons.minus_circle mini class="h-5 w-5" />
-                                      <span class="sr-only">Deactivate <%= token.name %></span>
-                                    </button>
-                                  <% end %>
-                                </td>
-                              </tr>
-                          </tbody>
-                        </table>
-                      </div>
+                <div class="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+                  <div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
+                    <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
+                      <table class="min-w-full divide-y divide-gray-300">
+                        <thead class="bg-gray-50">
+                          <tr>
+                            <th
+                              scope="col"
+                              class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6"
+                            >
+                              Name
+                            </th>
+                            <th
+                              scope="col"
+                              class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
+                            >
+                              Last used
+                            </th>
+                            <th
+                              scope="col"
+                              class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
+                            >
+                              Created
+                            </th>
+                            <th
+                              scope="col"
+                              class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
+                            >
+                              Permissions
+                            </th>
+                            <th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-6 text-right">
+                              <%= if can_edit do %>
+                                <button
+                                  type="button"
+                                  class="button ~urge @high"
+                                  phx-click="add_token"
+                                  phx-target={@myself}
+                                >
+                                  Create
+                                </button>
+                              <% end %>
+                              <span class="sr-only">Deactivate</span>
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200 bg-white">
+                          <tr :if={Enum.empty?(@tokens)} class="text-center py-8 text-gray-500">
+                            <td class="py-4 px-4 bg-neutral-50">
+                              No API tokens have been created for this project.
+                            </td>
+                          </tr>
+                          <tr :for={token <- @tokens} id={token.id}>
+                            <td class=" py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
+                              <%= token.name %>
+                              <span :if={!is_nil(token.description)} data-tooltip={token.description}>
+                                <Heroicons.information_circle
+                                  mini
+                                  class="h-4 w-4 text-gray-400 inline-block"
+                                />
+                              </span>
+                              <%= if token.is_legacy do %>
+                                <span class="chip ~warning ml-2">Legacy</span>
+                              <% end %>
+                              <%= if not token.is_active do %>
+                                <span
+                                  class="chip ~critical ml-2"
+                                  data-tooltip="This token has been deactivated and can no longer be used."
+                                >
+                                  Deactivated
+                                </span>
+                              <% end %>
+                            </td>
+                            <td class=" px-3 py-4 text-sm text-gray-500">
+                              <%= if not is_nil(token.last_used) do %>
+                                <%= token.last_used |> Date.to_string() %>
+                              <% else %>
+                                Never
+                              <% end %>
+                            </td>
+                            <td class=" px-3 py-4 text-sm text-gray-500">
+                              <.rel_time time={token.inserted_at} /> by
+                              <.user_text user={token.creator} />
+                            </td>
+                            <td class=" px-3 py-4 text-sm text-gray-500 flex flex-wrap gap-1">
+                              <%= for permission <- token.permissions do %>
+                                <span class="chip ~neutral">
+                                  <%= permission %>
+                                </span>
+                              <% end %>
+                            </td>
+                            <td class="relative  py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
+                              <%= if token.is_active do %>
+                                <button
+                                  type="button"
+                                  phx-click="deactivate_token"
+                                  phx-target={@myself}
+                                  data-confirm={"Are you sure you want to deactivate the token \"#{token.name}\"? This action cannot be undone."}
+                                  phx-value-id={token.id}
+                                  class="text-critical-600 hover:text-critical-900"
+                                  data-tooltip={"Deactivate " <> token.name}
+                                >
+                                  <Heroicons.minus_circle mini class="h-5 w-5" />
+                                  <span class="sr-only">Deactivate <%= token.name %></span>
+                                </button>
+                              <% end %>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
                     </div>
                   </div>
+                </div>
               </div>
             </div>
           </div>
@@ -340,7 +337,12 @@ defmodule PlatformWeb.ProjectsLive.APITokensComponent do
                   Your API token "<%= @show_token.name %>" is shown above. Be sure to store it somewhere safe, as you won't be able to see it again.
                 </p>
                 <p class="mt-4">
-                  <button type="button" class="text-button text-sm" phx-click="close_token_display" phx-target={@myself}>
+                  <button
+                    type="button"
+                    class="text-button text-sm"
+                    phx-click="close_token_display"
+                    phx-target={@myself}
+                  >
                     Close
                   </button>
                 </p>

@@ -25,13 +25,7 @@ defmodule PlatformWeb.ExportController do
       (media
        |> Map.put(:latitude, lat)
        |> Map.put(:longitude, lon)
-       |> Map.put(
-         :location,
-         if(not (is_nil(lat) and is_nil(lon)),
-           do: to_string(lat) <> ", " <> to_string(lon),
-           else: ""
-         )
-       )
+       |> Map.put(:project, media.project.name)
        |> Map.to_list()
        |> Enum.map(fn {k, v} ->
          name = k |> to_string()
@@ -59,12 +53,24 @@ defmodule PlatformWeb.ExportController do
        Enum.member?(fields ++ custom_attribute_names, k)
      end)
      |> Map.new(fn {k, v} ->
-       {k,
+       {format_field_name(k),
         case v do
           [_ | _] -> Enum.join(v, ", ")
           _ -> v
         end}
-     end), custom_attribute_names}
+     end), custom_attribute_names |> Enum.map(&format_field_name/1)}
+  end
+
+  defp format_field_name(name) do
+    name
+    |> to_string()
+    |> String.replace("_", " ")
+    # Put into title case
+    |> String.split(" ")
+    |> Enum.map(fn word ->
+      String.capitalize(word)
+    end)
+    |> Enum.join(" ")
   end
 
   def create(conn, params) do
@@ -87,9 +93,15 @@ defmodule PlatformWeb.ExportController do
     file = File.open!(path, [:write, :utf8])
 
     fields_excluding_custom =
-      [:slug, :inserted_at, :updated_at, :latitude, :longitude, :location] ++
+      [:slug, :project, :inserted_at, :updated_at, :latitude, :longitude] ++
         Attribute.attribute_names() ++
         Enum.map(1..max_num_versions, &("source_" <> to_string(&1)))
+
+    # Remove "weird" fields that are redundant or not useful
+    fields_excluding_custom =
+      Enum.reject(fields_excluding_custom, fn field ->
+        field in [:geolocation]
+      end)
 
     formatted = Enum.map(results, &format_media(&1, fields_excluding_custom))
     media = formatted |> Enum.map(fn {media, _} -> media end)
@@ -99,7 +111,8 @@ defmodule PlatformWeb.ExportController do
 
     media
     |> CSV.encode(
-      headers: fields_excluding_custom ++ custom_attribute_names,
+      headers:
+        (fields_excluding_custom ++ custom_attribute_names) |> Enum.map(&format_field_name/1),
       escape_formulas: true
     )
     |> Enum.each(&IO.write(file, &1))
@@ -108,6 +121,6 @@ defmodule PlatformWeb.ExportController do
 
     Platform.Auditor.log(:bulk_export, params, conn)
 
-    send_download(conn, {:file, path})
+    send_download(conn, {:file, path}, filename: "atlos-export.csv")
   end
 end
