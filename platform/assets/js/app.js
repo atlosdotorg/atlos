@@ -486,26 +486,28 @@ window.toggleClass = (id, classname) => {
 }
 
 document.addEventListener("phx:update", initializeSmartSelects);
-document.addEventListener("load", initializeSmartSelects);
+window.addEventListener("load", initializeSmartSelects);
 
 document.addEventListener("phx:update", initializeMaps);
-document.addEventListener("load", initializeMaps);
+window.addEventListener("load", initializeMaps);
 
 document.addEventListener("phx:update", initializePopovers);
-document.addEventListener("load", initializePopovers);
+window.addEventListener("load", initializePopovers);
 
 document.addEventListener("phx:update", applySearchHighlighting);
-document.addEventListener("load", applySearchHighlighting);
+window.addEventListener("load", applySearchHighlighting);
 
 document.addEventListener("phx:update", applyVegaCharts);
-document.addEventListener("load", applyVegaCharts);
+window.addEventListener("load", applyVegaCharts);
 
 // Used to initialize Highlight
-document.addEventListener("load", () => {
+window.addEventListener("load", () => {
     let highlightElem = document.querySelector("#highlight-script");
     if (highlightElem != null) {
         console.log("Initializing Highlight...")
-        window.H.init(highlightElem.getAttribute("data-code"), { enableStrictPrivacy: true });
+        window.H.init(highlightElem.getAttribute("data-code"), { enableStrictPrivacy: true, environment: highlightElem.getAttribute("data-environment"), version: highlightElem.getAttribute("data-version") })
+    } else {
+        console.log("Highlight not found!")
     }
 });
 
