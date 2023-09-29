@@ -64,13 +64,6 @@ defmodule PlatformWeb.ExportController do
   defp format_field_name(name) do
     name
     |> to_string()
-    |> String.replace("_", " ")
-    # Put into title case
-    |> String.split(" ")
-    |> Enum.map(fn word ->
-      String.capitalize(word)
-    end)
-    |> Enum.join(" ")
   end
 
   def create(conn, params) do
