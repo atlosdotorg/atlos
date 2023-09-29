@@ -1485,4 +1485,13 @@ defmodule Platform.Material do
 
     {:ok, new_media}
   end
+
+  def incidents_edited_per_user_in_last_month do
+    Platform.Repo.all(from(user in Platform.Accounts.User,
+      join: update in Platform.Updates.Update,
+      on: update.user_id == user.id,
+      where: update.inserted_at > ^(DateTime.utc_now() |> DateTime.add(-30, :day)),
+      group_by: [user.username],
+      select: {user.username, count(fragment("DISTINCT ?", update.media_id))}))
+  end
 end
