@@ -73,6 +73,19 @@ defmodule Platform.Permissions do
       token.project_id == media.project_id
   end
 
+  def can_api_token_edit_media?(%APIToken{} = token, %Media{} = media) do
+    Enum.member?(token.permissions, :edit) and token.is_active and
+      token.project_id == media.project_id
+  end
+
+  def can_api_token_update_attribute?(
+        %APIToken{} = token,
+        %Media{} = media,
+        %Attribute{} = _attribute
+      ) do
+    can_api_token_edit_media?(token, media)
+  end
+
   def can_delete_project?(%User{} = user, %Project{} = project) do
     case Projects.get_project_membership_by_user_and_project(user, project) do
       %Projects.ProjectMembership{role: :owner} -> true

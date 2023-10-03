@@ -15,7 +15,7 @@ defmodule Platform.API.APIToken do
     field :last_used, :date
     field :is_legacy, :boolean, default: false
 
-    field :permissions, {:array, Ecto.Enum}, default: [:read], values: [:read, :comment]
+    field :permissions, {:array, Ecto.Enum}, default: [:read], values: [:read, :comment, :edit]
 
     belongs_to :project, Platform.Projects.Project, type: :binary_id
     belongs_to :creator, Platform.Accounts.User, type: :binary_id
@@ -40,7 +40,7 @@ defmodule Platform.API.APIToken do
     |> validate_length(:description, min: 3, max: 1000)
     # Ensure that the token only contains valid permissions
     |> validate_change(:permissions, fn :permissions, permissions ->
-      if Enum.all?(permissions, &Enum.member?([:read, :comment], &1)) do
+      if Enum.all?(permissions, &Enum.member?([:read, :comment, :edit], &1)) do
         []
       else
         [permissions: "Invalid permissions specified"]

@@ -57,8 +57,8 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
     case Material.update_media_attributes_audited(
            socket.assigns.media,
            socket.assigns.attrs,
-           socket.assigns.current_user,
-           params
+           params,
+           user: socket.assigns.current_user
          ) do
       {:ok, media} ->
         Auditor.log(

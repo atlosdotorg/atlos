@@ -136,8 +136,14 @@ defmodule Platform.Updates do
       %Ecto.Changeset{data: %Update{}}
 
   """
-  def change_update(%Update{} = update, %Media{} = media, %User{} = user, attrs \\ %{}) do
-    Update.changeset(update, attrs, user, media)
+  def change_update(update, media, user, attrs \\ %{})
+
+  def change_update(%Update{} = update, %Media{} = media, %User{} = user, attrs) do
+    Update.changeset(update, attrs, media, user: user)
+  end
+
+  def change_update(%Update{} = update, %Media{} = media, %APIToken{} = api_token, attrs) do
+    Update.changeset(update, attrs, media, api_token: api_token)
   end
 
   @doc """
@@ -177,16 +183,13 @@ defmodule Platform.Updates do
     end
   end
 
-  @doc """
-  Helper API function that takes attributes change information and uses it to create an Update changeset. Requires 'explanation' to be in attrs. The change is recorded as belonging to the head of `attributes`; all other attributes should be children of the first element.
-  """
-  def change_from_attributes_changeset(
-        %Media{} = media,
-        attributes,
-        %User{} = user,
-        changeset,
-        attrs \\ %{}
-      ) do
+  defp _change_from_attributes_changeset(
+         %Media{} = media,
+         attributes,
+         changeset,
+         attrs,
+         opts
+       ) do
     # We add the _combined field so that it's unambiguous when a dict represents a collection of schema fields changing
     old_value =
       attributes
@@ -205,7 +208,11 @@ defmodule Platform.Updates do
     change_update(
       %Update{},
       media,
-      user,
+      if Keyword.get(opts, :user, nil) do
+        Keyword.get(opts, :user)
+      else
+        Keyword.get(opts, :api_token)
+      end,
       attrs
       |> Map.put("old_value", old_value)
       |> Map.put("new_value", new_value)
@@ -215,13 +222,56 @@ defmodule Platform.Updates do
   end
 
   @doc """
+  Helper API function that takes attributes change information and uses it to create an Update changeset. Requires 'explanation' to be in attrs. The change is recorded as belonging to the head of `attributes`; all other attributes should be children of the first element.
+  """
+  def change_from_attributes_changeset(
+        media,
+        attributes,
+        actor,
+        changeset,
+        attrs \\ %{}
+      )
+
+  def change_from_attributes_changeset(
+        %Media{} = media,
+        attributes,
+        %APIToken{} = token,
+        changeset,
+        attrs
+      ),
+      do: _change_from_attributes_changeset(media, attributes, changeset, attrs, api_token: token)
+
+  def change_from_attributes_changeset(
+        %Media{} = media,
+        attributes,
+        %User{} = user,
+        changeset,
+        attrs
+      ),
+      do: _change_from_attributes_changeset(media, attributes, changeset, attrs, user: user)
+
+  @doc """
   Helper API function that takes comment information and uses it to create an Update changeset. Requires 'explanation' to be in attrs.
   """
-  def change_from_comment(%Media{} = media, %User{} = user, attrs \\ %{}) do
+  def change_from_comment(media, user, attrs \\ %{})
+
+  def change_from_comment(%Media{} = media, %User{} = user, attrs) do
     change_update(
       %Update{},
       media,
       user,
+      attrs
+      |> Map.put("type", :comment)
+    )
+    |> Ecto.Changeset.validate_required([:explanation], message: "A comment is required to post")
+    |> Ecto.Changeset.validate_length(:explanation, min: 1, max: 10000)
+  end
+
+  def change_from_comment(%Media{} = media, %APIToken{} = token, attrs) do
+    change_update(
+      %Update{},
+      media,
+      token,
       attrs
       |> Map.put("type", :comment)
     )
@@ -463,15 +513,9 @@ defmodule Platform.Updates do
   Post a comment on behalf of the given API token.
   """
   def post_comment_from_api_token(%Media{} = media, %APIToken{} = token, message) do
-    if not Permissions.can_api_token_post_comment?(token, media) do
-      raise "API token does not have permission to post comment"
-    end
-
-    Update.raw_changeset(
-      %Update{},
-      %{explanation: message, media_id: media.id, api_token_id: token.id, type: :comment},
-      cast_sensitive_data: true
-    )
+    change_from_comment(media, token, %{
+      "explanation" => message
+    })
     |> create_update_from_changeset()
   end
 end

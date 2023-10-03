@@ -154,7 +154,7 @@ defmodule PlatformWeb.ProjectsLive.APITokensComponent do
                 <div class="mb-8 bg-urge-50 border border-urge-400 aside ~urge prose text-sm w-full min-w-full">
                   <p>
                     <strong class="text-blue-800">
-                      The Atlos API allows you to connect your project to external services.
+                      The beta Atlos API allows you to connect your project to external services.
                     </strong>
                     You can learn more about the API authentication scheme and endpoints below. API tokens are sensitive, as they allow access to your project. Keep them secret!
                   </p>
@@ -177,6 +177,24 @@ defmodule PlatformWeb.ProjectsLive.APITokensComponent do
                         (the slug is the last part of the URL for the incident, and is also available in the
                         <code>slug</code>
                         field of the incident object)
+                      </li>
+                      <li>
+                        <code>POST /api/v2/update/:slug/:attribute_name</code>
+                        with parameter <code>value</code>
+                        and optional string parameter <code>message</code>
+                        &mdash; updates the value of <code>attribute_name</code>
+                        to <code>value</code>
+                        for the incident with slug <code>:slug</code>
+                        (the slug is the last part of the URL for the incident, and is also available in the
+                        <code>slug</code>
+                        field of the incident object). If <code>message</code>
+                        is provided, it will be added as a comment to the incident (as part of the tracked change). The value of
+                        <code>attribute_name</code>
+                        is available in the URL of the incident page when editing the incident. Core attributes have string names (such as
+                        <code>description</code>
+                        and <code>status</code>) while custom attributes are identified by their UUID. The
+                        <code>value</code>
+                        must be a string for text-based or single-select attributes, and a list of strings for multi-select attributes. Please note that the API is in beta and not all operations are necessarily supported; if you need something, please get in touch.
                       </li>
                     </ul>
                     <p>
@@ -412,13 +430,15 @@ defmodule PlatformWeb.ProjectsLive.APITokensComponent do
                       :permissions,
                       [
                         {"Read", "read"},
-                        {"Comment", "comment"}
+                        {"Comment", "comment"},
+                        {"Edit", "edit"}
                       ],
                       "data-descriptions":
                         Jason.encode!(%{
                           "read" =>
                             "Can read incidents and comments, including hidden and restricted incidents",
-                          "comment" => "Can add comments to incidents"
+                          "comment" => "Can add comments to incidents",
+                          "edit" => "Can edit incidents' attributes and metadata"
                         }),
                       "data-required": Jason.encode!(["read"])
                     ) %>

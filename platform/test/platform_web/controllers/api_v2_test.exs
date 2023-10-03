@@ -189,4 +189,86 @@ defmodule PlatformWeb.APIV2Test do
 
     assert json_response(conn, 401) == %{"error" => "incident not found"}
   end
+
+  test "POST /api/v2/update/:slug/:attribute" do
+    project = project_fixture()
+    other_project = project_fixture()
+
+    underpermissioned_token =
+      api_token_fixture(%{project_id: project.id, permissions: [:read, :comment]})
+
+    token = api_token_fixture(%{project_id: project.id, permissions: [:read, :comment, :edit]})
+
+    other_token =
+      api_token_fixture(%{project_id: other_project.id, permissions: [:read, :comment, :edit]})
+
+    media = media_fixture(%{project_id: project.id})
+    other_media = media_fixture(%{project_id: other_project.id})
+
+    noauth_conn = post(build_conn(), "/api/v2/update/#{media.slug}/description", %{})
+    assert json_response(noauth_conn, 401) == %{"error" => "invalid token or token not found"}
+
+    # This one should work
+    auth_conn =
+      build_conn()
+      |> put_req_header("authorization", "Bearer " <> token.value)
+      |> post("/api/v2/update/#{media.slug}/description", %{
+        "message" => "test",
+        "value" => "new description"
+      })
+
+    assert json_response(auth_conn, 200) == %{"success" => true}
+    assert length(Platform.Updates.list_updates()) == 1
+    assert Material.get_media!(media.id).attr_description == "new description"
+
+    # As should this one (project attribute)
+    project_attribute = project.attributes |> Enum.find(&(&1.name == "Impact"))
+
+    auth_conn =
+      build_conn()
+      |> put_req_header("authorization", "Bearer " <> token.value)
+      |> post("/api/v2/update/#{media.slug}/#{project_attribute.id}", %{
+        "message" => "test",
+        "value" => project_attribute.options
+      })
+
+    assert json_response(auth_conn, 200) == %{"success" => true}
+    assert length(Platform.Updates.list_updates()) == 2
+
+    assert (Material.get_media!(media.id).project_attributes
+            |> Enum.find(&(&1.id == project_attribute.id))).value == project_attribute.options
+
+    # This one should fail because the token doesn't have the right permissions
+    conn =
+      build_conn()
+      |> put_req_header("authorization", "Bearer " <> underpermissioned_token.value)
+      |> post("/api/v2/update/#{media.slug}/description", %{
+        "message" => "test",
+        "value" => "new description"
+      })
+
+    assert json_response(conn, 401) == %{"error" => "api token not authorized to edit"}
+
+    # This one should fail because the media doesn't exist
+    conn =
+      build_conn()
+      |> put_req_header("authorization", "Bearer " <> token.value)
+      |> post("/api/v2/update/ABCDEFG/description", %{
+        "message" => "test",
+        "value" => "new description"
+      })
+
+    assert json_response(conn, 401) == %{"error" => "incident not found"}
+
+    # This one should fail because the media is in the wrong project
+    conn =
+      build_conn()
+      |> put_req_header("authorization", "Bearer " <> other_token.value)
+      |> post("/api/v2/update/#{media.slug}/description", %{
+        "message" => "test",
+        "value" => "new description"
+      })
+
+    assert json_response(conn, 401) == %{"error" => "incident not found"}
+  end
 end

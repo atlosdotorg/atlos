@@ -592,6 +592,8 @@ defmodule Platform.Material.Attribute do
         opts \\ []
       ) do
     user = Keyword.get(opts, :user)
+    api_token = Keyword.get(opts, :api_token)
+
     verify_change_exists = Keyword.get(opts, :verify_change_exists, true)
     changeset = Keyword.get(opts, :changeset)
 
@@ -602,7 +604,7 @@ defmodule Platform.Material.Attribute do
     |> validate_attribute(attribute, media, opts)
     |> cast_and_validate_virtual_explanation(attrs, attribute)
     |> update_from_virtual_data(attribute)
-    |> verify_user_can_edit(attribute, user, media)
+    |> verify_can_edit(attribute, media, user: user, api_token: api_token)
     |> then(fn c ->
       if verify_change_exists, do: verify_change_exists(c, [attribute]), else: c
     end)
@@ -623,6 +625,8 @@ defmodule Platform.Material.Attribute do
         opts \\ []
       ) do
     user = Keyword.get(opts, :user)
+    api_token = Keyword.get(opts, :api_token)
+
     verify_change_exists = Keyword.get(opts, :verify_change_exists, true)
     changeset = Keyword.get(opts, :changeset)
 
@@ -757,6 +761,7 @@ defmodule Platform.Material.Attribute do
       Enum.reduce(core_attributes, cs, fn elem, acc ->
         changeset(media, elem, attrs,
           user: user,
+          api_token: api_token,
           verify_change_exists: false,
           changeset: acc,
           project_attribute_ids_in_changeset: project_attribute_ids_in_changeset
@@ -772,15 +777,28 @@ defmodule Platform.Material.Attribute do
   @doc """
   Checks whether the given user can edit the given attribute.
   """
-  def verify_user_can_edit(changeset, attribute, user, media) do
-    if is_nil(user) || Permissions.can_edit_media?(user, media, attribute) do
-      changeset
-    else
-      changeset
-      |> Ecto.Changeset.add_error(
-        attribute.schema_field,
-        "You do not have permission to edit this attribute."
-      )
+  def verify_can_edit(changeset, attribute, media, opts) do
+    user = Keyword.get(opts, :user)
+    api_token = Keyword.get(opts, :api_token)
+
+    cond do
+      !is_nil(user) && !Permissions.can_edit_media?(user, media, attribute) ->
+        changeset
+        |> Ecto.Changeset.add_error(
+          attribute.schema_field,
+          "You do not have permission to edit this attribute."
+        )
+
+      !is_nil(api_token) &&
+          !Permissions.can_api_token_update_attribute?(api_token, media, attribute) ->
+        changeset
+        |> Ecto.Changeset.add_error(
+          attribute.schema_field,
+          "This API token does not have permission to edit this attribute."
+        )
+
+      true ->
+        changeset
     end
   end
 

@@ -1,6 +1,7 @@
 defmodule Platform.Updates.Update do
   use Ecto.Schema
   import Ecto.Changeset
+  alias Platform.API.APIToken
   alias Platform.API
   alias Platform.Material.Media
   alias Platform.Accounts.User
@@ -53,15 +54,20 @@ defmodule Platform.Updates.Update do
   end
 
   @doc false
-  def changeset(update, attrs, %User{} = user, %Media{} = media, opts \\ []) do
+  def changeset(update, attrs, %Media{} = media, opts \\ []) do
+    user = Keyword.get(opts, :user, nil)
+    api_token = Keyword.get(opts, :api_token, nil)
+
     hydrated_attrs =
       attrs
-      |> Map.put("user_id", user.id)
+      |> Map.put("user_id", if(not is_nil(user), do: user.id, else: nil))
+      |> Map.put("api_token_id", if(not is_nil(api_token), do: api_token.id, else: nil))
       |> Map.put("media_id", media.id)
 
     update
     |> raw_changeset(hydrated_attrs, opts)
     |> validate_access(user, media)
+    |> validate_access(api_token, media)
   end
 
   def raw_changeset(update, attrs, opts \\ []) do
@@ -127,10 +133,29 @@ defmodule Platform.Updates.Update do
     )
   end
 
+  def validate_access(changeset, nil, %Media{}) do
+    changeset
+  end
+
   def validate_access(changeset, %User{} = user, %Media{} = media) do
     if Accounts.is_auto_account(user) || Permissions.can_edit_media?(user, media) ||
          (get_field(changeset, :type) == :comment and
             Permissions.can_comment_on_media?(user, media)) do
+      changeset
+    else
+      changeset
+      |> Ecto.Changeset.add_error(
+        :media_id,
+        "You do not have permission to update or comment on this media"
+      )
+    end
+  end
+
+  def validate_access(changeset, %APIToken{} = api_token, %Media{} = media) do
+    if (get_field(changeset, :type) != :comment and
+          Permissions.can_api_token_edit_media?(api_token, media)) ||
+         (get_field(changeset, :type) == :comment and
+            Permissions.can_api_token_post_comment?(api_token, media)) do
       changeset
     else
       changeset

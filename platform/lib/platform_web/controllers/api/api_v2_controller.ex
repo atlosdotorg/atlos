@@ -1,4 +1,6 @@
 defmodule PlatformWeb.APIV2Controller do
+  alias Platform.Projects
+  alias Platform.Material.Attribute
   alias Platform.Permissions
   use PlatformWeb, :controller
   import Ecto.Query
@@ -108,7 +110,55 @@ defmodule PlatformWeb.APIV2Controller do
         result = Platform.Updates.post_comment_from_api_token(media, conn.assigns.token, message)
 
         case result do
-          {:ok, comment} ->
+          {:ok, _} ->
+            json(conn, %{success: true})
+
+          {:error, changeset} ->
+            json(conn |> put_status(401), %{error: render_changeset_errors(changeset)})
+        end
+    end
+  end
+
+  def update(conn, params) do
+    dbg("updating!")
+    project_id = conn.assigns.token.project_id
+    project = Projects.get_project!(project_id)
+
+    # ok if nil
+    message = params["message"]
+
+    attribute = params["attribute"] |> Attribute.get_attribute(project: project)
+    value = params["value"]
+    media = Material.get_full_media_by_slug(params["slug"])
+
+    dbg("ok...")
+
+    cond do
+      is_nil(value) ->
+        json(conn |> put_status(401), %{error: "value not provided"})
+
+      is_nil(media) or media.project_id != project_id ->
+        json(conn |> put_status(401), %{error: "incident not found"})
+
+      not Permissions.can_api_token_edit_media?(conn.assigns.token, media) ->
+        json(conn |> put_status(401), %{error: "api token not authorized to edit"})
+
+      is_nil(attribute) ->
+        json(conn |> put_status(401), %{error: "attribute not found"})
+
+      true ->
+        result =
+          Material.update_media_attributes_audited(
+            media,
+            [attribute],
+            Material.generate_attribute_change_params(attribute, value, project, %{
+              "explanation" => message
+            }),
+            api_token: conn.assigns.token
+          )
+
+        case result do
+          {:ok, _} ->
             json(conn, %{success: true})
 
           {:error, changeset} ->

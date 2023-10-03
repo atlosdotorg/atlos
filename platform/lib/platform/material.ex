@@ -1160,17 +1160,29 @@ defmodule Platform.Material do
         attrs,
         opts \\ []
       ) do
-    update_media_attributes_audited(media, [attribute], user, attrs, opts)
+    update_media_attributes_audited(media, [attribute], attrs, opts |> Keyword.put(:user, user))
   end
 
   @doc """
   Do an audited update of the given attributes. Will broadcast change via PubSub.
+
+  Either `user` or `api_token` must be provided in opts.
   """
-  def update_media_attributes_audited(media, attributes, %User{} = user, attrs, opts \\ []) do
-    media_changeset = change_media_attributes(media, attributes, attrs, user: user)
+  def update_media_attributes_audited(media, attributes, attrs, opts \\ []) do
+    # Verify that either a user or an API token is provided
+    user = Keyword.get(opts, :user, nil)
+    api_token = Keyword.get(opts, :api_token, nil)
+
+    media_changeset = change_media_attributes(media, attributes, attrs, opts)
 
     update_changeset =
-      Updates.change_from_attributes_changeset(media, attributes, user, media_changeset, attrs)
+      Updates.change_from_attributes_changeset(
+        media,
+        attributes,
+        if(!is_nil(user), do: user, else: api_token),
+        media_changeset,
+        attrs
+      )
 
     # Make sure both changesets are valid
     cond do
@@ -1183,13 +1195,15 @@ defmodule Platform.Material do
             # In the transaction, we need to make sure we don't have any stale data
             # in the media_changeset, so we reload the media and recompute the changeset
             media = get_media!(media.id)
-            media_changeset = change_media_attributes(media, attributes, attrs, user: user)
+
+            media_changeset =
+              change_media_attributes(media, attributes, attrs, user: user, api_token: api_token)
 
             update_changeset =
               Updates.change_from_attributes_changeset(
                 media,
                 attributes,
-                user,
+                if(!is_nil(user), do: user, else: api_token),
                 media_changeset,
                 attrs
               )
@@ -1198,8 +1212,13 @@ defmodule Platform.Material do
               {:ok, _} = Updates.create_update_from_changeset(update_changeset)
             end
 
-            {:ok, res} = update_media_attributes(media, attributes, attrs, user: user)
-            Updates.subscribe_if_first_interaction(media, user)
+            {:ok, res} =
+              update_media_attributes(media, attributes, attrs, user: user, api_token: api_token)
+
+            if !is_nil(user) do
+              Updates.subscribe_if_first_interaction(media, user)
+            end
+
             res
           end)
 
@@ -1487,11 +1506,49 @@ defmodule Platform.Material do
   end
 
   def incidents_edited_per_user_in_last_month do
-    Platform.Repo.all(from(user in Platform.Accounts.User,
-      join: update in Platform.Updates.Update,
-      on: update.user_id == user.id,
-      where: update.inserted_at > ^(DateTime.utc_now() |> DateTime.add(-30, :day)),
-      group_by: [user.username],
-      select: {user.username, count(fragment("DISTINCT ?", update.media_id))}))
+    Platform.Repo.all(
+      from(user in Platform.Accounts.User,
+        join: update in Platform.Updates.Update,
+        on: update.user_id == user.id,
+        where: update.inserted_at > ^(DateTime.utc_now() |> DateTime.add(-30, :day)),
+        group_by: [user.username],
+        select: {user.username, count(fragment("DISTINCT ?", update.media_id))}
+      )
+    )
+  end
+
+  @doc """
+  Generates a map that can be passed to an Ecto changeset to update the given
+  attribute to the given value. This is necessary because built-in attributes
+  are expressed as keys in the root of the media, while project attributes are
+  expressed as keys in the `project_attributes` map.
+  """
+  def generate_attribute_change_params(
+        %Attribute{} = attribute,
+        value,
+        %Project{} = project,
+        existing_map \\ %{}
+      ) do
+    case attribute.schema_field do
+      :project_attributes ->
+        existing = existing_map["project_attributes"] || %{}
+
+        Map.put(
+          existing_map,
+          "project_attributes",
+          Map.put(
+            existing,
+            to_string(map_size(existing)),
+            %{
+              "id" => attribute.name,
+              "value" => value,
+              "project_id" => project.id
+            }
+          )
+        )
+
+      _ ->
+        Map.put(existing_map, to_string(attribute.schema_field), value)
+    end
   end
 end
