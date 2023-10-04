@@ -1479,6 +1479,24 @@ defmodule PlatformWeb.Components do
               <%= Platform.Utils.format_date(@value) %>
             </div>
           </div>
+        <% :multi_users -> %>
+          <.attr_label label={@label} />
+          <%= for item <- (if @compact, do: @value |> Enum.take(1), else: @value) do %>
+            <div class={"chip #{@tone} flex items-center gap-1 inline-block self-start break-all xl:break-normal"}>
+              <.attribute_icon
+                name={@name}
+                type={:solid}
+                value={item}
+                class="h-4 w-4 shrink-0 opacity-50"
+              />
+              <.user_text user={item.user} />
+            </div>
+            <%= if @compact and length(@value) > 1 do %>
+              <div class="text-xs mt-1 text-neutral-500">
+                + <%= length(@value) - 1 %>
+              </div>
+            <% end %>
+          <% end %>
       <% end %>
     </span>
     """
@@ -1730,6 +1748,11 @@ defmodule PlatformWeb.Components do
           )
         )
 
+      project_usernames =
+        Enum.map(project.memberships, & &1.user)
+        |> Enum.map(&{&1.id, &1.username})
+        |> Enum.into(%{})
+
       ~H"""
       <span class="inline">
         <%= case @attr.type do %>
@@ -1747,6 +1770,12 @@ defmodule PlatformWeb.Components do
             <.location_diff old={@old_val} new={@new_val} label={@label} />
           <% :time -> %>
             <.list_diff old={[@old_val]} new={[@new_val]} label={@label} />
+          <% :multi_users -> %>
+            <.list_diff
+              old={@old_val |> Enum.map(&Map.get(project_usernames, &1, "Removed User"))}
+              new={@new_val |> Enum.map(&Map.get(project_usernames, &1, "Removed User"))}
+              label={@label}
+            />
           <% :date -> %>
             <.list_diff
               old={[Platform.Utils.format_date(@old_val)]}
@@ -3105,6 +3134,7 @@ defmodule PlatformWeb.Components do
       |> assign(:core_attributes, core_attributes)
       |> assign(:project_attributes, project_attributes)
       |> assign_new(:optional, fn -> false end)
+      |> assign_new(:project, fn -> nil end)
 
     ~H"""
     <section class="flex flex-col gap-8">
@@ -3115,6 +3145,7 @@ defmodule PlatformWeb.Components do
           media_slug={@media_slug}
           media={@media}
           optional={@optional}
+          project={@project}
         />
       <% end %>
 
@@ -3129,6 +3160,7 @@ defmodule PlatformWeb.Components do
             media_slug={@media_slug}
             media={@media}
             optional={@optional}
+            project={@project}
           />
         </div>
       <% end %>
@@ -3136,7 +3168,7 @@ defmodule PlatformWeb.Components do
     """
   end
 
-  defp edit_attribute(%{attr: attr, form: form, media_slug: slug} = assigns) do
+  defp edit_attribute(%{attr: attr, form: form, media_slug: slug, project: project} = assigns) do
     assigns =
       assigns
       |> assign(
@@ -3195,6 +3227,26 @@ defmodule PlatformWeb.Components do
               data_descriptions: Jason.encode!(@attr.option_descriptions || %{}),
               data_privileged: Jason.encode!(@attr.privileged_values || []),
               data_allow_user_defined_options: Attribute.allow_user_defined_options(@attr)
+            ) %>
+          </div>
+        <% :multi_users -> %>
+          <%= label(@f, @schema_field, @label) %>
+          <%= error_tag(@f, @schema_field) %>
+          <div phx-update="ignore" id={"attr_multi_users_#{@slug}_#{@attr.name}"}>
+            <%= multiple_select(
+              @f,
+              @schema_field,
+              Enum.map(project.memberships, & &1.user) |> Enum.map(&{&1.username, &1.id}),
+              id: "attr_multi_users_#{@slug}_#{@attr.name}_input",
+              selected: Enum.map(@media.attr_assignments, & &1.user_id),
+              data_descriptions:
+                Enum.map(
+                  project.memberships,
+                  &{&1.user_id, to_string(&1.role) |> String.capitalize()}
+                )
+                |> Enum.into(%{})
+                |> Jason.encode!(),
+              data_allow_user_defined_options: false
             ) %>
           </div>
         <% :location -> %>

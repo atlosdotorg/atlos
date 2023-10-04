@@ -89,6 +89,15 @@ defmodule Platform.Material.Attribute do
         }
       },
       %Attribute{
+        schema_field: :attr_assignments,
+        type: :multi_users,
+        label: "Assignees",
+        pane: :metadata,
+        required: false,
+        name: :assignees,
+        description: "Who is working on this incident?"
+      },
+      %Attribute{
         schema_field: :attr_description,
         type: :text,
         max_length: 240,
@@ -600,7 +609,7 @@ defmodule Platform.Material.Attribute do
     (changeset || media)
     |> cast(%{}, [])
     |> populate_virtual_data(attribute)
-    |> cast_attribute(attribute, attrs)
+    |> cast_attribute(attribute, attrs, media.id)
     |> validate_attribute(attribute, media, opts)
     |> cast_and_validate_virtual_explanation(attrs, attribute)
     |> update_from_virtual_data(attribute)
@@ -868,7 +877,7 @@ defmodule Platform.Material.Attribute do
     end
   end
 
-  defp cast_attribute(media_or_changeset, %Attribute{} = attribute, attrs) do
+  defp cast_attribute(media_or_changeset, %Attribute{} = attribute, attrs, media_id) do
     # Casts the given attribute in the Media changeset from the given attrs.
 
     if attribute.deprecated == true do
@@ -885,6 +894,15 @@ defmodule Platform.Material.Attribute do
         attribute.type == :location ->
           changeset
           |> cast(attrs, [:location])
+
+        attribute.type == :multi_users ->
+          value =
+            Map.get(attrs, to_string(attribute.schema_field), [])
+            |> Enum.reject(&(&1 == ""))
+            |> Enum.map(&%{media_id: media_id, user_id: &1})
+
+          changeset
+          |> put_assoc(attribute.schema_field, value)
 
         true ->
           changeset
@@ -959,6 +977,7 @@ defmodule Platform.Material.Attribute do
   def validate_attribute(changeset, %Attribute{} = attribute, %Media{} = media, opts \\ []) do
     user = Keyword.get(opts, :user, nil)
     required = Keyword.get(opts, :required, true)
+    project = Keyword.get(opts, :project, nil)
 
     validations =
       case attribute.type do
@@ -1023,6 +1042,22 @@ defmodule Platform.Material.Attribute do
             min: attribute.min_length,
             max: attribute.max_length
           )
+
+        :multi_users ->
+          # Verify that all the users are part of the project
+          changeset
+          |> validate_change(attribute.schema_field, fn _, vals ->
+            if not is_nil(project) and
+                 Enum.any?(vals, fn val ->
+                   not Enum.member?(Enum.map(project.memberships, & &1.user_id), val.id)
+                 end) do
+              [
+                {attribute.schema_field, "You cannot add users who are not part of the project."}
+              ]
+            else
+              []
+            end
+          end)
 
         _ ->
           changeset

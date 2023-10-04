@@ -52,6 +52,13 @@ defmodule Platform.Material.Media do
     field(:attr_status, :string)
     field(:attr_tags, {:array, :string})
 
+    # Assignees -- Note that we have :attr_assignments and :assignees, which are
+    # different. :attr_assignments is the list of assignments, which supports
+    # cast_assoc; :assignees is a helper item that is populated during querying
+    # and contains actual assigned users.
+    has_many(:attr_assignments, Platform.Material.MediaAssignment, on_replace: :delete)
+    many_to_many(:assignees, Platform.Accounts.User, join_through: "media_assignments")
+
     # Automatically-generated Metadata
     field(:auto_metadata, :map, default: %{})
 

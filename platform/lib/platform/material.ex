@@ -29,6 +29,7 @@ defmodule Platform.Material do
     |> preload_media_versions()
     |> preload_media_updates()
     |> preload_media_project()
+    |> preload_media_assignees()
     |> then(fn x ->
       case Keyword.get(opts, :for_user) do
         nil -> x
@@ -158,12 +159,23 @@ defmodule Platform.Material do
     # TODO: should this be pulled into the Updates context somehow?
     query
     |> preload(
-      updates: [:user, :media_version, :old_project, :api_token, :new_project, media: [:project]]
+      updates: [
+        :user,
+        :media_version,
+        :old_project,
+        :api_token,
+        :new_project,
+        media: [project: [memberships: [:user]]]
+      ]
     )
   end
 
   defp preload_media_project(query) do
     query |> preload(project: [memberships: [:user]])
+  end
+
+  defp preload_media_assignees(query) do
+    query |> preload([:assignees]) |> preload(attr_assignments: [:user])
   end
 
   defp apply_user_fields(query, user, opts)
@@ -362,9 +374,7 @@ defmodule Platform.Material do
 
   def get_full_media_by_slug(slug) do
     Media
-    |> preload_media_versions()
-    |> preload_media_updates()
-    |> preload_media_project()
+    |> hydrate_media_query()
     |> Repo.get_by(slug: get_raw_slug(slug))
   end
 

@@ -120,7 +120,6 @@ defmodule PlatformWeb.APIV2Controller do
   end
 
   def update(conn, params) do
-    dbg("updating!")
     project_id = conn.assigns.token.project_id
     project = Projects.get_project!(project_id)
 
@@ -130,8 +129,6 @@ defmodule PlatformWeb.APIV2Controller do
     attribute = params["attribute"] |> Attribute.get_attribute(project: project)
     value = params["value"]
     media = Material.get_full_media_by_slug(params["slug"])
-
-    dbg("ok...")
 
     cond do
       is_nil(value) ->

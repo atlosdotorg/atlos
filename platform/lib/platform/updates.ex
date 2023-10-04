@@ -41,7 +41,14 @@ defmodule Platform.Updates do
 
   defp preload_fields(queryable) do
     queryable
-    |> preload([:user, :media_version, :old_project, :new_project, :api_token, media: [:project]])
+    |> preload([
+      :user,
+      :media_version,
+      :old_project,
+      :new_project,
+      :api_token,
+      media: [project: [memberships: [:user]]]
+    ])
   end
 
   @doc """
@@ -165,6 +172,10 @@ defmodule Platform.Updates do
         Ecto.Changeset.get_field(changeset, :project_attributes)
         |> Enum.find(%{value: nil}, &(&1.id == attr.name))
         |> Map.get(:value)
+
+      attr.schema_field == :attr_assignments ->
+        Ecto.Changeset.get_field(changeset, :attr_assignments)
+        |> Enum.map(&Map.get(&1, :user_id))
 
       true ->
         Ecto.Changeset.get_field(changeset, attr.schema_field)
