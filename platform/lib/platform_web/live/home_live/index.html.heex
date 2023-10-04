@@ -111,7 +111,18 @@
       </section>
     <% end %>
     <section class="flex flex-col-reverse lg:flex-row gap-8 max-w-full mt-14">
-      <div class="lg:w-2/3 mt-2">
+      <div class="lg:w-2/3">
+        <div class="border-b border-gray-200 mb-4">
+          <nav class="mb-px">
+            <div
+              class="text-neutral-600 group inline-flex items-center py-2 px-1 font-medium text-sm"
+              aria-current="page"
+            >
+              <Heroicons.clock solid class="text-neutral-400 -ml-0.5 mr-2 h-5 w-5" />
+              <span>Recent Updates</span>
+            </div>
+          </nav>
+        </div>
         <.live_component
           module={PlatformWeb.UpdatesLive.PaginatedMediaUpdateFeed}
           current_user={@current_user}
