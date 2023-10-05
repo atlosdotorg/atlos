@@ -23,7 +23,12 @@ defmodule Platform.Projects do
 
   """
   def list_projects do
-    Repo.all(Project)
+    Repo.all(Project |> preload_project_associations())
+  end
+
+  defp preload_project_associations(query) do
+    query
+    |> preload([memberships: [:user]])
   end
 
   def list_projects_for_user(%Accounts.User{} = user) do
@@ -52,7 +57,7 @@ defmodule Platform.Projects do
       ** (Ecto.NoResultsError)
 
   """
-  def get_project!(id), do: Repo.get!(Project, id)
+  def get_project!(id), do: Repo.get!(Project |> preload_project_associations(), id)
 
   @doc """
   Gets a single project. Returns `nil` if the Project does not exist.

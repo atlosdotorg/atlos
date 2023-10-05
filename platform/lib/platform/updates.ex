@@ -173,8 +173,11 @@ defmodule Platform.Updates do
         |> Enum.find(%{value: nil}, &(&1.id == attr.name))
         |> Map.get(:value)
 
-      attr.schema_field == :attr_assignments ->
-        Ecto.Changeset.get_field(changeset, :attr_assignments)
+      # For multi-user attributes, we need to extract the user IDs from the
+      # changeset; we assume these kinds of attributes work via some kind of
+      # "through" model with a `user_id` column
+      attr.type == :multi_users ->
+        Ecto.Changeset.get_field(changeset, attr.schema_field)
         |> Enum.map(&Map.get(&1, :user_id))
 
       true ->
@@ -188,6 +191,13 @@ defmodule Platform.Updates do
         Map.get(media, :project_attributes, [])
         |> Enum.find(%{value: nil}, &(&1.id == attr.name))
         |> Map.get(:value)
+
+      # For multi-user attributes, we need to extract the user IDs from the
+      # changeset; we assume these kinds of attributes work via some kind of
+      # "through" model with a `user_id` column
+      attr.type == :multi_users ->
+        Map.get(media, attr.schema_field)
+        |> Enum.map(&Map.get(&1, :user_id))
 
       true ->
         Map.get(media, attr.schema_field)

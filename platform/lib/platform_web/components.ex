@@ -1305,6 +1305,7 @@ defmodule PlatformWeb.Components do
             |> Enum.filter(&(!&1.hidden))
             |> Enum.sort_by(& &1.inserted_at, {:desc, NaiveDateTime})
             |> Enum.map(& &1.user)
+            |> Enum.reject(&is_nil/1)
             |> Enum.take(1)
           } />
         <% end %>
@@ -1489,7 +1490,9 @@ defmodule PlatformWeb.Components do
                 value={item}
                 class="h-4 w-4 shrink-0 opacity-50"
               />
-              <.user_text user={item.user} />
+              <% membership = Enum.find(@project.memberships, & &1.user_id == item.user_id) %>
+              <.user_text :if={not is_nil(membership)} user={membership.user} icon={true} />
+              <span :if={is_nil(membership)}>Unknown User</span>
             </div>
             <%= if @compact and length(@value) > 1 do %>
               <div class="text-xs mt-1 text-neutral-500">
@@ -1978,7 +1981,7 @@ defmodule PlatformWeb.Components do
             data-tooltip={"Last modified by #{List.last(@media.updates).user.username}"}
           >
             <.user_stack
-              users={@media.updates |> Enum.take(1) |> Enum.map(& &1.user)}
+              users={@media.updates |> Enum.take(1) |> Enum.map(& &1.user) |> Enum.reject(&is_nil/1)}
               dynamic={false}
               ring_class="ring-transparent"
             />
@@ -2604,7 +2607,7 @@ defmodule PlatformWeb.Components do
           <.popover class="inline">
             <img
               class={"relative z-30 inline-block rounded-full ring-2 " <> Map.get(assigns, :size_classes, "h-5 w-5") <> " " <> Map.get(assigns, :ring_class, "ring-white")}
-              src={Accounts.get_profile_photo_path(user)}
+              src={Accounts.get_profile_photo_path(user |> dbg())}
               alt={"Profile photo for #{user.username}"}
               loading="lazy"
             />
@@ -3238,12 +3241,12 @@ defmodule PlatformWeb.Components do
             <%= multiple_select(
               @f,
               @schema_field,
-              Enum.map(project.memberships, & &1.user) |> Enum.map(&{&1.username, &1.id}),
+              Enum.map(@project.memberships, & &1.user) |> Enum.map(&{&1.username, &1.id}),
               id: "attr_multi_users_#{@slug}_#{@attr.name}_input",
               selected: Enum.map(@media.attr_assignments, & &1.user_id),
               data_descriptions:
                 Enum.map(
-                  project.memberships,
+                  @project.memberships,
                   &{&1.user_id, to_string(&1.role) |> String.capitalize()}
                 )
                 |> Enum.into(%{})

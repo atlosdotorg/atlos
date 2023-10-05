@@ -1343,6 +1343,7 @@ defmodule Platform.Material do
       media.updates
       |> Enum.filter(&(not &1.hidden))
       |> Enum.map(& &1.user)
+      |> Enum.reject(&is_nil/1)
     )
   end
 

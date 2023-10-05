@@ -292,6 +292,18 @@ defmodule Platform.Material.Media do
                   v |> String.split(",") |> Enum.map(&String.trim(&1)) |> Enum.reject(&(&1 == ""))
                 end
 
+              :multi_users ->
+                dbg(v)
+                v |> String.split(",") |> Enum.map(&String.trim(&1)) |> Enum.reject(&(&1 == "")) |> Enum.map(fn username ->
+                  user = Platform.Accounts.get_user_by_username(username)
+
+                  if is_nil(user) do
+                    nil
+                  else
+                    user.id
+                  end
+                end) |> Enum.reject(&is_nil/1)
+
               _ ->
                 v
             end
