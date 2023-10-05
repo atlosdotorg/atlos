@@ -265,7 +265,7 @@ defmodule PlatformWeb.ProjectsLive.MembersComponent do
                               <%= if can_edit do %>
                                 <button
                                   type="button"
-                                  class="button ~urge @high"
+                                  class="button ~urge @high my-2"
                                   phx-click="add_member"
                                   phx-target={@myself}
                                 >
