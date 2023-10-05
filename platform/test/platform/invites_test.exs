@@ -12,7 +12,7 @@ defmodule Platform.InvitesTest do
     @invalid_attrs %{active: nil, code: nil}
 
     test "list_invites/0 returns all invites" do
-      assert length(Invites.list_invites()) == 0
+      assert Enum.empty?(Invites.list_invites())
       _ = invite_fixture()
       assert length(Invites.list_invites()) == 1
     end

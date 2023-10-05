@@ -843,7 +843,7 @@ defmodule Platform.Material do
       # Rip through all the old attributes, and try to copy them to the new media
       new_proj_attributes = Attribute.active_attributes(project: destination)
 
-      Enum.map(Attribute.set_for_media(source, project: source.project), fn attr ->
+      Enum.each(Attribute.set_for_media(source, project: source.project), fn attr ->
         equivalent_attr = Enum.find(new_proj_attributes, &(&1.label == attr.label))
 
         # Try to set the attribute; no worries if it fails (they might not have permission to edit it, or it may be an invalid option)

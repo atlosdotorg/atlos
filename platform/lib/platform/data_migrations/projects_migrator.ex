@@ -92,7 +92,7 @@ defmodule Platform.DataMigrations.ProjectsMigrator do
       )
 
       # First, update all updates to point from the old attribute to the new attribute.
-      media.updates |> Enum.map(&migrate_update(&1, deprecated_attribute, new_attribute))
+      media.updates |> Enum.each(&migrate_update(&1, deprecated_attribute, new_attribute))
 
       # Second, update the media itself.
       if Enum.member?(set_attributes, deprecated_attribute) do
