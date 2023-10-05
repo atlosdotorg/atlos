@@ -11,7 +11,7 @@ defmodule Platform.APITest do
     @invalid_attrs %{name: nil, description: nil, value: nil}
 
     test "list_api_tokens/0 returns all api_tokens" do
-      api_token = api_token_fixture_legacy()
+      api_token_fixture_legacy()
       assert length(API.list_api_tokens()) == 1
     end
 

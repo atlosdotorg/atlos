@@ -45,7 +45,7 @@ defmodule PlatformWeb.APIV2Test do
 
     # Create a second incident that should *not* show up in the results
     other_project = project_fixture()
-    other_media = media_fixture(%{project_id: other_project.id})
+    media_fixture(%{project_id: other_project.id})
 
     auth_conn =
       build_conn()
@@ -151,7 +151,7 @@ defmodule PlatformWeb.APIV2Test do
       api_token_fixture(%{project_id: other_project.id, permissions: [:read, :comment]})
 
     media = media_fixture(%{project_id: project.id})
-    other_media = media_fixture(%{project_id: other_project.id})
+    media_fixture(%{project_id: other_project.id})
 
     noauth_conn = post(build_conn(), "/api/v2/add_comment/#{media.slug}", %{})
     assert json_response(noauth_conn, 401) == %{"error" => "invalid token or token not found"}
@@ -203,7 +203,7 @@ defmodule PlatformWeb.APIV2Test do
       api_token_fixture(%{project_id: other_project.id, permissions: [:read, :comment, :edit]})
 
     media = media_fixture(%{project_id: project.id})
-    other_media = media_fixture(%{project_id: other_project.id})
+    media_fixture(%{project_id: other_project.id})
 
     noauth_conn = post(build_conn(), "/api/v2/update/#{media.slug}/description", %{})
     assert json_response(noauth_conn, 401) == %{"error" => "invalid token or token not found"}

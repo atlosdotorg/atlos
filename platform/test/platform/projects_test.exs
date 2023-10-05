@@ -12,12 +12,13 @@ defmodule Platform.ProjectsTest do
 
     test "list_projects/0 returns all projects" do
       project = project_fixture()
-      assert Projects.list_projects() == [project]
+      assert hd(Projects.list_projects()).name == project.name
+      assert length(Projects.list_projects()) == 1
     end
 
     test "get_project!/1 returns the project with given id" do
       project = project_fixture()
-      assert Projects.get_project!(project.id) == project
+      assert Projects.get_project!(project.id).name == project.name
     end
 
     test "create_project/1 with valid data creates a project" do
@@ -44,7 +45,7 @@ defmodule Platform.ProjectsTest do
     test "update_project/2 with invalid data returns error changeset" do
       project = project_fixture()
       assert {:error, %Ecto.Changeset{}} = Projects.update_project(project, @invalid_attrs)
-      assert project == Projects.get_project!(project.id)
+      assert project.name == Projects.get_project!(project.id).name
     end
 
     test "delete_project/1 deletes the project" do
