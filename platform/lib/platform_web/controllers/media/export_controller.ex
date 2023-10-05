@@ -55,6 +55,9 @@ defmodule PlatformWeb.ExportController do
      |> Map.new(fn {k, v} ->
        {format_field_name(k),
         case v do
+          # Match lists of structs that contain a user field and format them
+          # into comma-separated usernames (this is used, e.g., for assignees)
+          [%{user: %Platform.Accounts.User{}} | _] -> v |> Enum.map(fn %{user: user} -> user.username end) |> Enum.join(", ")
           [_ | _] -> Enum.join(v, ", ")
           _ -> v
         end}

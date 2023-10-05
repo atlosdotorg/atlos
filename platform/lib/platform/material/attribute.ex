@@ -94,7 +94,7 @@ defmodule Platform.Material.Attribute do
         label: "Assignees",
         pane: :metadata,
         required: false,
-        name: :assignees,
+        name: :assignments,
         description: "Who is working on this incident?"
       },
       %Attribute{
