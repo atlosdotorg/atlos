@@ -28,7 +28,7 @@ defmodule Platform.Projects do
 
   defp preload_project_associations(query) do
     query
-    |> preload([memberships: [:user]])
+    |> preload(memberships: [:user])
   end
 
   def list_projects_for_user(%Accounts.User{} = user) do

@@ -896,8 +896,9 @@ defmodule Platform.Material.Attribute do
           |> cast(attrs, [:location])
 
         attribute.type == :multi_users ->
+          # Can be set as nil if not provided by the user/the user clears it
           value =
-            (Map.get(attrs, to_string(attribute.schema_field)) || []) # Can be set as nil if not provided by the user/the user clears it
+            (Map.get(attrs, to_string(attribute.schema_field)) || [])
             |> Enum.reject(&(&1 == ""))
             |> Enum.map(&%{media_id: media_id, user_id: &1})
 

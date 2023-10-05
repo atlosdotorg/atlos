@@ -1490,7 +1490,7 @@ defmodule PlatformWeb.Components do
                 value={item}
                 class="h-4 w-4 shrink-0 opacity-50"
               />
-              <% membership = Enum.find(@project.memberships, & &1.user_id == item.user_id) %>
+              <% membership = Enum.find(@project.memberships, &(&1.user_id == item.user_id)) %>
               <.user_text :if={not is_nil(membership)} user={membership.user} icon={true} />
               <span :if={is_nil(membership)}>Unknown User</span>
             </div>
@@ -1684,7 +1684,7 @@ defmodule PlatformWeb.Components do
   def user_list_diff(%{old: old, new: new} = assigns) do
     clean = fn x ->
       cleaned = if is_nil(x), do: [], else: x
-      cleaned |> Enum.filter(&(!(is_nil(&1)))) |> Enum.sort()
+      cleaned |> Enum.filter(&(!is_nil(&1))) |> Enum.sort()
     end
 
     diff = List.myers_difference(clean.(old), clean.(new))
@@ -3387,23 +3387,23 @@ defmodule PlatformWeb.Components do
     >
       <%= if @icon do %>
         <img
-            class="absolute z-30 inline-block h-4 w-4 rounded-full"
-            src={Accounts.get_profile_photo_path(@user)}
-            alt={"Profile photo for #{@user.username}"}
-          />
+          class="absolute z-30 inline-block h-4 w-4 rounded-full"
+          src={Accounts.get_profile_photo_path(@user)}
+          alt={"Profile photo for #{@user.username}"}
+        />
       <% end %>
       <span class={if @icon, do: "ml-5", else: ""}>
-      <%= if is_nil(@user) do %>
-        [System]
-      <% else %>
-        <%= @user.username %>
-        <%= if Accounts.is_admin(@user) do %>
-          <span class="font-normal text-xs badge ~critical self-center">Admin</span>
+        <%= if is_nil(@user) do %>
+          [System]
+        <% else %>
+          <%= @user.username %>
+          <%= if Accounts.is_admin(@user) do %>
+            <span class="font-normal text-xs badge ~critical self-center">Admin</span>
+          <% end %>
+          <%= if String.length(@user.flair) > 0 do %>
+            <span class="font-normal text-xs badge ~urge self-center"><%= @user.flair %></span>
+          <% end %>
         <% end %>
-        <%= if String.length(@user.flair) > 0 do %>
-          <span class="font-normal text-xs badge ~urge self-center"><%= @user.flair %></span>
-        <% end %>
-      <% end %>
       </span>
     </.link>
     """
