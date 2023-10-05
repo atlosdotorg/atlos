@@ -8,12 +8,24 @@ To set Atlos up for local development, you need not do much. Just click the gree
 
 Once the Codespace opens up in your VS Code window, you'll be able to start the Phoenix server by `cd`'ing into `platform`, and then running `mix phx.server`. VS Code should detect that the server is running on port `3000` and offer to forward that port to your local machine. (If not, just add the port under `Ports` in the VS Code bottom menu.)
 
+You can log into an admin using the following credentials:
+
+- Email: `admin@localhost`
+- Password: `localhost123`
+
+And you can log into a regular user account using the following credentials:
+
+- Email: `user@localhost`
+- Password: `localhost123`
+
 Other tasks you might want to perform from inside the `platform` subdirectory (i.e., this one):
 
 - Install dependencies with `mix deps.get` (note: not necessary if you're using a dev container, since dependencies will be installed automatically)
 - Create and migrate your database with `mix ecto.setup` (note: not necessary if you're using a dev container, but helpful if you want to refresh the environment)
 - Start Phoenix endpoint with `mix phx.server` or inside IEx with `iex -S mix phx.server`
 - Run our 200+ automated tests with `mix test`.
+
+For more information about contributing, see the [Contributing](#contributing) section below.
 
 ## Architecture Overview
 
@@ -189,6 +201,12 @@ There are five "sets" of dependencies that you need to be mindful of periodicall
 We welcome contributions to Atlos! If you're interested in contributing, please feel free to reach out to us via our Discord server. We're happy to help you get started.
 
 Please be careful to follow our [code of conduct](/CODE_OF_CONDUCT.md) in all interactions with the project.
+
+Some additional tips:
+
+1. Run `mix format` to ensure that your code is formatted correctly.
+2. Run `mix credo` to ensure that your code is idiomatic.
+3. Run `mix test` to ensure that your code passes all tests.
 
 ## License
 
