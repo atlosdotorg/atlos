@@ -2639,9 +2639,10 @@ defmodule PlatformWeb.Components do
   end
 
   def user_stack(assigns) do
-    assigns = assign_new(assigns, :dynamic, fn -> true end)
-              |>assign_new(:max, fn -> 5 end)
-              |> assign_new(:link_remaining_users, fn -> nil end)
+    assigns =
+      assign_new(assigns, :dynamic, fn -> true end)
+      |> assign_new(:max, fn -> 5 end)
+      |> assign_new(:link_remaining_users, fn -> nil end)
 
     ~H"""
     <div class="flex -space-x-1 relative z-0 place-items-end">
@@ -3667,7 +3668,11 @@ defmodule PlatformWeb.Components do
           </.link>
         <% end %>
         <div>
-          <.user_stack users={@project.memberships |> Enum.map(& &1.user)} link_remaining_users={"/projects/#{@project.id}/access"} size_classes="h-7 w-7" />
+          <.user_stack
+            users={@project.memberships |> Enum.map(& &1.user)}
+            link_remaining_users={"/projects/#{@project.id}/access"}
+            size_classes="h-7 w-7"
+          />
         </div>
       </div>
     </div>
