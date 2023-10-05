@@ -1558,7 +1558,7 @@ defmodule PlatformWeb.Components do
     """
   end
 
-  def attr_explanation(%{name: name, project: project} = assigns) do
+  def attr_import_format_explanation(%{name: name, project: project} = assigns) do
     assigns = assign(assigns, :attr, Attribute.get_attribute(name, project: project))
 
     ~H"""
@@ -1598,6 +1598,8 @@ defmodule PlatformWeb.Components do
         <% :date -> %>
           date, in the format
           <div class="badge ~urge inline-block">YYYY-MM-DD</div>
+        <% :multi_users -> %>
+          usernames of users that are part of the project, comma separated
       <% end %>
     </span>
     """

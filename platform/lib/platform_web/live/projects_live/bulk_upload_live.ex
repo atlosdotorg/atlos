@@ -216,7 +216,7 @@ defmodule PlatformWeb.ProjectsLive.BulkUploadLive do
                 <ul>
                   <%= for attr <- Material.Attribute.active_attributes(project: @project) |> Enum.filter(& &1.required) do %>
                     <li>
-                      <.attr_explanation name={attr.name} project={@project} />
+                      <.attr_import_format_explanation name={attr.name} project={@project} />
                     </li>
                   <% end %>
                 </ul>
@@ -224,7 +224,7 @@ defmodule PlatformWeb.ProjectsLive.BulkUploadLive do
                 <ul>
                   <%= for attr <- Material.Attribute.active_attributes(project: @project) |> Enum.reject(& &1.required) do %>
                     <li>
-                      <.attr_explanation name={attr.name} project={@project} />
+                      <.attr_import_format_explanation name={attr.name} project={@project} />
                     </li>
                   <% end %>
                   <li>
