@@ -293,8 +293,6 @@ defmodule Platform.Material.Media do
                 end
 
               :multi_users ->
-                dbg(v)
-
                 v
                 |> String.split(",")
                 |> Enum.map(&String.trim(&1))

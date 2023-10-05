@@ -2648,7 +2648,7 @@ defmodule PlatformWeb.Components do
           <.popover class="inline">
             <img
               class={"relative z-30 inline-block rounded-full ring-2 " <> Map.get(assigns, :size_classes, "h-5 w-5") <> " " <> Map.get(assigns, :ring_class, "ring-white")}
-              src={Accounts.get_profile_photo_path(user |> dbg())}
+              src={Accounts.get_profile_photo_path(user)}
               alt={"Profile photo for #{user.username}"}
               loading="lazy"
             />
