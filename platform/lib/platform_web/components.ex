@@ -1681,6 +1681,47 @@ defmodule PlatformWeb.Components do
     """
   end
 
+  def user_list_diff(%{old: old, new: new} = assigns) do
+    clean = fn x ->
+      cleaned = if is_nil(x), do: [], else: x
+      cleaned |> Enum.filter(&(!(is_nil(&1)))) |> Enum.sort()
+    end
+
+    diff = List.myers_difference(clean.(old), clean.(new))
+
+    assigns = assign(assigns, :diff, diff)
+
+    ~H"""
+    <span class="inline-flex flex-wrap gap-1">
+      <%= for {action, elem} <- @diff do %>
+        <%= case action do %>
+          <% :eq -> %>
+            <%= for item <- elem do %>
+              <span class="chip ~neutral inline-block text-xs">
+                <.attr_label label={Map.get(assigns, :label, "")} />
+                <.user_text user={item} icon={true} />
+              </span>
+            <% end %>
+          <% :ins -> %>
+            <%= for item <- elem do %>
+              <span class="chip ~blue inline-block text-xs">
+                + <.attr_label label={Map.get(assigns, :label, "")} />
+                <.user_text user={item} icon={true} />
+              </span>
+            <% end %>
+          <% :del -> %>
+            <%= for item <- elem do %>
+              <span class="chip ~yellow inline-block text-xs">
+                - <.attr_label label={Map.get(assigns, :label, "")} />
+                <.user_text user={item} icon={true} />
+              </span>
+            <% end %>
+        <% end %>
+      <% end %>
+    </span>
+    """
+  end
+
   def location_diff(%{old: _, new: _} = assigns) do
     ~H"""
     <span>
@@ -1753,9 +1794,9 @@ defmodule PlatformWeb.Components do
           )
         )
 
-      project_usernames =
+      project_users =
         Enum.map(project.memberships, & &1.user)
-        |> Enum.map(&{&1.id, &1.username})
+        |> Enum.map(&{&1.id, &1})
         |> Enum.into(%{})
 
       ~H"""
@@ -1776,9 +1817,9 @@ defmodule PlatformWeb.Components do
           <% :time -> %>
             <.list_diff old={[@old_val]} new={[@new_val]} label={@label} />
           <% :multi_users -> %>
-            <.list_diff
-              old={@old_val |> Enum.map(&Map.get(project_usernames, &1, "Removed User"))}
-              new={@new_val |> Enum.map(&Map.get(project_usernames, &1, "Removed User"))}
+            <.user_list_diff
+              old={@old_val |> Enum.map(&Map.get(project_users, &1))}
+              new={@new_val |> Enum.map(&Map.get(project_users, &1))}
               label={@label}
             />
           <% :date -> %>
@@ -3337,11 +3378,21 @@ defmodule PlatformWeb.Components do
   end
 
   defp user_name_display(%{user: %Accounts.User{} = _} = assigns) do
+    assigns = assign_new(assigns, :icon, fn -> false end)
+
     ~H"""
     <.link
-      class="font-medium text-gray-900 hover:text-urge-600 inline-flex gap-1 flex-wrap"
+      class="font-medium text-gray-900 hover:text-urge-600 inline-flex gap-2 flex-wrap items-center"
       navigate={if is_nil(@user), do: "#", else: "/profile/#{@user.username}"}
     >
+      <%= if @icon do %>
+        <img
+            class="absolute z-30 inline-block h-4 w-4 rounded-full"
+            src={Accounts.get_profile_photo_path(@user)}
+            alt={"Profile photo for #{@user.username}"}
+          />
+      <% end %>
+      <span class={if @icon, do: "ml-5", else: ""}>
       <%= if is_nil(@user) do %>
         [System]
       <% else %>
@@ -3353,6 +3404,7 @@ defmodule PlatformWeb.Components do
           <span class="font-normal text-xs badge ~urge self-center"><%= @user.flair %></span>
         <% end %>
       <% end %>
+      </span>
     </.link>
     """
   end
@@ -3382,9 +3434,11 @@ defmodule PlatformWeb.Components do
   end
 
   def user_text(%{user: %Accounts.User{} = _} = assigns) do
+    assigns = assign_new(assigns, :icon, fn -> false end)
+
     ~H"""
     <.popover class="inline">
-      <.user_name_display user={@user} />
+      <.user_name_display user={@user} icon={@icon} />
       <:display>
         <%= if is_nil(@user) do %>
           This is an administrative user.
