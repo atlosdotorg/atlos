@@ -46,6 +46,13 @@ defmodule PlatformWeb.SettingsLive.ProfileComponent do
     end
   end
 
+  def handle_event("remove_pfp", _params, socket) do
+    {:noreply,
+     socket
+     |> update_changeset(:profile_photo_file, "")
+     |> assign(:profile_photo_display, "")}
+  end
+
   def update_changeset(%{assigns: %{changeset: changeset}} = socket, key, value) do
     socket |> assign(:changeset, Ecto.Changeset.put_change(changeset, key, value))
   end
@@ -109,19 +116,33 @@ defmodule PlatformWeb.SettingsLive.ProfileComponent do
                     else: Routes.static_path(@socket, "/images/default_profile.jpg") %>
                 <img class="w-full h-full" src={photo} />
               </div>
-              <div>
-                <label for="profile_photo_file">
-                  <button
-                    class="button ~neutral ml-4"
-                    type="button"
-                    x-on:click="document.querySelector('input[name=\'profile_photo_file\']').click()"
-                    x-data
-                  >
-                    Change
-                  </button>
-                  <%= live_file_input(@uploads.profile_photo_file, class: "sr-only") %>
-                </label>
-                <%= hidden_input(f, :profile_photo_file) %>
+              <div class="grid md:grid-cols-2 gap-2 ml-4">
+                <div>
+                  <label for="profile_photo_file">
+                    <button
+                      class="button ~neutral"
+                      type="button"
+                      x-on:click="document.querySelector('input[name=\'profile_photo_file\']').click()"
+                      x-data
+                    >
+                      Change
+                    </button>
+                    <%= live_file_input(@uploads.profile_photo_file, class: "sr-only") %>
+                  </label>
+                  <%= hidden_input(f, :profile_photo_file) %>
+                </div>
+                <%= if (@profile_photo_display != "/images/default_profile.jpg") and (@profile_photo_display != "") do %>
+                  <label>
+                    <button
+                      class="button ~critical"
+                      type="button"
+                      phx-click="remove_pfp"
+                      phx-target={@myself}
+                    >
+                      Remove
+                    </button>
+                  </label>
+                <% end %>
               </div>
             </div>
             <%= for entry <- @uploads.profile_photo_file.entries do %>

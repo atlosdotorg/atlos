@@ -2639,7 +2639,10 @@ defmodule PlatformWeb.Components do
   end
 
   def user_stack(assigns) do
-    assigns = assign_new(assigns, :dynamic, fn -> true end) |> assign_new(:max, fn -> 5 end)
+    assigns =
+      assign_new(assigns, :dynamic, fn -> true end)
+      |> assign_new(:max, fn -> 5 end)
+      |> assign_new(:link_remaining_users, fn -> nil end)
 
     ~H"""
     <div class="flex -space-x-1 relative z-0 place-items-end">
@@ -2666,12 +2669,13 @@ defmodule PlatformWeb.Components do
         <% end %>
       <% end %>
       <%= if length(@users) > @max do %>
-        <div
-          class={"relative bg-gray-200 text-gray-700 text-xl rounded-full z-30 ring-2 flex items-center justify-center " <> Map.get(assigns, :size_classes, "h-5 w-5") <>" " <> Map.get(assigns, :ring_class, "ring-white")}
+        <.link
+          class={"relative block bg-gray-200 text-gray-700 text-xl rounded-full z-30 ring-2 flex items-center justify-center " <> Map.get(assigns, :size_classes, "h-5 w-5") <>" " <> Map.get(assigns, :ring_class, "ring-white")}
           data-tooltip={"Shared with #{length(@users) - 5} more user#{if length(@users) - 5 == 1, do: "", else: "s"}"}
+          navigate={@link_remaining_users}
         >
           <Heroicons.ellipsis_horizontal mini class="h-4 w-4" />
-        </div>
+        </.link>
       <% end %>
     </div>
     """
@@ -3664,7 +3668,11 @@ defmodule PlatformWeb.Components do
           </.link>
         <% end %>
         <div>
-          <.user_stack users={@project.memberships |> Enum.map(& &1.user)} size_classes="h-7 w-7" />
+          <.user_stack
+            users={@project.memberships |> Enum.map(& &1.user)}
+            link_remaining_users={"/projects/#{@project.id}/access"}
+            size_classes="h-7 w-7"
+          />
         </div>
       </div>
     </div>
