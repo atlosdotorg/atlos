@@ -60,8 +60,8 @@ defmodule Platform.Updates.Update do
 
     hydrated_attrs =
       attrs
-      |> Map.put("user_id", (if is_nil(user), do: nil, else: user.id))
-      |> Map.put("api_token_id", (if is_nil(api_token), do: nil, else: api_token.id))
+      |> Map.put("user_id", if(is_nil(user), do: nil, else: user.id))
+      |> Map.put("api_token_id", if(is_nil(api_token), do: nil, else: api_token.id))
       |> Map.put("media_id", media.id)
 
     update
@@ -114,15 +114,17 @@ defmodule Platform.Updates.Update do
       |> validate_explanation()
 
     search_metadata =
-      if(not is_nil(get_field(changeset, :user_id)),
-        do: Accounts.get_user!(get_field(changeset, :user_id)).username,
-        else: ""
-      ) <>
+      if get_field(changeset, :user_id) do
+        Accounts.get_user!(get_field(changeset, :user_id)).username
+      else
+        ""
+      end <>
         " " <>
-        if(not is_nil(get_field(changeset, :api_token_id)),
-          do: API.get_api_token!(get_field(changeset, :api_token_id)).name,
-          else: ""
-        ) <>
+        if get_field(changeset, :api_token_id) do
+          API.get_api_token!(get_field(changeset, :api_token_id)).name
+        else
+          ""
+        end <>
         " " <>
         Material.get_media!(get_field(changeset, :media_id)).slug
 

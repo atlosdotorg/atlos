@@ -231,8 +231,8 @@ defmodule Platform.Material do
       )
     else
       query
+    end
   end
-end
 
   @doc """
   Gets a single media.
@@ -1265,10 +1265,10 @@ end
 
   def unsubscribe_user(%Media{} = media, %User{} = user) do
     case from(s in MediaSubscription,
-             where: s.media_id == ^media.id,
-             where: s.user_id == ^user.id
-           )
-           |> Repo.delete_all() do
+           where: s.media_id == ^media.id,
+           where: s.user_id == ^user.id
+         )
+         |> Repo.delete_all() do
       {1, _} -> :ok
       _ -> :error
     end
@@ -1402,6 +1402,7 @@ end
              ) do
           {:ok, 200, _, _} ->
             Logger.info("Submitted #{url} for archival by the Internet Archive.")
+
           error ->
             Logger.error("Unable to submit #{url} to the Internet Archive: " <> inspect(error))
         end

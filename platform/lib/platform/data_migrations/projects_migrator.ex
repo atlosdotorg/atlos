@@ -45,6 +45,7 @@ defmodule Platform.DataMigrations.ProjectsMigrator do
           :old_value,
           update_change_map(value, deprecated_attribute, new_attribute) |> Jason.encode!()
         )
+
       _ ->
         changeset
     end
@@ -56,6 +57,7 @@ defmodule Platform.DataMigrations.ProjectsMigrator do
           :new_value,
           update_change_map(value, deprecated_attribute, new_attribute) |> Jason.encode!()
         )
+
       _ ->
         changeset
     end
