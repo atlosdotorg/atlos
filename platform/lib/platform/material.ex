@@ -72,10 +72,10 @@ defmodule Platform.Material do
       if Keyword.get(opts, :hydrate, true), do: hydrate_media_query(q, opts), else: q
     end)
     |> then(fn q ->
-      if not Keyword.get(opts, :include_deleted, false) do
-        q |> where([m], not m.deleted)
-      else
+      if Keyword.get(opts, :include_deleted, false) do
         q
+      else
+        q |> where([m], not m.deleted)
       end
     end)
     |> maybe_filter_accessible_to_user(opts)
@@ -110,14 +110,14 @@ defmodule Platform.Material do
     project_id = Keyword.get(opts, :restrict_to_project_id)
 
     filter_user =
-      if not is_nil(user) do
+      if user do
         dynamic([m, update: u], u.user_id == ^user.id)
       else
         true
       end
 
     filter_project_id =
-      if not is_nil(project_id) do
+      if project_id do
         dynamic([m, update: u], m.project_id == ^project_id)
       else
         true
@@ -231,8 +231,8 @@ defmodule Platform.Material do
       )
     else
       query
-    end
   end
+end
 
   @doc """
   Gets a single media.
@@ -1189,7 +1189,7 @@ defmodule Platform.Material do
       Updates.change_from_attributes_changeset(
         media,
         attributes,
-        if(!is_nil(user), do: user, else: api_token),
+        user || api_token,
         media_changeset,
         attrs
       )
@@ -1213,7 +1213,7 @@ defmodule Platform.Material do
               Updates.change_from_attributes_changeset(
                 media,
                 attributes,
-                if(!is_nil(user), do: user, else: api_token),
+                user || api_token,
                 media_changeset,
                 attrs
               )
@@ -1264,14 +1264,12 @@ defmodule Platform.Material do
   end
 
   def unsubscribe_user(%Media{} = media, %User{} = user) do
-    with {1, _} <-
-           from(s in MediaSubscription,
+    case from(s in MediaSubscription,
              where: s.media_id == ^media.id,
              where: s.user_id == ^user.id
            )
            |> Repo.delete_all() do
-      :ok
-    else
+      {1, _} -> :ok
       _ -> :error
     end
   end
@@ -1396,15 +1394,14 @@ defmodule Platform.Material do
           "Not submitting #{url} for archival by the Internet Archive; no SPN archive key available."
         )
       else
-        with {:ok, 200, _, _} <-
-               :hackney.post(
-                 "https://web.archive.org/save",
-                 [{"Authorization", "LOW #{key}"}, {"Accept", "application/json"}],
-                 "url=#{url |> URI.encode_www_form()}",
-                 [:with_body]
-               ) do
-          Logger.info("Submitted #{url} for archival by the Internet Archive.")
-        else
+        case :hackney.post(
+               "https://web.archive.org/save",
+               [{"Authorization", "LOW #{key}"}, {"Accept", "application/json"}],
+               "url=#{url |> URI.encode_www_form()}",
+               [:with_body]
+             ) do
+          {:ok, 200, _, _} ->
+            Logger.info("Submitted #{url} for archival by the Internet Archive.")
           error ->
             Logger.error("Unable to submit #{url} to the Internet Archive: " <> inspect(error))
         end
@@ -1495,10 +1492,10 @@ defmodule Platform.Material do
         Enum.reduce(into_project.attributes, old_update_json, fn attribute, json ->
           old_attribute = Enum.find(media.project.attributes, &(&1.name == attribute.name))
 
-          if not is_nil(old_attribute) do
-            String.replace(json, "#{old_attribute.id}", "#{attribute.id}")
-          else
+          if is_nil(old_attribute) do
             json
+          else
+            String.replace(json, "#{old_attribute.id}", "#{attribute.id}")
           end
         end)
 

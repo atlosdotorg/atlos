@@ -16,11 +16,11 @@ defmodule PlatformWeb.MountHelperLive do
         Accounts.get_user_by_session_token(user_token)
       end)
 
-    unless is_nil(socket.assigns.current_user) do
-      {:cont, socket |> assign(:current_user, socket.assigns.current_user)}
+    if socket.assigns.current_user do
+      {:halt, redirect(socket, to: "/users/log_in")}
     else
       # TODO: use routes
-      {:halt, redirect(socket, to: "/users/log_in")}
+      {:cont, socket |> assign(:current_user, socket.assigns.current_user)}
     end
   end
 

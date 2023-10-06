@@ -38,27 +38,27 @@ defmodule Platform.DataMigrations.ProjectsMigrator do
         changeset
       end
 
-    changeset =
-      with {:ok, value} when is_map(value) <- Jason.decode(update.old_value) do
-        Ecto.Changeset.put_change(
-          changeset,
+    case Jason.decode(update.old_value) do
+      {:ok, value} when is_map(value) ->
+        changeset
+        |> Ecto.Changeset.put_change(
           :old_value,
           update_change_map(value, deprecated_attribute, new_attribute) |> Jason.encode!()
         )
-      else
-        _ -> changeset
-      end
+      _ ->
+        changeset
+    end
 
-    changeset =
-      with {:ok, value} when is_map(value) <- Jason.decode(update.new_value) do
-        Ecto.Changeset.put_change(
-          changeset,
+    case Jason.decode(update.new_value) do
+      {:ok, value} when is_map(value) ->
+        changeset
+        |> Ecto.Changeset.put_change(
           :new_value,
           update_change_map(value, deprecated_attribute, new_attribute) |> Jason.encode!()
         )
-      else
-        _ -> changeset
-      end
+      _ ->
+        changeset
+    end
 
     if changeset.valid? do
       changeset |> Platform.Repo.update!()

@@ -60,8 +60,8 @@ defmodule Platform.Updates.Update do
 
     hydrated_attrs =
       attrs
-      |> Map.put("user_id", if(not is_nil(user), do: user.id, else: nil))
-      |> Map.put("api_token_id", if(not is_nil(api_token), do: api_token.id, else: nil))
+      |> Map.put("user_id", (if is_nil(user), do: nil, else: user.id))
+      |> Map.put("api_token_id", (if is_nil(api_token), do: nil, else: api_token.id))
       |> Map.put("media_id", media.id)
 
     update
