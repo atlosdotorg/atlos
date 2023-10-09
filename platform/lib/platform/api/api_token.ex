@@ -48,10 +48,10 @@ defmodule Platform.API.APIToken do
     end)
     # Ensure that the token has at least `:read` permissions
     |> validate_change(:permissions, fn :permissions, permissions ->
-      if not Enum.member?(permissions, :read) do
-        [permissions: "API tokens must have read permissions"]
-      else
+      if Enum.member?(permissions, :read) do
         []
+      else
+        [permissions: "API tokens must have read permissions"]
       end
     end)
     # If the token previously was inactive, ensure that it remains inactive

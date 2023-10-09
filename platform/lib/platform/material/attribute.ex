@@ -1126,15 +1126,15 @@ defmodule Platform.Material.Attribute do
           requires_privilege =
             MapSet.intersection(Enum.into(v, MapSet.new()), Enum.into(values, MapSet.new()))
 
-          if not Enum.empty?(requires_privilege) do
+          if Enum.empty?(requires_privilege) do
+            changeset
+          else
             changeset
             |> add_error(
               attribute.schema_field,
               "Only project managers and owners can set the following values: " <>
                 Enum.join(requires_privilege, ", ")
             )
-          else
-            changeset
           end
 
         v ->

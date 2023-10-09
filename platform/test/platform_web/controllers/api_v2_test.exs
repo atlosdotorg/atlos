@@ -75,7 +75,9 @@ defmodule PlatformWeb.APIV2Test do
 
     {media, final_next} =
       Enum.reduce(0..(ceil(n / 50) + 25), {[], :start}, fn _, {elems, next} ->
-        if not is_nil(next) do
+        if is_nil(next) do
+          {elems, nil}
+        else
           auth_conn =
             build_conn()
             |> put_req_header("authorization", "Bearer " <> token.value)
@@ -89,8 +91,6 @@ defmodule PlatformWeb.APIV2Test do
             json_response(auth_conn, 200)
 
           {elems ++ results, new_next}
-        else
-          {elems, nil}
         end
       end)
 

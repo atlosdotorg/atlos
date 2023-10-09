@@ -280,7 +280,9 @@ defmodule Platform.Material.Media do
               String.downcase(a.label) == String.downcase(k)
           end)
 
-        if not is_nil(attr) do
+        if is_nil(attr) do
+          {to_string(k), v}
+        else
           # Split lists (comma separated)
           v =
             case attr.type do
@@ -318,8 +320,6 @@ defmodule Platform.Material.Media do
               else: attr.schema_field
 
           {name, v}
-        else
-          {to_string(k), v}
         end
       end)
       |> Enum.reduce(%{}, fn {k, v}, acc ->
