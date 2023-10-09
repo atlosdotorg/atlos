@@ -127,7 +127,7 @@ defmodule PlatformWeb.SettingsLive.ProfileComponent do
                     >
                       Change
                     </button>
-                    <.live_file_input let={@uploads.bulk_upload} class="sr-only" />
+                    <.live_file_input upload={@uploads.bulk_upload} class="sr-only" />
                   </label>
                   <%= hidden_input(f, :profile_photo_file) %>
                 </div>
