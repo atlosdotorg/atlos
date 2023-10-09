@@ -264,7 +264,7 @@ defmodule PlatformWeb.ProjectsLive.BulkUploadLive do
                   phx-drop-target={@uploads.bulk_upload.ref}
                   phx-target={@myself}
                 >
-                  <%= live_file_input(@uploads.bulk_upload, class: "sr-only") %>
+                  <.live_file_input let={@uploads.bulk_upload} class="sr-only" />
                   <%= if @processing do %>
                     <div>
                       <div class="space-y-1 text-center">
