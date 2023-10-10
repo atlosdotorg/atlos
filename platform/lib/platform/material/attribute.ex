@@ -1162,11 +1162,11 @@ defmodule Platform.Material.Attribute do
     # Verify that at least one of the given attributes has changed. This is used
     # to ensure that users don't post updates that don't actually change anything.
 
-    if not Enum.any?(attributes, &Map.has_key?(changeset.changes, &1.schema_field)) do
+    if Enum.any?(attributes, &Map.has_key?(changeset.changes, &1.schema_field)) do
       changeset
-      |> add_error(hd(attributes).schema_field, "A change is required to post an update.")
     else
       changeset
+      |> add_error(hd(attributes).schema_field, "A change is required to post an update.")
     end
   end
 

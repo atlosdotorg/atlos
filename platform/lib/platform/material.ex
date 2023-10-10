@@ -204,7 +204,9 @@ defmodule Platform.Material do
   def maybe_filter_accessible_to_user(query, opts) do
     user = Keyword.get(opts, :for_user)
 
-    if not is_nil(user) do
+    if is_nil(user) do
+      query
+    else
       query =
         query
         |> then(fn q ->
@@ -229,8 +231,6 @@ defmodule Platform.Material do
         pm.role == :owner or pm.role == :manager or
           (^"Hidden" not in m.attr_restrictions or is_nil(m.attr_restrictions))
       )
-    else
-      query
     end
   end
 

@@ -48,10 +48,10 @@ defmodule Platform.Utils do
             &(&1.label == deprecated_attribute.label && &1.type == deprecated_attribute.type)
           )
 
-        if not is_nil(new_attribute) do
-          {deprecated_attribute, new_attribute}
-        else
+        if is_nil(new_attribute) do
           nil
+        else
+          {deprecated_attribute, new_attribute}
         end
       end)
       |> Enum.reject(&is_nil/1)
