@@ -514,9 +514,11 @@ defmodule Platform.Material.Attribute do
     set = set_for_media(media, opts)
 
     attributes(opts)
-    |> Enum.filter(&(!Enum.member?(set, &1)))
-    |> Enum.filter(&(&1.deprecated != true))
-    |> Enum.filter(&(pane == nil || &1.pane == pane))
+    |> Enum.filter(
+      &(!Enum.member?(set, &1) &&
+          &1.deprecated != true &&
+          (pane == nil || &1.pane == pane))
+    )
   end
 
   @doc """

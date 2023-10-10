@@ -42,8 +42,10 @@ defmodule Platform.Workers.DuplicateDetector do
       end)
       |> List.flatten()
       |> Enum.uniq_by(& &1.id)
-      |> Enum.filter(&(&1.id != version.media_id))
-      |> Enum.filter(&(&1.deleted == false and not Material.Media.has_restrictions(&1)))
+      |> Enum.filter(
+        &(&1.id != version.media_id and
+            &1.deleted == false and not Material.Media.has_restrictions(&1))
+      )
 
     results =
       candidate_media
