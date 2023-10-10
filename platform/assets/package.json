@@ -1,7 +1,7 @@
 {
   "devDependencies": {
     "autoprefixer": "^10.4.3",
-    "postcss": "^8.4.11",
+    "postcss": "^8.4.31",
     "tailwindcss": "^3.0.23"
   },
   "deploy": "NODE_ENV=production tailwindcss --postcss --minify --input=css/app.css --output=../priv/static/assets/app.css",
