@@ -2,7 +2,7 @@ defmodule PlatformWeb.MediaLive.GroupedMediaList do
   use PlatformWeb, :live_component
   alias Platform.Material
 
-  def groups(%Platform.Accounts.User{} = user) do
+  def groups(%Platform.Accounts.User{} = _user) do
     [
       {"Unclaimed", %{"attr_status" => ["Unclaimed"]}},
       {"In Progress", %{"attr_status" => ["In Progress"]}},

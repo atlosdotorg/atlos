@@ -5,7 +5,6 @@ defmodule Platform.Material.Attribute do
   alias Platform.Material.Attribute
   alias Platform.Material.Media
   alias Platform.Accounts.User
-  alias Platform.Accounts
   alias Platform.Material
   alias Platform.Permissions
 

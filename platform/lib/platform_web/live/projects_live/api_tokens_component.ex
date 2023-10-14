@@ -4,7 +4,6 @@ defmodule PlatformWeb.ProjectsLive.APITokensComponent do
   alias Platform.API
   alias Platform.API.APIToken
   alias Platform.Auditor
-  alias Platform.Projects
   alias Platform.Permissions
 
   def update(assigns, socket) do
