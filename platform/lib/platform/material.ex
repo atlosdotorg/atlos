@@ -110,17 +110,17 @@ defmodule Platform.Material do
     project_id = Keyword.get(opts, :restrict_to_project_id)
 
     filter_user =
-      if user do
-        dynamic([m, update: u], u.user_id == ^user.id)
-      else
+      if is_nil(user) do
         true
+      else
+        dynamic([m, update: u], u.user_id == ^user.id)
       end
 
     filter_project_id =
-      if project_id do
-        dynamic([m, update: u], m.project_id == ^project_id)
-      else
+      if is_nil(project_id) do
         true
+      else
+        dynamic([m, update: u], m.project_id == ^project_id)
       end
 
     query =
@@ -1189,7 +1189,7 @@ defmodule Platform.Material do
       Updates.change_from_attributes_changeset(
         media,
         attributes,
-        user || api_token,
+        if(is_nil(user), do: api_token, else: user),
         media_changeset,
         attrs
       )
@@ -1213,7 +1213,7 @@ defmodule Platform.Material do
               Updates.change_from_attributes_changeset(
                 media,
                 attributes,
-                user || api_token,
+                if(is_nil(user), do: api_token, else: user),
                 media_changeset,
                 attrs
               )
