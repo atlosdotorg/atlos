@@ -1,9 +1,6 @@
 defmodule Platform.DataMigrations.MediaVersionsMigrator do
-  alias Platform.Uploads
   alias Platform.Material
   alias Platform.Material.MediaVersion
-  alias Platform.Updates
-  alias Platform.Accounts
 
   import Ecto.Query
 

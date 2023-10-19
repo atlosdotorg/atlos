@@ -27,14 +27,14 @@ defmodule PlatformWeb.SPIController do
 
     # If the project is present, we get the users for the project. Otherwise, we get the users for all the projects the user is a member of.
     users =
-      if not is_nil(project_id) do
-        project = Projects.get_project!(project_id)
-        get_project_users.(project)
-      else
+      if is_nil(project_id) do
         projects = Projects.list_projects_for_user(conn.assigns.current_user)
 
         Enum.map(projects, get_project_users)
         |> List.flatten()
+      else
+        project = Projects.get_project!(project_id)
+        get_project_users.(project)
       end
 
     json(conn, %{

@@ -8,10 +8,10 @@ defmodule PlatformWeb.APIV2Controller do
   alias Platform.Material
 
   defp sign_value(value, api_token) do
-    if not is_nil(value) do
-      Phoenix.Token.sign(PlatformWeb.Endpoint, api_token, Jason.encode!(value))
-    else
+    if is_nil(value) do
       nil
+    else
+      Phoenix.Token.sign(PlatformWeb.Endpoint, api_token, Jason.encode!(value))
     end
   end
 

@@ -1771,7 +1771,15 @@ defmodule PlatformWeb.Components do
   def attr_diff(%{name: name, old: old, new: new, project: project} = assigns) do
     attr = Attribute.get_attribute(name, project: project)
 
-    if not is_nil(attr) do
+    if is_nil(attr) do
+      ~H"""
+      <span class="inline-block">
+        <span class="italic">
+          Change is unavailable
+        </span>
+      </span>
+      """
+    else
       assigns =
         assigns
         |> assign(:attr, attr)
@@ -1834,14 +1842,6 @@ defmodule PlatformWeb.Components do
             <.attr_diff name={child.name} old={@old} new={@new} label={child.label} project={@project} />
           <% end %>
         <% end %>
-      </span>
-      """
-    else
-      ~H"""
-      <span class="inline-block">
-        <span class="italic">
-          Change is unavailable
-        </span>
       </span>
       """
     end
@@ -3218,7 +3218,7 @@ defmodule PlatformWeb.Components do
     """
   end
 
-  defp edit_attribute(%{attr: attr, form: form, media_slug: slug, project: project} = assigns) do
+  defp edit_attribute(%{attr: attr, form: form, media_slug: slug, project: _project} = assigns) do
     assigns =
       assigns
       |> assign(

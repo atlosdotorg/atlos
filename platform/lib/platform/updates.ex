@@ -14,7 +14,6 @@ defmodule Platform.Updates do
   alias Platform.Accounts.User
   alias Platform.Material
   alias Platform.Accounts
-  alias Platform.Permissions
   alias Platform.API.APIToken
 
   @doc """

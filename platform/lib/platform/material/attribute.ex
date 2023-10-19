@@ -5,7 +5,6 @@ defmodule Platform.Material.Attribute do
   alias Platform.Material.Attribute
   alias Platform.Material.Media
   alias Platform.Accounts.User
-  alias Platform.Accounts
   alias Platform.Material
   alias Platform.Permissions
 
@@ -514,9 +513,11 @@ defmodule Platform.Material.Attribute do
     set = set_for_media(media, opts)
 
     attributes(opts)
-    |> Enum.filter(&(!Enum.member?(set, &1)))
-    |> Enum.filter(&(&1.deprecated != true))
-    |> Enum.filter(&(pane == nil || &1.pane == pane))
+    |> Enum.filter(
+      &(!Enum.member?(set, &1) &&
+          &1.deprecated != true &&
+          (pane == nil || &1.pane == pane))
+    )
   end
 
   @doc """
@@ -1126,15 +1127,15 @@ defmodule Platform.Material.Attribute do
           requires_privilege =
             MapSet.intersection(Enum.into(v, MapSet.new()), Enum.into(values, MapSet.new()))
 
-          if not Enum.empty?(requires_privilege) do
+          if Enum.empty?(requires_privilege) do
+            changeset
+          else
             changeset
             |> add_error(
               attribute.schema_field,
               "Only project managers and owners can set the following values: " <>
                 Enum.join(requires_privilege, ", ")
             )
-          else
-            changeset
           end
 
         v ->
@@ -1162,11 +1163,11 @@ defmodule Platform.Material.Attribute do
     # Verify that at least one of the given attributes has changed. This is used
     # to ensure that users don't post updates that don't actually change anything.
 
-    if not Enum.any?(attributes, &Map.has_key?(changeset.changes, &1.schema_field)) do
+    if Enum.any?(attributes, &Map.has_key?(changeset.changes, &1.schema_field)) do
       changeset
-      |> add_error(hd(attributes).schema_field, "A change is required to post an update.")
     else
       changeset
+      |> add_error(hd(attributes).schema_field, "A change is required to post an update.")
     end
   end
 

@@ -30,7 +30,7 @@ defmodule Platform.Projects.ProjectMembership do
     # If they are the owner and they are the only owner, don't allow them to change their role
     |> validate_change(:role, fn :role, _value ->
       if is_list(all_memberships) and project_membership.role == :owner and
-           Enum.filter(all_memberships, fn pm -> pm.role == :owner end) |> Enum.count() == 1 do
+           Enum.count(all_memberships, fn pm -> pm.role == :owner end) == 1 do
         [
           role:
             "You are the only owner of this project, so you cannot change your role. To change your role, you must first add another owner."

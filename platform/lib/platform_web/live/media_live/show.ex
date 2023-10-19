@@ -52,11 +52,11 @@ defmodule PlatformWeb.MediaLive.Show do
   end
 
   defp subscribe_to_media(socket, media) do
-    if not Map.get(socket.assigns, :pubsub_subscribed, false) do
+    if Map.get(socket.assigns, :pubsub_subscribed, false) do
+      socket
+    else
       PubSub.subscribe(Platform.PubSub, Material.pubsub_topic_for_media(media.id))
       socket |> assign(:pubsub_subscribed, true)
-    else
-      socket
     end
   end
 
@@ -134,10 +134,7 @@ defmodule PlatformWeb.MediaLive.Show do
       ) do
     media = socket.assigns.media
 
-    if !Permissions.can_delete_media?(socket.assigns.current_user, media) do
-      {:noreply,
-       socket |> put_flash(:error, "You cannot change this incident's deletion status.")}
-    else
+    if Permissions.can_delete_media?(socket.assigns.current_user, media) do
       {:ok, media} =
         if media.deleted do
           Material.soft_undelete_media_audited(media, socket.assigns.current_user)
@@ -150,6 +147,9 @@ defmodule PlatformWeb.MediaLive.Show do
        |> assign_media_and_updates()
        |> put_flash(:info, if(media.deleted, do: "Incident deleted.", else: "Incident restored."))
        |> assign(:media, media)}
+    else
+      {:noreply,
+       socket |> put_flash(:error, "You cannot change this incident's deletion status.")}
     end
   end
 
@@ -160,18 +160,18 @@ defmodule PlatformWeb.MediaLive.Show do
       ) do
     version = Material.get_media_version!(version)
 
-    if !Permissions.can_rearchive_media_version?(
+    if Permissions.can_rearchive_media_version?(
          socket.assigns.current_user,
          version
        ) do
-      {:noreply, socket |> put_flash(:error, "You cannot rearchive this source material.")}
-    else
       %Oban.Job{} = Material.rearchive_media_version(version)
 
       {:noreply,
        socket
        |> assign_media_and_updates()
        |> put_flash(:info, "Atlos will rearchive the source material.")}
+    else
+      {:noreply, socket |> put_flash(:error, "You cannot rearchive this source material.")}
     end
   end
 

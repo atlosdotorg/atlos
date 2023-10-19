@@ -23,7 +23,7 @@ defmodule PlatformWeb.ProjectsLive.MembersComponent do
   def assign_changeset(socket, changeset) do
     socket
     |> assign(:changeset, changeset)
-    |> assign(:form, if(not is_nil(changeset), do: changeset |> to_form(), else: nil))
+    |> assign(:form, if(is_nil(changeset), do: nil, else: changeset |> to_form()))
   end
 
   def assign_can_remove_self(socket) do
