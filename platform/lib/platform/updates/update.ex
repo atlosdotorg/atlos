@@ -33,9 +33,10 @@ defmodule Platform.Updates.Update do
     # Used for attribute updates.
     field(:modified_attribute, :string)
 
-    # JSON-encoded data, used for attribute changes; ideally these would be :map
+    # JSON-encoded data, used for attribute changes; ideally these would be :map, but we have some legacy data that is stored as a non-map JSON object (e.g., array, string)
     field(:new_value, :string, default: "null")
-    # JSON-encoded data, used for attribute changes; ideally these would be :map
+
+    # JSON-encoded data, used for attribute changes; ideally these would be :map, but we have some legacy data that is stored as a non-map JSON object (e.g., array, string)
     field(:old_value, :string, default: "null")
 
     field(:hidden, :boolean, default: false)

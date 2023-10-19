@@ -1491,7 +1491,12 @@ defmodule PlatformWeb.Components do
                 class="h-4 w-4 shrink-0 opacity-50"
               />
               <% membership = Enum.find(@project.memberships, &(&1.user_id == item.user_id)) %>
-              <.user_text :if={not is_nil(membership)} user={membership.user} icon={true} flair={false} />
+              <.user_text
+                :if={not is_nil(membership)}
+                user={membership.user}
+                icon={true}
+                flair={false}
+              />
               <span :if={is_nil(membership)}>Unknown User</span>
             </div>
             <%= if @compact and length(@value) > 1 do %>

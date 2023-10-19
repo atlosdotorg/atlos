@@ -52,7 +52,16 @@ defmodule Platform.Notifications do
   def get_notifications_by_user_paginated(%User{} = user, options \\ []) do
     from(n in Notification,
       where: n.user_id == ^user.id,
-      preload: [update: [:user, :old_project, :new_project, :media_version, media: [:project]]],
+      preload: [
+        update: [
+          :user,
+          :old_project,
+          :new_project,
+          :media_version,
+          :api_token,
+          media: [project: [memberships: [:user]]]
+        ]
+      ],
       order_by: [desc: :inserted_at]
     )
     |> Repo.paginate(options)
@@ -102,6 +111,25 @@ defmodule Platform.Notifications do
          |> Enum.map(&List.last(&1))
          |> Enum.map(&Accounts.get_user_by_username(&1))
          |> Enum.filter(&(!is_nil(&1))))
+
+    # Add people who are newly assigned or newly removed
+    recipients =
+      recipients ++
+        with "assignments" <- update.modified_attribute,
+             attr <- Platform.Material.Attribute.get_attribute(:assignments),
+             {:ok, old_value_map} <- update.old_value |> Jason.decode(),
+             old_value <- Map.get(old_value_map, Platform.Updates.key_for_attribute(attr)),
+             {:ok, new_value_map} <- update.new_value |> Jason.decode(),
+             new_value <- Map.get(new_value_map, Platform.Updates.key_for_attribute(attr)) do
+          added_members = MapSet.difference(MapSet.new(new_value), MapSet.new(old_value)) |> dbg()
+
+          removed_members =
+            MapSet.difference(MapSet.new(old_value), MapSet.new(new_value)) |> dbg()
+
+          MapSet.union(added_members, removed_members) |> Enum.map(&Accounts.get_user!(&1))
+        else
+          _ -> []
+        end
 
     # Deduplicate and remove source user
     recipients = recipients |> Enum.uniq_by(& &1.id) |> Enum.filter(&(&1.id != update.user_id))
