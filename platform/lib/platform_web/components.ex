@@ -2039,46 +2039,56 @@ defmodule PlatformWeb.Components do
             <span style={"color: #{if @media.project, do: @media.project.color, else: "unset"}"}>
               <%= Media.slug_to_display(@media) %>
             </span>
-            <%= if is_sensitive do %>
-              <span data-tooltip={Enum.join(@media.attr_sensitive, ", ")} class="text-critical-400">
-                <Heroicons.shield_exclamation mini class="h-4 w-4" />
-              </span>
-            <% end %>
-            <%= if is_subscribed do %>
-              <span data-tooltip="You are subscribed" class="text-neutral-400">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                  class="w-3 h-3"
-                >
-                  <path d="M10 12.5a2.5 2.5 0 100-5 2.5 2.5 0 000 5z" />
-                  <path
-                    fill-rule="evenodd"
-                    d="M.664 10.59a1.651 1.651 0 010-1.186A10.004 10.004 0 0110 3c4.257 0 7.893 2.66 9.336 6.41.147.381.146.804 0 1.186A10.004 10.004 0 0110 17c-4.257 0-7.893-2.66-9.336-6.41zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
-                    clip-rule="evenodd"
-                  />
-                </svg>
-                <span class="sr-only">
-                  You are subscribed
+            <div class="flex flex-col h-full flex-wrap ml-px my-auto">
+              <%= if is_sensitive do %>
+                <span data-tooltip={Enum.join(@media.attr_sensitive, ", ")} class="text-critical-400">
+                  <Heroicons.shield_exclamation mini class="h-4 w-4" />
                 </span>
-              </span>
-            <% end %>
-            <%= if has_unread_notification do %>
-              <span data-tooltip="Unread notification">
-                <svg
-                  viewBox="0 0 100 100"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="currentColor"
-                  class="h-2 w-2"
-                >
-                  <circle cx="50" cy="50" r="50" />
-                </svg>
-                <span class="sr-only">
-                  Unread notification
+              <% end %>
+              <%= if is_subscribed do %>
+                <span data-tooltip="You are subscribed" class="text-neutral-400">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                    class="w-3 h-3"
+                  >
+                    <path d="M10 12.5a2.5 2.5 0 100-5 2.5 2.5 0 000 5z" />
+                    <path
+                      fill-rule="evenodd"
+                      d="M.664 10.59a1.651 1.651 0 010-1.186A10.004 10.004 0 0110 3c4.257 0 7.893 2.66 9.336 6.41.147.381.146.804 0 1.186A10.004 10.004 0 0110 17c-4.257 0-7.893-2.66-9.336-6.41zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
+                      clip-rule="evenodd"
+                    />
+                  </svg>
+                  <span class="sr-only">
+                    You are subscribed
+                  </span>
                 </span>
-              </span>
-            <% end %>
+              <% end %>
+              <%= if @media.is_assigned do %>
+                <span data-tooltip="You're assigned" class="text-urge-600">
+                  <Heroicons.bookmark mini class="h-3 w-3" />
+                  <span class="sr-only">
+                    You&apos;re assigned
+                  </span>
+                </span>
+              <% end %>
+              <%= if has_unread_notification do %>
+                <span data-tooltip="Unread notification">
+                  <svg
+                    viewBox="0 0 120 120"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="currentColor"
+                    class="h-3 w-3"
+                  >
+                    <circle cx="60" cy="60" r="40" />
+                  </svg>
+                  <span class="sr-only">
+                    Unread notification
+                  </span>
+                </span>
+              <% end %>
+            </div>
           </.link>
         </div>
       </td>
@@ -2501,6 +2511,14 @@ defmodule PlatformWeb.Components do
                   </svg>
                   <span class="sr-only">
                     You are subscribed
+                  </span>
+                </span>
+              <% end %>
+              <%= if @media.is_assigned do %>
+                <span data-tooltip="You're assigned" class="text-urge-600">
+                  <Heroicons.bookmark mini class="h-3 w-3" />
+                  <span class="sr-only">
+                    You&apos;re assigned
                   </span>
                 </span>
               <% end %>

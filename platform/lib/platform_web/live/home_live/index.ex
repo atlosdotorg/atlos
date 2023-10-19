@@ -83,7 +83,8 @@ defmodule PlatformWeb.HomeLive.Index do
       Material.query_media_paginated(unclaimed_query, unclaimed_query_opts).entries
 
     (recently_modified_by_user ++
-       recently_modified_with_notification ++ recently_modified_subscriptions ++ recently_modified_assigned)
+       recently_modified_with_notification ++
+       recently_modified_subscriptions ++ recently_modified_assigned)
     |> Enum.sort_by(& &1.last_update_time, {:desc, NaiveDateTime})
     |> Enum.uniq_by(& &1.id)
     |> Enum.concat(unclaimed_for_backfill)
