@@ -2467,7 +2467,6 @@ defmodule PlatformWeb.Components do
   def media_card(%{media: %Media{} = media} = assigns) do
     assigns =
       assigns
-      |> assign(:contributors, Material.contributors(media))
       |> assign(:sensitive, Media.is_sensitive(media))
       |> assign_new(:target, fn -> nil end)
       |> assign(:border, Map.get(assigns, :border, false))
@@ -2533,7 +2532,7 @@ defmodule PlatformWeb.Components do
           </section>
           <section class="mb-2 h-4" />
           <section class="bottom-0 mb-2 pr-4 w-full absolute flex gap-2 justify-between items-center">
-            <.user_stack users={@contributors} />
+            <.user_stack users={@media.assignees} />
             <p class="text-xs text-gray-500 flex items-center">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
