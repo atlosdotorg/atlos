@@ -84,6 +84,7 @@ defmodule Platform.Material.Media do
 
     # Associations
     has_many(:versions, Platform.Material.MediaVersion)
+    has_many(:notifications, Platform.Notifications.Notification)
     has_many(:updates, Platform.Updates.Update)
     has_many(:subscriptions, MediaSubscription)
     belongs_to(:project, Platform.Projects.Project, type: :binary_id)

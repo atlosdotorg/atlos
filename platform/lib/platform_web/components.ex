@@ -1135,7 +1135,7 @@ defmodule PlatformWeb.Components do
 
     ~H"""
     <article
-      class="relative inline-block text-left overflow-visible"
+      class="relative text-left overflow-visible"
       x-data="{open: false}"
       x-on:click.away="open = false"
       id={@id}
@@ -1143,7 +1143,7 @@ defmodule PlatformWeb.Components do
       <div>
         <button
           type="button"
-          class={"inline-flex border shadow-sm rounded-lg py-1 px-2 w-full justify-center gap-x-1 text-sm text-gray-900 " <>
+          class={"transition-all flex h-8 border shadow-sm rounded-lg py-1 px-2 w-full justify-center items-center gap-x-1 text-sm text-gray-900 " <>
             if @is_active do
               "text-white bg-urge-500 border-urge-500"
             else
@@ -2395,6 +2395,45 @@ defmodule PlatformWeb.Components do
                     form={f}
                     attr={Attribute.get_attribute(:sensitive)}
                   />
+                  <div
+                    class="relative text-left overflow-visible"
+                    data-tooltip="Filter to my assignments"
+                  >
+                    <%= label f, :only_assigned, class: "transition-all cursor-pointer flex h-8 border shadow-sm rounded-lg py-1 px-2 w-full justify-center items-center gap-x-1 text-sm text-gray-900 " <> (if Ecto.Changeset.get_field(@changeset, :only_assigned) do
+                      "text-white bg-urge-500 border-urge-500"
+                    else
+                      "bg-white text-neutral-600"
+                    end) do %>
+                      <Heroicons.bookmark solid class="h-5 w-5 py-px" />
+                      <%= checkbox(f, :only_assigned, class: "hidden") %>
+                    <% end %>
+                  </div>
+                  <div
+                    class="relative text-left overflow-visible"
+                    data-tooltip="Filter to my subscriptions"
+                  >
+                    <%= label f, :only_subscribed, class: "transition-all cursor-pointer flex h-8 border shadow-sm rounded-lg py-1 px-2 w-full justify-center items-center gap-x-1 text-sm text-gray-900 " <> (if Ecto.Changeset.get_field(@changeset, :only_subscribed) do
+                      "text-white bg-urge-500 border-urge-500"
+                    else
+                      "bg-white text-neutral-600"
+                    end) do %>
+                      <Heroicons.eye solid class="h-5 w-5 py-px" />
+                      <%= checkbox(f, :only_subscribed, class: "hidden") %>
+                    <% end %>
+                  </div>
+                  <div
+                    class="relative text-left overflow-visible"
+                    data-tooltip="Filter to unread notifications"
+                  >
+                    <%= label f, :only_has_unread_notifications, class: "transition-all cursor-pointer flex h-8 border shadow-sm rounded-lg py-1 px-2 w-full justify-center items-center gap-x-1 text-sm text-gray-900 " <> (if Ecto.Changeset.get_field(@changeset, :only_has_unread_notifications) do
+                      "text-white bg-urge-500 border-urge-500"
+                    else
+                      "bg-white text-neutral-600"
+                    end) do %>
+                      <Heroicons.bell_alert solid class="h-5 w-5 py-px" />
+                      <%= checkbox(f, :only_has_unread_notifications, class: "hidden") %>
+                    <% end %>
+                  </div>
                 </div>
               </div>
             </div>

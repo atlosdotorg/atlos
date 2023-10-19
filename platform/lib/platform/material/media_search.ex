@@ -22,6 +22,8 @@ defmodule Platform.Material.MediaSearch do
     project_id: :string,
     no_media_versions: :boolean,
     only_subscribed: :boolean,
+    only_assigned: :boolean,
+    only_has_unread_notifications: :boolean,
     display: :string,
     deleted: :boolean
   }
@@ -204,14 +206,39 @@ defmodule Platform.Material.MediaSearch do
   end
 
   defp apply_query_component(queryable, changeset, :only_subscribed, current_user) do
-    case Map.get(changeset.changes, :only_subscribed, false) do
+    case Map.get(changeset.changes, :only_subscribed, false) and not is_nil(current_user) do
       false ->
         queryable
 
       true ->
+        from q in queryable,
+          join: s in assoc(q, :subscriptions),
+          where: s.user_id == ^current_user.id
+    end
+  end
+
+  defp apply_query_component(queryable, changeset, :only_assigned, current_user) do
+    case Map.get(changeset.changes, :only_assigned, false) and not is_nil(current_user) do
+      false ->
         queryable
-        |> join(:inner, [m], s in assoc(m, :subscriptions))
-        |> where([m, s], s.user_id == ^current_user.id)
+
+      true ->
+        from q in queryable,
+          join: a in assoc(q, :attr_assignments),
+          where: a.user_id == ^current_user.id
+    end
+  end
+
+  defp apply_query_component(queryable, changeset, :only_has_unread_notifications, current_user) do
+    case Map.get(changeset.changes, :only_has_unread_notifications, false) and
+           not is_nil(current_user) do
+      false ->
+        queryable
+
+      true ->
+        from q in queryable,
+          join: n in assoc(q, :notifications),
+          where: n.user_id == ^current_user.id and n.read == false
     end
   end
 
@@ -272,6 +299,8 @@ defmodule Platform.Material.MediaSearch do
     |> apply_query_component(cs, :no_media_versions)
     |> apply_query_component(cs, :project_id)
     |> apply_query_component(cs, :only_subscribed, current_user)
+    |> apply_query_component(cs, :only_assigned, current_user)
+    |> apply_query_component(cs, :only_has_unread_notifications, current_user)
     |> apply_sort(cs)
     |> apply_deleted(cs)
   end
