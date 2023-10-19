@@ -73,6 +73,7 @@ defmodule Platform.Material.Media do
     # Virtual attributes for population during querying
     field(:has_unread_notification, :boolean, virtual: true, default: false)
     field(:has_subscription, :boolean, virtual: true, default: false)
+    field(:is_assigned, :boolean, virtual: true, default: false)
     field(:display_color, :string, virtual: true)
 
     # Refers to the post date of the most recent associated update -- this is distinct from `updated_at`

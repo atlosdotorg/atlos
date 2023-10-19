@@ -66,6 +66,9 @@ defmodule Platform.Material do
     # - for_user -- filter to data visible to the user, and populate this user's data into the response object (e.g., whether there is an unread notification, the user is subscribed, etc)
     # - limit_to_unread_notifications -- restrict to incidents with unread notifications
     # - limit_to_subscriptions -- restrict to incidents the user is subscribed to
+    # - limit_to_assignments -- restrict to incidents the user is assigned to
+    #
+    # Note that these limiting fields will only be applied if :hydrate is not false.
 
     query
     |> then(fn q ->
@@ -192,12 +195,17 @@ defmodule Platform.Material do
       left_join: s in Platform.Material.MediaSubscription,
       as: :subscription,
       on: s.media_id == m.id and s.user_id == ^user.id,
+      left_join: a in Platform.Material.MediaAssignment,
+      as: :assignment,
+      on: a.media_id == m.id and a.user_id == ^user.id,
       select_merge: %{
         has_unread_notification: not is_nil(n),
-        has_subscription: not is_nil(s)
+        has_subscription: not is_nil(s),
+        is_assigned: not is_nil(a)
       },
       where: ^(not Keyword.get(opts, :limit_to_unread_notifications, false)) or not is_nil(n),
-      where: ^(not Keyword.get(opts, :limit_to_subscriptions, false)) or not is_nil(s)
+      where: ^(not Keyword.get(opts, :limit_to_subscriptions, false)) or not is_nil(s),
+      where: ^(not Keyword.get(opts, :limit_to_assignments, false)) or not is_nil(a)
     )
   end
 
