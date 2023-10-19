@@ -1491,7 +1491,7 @@ defmodule PlatformWeb.Components do
                 class="h-4 w-4 shrink-0 opacity-50"
               />
               <% membership = Enum.find(@project.memberships, &(&1.user_id == item.user_id)) %>
-              <.user_text :if={not is_nil(membership)} user={membership.user} icon={true} />
+              <.user_text :if={not is_nil(membership)} user={membership.user} icon={true} flair={false} />
               <span :if={is_nil(membership)}>Unknown User</span>
             </div>
             <%= if @compact and length(@value) > 1 do %>
@@ -1699,21 +1699,21 @@ defmodule PlatformWeb.Components do
             <%= for item <- elem do %>
               <span class="chip ~neutral inline-block text-xs">
                 <.attr_label label={Map.get(assigns, :label, "")} />
-                <.user_text user={item} icon={true} />
+                <.user_text user={item} icon={true} flair={false} />
               </span>
             <% end %>
           <% :ins -> %>
             <%= for item <- elem do %>
               <span class="chip ~blue inline-block text-xs">
                 + <.attr_label label={Map.get(assigns, :label, "")} />
-                <.user_text user={item} icon={true} />
+                <.user_text user={item} icon={true} flair={false} />
               </span>
             <% end %>
           <% :del -> %>
             <%= for item <- elem do %>
               <span class="chip ~yellow inline-block text-xs">
                 - <.attr_label label={Map.get(assigns, :label, "")} />
-                <.user_text user={item} icon={true} />
+                <.user_text user={item} icon={true} flair={false} />
               </span>
             <% end %>
         <% end %>
@@ -3382,7 +3382,7 @@ defmodule PlatformWeb.Components do
   end
 
   defp user_name_display(%{user: %Accounts.User{} = _} = assigns) do
-    assigns = assign_new(assigns, :icon, fn -> false end)
+    assigns = assign_new(assigns, :icon, fn -> false end) |> assign_new(:flair, fn -> true end)
 
     ~H"""
     <.link
@@ -3404,7 +3404,7 @@ defmodule PlatformWeb.Components do
           <%= if Accounts.is_admin(@user) do %>
             <span class="font-normal text-xs badge ~critical self-center">Admin</span>
           <% end %>
-          <%= if String.length(@user.flair) > 0 do %>
+          <%= if String.length(@user.flair) > 0 and @flair do %>
             <span class="font-normal text-xs badge ~urge self-center"><%= @user.flair %></span>
           <% end %>
         <% end %>
@@ -3438,11 +3438,11 @@ defmodule PlatformWeb.Components do
   end
 
   def user_text(%{user: %Accounts.User{} = _} = assigns) do
-    assigns = assign_new(assigns, :icon, fn -> false end)
+    assigns = assign_new(assigns, :icon, fn -> false end) |> assign_new(:flair, fn -> true end)
 
     ~H"""
     <.popover class="inline">
-      <.user_name_display user={@user} icon={@icon} />
+      <.user_name_display user={@user} icon={@icon} flair={@flair} />
       <:display>
         <%= if is_nil(@user) do %>
           This is an administrative user.
