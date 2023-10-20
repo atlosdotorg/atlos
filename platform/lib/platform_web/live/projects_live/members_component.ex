@@ -261,7 +261,7 @@ defmodule PlatformWeb.ProjectsLive.MembersComponent do
                             >
                               Role
                             </th>
-                            <th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-6 text-right">
+                            <th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-6 text-right lg:whitespace-nowrap">
                               <%= if can_edit do %>
                                 <button
                                   type="button"
@@ -309,6 +309,21 @@ defmodule PlatformWeb.ProjectsLive.MembersComponent do
                               </td>
                               <td class="relative  py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
                                 <%= if can_edit do %>
+                                  <%= if not (membership.role == :owner and Enum.filter(@memberships, & &1.role == :owner) |> length() == 1) do %>
+                                    <button
+                                      phx-target={@myself}
+                                      class="text-button text-neutral-600 mr-2"
+                                      phx-click="delete_member"
+                                      phx-value-username={membership.user.username}
+                                      data-confirm={"Are you sure that you want to remove #{membership.user.username} from #{@project.name}?"}
+                                      data-tooltip={"Remove #{membership.user.username}"}
+                                    >
+                                      <Heroicons.minus_circle mini class="h-5 w-5" />
+                                      <span class="sr-only">
+                                        Remove <%= membership.user.username %>
+                                      </span>
+                                    </button>
+                                  <% end %>
                                   <button
                                     phx-target={@myself}
                                     class="text-button text-neutral-600"
@@ -319,21 +334,6 @@ defmodule PlatformWeb.ProjectsLive.MembersComponent do
                                     <Heroicons.cog_6_tooth mini class="h-5 w-5" />
                                     <span class="sr-only">Edit <%= membership.user.username %></span>
                                   </button>
-                                  <%= if not (membership.role == :owner and Enum.filter(@memberships, & &1.role == :owner) |> length() == 1) do %>
-                                    <button
-                                      phx-target={@myself}
-                                      class="text-button text-critical-600 ml-2"
-                                      phx-click="delete_member"
-                                      phx-value-username={membership.user.username}
-                                      data-confirm={"Are you sure that you want to remove #{membership.user.username} from #{@project.name}?"}
-                                      data-tooltip={"Remove #{membership.user.username}"}
-                                    >
-                                      <Heroicons.user_minus mini class="h-5 w-5" />
-                                      <span class="sr-only">
-                                        Remove <%= membership.user.username %>
-                                      </span>
-                                    </button>
-                                  <% end %>
                                 <% end %>
                               </td>
                             </tr>

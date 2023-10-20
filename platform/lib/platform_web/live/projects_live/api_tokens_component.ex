@@ -310,7 +310,7 @@ defmodule PlatformWeb.ProjectsLive.APITokensComponent do
                                   phx-target={@myself}
                                   data-confirm={"Are you sure you want to deactivate the token \"#{token.name}\"? This action cannot be undone."}
                                   phx-value-id={token.id}
-                                  class="text-critical-600 hover:text-critical-900"
+                                  class="text-neutral-600 hover:text-neutral-900"
                                   data-tooltip={"Deactivate " <> token.name}
                                 >
                                   <Heroicons.minus_circle mini class="h-5 w-5" />
