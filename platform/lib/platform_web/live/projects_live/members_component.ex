@@ -113,7 +113,11 @@ defmodule PlatformWeb.ProjectsLive.MembersComponent do
     else
       {:noreply,
        socket
-       |> assign(:memberships, Projects.get_project_memberships(socket.assigns.project))
+       |> assign(
+         :memberships,
+         Projects.get_project_memberships(socket.assigns.project)
+         |> Enum.sort_by(& &1.user.username)
+       )
        |> assign_can_remove_self()}
     end
   end
@@ -209,7 +213,11 @@ defmodule PlatformWeb.ProjectsLive.MembersComponent do
            socket
            |> assign_changeset(nil)
            |> assign(:editing, nil)
-           |> assign(:memberships, Projects.get_project_memberships(socket.assigns.project))
+           |> assign(
+             :memberships,
+             Projects.get_project_memberships(socket.assigns.project)
+             |> Enum.sort_by(& &1.user.username)
+           )
            |> assign_can_remove_self()}
 
         {:error, changeset} ->
@@ -261,7 +269,10 @@ defmodule PlatformWeb.ProjectsLive.MembersComponent do
                             >
                               Role
                             </th>
-                            <th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-6 text-right lg:whitespace-nowrap">
+                            <th
+                              scope="col"
+                              class="relative py-3.5 pl-3 pr-4 sm:pr-6 text-right lg:whitespace-nowrap"
+                            >
                               <%= if can_edit do %>
                                 <button
                                   type="button"
@@ -395,7 +406,7 @@ defmodule PlatformWeb.ProjectsLive.MembersComponent do
                 :role,
                 "Role"
               ) %>
-              <div id="role-select" phx-update="ignore">
+              <div class="phx-form" id="member-role-select" phx-update="ignore">
                 <%= select(
                   @form,
                   :role,
