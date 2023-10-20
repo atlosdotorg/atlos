@@ -348,7 +348,7 @@ defmodule Platform.Permissions do
     with true <- can_view_media?(user, media) do
       membership = Projects.get_project_membership_by_user_and_project(user, media.project)
 
-      membership.role == :owner
+      membership.role == :owner or membership.role == :manager
     else
       _ -> false
     end
