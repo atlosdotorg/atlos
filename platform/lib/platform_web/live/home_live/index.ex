@@ -76,7 +76,7 @@ defmodule PlatformWeb.HomeLive.Index do
 
     {unclaimed_query, unclaimed_query_opts} =
       Material.MediaSearch.search_query(
-        Material.MediaSearch.changeset(%{"attr_status" => "Unclaimed"})
+        Material.MediaSearch.changeset(%{"attr_status" => "To Do"})
       )
 
     unclaimed_for_backfill =

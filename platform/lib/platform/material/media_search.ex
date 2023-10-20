@@ -1,7 +1,6 @@
 defmodule Platform.Material.MediaSearch do
   use Ecto.Schema
   import Ecto.Query
-  alias Platform.Accounts.User
   alias Ecto.UUID
   alias Platform.Material.Media
 

@@ -208,7 +208,7 @@ defmodule PlatformWeb.ProjectsLive.Show do
                       <p class="mt-1 text-sm text-gray-500">Get started by creating an incident</p>
                     </div>
                   <% else %>
-                    <%= for {status, count} <- @status_statistics |> Enum.sort_by(fn {status, _count} -> Enum.find_index(["Unclaimed", "In Progress", "Help Needed", "Ready for Review", "Completed", "Cancelled"], fn x -> x == status end) || -1 end) do %>
+                    <%= for {status, count} <- @status_statistics |> Enum.sort_by(fn {status, _count} -> Enum.find_index(["To Do", "In Progress", "Help Needed", "Ready for Review", "Completed", "Cancelled"], fn x -> x == status end) || -1 end) do %>
                       <% status_color = Platform.Material.Attribute.attr_color(:status, status) %>
                       <.link
                         navigate={

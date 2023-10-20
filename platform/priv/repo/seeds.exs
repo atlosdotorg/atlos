@@ -123,7 +123,7 @@ random_media =
         attr_type: [
           Enum.random(Material.Attribute.options(Material.Attribute.get_attribute(:type)))
         ],
-        attr_status: "Unclaimed"
+        attr_status: "To Do"
       })
 
     Material.create_media_version_audited(media, creator, %{

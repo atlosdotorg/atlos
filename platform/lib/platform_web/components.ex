@@ -596,7 +596,7 @@ defmodule PlatformWeb.Components do
             <Heroicons.shield_check {%{@type => true}} class={@class} />
           <% "In Progress" -> %>
             <Heroicons.clock {%{@type => true}} class={@class} />
-          <% "Unclaimed" -> %>
+          <% "To Do" -> %>
             <Heroicons.flag {%{@type => true}} class={@class} />
           <% "Cancelled" -> %>
             <Heroicons.x_mark {%{@type => true}} class={@class} />

@@ -65,7 +65,7 @@ defmodule Platform.Material.Attribute do
         schema_field: :attr_status,
         type: :select,
         options: [
-          "Unclaimed",
+          "To Do",
           "In Progress",
           "Help Needed",
           "Ready for Review",
@@ -79,7 +79,7 @@ defmodule Platform.Material.Attribute do
         description: "Use the status to help coordinate and track work on Atlos.",
         privileged_values: ["Completed", "Cancelled"],
         option_descriptions: %{
-          "Unclaimed" => "Not actively being worked on",
+          "To Do" => "Not actively being worked on",
           "In Progress" => "Actively being worked on",
           "Help Needed" => "Stuck, or second opinion needed",
           "Ready for Review" => "Ready for a moderator's verification",
@@ -1185,7 +1185,7 @@ defmodule Platform.Material.Attribute do
 
       :status ->
         case value do
-          "Unclaimed" -> "~positive"
+          "To Do" -> "~positive"
           "In Progress" -> "~purple"
           "Cancelled" -> "~neutral"
           "Ready for Review" -> "~cyan"

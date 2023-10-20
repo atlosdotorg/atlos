@@ -18,7 +18,7 @@ defmodule PlatformWeb.MediaLive.Queue do
   def which_to_title(which) do
     case which do
       "overview" -> "Overview"
-      "unclaimed" -> "Unclaimed"
+      "todo" -> "To Do"
       "in_progress" -> "In Progress"
       "help_needed" -> "Help Needed"
       "review" -> "Ready for Review"
@@ -29,7 +29,7 @@ defmodule PlatformWeb.MediaLive.Queue do
     case which do
       # "overview" is unused
       "overview" -> %{}
-      "unclaimed" -> %{"attr_status" => "Unclaimed"}
+      "todo" -> %{"attr_status" => "To Do"}
       "in_progress" -> %{"attr_status" => "In Progress"}
       "help_needed" -> %{"attr_status" => "Help Needed"}
       "review" -> %{"attr_status" => "Ready for Review"}

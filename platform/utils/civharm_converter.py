@@ -100,7 +100,7 @@ def run(civharm, outfile):
             status = (
                 "Completed"
                 if row.get("BCAT\n (geolocated)", "TRUE") == "TRUE"
-                else "Unclaimed"
+                else "To Do"
             )
 
             values = {
