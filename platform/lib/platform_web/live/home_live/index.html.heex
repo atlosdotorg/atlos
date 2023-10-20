@@ -3,37 +3,44 @@
     <div class="mx-auto px-8 max-w-[1280px] py-6">
       <div class="flex items-center gap-4 border-b pb-4">
         <div>
-          <div class="font-medium text-2xl">Home</div>
+          <div class="font-medium text-2xl">Hello, <%= @current_user.username %></div>
         </div>
         <div class="grow"></div>
-        <div class="hidden md:block w-56">
-          <.search_form
-            changeset={@search_changeset}
-            exclude={[:display, :sort, :status, :project, :more_options, :filters, :pagination]}
-            query_params={%{display: "cards"}}
-            current_user={@current_user}
-            socket={@socket}
-            display={:cards}
-          />
+        <div class="hidden md:block">
+          <.link
+            navigate={"/profile/#{@current_user.username}/assignments"}
+            class="font-medium text-sm block p-2 flex gap-1 items-center transition text-neutral-600 hover:bg-neutral-200 rounded hover:text-neutral-900 focus:text-neutral-900"
+          >
+            <Heroicons.bookmark mini class="h-5 w-5 opacity-50" />
+            <span>
+              Assigned to Me
+            </span>
+          </.link>
+        </div>
+        <div class="hidden md:block">
+          <.link
+            navigate="/incidents"
+            class="font-medium text-sm block p-2 flex gap-1 items-center transition text-neutral-600 hover:bg-neutral-200 rounded hover:text-neutral-900 focus:text-neutral-900"
+          >
+            <Heroicons.magnifying_glass_circle mini class="h-5 w-5 opacity-50" />
+            <span>
+              Search Incidents
+            </span>
+          </.link>
         </div>
         <div class="relative inline-block text-left" x-data="{open: false}">
-          <div>
+          <div class="group">
             <button
               type="button"
-              class="font-medium block p-2 flex gap-1 items-center transition text-neutral-600 hover:text-neutral-900 focus:text-neutral-900"
+              class="font-medium text-sm block p-2 flex gap-1 items-center transition text-neutral-600 group-hover:bg-neutral-200 rounded hover:text-neutral-900 focus:text-neutral-900"
               aria-expanded="true"
               aria-haspopup="true"
               x-on:click.prevent="open = !open"
               x-on:click.outside="open = false"
             >
-              <img
-                class="relative z-30 inline-block h-5 w-5 rounded-full mr-px"
-                src={Platform.Accounts.get_profile_photo_path(@current_user)}
-                title="Your profile photo"
-                alt={"Profile photo for #{@current_user.username} (you)"}
-              />
+              <Heroicons.user_circle mini class="h-5 w-5 opacity-50" />
               <span>
-                <%= @current_user.username %>
+                Account
               </span>
               <Heroicons.chevron_down mini class="h-5 w-5 -ml-1" />
             </button>
@@ -143,7 +150,7 @@
           </nav>
         </div>
         <div>
-          <dl class="mt-5 grid w-full grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4">
+          <dl class="mt-5 flex flex-wrap w-full gap-2">
             <%= if Enum.empty?(@projects) do %>
               <div class="text-center mt-8">
                 <Heroicons.squares_2x2 class="mx-auto h-12 w-12 text-gray-400" />
@@ -155,7 +162,7 @@
               </div>
             <% end %>
             <%= for project <- @projects do %>
-              <.project_card project={project} />
+              <.project_list_item project={project} />
             <% end %>
           </dl>
         </div>
