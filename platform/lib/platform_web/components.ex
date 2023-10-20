@@ -313,9 +313,9 @@ defmodule PlatformWeb.Components do
             </svg>
           </.navlink>
 
-          <.navlink to={"/profile/#{@current_user.username}"} label="My Activity" request_path={@path}>
+          <%!-- <.navlink to={"/profile/#{@current_user.username}"} label="My Activity" request_path={@path}>
             <Heroicons.user mini class="text-neutral-300 group-hover:text-white h-6 w-6" />
-          </.navlink>
+          </.navlink> --%>
 
           <.navlink
             to={
