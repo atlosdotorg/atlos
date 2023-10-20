@@ -313,7 +313,7 @@ defmodule PlatformWeb.Components do
             </svg>
           </.navlink>
 
-          <.navlink to="/my_activity" label="My Activity" request_path={@path}>
+          <.navlink to={"/profile/#{@current_user.username}"} label="My Activity" request_path={@path}>
             <Heroicons.user mini class="text-neutral-300 group-hover:text-white h-6 w-6" />
           </.navlink>
 
@@ -2024,7 +2024,6 @@ defmodule PlatformWeb.Components do
           <div
             class="flex-shrink-0 w-5 mr-2 group-hover:hidden"
             x-bind:class={"{'hidden': (selected || #{@is_selected})}"}
-            data-tooltip={"Last modified by #{List.last(@media.updates).user.username}"}
           >
             <.user_stack
               users={@media.updates |> Enum.take(1) |> Enum.map(& &1.user) |> Enum.reject(&is_nil/1)}
@@ -2399,26 +2398,32 @@ defmodule PlatformWeb.Components do
                     class="relative text-left overflow-visible"
                     data-tooltip="Filter to my assignments"
                   >
-                    <%= label f, :only_assigned, class: "transition-all cursor-pointer flex h-8 border shadow-sm rounded-lg py-1 px-2 w-full justify-center items-center gap-x-1 text-sm text-gray-900 " <> (if Ecto.Changeset.get_field(@changeset, :only_assigned) do
+                    <%= label f, :only_assigned_id, class: "transition-all cursor-pointer flex h-8 border shadow-sm rounded-lg py-1 px-2 w-full justify-center items-center gap-x-1 text-sm text-gray-900 " <> (if Ecto.Changeset.get_field(@changeset, :only_assigned_id) == @current_user.id do
                       "text-white bg-urge-500 border-urge-500"
                     else
                       "bg-white text-neutral-600"
                     end) do %>
                       <Heroicons.bookmark solid class="h-5 w-5 py-px" />
-                      <%= checkbox(f, :only_assigned, class: "hidden") %>
+                      <%= checkbox(f, :only_assigned_id,
+                        class: "hidden",
+                        checked_value: @current_user.id
+                      ) %>
                     <% end %>
                   </div>
                   <div
                     class="relative text-left overflow-visible"
                     data-tooltip="Filter to my subscriptions"
                   >
-                    <%= label f, :only_subscribed, class: "transition-all cursor-pointer flex h-8 border shadow-sm rounded-lg py-1 px-2 w-full justify-center items-center gap-x-1 text-sm text-gray-900 " <> (if Ecto.Changeset.get_field(@changeset, :only_subscribed) do
+                    <%= label f, :only_subscribed_id, class: "transition-all cursor-pointer flex h-8 border shadow-sm rounded-lg py-1 px-2 w-full justify-center items-center gap-x-1 text-sm text-gray-900 " <> (if Ecto.Changeset.get_field(@changeset, :only_subscribed_id) == @current_user.id do
                       "text-white bg-urge-500 border-urge-500"
                     else
                       "bg-white text-neutral-600"
                     end) do %>
                       <Heroicons.eye solid class="h-5 w-5 py-px" />
-                      <%= checkbox(f, :only_subscribed, class: "hidden") %>
+                      <%= checkbox(f, :only_subscribed_id,
+                        class: "hidden",
+                        checked_value: @current_user.id
+                      ) %>
                     <% end %>
                   </div>
                   <div
@@ -2513,21 +2518,9 @@ defmodule PlatformWeb.Components do
     """
   end
 
-  def media_card(%{media: %Media{} = media} = assigns) do
-    assigns =
-      assigns
-      |> assign(:sensitive, Media.is_sensitive(media))
-      |> assign_new(:target, fn -> nil end)
-      |> assign(:border, Map.get(assigns, :border, false))
-      |> assign(:link, Map.get(assigns, :link, true))
-      |> assign(:class, Map.get(assigns, :class, ""))
-
+  def media_card_inner(assigns) do
     ~H"""
-    <.link
-      class={"flex items-stretch group flex-row bg-white overflow-hidden shadow rounded-lg justify-between min-h-[12rem] " <> (if @border, do: "border ", else: "") <> @class}
-      navigate={if @link, do: "/incidents/#{@media.slug}", else: nil}
-      target={@target}
-    >
+    <div class={"flex items-stretch group flex-row bg-white overflow-hidden shadow rounded-lg justify-between min-h-[12rem] " <> (if @border, do: "border ", else: "") <> @class}>
       <%= if Permissions.can_view_media?(@current_user, @media) do %>
         <div class="p-2 flex flex-col w-3/4 gap-2 relative">
           <section>
@@ -2671,7 +2664,29 @@ defmodule PlatformWeb.Components do
           <span class="mt-2 block text-sm font-medium text-gray-700">Hidden or Unavailable</span>
         </div>
       <% end %>
-    </.link>
+    </div>
+    """
+  end
+
+  def media_card(%{media: %Media{} = media} = assigns) do
+    assigns =
+      assigns
+      |> assign(:sensitive, Media.is_sensitive(media))
+      |> assign_new(:target, fn -> nil end)
+      |> assign(:border, Map.get(assigns, :border, false))
+      |> assign(:link, Map.get(assigns, :link, true))
+      |> assign(:class, Map.get(assigns, :class, ""))
+
+    assigns = assigns |> assign(:inner_assigns, assigns)
+
+    ~H"""
+    <%= if @link do %>
+      <.link navigate={if @link, do: "/incidents/#{@media.slug}", else: nil} target={@target}>
+        <.media_card_inner {@inner_assigns} />
+      </.link>
+    <% else %>
+      <.media_card_inner {@inner_assigns} />
+    <% end %>
     """
   end
 
@@ -3462,7 +3477,7 @@ defmodule PlatformWeb.Components do
           [System]
         <% else %>
           <%= @user.username %>
-          <%= if Accounts.is_admin(@user) do %>
+          <%= if Accounts.is_admin(@user) and @flair do %>
             <span class="font-normal text-xs badge ~critical self-center">Admin</span>
           <% end %>
           <%= if String.length(@user.flair) > 0 and @flair do %>
@@ -3501,34 +3516,23 @@ defmodule PlatformWeb.Components do
   def user_text(%{user: %Accounts.User{} = _} = assigns) do
     assigns = assign_new(assigns, :icon, fn -> false end) |> assign_new(:flair, fn -> true end)
 
+    # We used to show a popover here when you hovered, but we removed it because it's annoying
+
     ~H"""
-    <.popover class="inline">
-      <.user_name_display user={@user} icon={@icon} flair={@flair} />
-      <:display>
-        <%= if is_nil(@user) do %>
-          This is an administrative user.
-        <% else %>
-          <.user_card user={@user} />
-        <% end %>
-      </:display>
-    </.popover>
+    <.user_name_display user={@user} icon={@icon} flair={@flair} />
     """
   end
 
   def media_text(assigns) do
     ~H"""
-    <.popover class="inline overflow-hidden" no_pad={true}>
-      <span class={"text-button transition inline-block mr-2 " <> Map.get(assigns, :class, "text-gray-800")}>
-        <.link navigate={"/incidents/" <> @media.slug}>
-          <%= Media.slug_to_display(@media) %> &nearr;
-        </.link>
-      </span>
-      <:display>
-        <div class="-m-3 w-[350px] h-[190px] rou@nded">
-          <.media_card_lazy media={@media} />
-        </div>
-      </:display>
-    </.popover>
+    <span
+      class={"text-button transition inline-block mr-2 " <> Map.get(assigns, :class, "text-gray-800")}
+      data-tooltip={"#{@media.attr_description} (#{@media.attr_status})"}
+    >
+      <.link navigate={"/incidents/" <> @media.slug}>
+        <%= Media.slug_to_display(@media) %> &nearr;
+      </.link>
+    </span>
     """
   end
 
@@ -3772,6 +3776,26 @@ defmodule PlatformWeb.Components do
     ~H"""
     <.link navigate={"/projects/#{@project.id}"}>
       <.project_card_inner project={@project} />
+    </.link>
+    """
+  end
+
+  def project_list_item(assigns) do
+    ~H"""
+    <.link navigate={"/projects/#{@project.id}"} class="group">
+      <div class="rounded-full hover:bg-white transition overflow-hidden text-sm border flex items-center gap-2 py-1 px-2">
+        <span><%= @project.name |> Platform.Utils.truncate() %></span>
+        <span style={"color: #{@project.color}"}>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+            class="w-4 h-4 ml-px"
+          >
+            <circle cx="10" cy="10" r="6" />
+          </svg>
+        </span>
+      </div>
     </.link>
     """
   end

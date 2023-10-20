@@ -159,7 +159,6 @@ defmodule PlatformWeb.Router do
       live("/settings/mfa", SettingsLive.MFALive)
 
       live("/home", HomeLive.Index, :index)
-      live("/my_activity", MyActivityLive.Index, :index)
 
       live("/new", NewLive)
 
@@ -175,8 +174,6 @@ defmodule PlatformWeb.Router do
       live("/incidents/:slug/auto_metadata", MediaLive.Show, :auto_metadata)
       live("/incidents/:slug/detail/:scoped_id", MediaLive.Show, :media_version_detail)
 
-      live("/subscriptions", SubscriptionsLive.Index)
-
       live("/projects", ProjectsLive.Index, :index)
       live("/projects/new", ProjectsLive.Index, :new)
       live("/projects/:id", ProjectsLive.Show, :overview)
@@ -187,7 +184,11 @@ defmodule PlatformWeb.Router do
       live("/projects/:id/queue", ProjectsLive.Show, :queue)
 
       live("/profile/:username", ProfilesLive.Show, :show)
-      live("/profile/:username/edit", ProfilesLive.Show, :edit)
+      live("/profile/:username/assignments", ProfilesLive.Show, :assignments)
+      live("/profile/:username/subscriptions", ProfilesLive.Show, :subscriptions)
+      live("/profile/:username/edited", ProfilesLive.Show, :edited)
+      live("/profile/:username/admin", ProfilesLive.Show, :admin)
+      live("/profile/:username/admin/edit", ProfilesLive.Show, :admin_edit)
 
       live("/notifications", NotificationsLive)
     end

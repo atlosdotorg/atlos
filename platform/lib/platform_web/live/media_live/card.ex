@@ -21,9 +21,9 @@ defmodule PlatformWeb.MediaLive.Card do
 
   def render(assigns) do
     ~H"""
-    <div class="h-full w-full">
-      <.media_card class="border" media={@media} current_user={@current_user} />
-    </div>
+    <a class="h-full w-full overflow-visible" target="_parent" href={"/incidents/#{@slug}"}>
+      <.media_card class="border" media={@media} current_user={@current_user} link={false} />
+    </a>
     """
   end
 end

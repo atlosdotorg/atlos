@@ -76,10 +76,7 @@ defmodule PlatformWeb.UpdatesLive.PaginatedMediaUpdateFeed do
       <%= for incident <- @media do %>
         <div class="w-full max-w-full group" x-data>
           <.media_line_preview media={incident} />
-          <ul
-            class="card shadow mt-2 cursor-pointer"
-            x-on:click={"window.location = '/incidents/#{incident.slug}'"}
-          >
+          <ul class="card shadow mt-2">
             <% len = min(3, length(incident.updates)) %>
             <%= for {update, idx} <- incident.updates |> Enum.sort_by(& &1.inserted_at, {:desc, NaiveDateTime}) |> Enum.take(3) |> Enum.reverse() |> Enum.with_index() do %>
               <.update_entry
