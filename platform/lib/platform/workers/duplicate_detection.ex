@@ -83,7 +83,11 @@ defmodule Platform.Workers.DuplicateDetector do
         Enum.any?(sub_hashes, fn sub_hash ->
           Enum.any?(
             hashes,
-            fn hash -> hamming_distance(sub_hash, hash) <= @hamming_threshold end
+            fn hash -> case hamming_distance(sub_hash, hash) do
+              {:ok, dist} -> dist <= @hamming_threshold
+              _ -> false
+            end
+          end
           )
         end)
       end)
