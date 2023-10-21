@@ -1,6 +1,8 @@
 defmodule Platform.Workers.DuplicateDetector do
   alias Platform.Material
 
+  @hamming_threshold 8
+
   require Logger
 
   use Oban.Worker,
@@ -22,8 +24,7 @@ defmodule Platform.Workers.DuplicateDetector do
          {:ok, binary2} <- Base.decode64(hash2) do
       if byte_size(binary1) == byte_size(binary2) do
         dist =
-          Enum.zip(:binary.bin_to_list(binary1), :binary.bin_to_list(binary2))
-          |> Enum.map(fn {a, b} ->
+          Enum.zip_with(:binary.bin_to_list(binary1), :binary.bin_to_list(binary2), fn a, b ->
             for(<<bit::1 <- :binary.encode_unsigned(Bitwise.bxor(a, b))>>,
               do: bit
             )
@@ -78,7 +79,13 @@ defmodule Platform.Workers.DuplicateDetector do
       |> Enum.filter(&(&1.visibility == :visible))
       |> Enum.filter(fn version ->
         sub_hashes = get_hashes(version)
-        Enum.any?(sub_hashes, fn sub_hash -> Enum.member?(hashes, sub_hash) end)
+
+        Enum.any?(sub_hashes, fn sub_hash ->
+          Enum.any?(
+            hashes,
+            fn hash -> hamming_distance(sub_hash, hash) <= @hamming_threshold end
+          )
+        end)
       end)
 
     Logger.info("Found #{Enum.count(results)} potential duplicates for #{media.slug}")
