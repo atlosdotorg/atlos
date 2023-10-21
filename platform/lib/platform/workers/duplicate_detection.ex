@@ -16,22 +16,27 @@ defmodule Platform.Workers.DuplicateDetector do
     |> List.flatten()
   end
 
-  def hamming_distance(string1, string2) do
+  def hamming_distance(hash1, hash2) do
     # Calculates the hamming distance between the base64 encodings of two perceptual hashes.
-    with {:ok, binary1} <- Base.decode64(string1),
-         {:ok, binary2} <- Base.decode64(string2) do
-        IO.inspect(binary1)
-        IO.inspect(binary2)
-        IO.inspect(:binary.bin_to_list(binary1))
-        if byte_size(binary1) == byte_size(binary2) do
-          dist = Enum.zip(:binary.bin_to_list(binary1), :binary.bin_to_list(binary2))
-          |> Enum.count(fn {a, b} -> a != b end)
-          {:ok, dist}
-        else
-          {:err, :unequal_length}
-        end
+    with {:ok, binary1} <- Base.decode64(hash1),
+         {:ok, binary2} <- Base.decode64(hash2) do
+      if byte_size(binary1) == byte_size(binary2) do
+        dist =
+          Enum.zip(:binary.bin_to_list(binary1), :binary.bin_to_list(binary2))
+          |> Enum.map(fn {a, b} ->
+            for(<<bit::1 <- :binary.encode_unsigned(Bitwise.bxor(a, b))>>,
+              do: bit
+            )
+            |> Enum.sum()
+          end)
+          |> Enum.sum()
+
+        {:ok, dist}
+      else
+        {:error, :unequal_length}
+      end
     else
-      _ -> {:err, :invalid_base64}
+      _ -> {:error, :invalid_base64}
     end
   end
 
