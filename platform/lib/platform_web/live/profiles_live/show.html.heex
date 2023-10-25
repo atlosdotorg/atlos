@@ -1,13 +1,13 @@
-<div class="flex flex-col gap-16 max-w-screen-2xl mx-4 md:mx-16 md:pl-8 flex flex-col md:flex-row mt-8">
-  <div class="flex gap-8 flex-col md:w-[20rem]">
-    <section class="flex gap-4">
+<div class="flex flex-col gap-16 max-w-full 2xl:max-w-screen-2xl mx-4 md:mx-16 md:pl-8 flex flex-col md:flex-row">
+  <div class="flex gap-8 flex-col md:w-[20rem] mt-2">
+    <section class="flex gap-4 items-center">
       <img
-        class="inline-block h-16 w-16 rounded-full ring-2 ring-white shadow-md"
+        class="inline-block h-12 w-12 rounded-full ring-2 ring-white shadow-md"
         src={Accounts.get_profile_photo_path(@user)}
         title={@user.username}
         alt={"Profile photo for #{@user.username}"}
       />
-      <div class="flex flex-col gap-4 mt-3">
+      <div class="flex flex-col gap-4">
         <div class="flex gap-4 flex-wrap items-center">
           <span class="font-medium text-3xl">
             <%= @username %>
@@ -19,11 +19,13 @@
             <p class="chip ~urge"><%= @user.flair %></p>
           <% end %>
         </div>
-        <p :if={not is_nil(@user.bio) and @user.bio != ""} class="text-gray-700">
-          <%= @user.bio %>
-        </p>
       </div>
     </section>
+    <section>
+    <p :if={not is_nil(@user.bio) and @user.bio != ""} class="text-gray-700">
+          <%= @user.bio %>
+        </p>
+        </section>
     <section>
       <%= if Enum.empty?(@shared_projects) do %>
         <p class="text-gray-600">

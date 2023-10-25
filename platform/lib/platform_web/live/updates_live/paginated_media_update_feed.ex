@@ -65,7 +65,7 @@ defmodule PlatformWeb.UpdatesLive.PaginatedMediaUpdateFeed do
 
   def render(assigns) do
     ~H"""
-    <div class="flex flex-col gap-8">
+    <div class="flex flex-col gap-8 max-w-full">
       <%= if Enum.empty?(@media) do %>
         <div class="text-center mt-8">
           <Heroicons.archive_box class="mx-auto h-12 w-12 text-gray-400" />

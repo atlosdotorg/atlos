@@ -523,7 +523,7 @@ defmodule PlatformWeb.Components do
 
   def media_line_preview(%{media: %Media{}} = assigns) do
     ~H"""
-    <article class="flex flex-wrap md:flex-nowrap w-full gap-1 justify-between text-sm md:items-center max-w-full">
+    <article class="flex flex-wrap md:flex-nowrap w-full gap-1 justify-between text-sm md:items-center max-w-full overflow-hidden">
       <div class="flex-shrink-0">
         <.media_text class="text-neutral-500" media={@media} />
       </div>
@@ -537,7 +537,7 @@ defmodule PlatformWeb.Components do
         navigate={"/incidents/#{@media.slug}"}
         class="font-medium flex-grow-1 hover:text-urge-600 transition flex items-center max-w-full gap-2 grow truncate min-w-0"
       >
-        <span class="truncate"><%= @media.attr_description %></span>
+        <span class="truncate"><%= @media.attr_description |> Platform.Utils.truncate(128) %></span>
       </.link>
       <.link
         navigate={"/incidents/#{@media.slug}"}
