@@ -86,7 +86,7 @@ defmodule PlatformWeb.UpdatesLive.PaginatedMediaUpdateFeed do
                 can_user_change_visibility={false}
                 target={@myself}
                 socket={@socket}
-                profile_ring={false}
+                profile_ring={true}
                 left_indicator={:profile}
                 current_user={@current_user}
               />
