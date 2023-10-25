@@ -68,6 +68,14 @@ defmodule Platform.Material.MediaVersion do
       max: 2500,
       message: "Explanations cannot exceed 2500 characters."
     )
+    # Custom validation: if type is :direct, then :source_url is required (:when does NOT exist)
+    |> then(fn changeset ->
+      if get_field(changeset, :upload_type) == :direct do
+        validate_required(changeset, [:source_url], message: "You must provide a URL to archive.")
+      else
+        changeset
+      end
+    end)
     |> unique_constraint([:media_id, :scoped_id], name: "media_versions_scoped_id_index")
   end
 
