@@ -1490,11 +1490,7 @@ defmodule PlatformWeb.Components do
                 value={item}
                 class="h-4 w-4 shrink-0 opacity-50"
               />
-              <.user_text
-                user={item.user}
-                icon={true}
-                flair={false}
-              />
+              <.user_text user={item.user} icon={true} flair={false} />
             </div>
             <%= if @compact and length(@value) > 1 do %>
               <div class="text-xs mt-1 text-neutral-500">
@@ -1822,8 +1818,11 @@ defmodule PlatformWeb.Components do
           <% :time -> %>
             <.list_diff old={[@old_val]} new={[@new_val]} label={@label} />
           <% :multi_users -> %>
-            <%# TODO: Don't load this data when rendering. It's fine for now, but we should fix it. %>
-            <% users = Platform.Accounts.get_users_by_ids(@old_val ++ @new_val) |> Enum.map(&{&1.id, &1}) |> Enum.into(%{}) %>
+            
+            <% users =
+              Platform.Accounts.get_users_by_ids(@old_val ++ @new_val)
+              |> Enum.map(&{&1.id, &1})
+              |> Enum.into(%{}) %>
             <.user_list_diff
               old={@old_val |> Enum.map(&Map.get(users, &1))}
               new={@new_val |> Enum.map(&Map.get(users, &1))}
@@ -3452,7 +3451,10 @@ defmodule PlatformWeb.Components do
   end
 
   defp user_name_display(%{user: %Accounts.User{} = _} = assigns) do
-    assigns = assign_new(assigns, :icon, fn -> false end) |> assign_new(:flair, fn -> true end) |> assign_new(:class, fn -> "text-gray-900 hover:text-urge-600" end)
+    assigns =
+      assign_new(assigns, :icon, fn -> false end)
+      |> assign_new(:flair, fn -> true end)
+      |> assign_new(:class, fn -> "text-gray-900 hover:text-urge-600" end)
 
     ~H"""
     <.link
@@ -3508,7 +3510,10 @@ defmodule PlatformWeb.Components do
   end
 
   def user_text(%{user: %Accounts.User{} = _} = assigns) do
-    assigns = assign_new(assigns, :icon, fn -> false end) |> assign_new(:flair, fn -> true end) |> assign_new(:class, fn -> "text-gray-900 hover:text-urge-600" end)
+    assigns =
+      assign_new(assigns, :icon, fn -> false end)
+      |> assign_new(:flair, fn -> true end)
+      |> assign_new(:class, fn -> "text-gray-900 hover:text-urge-600" end)
 
     # We used to show a popover here when you hovered, but we removed it because it's annoying
 

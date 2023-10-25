@@ -22,10 +22,10 @@
       </div>
     </section>
     <section>
-    <p :if={not is_nil(@user.bio) and @user.bio != ""} class="text-gray-700">
-          <%= @user.bio %>
-        </p>
-        </section>
+      <p :if={not is_nil(@user.bio) and @user.bio != ""} class="text-gray-700">
+        <%= @user.bio %>
+      </p>
+    </section>
     <section>
       <%= if Enum.empty?(@shared_projects) do %>
         <p class="text-gray-600">

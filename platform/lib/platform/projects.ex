@@ -278,7 +278,11 @@ defmodule Platform.Projects do
   end
 
   defmemo get_project_memberships_by_user_id(user_id), expires_in: 5000 do
-    Repo.all(ProjectMembership |> preload_project_memberships() |> Ecto.Query.where(user_id: ^user_id))
+    Repo.all(
+      ProjectMembership
+      |> preload_project_memberships()
+      |> Ecto.Query.where(user_id: ^user_id)
+    )
   end
 
   @doc """
