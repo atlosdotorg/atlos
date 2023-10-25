@@ -101,7 +101,8 @@ def archive_page_using_selenium(url: str) -> dict:
         options.add_argument("--headless=new")
         driver = webdriver.Chrome(
             service=ChromiumService(
-                ChromeDriverManager(chrome_type=ChromeType.CHROMIUM, driver_version="118.0.5993.117").install()
+                # If you update this version, be sure to also update the version in all Dockerfiles
+                ChromeDriverManager(chrome_type=ChromeType.CHROMIUM, driver_version="118.0.5993.70").install()
             ),
             options=options,
         )
