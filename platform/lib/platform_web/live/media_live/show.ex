@@ -31,7 +31,7 @@ defmodule PlatformWeb.MediaLive.Show do
        |> assign(:attribute, Map.get(params, "attribute"))
        # For /detail
        |> assign(:scoped_id, Map.get(params, "scoped_id"))
-       |> assign(:title, "Incident #{slug}")
+       # Will also assign title
        |> assign_media_and_updates()}
     end
   end
@@ -71,6 +71,7 @@ defmodule PlatformWeb.MediaLive.Show do
       |> assign(:active_project, media.project)
       |> assign(:updates, media.updates |> Enum.sort_by(& &1.inserted_at, {:asc, NaiveDateTime}))
       |> subscribe_to_media(media)
+      |> assign(:title, "#{media.slug}: #{media.attr_description |> Platform.Utils.truncate()}")
     else
       _ ->
         raise PlatformWeb.Errors.NotFound, "Media not found"

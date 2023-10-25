@@ -623,7 +623,15 @@ defmodule Platform.Material do
     Repo.all(
       from(v in MediaVersion,
         where: v.source_url == ^url,
-        preload: [media: [[updates: [:user, :api_token]], [attr_assignments: [:user]], :assignees, :versions, :project]]
+        preload: [
+          media: [
+            [updates: [:user, :api_token]],
+            [attr_assignments: [:user]],
+            :assignees,
+            :versions,
+            :project
+          ]
+        ]
       )
       |> then(fn query ->
         if is_nil(user) do

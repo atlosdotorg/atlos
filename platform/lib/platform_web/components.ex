@@ -1818,7 +1818,6 @@ defmodule PlatformWeb.Components do
           <% :time -> %>
             <.list_diff old={[@old_val]} new={[@new_val]} label={@label} />
           <% :multi_users -> %>
-            
             <% users =
               Platform.Accounts.get_users_by_ids(@old_val ++ @new_val)
               |> Enum.map(&{&1.id, &1})
