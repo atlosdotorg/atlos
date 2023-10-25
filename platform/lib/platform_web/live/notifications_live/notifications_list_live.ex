@@ -164,7 +164,6 @@ defmodule PlatformWeb.NotificationsLive.NotificationsList do
                     phx-click="toggle_notification_read"
                     phx-value-notification={notification.id}
                     phx-target={@myself}
-                    data-tooltip={if notification.read, do: "Mark as unread", else: "Mark as unread"}
                   >
                     <%= if notification.read do %>
                       <svg
@@ -172,6 +171,7 @@ defmodule PlatformWeb.NotificationsLive.NotificationsList do
                         viewBox="0 0 20 20"
                         fill="currentColor"
                         class="w-5 h-5"
+                        data-tooltip="Mark as unread"
                       >
                         <path
                           fill-rule="evenodd"
@@ -185,6 +185,7 @@ defmodule PlatformWeb.NotificationsLive.NotificationsList do
                         viewBox="0 0 20 20"
                         fill="currentColor"
                         class="w-5 h-5"
+                        data-tooltip="Mark as read"
                       >
                         <path
                           fill-rule="evenodd"
