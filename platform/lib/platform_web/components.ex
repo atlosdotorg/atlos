@@ -1490,14 +1490,11 @@ defmodule PlatformWeb.Components do
                 value={item}
                 class="h-4 w-4 shrink-0 opacity-50"
               />
-              <% membership = Enum.find(@project.memberships, &(&1.user_id == item.user_id)) %>
               <.user_text
-                :if={not is_nil(membership)}
-                user={membership.user}
+                user={item.user}
                 icon={true}
                 flair={false}
               />
-              <span :if={is_nil(membership)}>Unknown User</span>
             </div>
             <%= if @compact and length(@value) > 1 do %>
               <div class="text-xs mt-1 text-neutral-500">
@@ -1704,21 +1701,21 @@ defmodule PlatformWeb.Components do
             <%= for item <- elem do %>
               <span class="chip ~neutral inline-block text-xs">
                 <.attr_label label={Map.get(assigns, :label, "")} />
-                <.user_text user={item} icon={true} flair={false} />
+                <.user_text user={item} icon={false} flair={false} class="text-neutral-700" />
               </span>
             <% end %>
           <% :ins -> %>
             <%= for item <- elem do %>
               <span class="chip ~blue inline-block text-xs">
                 + <.attr_label label={Map.get(assigns, :label, "")} />
-                <.user_text user={item} icon={true} flair={false} />
+                <.user_text user={item} icon={false} flair={false} class="text-blue-700" />
               </span>
             <% end %>
           <% :del -> %>
             <%= for item <- elem do %>
               <span class="chip ~yellow inline-block text-xs">
                 - <.attr_label label={Map.get(assigns, :label, "")} />
-                <.user_text user={item} icon={true} flair={false} />
+                <.user_text user={item} icon={false} flair={false} class="text-yellow-700" />
               </span>
             <% end %>
         <% end %>
@@ -1807,11 +1804,6 @@ defmodule PlatformWeb.Components do
           )
         )
 
-      project_users =
-        Enum.map(project.memberships, & &1.user)
-        |> Enum.map(&{&1.id, &1})
-        |> Enum.into(%{})
-
       ~H"""
       <span class="inline">
         <%= case @attr.type do %>
@@ -1830,9 +1822,11 @@ defmodule PlatformWeb.Components do
           <% :time -> %>
             <.list_diff old={[@old_val]} new={[@new_val]} label={@label} />
           <% :multi_users -> %>
+            <%# TODO: Don't load this data when rendering. It's fine for now, but we should fix it. %>
+            <% users = Platform.Accounts.get_users_by_ids(@old_val ++ @new_val) |> Enum.map(&{&1.id, &1}) |> Enum.into(%{}) %>
             <.user_list_diff
-              old={@old_val |> Enum.map(&Map.get(project_users, &1))}
-              new={@new_val |> Enum.map(&Map.get(project_users, &1))}
+              old={@old_val |> Enum.map(&Map.get(users, &1))}
+              new={@new_val |> Enum.map(&Map.get(users, &1))}
               label={@label}
             />
           <% :date -> %>
@@ -3458,11 +3452,11 @@ defmodule PlatformWeb.Components do
   end
 
   defp user_name_display(%{user: %Accounts.User{} = _} = assigns) do
-    assigns = assign_new(assigns, :icon, fn -> false end) |> assign_new(:flair, fn -> true end)
+    assigns = assign_new(assigns, :icon, fn -> false end) |> assign_new(:flair, fn -> true end) |> assign_new(:class, fn -> "text-gray-900 hover:text-urge-600" end)
 
     ~H"""
     <.link
-      class="font-medium text-gray-900 hover:text-urge-600 inline-flex gap-2 flex-wrap items-center"
+      class={"font-medium inline-flex gap-2 flex-wrap items-center #{@class}"}
       navigate={if is_nil(@user), do: "#", else: "/profile/#{@user.username}"}
     >
       <%= if @icon do %>
@@ -3514,12 +3508,12 @@ defmodule PlatformWeb.Components do
   end
 
   def user_text(%{user: %Accounts.User{} = _} = assigns) do
-    assigns = assign_new(assigns, :icon, fn -> false end) |> assign_new(:flair, fn -> true end)
+    assigns = assign_new(assigns, :icon, fn -> false end) |> assign_new(:flair, fn -> true end) |> assign_new(:class, fn -> "text-gray-900 hover:text-urge-600" end)
 
     # We used to show a popover here when you hovered, but we removed it because it's annoying
 
     ~H"""
-    <.user_name_display user={@user} icon={@icon} flair={@flair} />
+    <.user_name_display user={@user} icon={@icon} flair={@flair} class={@class} />
     """
   end
 
