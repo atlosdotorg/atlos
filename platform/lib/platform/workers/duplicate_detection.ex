@@ -1,7 +1,7 @@
 defmodule Platform.Workers.DuplicateDetector do
   alias Platform.Material
 
-  @hamming_threshold 8
+  @hamming_threshold 15
 
   require Logger
 
@@ -22,6 +22,7 @@ defmodule Platform.Workers.DuplicateDetector do
     # Calculates the hamming distance between the base64 encodings of two perceptual hashes.
     with {:ok, binary1} <- Base.decode64(hash1),
          {:ok, binary2} <- Base.decode64(hash2) do
+      Logger.debug("Calculating the hamming distance between #{hash1} and #{hash2}")
       if byte_size(binary1) == byte_size(binary2) do
         dist =
           Enum.zip_with(:binary.bin_to_list(binary1), :binary.bin_to_list(binary2), fn a, b ->
@@ -31,9 +32,10 @@ defmodule Platform.Workers.DuplicateDetector do
             |> Enum.sum()
           end)
           |> Enum.sum()
-
+        Logger.debug("Hamming distance between #{hash1} and #{hash2} : #{dist}")
         {:ok, dist}
       else
+        Logger.debug("Unequal length!")
         {:error, :unequal_length}
       end
     else
@@ -63,7 +65,7 @@ defmodule Platform.Workers.DuplicateDetector do
             })
           )
 
-        Material.query_media(query)
+        Material.query_media()
       end)
       |> List.flatten()
       |> Enum.uniq_by(& &1.id)
@@ -71,6 +73,8 @@ defmodule Platform.Workers.DuplicateDetector do
         &(&1.id != version.media_id and
             &1.deleted == false and not Material.Media.has_restrictions(&1))
       )
+
+    Logger.info("Found #{Enum.count(candidate_media)} candidate media")
 
     results =
       candidate_media
