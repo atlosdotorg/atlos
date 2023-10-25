@@ -6,6 +6,10 @@ defmodule Platform.Accounts.User do
 
   @primary_key {:id, :binary_id, autogenerate: true}
   schema "users" do
+    field(:deprecated_integer_id, :integer)
+    field(:has_legacy_avatar, :boolean, default: false)
+    field(:avatar_uuid, :binary_id, default: nil)
+
     # General metadata
     field(:email, :string)
     field(:username, :string)
@@ -245,7 +249,7 @@ defmodule Platform.Accounts.User do
   """
   def profile_changeset(user, attrs) do
     user
-    |> cast(attrs, [:bio, :profile_photo_file])
+    |> cast(attrs, [:bio, :profile_photo_file, :has_legacy_avatar, :avatar_uuid])
     |> validate_length(:bio, max: 240, message: "Bios may not exceed 240 characters.")
   end
 

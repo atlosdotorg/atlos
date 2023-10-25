@@ -271,11 +271,16 @@ defmodule Platform.Projects do
         role: :manager
       }
     else
-      Repo.get_by(ProjectMembership |> preload_project_memberships(),
-        user_id: user_id,
-        project_id: project_id
-      )
+      Enum.find(get_project_memberships_by_user_id(user_id), fn pm ->
+        pm.project_id == project_id
+      end)
     end
+  end
+
+  defmemo get_project_memberships_by_user_id(user_id), expires_in: 5000 do
+    Repo.all(ProjectMembership |> preload_project_memberships(),
+      user_id: user_id
+    )
   end
 
   @doc """

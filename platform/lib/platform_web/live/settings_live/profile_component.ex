@@ -60,25 +60,47 @@ defmodule PlatformWeb.SettingsLive.ProfileComponent do
   defp handle_progress(:profile_photo_file, entry, socket) do
     if entry.done? do
       # TODO: add a context function to upload to persistent storage
-      path = consume_uploaded_entry(socket, entry, &upload_avatar(&1, socket))
+      uuid = Ecto.UUID.generate()
+      path = consume_uploaded_entry(socket, entry, &upload_avatar(&1, socket, uuid))
 
-      {:noreply,
-       socket
-       |> update_changeset(:profile_photo_file, path)
-       |> assign(
-         :profile_photo_display,
-         Avatar.url({path, socket.assigns.current_user}, :thumb,
-           signed: true,
-           expires_in: 60 * 60 * 6
-         )
-       )}
+      params = %{
+        "profile_photo_file" => path,
+        "has_legacy_avatar" => false,
+        "avatar_uuid" => uuid
+      }
+
+      case Accounts.update_user_profile(socket.assigns.current_user, params) do
+        {:ok, user} ->
+          Auditor.log(:profile_updated, params, socket)
+          send(self(), :update_successful)
+
+          {:noreply,
+           socket
+           |> assign(:current_user, user)
+           |> assign(:changeset, Accounts.change_user_profile(user))
+           |> assign(
+             :profile_photo_display,
+             Avatar.url({path, user}, :thumb,
+               signed: true,
+               expires_in: 60 * 60 * 6
+             )
+           )}
+
+        {:error, %Ecto.Changeset{} = changeset} ->
+          {:noreply, assign(socket, :changeset, changeset)}
+      end
     else
       {:noreply, socket}
     end
   end
 
-  defp upload_avatar(%{path: path}, socket) do
-    Avatar.store({path, socket.assigns.current_user})
+  defp upload_avatar(%{path: path}, socket, uuid) do
+    Avatar.store(
+      {path,
+       socket.assigns.current_user
+       |> Map.put(:has_legacy_avatar, false)
+       |> Map.put(:avatar_uuid, uuid)}
+    )
   end
 
   defp has_changes(changeset) do
