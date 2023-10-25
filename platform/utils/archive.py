@@ -101,7 +101,7 @@ def archive_page_using_selenium(url: str) -> dict:
         options.add_argument("--headless=new")
         driver = webdriver.Chrome(
             service=ChromiumService(
-                ChromeDriverManager(chrome_type=ChromeType.CHROMIUM, driver_version="114.0.5735.90").install()
+                ChromeDriverManager(chrome_type=ChromeType.CHROMIUM, driver_version="118.0.5993.117").install()
             ),
             options=options,
         )
