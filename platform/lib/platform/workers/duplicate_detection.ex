@@ -60,12 +60,11 @@ defmodule Platform.Workers.DuplicateDetector do
         {query, _} =
           Platform.Material.MediaSearch.search_query(
             Platform.Material.MediaSearch.changeset(%{
-              "project_id" => media.project_id,
-              "query" => hash
+              "project_id" => media.project_id
             })
           )
 
-        Material.query_media()
+        Material.query_media(query)
       end)
       |> List.flatten()
       |> Enum.uniq_by(& &1.id)
@@ -74,7 +73,7 @@ defmodule Platform.Workers.DuplicateDetector do
             &1.deleted == false and not Material.Media.has_restrictions(&1))
       )
 
-    Logger.info("Found #{Enum.count(candidate_media)} candidate media")
+    Logger.debug("Found #{Enum.count(candidate_media)} candidate media")
 
     results =
       candidate_media
