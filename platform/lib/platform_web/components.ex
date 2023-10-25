@@ -2039,7 +2039,7 @@ defmodule PlatformWeb.Components do
                 </span>
               <% end %>
               <%= if is_subscribed do %>
-                <span data-tooltip="You are subscribed" class="text-neutral-400">
+                <span data-tooltip="You're subscribed" class="text-neutral-400">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     viewBox="0 0 20 20"
@@ -2054,7 +2054,7 @@ defmodule PlatformWeb.Components do
                     />
                   </svg>
                   <span class="sr-only">
-                    You are subscribed
+                    You&apos;re subscribed
                   </span>
                 </span>
               <% end %>
@@ -2521,7 +2521,7 @@ defmodule PlatformWeb.Components do
             <p class="font-mono text-xs text-gray-500 flex items-center gap-1">
               <%= Media.slug_to_display(@media) %>
               <%= if @media.has_subscription do %>
-                <span data-tooltip="You are subscribed" class="text-neutral-400">
+                <span data-tooltip="You're subscribed" class="text-neutral-400">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     viewBox="0 0 20 20"
@@ -2536,7 +2536,7 @@ defmodule PlatformWeb.Components do
                     />
                   </svg>
                   <span class="sr-only">
-                    You are subscribed
+                    You&apos;re subscribed
                   </span>
                 </span>
               <% end %>
