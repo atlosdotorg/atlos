@@ -234,6 +234,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
             </div>
           </div>
           <%= error_tag(@f_attr, :options) %>
+          <%= error_tag(@f_attr, :options_json) %>
           <p class="support">
             Press enter to add a new option.
           </p>
