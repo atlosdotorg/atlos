@@ -11,8 +11,8 @@ defmodule Platform.Material.MediaVersion do
     field(:source_url, :string)
     field(:metadata, :map, default: %{})
 
-    @primary_key {:id, :binary_id, autogenerate: false}
-    embeds_many :artifacts, MediaVersionArtifact do
+    embeds_many :artifacts, MediaVersionArtifact, primary_key: false do
+      field(:id, :binary_id, primary_key: true, autogenerate: true)
       field(:file_location, :string)
       field(:file_hash_sha256, :string)
       field(:file_size, :integer)
