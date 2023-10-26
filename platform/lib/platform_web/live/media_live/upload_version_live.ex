@@ -251,7 +251,7 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
             class="w-full flex justify-center items-center px-6 pt-5 pb-6 border-2 h-40 border-gray-300 border-dashed rounded-md"
             phx-drop-target={@uploads.media_upload.ref}
           >
-            <%= live_file_input(@uploads.media_upload, class: "sr-only") %>
+            <.live_file_input upload={@uploads.media_upload} class="sr-only" />
             <div class="phx-only-during-submit">
               <div class="space-y-1 text-center">
                 <svg
@@ -415,7 +415,7 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
                 class: "button ~urge @high"
               ) %>
               <a
-                href={"/incidents/#{@media.slug}/"}
+                navigate={"/incidents/#{@media.slug}/"}
                 class="text-button text-sm text-right phx-only-during-reg"
               >
                 Or cancel media upload

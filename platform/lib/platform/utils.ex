@@ -15,10 +15,10 @@ defmodule Platform.Utils do
   def generate_media_slug() do
     slug = for _ <- 1..6, into: "", do: <<Enum.random('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ')>>
 
-    if !is_nil(Platform.Material.get_full_media_by_slug(slug)) do
-      generate_media_slug()
-    else
+    if is_nil(Platform.Material.get_full_media_by_slug(slug)) do
       slug
+    else
+      generate_media_slug()
     end
   end
 
@@ -48,10 +48,10 @@ defmodule Platform.Utils do
             &(&1.label == deprecated_attribute.label && &1.type == deprecated_attribute.type)
           )
 
-        if not is_nil(new_attribute) do
-          {deprecated_attribute, new_attribute}
-        else
+        if is_nil(new_attribute) do
           nil
+        else
+          {deprecated_attribute, new_attribute}
         end
       end)
       |> Enum.reject(&is_nil/1)
@@ -166,9 +166,11 @@ defmodule Platform.Utils do
 
     # Setup to open external links in a new tab + add nofollow/noopener, and truncate long links.
     add_target = fn node ->
-      if not is_nil(Earmark.AstTools.find_att_in_node(node, "href", "")),
-        do: Earmark.AstTools.merge_atts_in_node(node, target: "_blank", rel: "nofollow noopener"),
-        else: node
+      if is_nil(Earmark.AstTools.find_att_in_node(node, "href", "")) do
+        node
+      else
+        Earmark.AstTools.merge_atts_in_node(node, target: "_blank", rel: "nofollow noopener")
+      end
     end
 
     truncate_long_links = fn node ->

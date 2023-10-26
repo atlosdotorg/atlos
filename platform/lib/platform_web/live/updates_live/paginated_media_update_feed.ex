@@ -65,7 +65,7 @@ defmodule PlatformWeb.UpdatesLive.PaginatedMediaUpdateFeed do
 
   def render(assigns) do
     ~H"""
-    <div class="flex flex-col gap-8">
+    <div class="flex flex-col gap-8 max-w-full">
       <%= if Enum.empty?(@media) do %>
         <div class="text-center mt-8">
           <Heroicons.archive_box class="mx-auto h-12 w-12 text-gray-400" />
@@ -74,13 +74,9 @@ defmodule PlatformWeb.UpdatesLive.PaginatedMediaUpdateFeed do
         </div>
       <% end %>
       <%= for incident <- @media do %>
-        <div class="w-full max-w-full group">
+        <div class="w-full max-w-full group" x-data>
           <.media_line_preview media={incident} />
-          <ul
-            class="card shadow mt-2 cursor-pointer"
-            x-on:click={"window.location = '/incidents/#{incident.slug}'"}
-            x-data
-          >
+          <ul class="card shadow mt-2">
             <% len = min(3, length(incident.updates)) %>
             <%= for {update, idx} <- incident.updates |> Enum.sort_by(& &1.inserted_at, {:desc, NaiveDateTime}) |> Enum.take(3) |> Enum.reverse() |> Enum.with_index() do %>
               <.update_entry
@@ -90,14 +86,14 @@ defmodule PlatformWeb.UpdatesLive.PaginatedMediaUpdateFeed do
                 can_user_change_visibility={false}
                 target={@myself}
                 socket={@socket}
-                profile_ring={false}
+                profile_ring={true}
                 left_indicator={:profile}
                 current_user={@current_user}
               />
             <% end %>
           </ul>
           <.link
-            href={"/incidents/#{incident.slug}#comment-box"}
+            navigate={"/incidents/#{incident.slug}#comment-box"}
             class="text-xs text-neutral-500 mt-2 transition-all hover:text-urge-600 font-medium opacity-0 group-hover:opacity-100 group-focus-within:opacity-100"
           >
             <span x-ref="link">Open incident &rarr;</span>

@@ -8,7 +8,15 @@ defmodule Platform.Uploads.Avatar do
   end
 
   def filename(version, {_file, scope}) do
-    "#{scope.id}_#{version}"
+    if scope.has_legacy_avatar do
+      "#{scope.deprecated_integer_id}_#{version}"
+    else
+      if is_nil(scope.avatar_uuid) do
+        "#{scope.id}_#{version}"
+      else
+        "#{scope.id}_#{scope.avatar_uuid}_#{version}}"
+      end
+    end
   end
 
   def default_url(_version) do
@@ -16,7 +24,11 @@ defmodule Platform.Uploads.Avatar do
   end
 
   def storage_dir(_version, {_file, scope}) do
-    "avatars/#{scope.id}"
+    if scope.has_legacy_avatar do
+      "avatars/#{scope.deprecated_integer_id}"
+    else
+      "avatars/#{scope.id}"
+    end
   end
 
   def s3_object_headers(_version, {file, _scope}) do

@@ -22,7 +22,7 @@ defmodule Platform.MaterialFixtures do
         attr_sensitive: ["Graphic Violence"],
         attr_type: ["Other"],
         slug: unique_media_slug(),
-        status: "Unclaimed",
+        status: "To Do",
         project_id: project_fixture().id
       })
       |> Platform.Material.create_media()

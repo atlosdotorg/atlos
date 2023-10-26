@@ -5,13 +5,14 @@ defmodule Platform.Invites.Invite do
   alias Platform.Accounts
   alias __MODULE__
 
+  @primary_key {:id, :binary_id, autogenerate: true}
   schema "invites" do
     field :active, :boolean, default: true
     field :code, :string, autogenerate: {Invite, :generate_random_code, []}
 
     # Accounts who have used the invite code to register
     has_many :users, Accounts.User
-    belongs_to :owner, Accounts.User
+    belongs_to :owner, Accounts.User, type: :binary_id
 
     timestamps()
   end

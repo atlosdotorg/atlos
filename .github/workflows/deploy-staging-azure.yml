@@ -5,12 +5,12 @@
 name: Build and deploy staging (Azure)
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - "platform/**"
-      - ".github/workflows/deploy-staging-azure.yml"
+  # push:
+  #   branches:
+  #     - main
+  #   paths:
+  #     - "platform/**"
+  #     - ".github/workflows/deploy-staging-azure.yml"
 
   # Allow mannually trigger
   workflow_dispatch:

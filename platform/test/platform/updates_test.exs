@@ -1,5 +1,5 @@
 defmodule Platform.UpdatesTest do
-  use Platform.DataCase
+  use Platform.DataCase, async: true
 
   alias Platform.Material
   alias Platform.Updates

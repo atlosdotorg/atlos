@@ -18,7 +18,7 @@ defmodule PlatformWeb.Router do
       # `default-src 'none'` and removing cdn.jsdelivr.net); this is an opportunity for future improvement. To
       # quote Sobelow, just about any CSP is better than the default (no CSP at all!).
       "content-security-policy" =>
-        "object-src 'none'; script-src 'self' js.hcaptcha.com cdn.jsdelivr.net 'unsafe-eval' blob:; base-uri 'none';"
+        "object-src 'none'; script-src 'self' js.hcaptcha.com unpkg.com static.highlight.io 'unsafe-eval' blob:; base-uri 'none';"
     })
 
     plug(:fetch_current_user)
@@ -74,8 +74,19 @@ defmodule PlatformWeb.Router do
     pipe_through([:api, :check_api_token])
 
     scope "/v1" do
+      pipe_through([:require_legacy_token])
+
       get("/media_versions", APIV1Controller, :media_versions)
       get("/media", APIV1Controller, :media)
+    end
+
+    scope "/v2" do
+      pipe_through([:require_project_scoped_token])
+
+      get("/source_material", APIV2Controller, :source_material)
+      get("/incidents", APIV2Controller, :incidents)
+      post("/add_comment/:slug", APIV2Controller, :add_comment)
+      post("/update/:slug/:attribute", APIV2Controller, :update)
     end
   end
 
@@ -147,8 +158,7 @@ defmodule PlatformWeb.Router do
       live("/settings", SettingsLive)
       live("/settings/mfa", SettingsLive.MFALive)
 
-      live("/home", HomeLive.Index, :all_activity)
-      live("/home/my_activity", HomeLive.Index, :my_activity)
+      live("/home", HomeLive.Index, :index)
 
       live("/new", NewLive)
 
@@ -164,19 +174,21 @@ defmodule PlatformWeb.Router do
       live("/incidents/:slug/auto_metadata", MediaLive.Show, :auto_metadata)
       live("/incidents/:slug/detail/:scoped_id", MediaLive.Show, :media_version_detail)
 
-      live("/subscriptions", SubscriptionsLive.Index)
-
       live("/projects", ProjectsLive.Index, :index)
       live("/projects/new", ProjectsLive.Index, :new)
       live("/projects/:id", ProjectsLive.Show, :overview)
       live("/projects/:id/map", ProjectsLive.Show, :map)
       live("/projects/:id/edit", ProjectsLive.Show, :edit)
-      live("/projects/:id/members", ProjectsLive.Show, :members)
+      live("/projects/:id/access", ProjectsLive.Show, :access)
       live("/projects/:id/deleted", ProjectsLive.Show, :deleted)
       live("/projects/:id/queue", ProjectsLive.Show, :queue)
 
       live("/profile/:username", ProfilesLive.Show, :show)
-      live("/profile/:username/edit", ProfilesLive.Show, :edit)
+      live("/profile/:username/assignments", ProfilesLive.Show, :assignments)
+      live("/profile/:username/subscriptions", ProfilesLive.Show, :subscriptions)
+      live("/profile/:username/edited", ProfilesLive.Show, :edited)
+      live("/profile/:username/admin", ProfilesLive.Show, :admin)
+      live("/profile/:username/admin/edit", ProfilesLive.Show, :admin_edit)
 
       live("/notifications", NotificationsLive)
     end

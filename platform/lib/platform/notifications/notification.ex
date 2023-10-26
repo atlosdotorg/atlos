@@ -2,14 +2,15 @@ defmodule Platform.Notifications.Notification do
   use Ecto.Schema
   import Ecto.Changeset
 
+  @primary_key {:id, :binary_id, autogenerate: true}
   schema "notifications" do
     field :content, :string
     field :read, :boolean, default: false
     field :type, Ecto.Enum, values: [:update, :message]
 
-    belongs_to :user, Platform.Accounts.User
-    belongs_to :media, Platform.Material.Media
-    belongs_to :update, Platform.Updates.Update
+    belongs_to :user, Platform.Accounts.User, type: :binary_id
+    belongs_to :media, Platform.Material.Media, type: :binary_id
+    belongs_to :update, Platform.Updates.Update, type: :binary_id
 
     timestamps()
   end

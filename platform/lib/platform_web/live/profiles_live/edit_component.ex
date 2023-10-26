@@ -11,8 +11,7 @@ defmodule PlatformWeb.ProfilesLive.EditComponent do
        |> assign_user()
        |> assign_changeset()}
     else
-      socket
-      |> push_patch(to: Routes.profiles_show_path(socket, :show, socket.assigns.media.slug))
+      raise PlatformWeb.Errors.Unauthorized, "No permission"
     end
   end
 
@@ -30,7 +29,7 @@ defmodule PlatformWeb.ProfilesLive.EditComponent do
   end
 
   def close(socket) do
-    socket |> push_patch(to: Routes.profiles_show_path(socket, :show, socket.assigns.username))
+    socket |> push_patch(to: Routes.profiles_show_path(socket, :admin, socket.assigns.username))
   end
 
   defp hydrate_params(params) do

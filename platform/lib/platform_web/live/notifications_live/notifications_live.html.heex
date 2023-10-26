@@ -14,7 +14,10 @@
         <p class="sec-subhead">
           You'll receive a notification when an incident you're subscribed to changes.
         </p>
-        <.link href="/subscriptions" class="text-button text-sm mt-4 block">
+        <.link
+          navigate={"/profile/#{@current_user.username}/subscriptions"}
+          class="text-button text-sm mt-4 block"
+        >
           View and manage subscriptions &rarr;
         </.link>
       </div>

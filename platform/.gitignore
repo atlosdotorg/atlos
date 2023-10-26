@@ -1,5 +1,11 @@
 # Used locally by Waffle for uploads when testing
 artifacts
+avatars
+
+# Terraform
+.terraform/
+*.private.tfvars
+*.tfstate
 
 # The directory Mix will write compiled artifacts to.
 /_build/

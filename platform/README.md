@@ -8,12 +8,24 @@ To set Atlos up for local development, you need not do much. Just click the gree
 
 Once the Codespace opens up in your VS Code window, you'll be able to start the Phoenix server by `cd`'ing into `platform`, and then running `mix phx.server`. VS Code should detect that the server is running on port `3000` and offer to forward that port to your local machine. (If not, just add the port under `Ports` in the VS Code bottom menu.)
 
+You can log into an admin using the following credentials:
+
+- Email: `admin@localhost`
+- Password: `localhost123`
+
+And you can log into a regular user account using the following credentials:
+
+- Email: `user@localhost`
+- Password: `localhost123`
+
 Other tasks you might want to perform from inside the `platform` subdirectory (i.e., this one):
 
 - Install dependencies with `mix deps.get` (note: not necessary if you're using a dev container, since dependencies will be installed automatically)
 - Create and migrate your database with `mix ecto.setup` (note: not necessary if you're using a dev container, but helpful if you want to refresh the environment)
 - Start Phoenix endpoint with `mix phx.server` or inside IEx with `iex -S mix phx.server`
 - Run our 200+ automated tests with `mix test`.
+
+For more information about contributing, see the [Contributing](#contributing) section below.
 
 ## Architecture Overview
 
@@ -144,7 +156,7 @@ Atlos is deployed using GitHub Actions. We have two main workflows: one for test
 
 Our production environment reads from the `deployments/main` branch. A GitHub action automatically maintains an open pull request from `main` into `deployments/main`. When we want to deploy to production, we merge the pull request.
 
-Note that we currently also run a single-tenant Atlos instance for Bellingcat. This instance is deployed from the `deployments/gap` branch, and is deployed via its own pull request. We typically deploy to main before we deploy to gap, but this is not a hard requirement.
+Note that we currently also run a single-tenant Atlos instance for Bellingcat. This instance is deployed from the `deployments/gap` branch, and is deployed via its own pull request. We typically deploy to main before we deploy to gap, but this is not a hard requirement. This dedicated instance will be retired soon and we will move to a single unified instance for all tenants.
 
 Atlos is meant to be run as a clustered web app with at least two instances. We use Elixir's `libcluster` to cluster our instances together. We use Azure's load balancer to distribute traffic between the instances. Note that clustering is _absolutely required_ for Atlos to run correctly; this clustering is how we run background jobs, real-time syncing, etc.
 
@@ -156,6 +168,15 @@ There is no one-size-fits-all approach to setting up a new Atlos environment; th
 4. Ensure that the Atlos instances can communicate with the database
 
 That's it! You should now have a working Atlos instance. (Again: our infrastructure is intentionally quite simple. If you get stuck, feel free to reach out to us on Discord.)
+
+#### Azure Deployment
+
+Our deployment on Azure — described via the Terraform files in `deployments/` — has the following components:
+
+* A PostgreSQL database (per deployment, via Azure Database for PostgreSQL)
+* A container app (per deployment, via Azure Container Apps)
+
+We still store media in AWS S3 (via the `S3_BUCKET` environment variable), and we still send emails via AWS SES (via the `AWS_MAILER_REGION`, `AWS_ACCESS_KEY_ID`, and `AWS_SECRET_ACCESS_KEY` environment variables).
 
 ### Testing
 
@@ -180,6 +201,12 @@ There are five "sets" of dependencies that you need to be mindful of periodicall
 We welcome contributions to Atlos! If you're interested in contributing, please feel free to reach out to us via our Discord server. We're happy to help you get started.
 
 Please be careful to follow our [code of conduct](/CODE_OF_CONDUCT.md) in all interactions with the project.
+
+Some additional tips:
+
+1. Run `mix format` to ensure that your code is formatted correctly.
+2. Run `mix credo` to ensure that your code is idiomatic.
+3. Run `mix test` to ensure that your code passes all tests.
 
 ## License
 

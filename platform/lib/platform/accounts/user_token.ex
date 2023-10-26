@@ -12,11 +12,12 @@ defmodule Platform.Accounts.UserToken do
   @change_email_validity_in_days 7
   @session_validity_in_days 60
 
+  @primary_key {:id, :binary_id, autogenerate: true}
   schema "users_tokens" do
     field :token, :binary
     field :context, :string
     field :sent_to, :string
-    belongs_to :user, Platform.Accounts.User
+    belongs_to :user, Platform.Accounts.User, type: :binary_id
 
     timestamps(updated_at: false)
   end

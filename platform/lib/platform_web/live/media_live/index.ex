@@ -32,7 +32,7 @@ defmodule PlatformWeb.MediaLive.Index do
         active_project
       )
 
-    membership_id = if not is_nil(membership), do: membership.id, else: nil
+    membership_id = if is_nil(membership), do: nil, else: membership.id
 
     # Update the user's prefered incident display, if necessary
     Platform.Accounts.update_user_preferences(socket.assigns.current_user, %{
@@ -152,7 +152,8 @@ defmodule PlatformWeb.MediaLive.Index do
   end
 
   defp search_media(socket, c, pagination_opts) do
-    {query, pagination_options} = Material.MediaSearch.search_query(c)
+    {query, pagination_options} =
+      Material.MediaSearch.search_query(Material.Media, c, socket.assigns.current_user)
 
     query
     |> Material.MediaSearch.filter_viewable(socket.assigns.current_user)

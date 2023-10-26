@@ -16,4 +16,26 @@ defmodule PlatformWeb.APIAuth do
         |> halt()
     end
   end
+
+  def require_legacy_token(conn, _opts) do
+    if conn.assigns.token.is_legacy do
+      conn
+    else
+      conn
+      |> put_status(:unauthorized)
+      |> json(%{error: "invalid token or token not found"})
+      |> halt()
+    end
+  end
+
+  def require_project_scoped_token(conn, _opts) do
+    if !is_nil(conn.assigns.token.project_id) and !conn.assigns.token.is_legacy do
+      conn
+    else
+      conn
+      |> put_status(:unauthorized)
+      |> json(%{error: "invalid token or token not found"})
+      |> halt()
+    end
+  end
 end

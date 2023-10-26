@@ -5,7 +5,6 @@ defmodule Platform.Material.Attribute do
   alias Platform.Material.Attribute
   alias Platform.Material.Media
   alias Platform.Accounts.User
-  alias Platform.Accounts
   alias Platform.Material
   alias Platform.Permissions
 
@@ -66,7 +65,7 @@ defmodule Platform.Material.Attribute do
         schema_field: :attr_status,
         type: :select,
         options: [
-          "Unclaimed",
+          "To Do",
           "In Progress",
           "Help Needed",
           "Ready for Review",
@@ -80,13 +79,22 @@ defmodule Platform.Material.Attribute do
         description: "Use the status to help coordinate and track work on Atlos.",
         privileged_values: ["Completed", "Cancelled"],
         option_descriptions: %{
-          "Unclaimed" => "Not actively being worked on",
+          "To Do" => "Not actively being worked on",
           "In Progress" => "Actively being worked on",
           "Help Needed" => "Stuck, or second opinion needed",
           "Ready for Review" => "Ready for a moderator's verification",
           "Completed" => "Investigation complete",
           "Cancelled" => "Will not be completed (out of scope, etc.)"
         }
+      },
+      %Attribute{
+        schema_field: :attr_assignments,
+        type: :multi_users,
+        label: "Assignees",
+        pane: :metadata,
+        required: false,
+        name: :assignments,
+        description: "Who is working on this incident?"
       },
       %Attribute{
         schema_field: :attr_description,
@@ -107,6 +115,16 @@ defmodule Platform.Material.Attribute do
         required: false,
         name: :date,
         description: "On what date did the incident take place?"
+      },
+      %Attribute{
+        schema_field: :attr_time,
+        type: :time,
+        label: "Time",
+        pane: :not_shown,
+        required: false,
+        name: :time,
+        parent: :date,
+        description: "At what time did the incident take place?"
       }
     ]
 
@@ -472,12 +490,16 @@ defmodule Platform.Material.Attribute do
   def set_for_media(media, opts \\ []) do
     pane = Keyword.get(opts, :pane)
 
-    Enum.filter(attributes(opts), fn attr ->
-      val = Material.get_attribute_value(media, attr)
+    Enum.filter(attributes(opts), fn a ->
+      all_attrs = get_children(a.name) ++ [a]
 
-      val != nil && val != [] && val != %{"day" => "", "month" => "", "year" => ""} &&
-        (pane == nil || attr.pane == pane) &&
-        (attr.deprecated != true || Keyword.get(opts, :include_deprecated_attributes, false))
+      Enum.any?(all_attrs, fn attr ->
+        val = Material.get_attribute_value(media, attr)
+
+        val != nil && val != [] && val != %{"day" => "", "month" => "", "year" => ""} &&
+          (pane == nil || attr.pane == pane || (attr.parent == a.name && a.pane == pane)) &&
+          (attr.deprecated != true || Keyword.get(opts, :include_deprecated_attributes, false))
+      end)
     end)
   end
 
@@ -491,9 +513,11 @@ defmodule Platform.Material.Attribute do
     set = set_for_media(media, opts)
 
     attributes(opts)
-    |> Enum.filter(&(!Enum.member?(set, &1)))
-    |> Enum.filter(&(&1.deprecated != true))
-    |> Enum.filter(&(pane == nil || &1.pane == pane))
+    |> Enum.filter(
+      &(!Enum.member?(set, &1) &&
+          &1.deprecated != true &&
+          (pane == nil || &1.pane == pane))
+    )
   end
 
   @doc """
@@ -578,17 +602,19 @@ defmodule Platform.Material.Attribute do
         opts \\ []
       ) do
     user = Keyword.get(opts, :user)
+    api_token = Keyword.get(opts, :api_token)
+
     verify_change_exists = Keyword.get(opts, :verify_change_exists, true)
     changeset = Keyword.get(opts, :changeset)
 
     (changeset || media)
     |> cast(%{}, [])
     |> populate_virtual_data(attribute)
-    |> cast_attribute(attribute, attrs)
+    |> cast_attribute(attribute, attrs, media.id)
     |> validate_attribute(attribute, media, opts)
     |> cast_and_validate_virtual_explanation(attrs, attribute)
     |> update_from_virtual_data(attribute)
-    |> verify_user_can_edit(attribute, user, media)
+    |> verify_can_edit(attribute, media, user: user, api_token: api_token)
     |> then(fn c ->
       if verify_change_exists, do: verify_change_exists(c, [attribute]), else: c
     end)
@@ -609,6 +635,8 @@ defmodule Platform.Material.Attribute do
         opts \\ []
       ) do
     user = Keyword.get(opts, :user)
+    api_token = Keyword.get(opts, :api_token)
+
     verify_change_exists = Keyword.get(opts, :verify_change_exists, true)
     changeset = Keyword.get(opts, :changeset)
 
@@ -743,6 +771,7 @@ defmodule Platform.Material.Attribute do
       Enum.reduce(core_attributes, cs, fn elem, acc ->
         changeset(media, elem, attrs,
           user: user,
+          api_token: api_token,
           verify_change_exists: false,
           changeset: acc,
           project_attribute_ids_in_changeset: project_attribute_ids_in_changeset
@@ -758,15 +787,28 @@ defmodule Platform.Material.Attribute do
   @doc """
   Checks whether the given user can edit the given attribute.
   """
-  def verify_user_can_edit(changeset, attribute, user, media) do
-    if is_nil(user) || Permissions.can_edit_media?(user, media, attribute) do
-      changeset
-    else
-      changeset
-      |> Ecto.Changeset.add_error(
-        attribute.schema_field,
-        "You do not have permission to edit this attribute."
-      )
+  def verify_can_edit(changeset, attribute, media, opts) do
+    user = Keyword.get(opts, :user)
+    api_token = Keyword.get(opts, :api_token)
+
+    cond do
+      !is_nil(user) && !Permissions.can_edit_media?(user, media, attribute) ->
+        changeset
+        |> Ecto.Changeset.add_error(
+          attribute.schema_field,
+          "You do not have permission to edit this attribute."
+        )
+
+      !is_nil(api_token) &&
+          !Permissions.can_api_token_update_attribute?(api_token, media, attribute) ->
+        changeset
+        |> Ecto.Changeset.add_error(
+          attribute.schema_field,
+          "This API token does not have permission to edit this attribute."
+        )
+
+      true ->
+        changeset
     end
   end
 
@@ -836,7 +878,7 @@ defmodule Platform.Material.Attribute do
     end
   end
 
-  defp cast_attribute(media_or_changeset, %Attribute{} = attribute, attrs) do
+  defp cast_attribute(media_or_changeset, %Attribute{} = attribute, attrs, media_id) do
     # Casts the given attribute in the Media changeset from the given attrs.
 
     if attribute.deprecated == true do
@@ -853,6 +895,16 @@ defmodule Platform.Material.Attribute do
         attribute.type == :location ->
           changeset
           |> cast(attrs, [:location])
+
+        attribute.type == :multi_users ->
+          # Can be set as nil if not provided by the user/the user clears it
+          value =
+            (Map.get(attrs, to_string(attribute.schema_field)) || [])
+            |> Enum.reject(&(&1 == ""))
+            |> Enum.map(&%{media_id: media_id, user_id: &1})
+
+          changeset
+          |> put_assoc(attribute.schema_field, value)
 
         true ->
           changeset
@@ -927,6 +979,7 @@ defmodule Platform.Material.Attribute do
   def validate_attribute(changeset, %Attribute{} = attribute, %Media{} = media, opts \\ []) do
     user = Keyword.get(opts, :user, nil)
     required = Keyword.get(opts, :required, true)
+    project = Keyword.get(opts, :project, nil)
 
     validations =
       case attribute.type do
@@ -991,6 +1044,22 @@ defmodule Platform.Material.Attribute do
             min: attribute.min_length,
             max: attribute.max_length
           )
+
+        :multi_users ->
+          # Verify that all the users are part of the project
+          changeset
+          |> validate_change(attribute.schema_field, fn _, vals ->
+            if not is_nil(project) and
+                 Enum.any?(vals, fn val ->
+                   not Enum.member?(Enum.map(project.memberships, & &1.user_id), val.id)
+                 end) do
+              [
+                {attribute.schema_field, "You cannot add users who are not part of the project."}
+              ]
+            else
+              []
+            end
+          end)
 
         _ ->
           changeset
@@ -1058,15 +1127,15 @@ defmodule Platform.Material.Attribute do
           requires_privilege =
             MapSet.intersection(Enum.into(v, MapSet.new()), Enum.into(values, MapSet.new()))
 
-          if not Enum.empty?(requires_privilege) do
+          if Enum.empty?(requires_privilege) do
+            changeset
+          else
             changeset
             |> add_error(
               attribute.schema_field,
               "Only project managers and owners can set the following values: " <>
                 Enum.join(requires_privilege, ", ")
             )
-          else
-            changeset
           end
 
         v ->
@@ -1094,11 +1163,11 @@ defmodule Platform.Material.Attribute do
     # Verify that at least one of the given attributes has changed. This is used
     # to ensure that users don't post updates that don't actually change anything.
 
-    if not Enum.any?(attributes, &Map.has_key?(changeset.changes, &1.schema_field)) do
+    if Enum.any?(attributes, &Map.has_key?(changeset.changes, &1.schema_field)) do
       changeset
-      |> add_error(hd(attributes).schema_field, "A change is required to post an update.")
     else
       changeset
+      |> add_error(hd(attributes).schema_field, "A change is required to post an update.")
     end
   end
 
@@ -1116,7 +1185,7 @@ defmodule Platform.Material.Attribute do
 
       :status ->
         case value do
-          "Unclaimed" -> "~positive"
+          "To Do" -> "~positive"
           "In Progress" -> "~purple"
           "Cancelled" -> "~neutral"
           "Ready for Review" -> "~cyan"
@@ -1153,6 +1222,8 @@ defmodule Platform.Material.Attribute do
   distinct attributes into a single editing experience (e.g., geolocation and geolocation accuracy).
   """
   def get_children(parent_name, opts \\ []) do
-    attributes(opts) |> Enum.filter(&(&1.parent == parent_name))
+    # We convert to a string so that we support both atom and string names.
+    name_str = to_string(parent_name)
+    attributes(opts) |> Enum.filter(&(to_string(&1.parent) == name_str))
   end
 end

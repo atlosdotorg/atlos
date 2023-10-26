@@ -53,8 +53,10 @@
     <%= @inner_content %>
     <%= if not is_nil(System.get_env("HIGHLIGHT_CODE")) and (assigns[:iframe_mode] != true) do %>
       <script
-        src="https://cdn.jsdelivr.net/npm/highlight.run@latest"
+        src="https://unpkg.com/highlight.run"
         data-code={System.get_env("HIGHLIGHT_CODE")}
+        data-environment={Platform.Utils.get_instance_name()}
+        data-version={Platform.Utils.get_instance_version()}
         id="highlight-script"
       >
       </script>

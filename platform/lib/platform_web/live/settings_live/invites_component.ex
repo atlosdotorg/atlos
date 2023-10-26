@@ -21,7 +21,7 @@ defmodule PlatformWeb.SettingsLive.InvitesComponent do
       :invites,
       Invites.get_invites_by_user(socket.assigns.current_user)
       |> Enum.filter(& &1.active)
-      |> Enum.sort_by(& &1.inserted_at)
+      |> Enum.sort_by(& &1.inserted_at, {:asc, NaiveDateTime})
       |> Enum.reverse()
     )
   end

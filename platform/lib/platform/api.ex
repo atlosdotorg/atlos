@@ -7,6 +7,7 @@ defmodule Platform.API do
   alias Platform.Repo
 
   alias Platform.API.APIToken
+  alias Platform.Projects.Project
 
   @doc """
   Returns the list of api_tokens.
@@ -18,7 +19,22 @@ defmodule Platform.API do
 
   """
   def list_api_tokens do
-    Repo.all(APIToken)
+    Repo.all(from(a in APIToken, preload: [:project, :creator]))
+  end
+
+  @doc """
+  Returns the list of api_tokens for a given project.
+
+  ## Examples
+
+      iex> list_api_tokens_for_project(project)
+      [%APIToken{}, ...]
+
+  """
+  def list_api_tokens_for_project(%Project{} = project) do
+    Repo.all(
+      from(a in APIToken, where: a.project_id == ^project.id, preload: [:project, :creator])
+    )
   end
 
   @doc """
@@ -54,10 +70,52 @@ defmodule Platform.API do
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_api_token(attrs \\ %{}) do
-    %APIToken{}
-    |> APIToken.changeset(attrs)
+  def create_api_token(attrs \\ %{}, opts \\ []) do
+    changeset =
+      %APIToken{}
+      |> APIToken.changeset(attrs)
+
+    changeset =
+      if Keyword.get(opts, :project) do
+        Ecto.Changeset.put_change(changeset, :project_id, Keyword.get(opts, :project).id)
+      else
+        changeset
+      end
+
+    changeset =
+      if Keyword.get(opts, :creator) do
+        Ecto.Changeset.put_change(changeset, :creator_id, Keyword.get(opts, :creator).id)
+      else
+        changeset
+      end
+
+    changeset =
+      Ecto.Changeset.put_change(changeset, :is_legacy, Keyword.get(opts, :legacy, false))
+
+    changeset
     |> Repo.insert()
+  end
+
+  @doc """
+  Marks an API token as used. This is used to track the last time an API token was used.
+
+  ## Examples
+
+      iex> mark_api_token_used(api_token)
+      {:ok, %APIToken{}}
+
+      iex> mark_api_token_used(api_token)
+      {:error, %Ecto.Changeset{}}
+  """
+  def mark_api_token_used(%APIToken{} = api_token) do
+    # If the `last_used` date is today, then we don't need to update it.
+    if api_token.last_used != Date.utc_today() do
+      api_token
+      |> APIToken.changeset(%{last_used: Date.utc_today()})
+      |> Repo.update()
+    else
+      {:ok, api_token}
+    end
   end
 
   @doc """
@@ -92,6 +150,23 @@ defmodule Platform.API do
   """
   def delete_api_token(%APIToken{} = api_token) do
     Repo.delete(api_token)
+  end
+
+  @doc """
+  Deactivates an API token.
+
+  ## Examples
+
+      iex> deactivate_api_token(api_token)
+      {:ok, %APIToken{}}
+
+      iex> deactivate_api_token(api_token)
+      {:error, %Ecto.Changeset{}}
+  """
+  def deactivate_api_token(%APIToken{} = api_token) do
+    api_token
+    |> APIToken.changeset(%{is_active: false})
+    |> Repo.update()
   end
 
   @doc """

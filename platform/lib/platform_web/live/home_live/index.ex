@@ -29,12 +29,7 @@ defmodule PlatformWeb.HomeLive.Index do
   defp get_feed_media(socket, opts) do
     Material.get_recently_updated_media_paginated(
       Keyword.merge(opts,
-        for_user: socket.assigns.current_user,
-        restrict_to_user:
-          if(socket.assigns.live_action == :my_activity,
-            do: socket.assigns.current_user,
-            else: nil
-          )
+        for_user: socket.assigns.current_user
       )
     )
     |> Enum.filter(&Permissions.can_view_media?(socket.assigns.current_user, &1))
@@ -69,16 +64,27 @@ defmodule PlatformWeb.HomeLive.Index do
         )
       )
 
+    recently_modified_assigned =
+      Material.get_recently_updated_media_paginated(
+        Keyword.merge(opts,
+          limit: 25,
+          restrict_to_user: socket.assigns.current_user,
+          for_user: socket.assigns.current_user,
+          limit_to_assignments: true
+        )
+      )
+
     {unclaimed_query, unclaimed_query_opts} =
       Material.MediaSearch.search_query(
-        Material.MediaSearch.changeset(%{"attr_status" => "Unclaimed"})
+        Material.MediaSearch.changeset(%{"attr_status" => "To Do"})
       )
 
     unclaimed_for_backfill =
       Material.query_media_paginated(unclaimed_query, unclaimed_query_opts).entries
 
     (recently_modified_by_user ++
-       recently_modified_with_notification ++ recently_modified_subscriptions)
+       recently_modified_with_notification ++
+       recently_modified_subscriptions ++ recently_modified_assigned)
     |> Enum.sort_by(& &1.last_update_time, {:desc, NaiveDateTime})
     |> Enum.uniq_by(& &1.id)
     |> Enum.concat(unclaimed_for_backfill)

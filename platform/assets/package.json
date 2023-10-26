@@ -1,7 +1,7 @@
 {
   "devDependencies": {
     "autoprefixer": "^10.4.3",
-    "postcss": "^8.4.11",
+    "postcss": "^8.4.31",
     "tailwindcss": "^3.0.23"
   },
   "deploy": "NODE_ENV=production tailwindcss --postcss --minify --input=css/app.css --output=../priv/static/assets/app.css",
@@ -16,7 +16,7 @@
     "tippy.js": "^6.3.7",
     "tom-select": "^2.0.1",
     "vega": "^5.22.1",
-    "vega-embed": "^6.21.0",
+    "vega-embed": "^6.23.0",
     "vega-lite": "^5.6.0"
   }
 }

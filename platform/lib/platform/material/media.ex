@@ -8,6 +8,7 @@ defmodule Platform.Material.Media do
   alias Platform.Permissions
   alias __MODULE__
 
+  @primary_key {:id, :binary_id, autogenerate: true}
   schema "media" do
     # Core uneditable data
     field(:slug, :string, autogenerate: {Utils, :generate_media_slug, []})
@@ -20,6 +21,7 @@ defmodule Platform.Material.Media do
     field(:attr_more_info, :string)
     field(:attr_general_location, :string)
     field(:attr_date, :date)
+    field(:attr_time, :time)
     field(:attr_type, {:array, :string})
     field(:attr_impact, {:array, :string})
     field(:attr_equipment, {:array, :string})
@@ -50,6 +52,13 @@ defmodule Platform.Material.Media do
     field(:attr_status, :string)
     field(:attr_tags, {:array, :string})
 
+    # Assignees -- Note that we have :attr_assignments and :assignees, which are
+    # different. :attr_assignments is the list of assignments, which supports
+    # cast_assoc; :assignees is a helper item that is populated during querying
+    # and contains actual assigned users.
+    has_many(:attr_assignments, Platform.Material.MediaAssignment, on_replace: :delete)
+    many_to_many(:assignees, Platform.Accounts.User, join_through: "media_assignments")
+
     # Automatically-generated Metadata
     field(:auto_metadata, :map, default: %{})
 
@@ -64,6 +73,7 @@ defmodule Platform.Material.Media do
     # Virtual attributes for population during querying
     field(:has_unread_notification, :boolean, virtual: true, default: false)
     field(:has_subscription, :boolean, virtual: true, default: false)
+    field(:is_assigned, :boolean, virtual: true, default: false)
     field(:display_color, :string, virtual: true)
 
     # Refers to the post date of the most recent associated update -- this is distinct from `updated_at`
@@ -74,6 +84,7 @@ defmodule Platform.Material.Media do
 
     # Associations
     has_many(:versions, Platform.Material.MediaVersion)
+    has_many(:notifications, Platform.Notifications.Notification)
     has_many(:updates, Platform.Updates.Update)
     has_many(:subscriptions, MediaSubscription)
     belongs_to(:project, Platform.Projects.Project, type: :binary_id)
@@ -271,7 +282,9 @@ defmodule Platform.Material.Media do
               String.downcase(a.label) == String.downcase(k)
           end)
 
-        if not is_nil(attr) do
+        if is_nil(attr) do
+          {to_string(k), v}
+        else
           # Split lists (comma separated)
           v =
             case attr.type do
@@ -283,6 +296,22 @@ defmodule Platform.Material.Media do
                   v |> String.split(",") |> Enum.map(&String.trim(&1)) |> Enum.reject(&(&1 == ""))
                 end
 
+              :multi_users ->
+                v
+                |> String.split(",")
+                |> Enum.map(&String.trim(&1))
+                |> Enum.reject(&(&1 == ""))
+                |> Enum.map(fn username ->
+                  user = Platform.Accounts.get_user_by_username(username)
+
+                  if is_nil(user) do
+                    nil
+                  else
+                    user.id
+                  end
+                end)
+                |> Enum.reject(&is_nil/1)
+
               _ ->
                 v
             end
@@ -293,8 +322,6 @@ defmodule Platform.Material.Media do
               else: attr.schema_field
 
           {name, v}
-        else
-          {to_string(k), v}
         end
       end)
       |> Enum.reduce(%{}, fn {k, v}, acc ->
@@ -407,6 +434,7 @@ defimpl Jason.Encoder, for: Platform.Material.Media do
         :attr_sensitive,
         :attr_status,
         :attr_tags,
+        # TODO: Remove this once we're sure we don't need it (i.e., after legacy API is removed)
         :versions,
         :inserted_at,
         :updated_at,
@@ -418,6 +446,8 @@ defimpl Jason.Encoder, for: Platform.Material.Media do
         {key, %Ecto.Association.NotLoaded{}} -> {key, nil}
         {key, value} -> {key, value}
       end)
+      |> Map.put(:source_material, value.versions)
+      # TODO: Remove this once we're sure we don't need it (i.e., after legacy API is removed)
       |> insert_deprecated_attributes(value)
       |> insert_custom_attributes(value),
       opts

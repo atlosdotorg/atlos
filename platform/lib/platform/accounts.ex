@@ -113,6 +113,10 @@ defmodule Platform.Accounts do
   """
   def get_user!(id), do: Repo.get!(User |> preload_user(), id)
 
+  defmemo get_users_by_ids(ids), expires_in: 5000 do
+    Repo.all(User |> preload_user() |> where([u], u.id in ^ids))
+  end
+
   @doc """
   Gets all users, and preloads their invite code (and the owner of that invite code).
   """

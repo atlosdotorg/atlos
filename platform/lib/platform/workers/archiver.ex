@@ -33,7 +33,7 @@ defmodule Platform.Workers.Archiver do
 
     %MediaVersion{status: status, media_id: media_id} = version
 
-    if not (status != :pending and not is_rearchive_request) do
+    if status == :pending or is_rearchive_request do
       Logger.info("Archiving media version #{id}... (got media #{media_id})")
 
       hide_version_on_failure = Map.get(args, "hide_version_on_failure", false)

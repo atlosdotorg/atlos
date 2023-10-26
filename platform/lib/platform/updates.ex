@@ -14,7 +14,7 @@ defmodule Platform.Updates do
   alias Platform.Accounts.User
   alias Platform.Material
   alias Platform.Accounts
-  alias Platform.Permissions
+  alias Platform.API.APIToken
 
   @doc """
   Returns the list of updates.
@@ -39,7 +39,15 @@ defmodule Platform.Updates do
   end
 
   defp preload_fields(queryable) do
-    queryable |> preload([:user, :media_version, :old_project, :new_project, media: [:project]])
+    queryable
+    |> preload([
+      :user,
+      :media_version,
+      :old_project,
+      :new_project,
+      :api_token,
+      media: [project: [memberships: [:user]]]
+    ])
   end
 
   @doc """
@@ -134,8 +142,14 @@ defmodule Platform.Updates do
       %Ecto.Changeset{data: %Update{}}
 
   """
-  def change_update(%Update{} = update, %Media{} = media, %User{} = user, attrs \\ %{}) do
-    Update.changeset(update, attrs, user, media)
+  def change_update(update, media, user, attrs \\ %{})
+
+  def change_update(%Update{} = update, %Media{} = media, %User{} = user, attrs) do
+    Update.changeset(update, attrs, media, user: user)
+  end
+
+  def change_update(%Update{} = update, %Media{} = media, %APIToken{} = api_token, attrs) do
+    Update.changeset(update, attrs, media, api_token: api_token)
   end
 
   @doc """
@@ -158,6 +172,13 @@ defmodule Platform.Updates do
         |> Enum.find(%{value: nil}, &(&1.id == attr.name))
         |> Map.get(:value)
 
+      # For multi-user attributes, we need to extract the user IDs from the
+      # changeset; we assume these kinds of attributes work via some kind of
+      # "through" model with a `user_id` column
+      attr.type == :multi_users ->
+        Ecto.Changeset.get_field(changeset, attr.schema_field)
+        |> Enum.map(&Map.get(&1, :user_id))
+
       true ->
         Ecto.Changeset.get_field(changeset, attr.schema_field)
     end
@@ -170,21 +191,25 @@ defmodule Platform.Updates do
         |> Enum.find(%{value: nil}, &(&1.id == attr.name))
         |> Map.get(:value)
 
+      # For multi-user attributes, we need to extract the user IDs from the
+      # changeset; we assume these kinds of attributes work via some kind of
+      # "through" model with a `user_id` column
+      attr.type == :multi_users ->
+        Map.get(media, attr.schema_field)
+        |> Enum.map(&Map.get(&1, :user_id))
+
       true ->
         Map.get(media, attr.schema_field)
     end
   end
 
-  @doc """
-  Helper API function that takes attributes change information and uses it to create an Update changeset. Requires 'explanation' to be in attrs. The change is recorded as belonging to the head of `attributes`; all other attributes should be children of the first element.
-  """
-  def change_from_attributes_changeset(
-        %Media{} = media,
-        attributes,
-        %User{} = user,
-        changeset,
-        attrs \\ %{}
-      ) do
+  defp _change_from_attributes_changeset(
+         %Media{} = media,
+         attributes,
+         changeset,
+         attrs,
+         opts
+       ) do
     # We add the _combined field so that it's unambiguous when a dict represents a collection of schema fields changing
     old_value =
       attributes
@@ -203,7 +228,11 @@ defmodule Platform.Updates do
     change_update(
       %Update{},
       media,
-      user,
+      if Keyword.get(opts, :user, nil) do
+        Keyword.get(opts, :user)
+      else
+        Keyword.get(opts, :api_token)
+      end,
       attrs
       |> Map.put("old_value", old_value)
       |> Map.put("new_value", new_value)
@@ -213,13 +242,56 @@ defmodule Platform.Updates do
   end
 
   @doc """
+  Helper API function that takes attributes change information and uses it to create an Update changeset. Requires 'explanation' to be in attrs. The change is recorded as belonging to the head of `attributes`; all other attributes should be children of the first element.
+  """
+  def change_from_attributes_changeset(
+        media,
+        attributes,
+        actor,
+        changeset,
+        attrs \\ %{}
+      )
+
+  def change_from_attributes_changeset(
+        %Media{} = media,
+        attributes,
+        %APIToken{} = token,
+        changeset,
+        attrs
+      ),
+      do: _change_from_attributes_changeset(media, attributes, changeset, attrs, api_token: token)
+
+  def change_from_attributes_changeset(
+        %Media{} = media,
+        attributes,
+        %User{} = user,
+        changeset,
+        attrs
+      ),
+      do: _change_from_attributes_changeset(media, attributes, changeset, attrs, user: user)
+
+  @doc """
   Helper API function that takes comment information and uses it to create an Update changeset. Requires 'explanation' to be in attrs.
   """
-  def change_from_comment(%Media{} = media, %User{} = user, attrs \\ %{}) do
+  def change_from_comment(media, user, attrs \\ %{})
+
+  def change_from_comment(%Media{} = media, %User{} = user, attrs) do
     change_update(
       %Update{},
       media,
       user,
+      attrs
+      |> Map.put("type", :comment)
+    )
+    |> Ecto.Changeset.validate_required([:explanation], message: "A comment is required to post")
+    |> Ecto.Changeset.validate_length(:explanation, min: 1, max: 10000)
+  end
+
+  def change_from_comment(%Media{} = media, %APIToken{} = token, attrs) do
+    change_update(
+      %Update{},
+      media,
+      token,
       attrs
       |> Map.put("type", :comment)
     )
@@ -452,6 +524,16 @@ defmodule Platform.Updates do
     bot_account = Accounts.get_auto_account()
 
     change_from_comment(media, bot_account, %{
+      "explanation" => message
+    })
+    |> create_update_from_changeset()
+  end
+
+  @doc """
+  Post a comment on behalf of the given API token.
+  """
+  def post_comment_from_api_token(%Media{} = media, %APIToken{} = token, message) do
+    change_from_comment(media, token, %{
       "explanation" => message
     })
     |> create_update_from_changeset()

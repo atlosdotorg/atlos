@@ -54,6 +54,8 @@ alias Platform.Material
 {:ok, muted} = Accounts.update_user_admin(muted, %{restrictions: [:muted]})
 {:ok, suspended} = Accounts.update_user_admin(suspended, %{restrictions: [:suspended]})
 
+IO.puts("Creating seed users")
+
 random_users =
   Enum.map(1..20, fn _ ->
     {:ok, account} =
@@ -72,6 +74,8 @@ random_users =
 
     account_updated
   end)
+
+IO.puts("Creating seed projects")
 
 random_projects =
   Enum.map(1..25, fn _ ->
@@ -97,6 +101,8 @@ random_projects =
     project
   end)
 
+IO.puts("Creating seed media")
+
 random_media =
   Enum.map(1..250, fn _ ->
     creator = Enum.random(random_users)
@@ -116,7 +122,8 @@ random_media =
           ),
         attr_type: [
           Enum.random(Material.Attribute.options(Material.Attribute.get_attribute(:type)))
-        ]
+        ],
+        attr_status: "To Do"
       })
 
     Material.create_media_version_audited(media, creator, %{
@@ -130,8 +137,8 @@ random_media =
 
     Material.subscribe_user(media, creator)
 
-    # Add geolocation to 10%
-    if Enum.random(0..10) < 1 do
+    # Add geolocation to 30%
+    if Enum.random(0..10) < 3 do
       attr = Material.Attribute.get_attribute(:geolocation)
 
       {:ok, _} =
@@ -150,13 +157,16 @@ random_media =
     # Add status to 80%
     if Enum.random(0..9) < 8 do
       attr = Material.Attribute.get_attribute(:status)
+      existing_value = Material.get_attribute_value(media, attr)
+      new_value = Enum.random(attr.options -- [existing_value])
 
-      Material.update_media_attribute_audited(
-        media,
-        attr,
-        # Only admins can apply certain statuses
-        admin,
-        %{"attr_status" => Enum.random(attr.options)}
-      )
+      # If it fails, nbd; the user may not have permission to set the status
+      _ =
+        Material.update_media_attribute_audited(
+          media,
+          attr,
+          Enum.random(random_users),
+          %{"attr_status" => new_value}
+        )
     end
   end)

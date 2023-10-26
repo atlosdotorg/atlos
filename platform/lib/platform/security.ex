@@ -30,7 +30,7 @@ defmodule Platform.Security do
   defmemo get_current_state(), expires_in: 60 * 1000 do
     Repo.one(
       from x in Platform.Security.SecurityMode,
-        order_by: [desc: x.id],
+        order_by: [desc: x.inserted_at],
         limit: 1
     )
   end

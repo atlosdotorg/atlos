@@ -1,6 +1,7 @@
 defmodule Platform.Material.MediaSearch do
   use Ecto.Schema
   import Ecto.Query
+  alias Ecto.UUID
   alias Platform.Material.Media
 
   # Search components:
@@ -21,7 +22,13 @@ defmodule Platform.Material.MediaSearch do
     attr_geolocation_radius: :integer,
     project_id: :string,
     no_media_versions: :boolean,
-    only_subscribed: :boolean,
+    # User id
+    only_subscribed_id: :string,
+    # User id
+    only_assigned_id: :string,
+    # User id
+    has_been_edited_by_id: :string,
+    only_has_unread_notifications: :boolean,
     display: :string,
     deleted: :boolean
   }
@@ -203,15 +210,52 @@ defmodule Platform.Material.MediaSearch do
     end
   end
 
-  defp apply_query_component(queryable, changeset, :only_subscribed, current_user) do
-    case Map.get(changeset.changes, :only_subscribed, false) do
+  defp apply_query_component(queryable, changeset, :only_subscribed_id) do
+    case UUID.cast(Map.get(changeset.changes, :only_subscribed_id, "")) do
+      :error ->
+        queryable
+
+      {:ok, value} ->
+        from q in queryable,
+          join: s in assoc(q, :subscriptions),
+          where: s.user_id == ^value
+    end
+  end
+
+  defp apply_query_component(queryable, changeset, :only_assigned_id) do
+    case UUID.cast(Map.get(changeset.changes, :only_assigned_id, "")) do
+      :error ->
+        queryable
+
+      {:ok, value} ->
+        from q in queryable,
+          join: a in assoc(q, :attr_assignments),
+          where: a.user_id == ^value
+    end
+  end
+
+  defp apply_query_component(queryable, changeset, :has_been_edited_by_id) do
+    case UUID.cast(Map.get(changeset.changes, :has_been_edited_by_id, "")) do
+      :error ->
+        queryable
+
+      {:ok, value} ->
+        from q in queryable,
+          join: u in assoc(q, :updates),
+          where: u.type != :comment and u.user_id == ^value
+    end
+  end
+
+  defp apply_query_component(queryable, changeset, :only_has_unread_notifications, current_user) do
+    case Map.get(changeset.changes, :only_has_unread_notifications, false) and
+           not is_nil(current_user) do
       false ->
         queryable
 
       true ->
-        queryable
-        |> join(:inner, [m], s in assoc(m, :subscriptions))
-        |> where([m, s], s.user_id == ^current_user.id)
+        from q in queryable,
+          join: n in assoc(q, :notifications),
+          where: n.user_id == ^current_user.id and n.read == false
     end
   end
 
@@ -271,7 +315,10 @@ defmodule Platform.Material.MediaSearch do
     |> apply_query_component(cs, :attr_geolocation)
     |> apply_query_component(cs, :no_media_versions)
     |> apply_query_component(cs, :project_id)
-    |> apply_query_component(cs, :only_subscribed, current_user)
+    |> apply_query_component(cs, :only_subscribed_id)
+    |> apply_query_component(cs, :only_assigned_id)
+    |> apply_query_component(cs, :has_been_edited_by_id)
+    |> apply_query_component(cs, :only_has_unread_notifications, current_user)
     |> apply_sort(cs)
     |> apply_deleted(cs)
   end

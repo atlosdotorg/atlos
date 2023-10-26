@@ -29,6 +29,7 @@ defmodule Platform.Material do
     |> preload_media_versions()
     |> preload_media_updates()
     |> preload_media_project()
+    |> preload_media_assignees()
     |> then(fn x ->
       case Keyword.get(opts, :for_user) do
         nil -> x
@@ -65,16 +66,19 @@ defmodule Platform.Material do
     # - for_user -- filter to data visible to the user, and populate this user's data into the response object (e.g., whether there is an unread notification, the user is subscribed, etc)
     # - limit_to_unread_notifications -- restrict to incidents with unread notifications
     # - limit_to_subscriptions -- restrict to incidents the user is subscribed to
+    # - limit_to_assignments -- restrict to incidents the user is assigned to
+    #
+    # Note that these limiting fields will only be applied if :hydrate is not false.
 
     query
     |> then(fn q ->
       if Keyword.get(opts, :hydrate, true), do: hydrate_media_query(q, opts), else: q
     end)
     |> then(fn q ->
-      if not Keyword.get(opts, :include_deleted, false) do
-        q |> where([m], not m.deleted)
-      else
+      if Keyword.get(opts, :include_deleted, false) do
         q
+      else
+        q |> where([m], not m.deleted)
       end
     end)
     |> maybe_filter_accessible_to_user(opts)
@@ -109,17 +113,17 @@ defmodule Platform.Material do
     project_id = Keyword.get(opts, :restrict_to_project_id)
 
     filter_user =
-      if not is_nil(user) do
-        dynamic([m, update: u], u.user_id == ^user.id)
-      else
+      if is_nil(user) do
         true
+      else
+        dynamic([m, update: u], u.user_id == ^user.id)
       end
 
     filter_project_id =
-      if not is_nil(project_id) do
-        dynamic([m, update: u], m.project_id == ^project_id)
-      else
+      if is_nil(project_id) do
         true
+      else
+        dynamic([m, update: u], m.project_id == ^project_id)
       end
 
     query =
@@ -157,11 +161,24 @@ defmodule Platform.Material do
   defp preload_media_updates(query) do
     # TODO: should this be pulled into the Updates context somehow?
     query
-    |> preload(updates: [:user, :media_version, :old_project, :new_project, media: [:project]])
+    |> preload(
+      updates: [
+        :user,
+        :media_version,
+        :old_project,
+        :api_token,
+        :new_project,
+        media: [project: [memberships: [:user]]]
+      ]
+    )
   end
 
   defp preload_media_project(query) do
     query |> preload(project: [memberships: [:user]])
+  end
+
+  defp preload_media_assignees(query) do
+    query |> preload([:assignees]) |> preload(attr_assignments: [:user])
   end
 
   defp apply_user_fields(query, user, opts)
@@ -178,19 +195,26 @@ defmodule Platform.Material do
       left_join: s in Platform.Material.MediaSubscription,
       as: :subscription,
       on: s.media_id == m.id and s.user_id == ^user.id,
+      left_join: a in Platform.Material.MediaAssignment,
+      as: :assignment,
+      on: a.media_id == m.id and a.user_id == ^user.id,
       select_merge: %{
         has_unread_notification: not is_nil(n),
-        has_subscription: not is_nil(s)
+        has_subscription: not is_nil(s),
+        is_assigned: not is_nil(a)
       },
       where: ^(not Keyword.get(opts, :limit_to_unread_notifications, false)) or not is_nil(n),
-      where: ^(not Keyword.get(opts, :limit_to_subscriptions, false)) or not is_nil(s)
+      where: ^(not Keyword.get(opts, :limit_to_subscriptions, false)) or not is_nil(s),
+      where: ^(not Keyword.get(opts, :limit_to_assignments, false)) or not is_nil(a)
     )
   end
 
   def maybe_filter_accessible_to_user(query, opts) do
     user = Keyword.get(opts, :for_user)
 
-    if not is_nil(user) do
+    if is_nil(user) do
+      query
+    else
       query =
         query
         |> then(fn q ->
@@ -215,8 +239,6 @@ defmodule Platform.Material do
         pm.role == :owner or pm.role == :manager or
           (^"Hidden" not in m.attr_restrictions or is_nil(m.attr_restrictions))
       )
-    else
-      query
     end
   end
 
@@ -235,6 +257,21 @@ defmodule Platform.Material do
 
   """
   def get_media!(id), do: Repo.get!(Media |> hydrate_media_query(), id)
+
+  @doc """
+  Gets a single media.
+
+  Returns `nil` if the Media does not exist.
+
+  ## Examples
+
+      iex> get_media(123)
+      %Media{}
+
+      iex> get_media(456)
+      nil
+  """
+  def get_media(id), do: Repo.get(Media |> hydrate_media_query(), id)
 
   @doc """
   Creates a media.
@@ -345,9 +382,7 @@ defmodule Platform.Material do
 
   def get_full_media_by_slug(slug) do
     Media
-    |> preload_media_versions()
-    |> preload_media_updates()
-    |> preload_media_project()
+    |> hydrate_media_query()
     |> Repo.get_by(slug: get_raw_slug(slug))
   end
 
@@ -588,7 +623,15 @@ defmodule Platform.Material do
     Repo.all(
       from(v in MediaVersion,
         where: v.source_url == ^url,
-        preload: [media: [[updates: :user], :versions, :project]]
+        preload: [
+          media: [
+            [updates: [:user, :api_token]],
+            [attr_assignments: [:user]],
+            :assignees,
+            :versions,
+            :project
+          ]
+        ]
       )
       |> then(fn query ->
         if is_nil(user) do
@@ -816,7 +859,7 @@ defmodule Platform.Material do
       # Rip through all the old attributes, and try to copy them to the new media
       new_proj_attributes = Attribute.active_attributes(project: destination)
 
-      Enum.map(Attribute.set_for_media(source, project: source.project), fn attr ->
+      Enum.each(Attribute.set_for_media(source, project: source.project), fn attr ->
         equivalent_attr = Enum.find(new_proj_attributes, &(&1.label == attr.label))
 
         # Try to set the attribute; no worries if it fails (they might not have permission to edit it, or it may be an invalid option)
@@ -1143,17 +1186,29 @@ defmodule Platform.Material do
         attrs,
         opts \\ []
       ) do
-    update_media_attributes_audited(media, [attribute], user, attrs, opts)
+    update_media_attributes_audited(media, [attribute], attrs, opts |> Keyword.put(:user, user))
   end
 
   @doc """
   Do an audited update of the given attributes. Will broadcast change via PubSub.
+
+  Either `user` or `api_token` must be provided in opts.
   """
-  def update_media_attributes_audited(media, attributes, %User{} = user, attrs, opts \\ []) do
-    media_changeset = change_media_attributes(media, attributes, attrs, user: user)
+  def update_media_attributes_audited(media, attributes, attrs, opts \\ []) do
+    # Verify that either a user or an API token is provided
+    user = Keyword.get(opts, :user, nil)
+    api_token = Keyword.get(opts, :api_token, nil)
+
+    media_changeset = change_media_attributes(media, attributes, attrs, opts)
 
     update_changeset =
-      Updates.change_from_attributes_changeset(media, attributes, user, media_changeset, attrs)
+      Updates.change_from_attributes_changeset(
+        media,
+        attributes,
+        if(is_nil(user), do: api_token, else: user),
+        media_changeset,
+        attrs
+      )
 
     # Make sure both changesets are valid
     cond do
@@ -1166,13 +1221,15 @@ defmodule Platform.Material do
             # In the transaction, we need to make sure we don't have any stale data
             # in the media_changeset, so we reload the media and recompute the changeset
             media = get_media!(media.id)
-            media_changeset = change_media_attributes(media, attributes, attrs, user: user)
+
+            media_changeset =
+              change_media_attributes(media, attributes, attrs, user: user, api_token: api_token)
 
             update_changeset =
               Updates.change_from_attributes_changeset(
                 media,
                 attributes,
-                user,
+                if(is_nil(user), do: api_token, else: user),
                 media_changeset,
                 attrs
               )
@@ -1181,8 +1238,13 @@ defmodule Platform.Material do
               {:ok, _} = Updates.create_update_from_changeset(update_changeset)
             end
 
-            {:ok, res} = update_media_attributes(media, attributes, attrs, user: user)
-            Updates.subscribe_if_first_interaction(media, user)
+            {:ok, res} =
+              update_media_attributes(media, attributes, attrs, user: user, api_token: api_token)
+
+            if !is_nil(user) do
+              Updates.subscribe_if_first_interaction(media, user)
+            end
+
             res
           end)
 
@@ -1218,14 +1280,12 @@ defmodule Platform.Material do
   end
 
   def unsubscribe_user(%Media{} = media, %User{} = user) do
-    with {1, _} <-
-           from(s in MediaSubscription,
-             where: s.media_id == ^media.id,
-             where: s.user_id == ^user.id
-           )
-           |> Repo.delete_all() do
-      :ok
-    else
+    case from(s in MediaSubscription,
+           where: s.media_id == ^media.id,
+           where: s.user_id == ^user.id
+         )
+         |> Repo.delete_all() do
+      {1, _} -> :ok
       _ -> :error
     end
   end
@@ -1297,6 +1357,7 @@ defmodule Platform.Material do
       media.updates
       |> Enum.filter(&(not &1.hidden))
       |> Enum.map(& &1.user)
+      |> Enum.reject(&is_nil/1)
     )
   end
 
@@ -1349,15 +1410,15 @@ defmodule Platform.Material do
           "Not submitting #{url} for archival by the Internet Archive; no SPN archive key available."
         )
       else
-        with {:ok, 200, _, _} <-
-               :hackney.post(
-                 "https://web.archive.org/save",
-                 [{"Authorization", "LOW #{key}"}, {"Accept", "application/json"}],
-                 "url=#{url |> URI.encode_www_form()}",
-                 [:with_body]
-               ) do
-          Logger.info("Submitted #{url} for archival by the Internet Archive.")
-        else
+        case :hackney.post(
+               "https://web.archive.org/save",
+               [{"Authorization", "LOW #{key}"}, {"Accept", "application/json"}],
+               "url=#{url |> URI.encode_www_form()}",
+               [:with_body]
+             ) do
+          {:ok, 200, _, _} ->
+            Logger.info("Submitted #{url} for archival by the Internet Archive.")
+
           error ->
             Logger.error("Unable to submit #{url} to the Internet Archive: " <> inspect(error))
         end
@@ -1448,10 +1509,10 @@ defmodule Platform.Material do
         Enum.reduce(into_project.attributes, old_update_json, fn attribute, json ->
           old_attribute = Enum.find(media.project.attributes, &(&1.name == attribute.name))
 
-          if not is_nil(old_attribute) do
-            String.replace(json, "#{old_attribute.id}", "#{attribute.id}")
-          else
+          if is_nil(old_attribute) do
             json
+          else
+            String.replace(json, "#{old_attribute.id}", "#{attribute.id}")
           end
         end)
 
@@ -1467,5 +1528,52 @@ defmodule Platform.Material do
     end
 
     {:ok, new_media}
+  end
+
+  def incidents_edited_per_user_in_last_month do
+    Platform.Repo.all(
+      from(user in Platform.Accounts.User,
+        join: update in Platform.Updates.Update,
+        on: update.user_id == user.id,
+        where: update.inserted_at > ^(DateTime.utc_now() |> DateTime.add(-30, :day)),
+        group_by: [user.username],
+        select: {user.username, count(fragment("DISTINCT ?", update.media_id))}
+      )
+    )
+  end
+
+  @doc """
+  Generates a map that can be passed to an Ecto changeset to update the given
+  attribute to the given value. This is necessary because built-in attributes
+  are expressed as keys in the root of the media, while project attributes are
+  expressed as keys in the `project_attributes` map.
+  """
+  def generate_attribute_change_params(
+        %Attribute{} = attribute,
+        value,
+        %Project{} = project,
+        existing_map \\ %{}
+      ) do
+    case attribute.schema_field do
+      :project_attributes ->
+        existing = existing_map["project_attributes"] || %{}
+
+        Map.put(
+          existing_map,
+          "project_attributes",
+          Map.put(
+            existing,
+            to_string(map_size(existing)),
+            %{
+              "id" => attribute.name,
+              "value" => value,
+              "project_id" => project.id
+            }
+          )
+        )
+
+      _ ->
+        Map.put(existing_map, to_string(attribute.schema_field), value)
+    end
   end
 end

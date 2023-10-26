@@ -1,5 +1,5 @@
 defmodule Platform.SecurityTest do
-  use Platform.DataCase
+  use Platform.DataCase, async: false
 
   alias Platform.Security
 
@@ -23,11 +23,17 @@ defmodule Platform.SecurityTest do
     test "get_security_mode_state/0 gets the current security mode" do
       assert :normal == Security.get_security_mode_state()
 
+      Process.sleep(1000)
+
       security_mode_fixture(%{mode: :read_only})
       assert :read_only == Security.get_security_mode_state()
 
+      Process.sleep(1000)
+
       security_mode_fixture(%{mode: :no_access})
       assert :no_access == Security.get_security_mode_state()
+
+      Process.sleep(1000)
 
       security_mode_fixture(%{mode: :normal})
       assert :normal == Security.get_security_mode_state()

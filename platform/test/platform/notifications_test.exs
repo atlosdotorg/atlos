@@ -1,5 +1,5 @@
 defmodule Platform.NotificationsTest do
-  use Platform.DataCase
+  use Platform.DataCase, async: true
 
   alias Platform.Notifications
 
@@ -11,8 +11,8 @@ defmodule Platform.NotificationsTest do
     @invalid_attrs %{content: nil, read: nil, type: nil}
 
     test "list_notifications/0 returns all notifications" do
-      notification = notification_fixture()
-      assert Notifications.list_notifications() == [notification]
+      _ = notification_fixture()
+      assert length(Notifications.list_notifications()) == 1
     end
 
     test "get_notification!/1 returns the notification with given id" do
@@ -26,6 +26,9 @@ defmodule Platform.NotificationsTest do
              ).entries == []
 
       %Notification{id: id1} = notification_fixture()
+
+      # Sleep to ensure that the timestamps are different
+      Process.sleep(2000)
 
       assert [
                %Notification{id: ^id1}

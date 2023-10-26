@@ -3,37 +3,44 @@
     <div class="mx-auto px-8 max-w-[1280px] py-6">
       <div class="flex items-center gap-4 border-b pb-4">
         <div>
-          <div class="font-medium text-2xl">Home</div>
+          <div class="font-medium text-2xl">Hello, <%= @current_user.username %></div>
         </div>
         <div class="grow"></div>
-        <div class="hidden md:block w-56">
-          <.search_form
-            changeset={@search_changeset}
-            exclude={[:display, :sort, :status, :project, :more_options, :filters, :pagination]}
-            query_params={%{display: "cards"}}
-            current_user={@current_user}
-            socket={@socket}
-            display={:cards}
-          />
+        <div class="hidden md:block">
+          <.link
+            navigate={"/profile/#{@current_user.username}/assignments"}
+            class="font-medium text-sm block p-2 flex gap-1 items-center transition text-neutral-600 hover:bg-neutral-200 rounded hover:text-neutral-900 focus:text-neutral-900"
+          >
+            <Heroicons.bookmark mini class="h-5 w-5 opacity-50" />
+            <span>
+              Assigned to Me
+            </span>
+          </.link>
+        </div>
+        <div class="hidden md:block">
+          <.link
+            navigate="/incidents"
+            class="font-medium text-sm block p-2 flex gap-1 items-center transition text-neutral-600 hover:bg-neutral-200 rounded hover:text-neutral-900 focus:text-neutral-900"
+          >
+            <Heroicons.magnifying_glass_circle mini class="h-5 w-5 opacity-50" />
+            <span>
+              Search Incidents
+            </span>
+          </.link>
         </div>
         <div class="relative inline-block text-left" x-data="{open: false}">
-          <div>
+          <div class="group">
             <button
               type="button"
-              class="font-medium block p-2 flex gap-1 items-center transition text-neutral-600 hover:text-neutral-900 focus:text-neutral-900"
+              class="font-medium text-sm block p-2 flex gap-1 items-center transition text-neutral-600 group-hover:bg-neutral-200 rounded hover:text-neutral-900 focus:text-neutral-900"
               aria-expanded="true"
               aria-haspopup="true"
               x-on:click.prevent="open = !open"
               x-on:click.outside="open = false"
             >
-              <img
-                class="relative z-30 inline-block h-5 w-5 rounded-full mr-px"
-                src={Platform.Accounts.get_profile_photo_path(@current_user)}
-                title="Your profile photo"
-                alt={"Profile photo for #{@current_user.username} (you)"}
-              />
+              <Heroicons.user_circle mini class="h-5 w-5 opacity-50" />
               <span>
-                <%= @current_user.username %>
+                Account
               </span>
               <Heroicons.chevron_down mini class="h-5 w-5 -ml-1" />
             </button>
@@ -49,19 +56,19 @@
           >
             <div class="py-1" role="none">
               <.link
-                href={"/profile/#{@current_user.username}"}
+                navigate={"/profile/#{@current_user.username}"}
                 class="text-gray-700 px-2 py-2 text-sm flex items-center gap-2 hover:bg-gray-100 w-full"
               >
                 <Heroicons.user mini class="h-5 w-5 text-neutral-500" /> View Profile
               </.link>
               <.link
-                href="/settings"
+                navigate="/settings"
                 class="text-gray-700 px-2 py-2 text-sm flex items-center gap-2 hover:bg-gray-100 w-full"
               >
                 <Heroicons.cog_6_tooth mini class="h-5 w-5 text-neutral-500" /> Manage Account
               </.link>
               <.link
-                href="/subscriptions"
+                navigate="/subscriptions"
                 class="text-gray-700 px-2 py-2 text-sm flex items-center gap-2 hover:bg-gray-100 w-full"
               >
                 <Heroicons.bell mini class="h-5 w-5 text-neutral-500" /> My Subscriptions
@@ -113,39 +120,20 @@
     <section class="flex flex-col-reverse lg:flex-row gap-8 max-w-full mt-14">
       <div class="lg:w-2/3">
         <div class="border-b border-gray-200 mb-4">
-          <nav class="-mb-px flex space-x-8" aria-label="Tabs">
-            <% inactive_classes =
-              "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 group inline-flex items-center py-2 px-1 border-b-2 font-medium text-sm" %>
-            <% active_classes =
-              "border-urge-500 text-urge-600 group inline-flex items-center py-2 px-1 border-b-2 font-medium text-sm" %>
-            <.link
-              patch="/home"
-              class={if @live_action == :all_activity, do: active_classes, else: inactive_classes}
+          <nav class="mb-px">
+            <div
+              class="text-neutral-600 group inline-flex items-center py-2 px-1 font-medium text-sm"
               aria-current="page"
             >
-              <Heroicons.clock
-                mini
-                class="opacity-[60%] group-hover:opacity-[80%] transition-all -ml-0.5 mr-2 h-5 w-5"
-              />
-              <span>Recent</span>
-            </.link>
-
-            <.link
-              patch="/home/my_activity"
-              class={if @live_action == :my_activity, do: active_classes, else: inactive_classes}
-            >
-              <Heroicons.user
-                mini
-                class="opacity-[60%] group-hover:opacity-[80%] transition-all -ml-0.5 mr-2 h-5 w-5"
-              />
-              <span>My Activity</span>
-            </.link>
+              <Heroicons.clock solid class="text-neutral-400 -ml-0.5 mr-2 h-5 w-5" />
+              <span>Recent Updates</span>
+            </div>
           </nav>
         </div>
         <.live_component
           module={PlatformWeb.UpdatesLive.PaginatedMediaUpdateFeed}
           current_user={@current_user}
-          restrict_to_user={if @live_action == :my_activity, do: @current_user, else: nil}
+          restrict_to_user={nil}
           id="project-updates-feed"
         />
       </div>
@@ -162,17 +150,19 @@
           </nav>
         </div>
         <div>
-          <dl class="mt-5 grid w-full grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4">
+          <dl class="mt-5 flex flex-wrap w-full gap-2">
             <%= if Enum.empty?(@projects) do %>
               <div class="text-center mt-8">
                 <Heroicons.squares_2x2 class="mx-auto h-12 w-12 text-gray-400" />
                 <h3 class="mt-2 text-sm font-medium text-gray-900">No projects to display</h3>
                 <p class="mt-1 text-sm text-gray-500">Get started by creating a project</p>
-                <.link href="/projects/new" class="button ~urge @high mt-4">New Project</.link>
+                <.link navigate="/projects/new" class="button ~urge @high mt-4">
+                  New Project
+                </.link>
               </div>
             <% end %>
             <%= for project <- @projects do %>
-              <.project_card project={project} />
+              <.project_list_item project={project} />
             <% end %>
           </dl>
         </div>
@@ -195,10 +185,10 @@
               <p class="mt-1 text-sm text-gray-500">Get started by creating an incident</p>
             </div>
           <% end %>
-          <%= for {status, count} <- @status_statistics |> Enum.sort_by(fn {status, _count} -> Enum.find_index(["Unclaimed", "In Progress", "Help Needed", "Ready for Review", "Completed", "Cancelled"], fn x -> x == status end) || -1 end) do %>
+          <%= for {status, count} <- @status_statistics |> Enum.sort_by(fn {status, _count} -> Enum.find_index(["To Do", "In Progress", "Help Needed", "Ready for Review", "Completed", "Cancelled"], fn x -> x == status end) || -1 end) do %>
             <% status_color = Platform.Material.Attribute.attr_color(:status, status) %>
             <.link
-              href={
+              navigate={
                 Routes.live_path(@socket, PlatformWeb.MediaLive.Index, %{
                   attr_status: [status],
                   display: :cards
@@ -223,12 +213,12 @@
           <% end %>
           <%= if not Enum.empty?(@status_statistics) do %>
             <.link
-              href={
+              navigate={
                 Routes.live_path(@socket, PlatformWeb.MediaLive.Index, %{
                   display: :cards
                 })
               }
-              class="text-button text-sm text-neutral-600"
+              class="text-button text-sm text-neutral-500"
             >
               View all incidents &rarr;
             </.link>

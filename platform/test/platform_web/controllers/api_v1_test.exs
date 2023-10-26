@@ -5,8 +5,6 @@ defmodule PlatformWeb.APIV1Test do
   alias Platform.Material
 
   test "GET /api/v1/media", %{conn: conn} do
-    # TODO: add tests that also check pagination is working
-
     noauth_conn = get(conn, "/api/v1/media")
     assert json_response(noauth_conn, 401) == %{"error" => "invalid token or token not found"}
 
@@ -16,7 +14,7 @@ defmodule PlatformWeb.APIV1Test do
     noauth_conn = get(put_req_header(conn, "authorization", "Bearer bad"), "/api/v1/media")
     assert json_response(noauth_conn, 401) == %{"error" => "invalid token or token not found"}
 
-    token = api_token_fixture()
+    token = api_token_fixture_legacy()
 
     auth_conn =
       build_conn()
@@ -49,11 +47,13 @@ defmodule PlatformWeb.APIV1Test do
 
     Enum.map(0..(n - 1), fn _ -> media_fixture() end)
 
-    token = api_token_fixture()
+    token = api_token_fixture_legacy()
 
     {media, final_next} =
       Enum.reduce(0..(ceil(n / 50) + 25), {[], :start}, fn _, {elems, next} ->
-        if not is_nil(next) do
+        if is_nil(next) do
+          {elems, nil}
+        else
           auth_conn =
             build_conn()
             |> put_req_header("authorization", "Bearer " <> token.value)
@@ -67,8 +67,6 @@ defmodule PlatformWeb.APIV1Test do
             json_response(auth_conn, 200)
 
           {elems ++ results, new_next}
-        else
-          {elems, nil}
         end
       end)
 
@@ -84,7 +82,7 @@ defmodule PlatformWeb.APIV1Test do
     noauth_conn = get(conn, "/api/v1/media_versions")
     assert json_response(noauth_conn, 401) == %{"error" => "invalid token or token not found"}
 
-    token = api_token_fixture()
+    token = api_token_fixture_legacy()
 
     auth_conn =
       build_conn()

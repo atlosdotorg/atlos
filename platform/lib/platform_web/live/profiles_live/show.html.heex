@@ -1,157 +1,249 @@
-<article class="w-full max-w-screen-md mx-auto px-8 flex flex-col gap-8">
-  <section class="flex gap-4 items-center">
-    <img
-      class="inline-block h-24 w-24 rounded-full ring-2 ring-white"
-      src={Accounts.get_profile_photo_path(@user)}
-      title={@user.username}
-      alt={"Profile photo for #{@user.username}"}
-    />
-    <div>
-      <div class="flex gap-4 flex-wrap items-center">
-        <span class="heading text-3xl">
-          <%= @username %>
-        </span>
-        <%= if Accounts.is_admin(@user) do %>
-          <p class="chip ~critical">Admin</p>
-        <% end %>
-        <%= if String.length(@user.flair || "") > 0 do %>
-          <p class="chip ~urge"><%= @user.flair %></p>
-        <% end %>
+<div class="flex flex-col gap-16 max-w-full 2xl:max-w-screen-2xl mx-4 md:mx-16 md:pl-8 flex flex-col md:flex-row">
+  <div class="flex gap-8 flex-col md:w-[20rem] mt-2">
+    <section class="flex gap-4 items-center">
+      <img
+        class="inline-block h-12 w-12 rounded-full ring-2 ring-white shadow-md"
+        src={Accounts.get_profile_photo_path(@user)}
+        title={@user.username}
+        alt={"Profile photo for #{@user.username}"}
+      />
+      <div class="flex flex-col gap-4">
+        <div class="flex gap-4 flex-wrap items-center">
+          <span class="font-medium text-3xl">
+            <%= @username %>
+          </span>
+          <%= if Accounts.is_admin(@user) do %>
+            <p class="chip ~critical">Admin</p>
+          <% end %>
+          <%= if String.length(@user.flair || "") > 0 do %>
+            <p class="chip ~urge"><%= @user.flair %></p>
+          <% end %>
+        </div>
       </div>
-      <p class="text-gray-700 mt-2">
+    </section>
+    <section>
+      <p :if={not is_nil(@user.bio) and @user.bio != ""} class="text-gray-700">
         <%= @user.bio %>
       </p>
-    </div>
-  </section>
-  <div>
-    <%= if Enum.empty?(@shared_projects) do %>
-      <p class="text-gray-600">You do not have any projects in common with this user.</p>
-    <% else %>
-      <div class="grid gap-4 grid-cols-1 md:grid-cols-2">
-        <%= for project <- @shared_projects do %>
-          <.project_card project={project} />
-        <% end %>
-      </div>
-    <% end %>
-  </div>
-  <%= if Accounts.is_admin(@current_user) do %>
-    <.card>
-      <:header>
-        <div>
-          <p class="sec-head">Activity</p>
-          <p class="sec-subhead">This information is only visible to administrators.</p>
-        </div>
-      </:header>
-      <div id="activity-indicator" class="w-full" data-vega={@activity_indicator_chart}></div>
-    </.card>
-  <% end %>
-  <%= if Accounts.is_admin(@current_user) do %>
-    <section>
-      <.card>
-        <:header>
-          <div class="md:flex items-center justify-between">
-            <div>
-              <p class="sec-head">Administration</p>
-              <p class="sec-subhead">This information is only visible to administrators.</p>
-            </div>
-            <div>
-              <%= live_redirect("Edit",
-                class: "button ~urge @high",
-                to: Routes.profiles_show_path(@socket, :edit, @username)
-              ) %>
-            </div>
-          </div>
-        </:header>
-        <dl class="grid grid-cols-1 gap-x-4 gap-y-8 sm:grid-cols-2">
-          <div class="sm:col-span-1">
-            <dt class="text-sm font-medium text-gray-500">Email</dt>
-            <dd class="mt-1 text-sm text-gray-900"><%= @user.email %></dd>
-          </div>
-          <div class="sm:col-span-1">
-            <dt class="text-sm font-medium text-gray-500">Joined</dt>
-            <dd class="mt-1 text-sm text-gray-900">
-              <.rel_time time={@user.inserted_at} />
-            </dd>
-          </div>
-          <div class="sm:col-span-1">
-            <dt class="text-sm font-medium text-gray-500">Email Confirmed</dt>
-            <dd class="mt-1 text-sm text-gray-900">
-              <.rel_time time={@user.confirmed_at} />
-            </dd>
-          </div>
-          <div class="sm:col-span-1">
-            <dt class="text-sm font-medium text-gray-500">Restrictions</dt>
-            <dd class="mt-1 text-sm text-gray-900">
-              <%= if length(@user.restrictions || []) > 0 do %>
-                <%= for r <- @user.restrictions do %>
-                  <p class="chip ~warning">
-                    <%= r %>
-                  </p>
-                <% end %>
-              <% else %>
-                None
-              <% end %>
-            </dd>
-          </div>
-          <div class="sm:col-span-1">
-            <dt class="text-sm font-medium text-gray-500">Roles</dt>
-            <dd class="mt-1 text-sm text-gray-900">
-              <%= if length(@user.roles || []) > 0 do %>
-                <%= for r <- @user.roles do %>
-                  <p class="chip ~neutral">
-                    <%= r %>
-                  </p>
-                <% end %>
-              <% else %>
-                None
-              <% end %>
-            </dd>
-          </div>
-          <div>
-            <dt class="text-sm font-medium text-gray-500">Admin Notes</dt>
-            <dd class="mt-1 text-sm text-gray-900">
-              <%= if String.length(@user.admin_notes) > 0 do %>
-                <p><%= @user.admin_notes %></p>
-              <% else %>
-                <p>None</p>
-              <% end %>
-            </dd>
-          </div>
-        </dl>
-      </.card>
     </section>
-  <% end %>
-  <section>
-    <.card>
-      <:header>
-        <p class="sec-head">Recent Updates</p>
-      </:header>
-      <%= if Platform.Accounts.is_bot(@user) do %>
-        <aside class="aside ~neutral">
-          <strong class="font-semibold">This is a bot account!</strong>
-          Its activity is entirely automated, so there's nothing to see here.
-        </aside>
+    <section>
+      <%= if Enum.empty?(@shared_projects) do %>
+        <p class="text-gray-600">
+          <%= if @user.id == @current_user.id do %>
+            You are not part of any projects.
+          <% else %>
+            You do not have any projects in common with this user.
+          <% end %>
+        </p>
       <% else %>
-        <div class="mb-8">
-          <.live_component
-            module={PlatformWeb.UpdatesLive.UpdateFeed}
-            id="update-feed"
-            current_user={@current_user}
-            updates={@updates}
-            show_final_line={false}
-            show_media={true}
-            reverse={true}
-          />
+        <div class="flex gap-2 flex-wrap truncate">
+          <%= for project <- @shared_projects do %>
+            <.project_list_item project={project} />
+          <% end %>
         </div>
       <% end %>
-    </.card>
-  </section>
-  <%= if @live_action == :edit do %>
-    <.live_component
-      module={EditComponent}
-      id="edit-user"
-      current_user={@current_user}
-      username={@username}
-    />
-  <% end %>
-</article>
+    </section>
+  </div>
+  <div class="flex gap-8 flex-col w-full max-w-full overflow-hidden">
+    <nav
+      class="isolate flex flex-col md:flex-row divide-x divide-gray-200 rounded-lg shadow mt-2 mb-4"
+      aria-label="Tabs"
+    >
+      <!-- Current: "text-gray-900", Default: "text-gray-500 hover:text-gray-700" -->
+      <.link
+        patch={"/profile/#{@username}"}
+        class={"rounded-t-lg md:rounded-l-lg md:rounded-tr-none transition group relative min-w-0 flex-1 overflow-hidden bg-white py-4 px-4 text-center text-sm font-medium hover:bg-gray-50 focus:z-10 " <> if @live_action == :show, do: "text-gray-900", else: "text-gray-500 hover:text-gray-700"}
+      >
+        <div class="flex items-center justify-center gap-2">
+          <Heroicons.clock mini class="h-5 w-5 opacity-50 group-hover:opacity-75" />
+          <span>Activity</span>
+        </div>
+        <span
+          :if={@live_action == :show}
+          aria-hidden="true"
+          class="bg-urge-500 absolute inset-x-0 bottom-0 h-0.5"
+        >
+        </span>
+      </.link>
+      <.link
+        patch={"/profile/#{@username}/assignments"}
+        class={"transition group relative min-w-0 flex-1 overflow-hidden bg-white py-4 px-4 text-center text-sm font-medium hover:bg-gray-50 focus:z-10 " <> if @live_action == :assignments, do: "text-gray-900", else: "text-gray-500 hover:text-gray-700"}
+      >
+        <div class="flex items-center justify-center gap-2">
+          <Heroicons.bookmark mini class="h-5 w-5 opacity-50 group-hover:opacity-75" />
+          <span>Assignments</span>
+        </div>
+        <span
+          :if={@live_action == :assignments}
+          aria-hidden="true"
+          class="bg-urge-500 absolute inset-x-0 bottom-0 h-0.5"
+        >
+        </span>
+      </.link>
+      <.link
+        patch={"/profile/#{@username}/subscriptions"}
+        class={"transition group relative min-w-0 flex-1 overflow-hidden bg-white py-4 px-4 text-center text-sm font-medium hover:bg-gray-50 focus:z-10 " <> if @live_action == :subscriptions, do: "text-gray-900", else: "text-gray-500 hover:text-gray-700"}
+      >
+        <div class="flex items-center justify-center gap-2">
+          <Heroicons.eye mini class="h-5 w-5 opacity-50 group-hover:opacity-75" />
+          <span>Subscriptions</span>
+        </div>
+        <span
+          :if={@live_action == :subscriptions}
+          aria-hidden="true"
+          class="bg-urge-500 absolute inset-x-0 bottom-0 h-0.5"
+        >
+        </span>
+      </.link>
+      <.link
+        patch={"/profile/#{@username}/edited"}
+        class={"rounded-b-lg md:rounded-r-lg md:rounded-bl-none transition group relative min-w-0 flex-1 overflow-hidden bg-white py-4 px-4 text-center text-sm font-medium hover:bg-gray-50 focus:z-10 " <> if @live_action == :edited, do: "text-gray-900", else: "text-gray-500 hover:text-gray-700"}
+      >
+        <div class="flex items-center justify-center gap-2">
+          <Heroicons.pencil mini class="h-5 w-5 opacity-50 group-hover:opacity-75" />
+          <span>Edited</span>
+        </div>
+        <span
+          :if={@live_action == :edited}
+          aria-hidden="true"
+          class="bg-urge-500 absolute inset-x-0 bottom-0 h-0.5"
+        >
+        </span>
+      </.link>
+      <%= if Accounts.is_admin(@current_user) do %>
+        <.link
+          patch={"/profile/#{@username}/admin"}
+          class={"rounded-b-lg md:rounded-r-lg md:rounded-bl-none transition group relative min-w-0 flex-1 overflow-hidden bg-white py-4 px-4 text-center text-sm font-medium hover:bg-gray-50 focus:z-10 " <> if @live_action == :admin or @live_action == :admin_edit, do: "text-gray-900", else: "text-gray-500 hover:text-gray-700"}
+        >
+          <div class="flex items-center justify-center gap-2">
+            <Heroicons.building_library mini class="h-5 w-5 opacity-50 group-hover:opacity-75" />
+            <span>Admin</span>
+          </div>
+          <span
+            :if={@live_action == :admin or @live_action == :admin_edit}
+            aria-hidden="true"
+            class="bg-urge-500 absolute inset-x-0 bottom-0 h-0.5"
+          >
+          </span>
+        </.link>
+      <% end %>
+    </nav>
+    <%= case @live_action do %>
+      <% :assignments -> %>
+        <.live_component
+          module={PlatformWeb.MediaLive.PaginatedMediaList}
+          id="assignments-list"
+          current_user={@current_user}
+          query_params={%{only_assigned_id: @user.id}}
+        />
+      <% :subscriptions -> %>
+        <.live_component
+          module={PlatformWeb.MediaLive.PaginatedMediaList}
+          id="subscriptions-list"
+          current_user={@current_user}
+          query_params={%{only_subscribed_id: @user.id}}
+          show_subscription_button={@current_user.id == @user.id}
+        />
+      <% :edited -> %>
+        <.live_component
+          module={PlatformWeb.MediaLive.PaginatedMediaList}
+          id="edited-list"
+          current_user={@current_user}
+          query_params={%{has_been_edited_by_id: @user.id}}
+        />
+      <% x when x == :admin or x == :admin_edit -> %>
+        <%= if Accounts.is_admin(@current_user) do %>
+          <.card>
+            <:header>
+              <div class="flex justify-between items-center">
+                <div>
+                  <p class="sec-head">
+                    Administration
+                  </p>
+                </div>
+                <div>
+                  <%= live_patch("Edit",
+                    class: "button ~urge @high",
+                    to: Routes.profiles_show_path(@socket, :admin_edit, @username)
+                  ) %>
+                </div>
+              </div>
+            </:header>
+            <dl class="grid grid-cols-1 gap-x-4 gap-y-8 sm:grid-cols-2 mb-8">
+              <div class="sm:col-span-1">
+                <dt class="text-sm text-gray-500">Email</dt>
+                <dd class="mt-1 text-sm text-gray-900"><%= @user.email %></dd>
+              </div>
+              <div class="sm:col-span-1">
+                <dt class="text-sm text-gray-500">Joined</dt>
+                <dd class="mt-1 text-sm text-gray-900">
+                  <.rel_time time={@user.inserted_at} />
+                </dd>
+              </div>
+              <div class="sm:col-span-1">
+                <dt class="text-sm text-gray-500">Email Confirmed</dt>
+                <dd class="mt-1 text-sm text-gray-900">
+                  <.rel_time time={@user.confirmed_at} />
+                </dd>
+              </div>
+              <div class="sm:col-span-1">
+                <dt class="text-sm text-gray-500">Restrictions</dt>
+                <dd class="mt-1 text-sm text-gray-900">
+                  <%= if length(@user.restrictions || []) > 0 do %>
+                    <%= for r <- @user.restrictions do %>
+                      <p class="chip ~warning">
+                        <%= r %>
+                      </p>
+                    <% end %>
+                  <% else %>
+                    None
+                  <% end %>
+                </dd>
+              </div>
+              <div class="sm:col-span-1">
+                <dt class="text-sm font-medium text-gray-500">Roles</dt>
+                <dd class="mt-1 text-sm text-gray-900">
+                  <%= if length(@user.roles || []) > 0 do %>
+                    <%= for r <- @user.roles do %>
+                      <p class="chip ~neutral">
+                        <%= r %>
+                      </p>
+                    <% end %>
+                  <% else %>
+                    None
+                  <% end %>
+                </dd>
+              </div>
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Admin Notes</dt>
+                <dd class="mt-1 text-sm text-gray-900">
+                  <%= if String.length(@user.admin_notes) > 0 do %>
+                    <p><%= @user.admin_notes %></p>
+                  <% else %>
+                    <p>None</p>
+                  <% end %>
+                </dd>
+              </div>
+            </dl>
+            <div id="activity-indicator" class="w-full" data-vega={@activity_indicator_chart}>
+            </div>
+          </.card>
+        <% end %>
+        <%= if @live_action == :admin_edit do %>
+          <.live_component
+            module={EditComponent}
+            id="edit-user"
+            current_user={@current_user}
+            username={@username}
+          />
+        <% end %>
+      <% _ -> %>
+        <.live_component
+          module={PlatformWeb.UpdatesLive.PaginatedMediaUpdateFeed}
+          current_user={@current_user}
+          restrict_to_user={@current_user}
+          id="updates-feed"
+        />
+    <% end %>
+  </div>
+</div>

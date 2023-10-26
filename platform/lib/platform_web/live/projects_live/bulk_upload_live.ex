@@ -216,7 +216,7 @@ defmodule PlatformWeb.ProjectsLive.BulkUploadLive do
                 <ul>
                   <%= for attr <- Material.Attribute.active_attributes(project: @project) |> Enum.filter(& &1.required) do %>
                     <li>
-                      <.attr_explanation name={attr.name} project={@project} />
+                      <.attr_import_format_explanation name={attr.name} project={@project} />
                     </li>
                   <% end %>
                 </ul>
@@ -224,7 +224,7 @@ defmodule PlatformWeb.ProjectsLive.BulkUploadLive do
                 <ul>
                   <%= for attr <- Material.Attribute.active_attributes(project: @project) |> Enum.reject(& &1.required) do %>
                     <li>
-                      <.attr_explanation name={attr.name} project={@project} />
+                      <.attr_import_format_explanation name={attr.name} project={@project} />
                     </li>
                   <% end %>
                   <li>
@@ -264,7 +264,7 @@ defmodule PlatformWeb.ProjectsLive.BulkUploadLive do
                   phx-drop-target={@uploads.bulk_upload.ref}
                   phx-target={@myself}
                 >
-                  <%= live_file_input(@uploads.bulk_upload, class: "sr-only") %>
+                  <.live_file_input upload={@uploads.bulk_upload} class="sr-only" />
                   <%= if @processing do %>
                     <div>
                       <div class="space-y-1 text-center">
@@ -497,7 +497,9 @@ defmodule PlatformWeb.ProjectsLive.BulkUploadLive do
                         ) %>
                       </p>
                       <div class="grid gap-4 grid-cols-1 md:grid-cols-3 text-sm p-4">
-                        <% applied_media = Ecto.Changeset.apply_changes(changeset) %>
+                        <% applied_media =
+                          Ecto.Changeset.apply_changes(changeset)
+                          |> Platform.Repo.preload([attr_assignments: [:user]], force: true) %>
                         <%= for attr <- Material.Attribute.active_attributes(project: @project) do %>
                           <% value = Material.get_attribute_value(applied_media, attr) %>
                           <%= if not is_nil(value) and value != [] and value != "" and attr.schema_field != :attr_description do %>

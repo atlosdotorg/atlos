@@ -100,7 +100,7 @@ defmodule PlatformWeb.ProjectsLive.Show do
             </div>
             <div class="flex self-start mt-4 gap-2 flex-wrap">
               <.link
-                href={
+                navigate={
                   Routes.live_path(@socket, PlatformWeb.MediaLive.Index, %{
                     project_id: @project.id,
                     display: :cards
@@ -119,7 +119,7 @@ defmodule PlatformWeb.ProjectsLive.Show do
                 <Heroicons.archive_box mini class="-ml-0.5 mr-2 h-5 w-5 text-neutral-400" /> Export
               <% end %>
               <%= if Permissions.can_edit_project_metadata?(@current_user, @project) do %>
-                <.link href={"/new?project_id=#{@project.id}"} class="button ~urge @high">
+                <.link navigate={"/new?project_id=#{@project.id}"} class="button ~urge @high">
                   <Heroicons.plus mini class="-ml-0.5 mr-2 text-urge-200 h-5 w-5" /> New Incident
                 </.link>
               <% end %>
@@ -132,7 +132,7 @@ defmodule PlatformWeb.ProjectsLive.Show do
               "transition-all border-urge-500 text-urge-600 group inline-flex items-center py-4 px-1 border-b-2 font-medium text-sm" %>
 
             <.link
-              patch={"/projects/#{@project.id}"}
+              navigate={"/projects/#{@project.id}"}
               class={if @live_action == :overview, do: active_classes, else: inactive_classes}
             >
               <Heroicons.chart_bar mini class="opacity-75 -ml-0.5 mr-2 h-5 w-5" />
@@ -140,7 +140,7 @@ defmodule PlatformWeb.ProjectsLive.Show do
             </.link>
 
             <.link
-              patch={"/projects/#{@project.id}/map"}
+              navigate={"/projects/#{@project.id}/map"}
               class={if @live_action == :map, do: active_classes, else: inactive_classes}
             >
               <Heroicons.map mini class="opacity-75 -ml-0.5 mr-2 h-5 w-5" />
@@ -148,7 +148,7 @@ defmodule PlatformWeb.ProjectsLive.Show do
             </.link>
 
             <.link
-              patch={"/projects/#{@project.id}/queue"}
+              navigate={"/projects/#{@project.id}/queue"}
               class={if @live_action == :queue, do: active_classes, else: inactive_classes}
             >
               <Heroicons.queue_list mini class="opacity-75 -ml-0.5 mr-2 h-5 w-5" />
@@ -157,7 +157,7 @@ defmodule PlatformWeb.ProjectsLive.Show do
 
             <%= if Permissions.can_edit_project_metadata?(@current_user, @project) do %>
               <.link
-                patch={"/projects/#{@project.id}/edit"}
+                navigate={"/projects/#{@project.id}/edit"}
                 class={if @live_action == :edit, do: active_classes, else: inactive_classes}
               >
                 <Heroicons.cog_6_tooth mini class="opacity-75 -ml-0.5 mr-2 h-5 w-5" />
@@ -167,17 +167,17 @@ defmodule PlatformWeb.ProjectsLive.Show do
 
             <%= if feature_available?(:project_access_controls) do %>
               <.link
-                patch={"/projects/#{@project.id}/members"}
-                class={if @live_action == :members, do: active_classes, else: inactive_classes}
+                navigate={"/projects/#{@project.id}/access"}
+                class={if @live_action == :access, do: active_classes, else: inactive_classes}
               >
                 <Heroicons.user_circle mini class="opacity-75 -ml-0.5 mr-2 h-5 w-5" />
-                <span>Members</span>
+                <span>Access</span>
               </.link>
             <% end %>
 
             <%= if Permissions.can_view_project_deleted_media?(@current_user, @project) do %>
               <.link
-                patch={"/projects/#{@project.id}/deleted"}
+                navigate={"/projects/#{@project.id}/deleted"}
                 class={if @live_action == :deleted, do: active_classes, else: inactive_classes}
               >
                 <Heroicons.trash mini class="opacity-75 -ml-0.5 mr-2 h-5 w-5" />
@@ -187,7 +187,7 @@ defmodule PlatformWeb.ProjectsLive.Show do
           </nav>
         </article>
       </div>
-      <article class="w-full xl:max-w-screen-xl md:mx-auto px-4">
+      <article class="w-full xl:max-w-screen-xl md:mx-auto px-4 overflow-x-auto">
         <%= if @live_action == :overview do %>
           <section class="flex flex-col-reverse h-full lg:flex-row gap-8 max-w-full md:divide-x">
             <div class="lg:w-2/3">
@@ -208,10 +208,10 @@ defmodule PlatformWeb.ProjectsLive.Show do
                       <p class="mt-1 text-sm text-gray-500">Get started by creating an incident</p>
                     </div>
                   <% else %>
-                    <%= for {status, count} <- @status_statistics |> Enum.sort_by(fn {status, _count} -> Enum.find_index(["Unclaimed", "In Progress", "Help Needed", "Ready for Review", "Completed", "Cancelled"], fn x -> x == status end) || -1 end) do %>
+                    <%= for {status, count} <- @status_statistics |> Enum.sort_by(fn {status, _count} -> Enum.find_index(["To Do", "In Progress", "Help Needed", "Ready for Review", "Completed", "Cancelled"], fn x -> x == status end) || -1 end) do %>
                       <% status_color = Platform.Material.Attribute.attr_color(:status, status) %>
                       <.link
-                        href={
+                        navigate={
                           Routes.live_path(@socket, PlatformWeb.MediaLive.Index, %{
                             attr_status: [status],
                             project_id: @project.id,
@@ -235,7 +235,7 @@ defmodule PlatformWeb.ProjectsLive.Show do
                         </dd>
                       </.link>
                     <% end %>
-                    <.link patch={"/projects/#{@project.id}/queue"} class="text-button p-2">
+                    <.link href={"/projects/#{@project.id}/queue"} class="text-button p-2">
                       View in queue &rarr;
                     </.link>
                   <% end %>
@@ -288,10 +288,17 @@ defmodule PlatformWeb.ProjectsLive.Show do
             />
           <% end %>
         <% end %>
-        <%= if @live_action == :members and feature_available?(:project_access_controls) do %>
+        <%= if @live_action == :access and feature_available?(:project_access_controls) do %>
           <.live_component
             module={PlatformWeb.ProjectsLive.MembersComponent}
             id="project-members"
+            current_user={@current_user}
+            project={@project}
+          />
+
+          <.live_component
+            module={PlatformWeb.ProjectsLive.APITokensComponent}
+            id="project-api-tokens"
             current_user={@current_user}
             project={@project}
           />
