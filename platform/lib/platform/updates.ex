@@ -46,7 +46,7 @@ defmodule Platform.Updates do
       :old_project,
       :new_project,
       :api_token,
-      media: [project: [memberships: [:user]]]
+      media: [:project]
     ])
   end
 

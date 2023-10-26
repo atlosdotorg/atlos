@@ -168,7 +168,7 @@ defmodule Platform.Material do
         :old_project,
         :api_token,
         :new_project,
-        media: [project: [memberships: [:user]]]
+        media: [:project]
       ]
     )
   end
