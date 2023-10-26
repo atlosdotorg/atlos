@@ -497,7 +497,9 @@ defmodule PlatformWeb.ProjectsLive.BulkUploadLive do
                         ) %>
                       </p>
                       <div class="grid gap-4 grid-cols-1 md:grid-cols-3 text-sm p-4">
-                        <% applied_media = Ecto.Changeset.apply_changes(changeset) %>
+                        <% applied_media =
+                          Ecto.Changeset.apply_changes(changeset)
+                          |> Platform.Repo.preload([attr_assignments: [:user]], force: true) %>
                         <%= for attr <- Material.Attribute.active_attributes(project: @project) do %>
                           <% value = Material.get_attribute_value(applied_media, attr) %>
                           <%= if not is_nil(value) and value != [] and value != "" and attr.schema_field != :attr_description do %>
