@@ -3508,7 +3508,7 @@ defmodule PlatformWeb.Components do
     """
   end
 
-  def user_text(%{user: %Accounts.User{} = _} = assigns) do
+  def user_text(assigns) do
     assigns =
       assign_new(assigns, :icon, fn -> false end)
       |> assign_new(:flair, fn -> true end)
