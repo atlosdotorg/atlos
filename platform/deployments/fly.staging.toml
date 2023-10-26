@@ -6,7 +6,7 @@ processes = []
 
 [deploy]
   release_command = "/app/bin/migrate"
-  strategy = "canary"
+  strategy = "rolling"
 
 [env]
   PHX_HOST = "staging.atlos.org"
