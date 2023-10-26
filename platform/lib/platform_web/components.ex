@@ -2030,7 +2030,7 @@ defmodule PlatformWeb.Components do
             <span style={"color: #{if @media.project, do: @media.project.color, else: "unset"}"}>
               <%= Media.slug_to_display(@media) %>
             </span>
-            <div class="flex flex-col h-full flex-wrap ml-px my-auto">
+            <div class="flex flex-col h-full flex-wrap ml-px my-auto items-center">
               <%= if is_sensitive do %>
                 <span data-tooltip={Enum.join(@media.attr_sensitive, ", ")} class="text-critical-400">
                   <Heroicons.shield_exclamation mini class="h-4 w-4" />
