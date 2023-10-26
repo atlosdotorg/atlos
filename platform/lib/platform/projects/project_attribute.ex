@@ -58,7 +58,11 @@ defmodule Platform.Projects.ProjectAttribute do
       if Enum.member?([:select, :multi_select], get_field(changeset, :type)) do
         changeset
         |> validate_required([:options])
-        |> validate_length(:options, min: 1, max: 256, message: "You must provide between 1 and 256 options.")
+        |> validate_length(:options,
+          min: 1,
+          max: 256,
+          message: "You must provide between 1 and 256 options."
+        )
         |> validate_change(:options, fn :options, options ->
           if Enum.any?(options, fn option -> String.length(option) > 50 end) do
             [options: "An option cannot be longer than 50 characters"]
