@@ -10,7 +10,7 @@ defmodule PlatformWeb.MediaLive.Index do
      |> stream(:media_stream, [], dom_id: &"incident-#{&1.slug}")}
   end
 
-  def handle_params(params, _uri, socket) do
+  defp handle_params_internal(params, socket) do
     changeset = Material.MediaSearch.changeset(params)
 
     display =
@@ -114,6 +114,19 @@ defmodule PlatformWeb.MediaLive.Index do
            ),
          else: s
      end)}
+  end
+
+  def handle_params(params, _uri, socket) do
+    # Wrap and catch CastErrors, in which case we put a flash and redirect to /incidents
+    try do
+      handle_params_internal(params, socket)
+    rescue
+      _error ->
+        {:noreply,
+         socket
+         |> put_flash(:error, "Your search had invalid parameters. Please try again.")
+         |> push_patch(to: "/incidents", replace: true)}
+    end
   end
 
   defp assign_media(socket, media) do
