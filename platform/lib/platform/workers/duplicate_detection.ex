@@ -23,6 +23,7 @@ defmodule Platform.Workers.DuplicateDetector do
     with {:ok, binary1} <- Base.decode64(hash1),
          {:ok, binary2} <- Base.decode64(hash2) do
       Logger.debug("Calculating the hamming distance between #{hash1} and #{hash2}")
+
       if byte_size(binary1) == byte_size(binary2) do
         dist =
           Enum.zip_with(:binary.bin_to_list(binary1), :binary.bin_to_list(binary2), fn a, b ->
@@ -32,6 +33,7 @@ defmodule Platform.Workers.DuplicateDetector do
             |> Enum.sum()
           end)
           |> Enum.sum()
+
         Logger.debug("Hamming distance between #{hash1} and #{hash2} : #{dist}")
         {:ok, dist}
       else
@@ -86,11 +88,12 @@ defmodule Platform.Workers.DuplicateDetector do
         Enum.any?(sub_hashes, fn sub_hash ->
           Enum.any?(
             hashes,
-            fn hash -> case hamming_distance(sub_hash, hash) do
-              {:ok, dist} -> dist <= @hamming_threshold
-              _ -> false
+            fn hash ->
+              case hamming_distance(sub_hash, hash) do
+                {:ok, dist} -> dist <= @hamming_threshold
+                _ -> false
+              end
             end
-          end
           )
         end)
       end)
