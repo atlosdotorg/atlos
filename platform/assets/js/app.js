@@ -505,7 +505,7 @@ window.addEventListener("load", () => {
     let highlightElem = document.querySelector("#highlight-script");
     if (highlightElem != null) {
         console.log("Initializing Highlight...")
-        window.H.init(highlightElem.getAttribute("data-code"), { enableStrictPrivacy: true, environment: highlightElem.getAttribute("data-environment"), version: highlightElem.getAttribute("data-version") })
+        window.H.init(highlightElem.getAttribute("data-code"), { privacySetting: "strict", environment: highlightElem.getAttribute("data-environment"), version: highlightElem.getAttribute("data-version") })
     } else {
         console.log("Highlight not found!")
     }
