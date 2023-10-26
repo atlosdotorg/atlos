@@ -140,15 +140,16 @@ defmodule PlatformWeb.MediaLive.Index do
     end)
   end
 
-  defp assign_update_media(socket, media) do
+  defp assign_update_media(socket, media_id) do
     existing_media = Map.get(socket.assigns, :media, [])
+    new_media = Material.get_media(media_id, for_user: socket.assigns.current_user)
 
     socket
     |> assign(
       :media,
-      existing_media |> Enum.map(fn m -> if(m.id == media.id, do: media, else: m) end)
+      existing_media |> Enum.map(fn m -> if(m.id == media_id, do: new_media, else: m) end)
     )
-    |> stream_insert(:media_stream, media, dom_id: &"incident-#{&1.slug}")
+    |> stream_insert(:media_stream, new_media, dom_id: &"incident-#{&1.slug}")
   end
 
   defp search_media(socket, c, pagination_opts) do
@@ -188,7 +189,7 @@ defmodule PlatformWeb.MediaLive.Index do
          else: [media.id | socket.assigns.selected_ids]
        )
      )
-     |> assign_update_media(media)}
+     |> assign_update_media(media.id)}
   end
 
   def handle_event("select_all", _params, socket) do
@@ -272,13 +273,11 @@ defmodule PlatformWeb.MediaLive.Index do
         %{"attribute" => attr_name, "media-id" => media_id} = _params,
         socket
       ) do
-    {id, ""} = Integer.parse(media_id)
-
     {:noreply,
      socket
      |> assign(
        :editing,
-       {Enum.find(socket.assigns.media, &(&1.id == id)), attr_name}
+       {Enum.find(socket.assigns.media, &(&1.id == media_id)), attr_name}
      )}
   end
 
@@ -292,7 +291,7 @@ defmodule PlatformWeb.MediaLive.Index do
       {:noreply,
        socket
        |> assign(:editing, nil)
-       |> assign_update_media(updated_media)
+       |> assign_update_media(updated_media.id)
        |> put_flash(:info, "Your changes were applied successfully.")}
     end
   end

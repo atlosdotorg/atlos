@@ -113,6 +113,10 @@ defmodule Platform.Accounts do
   """
   def get_user!(id), do: Repo.get!(User |> preload_user(), id)
 
+  defmemo get_user(id), expires_in: 5000 do
+    Repo.get(User |> preload_user(), id)
+  end
+
   defmemo get_users_by_ids(ids), expires_in: 5000 do
     Repo.all(User |> preload_user() |> where([u], u.id in ^ids))
   end
