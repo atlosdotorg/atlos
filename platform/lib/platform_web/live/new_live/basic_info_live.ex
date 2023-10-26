@@ -71,7 +71,7 @@ defmodule PlatformWeb.NewLive.BasicInfoLive do
     # TODO: We don't currently do live validation because it causes the multiselect panel to jump around.
     # Given the time, it'd be nice to fix this.
 
-    {:noreply, socket |> assign_changeset(media_params, validate: true)}
+    {:noreply, socket |> assign_changeset(media_params)}
   end
 
   def handle_event("save", %{"media" => media_params}, socket) do
