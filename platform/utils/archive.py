@@ -27,6 +27,11 @@ from selenium.webdriver.chrome.service import Service as ChromiumService
 from webdriver_manager.chrome import ChromeDriverManager
 from webdriver_manager.core.os_manager import ChromeType
 from selenium.webdriver.common.print_page_options import PrintOptions
+from webdriver_manager.core.utils import read_version_from_cmd
+from webdriver_manager.core.os_manager import PATTERN
+
+# Make sure we install the right version of the Chrome driver
+chromedriver_version = read_version_from_cmd("chromium --version", PATTERN["chromium"])
 
 # From https://github.com/bellingcat/auto-archiver/blob/dockerize/src/auto_archiver/utils/url.py#L3
 is_telegram_private = re.compile(r"https:\/\/t\.me(\/c)\/(.+)\/(\d+)")
@@ -102,7 +107,9 @@ def archive_page_using_selenium(url: str) -> dict:
         driver = webdriver.Chrome(
             service=ChromiumService(
                 # If you update this version, be sure to also update the version in all Dockerfiles
-                ChromeDriverManager(chrome_type=ChromeType.CHROMIUM, driver_version="118.0.5993.70").install()
+                ChromeDriverManager(
+                    chrome_type=ChromeType.CHROMIUM, driver_version=chromedriver_version
+                ).install()
             ),
             options=options,
         )
@@ -362,9 +369,7 @@ def run(url, file, out, auto_archiver_config):
                     direct_archive,
                     os.path.join(out, path),
                 )
-                artifacts.append(
-                    analyze_artifact(direct_archive, kind="direct_file")
-                )
+                artifacts.append(analyze_artifact(direct_archive, kind="direct_file"))
 
         # Write the metadata
         with open(os.path.join(out, "metadata.json"), "w") as outfile:

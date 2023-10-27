@@ -12,7 +12,8 @@
 				"jakebecker.elixir-ls",
 				"hashicorp.terraform",
 				"GitHub.copilot",
-				"phoenixframework.phoenix"
+				"phoenixframework.phoenix",
+				"ms-python.python"
 			]
 		}
 	},
