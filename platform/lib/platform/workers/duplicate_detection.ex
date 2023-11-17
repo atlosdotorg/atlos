@@ -57,17 +57,15 @@ defmodule Platform.Workers.DuplicateDetector do
 
     # Next, we search for media versions that have perceptual hashes that are similar to these
     # perceptual hashes.
-    candidate_media =
-      Enum.map(hashes, fn hash ->
-        {query, _} =
-          Platform.Material.MediaSearch.search_query(
-            Platform.Material.MediaSearch.changeset(%{
-              "project_id" => media.project_id
-            })
-          )
+    {query, _} =
+      Platform.Material.MediaSearch.search_query(
+        Platform.Material.MediaSearch.changeset(%{
+          "project_id" => media.project_id
+        })
+      )
 
-        Material.query_media(query)
-      end)
+    candidate_media =
+      Material.query_media(query)
       |> List.flatten()
       |> Enum.uniq_by(& &1.id)
       |> Enum.filter(
@@ -83,6 +81,7 @@ defmodule Platform.Workers.DuplicateDetector do
       |> List.flatten()
       |> Enum.filter(&(&1.visibility == :visible))
       |> Enum.filter(fn version ->
+        Logger.debug("Checking version #{version.id}")
         sub_hashes = get_hashes(version)
 
         Enum.any?(sub_hashes, fn sub_hash ->
