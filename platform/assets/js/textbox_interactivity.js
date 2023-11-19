@@ -39,10 +39,9 @@ function moveCaretEnd(elem) {
 }
 
 function patchPaste(elem){
-    elem.addEventListener("paste", event => {
+    elem.addEventListener("paste", _ => {
         moveCaretEnd(elem);
     })
-
 }
 
 function initialize() {
