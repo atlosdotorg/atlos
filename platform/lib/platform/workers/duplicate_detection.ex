@@ -1,6 +1,8 @@
 defmodule Platform.Workers.DuplicateDetector do
   alias Platform.Material
 
+  @hamming_threshold 15
+
   require Logger
 
   use Oban.Worker,
@@ -16,6 +18,33 @@ defmodule Platform.Workers.DuplicateDetector do
     |> List.flatten()
   end
 
+  def hamming_distance(hash1, hash2) do
+    # Calculates the hamming distance between the base64 encodings of two perceptual hashes.
+    with {:ok, binary1} <- Base.decode64(hash1),
+         {:ok, binary2} <- Base.decode64(hash2) do
+      Logger.debug("Calculating the hamming distance between #{hash1} and #{hash2}")
+
+      if byte_size(binary1) == byte_size(binary2) do
+        dist =
+          Enum.zip_with(:binary.bin_to_list(binary1), :binary.bin_to_list(binary2), fn a, b ->
+            for(<<bit::1 <- :binary.encode_unsigned(Bitwise.bxor(a, b))>>,
+              do: bit
+            )
+            |> Enum.sum()
+          end)
+          |> Enum.sum()
+
+        Logger.debug("Hamming distance between #{hash1} and #{hash2} : #{dist}")
+        {:ok, dist}
+      else
+        Logger.debug("Unequal length!")
+        {:error, :unequal_length}
+      end
+    else
+      _ -> {:error, :invalid_base64}
+    end
+  end
+
   @impl Oban.Worker
   def perform(%Oban.Job{args: %{"media_version_id" => id} = _args}) do
     version = Material.get_media_version!(id)
@@ -28,18 +57,15 @@ defmodule Platform.Workers.DuplicateDetector do
 
     # Next, we search for media versions that have perceptual hashes that are similar to these
     # perceptual hashes.
-    candidate_media =
-      Enum.map(hashes, fn hash ->
-        {query, _} =
-          Platform.Material.MediaSearch.search_query(
-            Platform.Material.MediaSearch.changeset(%{
-              "project_id" => media.project_id,
-              "query" => hash
-            })
-          )
+    {query, _} =
+      Platform.Material.MediaSearch.search_query(
+        Platform.Material.MediaSearch.changeset(%{
+          "project_id" => media.project_id
+        })
+      )
 
-        Material.query_media(query)
-      end)
+    candidate_media =
+      Material.query_media(query)
       |> List.flatten()
       |> Enum.uniq_by(& &1.id)
       |> Enum.filter(
@@ -47,14 +73,28 @@ defmodule Platform.Workers.DuplicateDetector do
             &1.deleted == false and not Material.Media.has_restrictions(&1))
       )
 
+    Logger.debug("Found #{Enum.count(candidate_media)} candidate media")
+
     results =
       candidate_media
       |> Enum.map(& &1.versions)
       |> List.flatten()
       |> Enum.filter(&(&1.visibility == :visible))
       |> Enum.filter(fn version ->
+        Logger.debug("Checking version #{version.id}")
         sub_hashes = get_hashes(version)
-        Enum.any?(sub_hashes, fn sub_hash -> Enum.member?(hashes, sub_hash) end)
+
+        Enum.any?(sub_hashes, fn sub_hash ->
+          Enum.any?(
+            hashes,
+            fn hash ->
+              case hamming_distance(sub_hash, hash) do
+                {:ok, dist} -> dist <= @hamming_threshold
+                _ -> false
+              end
+            end
+          )
+        end)
       end)
 
     Logger.info("Found #{Enum.count(results)} potential duplicates for #{media.slug}")
