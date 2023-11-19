@@ -27,6 +27,23 @@ function iconURL(url) {
     }
 }
 
+function moveCaretEnd(elem) {
+    const selection = window.getSelection();
+    if (selection.rangeCount === 0 || !elem.contains(selection.anchorNode)) {
+        return;
+    }
+    const range = selection.getRangeAt(0);
+    range.collapse(false);
+    selection.removeAllRanges();
+    selection.addRange(range);
+}
+
+function patchPaste(elem){
+    elem.addEventListener("paste", _ => {
+        moveCaretEnd(elem);
+    })
+}
+
 function initialize() {
     document.querySelectorAll("textarea[interactive-urls]").forEach(input => {
         if (input.parentElement.querySelector("tags")) {
@@ -162,6 +179,10 @@ function initialize() {
             feedbackElem.value = input.value;
             feedbackElem.dispatchEvent(new Event("input", { bubbles: true }));
         })
+    })
+
+    document.querySelectorAll(".tagify__input").forEach(input => {
+        patchPaste(input);
     })
 }
 
