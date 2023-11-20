@@ -295,14 +295,14 @@ defmodule PlatformWeb.SearchLive.SearchComponent do
                     <div
                       x-on:click={"window.location = '/incidents/#{item.media.slug}/#update-#{item.id}'"}
                       id={item.id}
-                      class="cursor-pointer group flex transition rounded mx-2 ease-in-out duration-100 select-none items-center px-2 pb-2"
+                      class="cursor-pointer group transition rounded mx-2 ease-in-out duration-100 select-none px-2 pb-2"
                       x-bind:class={"#{idx} === (selected % #{@total_results}) ? 'bg-neutral-200' : 'bg-white'"}
                       x-on:mouseenter={"if (new Date().getTime() - lastKeyChangeTime > 500) { selected = #{idx} }"}
                       role="option"
                       tabindex="-1"
                       data-selector-index={idx}
                     >
-                      <div class="pointer-events-none">
+                      <div class="pointer-events-none w-full">
                         <.update_entry
                           socket={@socket}
                           can_user_change_visibility={false}
