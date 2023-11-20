@@ -1,6 +1,7 @@
 <div class="min-h-screen flex flex justify-center py-4 sm:py-12 sm:px-6 lg:px-8 sm:items-center bg-neutral-600">
   <div class="mt-4 sm:mt-8 px-4 sm:mx-auto sm:w-full sm:max-w-md">
-    <a class="text-center mb-8" href="/">
+    <div class="text-center mb-8">
+    <a href="/">
       <%!-- We put classes in a variable to avoid "Atlos" being put on its own line when autoformatted, which results in spacing issues. --%>
       <% classes =
         "px-1 py-px rounded-sm font-mono bg-neutral-200 text-neutral-600 font-bold text-3xl uppercase" %>
@@ -13,6 +14,7 @@
         </span>
       <% end %>
     </a>
+    </div>
     <.card header_class="bg-neutral-100" class="overflow-hidden">
       <%= @inner_content %>
     </.card>
