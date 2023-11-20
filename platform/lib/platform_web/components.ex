@@ -588,13 +588,13 @@ defmodule PlatformWeb.Components do
         <%= Media.slug_to_display(@media) %>
       </div>
       <p class="md:hidden flex items-center flex-shrink-0 text-xs items-center flex-shrink-1 gap-1 justify-right">
-        <.media_badges media={@media} only_status={true} />
+        <.media_badges media={@media} />
       </p>
       <p class="font-medium flex-grow-1 flex items-center max-w-full gap-2 grow truncate min-w-0">
         <span class="truncate"><%= @media.attr_description |> Platform.Utils.truncate(128) %></span>
       </p>
       <p class="hidden md:block flex items-center flex-shrink-0 text-xs items-center flex-shrink-1 gap-1 justify-right">
-        <.media_badges media={@media} only_status={true} />
+        <.media_badges media={@media} />
       </p>
     </article>
     """

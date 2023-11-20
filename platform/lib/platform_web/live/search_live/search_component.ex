@@ -194,7 +194,7 @@ defmodule PlatformWeb.SearchLive.SearchComponent do
                     <.link navigate={"/incidents/#{item.slug}"} class="cursor-pointer">
                       <li
                         id={item.id}
-                        class="group flex transition rounded mx-2 ease-in-out duration-100 select-none items-center px-2 py-2"
+                        class="group flex transition rounded mx-2 ease-in-out duration-100 items-center px-2 py-2"
                         x-bind:class={"#{idx} === (selected % #{@total_results}) ? 'bg-neutral-200' : 'bg-white'"}
                         x-on:mouseenter={"if (new Date().getTime() - lastKeyChangeTime > 500) { selected = #{idx} }"}
                         role="option"
