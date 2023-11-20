@@ -112,7 +112,11 @@ defmodule Platform.GlobalSearch do
           |> Enum.filter(fn item -> Permissions.can_view_media?(user, item) end)
         end),
         Task.async(fn ->
-          Repo.all(users_query)
+          if String.length(query) < 3 do
+            []
+          else
+            Repo.all(users_query)
+          end
         end),
         Task.async(fn ->
           Repo.all(projects_query)

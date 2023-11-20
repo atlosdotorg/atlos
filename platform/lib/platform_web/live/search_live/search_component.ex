@@ -226,7 +226,7 @@ defmodule PlatformWeb.SearchLive.SearchComponent do
                       >
                         <article class="flex flex-wrap md:flex-nowrap w-full gap-1 justify-leading text-sm max-w-full overflow-hidden">
                           <div
-                            class="font-mono font-medium text-neutral-500 pr-2"
+                            class="font-mono font-medium text-neutral-500 pr-2 whitespace-nowrap"
                             data-tooltip={"#{item.media.attr_description} (#{item.media.attr_status})"}
                           >
                             <%= Platform.Material.Media.slug_to_display(item.media) %>/<%= item.scoped_id %>

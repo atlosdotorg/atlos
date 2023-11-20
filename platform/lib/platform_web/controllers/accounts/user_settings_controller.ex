@@ -51,7 +51,9 @@ defmodule PlatformWeb.UserSettingsController do
         |> UserAuth.log_in_user(user)
 
       {:error, changeset} ->
-        render(conn |> assign(:title, "Change Password"), "edit.html", password_changeset: changeset)
+        render(conn |> assign(:title, "Change Password"), "edit.html",
+          password_changeset: changeset
+        )
     end
   end
 
