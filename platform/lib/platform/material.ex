@@ -165,9 +165,7 @@ defmodule Platform.Material do
       updates: [
         :user,
         :media_version,
-        :old_project,
         :api_token,
-        :new_project,
         media: [:project]
       ]
     )
@@ -745,31 +743,6 @@ defmodule Platform.Material do
   def update_media_project(%Media{} = media, attrs \\ %{}, user \\ nil) do
     change_media_project(media, attrs, user)
     |> Repo.update()
-  end
-
-  def update_media_project_audited(%Media{} = media, %User{} = user, attrs \\ %{}) do
-    unless Permissions.can_edit_media?(user, media) do
-      raise "No permission"
-    end
-
-    old_media = media
-
-    res =
-      Repo.transaction(fn ->
-        with {:ok, media} <- update_media_project(media, attrs, user),
-             update_changeset <- Updates.change_from_media_project_change(old_media, media, user),
-             {:ok, _} <- Updates.create_update_from_changeset(update_changeset) do
-          Updates.subscribe_if_first_interaction(media, user)
-          media
-        else
-          _ -> {:error, change_media_project(media, attrs, user)}
-        end
-      end)
-
-    # Schedule the media to have its auto-metadata regenerated
-    schedule_media_auto_metadata_update(media)
-
-    res
   end
 
   @doc """

@@ -74,7 +74,16 @@ let liveSocket = new LiveSocket("/live", Socket, {
         },
     },
     params: { _csrf_token: csrfToken },
-    hooks: Hooks
+    hooks: Hooks,
+    metadata: {
+        keydown: (event, _element) => {
+          return {
+            ctrlKey: event.ctrlKey,
+            metaKey: event.metaKey,
+            shiftKey: event.shiftKey
+          }
+        }
+    }
 })
 
 // Setup textboxes
@@ -484,6 +493,17 @@ window.toggleClass = (id, classname) => {
     let elem = document.getElementById(id);
     elem.classList.toggle(classname);
 }
+
+// Scroll to the hash position, if possible
+window.addEventListener("load", () => {
+    if (window.location.hash) {
+        let elem = document.querySelector(window.location.hash);
+        if (elem) {
+            elem.scrollIntoView();
+            elem.focus();
+        }
+    }
+})
 
 document.addEventListener("phx:update", initializeSmartSelects);
 window.addEventListener("load", initializeSmartSelects);

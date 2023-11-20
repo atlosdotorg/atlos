@@ -18,14 +18,16 @@ defmodule Platform.GlobalSearch do
   @doc """
   Search all of Atlos for a given query string for the user.
   """
-  def perform_search(query, %User{} = user, opts \\ []) when is_binary(query) do
-    query = String.trim(query) |> String.downcase() |> String.replace(~r/\s+/, "|")
+  defmemo perform_search(query, %User{} = user) when is_binary(query), expires_in: 10000 do
+    query = String.trim(query) |> String.downcase() |> String.replace(~r/\s+/, "|") |> String.replace("\\", "") |> String.trim()
     query_only_alphaneumeric = String.replace(query, ~r/[^a-zA-Z0-9]/, "")
 
     media_version_query =
       from(
         mv in MediaVersion,
-        where: fragment("? @@ to_tsquery('simple', ?)", mv.searchable, ^query),
+        where:
+          fragment("? @@ to_tsquery('simple', ?)", mv.searchable, ^query) or
+            ilike(mv.source_url, ^"%#{query_only_alphaneumeric}%"),
         join: m in assoc(mv, :media),
         join: p in assoc(m, :project),
         join: pm in assoc(p, :memberships),
@@ -34,19 +36,24 @@ defmodule Platform.GlobalSearch do
         order_by: [
           desc: fragment("ts_rank_cd(?, to_tsquery('simple', ?))", mv.searchable, ^query)
         ],
-        limit: 5
+        limit: 3,
+        preload: [media: [:project]]
       )
 
     media_query =
       from(
         m in Media,
-        where: fragment("? @@ to_tsquery('simple', ?)", m.searchable, ^query),
+        where:
+          fragment("? @@ to_tsquery('simple', ?)", m.searchable, ^query) or
+            ilike(m.attr_description, ^"%#{query_only_alphaneumeric}%") or
+            ilike(m.slug, ^"%#{query_only_alphaneumeric}%"),
         join: p in assoc(m, :project),
         join: pm in assoc(p, :memberships),
         on: pm.user_id == ^user.id,
         where: not is_nil(pm),
         order_by: [desc: fragment("ts_rank_cd(?, to_tsquery('simple', ?))", m.searchable, ^query)],
-        limit: 5
+        limit: 3,
+        preload: [:project]
       )
 
     users_query =
@@ -57,18 +64,20 @@ defmodule Platform.GlobalSearch do
             (fragment("? @@ to_tsquery('simple', ?)", u.searchable, ^query) or
                ilike(u.username, ^"%#{query_only_alphaneumeric}%")),
         order_by: [desc: fragment("ts_rank_cd(?, to_tsquery('simple', ?))", u.searchable, ^query)],
-        limit: 5
+        limit: 3
       )
 
     projects_query =
       from(
         p in Project,
-        where: fragment("? @@ to_tsquery('simple', ?)", p.searchable, ^query),
+        where:
+          fragment("? @@ to_tsquery('simple', ?)", p.searchable, ^query) or
+            ilike(p.name, ^"%#{query_only_alphaneumeric}%"),
         join: pm in assoc(p, :memberships),
         on: pm.user_id == ^user.id,
         where: not is_nil(pm),
         order_by: [desc: fragment("ts_rank_cd(?, to_tsquery('simple', ?))", p.searchable, ^query)],
-        limit: 5
+        limit: 3
       )
 
     updates_query =
@@ -81,11 +90,12 @@ defmodule Platform.GlobalSearch do
         on: pm.user_id == ^user.id,
         where: not is_nil(pm),
         order_by: [desc: fragment("ts_rank_cd(?, to_tsquery('simple', ?))", u.searchable, ^query)],
-        limit: 5
+        limit: 3
       )
+      |> Platform.Updates.preload_fields()
 
     # Run each query in parallel
-    [media_version_results, media_results, users_query, projects_query, updates_query] =
+    [media_version_results, media_results, users_results, projects_results, updates_results] =
       Task.await_many([
         Task.async(fn ->
           Repo.all(media_version_query)
@@ -111,9 +121,9 @@ defmodule Platform.GlobalSearch do
     %{
       media_versions: media_version_results,
       media: media_results,
-      users: users_query,
-      projects: projects_query,
-      updates: updates_query
+      users: users_results,
+      projects: projects_results,
+      updates: updates_results
     }
   end
 end

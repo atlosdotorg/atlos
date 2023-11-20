@@ -73,7 +73,10 @@ defmodule Platform.Projects do
   def get_project(""), do: nil
   def get_project("unset"), do: nil
   def get_project(nil), do: nil
-  def get_project(id), do: Repo.get(Project, id)
+
+  defmemo get_project(id), expires_in: 5000 do
+    Repo.get(Project |> preload_project_associations(), id)
+  end
 
   @doc """
   Creates a project. If the user is not nil, it will add the user as an owner of the project.

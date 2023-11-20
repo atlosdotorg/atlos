@@ -42,7 +42,7 @@ defmodule Platform.Notifications do
   def get_notification!(id),
     do:
       Repo.get!(
-        Notification |> preload(update: [:user, :old_project, :new_project, media: [:project]]),
+        Notification |> preload(update: [:user, media: [:project]]),
         id
       )
 
@@ -55,8 +55,6 @@ defmodule Platform.Notifications do
       preload: [
         update: [
           :user,
-          :old_project,
-          :new_project,
           :media_version,
           :api_token,
           media: [project: [memberships: [:user]]]
@@ -121,10 +119,10 @@ defmodule Platform.Notifications do
              old_value <- Map.get(old_value_map, Platform.Updates.key_for_attribute(attr)),
              {:ok, new_value_map} <- update.new_value |> Jason.decode(),
              new_value <- Map.get(new_value_map, Platform.Updates.key_for_attribute(attr)) do
-          added_members = MapSet.difference(MapSet.new(new_value), MapSet.new(old_value)) |> dbg()
+          added_members = MapSet.difference(MapSet.new(new_value), MapSet.new(old_value))
 
           removed_members =
-            MapSet.difference(MapSet.new(old_value), MapSet.new(new_value)) |> dbg()
+            MapSet.difference(MapSet.new(old_value), MapSet.new(new_value))
 
           MapSet.union(added_members, removed_members) |> Enum.map(&Accounts.get_user!(&1))
         else

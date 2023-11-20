@@ -94,6 +94,7 @@ defmodule PlatformWeb.UpdatesLive.UpdateFeed do
       |> Enum.with_index()
 
     assigns = assign(assigns, :to_show, to_show)
+    |> assign_new(:with_id, fn -> false end)
 
     ~H"""
     <div class="flow-root">
@@ -111,6 +112,7 @@ defmodule PlatformWeb.UpdatesLive.UpdateFeed do
             socket={@socket}
             left_indicator={:profile}
             ignore_permissions={@ignore_permissions}
+            with_id={@with_id}
           />
         <% end %>
       </ul>

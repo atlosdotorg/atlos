@@ -119,12 +119,13 @@ defmodule Platform.Permissions do
   end
 
   def can_view_media?(%User{} = user, %Media{} = media) do
-    membership = Projects.get_project_membership_by_user_and_project(user, media.project)
+    membership = Projects.get_project_membership_by_user_and_project_id(user, media.project_id)
+    project = Projects.get_project(media.project_id)
 
     if is_nil(membership) do
       false
     else
-      case can_view_project?(user, media.project) do
+      case can_view_project?(user, project) do
         true ->
           case {media.attr_restrictions, media.deleted} do
             {nil, false} ->
