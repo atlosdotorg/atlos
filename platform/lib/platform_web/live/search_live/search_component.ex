@@ -111,7 +111,7 @@ defmodule PlatformWeb.SearchLive.SearchComponent do
       <span phx-window-keydown="close_modal" phx-key="escape" phx-target={@myself} />
       <div :if={@active} class="fixed z-10 w-screen h-screen" role="dialog" aria-modal="true">
         <div
-          class="fixed inset-0 bg-gray-800 bg-opacity-50 hidden"
+          class="fixed inset-0 bg-neutral-400 bg-opacity-50 hidden"
           phx-mounted={
             JS.show(transition: {"ease-out duration-100", "opacity-0", "opacity-100"}, time: 100)
           }
@@ -314,7 +314,7 @@ defmodule PlatformWeb.SearchLive.SearchComponent do
                     </li>
                   <% :updates -> %>
                     <li :if={not Enum.empty?(@results.updates)}>
-                      <h2 class="text-xs font-medium text-neutral-500">Updates and Comments</h2>
+                      <h2 class="text-xs font-medium text-neutral-500">Updates</h2>
                       <ul class="-mx-4 mt-2 text-sm text-neutral-700">
                         <%= for {item, idx} <- @results.updates do %>
                           <div
