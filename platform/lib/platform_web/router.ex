@@ -25,7 +25,7 @@ defmodule PlatformWeb.Router do
   end
 
   pipeline :app do
-    plug(:put_layout, {PlatformWeb.LayoutView, "app.html"})
+    plug(:put_layout, {PlatformWeb.LayoutView, "interstitial.html"})
   end
 
   pipeline :interstitial do
