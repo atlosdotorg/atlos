@@ -15,6 +15,9 @@ defmodule Platform.Projects.Project do
     has_many(:media, Platform.Material.Media)
     has_many(:memberships, Platform.Projects.ProjectMembership)
 
+    # Computed tsvector field "searchable"; we tell Ecto it's an array of maps so we can use it in queries
+    field(:searchable, {:array, :map}, load_in_query: false)
+
     timestamps()
   end
 

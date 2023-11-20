@@ -82,6 +82,9 @@ defmodule Platform.Material.Media do
     # Metadata
     timestamps()
 
+    # Computed tsvector field "searchable"; we tell Ecto it's an array of maps so we can use it in queries
+    field(:searchable, {:array, :map}, load_in_query: false)
+
     # Associations
     has_many(:versions, Platform.Material.MediaVersion)
     has_many(:notifications, Platform.Notifications.Notification)

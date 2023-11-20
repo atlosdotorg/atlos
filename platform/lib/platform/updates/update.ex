@@ -47,6 +47,9 @@ defmodule Platform.Updates.Update do
     belongs_to(:media_version, Platform.Material.MediaVersion, type: :binary_id)
     belongs_to(:api_token, Platform.API.APIToken, type: :binary_id)
 
+    # Computed tsvector field "searchable"; we tell Ecto it's an array of maps so we can use it in queries
+    field(:searchable, {:array, :map}, load_in_query: false)
+
     timestamps()
   end
 

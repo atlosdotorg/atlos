@@ -15,7 +15,12 @@ defmodule PlatformWeb.SearchLive.SearchComponent do
      |> assign_results("")}
   end
 
-  def handle_event("open_modal_keybind", %{"key" => "k", "ctrlKey" => true}, socket) do
+  def handle_event(
+        "open_modal_keybind",
+        %{"key" => "k", "ctrlKey" => ctrl, "metaKey" => meta},
+        socket
+      )
+      when ctrl or meta do
     {:noreply, socket |> assign(:active, true)}
   end
 
@@ -38,18 +43,28 @@ defmodule PlatformWeb.SearchLive.SearchComponent do
   end
 
   defp assign_results(socket, query) do
-    results = GlobalSearch.perform_search(query, socket.assigns.current_user)
+    results_with_ranks = GlobalSearch.perform_search(query, socket.assigns.current_user)
+
+    results =
+      Enum.map(results_with_ranks, fn {k, v} -> {k, Enum.map(v, & &1.item)} end) |> Enum.into(%{})
 
     # We must assign an ordinal to each result so that we can use it in the
     # template to determine which result is selected. There must be only one instance
     # of each ordinal across all result types.
-    result_order = [
-      :users,
-      :media,
-      :media_versions,
-      :projects,
-      :updates
-    ]
+    result_order =
+      Map.keys(results_with_ranks)
+      |> Enum.sort_by(fn x ->
+        Enum.min(
+          Enum.map(results_with_ranks[x], fn %{exact_match: em, cd_rank: rank} ->
+            if em do
+              -1
+            else
+              rank
+            end
+          end),
+          fn -> 9999 end
+        )
+      end)
 
     results_with_ordinals =
       Enum.map(results, fn {result_type, values} ->
@@ -68,6 +83,7 @@ defmodule PlatformWeb.SearchLive.SearchComponent do
     socket
     |> assign(:query, query)
     |> assign(:results, results_with_ordinals)
+    |> assign(:result_order, result_order)
     |> assign(
       :has_any_results,
       Enum.any?(results, fn {_, results} -> not Enum.empty?(results) end)
@@ -162,162 +178,173 @@ defmodule PlatformWeb.SearchLive.SearchComponent do
               id="options"
               role="listbox"
             >
-              <li :if={not Enum.empty?(@results.users)}>
-                <h2 class="text-xs font-medium text-neutral-500">Users</h2>
-                <ul class="-mx-4 mt-2 text-sm text-neutral-700">
-                  <%= for {user, idx} <- @results.users do %>
-                    <.link navigate={"/profile/#{user.username}"} class="cursor-pointer">
-                      <li
-                        id={user.id}
-                        class="group flex transition rounded mx-2 ease-in-out duration-100 select-none items-center px-2 py-2"
-                        x-bind:class={"#{idx} === (selected % #{@total_results}) ? 'bg-neutral-200' : 'bg-white'"}
-                        x-on:mouseenter={"if (new Date().getTime() - lastKeyChangeTime > 500) { selected = #{idx} }"}
-                        role="option"
-                        tabindex="-1"
-                        data-selector-index={idx}
-                      >
-                        <img
-                          src={Platform.Accounts.get_profile_photo_path(user)}
-                          alt=""
-                          class="h-6 w-6 flex-none rounded-full"
-                        />
-                        <span class="ml-3 flex-auto truncate font-medium"><%= user.username %></span>
-                      </li>
-                    </.link>
-                  <% end %>
-                </ul>
-              </li>
-              <li :if={not Enum.empty?(@results.media)}>
-                <h2 class="text-xs font-medium text-neutral-500">Incidents</h2>
-                <ul class="-mx-4 mt-2 text-sm text-neutral-700">
-                  <%= for {item, idx} <- @results.media do %>
-                    <.link navigate={"/incidents/#{item.slug}"} class="cursor-pointer">
-                      <li
-                        id={item.id}
-                        class="group flex transition rounded mx-2 ease-in-out duration-100 items-center px-2 py-2"
-                        x-bind:class={"#{idx} === (selected % #{@total_results}) ? 'bg-neutral-200' : 'bg-white'"}
-                        x-on:mouseenter={"if (new Date().getTime() - lastKeyChangeTime > 500) { selected = #{idx} }"}
-                        role="option"
-                        tabindex="-1"
-                        data-selector-index={idx}
-                      >
-                        <.media_line_preview_compact_unlinked media={item} />
-                      </li>
-                    </.link>
-                  <% end %>
-                </ul>
-              </li>
-              <li :if={not Enum.empty?(@results.media_versions)}>
-                <h2 class="text-xs font-medium text-neutral-500">Source Material</h2>
-                <ul class="-mx-4 mt-2 text-sm text-neutral-700">
-                  <%= for {item, idx} <- @results.media_versions do %>
-                    <.link
-                      navigate={"/incidents/#{item.media.slug}/detail/#{item.scoped_id}"}
-                      class="cursor-pointer"
-                    >
-                      <li
-                        id={item.id}
-                        class="group flex transition rounded mx-2 ease-in-out duration-100 select-none items-center px-2 py-2"
-                        x-bind:class={"#{idx} === (selected % #{@total_results}) ? 'bg-neutral-200' : 'bg-white'"}
-                        x-on:mouseenter={"if (new Date().getTime() - lastKeyChangeTime > 500) { selected = #{idx} }"}
-                        role="option"
-                        tabindex="-1"
-                        data-selector-index={idx}
-                      >
-                        <article class="flex flex-wrap md:flex-nowrap w-full gap-1 justify-leading text-sm max-w-full overflow-hidden">
-                          <div
-                            class="font-mono font-medium text-neutral-500 pr-2 whitespace-nowrap"
-                            data-tooltip={"#{item.media.attr_description} (#{item.media.attr_status})"}
+              <%= for result_type <- @result_order do %>
+                <%= case result_type do %>
+                  <% :users -> %>
+                    <li :if={not Enum.empty?(@results.users)}>
+                      <h2 class="text-xs font-medium text-neutral-500">Users</h2>
+                      <ul class="-mx-4 mt-2 text-sm text-neutral-700">
+                        <%= for {user, idx} <- @results.users do %>
+                          <.link navigate={"/profile/#{user.username}"} class="cursor-pointer">
+                            <li
+                              id={user.id}
+                              class="group flex transition rounded mx-2 ease-in-out duration-100 select-none items-center px-2 py-2"
+                              x-bind:class={"#{idx} === (selected % #{@total_results}) ? 'bg-neutral-200' : 'bg-white'"}
+                              x-on:mouseenter={"if (new Date().getTime() - lastKeyChangeTime > 500) { selected = #{idx} }"}
+                              role="option"
+                              tabindex="-1"
+                              data-selector-index={idx}
+                            >
+                              <img
+                                src={Platform.Accounts.get_profile_photo_path(user)}
+                                alt=""
+                                class="h-6 w-6 flex-none rounded-full"
+                              />
+                              <span class="ml-3 flex-auto truncate font-medium">
+                                <%= user.username %>
+                              </span>
+                            </li>
+                          </.link>
+                        <% end %>
+                      </ul>
+                    </li>
+                  <% :media -> %>
+                    <li :if={not Enum.empty?(@results.media)}>
+                      <h2 class="text-xs font-medium text-neutral-500">Incidents</h2>
+                      <ul class="-mx-4 mt-2 text-sm text-neutral-700">
+                        <%= for {item, idx} <- @results.media do %>
+                          <.link navigate={"/incidents/#{item.slug}"} class="cursor-pointer">
+                            <li
+                              id={item.id}
+                              class="group flex transition rounded mx-2 ease-in-out duration-100 items-center px-2 py-2"
+                              x-bind:class={"#{idx} === (selected % #{@total_results}) ? 'bg-neutral-200' : 'bg-white'"}
+                              x-on:mouseenter={"if (new Date().getTime() - lastKeyChangeTime > 500) { selected = #{idx} }"}
+                              role="option"
+                              tabindex="-1"
+                              data-selector-index={idx}
+                            >
+                              <.media_line_preview_compact_unlinked media={item} />
+                            </li>
+                          </.link>
+                        <% end %>
+                      </ul>
+                    </li>
+                  <% :media_versions -> %>
+                    <li :if={not Enum.empty?(@results.media_versions)}>
+                      <h2 class="text-xs font-medium text-neutral-500">Source Material</h2>
+                      <ul class="-mx-4 mt-2 text-sm text-neutral-700">
+                        <%= for {item, idx} <- @results.media_versions do %>
+                          <.link
+                            navigate={"/incidents/#{item.media.slug}/detail/#{item.scoped_id}"}
+                            class="cursor-pointer"
                           >
-                            <%= Platform.Material.Media.slug_to_display(item.media) %>/<%= item.scoped_id %>
+                            <li
+                              id={item.id}
+                              class="group flex transition rounded mx-2 ease-in-out duration-100 select-none items-center px-2 py-2"
+                              x-bind:class={"#{idx} === (selected % #{@total_results}) ? 'bg-neutral-200' : 'bg-white'"}
+                              x-on:mouseenter={"if (new Date().getTime() - lastKeyChangeTime > 500) { selected = #{idx} }"}
+                              role="option"
+                              tabindex="-1"
+                              data-selector-index={idx}
+                            >
+                              <article class="flex flex-wrap md:flex-nowrap w-full gap-1 justify-leading text-sm max-w-full overflow-hidden">
+                                <div
+                                  class="font-mono font-medium text-neutral-500 pr-2 whitespace-nowrap"
+                                  data-tooltip={"#{item.media.attr_description} (#{item.media.attr_status})"}
+                                >
+                                  <%= Platform.Material.Media.slug_to_display(item.media) %>/<%= item.scoped_id %>
+                                </div>
+                                <div class="max-w-full flex-grow-1">
+                                  <p class="leading-snug font-medium">
+                                    <%= if Platform.Material.get_media_version_title(item) != nil do %>
+                                      <%= Platform.Material.get_media_version_title(item)
+                                      |> Platform.Utils.truncate(100) %>
+                                    <% else %>
+                                      Uploaded File
+                                    <% end %>
+                                  </p>
+                                  <%= if Platform.Material.get_media_version_title(item) != item.source_url do %>
+                                    <p class="text-neutral-500 text-xs">
+                                      <%= item.source_url |> Platform.Utils.truncate(80) %>
+                                    </p>
+                                  <% end %>
+                                </div>
+                              </article>
+                            </li>
+                          </.link>
+                        <% end %>
+                      </ul>
+                    </li>
+                  <% :projects -> %>
+                    <li :if={not Enum.empty?(@results.projects)}>
+                      <h2 class="text-xs font-medium text-neutral-500">Projects</h2>
+                      <ul class="-mx-4 mt-2 text-sm text-neutral-700">
+                        <%= for {item, idx} <- @results.projects do %>
+                          <.link navigate={"/projects/#{item.id}"} class="cursor-pointer">
+                            <li
+                              id={item.id}
+                              class="group flex transition rounded mx-2 ease-in-out duration-100 select-none items-center px-2 py-2"
+                              x-bind:class={"#{idx} === (selected % #{@total_results}) ? 'bg-neutral-200' : 'bg-white'"}
+                              x-on:mouseenter={"if (new Date().getTime() - lastKeyChangeTime > 500) { selected = #{idx} }"}
+                              role="option"
+                              tabindex="-1"
+                              data-selector-index={idx}
+                            >
+                              <article class="flex flex-nowrap w-full gap-1 justify-between text-sm items-center max-w-full overflow-hidden">
+                                <div class="flex-shrink-0 pr-1 -ml-1">
+                                  <span style={"color: #{item.color}"}>
+                                    <svg
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      viewBox="0 0 20 20"
+                                      fill="currentColor"
+                                      class="w-6 h-6"
+                                    >
+                                      <circle cx="10" cy="10" r="5" />
+                                    </svg>
+                                  </span>
+                                </div>
+                                <p class="font-medium flex-grow-1 flex items-center max-w-full gap-2 grow truncate min-w-0">
+                                  <%= item.name %>
+                                </p>
+                              </article>
+                            </li>
+                          </.link>
+                        <% end %>
+                      </ul>
+                    </li>
+                  <% :updates -> %>
+                    <li :if={not Enum.empty?(@results.updates)}>
+                      <h2 class="text-xs font-medium text-neutral-500">Updates and Comments</h2>
+                      <ul class="-mx-4 mt-2 text-sm text-neutral-700">
+                        <%= for {item, idx} <- @results.updates do %>
+                          <div
+                            x-on:click={"window.location = '/incidents/#{item.media.slug}/#update-#{item.id}'"}
+                            id={item.id}
+                            class="cursor-pointer group transition rounded mx-2 ease-in-out duration-100 select-none px-2 pb-2"
+                            x-bind:class={"#{idx} === (selected % #{@total_results}) ? 'bg-neutral-200' : 'bg-white'"}
+                            x-on:mouseenter={"if (new Date().getTime() - lastKeyChangeTime > 500) { selected = #{idx} }"}
+                            role="option"
+                            tabindex="-1"
+                            data-selector-index={idx}
+                          >
+                            <div class="pointer-events-none w-full">
+                              <.update_entry
+                                socket={@socket}
+                                can_user_change_visibility={false}
+                                profile_ring={false}
+                                left_indicator={:small_profile}
+                                update={item}
+                                current_user={@current_user}
+                                show_line={false}
+                                show_media={true}
+                              />
+                            </div>
                           </div>
-                          <div class="max-w-full flex-grow-1">
-                            <p class="leading-snug font-medium">
-                              <%= if Platform.Material.get_media_version_title(item) != nil do %>
-                                <%= Platform.Material.get_media_version_title(item)
-                                |> Platform.Utils.truncate(100) %>
-                              <% else %>
-                                Uploaded File
-                              <% end %>
-                            </p>
-                            <%= if Platform.Material.get_media_version_title(item) != item.source_url do %>
-                              <p class="text-neutral-500 text-xs">
-                                <%= item.source_url |> Platform.Utils.truncate(80) %>
-                              </p>
-                            <% end %>
-                          </div>
-                        </article>
-                      </li>
-                    </.link>
-                  <% end %>
-                </ul>
-              </li>
-              <li :if={not Enum.empty?(@results.projects)}>
-                <h2 class="text-xs font-medium text-neutral-500">Projects</h2>
-                <ul class="-mx-4 mt-2 text-sm text-neutral-700">
-                  <%= for {item, idx} <- @results.projects do %>
-                    <.link navigate={"/projects/#{item.id}"} class="cursor-pointer">
-                      <li
-                        id={item.id}
-                        class="group flex transition rounded mx-2 ease-in-out duration-100 select-none items-center px-2 py-2"
-                        x-bind:class={"#{idx} === (selected % #{@total_results}) ? 'bg-neutral-200' : 'bg-white'"}
-                        x-on:mouseenter={"if (new Date().getTime() - lastKeyChangeTime > 500) { selected = #{idx} }"}
-                        role="option"
-                        tabindex="-1"
-                        data-selector-index={idx}
-                      >
-                        <article class="flex flex-nowrap w-full gap-1 justify-between text-sm items-center max-w-full overflow-hidden">
-                          <div class="flex-shrink-0 pr-1 -ml-1">
-                            <span style={"color: #{item.color}"}>
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                viewBox="0 0 20 20"
-                                fill="currentColor"
-                                class="w-6 h-6"
-                              >
-                                <circle cx="10" cy="10" r="5" />
-                              </svg>
-                            </span>
-                          </div>
-                          <p class="font-medium flex-grow-1 flex items-center max-w-full gap-2 grow truncate min-w-0">
-                            <%= item.name %>
-                          </p>
-                        </article>
-                      </li>
-                    </.link>
-                  <% end %>
-                </ul>
-              </li>
-              <li :if={not Enum.empty?(@results.updates)}>
-                <h2 class="text-xs font-medium text-neutral-500">Updates and Comments</h2>
-                <ul class="-mx-4 mt-2 text-sm text-neutral-700">
-                  <%= for {item, idx} <- @results.updates do %>
-                    <div
-                      x-on:click={"window.location = '/incidents/#{item.media.slug}/#update-#{item.id}'"}
-                      id={item.id}
-                      class="cursor-pointer group transition rounded mx-2 ease-in-out duration-100 select-none px-2 pb-2"
-                      x-bind:class={"#{idx} === (selected % #{@total_results}) ? 'bg-neutral-200' : 'bg-white'"}
-                      x-on:mouseenter={"if (new Date().getTime() - lastKeyChangeTime > 500) { selected = #{idx} }"}
-                      role="option"
-                      tabindex="-1"
-                      data-selector-index={idx}
-                    >
-                      <div class="pointer-events-none w-full">
-                        <.update_entry
-                          socket={@socket}
-                          can_user_change_visibility={false}
-                          profile_ring={false}
-                          left_indicator={:small_profile}
-                          update={item}
-                          current_user={@current_user}
-                          show_line={false}
-                          show_media={true}
-                        />
-                      </div>
-                    </div>
-                  <% end %>
-                </ul>
-              </li>
+                        <% end %>
+                      </ul>
+                    </li>
+                <% end %>
+              <% end %>
             </ul>
             <div :if={not @has_any_results} class="px-6 py-14 text-center text-sm sm:px-14">
               <svg

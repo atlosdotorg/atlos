@@ -19,39 +19,55 @@ defmodule Platform.GlobalSearch do
   Search all of Atlos for a given query string for the user.
   """
   defmemo perform_search(query, %User{} = user) when is_binary(query), expires_in: 10000 do
+    query_lower_raw = String.trim(query) |> String.downcase()
+
     query =
       String.trim(query)
       |> String.downcase()
-      |> String.replace(~r/\s+/, "|")
-      |> String.replace("\\", "")
-      |> String.trim()
 
-    query_only_alphaneumeric = String.replace(query, ~r/[^a-zA-Z0-9]/, "")
+    query_only_alphaneumeric = String.replace(query, ~r/[^a-zA-Z0-9\s]/, "") |> dbg()
+    query = query |> String.replace(~r/\s+/, " OR ") |> String.replace(~r/[^a-zA-Z0-9\s]/, "")
 
     media_version_query =
       from(
         mv in MediaVersion,
         where:
-          fragment("? @@ to_tsquery('simple', ?)", mv.searchable, ^query) or
-            ilike(mv.source_url, ^"%#{query_only_alphaneumeric}%"),
+          fragment("? @@ websearch_to_tsquery('simple', ?)", mv.searchable, ^query) or
+            ilike(mv.source_url, ^"%#{query_only_alphaneumeric}%") or
+            fragment("LOWER(?) = ?", mv.source_url, ^query_lower_raw),
         join: m in assoc(mv, :media),
         join: p in assoc(m, :project),
         join: pm in assoc(p, :memberships),
         on: pm.user_id == ^user.id,
         where: not is_nil(pm),
         order_by: [
-          desc: fragment("ts_rank_cd(?, to_tsquery('simple', ?))", mv.searchable, ^query),
+          asc:
+            fragment(
+              "case when ? then 0 else 1 end",
+              ilike(mv.source_url, ^"%#{query_only_alphaneumeric}%") or
+                fragment("LOWER(?) = ?", mv.source_url, ^query_lower_raw)
+            ),
+          asc:
+            fragment("ts_rank_cd(?, websearch_to_tsquery('simple', ?))", mv.searchable, ^query),
           desc: mv.inserted_at
         ],
         limit: 3,
-        preload: [media: [:project]]
+        preload: [media: [:project]],
+        select: %{
+          item: mv,
+          exact_match:
+            ilike(mv.source_url, ^"%#{query_only_alphaneumeric}%") or
+              fragment("LOWER(?) = ?", mv.source_url, ^query_lower_raw),
+          cd_rank:
+            fragment("ts_rank_cd(?, websearch_to_tsquery('simple', ?))", mv.searchable, ^query)
+        }
       )
 
     media_query =
       from(
         m in Media,
         where:
-          fragment("? @@ to_tsquery('simple', ?)", m.searchable, ^query) or
+          fragment("? @@ websearch_to_tsquery('simple', ?)", m.searchable, ^query) or
             ilike(m.attr_description, ^"%#{query_only_alphaneumeric}%") or
             ilike(m.slug, ^"%#{query_only_alphaneumeric}%"),
         join: p in assoc(m, :project),
@@ -59,11 +75,25 @@ defmodule Platform.GlobalSearch do
         on: pm.user_id == ^user.id,
         where: not is_nil(pm),
         order_by: [
-          desc: fragment("ts_rank_cd(?, to_tsquery('simple', ?))", m.searchable, ^query),
+          asc:
+            fragment(
+              "case when ? then 0 else 1 end",
+              ilike(m.attr_description, ^"%#{query_only_alphaneumeric}%") or
+                ilike(m.slug, ^"%#{query_only_alphaneumeric}%")
+            ),
+          asc: fragment("ts_rank_cd(?, websearch_to_tsquery('simple', ?))", m.searchable, ^query),
           desc: m.inserted_at
         ],
         limit: 3,
-        preload: [:project]
+        preload: [:project],
+        select: %{
+          item: m,
+          exact_match:
+            ilike(m.attr_description, ^"%#{query_only_alphaneumeric}%") or
+              ilike(m.slug, ^"%#{query_only_alphaneumeric}%"),
+          cd_rank:
+            fragment("ts_rank_cd(?, websearch_to_tsquery('simple', ?))", m.searchable, ^query)
+        }
       )
 
     users_query =
@@ -71,45 +101,84 @@ defmodule Platform.GlobalSearch do
         u in User,
         where:
           u.username != "atlos" and
-            (fragment("? @@ to_tsquery('simple', ?)", u.searchable, ^query) or
+            (fragment("? @@ websearch_to_tsquery('simple', ?)", u.searchable, ^query) or
                ilike(u.username, ^"%#{query_only_alphaneumeric}%")),
         order_by: [
-          desc: fragment("ts_rank_cd(?, to_tsquery('simple', ?))", u.searchable, ^query),
+          asc:
+            fragment(
+              "case when ? then 0 else 1 end",
+              ilike(u.username, ^"%#{query_only_alphaneumeric}%")
+            ),
+          asc: fragment("ts_rank_cd(?, websearch_to_tsquery('simple', ?))", u.searchable, ^query),
           desc: u.inserted_at
         ],
-        limit: 3
+        limit: 3,
+        select: %{
+          item: u,
+          exact_match: ilike(u.username, ^"%#{query_only_alphaneumeric}%"),
+          cd_rank:
+            fragment("ts_rank_cd(?, websearch_to_tsquery('simple', ?))", u.searchable, ^query)
+        }
       )
 
     projects_query =
       from(
         p in Project,
         where:
-          fragment("? @@ to_tsquery('simple', ?)", p.searchable, ^query) or
+          fragment("? @@ websearch_to_tsquery('simple', ?)", p.searchable, ^query) or
             ilike(p.name, ^"%#{query_only_alphaneumeric}%"),
         join: pm in assoc(p, :memberships),
         on: pm.user_id == ^user.id,
         where: not is_nil(pm),
         order_by: [
-          desc: fragment("ts_rank_cd(?, to_tsquery('simple', ?))", p.searchable, ^query),
+          asc:
+            fragment(
+              "case when ? then 0 else 1 end",
+              ilike(p.name, ^"%#{query_only_alphaneumeric}%")
+            ),
+          asc: fragment("ts_rank_cd(?, websearch_to_tsquery('simple', ?))", p.searchable, ^query),
           desc: p.inserted_at
         ],
-        limit: 3
+        limit: 3,
+        select: %{
+          item: p,
+          exact_match: ilike(p.name, ^"%#{query_only_alphaneumeric}%"),
+          cd_rank:
+            fragment("ts_rank_cd(?, websearch_to_tsquery('simple', ?))", p.searchable, ^query)
+        }
       )
 
     updates_query =
       from(
         u in Update,
-        where: fragment("? @@ to_tsquery('simple', ?)", u.searchable, ^query),
+        where:
+          fragment("? @@ websearch_to_tsquery('simple', ?)", u.searchable, ^query) or
+            ilike(u.explanation, ^"%#{query_only_alphaneumeric}%") or
+            ilike(u.explanation, ^"%#{query_lower_raw}%"),
         join: m in assoc(u, :media),
         join: p in assoc(m, :project),
         join: pm in assoc(p, :memberships),
         on: pm.user_id == ^user.id,
         where: not is_nil(pm),
         order_by: [
-          desc: fragment("ts_rank_cd(?, to_tsquery('simple', ?))", u.searchable, ^query),
+          asc:
+            fragment(
+              "case when ? then 0 else 1 end",
+              ilike(u.explanation, ^"%#{query_only_alphaneumeric}%") or
+                ilike(u.explanation, ^"%#{query_lower_raw}%")
+            ),
+          asc: fragment("ts_rank_cd(?, websearch_to_tsquery('simple', ?))", u.searchable, ^query),
           desc: u.inserted_at
         ],
-        limit: 3
+        limit: 3,
+        select: %{
+          item: u,
+          exact_match:
+            ilike(u.explanation, ^"%#{query_only_alphaneumeric}%") or
+              ilike(u.explanation, ^"%#{query_lower_raw}%"),
+          cd_rank:
+            fragment("ts_rank_cd(?, websearch_to_tsquery('simple', ?))", u.searchable, ^query)
+        }
       )
       |> Platform.Updates.preload_fields()
 
@@ -118,11 +187,11 @@ defmodule Platform.GlobalSearch do
       Task.await_many([
         Task.async(fn ->
           Repo.all(media_version_query)
-          |> Enum.filter(fn item -> Permissions.can_view_media_version?(user, item) end)
+          |> Enum.filter(fn item -> Permissions.can_view_media_version?(user, item.item) end)
         end),
         Task.async(fn ->
           Repo.all(media_query)
-          |> Enum.filter(fn item -> Permissions.can_view_media?(user, item) end)
+          |> Enum.filter(fn item -> Permissions.can_view_media?(user, item.item) end)
         end),
         Task.async(fn ->
           if String.length(query) < 3 do
@@ -133,11 +202,11 @@ defmodule Platform.GlobalSearch do
         end),
         Task.async(fn ->
           Repo.all(projects_query)
-          |> Enum.filter(fn item -> Permissions.can_view_project?(user, item) end)
+          |> Enum.filter(fn item -> Permissions.can_view_project?(user, item.item) end)
         end),
         Task.async(fn ->
           Repo.all(updates_query)
-          |> Enum.filter(fn item -> Permissions.can_view_update?(user, item) end)
+          |> Enum.filter(fn item -> Permissions.can_view_update?(user, item.item) end)
         end)
       ])
 
