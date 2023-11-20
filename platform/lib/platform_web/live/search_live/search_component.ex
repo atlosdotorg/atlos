@@ -23,6 +23,10 @@ defmodule PlatformWeb.SearchLive.SearchComponent do
     {:noreply, socket}
   end
 
+  def handle_event("open_modal", _params, socket) do
+    {:noreply, socket |> assign(:active, true)}
+  end
+
   def handle_event("close_modal", _params, socket) do
     {:noreply, socket |> assign(:active, false)}
   end
@@ -79,13 +83,17 @@ defmodule PlatformWeb.SearchLive.SearchComponent do
     <div
       x-data="{selected: 0, lastKeyChangeTime: 0}"
       x-ref="root"
+      class="w-full flex flex-col items-center"
       x-on:keydown.down={"selected++; lastKeyChangeTime = new Date().getTime(); $refs.root.querySelector(`[data-selector-index='${selected % #{@total_results}}']`).scrollIntoView()"}
       x-on:keydown.up={"selected--; lastKeyChangeTime = new Date().getTime(); $refs.root.querySelector(`[data-selector-index='${selected % #{@total_results}}']`).scrollIntoView()"}
       x-on:keydown.enter={"$refs.root.querySelector(`[data-selector-index='${selected % #{@total_results}}']`).click()"}
     >
+      <button type="button" phx-click="open_modal" phx-target={@myself} class="w-full">
+        <%= render_slot(@inner_block) %>
+      </button>
       <span phx-window-keydown="open_modal_keybind" phx-key="k" phx-target={@myself} />
       <span phx-window-keydown="close_modal" phx-key="escape" phx-target={@myself} />
-      <div :if={@active} class="relative z-10" role="dialog" aria-modal="true">
+      <div :if={@active} class="fixed z-10 w-screen h-screen" role="dialog" aria-modal="true">
         <div
           class="fixed inset-0 bg-gray-800 bg-opacity-50 hidden"
           phx-mounted={
@@ -217,7 +225,10 @@ defmodule PlatformWeb.SearchLive.SearchComponent do
                         data-selector-index={idx}
                       >
                         <article class="flex flex-wrap md:flex-nowrap w-full gap-1 justify-leading text-sm max-w-full overflow-hidden">
-                          <div class="font-mono font-medium text-neutral-500 pr-2" data-tooltip={"#{item.media.attr_description} (#{item.media.attr_status})"}>
+                          <div
+                            class="font-mono font-medium text-neutral-500 pr-2"
+                            data-tooltip={"#{item.media.attr_description} (#{item.media.attr_status})"}
+                          >
                             <%= Platform.Material.Media.slug_to_display(item.media) %>/<%= item.scoped_id %>
                           </div>
                           <div class="max-w-full flex-grow-1">
@@ -330,12 +341,14 @@ defmodule PlatformWeb.SearchLive.SearchComponent do
             </div>
 
             <div class="flex flex-wrap items-center bg-gray-50 px-4 py-2.5 text-xs text-gray-700">
-              Search for anything. Use arrow keys to navigate,
-              <kbd class="mx-1 flex h-5 items-center justify-center rounded border border-gray-300 font-semibold text-gray-700 sm:mx-2 px-1">
+              Search for anything with <kbd class="flex h-5 items-center justify-center rounded border border-gray-300 font-semibold text-gray-700 px-1 mx-1">
+                Ctrl K
+              </kbd>. Use arrow keys to navigate,
+              <kbd class="flex h-5 items-center justify-center rounded border border-gray-300 font-semibold text-gray-700 px-1 mx-1">
                 enter
               </kbd>
               to select, and
-              <kbd class="mx-1 flex h-5 items-center justify-center rounded border border-gray-300 font-semibold text-gray-700 sm:mx-1 px-1">
+              <kbd class="flex h-5 items-center justify-center rounded border border-gray-300 font-semibold text-gray-700 px-1 mx-1">
                 esc
               </kbd>
               to close.

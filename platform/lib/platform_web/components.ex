@@ -14,8 +14,14 @@ defmodule PlatformWeb.Components do
   alias PlatformWeb.Router.Helpers, as: Routes
   alias Platform.Permissions
 
-  def navlink(%{request_path: path, to: to} = assigns) do
-    active = String.starts_with?(path, to) and !String.equivalent?(path, "/")
+  def navlink(%{request_path: path} = assigns) do
+    assigns =
+      assigns
+      |> assign_new(:label, fn -> "" end)
+      |> assign_new(:to, fn -> "" end)
+
+    to = Map.get(assigns, :to)
+    active = to != "" and String.starts_with?(path, to) and !String.equivalent?(path, "/")
 
     classes =
       if active do
@@ -26,12 +32,21 @@ defmodule PlatformWeb.Components do
 
     assigns = assign(assigns, :classes, classes)
 
-    ~H"""
-    <.link navigate={@to} class={@classes}>
-      <%= render_slot(@inner_block) %>
-      <span class="mt-2"><%= @label %></span>
-    </.link>
-    """
+    if to != "" do
+      ~H"""
+      <.link navigate={@to} class={@classes}>
+        <%= render_slot(@inner_block) %>
+        <span class="mt-2"><%= @label %></span>
+      </.link>
+      """
+    else
+      ~H"""
+      <div class={@classes}>
+        <%= render_slot(@inner_block) %>
+        <span class="mt-2"><%= @label %></span>
+      </div>
+      """
+    end
   end
 
   def modal(assigns) do
@@ -396,6 +411,20 @@ defmodule PlatformWeb.Components do
               <% end %>
             </div>
           </.navlink>
+          <div class="w-full hidden sm:block">
+            <.live_component
+              module={PlatformWeb.SearchLive.SearchComponent}
+              current_user={@current_user}
+              id="global-search-modal"
+            >
+              <.navlink label="Search" request_path={@path}>
+                <Heroicons.magnifying_glass
+                  mini
+                  class="text-neutral-300 group-hover:text-white h-6 w-6"
+                />
+              </.navlink>
+            </.live_component>
+          </div>
           <%= if !is_nil(@current_user) and Accounts.is_admin(@current_user) do %>
             <.navlink to="/adminland" label="Adminland" request_path={@path}>
               <svg
@@ -552,7 +581,10 @@ defmodule PlatformWeb.Components do
   def media_line_preview_compact_unlinked(%{media: %Media{}} = assigns) do
     ~H"""
     <article class="flex flex-wrap md:flex-nowrap w-full gap-1 justify-between text-sm md:items-center max-w-full overflow-hidden">
-      <div class="flex-shrink-0 font-mono font-medium text-neutral-500 pr-2" data-tooltip={"#{@media.attr_description} (#{@media.attr_status})"}>
+      <div
+        class="flex-shrink-0 font-mono font-medium text-neutral-500 pr-2"
+        data-tooltip={"#{@media.attr_description} (#{@media.attr_status})"}
+      >
         <%= Media.slug_to_display(@media) %>
       </div>
       <p class="md:hidden flex items-center flex-shrink-0 text-xs items-center flex-shrink-1 gap-1 justify-right">
