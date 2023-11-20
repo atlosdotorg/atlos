@@ -5,9 +5,10 @@ defmodule PlatformWeb.SearchLive.SearchComponent do
   alias Phoenix.LiveView.JS
 
   def update(assigns, socket) do
-    socket = socket
-    |> assign(assigns)
-    |> assign(:active, false)
+    socket =
+      socket
+      |> assign(assigns)
+      |> assign(:active, false)
 
     {:ok,
      socket
@@ -17,6 +18,7 @@ defmodule PlatformWeb.SearchLive.SearchComponent do
   def handle_event("open_modal_keybind", %{"key" => "k", "ctrlKey" => true}, socket) do
     {:noreply, socket |> assign(:active, true)}
   end
+
   def handle_event("open_modal_keybind", _params, socket) do
     {:noreply, socket}
   end
@@ -186,7 +188,8 @@ defmodule PlatformWeb.SearchLive.SearchComponent do
                         id={item.id}
                         class="group flex transition rounded mx-2 ease-in-out duration-100 select-none items-center px-2 py-2"
                         x-bind:class={"#{idx} === (selected % #{@total_results}) ? 'bg-neutral-200' : 'bg-white'"}
-                        x-on:mouseenter={"if (new Date().getTime() - lastKeyChangeTime > 500) { selected = #{idx} }"}                        role="option"
+                        x-on:mouseenter={"if (new Date().getTime() - lastKeyChangeTime > 500) { selected = #{idx} }"}
+                        role="option"
                         tabindex="-1"
                         data-selector-index={idx}
                       >
@@ -200,25 +203,39 @@ defmodule PlatformWeb.SearchLive.SearchComponent do
                 <h2 class="text-xs font-medium text-neutral-500">Source Material</h2>
                 <ul class="-mx-4 mt-2 text-sm text-neutral-700">
                   <%= for {item, idx} <- @results.media_versions do %>
-                    <.link navigate={"/incidents/#{item.media.slug}/detail/#{item.scoped_id}"} class="cursor-pointer">
+                    <.link
+                      navigate={"/incidents/#{item.media.slug}/detail/#{item.scoped_id}"}
+                      class="cursor-pointer"
+                    >
                       <li
                         id={item.id}
                         class="group flex transition rounded mx-2 ease-in-out duration-100 select-none items-center px-2 py-2"
                         x-bind:class={"#{idx} === (selected % #{@total_results}) ? 'bg-neutral-200' : 'bg-white'"}
-                        x-on:mouseenter={"if (new Date().getTime() - lastKeyChangeTime > 500) { selected = #{idx} }"}                        role="option"
+                        x-on:mouseenter={"if (new Date().getTime() - lastKeyChangeTime > 500) { selected = #{idx} }"}
+                        role="option"
                         tabindex="-1"
                         data-selector-index={idx}
                       >
-                      <article class="flex flex-wrap md:flex-nowrap w-full gap-1 justify-between text-sm md:items-center max-w-full overflow-hidden">
-                        <div class="flex-shrink-0 font-mono font-medium text-neutral-500 pr-2">
-                          <%= Platform.Material.Media.slug_to_display(item.media) %>/<%= item.scoped_id %>
-                        </div>
-                        <p
-                          class="font-medium flex-grow-1 flex items-center max-w-full gap-2 grow truncate min-w-0"
-                        >
-                          <span class="truncate"><%= (item.source_url || "File Upload") |> Platform.Utils.truncate(128) %></span>
-                        </p>
-                      </article>
+                        <article class="flex flex-wrap md:flex-nowrap w-full gap-1 justify-leading text-sm max-w-full overflow-hidden">
+                          <div class="font-mono font-medium text-neutral-500 pr-2" data-tooltip={"#{item.media.attr_description} (#{item.media.attr_status})"}>
+                            <%= Platform.Material.Media.slug_to_display(item.media) %>/<%= item.scoped_id %>
+                          </div>
+                          <div class="max-w-full flex-grow-1">
+                            <p class="leading-snug font-medium">
+                              <%= if Platform.Material.get_media_version_title(item) != nil do %>
+                                <%= Platform.Material.get_media_version_title(item)
+                                |> Platform.Utils.truncate(100) %>
+                              <% else %>
+                                Uploaded File
+                              <% end %>
+                            </p>
+                            <%= if Platform.Material.get_media_version_title(item) != item.source_url do %>
+                              <p class="text-neutral-500 text-xs">
+                                <%= item.source_url |> Platform.Utils.truncate(80) %>
+                              </p>
+                            <% end %>
+                          </div>
+                        </article>
                       </li>
                     </.link>
                   <% end %>
@@ -233,29 +250,28 @@ defmodule PlatformWeb.SearchLive.SearchComponent do
                         id={item.id}
                         class="group flex transition rounded mx-2 ease-in-out duration-100 select-none items-center px-2 py-2"
                         x-bind:class={"#{idx} === (selected % #{@total_results}) ? 'bg-neutral-200' : 'bg-white'"}
-                        x-on:mouseenter={"if (new Date().getTime() - lastKeyChangeTime > 500) { selected = #{idx} }"}                        role="option"
+                        x-on:mouseenter={"if (new Date().getTime() - lastKeyChangeTime > 500) { selected = #{idx} }"}
+                        role="option"
                         tabindex="-1"
                         data-selector-index={idx}
                       >
-                      <article class="flex flex-nowrap w-full gap-1 justify-between text-sm items-center max-w-full overflow-hidden">
-                        <div class="flex-shrink-0 pr-1 -ml-1">
-                          <span style={"color: #{item.color}"}>
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              viewBox="0 0 20 20"
-                              fill="currentColor"
-                              class="w-6 h-6"
-                            >
-                              <circle cx="10" cy="10" r="5" />
-                            </svg>
-                          </span>
-                        </div>
-                        <p
-                          class="font-medium flex-grow-1 flex items-center max-w-full gap-2 grow truncate min-w-0"
-                        >
-                          <%= item.name %>
-                        </p>
-                      </article>
+                        <article class="flex flex-nowrap w-full gap-1 justify-between text-sm items-center max-w-full overflow-hidden">
+                          <div class="flex-shrink-0 pr-1 -ml-1">
+                            <span style={"color: #{item.color}"}>
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                viewBox="0 0 20 20"
+                                fill="currentColor"
+                                class="w-6 h-6"
+                              >
+                                <circle cx="10" cy="10" r="5" />
+                              </svg>
+                            </span>
+                          </div>
+                          <p class="font-medium flex-grow-1 flex items-center max-w-full gap-2 grow truncate min-w-0">
+                            <%= item.name %>
+                          </p>
+                        </article>
                       </li>
                     </.link>
                   <% end %>
@@ -265,17 +281,28 @@ defmodule PlatformWeb.SearchLive.SearchComponent do
                 <h2 class="text-xs font-medium text-neutral-500">Updates and Comments</h2>
                 <ul class="-mx-4 mt-2 text-sm text-neutral-700">
                   <%= for {item, idx} <- @results.updates do %>
-                    <div x-on:click={"window.location = '/incidents/#{item.media.slug}/#update-#{item.id}'"}
-                        id={item.id}
-                        class="cursor-pointer group flex transition rounded mx-2 ease-in-out duration-100 select-none items-center px-2 pb-2"
-                        x-bind:class={"#{idx} === (selected % #{@total_results}) ? 'bg-neutral-200' : 'bg-white'"}
-                        x-on:mouseenter={"if (new Date().getTime() - lastKeyChangeTime > 500) { selected = #{idx} }"}                        role="option"
-                        tabindex="-1"
-                        data-selector-index={idx}
-                      >
+                    <div
+                      x-on:click={"window.location = '/incidents/#{item.media.slug}/#update-#{item.id}'"}
+                      id={item.id}
+                      class="cursor-pointer group flex transition rounded mx-2 ease-in-out duration-100 select-none items-center px-2 pb-2"
+                      x-bind:class={"#{idx} === (selected % #{@total_results}) ? 'bg-neutral-200' : 'bg-white'"}
+                      x-on:mouseenter={"if (new Date().getTime() - lastKeyChangeTime > 500) { selected = #{idx} }"}
+                      role="option"
+                      tabindex="-1"
+                      data-selector-index={idx}
+                    >
                       <div class="pointer-events-none">
-                        <.update_entry socket={@socket} can_user_change_visibility={false} profile_ring={false} left_indicator={:small_profile} update={item} current_user={@current_user} show_line={false} show_media={true} />
-                        </div>
+                        <.update_entry
+                          socket={@socket}
+                          can_user_change_visibility={false}
+                          profile_ring={false}
+                          left_indicator={:small_profile}
+                          update={item}
+                          current_user={@current_user}
+                          show_line={false}
+                          show_media={true}
+                        />
+                      </div>
                     </div>
                   <% end %>
                 </ul>

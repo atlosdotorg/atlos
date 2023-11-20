@@ -552,22 +552,16 @@ defmodule PlatformWeb.Components do
   def media_line_preview_compact_unlinked(%{media: %Media{}} = assigns) do
     ~H"""
     <article class="flex flex-wrap md:flex-nowrap w-full gap-1 justify-between text-sm md:items-center max-w-full overflow-hidden">
-      <div class="flex-shrink-0 font-mono font-medium text-neutral-500 pr-2">
+      <div class="flex-shrink-0 font-mono font-medium text-neutral-500 pr-2" data-tooltip={"#{@media.attr_description} (#{@media.attr_status})"}>
         <%= Media.slug_to_display(@media) %>
       </div>
-      <p
-        class="md:hidden flex items-center flex-shrink-0 text-xs items-center flex-shrink-1 gap-1 justify-right"
-      >
+      <p class="md:hidden flex items-center flex-shrink-0 text-xs items-center flex-shrink-1 gap-1 justify-right">
         <.media_badges media={@media} only_status={true} />
       </p>
-      <p
-        class="font-medium flex-grow-1 flex items-center max-w-full gap-2 grow truncate min-w-0"
-      >
+      <p class="font-medium flex-grow-1 flex items-center max-w-full gap-2 grow truncate min-w-0">
         <span class="truncate"><%= @media.attr_description |> Platform.Utils.truncate(128) %></span>
       </p>
-      <p
-        class="hidden md:block flex items-center flex-shrink-0 text-xs items-center flex-shrink-1 gap-1 justify-right"
-      >
+      <p class="hidden md:block flex items-center flex-shrink-0 text-xs items-center flex-shrink-1 gap-1 justify-right">
         <.media_badges media={@media} only_status={true} />
       </p>
     </article>
@@ -770,7 +764,10 @@ defmodule PlatformWeb.Components do
 
       ~H"""
       <% can_user_view = Permissions.can_view_update?(@current_user, @update) %>
-      <li class={"transition-all " <> (if @update.hidden and can_user_view, do: "opacity-50", else: "")} id={"update-#{@update.id}"}>
+      <li
+        class={"transition-all " <> (if @update.hidden and can_user_view, do: "opacity-50", else: "")}
+        id={"update-#{@update.id}"}
+      >
         <div class={"relative group word-breaks " <> (if @show_line, do: "pb-8", else: "")}>
           <%= if @show_line do %>
             <span class="absolute top-5 left-5 -ml-px h-full w-0.5 bg-gray-200" aria-hidden="true">

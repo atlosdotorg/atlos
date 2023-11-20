@@ -19,7 +19,13 @@ defmodule Platform.GlobalSearch do
   Search all of Atlos for a given query string for the user.
   """
   defmemo perform_search(query, %User{} = user) when is_binary(query), expires_in: 10000 do
-    query = String.trim(query) |> String.downcase() |> String.replace(~r/\s+/, "|") |> String.replace("\\", "") |> String.trim()
+    query =
+      String.trim(query)
+      |> String.downcase()
+      |> String.replace(~r/\s+/, "|")
+      |> String.replace("\\", "")
+      |> String.trim()
+
     query_only_alphaneumeric = String.replace(query, ~r/[^a-zA-Z0-9]/, "")
 
     media_version_query =

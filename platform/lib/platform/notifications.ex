@@ -121,8 +121,7 @@ defmodule Platform.Notifications do
              new_value <- Map.get(new_value_map, Platform.Updates.key_for_attribute(attr)) do
           added_members = MapSet.difference(MapSet.new(new_value), MapSet.new(old_value))
 
-          removed_members =
-            MapSet.difference(MapSet.new(old_value), MapSet.new(new_value))
+          removed_members = MapSet.difference(MapSet.new(old_value), MapSet.new(new_value))
 
           MapSet.union(added_members, removed_members) |> Enum.map(&Accounts.get_user!(&1))
         else

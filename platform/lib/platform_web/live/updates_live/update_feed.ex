@@ -93,8 +93,9 @@ defmodule PlatformWeb.UpdatesLive.UpdateFeed do
       |> reorder(assigns.reverse)
       |> Enum.with_index()
 
-    assigns = assign(assigns, :to_show, to_show)
-    |> assign_new(:with_id, fn -> false end)
+    assigns =
+      assign(assigns, :to_show, to_show)
+      |> assign_new(:with_id, fn -> false end)
 
     ~H"""
     <div class="flow-root">
