@@ -40,7 +40,8 @@ defmodule Platform.GlobalSearch do
         on: pm.user_id == ^user.id,
         where: not is_nil(pm),
         order_by: [
-          desc: fragment("ts_rank_cd(?, to_tsquery('simple', ?))", mv.searchable, ^query)
+          desc: fragment("ts_rank_cd(?, to_tsquery('simple', ?))", mv.searchable, ^query),
+          desc: mv.inserted_at
         ],
         limit: 3,
         preload: [media: [:project]]
@@ -57,7 +58,10 @@ defmodule Platform.GlobalSearch do
         join: pm in assoc(p, :memberships),
         on: pm.user_id == ^user.id,
         where: not is_nil(pm),
-        order_by: [desc: fragment("ts_rank_cd(?, to_tsquery('simple', ?))", m.searchable, ^query)],
+        order_by: [
+          desc: fragment("ts_rank_cd(?, to_tsquery('simple', ?))", m.searchable, ^query),
+          desc: m.inserted_at
+        ],
         limit: 3,
         preload: [:project]
       )
@@ -69,7 +73,10 @@ defmodule Platform.GlobalSearch do
           u.username != "atlos" and
             (fragment("? @@ to_tsquery('simple', ?)", u.searchable, ^query) or
                ilike(u.username, ^"%#{query_only_alphaneumeric}%")),
-        order_by: [desc: fragment("ts_rank_cd(?, to_tsquery('simple', ?))", u.searchable, ^query)],
+        order_by: [
+          desc: fragment("ts_rank_cd(?, to_tsquery('simple', ?))", u.searchable, ^query),
+          desc: u.inserted_at
+        ],
         limit: 3
       )
 
@@ -82,7 +89,10 @@ defmodule Platform.GlobalSearch do
         join: pm in assoc(p, :memberships),
         on: pm.user_id == ^user.id,
         where: not is_nil(pm),
-        order_by: [desc: fragment("ts_rank_cd(?, to_tsquery('simple', ?))", p.searchable, ^query)],
+        order_by: [
+          desc: fragment("ts_rank_cd(?, to_tsquery('simple', ?))", p.searchable, ^query),
+          desc: p.inserted_at
+        ],
         limit: 3
       )
 
@@ -95,7 +105,10 @@ defmodule Platform.GlobalSearch do
         join: pm in assoc(p, :memberships),
         on: pm.user_id == ^user.id,
         where: not is_nil(pm),
-        order_by: [desc: fragment("ts_rank_cd(?, to_tsquery('simple', ?))", u.searchable, ^query)],
+        order_by: [
+          desc: fragment("ts_rank_cd(?, to_tsquery('simple', ?))", u.searchable, ^query),
+          desc: u.inserted_at
+        ],
         limit: 3
       )
       |> Platform.Updates.preload_fields()

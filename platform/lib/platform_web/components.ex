@@ -2769,7 +2769,7 @@ defmodule PlatformWeb.Components do
 
     ~H"""
     <div class="flex -space-x-1 relative z-0 place-items-end">
-      <%= for user <- @users |> Enum.take(5) do %>
+      <%= for user <- @users |> Enum.reject(&is_nil/1) |> Enum.take(5) do %>
         <%= if @dynamic do %>
           <.popover class="inline">
             <img
