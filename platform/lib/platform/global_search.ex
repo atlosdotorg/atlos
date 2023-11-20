@@ -20,6 +20,7 @@ defmodule Platform.GlobalSearch do
   """
   def perform_search(query, %User{} = user, opts \\ []) when is_binary(query) do
     query = String.trim(query) |> String.downcase() |> String.replace(~r/\s+/, "|")
+    query_only_alphaneumeric = String.replace(query, ~r/[^a-zA-Z0-9]/, "")
 
     media_version_query =
       from(
@@ -33,7 +34,7 @@ defmodule Platform.GlobalSearch do
         order_by: [
           desc: fragment("ts_rank_cd(?, to_tsquery('simple', ?))", mv.searchable, ^query)
         ],
-        limit: 10
+        limit: 5
       )
 
     media_query =
@@ -45,15 +46,18 @@ defmodule Platform.GlobalSearch do
         on: pm.user_id == ^user.id,
         where: not is_nil(pm),
         order_by: [desc: fragment("ts_rank_cd(?, to_tsquery('simple', ?))", m.searchable, ^query)],
-        limit: 10
+        limit: 5
       )
 
     users_query =
       from(
         u in User,
-        where: fragment("? @@ to_tsquery('simple', ?)", u.searchable, ^query),
+        where:
+          u.username != "atlos" and
+            (fragment("? @@ to_tsquery('simple', ?)", u.searchable, ^query) or
+               ilike(u.username, ^"%#{query_only_alphaneumeric}%")),
         order_by: [desc: fragment("ts_rank_cd(?, to_tsquery('simple', ?))", u.searchable, ^query)],
-        limit: 10
+        limit: 5
       )
 
     projects_query =
@@ -64,7 +68,7 @@ defmodule Platform.GlobalSearch do
         on: pm.user_id == ^user.id,
         where: not is_nil(pm),
         order_by: [desc: fragment("ts_rank_cd(?, to_tsquery('simple', ?))", p.searchable, ^query)],
-        limit: 10
+        limit: 5
       )
 
     updates_query =
@@ -77,7 +81,7 @@ defmodule Platform.GlobalSearch do
         on: pm.user_id == ^user.id,
         where: not is_nil(pm),
         order_by: [desc: fragment("ts_rank_cd(?, to_tsquery('simple', ?))", u.searchable, ^query)],
-        limit: 10
+        limit: 5
       )
 
     # Run each query in parallel
@@ -93,7 +97,6 @@ defmodule Platform.GlobalSearch do
         end),
         Task.async(fn ->
           Repo.all(users_query)
-          |> Enum.filter(fn item -> item.username != "atlos" end)
         end),
         Task.async(fn ->
           Repo.all(projects_query)
@@ -105,12 +108,12 @@ defmodule Platform.GlobalSearch do
         end)
       ])
 
-      %{
-        media_versions: media_version_results,
-        media: media_results,
-        users: users_query,
-        projects: projects_query,
-        updates: updates_query
-      }
+    %{
+      media_versions: media_version_results,
+      media: media_results,
+      users: users_query,
+      projects: projects_query,
+      updates: updates_query
+    }
   end
 end

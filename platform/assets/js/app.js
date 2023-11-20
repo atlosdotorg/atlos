@@ -500,6 +500,13 @@ window.addEventListener("load", applySearchHighlighting);
 document.addEventListener("phx:update", applyVegaCharts);
 window.addEventListener("load", applyVegaCharts);
 
+// Used in contexts where we want to be able to trigger text selection from Phoenix via JS.exec("select", ...) (e.g., in the search popup)
+document.addEventListener("select", (event) => {
+    let elem = event.target;
+    elem.select();
+    console.log("Selected", elem);
+});
+
 // Used to initialize Highlight
 window.addEventListener("load", () => {
     let highlightElem = document.querySelector("#highlight-script");

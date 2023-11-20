@@ -82,7 +82,7 @@ defmodule PlatformWeb.Components do
             )
           }
           phx-remove={
-            JS.transition({"ease-out duration-75", "opacity-100 scale-100", "opacity-0 scale-75"},
+            JS.transition({"ease-out duration-50", "opacity-100 scale-100", "opacity-0 scale-75"},
               time: 50
             )
           }
@@ -2295,7 +2295,7 @@ defmodule PlatformWeb.Components do
                       "block w-full md:hidden text-xs font-medium text-gray-900 group-focus-within:text-urge-600"
                   ) %>
                   <%= text_input(f, :query,
-                    placeholder: "Search for anything...",
+                    placeholder: "Filter incidents...",
                     phx_debounce: "1000",
                     id: "search-form-query-input",
                     "x-on:keydown.enter": "window.triggerSubmitEvent($event.target)",
@@ -3647,47 +3647,6 @@ defmodule PlatformWeb.Components do
         and <a href="https://github.com/atlosdotorg/atlos/blob/main/policy/PRIVACY_POLICY.md"><span class="underline">Privacy Policy</span></a>.
       </p>
     </div>
-    """
-  end
-
-  def footer(assigns) do
-    ~H"""
-    <footer class="place-self-center max-w-lg mx-auto mt-8 text-gray-500 text-xs">
-      <div class="grid grid-cols-3 text-center gap-4 md:flex md:justify-between">
-        <a href="https://github.com/atlosdotorg/atlos" class="hover:text-gray-600" target="_blank">
-          Source Code
-        </a>
-        <a
-          href="https://github.com/atlosdotorg/atlos/blob/main/policy/TERMS_OF_USE.md"
-          class="hover:text-gray-600 transition"
-          target="_blank"
-        >
-          Terms
-        </a>
-        <a
-          href="https://github.com/atlosdotorg/atlos/blob/main/policy/PRIVACY_POLICY.md"
-          class="hover:text-gray-600 transition"
-          target="_blank"
-        >
-          Privacy
-        </a>
-        <a
-          href="https://github.com/atlosdotorg/atlos/blob/main/policy/RESILIENCE.md"
-          class="hover:text-gray-600 transition"
-          target="_blank"
-        >
-          Resilience
-        </a>
-        <a
-          href="https://github.com/atlosdotorg/atlos/discussions"
-          class="hover:text-gray-600 transition"
-          target="_blank"
-        >
-          Feedback
-        </a>
-        <a href="mailto:contact@atlos.org" class="hover:text-gray-600 transition">Contact</a>
-      </div>
-    </footer>
     """
   end
 

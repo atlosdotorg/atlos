@@ -6,11 +6,6 @@
       <div class={"mx-auto w-full " <> (if @full_width, do: "", else: "2xl:w-[1280px] min-h-[85vh]")}>
         <%= @inner_content %>
       </div>
-      <%= if not @full_width do %>
-        <div class="mx-auto w-full">
-          <.footer />
-        </div>
-      <% end %>
       <div
         aria-live="assertive"
         class="fixed inset-0 z-[9999] flex items-end px-4 py-6 pointer-events-none sm:p-6 sm:items-start z-[100]"
@@ -89,4 +84,9 @@
       </div>
     </div>
   </div>
+  <.live_component
+    module={PlatformWeb.SearchLive.SearchComponent}
+    current_user={@current_user}
+    id="global-search-modal"
+  />
 </main>
