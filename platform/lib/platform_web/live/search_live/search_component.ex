@@ -188,7 +188,7 @@ defmodule PlatformWeb.SearchLive.SearchComponent do
                 </ul>
               </li>
               <li :if={not Enum.empty?(@results.media)}>
-                <h2 class="text-xs font-medium text-neutral-500">Media</h2>
+                <h2 class="text-xs font-medium text-neutral-500">Incidents</h2>
                 <ul class="-mx-4 mt-2 text-sm text-neutral-700">
                   <%= for {item, idx} <- @results.media do %>
                     <.link navigate={"/incidents/#{item.slug}"} class="cursor-pointer">

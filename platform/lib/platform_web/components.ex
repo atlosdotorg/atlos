@@ -2550,12 +2550,6 @@ defmodule PlatformWeb.Components do
         </span>
       <% end %>
 
-      <%= if @media.attr_geolocation do %>
-        <span class="self-start badge whitespace-nowrap ~neutral">
-          Geolocated
-        </span>
-      <% end %>
-
       <%= if @media.attr_date do %>
         <span class="self-start badge whitespace-nowrap ~neutral">
           <%= @media.attr_date |> Calendar.strftime("%d %B %Y") %>
