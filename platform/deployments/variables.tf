@@ -73,7 +73,7 @@ variable "database_sku" {
 variable "aws_region" {
   description = "AWS Region"
   type        = string
-  default     = "us-east-1"
+  default     = "us-east-2"
 }
 
 variable "s3_bucket" {
@@ -84,7 +84,7 @@ variable "s3_bucket" {
 variable "instance_name" {
   description = "Instance name"
   type        = string
-  default     = "platform"
+  default     = "staging"
 }
 
 variable "onboarding_project_id" {

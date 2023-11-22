@@ -35,7 +35,7 @@ resource "azurerm_container_app" "platform" {
 
   container_app_environment_id = azurerm_container_app_environment.platform.id
   resource_group_name          = azurerm_resource_group.platform.name
-  revision_mode                = "Single"
+  revision_mode                = "Multiple"
 
   ingress {
     allow_insecure_connections = false

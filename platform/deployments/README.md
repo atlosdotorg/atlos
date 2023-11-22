@@ -10,6 +10,7 @@ Steps to using the Terraform configs:
 
 * Setup Terraform and [authenticate to Azure via the `az` CLI](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/azure_cli) (note that we do not use Terraform in our CI; infrastructure changes must be deployed manually, because Miles is afraid to automate a potentially destructive action). If you're managing Atlos' own infrastructure (i.e., you're part of the Atlos team), make sure to set your subscription to our sponsored Azure subscription, and not a raw pay-as-you-go subscription.
 * Create or edit a `.tfvars` file with values for the variables in `variables.tf`. The `variables.tf` file contains some documentation for each variable.
+  * You will have to provide an `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` for the S3 bucket and SES domain. These are not currently managed by Terraform, so you will have to create them manually. Ensure permissions are as narrow as possible.
 * Run `terraform init` to initialize the Terraform state.
 * Run `terraform plan -var-file=<your .tfvars file>` to see what changes will be made.
 * Run `terraform apply -var-file=<your .tfvars file>` to apply the changes.
