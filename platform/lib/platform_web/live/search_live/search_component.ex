@@ -113,7 +113,7 @@ defmodule PlatformWeb.SearchLive.SearchComponent do
           } else if ((window.location.pathname + window.location.hash) === link) {
             this.setActive(false)
           } else {
-            window.open(link)
+            window.location = link
           }
         }
       }"
