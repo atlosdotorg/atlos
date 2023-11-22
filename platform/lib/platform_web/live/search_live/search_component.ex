@@ -11,7 +11,6 @@ defmodule PlatformWeb.SearchLive.SearchComponent do
   use PlatformWeb, :live_component
 
   alias Platform.GlobalSearch
-  alias Phoenix.LiveView.JS
 
   def update(assigns, socket) do
     socket =
