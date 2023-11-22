@@ -2,7 +2,7 @@
 # 
 # We will expand it in the future to also handle deployments for our Atlos-native infrastructure.
 
-name: Build and deploy
+name: Build
 
 on:
   push:
@@ -12,7 +12,7 @@ on:
       - deployments/platform
     paths:
       - "platform/**"
-      - ".github/workflows/build-and-deploy.yml"
+      - ".github/workflows/build.yml"
   release:
     types: [published]
 
