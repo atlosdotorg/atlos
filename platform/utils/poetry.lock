@@ -187,13 +187,13 @@ cryptography = ">=3.2"
 
 [[package]]
 name = "auto-archiver"
-version = "0.6.13"
+version = "0.7.1"
 description = "Easily archive online media content"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "auto_archiver-0.6.13-py3-none-any.whl", hash = "sha256:7675aa165e3b89af723b5c59e96086911e933a4b3ec00de37e7040d1fb9e3626"},
-    {file = "auto_archiver-0.6.13.tar.gz", hash = "sha256:c24ee7a6a336a09fa46a1966dc38a306a4e6fbead4c33b7708008df6da0995a6"},
+    {file = "auto_archiver-0.7.1-py3-none-any.whl", hash = "sha256:da3615555a02c5e76f90aebc4c078299edb356a7d3709707291d30edf2319ceb"},
+    {file = "auto_archiver-0.7.1.tar.gz", hash = "sha256:5d1e29af3996071396891fe1dedc9676c8205d8f0e9979bb2b59723b2b2cda75"},
 ]
 
 [package.dependencies]
@@ -3100,4 +3100,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "b3abf04400135141c9bcb85dac6854ba2c392e03c9d7ce40a672b8b404f11a5e"
+content-hash = "cf01eeb67d6f3e4a00f4ddb236b72ab35c3154aed6bc80d9e0a5b2458adaacc9"
