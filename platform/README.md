@@ -188,13 +188,12 @@ But automated tests certainly won't catch everything (and especially not UI bugs
 
 ### Updating Dependencies
 
-There are five "sets" of dependencies that you need to be mindful of periodically updating:
+There are four "sets" of dependencies that we need to be mindful of periodically updating:
 
 1. **Elixir, Erlang, and Debian:** We use the latest Debian image as our base image. We also use the latest Elixir and Erlang versions. You should periodically update these versions to the latest stable versions. This is a simple process: just update the version numbers in the `Dockerfile`. Be sure to make a corresponding change to the Codespaces configuration file, too.
 2. **Elixir libraries:** We use the latest stable versions of all Elixir libraries. You can update these by running `mix deps.update --all`. (Note that this will update all dependencies, including `phoenix` and `ecto`.) Some dependencies may require additional changes to the codebase; e.g., if a dependency changes its API, you may need to update your code to match. You can run `mix deps.outdated` to see which dependencies have newer versions available.
 3. **JavaScript libraries:** We use the latest stable versions of all JavaScript libraries. You can update these by running `npm upgrade` inside `/platform/assets`.
-4. **Python libraries:** We use the latest stable versions of all Python libraries. You can update these by running `poetry upgrade`. Some dependencies may require additional changes to the codebase; e.g., if a dependency changes its API, you may need to update your code to match. You can run `poetry show --outdated` to see which dependencies have newer versions available.
-5. **Chromium/ChromeDriver in `archive.py`**: For stability, we use a specific version of Chromium and ChromeDriver in `archive.py`. You can update these by updating the version numbers in `archive.py`.
+4. **Python libraries:** We use the latest stable versions of all Python libraries. You can update these by running `poetry update` inside `platform/utils`. Some dependencies may require additional changes to the codebase; e.g., if a dependency changes its API, you may need to update your code to match. You can run `poetry show --outdated` to see which dependencies have newer versions available.
 
 ## Contributing
 
