@@ -86,7 +86,6 @@ function initialize() {
 
         let feedbackElem = document.getElementById(input.getAttribute("data-feedback"));
         let value = JSON.parse(feedbackElem.value || "[]");
-        console.log(value)
 
         let tagify = new Tagify(input, {
             pasteAsTags: true,

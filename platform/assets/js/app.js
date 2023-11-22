@@ -188,8 +188,6 @@ function initializeSmartSelects() {
             return;
         }
 
-        console.log("Initializing", s)
-
         let prompt = "Select...";
         if (s.hasAttribute("multiple")) {
             prompt = "Select all that apply..."
@@ -243,9 +241,7 @@ function _getTotalURLHashState() {
     let hashState = {}
     try {
         hashState = JSON.parse(atob(window.location.hash.slice(1)) || "{}")
-    } catch (e) {
-        console.log("Failed to parse map state from URL fragment")
-    }
+    } catch (e) {}
     return hashState
 }
 
@@ -420,8 +416,6 @@ function initializeMaps() {
             map.on("move", () => {
                 updateMapHashState()
             });
-
-            console.log("Done initializing layers!")
         };
 
         map.on("load", initializeLayers);
@@ -449,12 +443,10 @@ function initializeMaps() {
 let _searchHighlighter = null;
 function applySearchHighlighting() {
     setTimeout(() => {
-        console.log("Applying search highlighting...")
         if (_searchHighlighter !== null) {
             _searchHighlighter.unmark();
         }
         let query = new URLSearchParams(window.location.search).get("query");
-        console.log("Query is " + query)
         if (query !== null) {
             _searchHighlighter = new Mark(document.querySelectorAll(".search-highlighting"), { accuracy: "exactly" });
             _searchHighlighter.mark(query)
@@ -495,7 +487,7 @@ window.toggleClass = (id, classname) => {
 }
 
 // Scroll to the hash position, if possible
-window.addEventListener("load", () => {
+function scrollToHashPosition() {
     if (window.location.hash) {
         let elem = document.querySelector(window.location.hash);
         if (elem) {
@@ -503,7 +495,9 @@ window.addEventListener("load", () => {
             elem.focus();
         }
     }
-})
+}
+window.addEventListener("load", scrollToHashPosition);
+document.addEventListener("hashchange", scrollToHashPosition);
 
 document.addEventListener("phx:update", initializeSmartSelects);
 window.addEventListener("load", initializeSmartSelects);
@@ -520,21 +514,11 @@ window.addEventListener("load", applySearchHighlighting);
 document.addEventListener("phx:update", applyVegaCharts);
 window.addEventListener("load", applyVegaCharts);
 
-// Used in contexts where we want to be able to trigger text selection from Phoenix via JS.exec("select", ...) (e.g., in the search popup)
-document.addEventListener("select", (event) => {
-    let elem = event.target;
-    elem.select();
-    console.log("Selected", elem);
-});
-
 // Used to initialize Highlight
 window.addEventListener("load", () => {
     let highlightElem = document.querySelector("#highlight-script");
     if (highlightElem != null) {
-        console.log("Initializing Highlight...")
         window.H.init(highlightElem.getAttribute("data-code"), { privacySetting: "strict", environment: highlightElem.getAttribute("data-environment"), version: highlightElem.getAttribute("data-version") })
-    } else {
-        console.log("Highlight not found!")
     }
 });
 

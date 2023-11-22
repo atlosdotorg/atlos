@@ -80,6 +80,7 @@ defmodule PlatformWeb.Components do
           }
           aria-hidden="true"
           x-on:click={"window.closeModal($event); " <> @js_on_close}
+          x-on:keydown.escape.window={"window.closeModal($event); " <> @js_on_close}
           phx-target={@target}
           id={"modal-overlay-" <> @id}
         >
@@ -680,7 +681,7 @@ defmodule PlatformWeb.Components do
     assigns =
       assign(assigns, :profile_ring_classes, profile_ring_classes)
       |> assign_new(:ignore_permissions, fn -> false end)
-      |> assign_new(:with_id, fn -> false end)
+      |> assign_new(:id_prefix, fn -> "update" end)
 
     if is_list(update) do
       [head | _] = update
@@ -700,7 +701,7 @@ defmodule PlatformWeb.Components do
         |> assign(:can_user_change_visibility, false)
 
       ~H"""
-      <li x-data="{expanded: false}" id={"collapsed-update-#{@head.id}"}>
+      <li x-data="{expanded: false}" id={"collapsed-#{@id_prefix}-#{@head.id}"}>
         <div
           class={"relative group word-breaks cursor-pointer " <> (if @show_line, do: "pb-8", else: "")}
           x-on:click="expanded = !expanded"
@@ -774,6 +775,7 @@ defmodule PlatformWeb.Components do
               update={sub_update}
               show_line={true}
               show_media={false}
+              id_prefix={@id_prefix}
               target={@target}
               socket={@socket}
               left_indicator={:dot}
@@ -798,7 +800,7 @@ defmodule PlatformWeb.Components do
       <% can_user_view = Permissions.can_view_update?(@current_user, @update) %>
       <li
         class={"transition-all " <> (if @update.hidden and can_user_view, do: "opacity-50", else: "")}
-        id={"update-#{@update.id}"}
+        id={"#{@id_prefix}-#{@update.id}"}
       >
         <div class={"relative group word-breaks " <> (if @show_line, do: "pb-8", else: "")}>
           <%= if @show_line do %>
