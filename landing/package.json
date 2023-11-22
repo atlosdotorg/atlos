@@ -8,19 +8,19 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@fontsource/inter": "^4.5.14",
-    "@fontsource/iosevka": "^4.5.4",
+    "@fontsource/inter": "^5.0.15",
+    "@fontsource/iosevka": "^5.0.7",
     "@netlify/plugin-nextjs": "^4.29.2",
     "a17t": "^0.10.1",
     "mapbox-gl": "^2.7.0",
-    "next": "12.1.0",
-    "react": "17.0.2",
-    "react-dom": "17.0.2"
+    "next": "^14.0.3",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
   },
   "devDependencies": {
     "autoprefixer": "^10.4.2",
-    "eslint": "8.8.0",
-    "eslint-config-next": "12.0.10",
+    "eslint": "^8.54.0",
+    "eslint-config-next": "^14.0.3",
     "postcss": "^8.4.31",
     "tailwindcss": "^3.0.22"
   }
