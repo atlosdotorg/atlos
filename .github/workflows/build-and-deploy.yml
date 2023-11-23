@@ -2,7 +2,7 @@
 # 
 # We will expand it in the future to also handle deployments for our Atlos-native infrastructure.
 
-name: Build
+name: Build and deploy
 
 on:
   push:
@@ -68,7 +68,7 @@ jobs:
     concurrency:
       group: deploy:${{ github.ref }}
     environment:
-      name: "Staging (Azure)"
+      name: "Staging (Azure)" # TODO: Figure out the right environment from the branch name
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
     steps:
       - name: Echo container data
