@@ -135,16 +135,19 @@ defmodule PlatformWeb.ExportController do
     root_folder_name = "atlos-export-#{Date.utc_today()}"
     {full_query, _} = MediaSearch.search_query(c)
     final_query = MediaSearch.filter_viewable(full_query, conn.assigns.current_user)
+
     results =
       Material.query_media(final_query, for_user: conn.assigns.current_user)
       |> List.flatten()
       |> Enum.map(fn media ->
         media_slug = Media.slug_to_display(media)
         Logger.debug("Checking media #{media_slug}")
+
         media.versions
-        |> Enum.map( fn version ->
+        |> Enum.map(fn version ->
           Logger.debug("Checking version #{media_slug}/#{version.scoped_id}")
           folder_name = "#{root_folder_name}/#{media_slug}/#{media_slug}-#{version.scoped_id}"
+
           version.artifacts
           |> Enum.map(fn artifact ->
             location = Material.media_version_artifact_location(artifact)
@@ -154,20 +157,25 @@ defmodule PlatformWeb.ExportController do
             Zstream.entry("#{folder_name}/#{fname}", HTTPDownload.stream!(location))
           end)
         end)
-        end)
+      end)
       |> List.flatten()
       |> List.flatten()
       |> Zstream.zip()
 
     Logger.debug("Sending file: #{inspect(results)}")
 
-    conn = conn
-    |> put_resp_content_type("application/zip")
-    |> put_resp_header("content-disposition", "attachment; filename=\"#{root_folder_name}.zip\"")
-    |> send_chunked(:ok)
+    conn =
+      conn
+      |> put_resp_content_type("application/zip")
+      |> put_resp_header(
+        "content-disposition",
+        "attachment; filename=\"#{root_folder_name}.zip\""
+      )
+      |> send_chunked(:ok)
 
+    # Not sure what chunk size to choose
     results
-    |> Stream.chunk_every(128) # Not sure what chunk size to choose
+    |> Stream.chunk_every(128)
     |> Enum.map(fn chn ->
       conn |> chunk(chn)
     end)
