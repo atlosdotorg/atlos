@@ -13,7 +13,8 @@
 				"hashicorp.terraform",
 				"GitHub.copilot",
 				"phoenixframework.phoenix",
-				"ms-python.python"
+				"ms-python.python",
+				"github.vscode-github-actions"
 			]
 		}
 	},
