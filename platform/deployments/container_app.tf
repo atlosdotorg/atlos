@@ -35,7 +35,7 @@ resource "azurerm_container_app" "platform" {
 
   container_app_environment_id = azurerm_container_app_environment.platform.id
   resource_group_name          = azurerm_resource_group.platform.name
-  revision_mode                = "Multiple"
+  revision_mode                = "Single"
 
   ingress {
     allow_insecure_connections = false
@@ -49,6 +49,8 @@ resource "azurerm_container_app" "platform" {
   }
 
   template {
+    min_replicas = 1
+
     container {
       name   = "platform"
       image  = "ghcr.io/atlosdotorg/atlos:main"
@@ -168,6 +170,21 @@ resource "azurerm_container_app" "platform" {
       env {
         name        = "DATABASE_URL"
         secret_name = "database-url"
+      }
+
+      env {
+        name = "S3_BUCKET"
+        value = var.s3_bucket
+      }
+
+      env {
+        name = "AWS_REGION"
+        value = var.aws_region
+      }
+
+      env {
+        name = "PHX_HOST"
+        value = var.host
       }
     }
   }
