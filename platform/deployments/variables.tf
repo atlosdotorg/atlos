@@ -98,3 +98,9 @@ variable "host" {
   type        = string
   default     = "staging-v2.atlos.org"
 }
+
+variable "origin_certificate" {
+  description = "Origin certificate (PEM)"
+  type        = string
+  sensitive = true
+}

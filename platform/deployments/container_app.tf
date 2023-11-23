@@ -20,6 +20,13 @@ resource "azurerm_subnet" "container_app_subset" {
   address_prefixes     = ["10.0.128.0/21"]
 }
 
+resource "azurerm_container_app_environment_certificate" "origin_certificate" {
+  name                         = "origin-certificate-${local.stack}"
+  container_app_environment_id = azurerm_container_app_environment.platform.id
+  certificate_blob_base64      = base64encode(var.origin_certificate)
+  certificate_password         = ""
+}
+
 resource "azurerm_container_app_environment" "platform" {
   name                       = "container-app-environment-${local.stack}"
   location                   = azurerm_resource_group.platform.location
@@ -43,6 +50,11 @@ resource "azurerm_container_app" "platform" {
     target_port                = 4000
     transport                  = "http"
 
+    custom_domain {
+      name           = var.host
+      certificate_id = azurerm_container_app_environment_certificate.origin_certificate.id
+    }
+
     traffic_weight {
       percentage = 100
     }
@@ -52,9 +64,9 @@ resource "azurerm_container_app" "platform" {
     min_replicas = 1
 
     container {
-      name   = "platform"
-      image  = "ghcr.io/atlosdotorg/atlos:main"
-      
+      name  = "platform"
+      image = "ghcr.io/atlosdotorg/atlos:main"
+
       cpu    = 1.0
       memory = "2Gi"
 
@@ -173,17 +185,17 @@ resource "azurerm_container_app" "platform" {
       }
 
       env {
-        name = "S3_BUCKET"
+        name  = "S3_BUCKET"
         value = var.s3_bucket
       }
 
       env {
-        name = "AWS_REGION"
+        name  = "AWS_REGION"
         value = var.aws_region
       }
 
       env {
-        name = "PHX_HOST"
+        name  = "PHX_HOST"
         value = var.host
       }
     }
