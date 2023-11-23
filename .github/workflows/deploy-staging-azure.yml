@@ -3,7 +3,7 @@
 
 name: Build and deploy staging (Azure)
 
-on:
+# on:
   # push:
   #   branches:
   #     - main
@@ -11,29 +11,28 @@ on:
   #     - "platform/**"
   #     - ".github/workflows/deploy-staging-azure.yml"
 
-  # Allow mannually trigger
-  workflow_dispatch:
-
+on:
+  registry_package:
+  
 jobs:
   deploy:
+    # if: ${{ github.event.registry_package.package_version.container_metadata.tag.name == 'main' }}
     runs-on: ubuntu-latest
-    needs: build
     concurrency:
       group: deploy:${{ github.ref }}
     environment:
-      name: "staging"
+      name: "Staging (Azure)"
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
 
     steps:
+      - name: Echo container data
+        run: echo ${{ github.event.registry_package.package_version.container_metadata }}
       - name: Azure Login
         uses: azure/login@v1
         with:
-          creds: ${{ secrets.ATLOSSTAGING_AZURE_CREDENTIALS }}
-      - name: Deploy Container App
-        uses: azure/container-apps-deploy-action@v1
-        with:
-          containerAppName: atlos-staging
-          resourceGroup: staging
-          imageToDeploy: atlos.azurecr.io/${{ secrets.AZURE_CONTAINER_REGISTRY_USERNAME }}/platform:${{ github.sha }}
-          # Note: you must manually reference the secrets created by the service connector here; they will not persist across deploys if you don't
-          environmentVariables: 'AWS_REGION=us-east-1 WEBSITES_PORT=4000 PORT=4000 AWS_ACCESS_KEY_ID=secretref:aws-access-key-id AWS_SECRET_ACCESS_KEY=secretref:aws-secret-access-key AUTOTAG_USER_INCIDENTS=["Volunteer"] S3_BUCKET=atlos-content-dev AZURE_POSTGRESQL_DATABASE=secretref:azure-postgresql-database-0488c AZURE_POSTGRESQL_SSL=true AZURE_POSTGRESQL_PORT=secretref:azure-postgresql-port-76bd3 AZURE_POSTGRESQL_HOST=secretref:azure-postgresql-host-27ab9 AZURE_POSTGRESQL_USERNAME=secretref:azure-postgresql-username-9524a APPSIGNAL_APP_ENV=secretref:appsignal-app-env APPSIGNAL_PUSH_API_KEY=secretref:appsignal-push-api-key CLUSTER_SECRET=secretref:cluster-secret COOKIE_SIGNING_SALT=secretref:cookie-signing-salt ENVIRONMENT=staging ENABLE_CAPTCHAS=true HCAPTCHA_SECRET=secretref:hcaptcha-secret HCAPTCHA_SITE_KEY=secretref:hcaptcha-site-key HIGHLIGHT_CODE=secretref:highlight-code INSTANCE_NAME=staging LANG=en_US.UTF-8 MIX_ENV=prod ONBOARDING_PROJECT_ID=deb6c474-34f1-47ab-a3b5-3928548178c3 PHX_HOST=staging-azure.atlos.org SECRET_KEY_BASE=secretref:secret-key-base SLACK_AUDITING_WEBHOOK=secretref:slack-auditing-webhook SPN_ARCHIVE_API_KEY=secretref:spn-archive-api-key'
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+      - name: Deploy New Revision
+        run: az containerapp revision copy \
+               --name ${{ secrets.AZURE_CONTAINER_APP_NAME }} \
+               --resource-group ${{ secrets.AZURE_CONTAINER_APP_RESOURCE_GROUP }} \
+               --image ghcr.io/atlosdotorg/atlos@${{ github.event.registry_package.package_version.container_metadata.digest }}

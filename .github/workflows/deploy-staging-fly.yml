@@ -1,7 +1,6 @@
 name: Fly Deploy Staging (Fly.io)
 on:
   registry_package:
-    types: [published]
 jobs:
   deploy:
     if: ${{ github.event.registry_package.package_version.container_metadata.tag.name == 'main' }}
@@ -17,4 +16,4 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: superfly/flyctl-actions/setup-flyctl@master
-      - run: flyctl deploy --config deployments/fly.staging.toml --image ghcr.io/atlosdotorg/atlos@sha256:${{ github.event.registry_package.package_version.container_metadata.tag.digest }} --wait-timeout 300
+      - run: flyctl deploy --config deployments/fly.staging.toml --image ghcr.io/atlosdotorg/atlos@${{ github.event.registry_package.package_version.container_metadata.tag.digest }} --wait-timeout 300
