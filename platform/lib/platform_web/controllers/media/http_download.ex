@@ -10,12 +10,12 @@ defmodule PlatformWeb.HTTPDownload do
             {[chunk], ref}
 
           {:ok, msg} ->
-            IO.inspect(msg)
+            # IO.inspect(msg)
             HTTPoison.stream_next(ref)
             {[], ref}
 
           {:error, error} ->
-            IO.puts("ERROR")
+            # IO.puts("ERROR")
             raise("error #{inspect(error)}")
 
           :done ->
