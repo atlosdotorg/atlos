@@ -81,8 +81,5 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
       - name: Deploy New Revision
-        run: az containerapp revision copy \
-        --name ${{ secrets.AZURE_CONTAINER_APP_NAME }} \
-        --resource-group ${{ secrets.AZURE_CONTAINER_APP_RESOURCE_GROUP }} \
-        --image "ghcr.io/atlosdotorg/atlos@${{ jobs.build.outputs.image_digest }}"
+        run: az containerapp revision copy --name ${{ secrets.AZURE_CONTAINER_APP_NAME }} --resource-group ${{ secrets.AZURE_CONTAINER_APP_RESOURCE_GROUP }} --image "ghcr.io/atlosdotorg/atlos@${{ jobs.build.outputs.image_digest }}"
 
