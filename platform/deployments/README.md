@@ -25,3 +25,5 @@ To setup continuous deployment, you'll need to configure a GitHub environment wi
 * `AZURE_CONTAINER_APP_RESOURCE_GROUP`: The name of the Azure Container Apps resource group
 
 You'll also need to be sure that a corresponding GitHub Actions workflow file exists for the given deployment.
+
+Each production deployment should have its own branch. Staging deploys out of the main branch, and the main platform is deployed out of the `deployments/platform` branch. Ensure proper branch protection rules are set up for production deployments.

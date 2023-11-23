@@ -29,6 +29,8 @@ jobs:
     defaults:
       run:
         working-directory: ./platform
+    outputs:
+      image_digest: ${{ steps.docker-build.outputs.digest }}
     steps:
       - uses: actions/checkout@v3
 
@@ -50,6 +52,7 @@ jobs:
 
       - name: Build and push container image to registry
         uses: docker/build-push-action@v3
+        id: docker-build
         with:
           push: true
           context: ./platform
@@ -79,7 +82,7 @@ jobs:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
       - name: Deploy New Revision
         run: az containerapp revision copy \
-               --name ${{ secrets.AZURE_CONTAINER_APP_NAME }} \
-               --resource-group ${{ secrets.AZURE_CONTAINER_APP_RESOURCE_GROUP }} \
-               --image ghcr.io/atlosdotorg/atlos@${{ github.event.registry_package.package_version.container_metadata.digest }}
+        --name ${{ secrets.AZURE_CONTAINER_APP_NAME }} \
+        --resource-group ${{ secrets.AZURE_CONTAINER_APP_RESOURCE_GROUP }} \
+        --image "ghcr.io/atlosdotorg/atlos@${{ jobs.build.outputs.image_digest }}"
 
