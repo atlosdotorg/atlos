@@ -105,7 +105,7 @@ RUN apt-get update -y && apt-get install -y ffmpeg imagemagick curl python3-full
 USER atlos
 
 # Install and setup Poetry+Python for the `utils/` scripts (archiver, etc.)
-RUN cd /app/utils && poetry install --only main --no-interaction --no-ansi
+RUN cd /app/utils && PYTHON_KEYRING_BACKEND=keyring.backends.null.Keyring poetry install --only main --no-interaction --no-ansi
 
 # Only copy the final release from the build stage
 COPY --from=builder --chown=atlos:root /app/_build/${MIX_ENV}/rel/platform ./
