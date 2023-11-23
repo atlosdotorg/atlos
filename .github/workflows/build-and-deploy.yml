@@ -12,7 +12,7 @@ on:
       - deployments/platform
     paths:
       - "platform/**"
-      - ".github/workflows/build.yml"
+      - ".github/workflows/build-and-deploy.yml"
   release:
     types: [published]
 
