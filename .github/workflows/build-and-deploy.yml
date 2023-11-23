@@ -59,3 +59,27 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           build-args: APP_REVISION=${{ github.sha }}
+  deploy:
+    # Only runs if the build job was successful
+    needs: build
+    # Only runs if the branch is main
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    concurrency:
+      group: deploy:${{ github.ref }}
+    environment:
+      name: "Staging (Azure)"
+      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
+    steps:
+      - name: Echo container data
+        run: echo ${{ github.event.registry_package.package_version.container_metadata }}
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+      - name: Deploy New Revision
+        run: az containerapp revision copy \
+               --name ${{ secrets.AZURE_CONTAINER_APP_NAME }} \
+               --resource-group ${{ secrets.AZURE_CONTAINER_APP_RESOURCE_GROUP }} \
+               --image ghcr.io/atlosdotorg/atlos@${{ github.event.registry_package.package_version.container_metadata.digest }}
+
