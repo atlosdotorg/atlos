@@ -17,3 +17,11 @@ Steps to using the Terraform configs:
 * Manually setup the custom domain for the Azure Container Apps environment. This is not yet automated, because it requires a manual DNS change.
 * Verify that deletion protection and object versioning are enabled on the S3 bucket.
 * Verify that the SES domain is verified and that the DKIM records are set up correctly.
+
+To setup continuous deployment, you'll need to configure a GitHub environment with the following secrets:
+
+* `AZURE_CREDENTIALS`: The output of `az ad sp create-for-rbac --name "github-actions" --role contributor --scopes /subscriptions/<subscription_id>/resourceGroups/<resource_group_id> --json-auth`
+* `AZURE_CONTAINER_APP_NAME`: The name of the Azure Container App name
+* `AZURE_CONTAINER_APP_RESOURCE_GROUP`: The name of the Azure Container Apps resource group
+
+You'll also need to be sure that a corresponding GitHub Actions workflow file exists for the given deployment.

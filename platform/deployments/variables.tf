@@ -67,7 +67,7 @@ variable "spn_archive_api_key" {
 variable "database_sku" {
   description = "Database SKU"
   type        = string
-  default     = "GP_Standard_D2ds_v4"
+  default     = "GP_Standard_D2ads_v5"
 }
 
 variable "aws_region" {

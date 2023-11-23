@@ -18,7 +18,7 @@ resource "azurerm_subnet" "postgres_storage_subnet" {
 
 resource "random_password" "postgres_admin_password" {
   length  = 64
-  special = true
+  special = false
 }
 
 resource "azurerm_private_dns_zone" "database_zone" {
@@ -59,6 +59,12 @@ resource "azurerm_postgresql_flexible_server" "platform_database" {
   administrator_password = random_password.postgres_admin_password.result
 
   tags = local.default_tags
+}
+
+resource "azurerm_postgresql_flexible_server_configuration" "platform_database_extension_config" {
+  name      = "azure.extensions"
+  server_id = azurerm_postgresql_flexible_server.platform_database.id
+  value     = "CITEXT,POSTGIS"
 }
 
 resource "azurerm_postgresql_flexible_server_database" "platform_database" {
