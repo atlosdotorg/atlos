@@ -150,7 +150,7 @@ defmodule PlatformWeb.ExportController do
           version.artifacts
           |> Stream.map(fn artifact ->
             location = Material.media_version_artifact_location(artifact)
-            f_extension = artifact.file_location |> String.split(".") |> List.last()
+            f_extension = artifact.file_location |> String.split(".") |> List.last("data")
             fname = "#{artifact.type}_#{media_slug}-#{version.scoped_id}.#{f_extension}"
             Logger.debug("Artifact #{fname}: #{location}")
             Zstream.entry("#{folder_name}/#{fname}", HTTPDownload.stream!(location))
@@ -160,7 +160,10 @@ defmodule PlatformWeb.ExportController do
           )
         end)
         |> Stream.concat(
-          [Zstream.entry("#{root_folder_name}/#{media_slug}/metadata.json", [Jason.encode!(media)] )]
+          [
+            Zstream.entry("#{root_folder_name}/#{media_slug}/metadata.json", [Jason.encode!(media),] ),
+            Zstream.entry("#{root_folder_name}/#{media_slug}/updates.json", [Jason.encode!(media.updates)]),
+          ]
         )
       end)
       |> Zstream.zip()
