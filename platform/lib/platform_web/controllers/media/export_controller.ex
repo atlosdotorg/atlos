@@ -77,60 +77,60 @@ defmodule PlatformWeb.ExportController do
     |> to_string()
   end
 
-  # def create(conn, params) do
-  #   c = MediaSearch.changeset(params)
-  #   {full_query, _} = MediaSearch.search_query(c)
-  #   final_query = MediaSearch.filter_viewable(full_query, conn.assigns.current_user)
-  #   results = Material.query_media(final_query, for_user: conn.assigns.current_user)
+  def create_csv_export(conn, params) do
+    c = MediaSearch.changeset(params)
+    {full_query, _} = MediaSearch.search_query(c)
+    final_query = MediaSearch.filter_viewable(full_query, conn.assigns.current_user)
+    results = Material.query_media(final_query, for_user: conn.assigns.current_user)
 
-  #   max_num_versions =
-  #     Enum.max(
-  #       results
-  #       |> Enum.map(fn media ->
-  #         length(media.versions |> Enum.filter(&(&1.visibility == :visible)))
-  #       end),
-  #       fn -> 0 end
-  #     )
+    max_num_versions =
+      Enum.max(
+        results
+        |> Enum.map(fn media ->
+          length(media.versions |> Enum.filter(&(&1.visibility == :visible)))
+        end),
+        fn -> 0 end
+      )
 
-  #   Temp.track!()
-  #   path = Temp.path!(suffix: "atlos-export.csv")
-  #   file = File.open!(path, [:write, :utf8])
+    Temp.track!()
+    path = Temp.path!(suffix: "atlos-export.csv")
+    file = File.open!(path, [:write, :utf8])
 
-  #   fields_excluding_custom =
-  #     [:slug, :project, :inserted_at, :updated_at, :latitude, :longitude] ++
-  #       Attribute.attribute_names() ++
-  #       Enum.map(1..max_num_versions, &("source_" <> to_string(&1)))
+    fields_excluding_custom =
+      [:slug, :project, :inserted_at, :updated_at, :latitude, :longitude] ++
+        Attribute.attribute_names() ++
+        Enum.map(1..max_num_versions, &("source_" <> to_string(&1)))
 
-  #   # Remove "weird" fields that are redundant or not useful
-  #   fields_excluding_custom =
-  #     Enum.reject(fields_excluding_custom, fn field ->
-  #       field in [:geolocation]
-  #     end)
+    # Remove "weird" fields that are redundant or not useful
+    fields_excluding_custom =
+      Enum.reject(fields_excluding_custom, fn field ->
+        field in [:geolocation]
+      end)
 
-  #   formatted = Enum.map(results, &format_media(&1, fields_excluding_custom))
-  #   media = formatted |> Enum.map(fn {media, _} -> media end)
+    formatted = Enum.map(results, &format_media(&1, fields_excluding_custom))
+    media = formatted |> Enum.map(fn {media, _} -> media end)
 
-  #   custom_attribute_names =
-  #     formatted |> Enum.map(fn {_, fields} -> fields end) |> List.flatten() |> Enum.uniq()
+    custom_attribute_names =
+      formatted |> Enum.map(fn {_, fields} -> fields end) |> List.flatten() |> Enum.uniq()
 
-  #   media
-  #   |> CSV.encode(
-  #     headers:
-  #       (fields_excluding_custom ++ custom_attribute_names) |> Enum.map(&format_field_name/1),
-  #     escape_formulas: true
-  #   )
-  #   |> Enum.each(&IO.write(file, &1))
+    media
+    |> CSV.encode(
+      headers:
+        (fields_excluding_custom ++ custom_attribute_names) |> Enum.map(&format_field_name/1),
+      escape_formulas: true
+    )
+    |> Enum.each(&IO.write(file, &1))
 
-  #   :ok = File.close(file)
+    :ok = File.close(file)
 
-  #   Platform.Auditor.log(:bulk_export, params, conn)
+    Platform.Auditor.log(:bulk_export, params, conn)
 
-  #   # The filename should be atlos-export-YYYY-MM-DD.csv
-  #   user_visible_filename = "atlos-export-#{Date.utc_today()}.csv"
-  #   send_download(conn, {:file, path}, filename: user_visible_filename)
-  # end
+    # The filename should be atlos-export-YYYY-MM-DD.csv
+    user_visible_filename = "atlos-export-#{Date.utc_today()}.csv"
+    send_download(conn, {:file, path}, filename: user_visible_filename)
+  end
 
-  def create(conn, params) do
+  def create_full_export(conn, params) do
     c = MediaSearch.changeset(params)
     root_folder_name = "atlos-export-#{Date.utc_today()}"
     {full_query, _} = MediaSearch.search_query(c)

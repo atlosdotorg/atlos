@@ -111,7 +111,7 @@ defmodule PlatformWeb.ProjectsLive.Show do
                 <Heroicons.magnifying_glass mini class="-ml-0.5 mr-2 h-5 w-5 text-neutral-400" />
                 <span>Search</span>
               </.link>
-              <%= button type: "button", to: Routes.export_path(@socket, :create, %{"project_id" => @project.id}),
+              <%= button type: "button", to: Routes.export_path(@socket, :create_csv_export, %{"project_id" => @project.id}),
                   class: "base-button",
                   role: "menuitem",
                   method: :post

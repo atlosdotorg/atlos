@@ -2391,7 +2391,7 @@ defmodule PlatformWeb.Components do
               >
                 <div class="text-left z-10">
                   <div class="h-full flex gap-1">
-                    <%= button type: "button", to: Routes.export_path(@socket, :create, @query_params),
+                    <%= button type: "button", to: Routes.export_path(@socket, :create_full_export, @query_params),
                       class: "rounded-full flex items-center align-center text-gray-600 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-urge-500",
                       role: "menuitem",
                       method: :post,
