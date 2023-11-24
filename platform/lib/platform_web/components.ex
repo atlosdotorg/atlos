@@ -2411,7 +2411,7 @@ defmodule PlatformWeb.Components do
                           x-on:click.outside="open = false"
                           x-transition
                           x-cloak
-                          class="origin-top-right absolute right-0 mt-4 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none"
+                          class="origin-top-right absolute right-0 mt-4 w-40 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none"
                           role="menu"
                           aria-orientation="vertical"
                           aria-labelledby="menu-button"
@@ -2427,17 +2427,17 @@ defmodule PlatformWeb.Components do
                                   mini
                                   class="mr-3 h-5 w-5 text-gray-400 group-hover:text-gray-500"
                                 />
-                                Export to CSV
+                                CSV
                           <% end %>
                           <%= button type: "button", to: Routes.export_path(@socket, :create_full_export, @query_params),
                             class: "text-gray-700 group w-full hover:bg-gray-100 flex items-center px-4 py-2 text-sm",
                             role: "menuitem",
                             method: :post
                             do %>
-                              <Heroicons.folder
+                              <Heroicons.archive_box_arrow_down
                                 mini
                                 class="mr-3 h-5 w-5 text-gray-400 group-hover:text-gray-500"
-                              /> Export Full
+                              /> Full Archive
                           <% end %>
                           </div>
                         </div>
