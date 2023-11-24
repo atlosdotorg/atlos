@@ -1,5 +1,6 @@
 defmodule PlatformWeb.ExportController do
   require Logger
+  alias ElixirSense.Log
   use PlatformWeb, :controller
 
   alias Platform.Material
@@ -147,6 +148,7 @@ defmodule PlatformWeb.ExportController do
           Logger.debug("Checking version #{media_slug}/#{version.scoped_id}")
           folder_name = "#{root_folder_name}/#{media_slug}/#{media_slug}-#{version.scoped_id}"
           Logger.debug("VERSION JSON: #{version |> Jason.encode!()}")
+
           version.artifacts
           |> Stream.map(fn artifact ->
             location = Material.media_version_artifact_location(artifact)
@@ -155,16 +157,16 @@ defmodule PlatformWeb.ExportController do
             Logger.debug("Artifact #{fname}: #{location}")
             Zstream.entry("#{folder_name}/#{fname}", HTTPDownload.stream!(location))
           end)
-          |> Stream.concat(
-            [Zstream.entry("#{folder_name}/metadata.json", [Jason.encode!(version)])]
-          )
+          |> Stream.concat([
+            Zstream.entry("#{folder_name}/metadata.json", [Jason.encode!(version)])
+          ])
         end)
-        |> Stream.concat(
-          [
-            Zstream.entry("#{root_folder_name}/#{media_slug}/metadata.json", [Jason.encode!(media),] ),
-            Zstream.entry("#{root_folder_name}/#{media_slug}/updates.json", [Jason.encode!(media.updates)]),
-          ]
-        )
+        |> Stream.concat([
+          Zstream.entry("#{root_folder_name}/#{media_slug}/metadata.json", [Jason.encode!(media)]),
+          Zstream.entry("#{root_folder_name}/#{media_slug}/updates.json", [
+            Jason.encode!(media.updates)
+          ])
+        ])
       end)
       |> Zstream.zip()
 
@@ -181,8 +183,9 @@ defmodule PlatformWeb.ExportController do
 
     # Not sure what chunk size to choose
     results
-    |> Stream.chunk_every(128)
+    |> Stream.chunk_every(256)
     |> Stream.map(fn chn ->
+      Logger.debug("Sending chunk of size #{Enum.count(chn)}")
       conn |> chunk(chn)
     end)
     |> Stream.run()
@@ -190,7 +193,6 @@ defmodule PlatformWeb.ExportController do
     conn
   end
 end
-
 
 defimpl Jason.Encoder, for: Stream do
   def encode(struct, opts) do
