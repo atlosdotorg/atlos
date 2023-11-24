@@ -146,7 +146,7 @@ defmodule PlatformWeb.ExportController do
         |> Stream.flat_map(fn version ->
           Logger.debug("Checking version #{media_slug}/#{version.scoped_id}")
           folder_name = "#{root_folder_name}/#{media_slug}/#{media_slug}-#{version.scoped_id}"
-
+          Logger.debug("VERSION JSON: #{version |> Jason.encode!()}")
           version.artifacts
           |> Stream.map(fn artifact ->
             location = Material.media_version_artifact_location(artifact)
@@ -155,7 +155,13 @@ defmodule PlatformWeb.ExportController do
             Logger.debug("Artifact #{fname}: #{location}")
             Zstream.entry("#{folder_name}/#{fname}", HTTPDownload.stream!(location))
           end)
+          |> Stream.concat(
+            [Zstream.entry("#{folder_name}/metadata.json", [Jason.encode!(version)])]
+          )
         end)
+        |> Stream.concat(
+          [Zstream.entry("#{root_folder_name}/#{media_slug}/metadata.json", [Jason.encode!(media)] )]
+        )
       end)
       |> Zstream.zip()
 
@@ -179,5 +185,12 @@ defmodule PlatformWeb.ExportController do
     |> Stream.run()
 
     conn
+  end
+end
+
+
+defimpl Jason.Encoder, for: Stream do
+  def encode(struct, opts) do
+    Jason.Encode.list(Enum.to_list(struct), opts)
   end
 end
