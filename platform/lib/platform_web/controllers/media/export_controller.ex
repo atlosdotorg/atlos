@@ -138,18 +138,17 @@ defmodule PlatformWeb.ExportController do
 
     results =
       Material.query_media(final_query, for_user: conn.assigns.current_user)
-      |> List.flatten()
-      |> Enum.map(fn media ->
+      |> Stream.flat_map(fn media ->
         media_slug = Media.slug_to_display(media)
         Logger.debug("Checking media #{media_slug}")
 
         media.versions
-        |> Enum.map(fn version ->
+        |> Stream.flat_map(fn version ->
           Logger.debug("Checking version #{media_slug}/#{version.scoped_id}")
           folder_name = "#{root_folder_name}/#{media_slug}/#{media_slug}-#{version.scoped_id}"
 
           version.artifacts
-          |> Enum.map(fn artifact ->
+          |> Stream.map(fn artifact ->
             location = Material.media_version_artifact_location(artifact)
             f_extension = artifact.file_location |> String.split(".") |> List.last()
             fname = "#{artifact.type}_#{media_slug}-#{version.scoped_id}.#{f_extension}"
@@ -158,8 +157,6 @@ defmodule PlatformWeb.ExportController do
           end)
         end)
       end)
-      |> List.flatten()
-      |> List.flatten()
       |> Zstream.zip()
 
     Logger.debug("Sending file: #{inspect(results)}")
@@ -176,9 +173,10 @@ defmodule PlatformWeb.ExportController do
     # Not sure what chunk size to choose
     results
     |> Stream.chunk_every(128)
-    |> Enum.map(fn chn ->
+    |> Stream.map(fn chn ->
       conn |> chunk(chn)
     end)
+    |> Stream.run()
 
     conn
   end
