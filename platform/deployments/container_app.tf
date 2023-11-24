@@ -13,7 +13,7 @@ resource "random_password" "secret_key_base" {
   special = true
 }
 
-resource "azurerm_subnet" "container_app_subset" {
+resource "azurerm_subnet" "container_app_subnet" {
   name                 = "ca-subnet-${local.stack}"
   resource_group_name  = azurerm_resource_group.platform.name
   virtual_network_name = azurerm_virtual_network.vnet.name
@@ -32,7 +32,7 @@ resource "azurerm_container_app_environment" "platform" {
   location                   = azurerm_resource_group.platform.location
   resource_group_name        = azurerm_resource_group.platform.name
   log_analytics_workspace_id = azurerm_log_analytics_workspace.platform.id
-  infrastructure_subnet_id   = azurerm_subnet.container_app_subset.id
+  infrastructure_subnet_id   = azurerm_subnet.container_app_subnet.id
 
   tags = local.default_tags
 }
@@ -186,12 +186,12 @@ resource "azurerm_container_app" "platform" {
 
       env {
         name  = "S3_BUCKET"
-        value = var.s3_bucket
+        value = var.platform_content_s3_bucket
       }
 
       env {
         name  = "AWS_REGION"
-        value = var.aws_region
+        value = var.platform_aws_region
       }
 
       env {
@@ -228,12 +228,12 @@ resource "azurerm_container_app" "platform" {
 
   secret {
     name  = "aws-access-key-id"
-    value = var.aws_access_key_id
+    value = var.platform_aws_access_key_id
   }
 
   secret {
     name  = "aws-secret-access-key"
-    value = var.aws_secret_access_key
+    value = var.platform_aws_secret_access_key
   }
 
   secret {
