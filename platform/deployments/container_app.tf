@@ -28,7 +28,7 @@ resource "azurerm_container_app_environment_certificate" "origin_certificate" {
 }
 
 resource "azurerm_container_app_environment" "platform" {
-  name                       = "container-app-environment-${local.stack}"
+  name                       = "ca-environment-main-${local.stack}"
   location                   = azurerm_resource_group.platform.location
   resource_group_name        = azurerm_resource_group.platform.name
   log_analytics_workspace_id = azurerm_log_analytics_workspace.platform.id
@@ -38,7 +38,7 @@ resource "azurerm_container_app_environment" "platform" {
 }
 
 resource "azurerm_container_app" "platform" {
-  name = "ca-${local.stack}"
+  name = "ca-main-${local.stack}"
 
   container_app_environment_id = azurerm_container_app_environment.platform.id
   resource_group_name          = azurerm_resource_group.platform.name
@@ -56,12 +56,20 @@ resource "azurerm_container_app" "platform" {
     }
 
     traffic_weight {
-      percentage = 100
+      percentage      = 100
+      latest_revision = true
     }
+  }
+
+  timeouts {
+    create = "2h"
+    update = "2h"
+    delete = "2h"
   }
 
   template {
     min_replicas = 1
+    max_replicas = 5
 
     container {
       name  = "platform"
@@ -197,6 +205,11 @@ resource "azurerm_container_app" "platform" {
       env {
         name  = "PHX_HOST"
         value = var.host
+      }
+
+      env {
+        name        = "SPN_ARCHIVE_API_KEY"
+        secret_name = "spn-archive-api-key"
       }
     }
   }

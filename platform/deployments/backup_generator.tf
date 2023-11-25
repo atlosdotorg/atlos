@@ -6,7 +6,7 @@ resource "azurerm_subnet" "backup_generator_subnet" {
 }
 
 resource "azurerm_container_app_environment" "backup_generator" {
-  name                       = "backup-generator-environment-${local.stack}"
+  name                       = "bg-environment-${local.stack}"
   location                   = azurerm_resource_group.platform.location
   resource_group_name        = azurerm_resource_group.platform.name
   log_analytics_workspace_id = azurerm_log_analytics_workspace.platform.id
@@ -18,7 +18,7 @@ resource "azurerm_container_app_environment" "backup_generator" {
 resource "azurerm_container_app" "backup_generator" {
   name = "bg-${local.stack}"
 
-  container_app_environment_id = azurerm_container_app_environment.platform.id
+  container_app_environment_id = azurerm_container_app_environment.backup_generator.id
   resource_group_name          = azurerm_resource_group.platform.name
   revision_mode                = "Single"
 
@@ -54,27 +54,27 @@ resource "azurerm_container_app" "backup_generator" {
       }
 
       env {
-        name = "AGE_RECIPIENTS"
+        name  = "AGE_RECIPIENTS"
         value = var.backup_age_recipients
       }
 
       env {
-        name = "OBJECT_PREFIX"
+        name  = "OBJECT_PREFIX"
         value = var.backup_object_prefix
       }
 
       env {
-        name = "CRON_SCHEDULE"
+        name  = "CRON_SCHEDULE"
         value = var.backup_cron_schedule
       }
 
       env {
-        name = "HEALTHCHECK_ENDPOINT"
+        name  = "HEALTHCHECK_ENDPOINT"
         value = var.backup_healthcheck_endpoint
       }
 
       env {
-        name = "SKIP_DATABASES"
+        name  = "SKIP_DATABASES"
         value = var.backup_skip_databases
       }
     }

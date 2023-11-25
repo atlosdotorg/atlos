@@ -25,7 +25,7 @@ variable "location" {
 variable "tenant_id" {
   description = "Azure Tenant ID"
   type        = string # The Azure Tenant ID
-  sensitive = true
+  sensitive   = true
 }
 
 variable "appsignal_push_api_key" {
@@ -102,7 +102,7 @@ variable "host" {
 variable "origin_certificate" {
   description = "Origin certificate (PEM)"
   type        = string
-  sensitive = true
+  sensitive   = true
 }
 
 variable "backup_age_recipients" {
