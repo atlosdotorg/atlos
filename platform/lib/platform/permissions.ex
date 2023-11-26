@@ -354,4 +354,12 @@ defmodule Platform.Permissions do
       _ -> false
     end
   end
+
+  def can_export_full?(%User{} = user, %Project{} = project) do
+    case Projects.get_project_membership_by_user_and_project(user, project) do
+      %Projects.ProjectMembership{role: :owner} -> true
+      %Projects.ProjectMembership{role: :manager} -> true
+      _ -> false
+    end
+  end
 end

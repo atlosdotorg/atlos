@@ -153,7 +153,7 @@ defmodule PlatformWeb.Router do
     get("/users/settings/confirm_email/:token", UserSettingsController, :confirm_email)
 
     post("/export/incidents", ExportController, :create_csv_export)
-    post("/export/full", ExportController, :create_full_export)
+    post("/export/full", ExportController, :create_project_full_export)
 
     live_session :default, on_mount: {MountHelperLive, :authenticated} do
       live("/settings", SettingsLive)

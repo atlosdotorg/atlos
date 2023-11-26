@@ -282,10 +282,10 @@ defmodule PlatformWeb.ProjectsLive.Show do
           <% end %>
           <hr />
           <.live_component
-            module = {PlatformWeb.ProjectsLive.ExportComponent}
-            id = "export"
-            current_user = {@current_user}
-            project = {@project}
+            module={PlatformWeb.ProjectsLive.ExportComponent}
+            id="export"
+            current_user={@current_user}
+            project={@project}
           />
         <% end %>
         <%= if @live_action == :access and feature_available?(:project_access_controls) do %>
