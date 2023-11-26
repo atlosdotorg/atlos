@@ -72,7 +72,7 @@ jobs:
       group: deploy:${{ github.ref }}
     environment:
       name: "Staging (Azure)" # TODO: Figure out the right environment from the branch name
-      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
+      url: "staging.atlos.org"
     steps:
       - name: Azure Login
         uses: azure/login@v1
@@ -90,7 +90,7 @@ jobs:
       group: deploy:${{ github.ref }}
     environment:
       name: "Prod (Azure)" # TODO: Figure out the right environment from the branch name
-      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
+      url: "platform.atlos.org"
     steps:
       - name: Azure Login
         uses: azure/login@v1
