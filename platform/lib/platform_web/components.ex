@@ -2391,54 +2391,16 @@ defmodule PlatformWeb.Components do
               >
                 <div class="text-left z-10">
                   <div class="h-full flex gap-1">
-                    <div x-data="{open: false}">
-                      <button
-                        x-on:click.prevent="open = !open;"
-                        type="button"
-                        class="rounded-full flex mt-px align-center items-center text-gray-600 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-urge-500"
-                        aria-expanded="true"
-                        aria-haspopup="true"
-                        data-tooltip="Export Incidents"
-                      >
-                        <span class="sr-only">Export</span>
-                        <Heroicons.arrow_down_tray mini class="h-5 w-5" />
-                      </button>
-
-                      <div
-                        x-show="open"
-                        x-on:click.outside="open = false"
-                        x-transition
-                        x-cloak
-                        class="origin-top-right absolute right-0 mt-4 w-40 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none"
-                        role="menu"
-                        aria-orientation="vertical"
-                        aria-labelledby="menu-button"
-                        tabindex="-1"
-                      >
-                        <div class="py-1" role="none">
-                          <%= button type: "button", to: Routes.export_path(@socket, :create_csv_export, @query_params),
-                            class: "text-gray-700 group w-full hover:bg-gray-100 flex items-center px-4 py-2 text-sm",
-                            role: "menuitem",
-                            method: :post
-                            do %>
-                            <Heroicons.table_cells
-                              mini
-                              class="mr-3 h-5 w-5 text-gray-400 group-hover:text-gray-500"
-                            /> CSV
-                          <% end %>
-                          <%= button type: "button", to: Routes.export_path(@socket, :create_full_export, @query_params),
-                            class: "text-gray-700 group w-full hover:bg-gray-100 flex items-center px-4 py-2 text-sm",
-                            role: "menuitem",
-                            method: :post
-                            do %>
-                            <Heroicons.archive_box_arrow_down
-                              mini
-                              class="mr-3 h-5 w-5 text-gray-400 group-hover:text-gray-500"
-                            /> Full Archive
-                          <% end %>
-                        </div>
-                      </div>
-                    </div>
+                    <%= button type: "button", to: Routes.export_path(@socket, :create_csv_export, @query_params),
+                      class: "rounded-full flex items-center align-center text-gray-600 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-urge-500",
+                      role: "menuitem",
+                      method: :post,
+                      "x-cloak": true,
+                      data_tooltip: "Export Incidents"
+                    do %>
+                      <Heroicons.arrow_down_tray mini class="h-5 w-5" />
+                      <span class="sr-only">Export Incidents</span>
+                    <% end %>
                     <.link
                       navigate={"/incidents?display=#{Ecto.Changeset.get_field(f.source, :display, "cards")}"}
                       class="rounded-full flex items-center align-center text-gray-600 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-urge-500"
