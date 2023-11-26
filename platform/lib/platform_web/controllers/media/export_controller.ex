@@ -1,6 +1,6 @@
 defmodule PlatformWeb.ExportController do
   require Logger
-  alias ElixirSense.Log
+  alias Platform.Permissions
   use PlatformWeb, :controller
 
   alias Platform.Material
@@ -144,6 +144,7 @@ defmodule PlatformWeb.ExportController do
         Logger.debug("Checking media #{media_slug}")
 
         media.versions
+        |> Stream.filter(&(Permissions.can_view_media_version?(conn.assigns.current_user, &1)))
         |> Stream.flat_map(fn version ->
           Logger.debug("Checking version #{media_slug}/#{version.scoped_id}")
           folder_name = "#{root_folder_name}/#{media_slug}/#{media_slug}-#{version.scoped_id}"
@@ -164,7 +165,9 @@ defmodule PlatformWeb.ExportController do
         |> Stream.concat([
           Zstream.entry("#{root_folder_name}/#{media_slug}/metadata.json", [Jason.encode!(media)]),
           Zstream.entry("#{root_folder_name}/#{media_slug}/updates.json", [
-            Jason.encode!(media.updates)
+            media.update
+            |> Stream.filter(&(Permissions.can_view_update?(conn.assigns.current_user, &1)))
+            |> Jason.encode!()
           ])
         ])
       end)
@@ -191,11 +194,5 @@ defmodule PlatformWeb.ExportController do
     |> Stream.run()
 
     conn
-  end
-end
-
-defimpl Jason.Encoder, for: Stream do
-  def encode(struct, opts) do
-    Jason.Encode.list(Enum.to_list(struct), opts)
   end
 end

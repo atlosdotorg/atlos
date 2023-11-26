@@ -9,7 +9,7 @@ defmodule PlatformWeb.HTTPDownload do
             HTTPoison.stream_next(ref)
             {[chunk], ref}
 
-          {:ok, msg} ->
+          {:ok, _} ->
             # IO.inspect(msg)
             HTTPoison.stream_next(ref)
             {[], ref}
