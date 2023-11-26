@@ -165,8 +165,8 @@ defmodule PlatformWeb.ExportController do
         |> Stream.concat([
           Zstream.entry("#{root_folder_name}/#{media_slug}/metadata.json", [Jason.encode!(media)]),
           Zstream.entry("#{root_folder_name}/#{media_slug}/updates.json", [
-            media.update
-            |> Stream.filter(&(Permissions.can_view_update?(conn.assigns.current_user, &1)))
+            media.updates
+            |> Enum.filter(&(Permissions.can_view_update?(conn.assigns.current_user, &1)))
             |> Jason.encode!()
           ])
         ])
