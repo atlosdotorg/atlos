@@ -4,12 +4,12 @@ on:
     branches:
       - main
 jobs:
-  updatePlatform:
+  updateProd:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
         with:
-          ref: deployments/platform
+          ref: deployments/prod
       - name: Reset promotion branch
         run: |
           git fetch origin main:main
@@ -18,7 +18,7 @@ jobs:
         uses: peter-evans/create-pull-request@v3
         with:
           branch: main
-          title: "Deploy recent changes to `platform`"
+          title: "Deploy recent changes to production"
   updateGAP:
     runs-on: ubuntu-latest
     steps:
