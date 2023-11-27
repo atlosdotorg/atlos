@@ -24,7 +24,7 @@ Steps to using the Terraform configs:
 
 To setup continuous deployment, you'll need to configure a GitHub environment with the following secrets:
 
-* `AZURE_CREDENTIALS`: The output of `az ad sp create-for-rbac --name "github-actions" --role contributor --scopes /subscriptions/<subscription_id>/resourceGroups/<resource_group_id> --json-auth`
+* `AZURE_CREDENTIALS`: The output of `az ad sp create-for-rbac --name "github-actions-<staging/prod>" --role contributor --scopes /subscriptions/<subscription_id>/resourceGroups/<resource_group_id> --json-auth`
   * Note (+ TODO): This credential is _overprovisioned_. Azure shockingly doesn't have a built-in role for "deploy to Azure Container Apps", so we have to use the `contributor` role. This is a security risk, but it's the best we can do for now without getting Azure P2 or P3. They [say](https://github.com/microsoft/azure-container-apps/issues/35#issuecomment-1675072081) that they will introduce more roles in Q4 2023.
 * `AZURE_CONTAINER_APP_NAME`: The name of the Azure Container App name
 * `AZURE_CONTAINER_APP_RESOURCE_GROUP`: The name of the Azure Container Apps resource group
