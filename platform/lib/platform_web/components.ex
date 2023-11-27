@@ -418,12 +418,12 @@ defmodule PlatformWeb.Components do
               current_user={@current_user}
               id="global-search-modal"
             >
-              <.navlink label="Search" request_path={@path}>
+              <%# <.navlink label="Search" request_path={@path}>
                 <Heroicons.magnifying_glass
                   mini
                   class="text-neutral-300 group-hover:text-white h-6 w-6"
                 />
-              </.navlink>
+              </.navlink> %>
             </.live_component>
           </div>
           <%= if !is_nil(@current_user) and Accounts.is_admin(@current_user) do %>
