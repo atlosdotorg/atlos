@@ -1,5 +1,4 @@
 # This action currently only handles building and pushing the container image to the registry.
-# 
 # We will expand it in the future to also handle deployments for our Atlos-native infrastructure.
 
 name: Build and deploy
