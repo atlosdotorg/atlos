@@ -113,10 +113,6 @@ COPY --from=builder --chown=atlos:root /app/_build/${MIX_ENV}/rel/platform ./
 RUN echo $APP_REVISION > APP_REVISION
 RUN echo APP_REVISION=${APP_REVISION}
 
-# Link /app/bin/start.boot to /app/releases/0.1.0/start.boot
-# Needed for AWS ECS to find the start.boot file
-RUN ln /app/releases/0.1.0/start.boot /app/bin/start.boot
-
 # Expose a high port number for inbound connections to avoid permissions issues
 EXPOSE 4000
 # Expose EPMD and Gossip port for clustering
