@@ -87,7 +87,8 @@ The Atlos web application will read the following environment variables. Some ar
 - `HIGHLIGHT_CODE` — Code for [Highlight](https://highlight.run) analytics and monitoring (optional)
 - `RESTRICT_PROJECT_CREATION` — whether to restrict project creation to privileged users only (to enable, set to `true`) (optional, default off)
 - `ONBOARDING_PROJECT_ID` — the ID of the demo onboarding project template; if unset, the onboarding project will not be created (optional but recommended)
-- `COOKIE_SIGNING_SALT` - salt to use for cookie signing
+- `COOKIE_SIGNING_SALT` — salt to use for cookie signing (must be at least 64 bytes)
+- `SECRET_KEY_BASE` — base secret key for Phoenix (must be at least 64 bytes)
 
 ### A special note on the database
 
