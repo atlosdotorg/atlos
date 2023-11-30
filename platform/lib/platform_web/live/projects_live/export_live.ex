@@ -26,11 +26,19 @@ defmodule PlatformWeb.ProjectsLive.ExportComponent do
                 </summary>
                 <div class="mt-2 text-sm text-blue-700">
                   <p>
-                    The operation will create a zip file containing a folder for each media within the project.
-                    Each media folder will contain a metadata.json file with the media metadata,
-                    an updates.json file with the media updates, and a folder for each version of the media.
-                    In the version folder, there will be a metadata.json file with the version metadata,
-                    and a file for each artifact of the version.
+                    <ul>
+                      <li>
+                        The operation will create a zip file containing a folder for each media within the project.
+                      </li>
+                      <li>
+                        Each media folder will contain a metadata.json file with the media metadata,
+                        an updates.json file with the media updates, and a folder for each version of the media.
+                      </li>
+                      <li>
+                        In the version folder, there will be a metadata.json file with the version metadata,
+                        and a file for each artifact of the version.
+                      </li>
+                    </ul>
                   </p>
                 </div>
               </details>
