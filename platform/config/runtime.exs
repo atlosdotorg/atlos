@@ -148,6 +148,7 @@ if config_env() == :prod do
             ]
           ]
         ]
+
     true ->
       config :libcluster,
         # Always have debug logging
