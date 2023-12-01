@@ -111,13 +111,6 @@ defmodule PlatformWeb.ProjectsLive.Show do
                 <Heroicons.magnifying_glass mini class="-ml-0.5 mr-2 h-5 w-5 text-neutral-400" />
                 <span>Search</span>
               </.link>
-              <%= button type: "button", to: Routes.export_path(@socket, :create, %{"project_id" => @project.id}),
-                  class: "base-button",
-                  role: "menuitem",
-                  method: :post
-                   do %>
-                <Heroicons.archive_box mini class="-ml-0.5 mr-2 h-5 w-5 text-neutral-400" /> Export
-              <% end %>
               <%= if Permissions.can_edit_project_metadata?(@current_user, @project) do %>
                 <.link navigate={"/new?project_id=#{@project.id}"} class="button ~urge @high">
                   <Heroicons.plus mini class="-ml-0.5 mr-2 text-urge-200 h-5 w-5" /> New Incident
@@ -287,6 +280,13 @@ defmodule PlatformWeb.ProjectsLive.Show do
               project={@project}
             />
           <% end %>
+          <hr />
+          <.live_component
+            module={PlatformWeb.ProjectsLive.ExportComponent}
+            id="export"
+            current_user={@current_user}
+            project={@project}
+          />
         <% end %>
         <%= if @live_action == :access and feature_available?(:project_access_controls) do %>
           <.live_component
