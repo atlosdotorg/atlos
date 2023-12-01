@@ -8,7 +8,7 @@ defmodule PlatformWeb.ProjectsLive.ExportComponent do
     <section class="flex flex-col md:flex-row my-8">
       <div class="mb-4 md:w-[20rem] md:min-w-[20rem] md:mr-20">
         <p class="sec-head text-xl">Export</p>
-        <p class="sec-subhead">Export Project Data</p>
+        <p class="sec-subhead">Export your data to other portable formats.</p>
       </div>
       <div class="grow">
         <div class="rounded-md bg-blue-50 p-4 border-blue-600 border mb-8">
