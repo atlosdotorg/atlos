@@ -119,9 +119,9 @@ defmodule PlatformWeb.SearchLive.SearchComponent do
       }"
       id="globalsearch"
       class="w-full flex flex-col items-center"
-      x-on:keydown.escape.window="setActive(false)"
-      x-on:keydown.ctrl.k.window="setActive(!active)"
-      x-on:keydown.meta.k.window="setActive(!active)"
+      x-on:keydown.escape.window.prevent="setActive(false)"
+      x-on:keydown.ctrl.k.window.prevent="setActive(!active)"
+      x-on:keydown.meta.k.window.prevent="setActive(!active)"
       x-effect={"
         if (selected >= #{@total_results}) {
           selected = 0

@@ -64,11 +64,12 @@ defmodule PlatformWeb.Components do
       phx-hook="Modal"
       data-is-modal
       id={"modal-" <> @id}
+      phx-target={@target}
       x-data
     >
       <div
         class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0"
-        @keydown.escape="window.closeModal($event)"
+        x-on:keydown.escape.window={"window.closeModal(); "<> @js_on_close}
         phx-target={@target}
       >
         <div
@@ -79,8 +80,7 @@ defmodule PlatformWeb.Components do
             )
           }
           aria-hidden="true"
-          x-on:click={"window.closeModal($event); " <> @js_on_close}
-          x-on:keydown.escape.window={"window.closeModal($event); " <> @js_on_close}
+          x-on:click={"window.closeModal(); " <> @js_on_close}
           phx-target={@target}
           id={"modal-overlay-" <> @id}
         >
@@ -107,7 +107,7 @@ defmodule PlatformWeb.Components do
             <button
               type="button"
               class="text-gray-400 bg-white/75 backdrop-blur rounded-full hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-urge-500 p-1"
-              x-on:click={"window.closeModal($event); " <> @js_on_close}
+              x-on:click={"window.closeModal(); " <> @js_on_close}
               phx-target={@target}
             >
               <span class="sr-only">Close</span>
