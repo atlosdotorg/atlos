@@ -3367,9 +3367,9 @@ defmodule PlatformWeb.Components do
           <%= label(@f, @schema_field, @label) %>
           <%= case @attr.input_type || :textarea do %>
             <% :textarea -> %>
-              <%= textarea(@f, @schema_field, rows: 3, phx_debounce: 200) %>
+              <%= textarea(@f, @schema_field, rows: 3, phx_debounce: "blur") %>
             <% :short_text -> %>
-              <%= text_input(@f, @schema_field, phx_debounce: 200) %>
+              <%= text_input(@f, @schema_field, phx_debounce: "blur") %>
           <% end %>
           <%= error_tag(@f, @schema_field) %>
         <% :select -> %>
@@ -3433,19 +3433,22 @@ defmodule PlatformWeb.Components do
               <%= text_input(@f, :location,
                 placeholder: "Comma-separated coordinates (lat, lon).",
                 novalidate: true,
-                phx_debounce: 500,
+                phx_debounce: "blur",
                 "x-on:input": "user_loc = $event.target.value"
               ) %>
-              <%= error_tag(@f, :location) %>
+              <p class="flex flex-wrap">
+                <%= error_tag(@f, @schema_field) %>
+                <%= error_tag(@f, :location) %>
+              </p>
             </div>
-            <%= error_tag(@f, @schema_field) %>
           </div>
         <% :time -> %>
           <%= label(@f, @schema_field, @label) %>
           <div class="flex items-center gap-2 ts-ignore sm:w-64 apply-a17t-fields">
             <%= time_input(@f, @schema_field,
               "x-ref": "time_input",
-              class: "base-button"
+              class: "base-button",
+              phx_debounce: "blur"
             ) %>
           </div>
           <p class="support">
@@ -3464,7 +3467,8 @@ defmodule PlatformWeb.Components do
           <div class="flex items-center gap-2 ts-ignore apply-a17t-fields">
             <%= date_input(@f, @schema_field,
               "x-ref": "date_input",
-              class: "base-button"
+              class: "base-button",
+              phx_debounce: "blur"
             ) %>
           </div>
           <p class="support">
@@ -3481,12 +3485,14 @@ defmodule PlatformWeb.Components do
       <% end %>
       <%= if @attr.type == :location do %>
         <a
-          class="support text-urge-700 underline mt-4"
+          class="support text-urge-700 mt-2 flex items-center"
           target="_blank"
-          x-show="user_loc != null && user_loc.length > 0"
+          x-show="user_loc !== null && user_loc.length > 0"
+          x-transition
           x-bind:href="'https://maps.google.com/maps?q=' + (user_loc || '').replace(' ', '')"
         >
-          Preview <span class="font-bold" x-text="user_loc"></span> on Google Maps
+          <Heroicons.globe_europe_africa mini class="h-4 w-4 inline opacity-75 mr-1" />
+          <span>Preview <span class="font-semibold" x-text="user_loc"></span> on Google Maps &nearr;</span>
         </a>
       <% end %>
     </article>
@@ -3544,12 +3550,14 @@ defmodule PlatformWeb.Components do
   end
 
   def user_card(%{user: %Accounts.User{} = _} = assigns) do
+    assigns = assign_new(assigns, :profile_photo_class, fn -> "" end)
+
     ~H"""
     <.link navigate={"/profile/" <> @user.username}>
       <div class="flex items-center gap-4 p-2 overflow-hidden">
-        <div class="w-12">
+        <div>
           <img
-            class="relative z-30 inline-block h-12 w-12 rounded-full ring-2 ring-white"
+            class={"relative z-30 inline-block h-12 w-12 rounded-full ring-2 ring-white " <> @profile_photo_class}
             src={Accounts.get_profile_photo_path(@user)}
             alt={"Profile photo for #{@user.username}"}
           />
