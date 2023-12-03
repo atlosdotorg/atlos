@@ -113,7 +113,8 @@ defmodule PlatformWeb.NewLive.NewComponent do
     ~H"""
     <div
       x-data="{
-      active: false,
+      // Active if the URL fragment is #new
+      active: window.location.hash === '#new',
       setActive(val) {
         if (!val && document.elementContainsActiveUnsavedForms($refs.base)) {
           if (confirm('You have unsaved changes. Are you sure you want to exit?')) {

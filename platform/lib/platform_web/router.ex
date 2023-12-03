@@ -146,6 +146,7 @@ defmodule PlatformWeb.Router do
 
     # Redirect /map to avoid breaking old links
     get("/map", PageController, :index)
+    get("/new", PageController, :new)
     get("/", PageController, :index)
 
     get("/users/settings", UserSettingsController, :edit)
