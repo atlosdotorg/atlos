@@ -9,6 +9,7 @@ defmodule Platform.Projects.Project do
     field(:name, :string)
     field(:description, :string, default: "")
     field(:color, :string, default: "#fb923c")
+    field(:active, :boolean, default: true)
 
     embeds_many(:attributes, Platform.Projects.ProjectAttribute, on_replace: :delete)
 
@@ -36,6 +37,13 @@ defmodule Platform.Projects.Project do
     |> validate_length(:name, min: 1, max: 40)
     |> validate_length(:description, min: 0, max: 1000)
     |> validate_format(:color, ~r/^#[0-9a-fA-F]{6}$/)
+  end
+
+  @doc false
+  def active_changeset(project, attrs) do
+    project
+    |> changeset(attrs)
+    |> cast(attrs, [:active])
   end
 end
 

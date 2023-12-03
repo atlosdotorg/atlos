@@ -147,19 +147,16 @@ defmodule Platform.Projects do
   end
 
   @doc """
-  Deletes a project.
-
-  ## Examples
-
-      iex> delete_project(project)
-      {:ok, %Project{}}
-
-      iex> delete_project(project)
-      {:error, %Ecto.Changeset{}}
-
+  Marks a project as inactive.
   """
-  def delete_project(%Project{} = project) do
-    Repo.delete(project)
+  def update_project_active(%Project{} = project, is_active, user \\ nil) do
+    unless is_nil(user) or Permissions.can_change_project_active_status?(user, project) do
+      raise "User does not have permission to change the active status of this project"
+    end
+
+    project
+    |> Project.active_changeset(%{active: is_active})
+    |> Repo.update()
   end
 
   @doc """

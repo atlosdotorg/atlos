@@ -64,15 +64,11 @@ defmodule PlatformWeb.ProjectsLive.Show do
     {:noreply, socket |> put_flash(:info, "Changes saved.") |> assign(:project, project)}
   end
 
-  def handle_info({:project_deleted, _project}, socket) do
-    {:noreply,
-     socket |> push_redirect(to: "/projects") |> put_flash(:info, "Project deleted successfully.")}
-  end
-
   def render(assigns) do
     ~H"""
     <div>
       <div class="mb-8 pt-6 shadow-sm border-b bg-white overflow-hidden relative z-[1000]">
+        <.project_archived_banner :if={not @project.active} class="-mt-6 mb-6" />
         <article class="w-full h-full xl:max-w-screen-xl md:mx-auto px-4">
           <div class="pt-4 w-full flex flex-col md:flex-row md:justify-between gap-4">
             <div>
@@ -148,7 +144,7 @@ defmodule PlatformWeb.ProjectsLive.Show do
               <span>Queue</span>
             </.link>
 
-            <%= if Permissions.can_edit_project_metadata?(@current_user, @project) do %>
+            <%= if Permissions.can_edit_project_metadata?(assigns.current_user, assigns.project) or Permissions.can_change_project_active_status?(assigns.current_user, assigns.project) do %>
               <.link
                 navigate={"/projects/#{@project.id}/edit"}
                 class={if @live_action == :edit, do: active_classes, else: inactive_classes}

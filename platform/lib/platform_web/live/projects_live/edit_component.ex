@@ -10,7 +10,8 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
     assigns = Map.put_new(assigns, :project, %Projects.Project{})
 
     if not is_nil(assigns.project) and
-         not Permissions.can_edit_project_metadata?(assigns.current_user, assigns.project) do
+         not Permissions.can_edit_project_metadata?(assigns.current_user, assigns.project) and
+         not Permissions.can_change_project_active_status?(assigns.current_user, assigns.project) do
       raise PlatformWeb.Errors.Unauthorized, "You do not have permission to edit this project"
     end
 
@@ -52,11 +53,25 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
     {:noreply, socket}
   end
 
-  def handle_event("delete", _params, socket) do
-    if Permissions.can_delete_project?(socket.assigns.current_user, socket.assigns.project) do
-      Projects.delete_project(socket.assigns.project)
-      Auditor.log(:project_deleted, %{project: socket.assigns.project}, socket)
-      send(self(), {:project_deleted, nil})
+  def handle_event("toggle_active", _params, socket) do
+    if Permissions.can_change_project_active_status?(
+         socket.assigns.current_user,
+         socket.assigns.project
+       ) do
+      {:ok, project} =
+        Projects.update_project_active(
+          socket.assigns.project,
+          not socket.assigns.project.active,
+          socket.assigns.current_user
+        )
+
+      Auditor.log(
+        :project_active_status_changed,
+        %{project: socket.assigns.project, new_status: not socket.assigns.project.active},
+        socket
+      )
+
+      send(self(), {:project_saved, project})
       {:noreply, socket}
     else
       {:noreply, socket}
@@ -273,6 +288,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
     <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6 flex justify-end">
       <%= if @attr.schema_field == :project_attributes do %>
         <button
+          :if={@show_edit_button}
           class="text-button"
           type="button"
           phx-click="open_modal"
@@ -313,14 +329,41 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
               </div>
             <% end %>
             <div class="flex flex-col gap-4 grow">
+              <div
+                :if={not @project.active}
+                class="rounded-md bg-yellow-50 border border-yellow-300 p-4"
+              >
+                <div class="flex">
+                  <div class="flex-shrink-0">
+                    <Heroicons.archive_box mini class="h-5 w-5 text-yellow-600" />
+                  </div>
+                  <div class="ml-3">
+                    <h3 class="text-sm font-medium text-yellow-800">
+                      This project has been archived
+                    </h3>
+                    <div class="mt-2 text-sm text-yellow-700">
+                      <p>
+                        This project has been archived, so it is not possible to edit its data or incidents. To edit this project, you must unarchive it first.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
               <div>
                 <%= label(f, :name) %>
-                <%= text_input(f, :name, placeholder: "What should we call this project?") %>
+                <%= text_input(f, :name,
+                  placeholder: "What should we call this project?",
+                  disabled: not Permissions.can_edit_project_metadata?(@current_user, @project)
+                ) %>
                 <%= error_tag(f, :name) %>
               </div>
               <div>
                 <%= label(f, :code) %>
-                <%= text_input(f, :code, class: "uppercase font-mono", placeholder: "E.g., CIV") %>
+                <%= text_input(f, :code,
+                  class: "uppercase font-mono",
+                  placeholder: "E.g., CIV",
+                  disabled: not Permissions.can_edit_project_metadata?(@current_user, @project)
+                ) %>
                 <%= error_tag(f, :code) %>
                 <p class="support">
                   This is a short code that will be used to identify this project in incident IDs. E.g., CIV-1234.
@@ -329,7 +372,8 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
               <div>
                 <%= label(f, :description) %>
                 <%= textarea(f, :description,
-                  placeholder: "Provide a short description for the project..."
+                  placeholder: "Provide a short description for the project...",
+                  disabled: not Permissions.can_edit_project_metadata?(@current_user, @project)
                 ) %>
                 <%= error_tag(f, :description) %>
               </div>
@@ -342,7 +386,12 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                   >
                     <%= for color <- ["#fb923c", "#fbbf24", "#a3e635", "#4ade80", "#2dd4bf", "#22d3ee", "#60a5fa", "#818cf8", "#a78bfa", "#c084fc", "#e879f9", "#f472b6"] do %>
                       <label class="!mt-0 cursor-pointer">
-                        <%= radio_button(f, :color, color, "x-model": "active", class: "hidden") %>
+                        <%= radio_button(f, :color, color,
+                          "x-model": "active",
+                          class: "hidden",
+                          disabled:
+                            not Permissions.can_edit_project_metadata?(@current_user, @project)
+                        ) %>
                         <svg
                           viewBox="0 0 100 100"
                           xmlns="http://www.w3.org/2000/svg"
@@ -370,19 +419,34 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
               <div class="mt-8">
                 <div class="flex justify-between gap-4 flex-wrap">
                   <div>
-                    <%= submit("Save", class: "button ~urge @high") %>
+                    <%= submit("Save",
+                      class: "button ~urge @high",
+                      disabled: not Permissions.can_edit_project_metadata?(@current_user, @project)
+                    ) %>
                   </div>
                   <%= if @project.id do %>
                     <div>
-                      <button
-                        phx-click="delete"
-                        data-confirm="Are you sure you want to delete this project? This action cannot be undone, and will delete all the incidents that are part of this project."
-                        class="button ~critical @high"
-                        type="button"
-                        phx-target={@myself}
-                      >
-                        Delete
-                      </button>
+                      <%= if @project.active do %>
+                        <button
+                          phx-click="toggle_active"
+                          data-confirm="Are you sure you want to archive this project? Incidents will no longer be editable."
+                          class="button ~critical @high"
+                          type="button"
+                          phx-target={@myself}
+                        >
+                          Archive Project
+                        </button>
+                      <% else %>
+                        <button
+                          phx-click="toggle_active"
+                          data-confirm="Are you sure you want to unarchive this project? Incidents will be editable again."
+                          class="button ~critical @high"
+                          type="button"
+                          phx-target={@myself}
+                        >
+                          Unarchive Project
+                        </button>
+                      <% end %>
                     </div>
                   <% else %>
                     <button phx-click="close" class="base-button" type="button" phx-target={@myself}>
@@ -406,14 +470,14 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
           >
             <div class="flex flex-col md:flex-row gap-4 pt-8">
               <%= if length(@show_panes) > 1 do %>
-                <div class="mb-4 md:w-[20rem] md:mr-16">
+                <div class="mb-4 md:w-[20rem] md:mr-16 shrink-0">
                   <p class="sec-head text-xl">Attributes</p>
                   <p class="sec-subhead">
                     Define the data model for incidents in this project. You can add new attributes, or edit the existing ones.
                   </p>
                 </div>
               <% end %>
-              <fieldset class="flex flex-col mb-8">
+              <fieldset class="flex flex-col mb-8 w-full">
                 <%= if ProjectAttribute.does_project_have_default_attributes?(@project) and Permissions.can_edit_project_metadata?(@current_user, @project) do %>
                   <div class="rounded-md bg-blue-50 p-4 border-blue-600 border mb-8">
                     <div class="flex">
@@ -455,10 +519,14 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                               </th>
                               <div scope="col" class="absolute right-3 top-3">
                                 <button
+                                  :if={
+                                    Permissions.can_edit_project_metadata?(@current_user, @project)
+                                  }
                                   type="button"
                                   phx-click="add_attr"
                                   phx-target={@myself}
                                   class="text-button text-sm"
+                                  ,
                                 >
                                   Add&nbsp;Attribute
                                 </button>
@@ -472,6 +540,9 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                                   <.attribute_table_row
                                     attr={ProjectAttribute.to_attribute(f_attr.data)}
                                     myself={@myself}
+                                    show_edit_button={
+                                      Permissions.can_edit_project_metadata?(@current_user, @project)
+                                    }
                                   />
                                 </tr>
                               <% end %>
@@ -521,7 +592,11 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                             <% end %>
                             <%= for attr <- Platform.Material.Attribute.active_attributes() |> Enum.filter(& &1.pane != :metadata && is_nil(&1.parent)) do %>
                               <tr>
-                                <.attribute_table_row attr={attr} myself={@myself} />
+                                <.attribute_table_row
+                                  attr={attr}
+                                  myself={@myself}
+                                  show_edit_button={false}
+                                />
                               </tr>
                             <% end %>
                           </tbody>

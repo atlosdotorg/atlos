@@ -136,6 +136,18 @@ defmodule PlatformWeb.Components do
     """
   end
 
+  def project_archived_banner(assigns) do
+    assigns = assigns |> assign_new(:class, fn -> "" end)
+
+    ~H"""
+    <div class={"bg-yellow-50 py-2 px-4 mx-auto text-center border-b border-yellow-300 " <> @class}>
+      <p class="text-yellow-800 text-sm font-medium">
+        This project has been archived, and incidents can no longer be created or edited.
+      </p>
+    </div>
+    """
+  end
+
   def card(assigns) do
     assigns =
       assigns
@@ -2561,8 +2573,8 @@ defmodule PlatformWeb.Components do
       <%= if Permissions.can_view_media?(@current_user, @media) do %>
         <div class="p-2 flex flex-col w-3/4 gap-2 relative">
           <section>
-            <p class="font-mono text-xs text-gray-500 flex items-center gap-1">
-              <%= Media.slug_to_display(@media) %>
+            <div class="text-xs text-gray-500 flex items-center gap-1">
+              <span class="font-mono"><%= Media.slug_to_display(@media) %></span>
               <%= if @media.has_subscription do %>
                 <span data-tooltip="You're subscribed" class="text-neutral-400">
                   <svg
@@ -2606,10 +2618,12 @@ defmodule PlatformWeb.Components do
                   </span>
                 </span>
               <% end %>
-              <%= if @media.deleted do %>
-                <span class="badge ~critical @high uppercase">Deleted</span>
-              <% end %>
-            </p>
+              <span class="grow" />
+              <span :if={@media.deleted} class="text-red-600 text-xs font-medium">Deleted</span>
+              <span :if={not @media.project.active} class="text-yellow-600 text-xs font-medium">
+                Archived
+              </span>
+            </div>
             <p class="text-gray-900 group-hover:text-gray-900">
               <%= @media.attr_description |> Utils.truncate(60) %>
             </p>
@@ -3700,46 +3714,49 @@ defmodule PlatformWeb.Components do
 
   def project_bar(assigns) do
     ~H"""
-    <div class="border-b bg-white overflow-hidden border-b flex justify-between">
-      <div class="flex items-center justify-between gap-4 w-full lg:max-w-screen-xl px-6 py-2 lg:mx-auto">
-        <%= if is_nil(@project) do %>
-          <div class="text-neutral-700 pb-1 pt-2 px-3 gap-1 hover:bg-neutral-100 rounded transition">
-            <p class="text-xs text-neutral-500">Project</p>
-            <p class="font-medium">
-              <div class="inline-flex items-center font-medium">
-                No Project
-              </div>
-            </p>
+    <div>
+      <.project_archived_banner :if={not @project.active} />
+      <div class="border-b bg-white overflow-hidden border-b flex justify-between">
+        <div class="flex items-center justify-between gap-4 w-full lg:max-w-screen-xl px-6 py-2 lg:mx-auto">
+          <%= if is_nil(@project) do %>
+            <div class="text-neutral-700 pb-1 pt-2 px-3 gap-1 hover:bg-neutral-100 rounded transition">
+              <p class="text-xs text-neutral-500">Project</p>
+              <p class="font-medium">
+                <div class="inline-flex items-center font-medium">
+                  No Project
+                </div>
+              </p>
+            </div>
+          <% else %>
+            <.link
+              navigate={"/projects/#{@project.id}"}
+              class="text-neutral-700 pb-1 pt-2 px-3 gap-1 hover:bg-neutral-100 rounded transition"
+            >
+              <p class="text-xs text-neutral-500">Project</p>
+              <p class="font-medium">
+                <div class="inline-flex items-center font-medium">
+                  <%= @project.name %>
+                  <span style={"color: #{@project.color}"}>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                      class="w-5 h-5 ml-px"
+                    >
+                      <circle cx="10" cy="10" r="5" />
+                    </svg>
+                  </span>
+                </div>
+              </p>
+            </.link>
+          <% end %>
+          <div>
+            <.user_stack
+              users={@project.memberships |> Enum.map(& &1.user)}
+              link_remaining_users={"/projects/#{@project.id}/access"}
+              size_classes="h-7 w-7"
+            />
           </div>
-        <% else %>
-          <.link
-            navigate={"/projects/#{@project.id}"}
-            class="text-neutral-700 pb-1 pt-2 px-3 gap-1 hover:bg-neutral-100 rounded transition"
-          >
-            <p class="text-xs text-neutral-500">Project</p>
-            <p class="font-medium">
-              <div class="inline-flex items-center font-medium">
-                <%= @project.name %>
-                <span style={"color: #{@project.color}"}>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                    class="w-5 h-5 ml-px"
-                  >
-                    <circle cx="10" cy="10" r="5" />
-                  </svg>
-                </span>
-              </div>
-            </p>
-          </.link>
-        <% end %>
-        <div>
-          <.user_stack
-            users={@project.memberships |> Enum.map(& &1.user)}
-            link_remaining_users={"/projects/#{@project.id}/access"}
-            size_classes="h-7 w-7"
-          />
         </div>
       </div>
     </div>
@@ -3747,12 +3764,14 @@ defmodule PlatformWeb.Components do
   end
 
   def project_card_inner(assigns) do
-    # Like <.project_card> below, but without a link.
     ~H"""
     <div class="bg-white rounded-lg shadow overflow-hidden p-4 flex-col gap-2 min-w-[15rem]">
-      <p class="font-mono text-xs text-neutral-600"><%= @project.code %></p>
+      <p class="text-xs text-neutral-600 flex justify-between">
+        <span class="font-mono"><%= @project.code %></span>
+        <span :if={not @project.active} class="text-yellow-600 font-medium">Archived</span>
+      </p>
       <p class="font-medium text-lg inline-flex items-center">
-        <%= @project.name %>
+        <span><%= @project.name %></span>
         <span style={"color: #{@project.color}"}>
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -3764,8 +3783,8 @@ defmodule PlatformWeb.Components do
           </svg>
         </span>
       </p>
-      <% total_incidents = Material.total_media_in_project!(@project) %>
       <p class="support font-base text-neutral-600">
+        <% total_incidents = Material.total_media_in_project!(@project) %>
         <%= total_incidents |> Formatter.format_number() %> <%= if total_incidents == 1,
           do: "incident",
           else: "incidents" %>

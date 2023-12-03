@@ -193,7 +193,7 @@ defmodule PlatformWeb.MediaLive.CommentBox do
                   }
                   id={"comment-parent-input-#{@render_id}"}
                   rows={4}
-                  class="!border-0 resize-none focus:ring-0 sm:text-sm shadow-none"
+                  class="!border-0 resize-none focus:ring-0 sm:text-sm shadow-none !bg-white"
                 />
 
                 <section class="grid grid-cols-2 md:grid-cols-3 gap-2 p-2">

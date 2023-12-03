@@ -48,12 +48,6 @@ defmodule Platform.ProjectsTest do
       assert project.name == Projects.get_project!(project.id).name
     end
 
-    test "delete_project/1 deletes the project" do
-      project = project_fixture()
-      assert {:ok, %Project{}} = Projects.delete_project(project)
-      assert_raise Ecto.NoResultsError, fn -> Projects.get_project!(project.id) end
-    end
-
     test "change_project/1 returns a project changeset" do
       project = project_fixture()
       assert %Ecto.Changeset{} = Projects.change_project(project)
