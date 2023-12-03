@@ -147,6 +147,10 @@ defmodule Platform.Permissions do
     end
   end
 
+  def can_view_media?(%User{} = user, %Media{project_id: nil} = media) do
+    true
+  end
+
   def can_view_media?(%User{} = user, %Media{} = media) do
     membership = Projects.get_project_membership_by_user_and_project_id(user, media.project_id)
     project = Projects.get_project(media.project_id)
@@ -185,7 +189,7 @@ defmodule Platform.Permissions do
 
     with true <- _is_media_editable?(media),
          true <- can_view_media?(user, media),
-         false <- is_nil(membership),
+         true <- not is_nil(membership) or is_nil(media.project_id),
          false <- Enum.member?(user.restrictions || [], :muted),
          true <-
            is_nil(media.slug) or is_nil(media.project) or
