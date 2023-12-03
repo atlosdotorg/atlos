@@ -161,8 +161,6 @@ defmodule PlatformWeb.Router do
 
       live("/home", HomeLive.Index, :index)
 
-      live("/new", NewLive)
-
       live("/incidents", MediaLive.Index)
 
       live("/incidents/:slug", MediaLive.Show, :show)

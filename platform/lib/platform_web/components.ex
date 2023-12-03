@@ -330,17 +330,6 @@ defmodule PlatformWeb.Components do
             <Heroicons.home solid class="text-neutral-300 group-hover:text-white h-6 w-6" />
           </.navlink>
 
-          <.navlink to="/new" label="New" request_path={@path}>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-              class="text-neutral-300 group-hover:text-white h-6 w-6"
-            >
-              <path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
-            </svg>
-          </.navlink>
-
           <.navlink to={"/profile/#{@current_user.username}"} label="Profile" request_path={@path}>
             <Heroicons.user mini class="text-neutral-300 group-hover:text-white h-6 w-6" />
           </.navlink>
@@ -424,14 +413,6 @@ defmodule PlatformWeb.Components do
               <% end %>
             </div>
           </.navlink>
-          <div class="w-full hidden sm:block">
-            <.live_component
-              module={PlatformWeb.SearchLive.SearchComponent}
-              current_user={@current_user}
-              id="global-search-modal"
-            >
-            </.live_component>
-          </div>
           <%= if !is_nil(@current_user) and Accounts.is_admin(@current_user) do %>
             <.navlink to="/adminland" label="Adminland" request_path={@path}>
               <svg
@@ -449,6 +430,31 @@ defmodule PlatformWeb.Components do
             </.navlink>
           <% end %>
           <div class="hidden md:block flex-grow"></div>
+          <div class="w-full">
+            <.live_component
+              module={PlatformWeb.NewLive.NewComponent}
+              current_user={@current_user}
+              id="global-new-modal"
+            >
+              <.navlink label="New" request_path={@path}>
+                <Heroicons.plus mini class="text-neutral-300 group-hover:text-white h-6 w-6" />
+              </.navlink>
+            </.live_component>
+          </div>
+          <div class="w-full">
+            <.live_component
+              module={PlatformWeb.SearchLive.SearchComponent}
+              current_user={@current_user}
+              id="global-search-modal"
+            >
+              <.navlink label="Search" request_path={@path}>
+                <Heroicons.magnifying_glass
+                  mini
+                  class="text-neutral-300 group-hover:text-white h-6 w-6"
+                />
+              </.navlink>
+            </.live_component>
+          </div>
           <%= if not is_nil(@current_user) do %>
             <.navlink to="/settings" label="Account" request_path={@path}>
               <img
