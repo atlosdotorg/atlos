@@ -1367,29 +1367,33 @@ defmodule Platform.Material do
   def submit_for_external_archival(%MediaVersion{source_url: nil} = _version), do: :ok
   def submit_for_external_archival(%MediaVersion{source_url: ""} = _version), do: :ok
 
-  def submit_for_external_archival(%MediaVersion{source_url: url} = _version) do
-    Task.start(fn ->
-      key = System.get_env("SPN_ARCHIVE_API_KEY")
+  def submit_for_external_archival(%MediaVersion{source_url: url} = version) do
+    project = Platform.Project.get_project!(version.media.project_id)
 
-      if is_nil(key) do
-        Logger.info(
-          "Not submitting #{url} for archival by the Internet Archive; no SPN archive key available."
-        )
-      else
-        case :hackney.post(
-               "https://web.archive.org/save",
-               [{"Authorization", "LOW #{key}"}, {"Accept", "application/json"}],
-               "url=#{url |> URI.encode_www_form()}",
-               [:with_body]
-             ) do
-          {:ok, 200, _, _} ->
-            Logger.info("Submitted #{url} for archival by the Internet Archive.")
+    if project.should_sync_with_internet_archive do
+      Task.start(fn ->
+        key = System.get_env("SPN_ARCHIVE_API_KEY")
 
-          error ->
-            Logger.error("Unable to submit #{url} to the Internet Archive: " <> inspect(error))
+        if is_nil(key) do
+          Logger.info(
+            "Not submitting #{url} for archival by the Internet Archive; no SPN archive key available."
+          )
+        else
+          case :hackney.post(
+                 "https://web.archive.org/save",
+                 [{"Authorization", "LOW #{key}"}, {"Accept", "application/json"}],
+                 "url=#{url |> URI.encode_www_form()}",
+                 [:with_body]
+               ) do
+            {:ok, 200, _, _} ->
+              Logger.info("Submitted #{url} for archival by the Internet Archive.")
+
+            error ->
+              Logger.error("Unable to submit #{url} to the Internet Archive: " <> inspect(error))
+          end
         end
-      end
-    end)
+      end)
+    end
   end
 
   @doc """

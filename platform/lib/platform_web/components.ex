@@ -3492,7 +3492,9 @@ defmodule PlatformWeb.Components do
           x-bind:href="'https://maps.google.com/maps?q=' + (user_loc || '').replace(' ', '')"
         >
           <Heroicons.globe_europe_africa mini class="h-4 w-4 inline opacity-75 mr-1" />
-          <span>Preview <span class="font-semibold" x-text="user_loc"></span> on Google Maps &nearr;</span>
+          <span>
+            Preview <span class="font-semibold" x-text="user_loc"></span> on Google Maps &nearr;
+          </span>
         </a>
       <% end %>
     </article>

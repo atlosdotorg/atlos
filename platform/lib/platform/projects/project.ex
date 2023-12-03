@@ -11,6 +11,9 @@ defmodule Platform.Projects.Project do
     field(:color, :string, default: "#fb923c")
     field(:active, :boolean, default: true)
 
+    # Integrations
+    field(:should_sync_with_internet_archive, :boolean, default: false)
+
     embeds_many(:attributes, Platform.Projects.ProjectAttribute, on_replace: :delete)
 
     has_many(:media, Platform.Material.Media)
@@ -25,7 +28,7 @@ defmodule Platform.Projects.Project do
   @doc false
   def changeset(project, attrs) do
     project
-    |> cast(attrs, [:name, :code, :color, :description])
+    |> cast(attrs, [:name, :code, :color, :description, :should_sync_with_internet_archive])
     |> cast_embed(:attributes, required: false)
     |> validate_required([:name, :code, :color])
     |> then(fn changeset ->

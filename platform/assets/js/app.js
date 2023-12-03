@@ -71,6 +71,11 @@ let liveSocket = new LiveSocket("/live", Socket, {
             if (from._tippy) {
                 from._tippy.destroy();
             }
+            if(["DIALOG", "DETAILS"].indexOf(from.tagName) >= 0){
+                Array.from(from.attributes).forEach(attr => {
+                  to.setAttribute(attr.name, attr.value)
+                })
+              }
         },
     },
     params: { _csrf_token: csrfToken },

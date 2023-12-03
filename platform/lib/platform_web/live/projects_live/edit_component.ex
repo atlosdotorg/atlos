@@ -416,6 +416,23 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                   This color will help visually identify the project.
                 </p>
               </div>
+              <details class="flex flex-col gap-4">
+                <summary class="text-button cursor-pointer text-sm">Advanced options</summary>
+                <div class="mt-4">
+                  <p class="flex gap-2 items-center mb-1">
+                    <%= checkbox(f, :should_sync_with_internet_archive,
+                      disabled: not Permissions.can_edit_project_metadata?(@current_user, @project)
+                    ) %>
+                    <%= label(f, :should_sync_with_internet_archive) do %>
+                      Share with the Internet Archive
+                    <% end %>
+                  </p>
+                  <p class="support">
+                    If enabled, links added to this project as source material will be automatically archived by the <a href="https://archive.org">Internet Archive</a>.
+                  </p>
+                  <%= error_tag(f, :should_sync_with_internet_archive) %>
+                </div>
+              </details>
               <div class="mt-8">
                 <div class="flex justify-between gap-4 flex-wrap">
                   <div>
