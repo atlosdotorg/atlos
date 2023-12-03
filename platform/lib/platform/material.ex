@@ -491,18 +491,13 @@ defmodule Platform.Material do
 
     if Permissions.can_delete_media?(user, media) do
       Repo.transaction(fn ->
-        with {:ok, media} <- Repo.update(cs),
-             update_changeset <- Updates.change_from_media_deletion(media, user),
-             {:ok, _} <- Updates.create_update_from_changeset(update_changeset) do
-          media
-        else
-          _val ->
-            {:error, cs}
-        end
+        update_changeset = Updates.change_from_media_deletion(media, user)
+        {:ok, _} = Updates.create_update_from_changeset(update_changeset)
+        {:ok, media} = Repo.update(cs)
+
+        media
       end)
     else
-      IO.puts("not admin")
-
       {:error,
        cs
        |> Ecto.Changeset.add_error(:deleted, "You cannot mark an incident as deleted.")}
@@ -517,13 +512,11 @@ defmodule Platform.Material do
 
     if Permissions.can_delete_media?(user, media) do
       Repo.transaction(fn ->
-        with {:ok, media} <- Repo.update(cs),
-             update_changeset <- Updates.change_from_media_undeletion(media, user),
-             {:ok, _} <- Updates.create_update_from_changeset(update_changeset) do
-          media
-        else
-          _ -> {:error, cs}
-        end
+        {:ok, media} = Repo.update(cs)
+        update_changeset = Updates.change_from_media_undeletion(media, user)
+        {:ok, _} = Updates.create_update_from_changeset(update_changeset)
+
+        media
       end)
     else
       {:error,
