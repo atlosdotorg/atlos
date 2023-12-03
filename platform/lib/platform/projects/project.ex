@@ -58,7 +58,9 @@ defimpl Jason.Encoder, for: Platform.Projects.Project do
         :code,
         :description,
         :color,
-        :id
+        :id,
+        :active,
+        :attributes
       ])
       |> Enum.into(%{}, fn
         {key, %Ecto.Association.NotLoaded{}} -> {key, nil}

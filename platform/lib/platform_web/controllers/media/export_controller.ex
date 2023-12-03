@@ -146,43 +146,51 @@ defmodule PlatformWeb.ExportController do
   defp create_full_export(conn, params) do
     c = MediaSearch.changeset(params)
     root_folder_name = "atlos-export-#{Date.utc_today()}"
+
+    project_id = Map.get(params, "project_id")
+    project = Projects.get_project!(project_id)
+
     {full_query, _} = MediaSearch.search_query(c)
     final_query = MediaSearch.filter_viewable(full_query, conn.assigns.current_user)
 
     results =
-      Material.query_media(final_query, for_user: conn.assigns.current_user)
-      |> Stream.flat_map(fn media ->
-        media_slug = Media.slug_to_display(media)
-        Logger.debug("Checking media #{media_slug}")
+      Stream.concat([
+        Material.query_media(final_query, for_user: conn.assigns.current_user)
+        |> Stream.flat_map(fn media ->
+          media_slug = Media.slug_to_display(media)
+          Logger.debug("Checking media #{media_slug}")
 
-        media.versions
-        |> Stream.filter(&Permissions.can_view_media_version?(conn.assigns.current_user, &1))
-        |> Stream.flat_map(fn version ->
-          Logger.debug("Checking version #{media_slug}/#{version.scoped_id}")
-          folder_name = "#{root_folder_name}/#{media_slug}/#{media_slug}-#{version.scoped_id}"
-          Logger.debug("VERSION JSON: #{version |> Jason.encode!()}")
+          media.versions
+          |> Stream.filter(&Permissions.can_view_media_version?(conn.assigns.current_user, &1))
+          |> Stream.flat_map(fn version ->
+            Logger.debug("Checking version #{media_slug}/#{version.scoped_id}")
+            folder_name = "#{root_folder_name}/#{media_slug}/#{media_slug}-#{version.scoped_id}"
 
-          version.artifacts
-          |> Stream.map(fn artifact ->
-            location = Material.media_version_artifact_location(artifact)
-            f_extension = artifact.file_location |> String.split(".") |> List.last("data")
-            fname = "#{artifact.type}_#{media_slug}-#{version.scoped_id}.#{f_extension}"
-            Logger.debug("Artifact #{fname}: #{location}")
-            Zstream.entry("#{folder_name}/#{fname}", HTTPDownload.stream!(location))
+            version.artifacts
+            |> Stream.map(fn artifact ->
+              location = Material.media_version_artifact_location(artifact)
+              f_extension = artifact.file_location |> String.split(".") |> List.last("data")
+              fname = "#{artifact.type}_#{media_slug}-#{version.scoped_id}.#{f_extension}"
+              Logger.debug("Artifact #{fname}: #{location}")
+              Zstream.entry("#{folder_name}/#{fname}", HTTPDownload.stream!(location))
+            end)
+            |> Stream.concat([
+              Zstream.entry("#{folder_name}/metadata.json", [Jason.encode!(version)])
+            ])
           end)
           |> Stream.concat([
-            Zstream.entry("#{folder_name}/metadata.json", [Jason.encode!(version)])
+            Zstream.entry("#{root_folder_name}/#{media_slug}/metadata.json", [
+              Jason.encode!(media)
+            ]),
+            Zstream.entry("#{root_folder_name}/#{media_slug}/updates.json", [
+              media.updates
+              |> Enum.filter(&Permissions.can_view_update?(conn.assigns.current_user, &1))
+              |> Jason.encode!()
+            ])
           ])
-        end)
-        |> Stream.concat([
-          Zstream.entry("#{root_folder_name}/#{media_slug}/metadata.json", [Jason.encode!(media)]),
-          Zstream.entry("#{root_folder_name}/#{media_slug}/updates.json", [
-            media.updates
-            |> Enum.filter(&Permissions.can_view_update?(conn.assigns.current_user, &1))
-            |> Jason.encode!()
-          ])
-        ])
-      end)
+        end),
+        [Zstream.entry("#{root_folder_name}/project.json", [Jason.encode!(project)])]
+      ])
       |> Zstream.zip()
 
     Logger.debug("Sending file: #{inspect(results)}")
