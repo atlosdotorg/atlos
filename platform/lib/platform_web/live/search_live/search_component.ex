@@ -343,6 +343,10 @@ defmodule PlatformWeb.SearchLive.SearchComponent do
                                   <p class="font-medium flex-grow-1 flex items-center max-w-full gap-2 grow truncate min-w-0">
                                     <%= item.name %>
                                   </p>
+                                  <p :if={not item.active} class="text-sm text-yellow-600 flex gap-1 items-center">
+                                    <Heroicons.archive_box mini class="h-4 w-4 opacity-50" />
+                                    Archived
+                                  </p>
                                 </article>
                               </li>
                             </.link>
