@@ -450,6 +450,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                           class="button ~critical @high"
                           type="button"
                           phx-target={@myself}
+                          data-tooltip="Archiving a project freezes its data and prevents all members from creating or editing its incidents."
                         >
                           Archive Project
                         </button>
@@ -460,6 +461,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                           class="button ~critical @high"
                           type="button"
                           phx-target={@myself}
+                          data-tooltip="Archiving a project freezes its data and prevents all members from creating or editing its incidents."
                         >
                           Unarchive Project
                         </button>
