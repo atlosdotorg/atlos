@@ -142,7 +142,7 @@ defmodule PlatformWeb.Components do
     ~H"""
     <div class={"bg-yellow-50 py-2 px-4 mx-auto text-center border-b border-yellow-300 " <> @class}>
       <p class="text-yellow-800 text-sm font-medium">
-        This project has been archived, and incidents can no longer be created or edited.
+        This project has been archived. Its incidents can no longer be created or edited.
       </p>
     </div>
     """
