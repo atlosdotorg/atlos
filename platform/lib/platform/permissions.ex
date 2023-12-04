@@ -140,11 +140,12 @@ defmodule Platform.Permissions do
 
   def can_delete_media?(%User{} = user, %Media{} = media) do
     # This is a soft delete
-    case Projects.get_project_membership_by_user_and_project_id(user, media.project_id) do
-      %Projects.ProjectMembership{role: :owner} -> true
-      %Projects.ProjectMembership{role: :manager} -> true
-      _ -> false
-    end
+    Projects.get_project(media.project_id).active and
+      case Projects.get_project_membership_by_user_and_project_id(user, media.project_id) do
+        %Projects.ProjectMembership{role: :owner} -> true
+        %Projects.ProjectMembership{role: :manager} -> true
+        _ -> false
+      end
   end
 
   def can_view_media?(%User{} = user, %Media{project_id: nil} = media) do
