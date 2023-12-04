@@ -2749,7 +2749,7 @@ defmodule PlatformWeb.Components do
 
   def no_media_results(assigns) do
     ~H"""
-    <div class="text-center mt-12 mx-auto w-full">
+    <div class="text-center mt-12 mx-auto w-full text-sm">
       <svg
         class="mx-auto h-16 w-16 text-gray-400"
         fill="none"
