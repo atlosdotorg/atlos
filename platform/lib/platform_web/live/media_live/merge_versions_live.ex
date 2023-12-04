@@ -41,10 +41,18 @@ defmodule PlatformWeb.MediaLive.MergeVersionsLive do
               [{field, "This incident doesn't seem to exist. Is the six-character correct?"}]
 
             media ->
-              if media.id == source.id do
-                [{field, "You cannot merge media into itself."}]
-              else
-                []
+              cond do
+                not Permissions.can_view_media?(changeset.data.current_user, media) ->
+                  [{field, "This incident doesn't seem to exist. Is the six-character correct?"}]
+
+                not Permissions.can_edit_media?(changeset.data.current_user, media) ->
+                  [{field, "You don't have permission to edit this incident."}]
+
+                media.id == source.id ->
+                  [{field, "You cannot merge media into itself."}]
+
+                true ->
+                  []
               end
           end
       end
