@@ -69,10 +69,23 @@ defmodule PlatformWeb.ProjectsLive.Index do
           </div>
         <% end %>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <%= for project <- @projects do %>
+          <%= for project <- @projects |> Enum.filter(& &1.active) do %>
             <.project_card project={project} />
           <% end %>
         </div>
+        <% inactive_projects = @projects |> Enum.reject(& &1.active) %>
+        <%= if not Enum.empty?(inactive_projects) do %>
+          <div class="mt-16">
+            <h2 class="text-xl font-medium">
+              Archived Projects
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+              <%= for project <- inactive_projects do %>
+                <.project_card project={project} />
+              <% end %>
+            </div>
+          </div>
+          <% end %>
       </div>
       <%= if @live_action == :new do %>
         <.modal target={} close_confirmation="Your changes will be lost. Are you sure?">
