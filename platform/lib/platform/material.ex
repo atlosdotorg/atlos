@@ -1368,7 +1368,7 @@ defmodule Platform.Material do
   def submit_for_external_archival(%MediaVersion{source_url: ""} = _version), do: :ok
 
   def submit_for_external_archival(%MediaVersion{source_url: url} = version) do
-    project = Platform.Project.get_project!(version.media.project_id)
+    project = Platform.Projects.get_project!(version.media.project_id)
 
     if project.should_sync_with_internet_archive do
       Task.start(fn ->
