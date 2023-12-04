@@ -310,7 +310,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
 
   def render(assigns) do
     ~H"""
-    <article>
+    <article class="overflow-x-hidden">
       <div class="grid grid-cols-1 gap-8 divide-y">
         <%= if Enum.member?(@show_panes, :general) do %>
           <.form
