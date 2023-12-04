@@ -430,7 +430,7 @@ defmodule PlatformWeb.Components do
             </.navlink>
           <% end %>
           <div class="hidden md:block flex-grow"></div>
-          <div class="w-full" data-tooltip="Cmd + I">
+          <div class="w-full" data-tooltip="Ctrl + I">
             <.live_component
               module={PlatformWeb.NewLive.NewComponent}
               current_user={@current_user}
@@ -441,7 +441,7 @@ defmodule PlatformWeb.Components do
               </.navlink>
             </.live_component>
           </div>
-          <div class="w-full" data-tooltip="Cmd + K">
+          <div class="w-full" data-tooltip="Ctrl + K">
             <.live_component
               module={PlatformWeb.SearchLive.SearchComponent}
               current_user={@current_user}
