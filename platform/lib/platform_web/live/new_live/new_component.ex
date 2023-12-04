@@ -253,89 +253,89 @@ defmodule PlatformWeb.NewLive.NewComponent do
                     </div>
                   </div>
 
-                    <div class="p-4" x-data="{open: false}">
-                      <button
-                        type="button"
-                        class="text-button w-full block flex gap-1 items-center justify-between cursor-pointer transition-all text-sm"
-                        x-on:click="open = !open"
+                  <div class="p-4" x-data="{open: false}">
+                    <button
+                      type="button"
+                      class="text-button w-full block flex gap-1 items-center justify-between cursor-pointer transition-all text-sm"
+                      x-on:click="open = !open"
+                    >
+                      Add additional information
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                        class="w-6 h-6"
+                        x-show="!open"
                       >
-                        Add additional information
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          viewBox="0 0 24 24"
-                          fill="currentColor"
-                          class="w-6 h-6"
-                          x-show="!open"
-                        >
-                          <path
-                            fill-rule="evenodd"
-                            d="M12 5.25a.75.75 0 01.75.75v5.25H18a.75.75 0 010 1.5h-5.25V18a.75.75 0 01-1.5 0v-5.25H6a.75.75 0 010-1.5h5.25V6a.75.75 0 01.75-.75z"
-                            clip-rule="evenodd"
-                          />
-                        </svg>
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          viewBox="0 0 24 24"
-                          fill="currentColor"
-                          class="w-6 h-6"
-                          x-show="open"
-                        >
-                          <path
-                            fill-rule="evenodd"
-                            d="M5.25 12a.75.75 0 01.75-.75h12a.75.75 0 010 1.5H6a.75.75 0 01-.75-.75z"
-                            clip-rule="evenodd"
-                          />
-                        </svg>
-                      </button>
-                      <div class="space-y-6 mt-4" x-transition x-show="open">
+                        <path
+                          fill-rule="evenodd"
+                          d="M12 5.25a.75.75 0 01.75.75v5.25H18a.75.75 0 010 1.5h-5.25V18a.75.75 0 01-1.5 0v-5.25H6a.75.75 0 010-1.5h5.25V6a.75.75 0 01.75-.75z"
+                          clip-rule="evenodd"
+                        />
+                      </svg>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                        class="w-6 h-6"
+                        x-show="open"
+                      >
+                        <path
+                          fill-rule="evenodd"
+                          d="M5.25 12a.75.75 0 01.75-.75h12a.75.75 0 010 1.5H6a.75.75 0 01-.75-.75z"
+                          clip-rule="evenodd"
+                        />
+                      </svg>
+                    </button>
+                    <div class="space-y-6 mt-4" x-transition x-show="open">
+                      <div>
+                        <.edit_attributes
+                          attrs={[Attribute.get_attribute(:date)]}
+                          form={@form}
+                          media_slug="NEW"
+                          media={nil}
+                          optional={true}
+                        />
+                      </div>
+
+                      <%= if Permissions.can_edit_media?(@current_user, @media, Attribute.get_attribute(:tags, project: @project)) do %>
                         <div>
                           <.edit_attributes
-                            attrs={[Attribute.get_attribute(:date)]}
+                            attrs={[Attribute.get_attribute(:tags, project: @project)]}
                             form={@form}
                             media_slug="NEW"
                             media={nil}
                             optional={true}
                           />
                         </div>
+                      <% end %>
 
-                        <%= if Permissions.can_edit_media?(@current_user, @media, Attribute.get_attribute(:tags, project: @project)) do %>
-                          <div>
-                            <.edit_attributes
-                              attrs={[Attribute.get_attribute(:tags, project: @project)]}
-                              form={@form}
-                              media_slug="NEW"
-                              media={nil}
-                              optional={true}
-                            />
-                          </div>
-                        <% end %>
-
-                        <%= if not is_nil(@project) and not Enum.empty?(@project.attributes) do %>
-                          <hr />
-                          <div id={"project-attributes-#{@project.id}"}>
-                            <.edit_attributes
-                              attrs={
-                                @project.attributes
-                                |> Enum.map(&Platform.Projects.ProjectAttribute.to_attribute/1)
-                              }
-                              form={@form}
-                              media_slug={@project.id}
-                              media={nil}
-                              optional={true}
-                            />
-                          </div>
-                        <% end %>
-                      </div>
+                      <%= if not is_nil(@project) and not Enum.empty?(@project.attributes) do %>
+                        <hr />
+                        <div id={"project-attributes-#{@project.id}"}>
+                          <.edit_attributes
+                            attrs={
+                              @project.attributes
+                              |> Enum.map(&Platform.Projects.ProjectAttribute.to_attribute/1)
+                            }
+                            form={@form}
+                            media_slug={@project.id}
+                            media={nil}
+                            optional={true}
+                          />
+                        </div>
+                      <% end %>
                     </div>
+                  </div>
 
-                    <div class="md:flex gap-2 items-center justify-between p-4">
-                      <%= submit("Create incident",
-                        phx_disable_with: "Saving...",
-                        class: "button ~urge @high",
-                        disabled: @disabled
-                      ) %>
-                      <p class="support text-neutral-500">You will be redirected to the incident</p>
-                    </div>
+                  <div class="md:flex gap-2 items-center justify-between p-4">
+                    <%= submit("Create incident",
+                      phx_disable_with: "Saving...",
+                      class: "button ~urge @high",
+                      disabled: @disabled
+                    ) %>
+                    <p class="support text-neutral-500">You will be redirected to the incident</p>
+                  </div>
                 </.form>
               <% end %>
             </div>

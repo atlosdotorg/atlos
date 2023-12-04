@@ -94,9 +94,7 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
   def render(assigns) do
     confirm_prompt = "This will discard your changes without saving. Are you sure?"
 
-    assigns =
-      assign(assigns, :disabled, !assigns.changeset.valid?)
-      |> assign(:confirm_prompt, confirm_prompt)
+    assigns = assign(assigns, :confirm_prompt, confirm_prompt)
 
     ~H"""
     <article>
@@ -141,6 +139,25 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
               media={@media}
               project={@media.project}
             />
+            <% unset_attrs =
+              Attribute.unset_for_media(@media, pane: :attributes, project: @media.project) %>
+            <%= if hd(@attrs).schema_field == :attr_status and not Enum.empty?(unset_attrs) and @media.attr_status != "Completed" and Ecto.Changeset.get_change(f.source, :attr_status) == "Completed" do %>
+              <div class="rounded-md bg-neutral-50 border p-4 mb-4">
+                <div class="flex">
+                  <div class="flex-shrink-0">
+                    <Heroicons.information_circle mini class="h-5 w-5 text-neutral-600" />
+                  </div>
+                  <div class="ml-3 -mt-px prose prose-sm">
+                    <p>
+                      <strong>Some information about this incident is missing.</strong>
+                      You can still make this change, but note that the following <%= if length(unset_attrs) == 1,
+                        do: "field is",
+                        else: "fields are" %> not set: <i><%= Enum.join(Enum.map(unset_attrs, &(&1.label)), ", ") %></i>.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            <% end %>
             <div>
               <%= label(f, :explanation, "Briefly Explain Your Change") %>
               <div class="border border-gray-300 rounded shadow-sm overflow-hidden focus-within:border-urge-500 focus-within:ring-1 focus-within:ring-urge-500 transition">
@@ -159,8 +176,7 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
             <div class="flex md:justify-between">
               <%= submit("Post update →",
                 phx_disable_with: "Saving...",
-                class: "button ~urge @high transition-all mr-2",
-                disabled: @disabled
+                class: "button ~urge @high transition-all mr-2"
               ) %>
               <button x-on:click="closeModal()" type="button" class="base-button">
                 Cancel
