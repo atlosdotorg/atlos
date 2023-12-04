@@ -150,9 +150,13 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
                   <div class="ml-3 -mt-px prose prose-sm">
                     <p>
                       <strong>Some information about this incident is missing.</strong>
-                      You can still make this change, but note that the following <%= if length(unset_attrs) == 1,
-                        do: "field is",
-                        else: "fields are" %> not set: <i><%= Enum.join(Enum.map(unset_attrs, &(&1.label)), ", ") %></i>.
+                      You can still make this change, but note that the following <%= if length(
+                                                                                           unset_attrs
+                                                                                         ) == 1,
+                                                                                         do:
+                                                                                           "field is",
+                                                                                         else:
+                                                                                           "fields are" %> not set: <i><%= Enum.join(Enum.map(unset_attrs, &(&1.label)), ", ") %></i>.
                     </p>
                   </div>
                 </div>

@@ -85,7 +85,7 @@ defmodule PlatformWeb.ProjectsLive.Index do
               <% end %>
             </div>
           </div>
-          <% end %>
+        <% end %>
       </div>
       <%= if @live_action == :new do %>
         <.modal target={} close_confirmation="Your changes will be lost. Are you sure?">

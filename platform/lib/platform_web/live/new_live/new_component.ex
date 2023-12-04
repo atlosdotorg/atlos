@@ -8,7 +8,10 @@ defmodule PlatformWeb.NewLive.NewComponent do
   alias Platform.Projects
 
   def update(assigns, socket) do
-    project_id = if is_nil(assigns.current_user.active_project_membership), do: nil, else: assigns.current_user.active_project_membership.project_id
+    project_id =
+      if is_nil(assigns.current_user.active_project_membership),
+        do: nil,
+        else: assigns.current_user.active_project_membership.project_id
 
     {:ok,
      socket
