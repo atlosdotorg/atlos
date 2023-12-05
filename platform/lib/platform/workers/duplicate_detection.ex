@@ -50,6 +50,10 @@ defmodule Platform.Workers.DuplicateDetector do
     version = Material.get_media_version!(id)
     media = Material.get_media!(version.media_id) |> Platform.Repo.preload([:project, :versions])
 
+    if is_nil(media.project_id) do
+      raise "Media #{media.id} has no project id"
+    end
+
     Logger.info("Checking for duplicate artifacts: #{media.slug} (version id=#{version.id})")
 
     # First, we find all the perceptual hashes for the media version.
