@@ -243,6 +243,7 @@ defmodule Platform.Permissions do
 
       with true <- _is_media_editable?(media),
            true <- can_view_media?(user, media),
+           false <- is_nil(membership),
            true <-
              is_nil(media.attr_restrictions) or
                (not is_nil(media.project) and
@@ -292,9 +293,9 @@ defmodule Platform.Permissions do
   def can_view_update?(%User{} = user, %Update{} = update) do
     media = _get_media_from_id(update.media_id)
 
-    with true <- can_view_media?(user, media) do
-      membership = Projects.get_project_membership_by_user_and_project(user, media.project)
-
+    with true <- can_view_media?(user, media),
+         membership when not is_nil(membership) <-
+           Projects.get_project_membership_by_user_and_project(user, media.project) do
       case update.hidden do
         true -> membership.role == :owner or membership.role == :manager
         false -> true
@@ -307,9 +308,9 @@ defmodule Platform.Permissions do
   def can_view_media_version?(%User{} = user, %MediaVersion{} = version) do
     media = _get_media_from_id(version.media_id)
 
-    with true <- can_view_media?(user, media) do
-      membership = Projects.get_project_membership_by_user_and_project(user, media.project)
-
+    with true <- can_view_media?(user, media),
+         membership when not is_nil(membership) <-
+           Projects.get_project_membership_by_user_and_project(user, media.project) do
       case version.visibility == :removed do
         true -> membership.role == :owner or membership.role == :manager
         false -> true
@@ -322,9 +323,9 @@ defmodule Platform.Permissions do
   def can_change_media_version_visibility?(%User{} = user, %MediaVersion{} = version) do
     media = _get_media_from_id(version.media_id)
 
-    with true <- can_view_media?(user, media) do
-      membership = Projects.get_project_membership_by_user_and_project(user, media.project)
-
+    with true <- can_view_media?(user, media),
+         membership when not is_nil(membership) <-
+           Projects.get_project_membership_by_user_and_project(user, media.project) do
       membership.role == :owner or membership.role == :manager
     else
       _ -> false
@@ -340,9 +341,9 @@ defmodule Platform.Permissions do
   def can_user_change_update_visibility?(%User{} = user, %Update{} = update) do
     media = _get_media_from_id(update.media_id)
 
-    with true <- can_view_media?(user, media) do
-      membership = Projects.get_project_membership_by_user_and_project(user, media.project)
-
+    with true <- can_view_media?(user, media),
+         membership when not is_nil(membership) <-
+           Projects.get_project_membership_by_user_and_project(user, media.project) do
       membership.role == :owner or membership.role == :manager
     else
       _ -> false
