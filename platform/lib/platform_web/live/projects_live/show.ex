@@ -64,15 +64,11 @@ defmodule PlatformWeb.ProjectsLive.Show do
     {:noreply, socket |> put_flash(:info, "Changes saved.") |> assign(:project, project)}
   end
 
-  def handle_info({:project_deleted, _project}, socket) do
-    {:noreply,
-     socket |> push_redirect(to: "/projects") |> put_flash(:info, "Project deleted successfully.")}
-  end
-
   def render(assigns) do
     ~H"""
     <div>
       <div class="mb-8 pt-6 shadow-sm border-b bg-white overflow-hidden relative z-[1000]">
+        <.project_archived_banner :if={not @project.active} class="-mt-6 mb-6" />
         <article class="w-full h-full xl:max-w-screen-xl md:mx-auto px-4">
           <div class="pt-4 w-full flex flex-col md:flex-row md:justify-between gap-4">
             <div>
@@ -98,7 +94,7 @@ defmodule PlatformWeb.ProjectsLive.Show do
                 <%= @project.description |> Platform.Utils.render_markdown() |> raw() %>
               </div>
             </div>
-            <div class="flex self-start mt-4 gap-2 flex-wrap">
+            <div class="flex self-start mt-4 gap-2 flex-wrap" x-data>
               <.link
                 navigate={
                   Routes.live_path(@socket, PlatformWeb.MediaLive.Index, %{
@@ -111,17 +107,14 @@ defmodule PlatformWeb.ProjectsLive.Show do
                 <Heroicons.magnifying_glass mini class="-ml-0.5 mr-2 h-5 w-5 text-neutral-400" />
                 <span>Search</span>
               </.link>
-              <%= button type: "button", to: Routes.export_path(@socket, :create, %{"project_id" => @project.id}),
-                  class: "base-button",
-                  role: "menuitem",
-                  method: :post
-                   do %>
-                <Heroicons.archive_box mini class="-ml-0.5 mr-2 h-5 w-5 text-neutral-400" /> Export
-              <% end %>
               <%= if Permissions.can_edit_project_metadata?(@current_user, @project) do %>
-                <.link navigate={"/new?project_id=#{@project.id}"} class="button ~urge @high">
+                <button
+                  type="button"
+                  x-on:click="window.openNewIncidentDialog"
+                  class="button ~urge @high"
+                >
                   <Heroicons.plus mini class="-ml-0.5 mr-2 text-urge-200 h-5 w-5" /> New Incident
-                </.link>
+                </button>
               <% end %>
             </div>
           </div>
@@ -155,7 +148,7 @@ defmodule PlatformWeb.ProjectsLive.Show do
               <span>Queue</span>
             </.link>
 
-            <%= if Permissions.can_edit_project_metadata?(@current_user, @project) do %>
+            <%= if Permissions.can_edit_project_metadata?(assigns.current_user, assigns.project) or Permissions.can_change_project_active_status?(assigns.current_user, assigns.project) do %>
               <.link
                 navigate={"/projects/#{@project.id}/edit"}
                 class={if @live_action == :edit, do: active_classes, else: inactive_classes}
@@ -287,6 +280,13 @@ defmodule PlatformWeb.ProjectsLive.Show do
               project={@project}
             />
           <% end %>
+          <hr />
+          <.live_component
+            module={PlatformWeb.ProjectsLive.ExportComponent}
+            id="export"
+            current_user={@current_user}
+            project={@project}
+          />
         <% end %>
         <%= if @live_action == :access and feature_available?(:project_access_controls) do %>
           <.live_component

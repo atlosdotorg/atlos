@@ -39,7 +39,11 @@ defmodule PlatformWeb.AdminlandLive.ActivityFeedLive do
     )
     |> assign(
       :active_projects_count,
-      recent_updates |> Enum.map(& &1.media.project_id) |> Enum.uniq() |> length()
+      recent_updates
+      |> Enum.map(& &1.media.project)
+      |> Enum.filter(&(not is_nil(&1)))
+      |> Enum.uniq_by(& &1.id)
+      |> length()
     )
     |> assign(
       :active_users_count,

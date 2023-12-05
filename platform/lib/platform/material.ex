@@ -491,18 +491,13 @@ defmodule Platform.Material do
 
     if Permissions.can_delete_media?(user, media) do
       Repo.transaction(fn ->
-        with {:ok, media} <- Repo.update(cs),
-             update_changeset <- Updates.change_from_media_deletion(media, user),
-             {:ok, _} <- Updates.create_update_from_changeset(update_changeset) do
-          media
-        else
-          _val ->
-            {:error, cs}
-        end
+        update_changeset = Updates.change_from_media_deletion(media, user)
+        {:ok, _} = Updates.create_update_from_changeset(update_changeset)
+        {:ok, media} = Repo.update(cs)
+
+        media
       end)
     else
-      IO.puts("not admin")
-
       {:error,
        cs
        |> Ecto.Changeset.add_error(:deleted, "You cannot mark an incident as deleted.")}
@@ -517,13 +512,11 @@ defmodule Platform.Material do
 
     if Permissions.can_delete_media?(user, media) do
       Repo.transaction(fn ->
-        with {:ok, media} <- Repo.update(cs),
-             update_changeset <- Updates.change_from_media_undeletion(media, user),
-             {:ok, _} <- Updates.create_update_from_changeset(update_changeset) do
-          media
-        else
-          _ -> {:error, cs}
-        end
+        {:ok, media} = Repo.update(cs)
+        update_changeset = Updates.change_from_media_undeletion(media, user)
+        {:ok, _} = Updates.create_update_from_changeset(update_changeset)
+
+        media
       end)
     else
       {:error,
@@ -1374,29 +1367,34 @@ defmodule Platform.Material do
   def submit_for_external_archival(%MediaVersion{source_url: nil} = _version), do: :ok
   def submit_for_external_archival(%MediaVersion{source_url: ""} = _version), do: :ok
 
-  def submit_for_external_archival(%MediaVersion{source_url: url} = _version) do
-    Task.start(fn ->
-      key = System.get_env("SPN_ARCHIVE_API_KEY")
+  def submit_for_external_archival(%MediaVersion{source_url: url} = version) do
+    media = Platform.Material.get_media!(version.media_id)
+    project = Platform.Projects.get_project!(media.project_id)
 
-      if is_nil(key) do
-        Logger.info(
-          "Not submitting #{url} for archival by the Internet Archive; no SPN archive key available."
-        )
-      else
-        case :hackney.post(
-               "https://web.archive.org/save",
-               [{"Authorization", "LOW #{key}"}, {"Accept", "application/json"}],
-               "url=#{url |> URI.encode_www_form()}",
-               [:with_body]
-             ) do
-          {:ok, 200, _, _} ->
-            Logger.info("Submitted #{url} for archival by the Internet Archive.")
+    if project.should_sync_with_internet_archive do
+      Task.start(fn ->
+        key = System.get_env("SPN_ARCHIVE_API_KEY")
 
-          error ->
-            Logger.error("Unable to submit #{url} to the Internet Archive: " <> inspect(error))
+        if is_nil(key) do
+          Logger.info(
+            "Not submitting #{url} for archival by the Internet Archive; no SPN archive key available."
+          )
+        else
+          case :hackney.post(
+                 "https://web.archive.org/save",
+                 [{"Authorization", "LOW #{key}"}, {"Accept", "application/json"}],
+                 "url=#{url |> URI.encode_www_form()}",
+                 [:with_body]
+               ) do
+            {:ok, 200, _, _} ->
+              Logger.info("Submitted #{url} for archival by the Internet Archive.")
+
+            error ->
+              Logger.error("Unable to submit #{url} to the Internet Archive: " <> inspect(error))
+          end
         end
-      end
-    end)
+      end)
+    end
   end
 
   @doc """

@@ -63,9 +63,9 @@ defmodule Platform.PermissionsTest do
       refute Permissions.can_edit_project_members?(context.manager, context.project)
     end
 
-    test "can_delete_project?/2", context do
-      assert Permissions.can_delete_project?(context.owner, context.project)
-      refute Permissions.can_delete_project?(context.manager, context.project)
+    test "can_change_project_active_status?/2", context do
+      assert Permissions.can_change_project_active_status?(context.owner, context.project)
+      refute Permissions.can_change_project_active_status?(context.manager, context.project)
     end
 
     test "can_add_media_to_project?/2", context do

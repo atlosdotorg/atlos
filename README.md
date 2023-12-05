@@ -3,7 +3,7 @@
   <br>
 
   <p align="center">
-    The open source platform for visual investigations
+    The collaborative workspace for visual verification
     <br>
   </p>
   <p align="center"><a href="https://atlos.notion.site/Platform-Overview-46d4723f22ef420fb5ad0e07feba8d79">Platform Overview</a> &bull; <a href="platform">Code</a></p>

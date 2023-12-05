@@ -9,6 +9,10 @@ defmodule Platform.Projects.Project do
     field(:name, :string)
     field(:description, :string, default: "")
     field(:color, :string, default: "#fb923c")
+    field(:active, :boolean, default: true)
+
+    # Integrations
+    field(:should_sync_with_internet_archive, :boolean, default: false)
 
     embeds_many(:attributes, Platform.Projects.ProjectAttribute, on_replace: :delete)
 
@@ -24,7 +28,7 @@ defmodule Platform.Projects.Project do
   @doc false
   def changeset(project, attrs) do
     project
-    |> cast(attrs, [:name, :code, :color, :description])
+    |> cast(attrs, [:name, :code, :color, :description, :should_sync_with_internet_archive])
     |> cast_embed(:attributes, required: false)
     |> validate_required([:name, :code, :color])
     |> then(fn changeset ->
@@ -37,6 +41,13 @@ defmodule Platform.Projects.Project do
     |> validate_length(:description, min: 0, max: 1000)
     |> validate_format(:color, ~r/^#[0-9a-fA-F]{6}$/)
   end
+
+  @doc false
+  def active_changeset(project, attrs) do
+    project
+    |> changeset(attrs)
+    |> cast(attrs, [:active])
+  end
 end
 
 defimpl Jason.Encoder, for: Platform.Projects.Project do
@@ -47,7 +58,9 @@ defimpl Jason.Encoder, for: Platform.Projects.Project do
         :code,
         :description,
         :color,
-        :id
+        :id,
+        :active,
+        :attributes
       ])
       |> Enum.into(%{}, fn
         {key, %Ecto.Association.NotLoaded{}} -> {key, nil}

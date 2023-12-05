@@ -38,6 +38,10 @@ defmodule Platform.Permissions do
     can_create_project?(user)
   end
 
+  def can_edit_project_metadata?(%User{} = _, %Project{active: false}) do
+    false
+  end
+
   def can_edit_project_metadata?(%User{} = user, %Project{} = project) do
     case Projects.get_project_membership_by_user_and_project(user, project) do
       %Projects.ProjectMembership{role: :owner} -> true
@@ -68,14 +72,30 @@ defmodule Platform.Permissions do
     end
   end
 
+  defmemo _is_media_editable?(%Media{project_id: nil} = media), expires_in: 5000 do
+    true
+  end
+
+  defmemo _is_media_editable?(%Media{} = media), expires_in: 5000 do
+    # Security mode must be normal, the media can't be deleted, and its project must be active.
+
+    with :normal <- Platform.Security.get_security_mode_state(),
+         false <- media.deleted,
+         true <- Projects.get_project(media.project_id).active do
+      true
+    else
+      _ -> false
+    end
+  end
+
   def can_api_token_post_comment?(%APIToken{} = token, %Media{} = media) do
     Enum.member?(token.permissions, :comment) and token.is_active and
-      token.project_id == media.project_id
+      token.project_id == media.project_id and _is_media_editable?(media)
   end
 
   def can_api_token_edit_media?(%APIToken{} = token, %Media{} = media) do
     Enum.member?(token.permissions, :edit) and token.is_active and
-      token.project_id == media.project_id
+      token.project_id == media.project_id and _is_media_editable?(media)
   end
 
   def can_api_token_update_attribute?(
@@ -86,11 +106,15 @@ defmodule Platform.Permissions do
     can_api_token_edit_media?(token, media)
   end
 
-  def can_delete_project?(%User{} = user, %Project{} = project) do
+  def can_change_project_active_status?(%User{} = user, %Project{} = project) do
     case Projects.get_project_membership_by_user_and_project(user, project) do
       %Projects.ProjectMembership{role: :owner} -> true
       _ -> false
     end
+  end
+
+  def can_add_media_to_project?(%User{} = user, %Project{active: false} = project) do
+    false
   end
 
   def can_add_media_to_project?(%User{} = user, %Project{} = project) do
@@ -102,6 +126,10 @@ defmodule Platform.Permissions do
     end
   end
 
+  def can_bulk_upload_media_to_project?(%User{} = user, %Project{active: false} = project) do
+    false
+  end
+
   def can_bulk_upload_media_to_project?(%User{} = user, %Project{} = project) do
     case Projects.get_project_membership_by_user_and_project(user, project) do
       %Projects.ProjectMembership{role: :owner} -> true
@@ -111,11 +139,17 @@ defmodule Platform.Permissions do
   end
 
   def can_delete_media?(%User{} = user, %Media{} = media) do
-    case Projects.get_project_membership_by_user_and_project_id(user, media.project_id) do
-      %Projects.ProjectMembership{role: :owner} -> true
-      %Projects.ProjectMembership{role: :manager} -> true
-      _ -> false
-    end
+    # This is a soft delete
+    Projects.get_project(media.project_id).active and
+      case Projects.get_project_membership_by_user_and_project_id(user, media.project_id) do
+        %Projects.ProjectMembership{role: :owner} -> true
+        %Projects.ProjectMembership{role: :manager} -> true
+        _ -> false
+      end
+  end
+
+  def can_view_media?(%User{} = user, %Media{project_id: nil} = media) do
+    true
   end
 
   def can_view_media?(%User{} = user, %Media{} = media) do
@@ -152,46 +186,21 @@ defmodule Platform.Permissions do
 
   def can_edit_media?(%User{} = user, %Media{} = media) do
     # This includes uploading new media versions as well as editing attributes.
-
     membership = Projects.get_project_membership_by_user_and_project_id(user, media.project_id)
 
-    # This logic would be nice to refactor into a `with` statement
-    case Platform.Security.get_security_mode_state() do
-      :normal ->
-        case Enum.member?(user.restrictions || [], :muted) do
-          true ->
-            false
-
-          false ->
-            cond do
-              is_nil(media.slug) ->
-                # This is a new media object that hasn't been saved yet.
-                true
-
-              is_nil(media.project) ->
-                # This media object is not associated with a project.
-                true
-
-              is_nil(membership) ->
-                false
-
-              membership.role == :owner ->
-                true
-
-              membership.role == :manager ->
-                true
-
-              membership.role == :editor ->
+    with true <- _is_media_editable?(media),
+         true <- can_view_media?(user, media),
+         true <- not is_nil(membership) or is_nil(media.project_id),
+         false <- Enum.member?(user.restrictions || [], :muted),
+         true <-
+           is_nil(media.slug) or is_nil(media.project) or
+             membership.role == :owner or membership.role == :manager or
+             (membership.role == :editor and
                 not (Enum.member?(media.attr_restrictions || [], "Frozen") ||
-                       media.attr_status == "Completed" || media.attr_status == "Cancelled")
-
-              true ->
-                false
-            end
-        end
-
-      _ ->
-        Accounts.is_admin(user)
+                       media.attr_status == "Completed" || media.attr_status == "Cancelled")) do
+      true
+    else
+      _ -> false
     end
   end
 
@@ -230,34 +239,19 @@ defmodule Platform.Permissions do
     if Accounts.is_auto_account(user) do
       true
     else
-      # This logic would be nice to refactor into a `with` statement
-      case Platform.Security.get_security_mode_state() do
-        :normal ->
-          case Enum.member?(user.restrictions || [], :muted) do
-            true ->
-              false
+      membership = Projects.get_project_membership_by_user_and_project_id(user, media.project_id)
 
-            false ->
-              case media.attr_restrictions do
-                nil ->
-                  can_view_media?(user, media)
-
-                values ->
-                  # Restrictions are present.
-                  if not is_nil(media.project) and
-                       (Enum.member?(values, "Hidden") || Enum.member?(values, "Frozen")) do
-                    membership =
-                      Projects.get_project_membership_by_user_and_project(user, media.project)
-
-                    membership.role == :owner or membership.role == :manager
-                  else
-                    true
-                  end
-              end
-          end
-
-        _ ->
-          false
+      with true <- _is_media_editable?(media),
+           true <- can_view_media?(user, media),
+           true <-
+             is_nil(media.attr_restrictions) or
+               (not is_nil(media.project) and
+                  (Enum.member?(media.attr_restrictions, "Hidden") or
+                     Enum.member?(media.attr_restrictions, "Frozen")) and
+                  (membership.role == :owner or membership.role == :manager)) do
+        true
+      else
+        _ -> false
       end
     end
   end
@@ -351,6 +345,14 @@ defmodule Platform.Permissions do
 
       membership.role == :owner or membership.role == :manager
     else
+      _ -> false
+    end
+  end
+
+  def can_export_full?(%User{} = user, %Project{} = project) do
+    case Projects.get_project_membership_by_user_and_project(user, project) do
+      %Projects.ProjectMembership{role: :owner} -> true
+      %Projects.ProjectMembership{role: :manager} -> true
       _ -> false
     end
   end

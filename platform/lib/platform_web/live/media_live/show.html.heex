@@ -145,6 +145,7 @@
               >
                 <div class="py-1" role="none">
                   <button
+                    :if={Permissions.can_delete_media?(@current_user, @media)}
                     type="button"
                     class="text-gray-700 group w-full hover:bg-gray-100 flex items-center px-4 py-2 text-sm"
                     role="menuitem"
@@ -177,6 +178,7 @@
                     <% end %>
                   </button>
                   <.link
+                    :if={Permissions.can_merge_media?(@current_user, @media)}
                     patch={Routes.media_show_path(@socket, :merge, @media.slug)}
                     class="text-gray-700 group w-full hover:bg-gray-100 flex items-center px-4 py-2 text-sm"
                     role="menuitem"
@@ -191,9 +193,10 @@
                       <path d="M9.97.97a.75.75 0 011.06 0l3 3a.75.75 0 01-1.06 1.06l-1.72-1.72v3.44h-1.5V3.31L8.03 5.03a.75.75 0 01-1.06-1.06l3-3zM9.75 6.75v6a.75.75 0 001.5 0v-6h3a3 3 0 013 3v7.5a3 3 0 01-3 3h-7.5a3 3 0 01-3-3v-7.5a3 3 0 013-3h3z" />
                       <path d="M7.151 21.75a2.999 2.999 0 002.599 1.5h7.5a3 3 0 003-3v-7.5c0-1.11-.603-2.08-1.5-2.599v7.099a4.5 4.5 0 01-4.5 4.5H7.151z" />
                     </svg>
-                    Merge Media
+                    Merge Source Material
                   </.link>
                   <.link
+                    :if={Permissions.can_copy_media?(@current_user, @media)}
                     patch={Routes.media_show_path(@socket, :copy, @media.slug)}
                     class="text-gray-700 group w-full hover:bg-gray-100 flex items-center px-4 py-2 text-sm"
                     role="menuitem"
@@ -528,10 +531,10 @@
           <div>
             <p class="support font-mono"><%= Media.slug_to_display(@media) %></p>
             <p class="sec-head">
-              Merge Media
+              Merge Source Material
             </p>
             <p class="sec-subhead">
-              Merge media associated with this incident into another incident. Note that media that has been hidden from view (i.e., marked as hidden or removed) will not be merged.
+              Merge source material associated with this incident into another incident. Note that media that has been hidden from view (i.e., marked as hidden or removed) will not be merged.
             </p>
           </div>
         </div>

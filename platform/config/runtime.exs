@@ -126,7 +126,7 @@ if config_env() == :prod do
           ]
         ]
 
-    true ->
+    System.get_env("SINGLE_NODE", "false") != "true" ->
       config :libcluster,
         # Always have debug logging
         debug: true,
@@ -148,5 +148,11 @@ if config_env() == :prod do
             ]
           ]
         ]
+
+    true ->
+      config :libcluster,
+        # Always have debug logging
+        debug: true,
+        topologies: []
   end
 end

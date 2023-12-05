@@ -77,6 +77,8 @@ defmodule Platform.MixProject do
       {:heroicons, "~> 0.5.1"},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:vega_lite, "~> 0.1.7"},
+      {:zstream, "~> 0.6"},
+      {:httpoison, "~> 2.0"},
       # Temporarily set the manager option for this so it compiles
       # https://elixirforum.com/t/elixir-v1-15-0-released/56584/4?u=axelson
       {:ssl_verify_fun, ">= 0.0.0", manager: :rebar3, override: true}

@@ -35,6 +35,7 @@ import { initialize as initializeKeyboardFormSubmits } from "./keyboard_form_sub
 import { initialize as initializeFormUnloadWarning } from "./form_warnings";
 
 mapboxgl.accessToken = 'pk.eyJ1IjoibWlsZXNtY2MiLCJhIjoiY2t6ZzdzZmY0MDRobjJvbXBydWVmaXBpNSJ9.-aHM8bjOOsSrGI0VvZenAQ';
+mapboxgl.setRTLTextPlugin('https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-rtl-text/v0.2.3/mapbox-gl-rtl-text.js');
 
 let Hooks = {};
 Hooks.Modal = {
@@ -71,6 +72,11 @@ let liveSocket = new LiveSocket("/live", Socket, {
             if (from._tippy) {
                 from._tippy.destroy();
             }
+            if(["DIALOG", "DETAILS"].indexOf(from.tagName) >= 0){
+                Array.from(from.attributes).forEach(attr => {
+                  to.setAttribute(attr.name, attr.value)
+                })
+              }
         },
     },
     params: { _csrf_token: csrfToken },
@@ -470,13 +476,12 @@ function debounce(func, timeout = 25) {
 }
 
 // Used to centralize modal closing logic. See Hooks.Modal for core logic.
-window.closeModal = debounce((event) => {
+window.closeModal = debounce(() => {
     // Find the target, if possible.
-    let elem = event.target;
-    let parentModal = elem.closest("[data-is-modal]");
+    let parentModal = document.querySelector("[data-is-modal]");
 
     if ((parentModal && !document.elementContainsActiveUnsavedForms(parentModal)) || confirm("Are you sure you want to exit? Any unsaved changes will be lost.")) {
-        let event = new CustomEvent("modal:close", { detail: { elem } });
+        let event = new CustomEvent("modal:close", { detail: { elem: parentModal } });
         window.dispatchEvent(event);
     }
 });
