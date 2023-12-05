@@ -11,7 +11,10 @@ defmodule PlatformWeb.ProjectsLive.ExportComponent do
         <p class="sec-subhead">Export your data to other portable formats.</p>
       </div>
       <div class="grow">
-        <div class="rounded-md bg-blue-50 p-4 border-blue-600 border mb-8">
+        <div
+          :if={feature_available?(:full_export)}
+          class="rounded-md bg-blue-50 p-4 border-blue-600 border mb-8"
+        >
           <div class="flex">
             <div class="flex-shrink-0">
               <Heroicons.information_circle mini class="h-5 w-5 text-blue-500" />
@@ -67,7 +70,10 @@ defmodule PlatformWeb.ProjectsLive.ExportComponent do
               </div>
             </div>
 
-            <div class="md:flex gap-4 justify-between py-4 px-5 sm:py-5">
+            <div
+              :if={feature_available?(:full_export)}
+              class="md:flex gap-4 justify-between py-4 px-5 sm:py-5"
+            >
               <div>
                 <p class="sec-head">Full Export</p>
                 <p class="sec-subhead mb-2">
@@ -77,10 +83,10 @@ defmodule PlatformWeb.ProjectsLive.ExportComponent do
               </div>
               <div>
                 <%= button type: "button", to: Routes.export_path(@socket, :create_project_full_export, %{"project_id" => @project.id}),
-              class: "button ~urge @high",
-              role: "menuitem",
-              method: :post
-            do %>
+                  class: "button ~urge @high",
+                  role: "menuitem",
+                  method: :post
+                do %>
                   <Heroicons.folder_arrow_down mini class="-ml-0.5 mr-2 h-5 w-5 opacity-75" />
                   All Data & Media (ZIP)
                 <% end %>

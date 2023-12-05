@@ -8,7 +8,9 @@ defmodule PlatformWeb.NewLive.NewComponent do
   alias Platform.Projects
 
   def update(assigns, socket) do
-    active_project_membership = Platform.Accounts.get_user!(assigns.current_user.id).active_project_membership
+    active_project_membership =
+      Platform.Accounts.get_user!(assigns.current_user.id).active_project_membership
+
     project_id =
       if is_nil(active_project_membership),
         do: nil,
@@ -17,7 +19,8 @@ defmodule PlatformWeb.NewLive.NewComponent do
     {:ok,
      socket
      |> assign(assigns)
-     |> assign(:path_hash, :crypto.hash(:md5, assigns.path) |> Base.encode16()) # We do this so that we rerender the project selector on page changes
+     # We do this so that we rerender the project selector on page changes
+     |> assign(:path_hash, :crypto.hash(:md5, assigns.path) |> Base.encode16())
      |> assign(
        :project_options,
        Projects.list_projects_for_user(assigns.current_user)
@@ -208,7 +211,7 @@ defmodule PlatformWeb.NewLive.NewComponent do
                                   Map.put(acc, elem.id, elem.code)
                                 end)
                               ),
-                              id: "new_incident_project_selector"
+                            id: "new_incident_project_selector"
                           ) %>
                         </div>
                         <%= error_tag(@form, :project_id) %>
