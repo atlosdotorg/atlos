@@ -435,6 +435,7 @@ defmodule PlatformWeb.Components do
               module={PlatformWeb.NewLive.NewComponent}
               current_user={@current_user}
               id="global-new-modal"
+              path={@path}
             >
               <.navlink label="New" request_path={@path}>
                 <Heroicons.plus mini class="text-neutral-300 group-hover:text-white h-6 w-6" />

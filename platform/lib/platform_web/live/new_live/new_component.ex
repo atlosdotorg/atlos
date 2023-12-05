@@ -8,14 +8,16 @@ defmodule PlatformWeb.NewLive.NewComponent do
   alias Platform.Projects
 
   def update(assigns, socket) do
+    active_project_membership = Platform.Accounts.get_user!(assigns.current_user.id).active_project_membership
     project_id =
-      if is_nil(assigns.current_user.active_project_membership),
+      if is_nil(active_project_membership),
         do: nil,
-        else: assigns.current_user.active_project_membership.project_id
+        else: active_project_membership.project_id
 
     {:ok,
      socket
      |> assign(assigns)
+     |> assign(:path_hash, :crypto.hash(:md5, assigns.path) |> Base.encode16()) # We do this so that we rerender the project selector on page changes
      |> assign(
        :project_options,
        Projects.list_projects_for_user(assigns.current_user)
@@ -128,6 +130,12 @@ defmodule PlatformWeb.NewLive.NewComponent do
         }
       }
     }"
+      x-init="() => {
+        window.openNewIncidentDialog = () => {
+          console.log('Opening new incident dialog...')
+          setActive(true)
+        };
+      }"
       id="globalcreate"
       class="w-full flex flex-col items-center"
       x-on:keydown.escape.window.prevent="setActive(false)"
@@ -135,7 +143,7 @@ defmodule PlatformWeb.NewLive.NewComponent do
       x-on:keydown.meta.i.window.prevent="setActive(!active)"
       x-ref="base"
     >
-      <button type="button" x-on:click="setActive(true)" class="w-full">
+      <button type="button" x-on:click="setActive(true)" class="w-full" id="new-incident-open-button">
         <%= render_slot(@inner_block) %>
       </button>
       <article x-cloak x-ref="body">
@@ -189,7 +197,7 @@ defmodule PlatformWeb.NewLive.NewComponent do
                           :project_id,
                           "Project"
                         ) %>
-                        <div phx-update="ignore" id={"project_select_#{@media.slug}"}>
+                        <div phx-update="ignore" id={"project_selector_#{@path_hash}"}>
                           <%= select(
                             @form,
                             :project_id,
@@ -199,7 +207,8 @@ defmodule PlatformWeb.NewLive.NewComponent do
                                 Enum.reduce(@project_options, %{}, fn elem, acc ->
                                   Map.put(acc, elem.id, elem.code)
                                 end)
-                              )
+                              ),
+                              id: "new_incident_project_selector"
                           ) %>
                         </div>
                         <%= error_tag(@form, :project_id) %>

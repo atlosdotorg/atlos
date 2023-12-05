@@ -94,7 +94,7 @@ defmodule PlatformWeb.ProjectsLive.Show do
                 <%= @project.description |> Platform.Utils.render_markdown() |> raw() %>
               </div>
             </div>
-            <div class="flex self-start mt-4 gap-2 flex-wrap">
+            <div class="flex self-start mt-4 gap-2 flex-wrap" x-data>
               <.link
                 navigate={
                   Routes.live_path(@socket, PlatformWeb.MediaLive.Index, %{
@@ -108,9 +108,9 @@ defmodule PlatformWeb.ProjectsLive.Show do
                 <span>Search</span>
               </.link>
               <%= if Permissions.can_edit_project_metadata?(@current_user, @project) do %>
-                <.link navigate={"/new?project_id=#{@project.id}"} class="button ~urge @high">
+                <button type="button" x-on:click={"window.openNewIncidentDialog"} class="button ~urge @high">
                   <Heroicons.plus mini class="-ml-0.5 mr-2 text-urge-200 h-5 w-5" /> New Incident
-                </.link>
+                </button>
               <% end %>
             </div>
           </div>
