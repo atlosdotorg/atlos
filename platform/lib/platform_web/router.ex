@@ -18,14 +18,14 @@ defmodule PlatformWeb.Router do
       # `default-src 'none'` and removing cdn.jsdelivr.net); this is an opportunity for future improvement. To
       # quote Sobelow, just about any CSP is better than the default (no CSP at all!).
       "content-security-policy" =>
-        "object-src 'none'; script-src 'self' js.hcaptcha.com unpkg.com static.highlight.io 'unsafe-eval' blob:; base-uri 'none';"
+        "object-src 'none'; script-src 'self' js.hcaptcha.com api.mapbox.com unpkg.com static.highlight.io 'unsafe-eval' blob:; base-uri 'none';"
     })
 
     plug(:fetch_current_user)
   end
 
   pipeline :app do
-    plug(:put_layout, {PlatformWeb.LayoutView, "app.html"})
+    plug(:put_layout, {PlatformWeb.LayoutView, "interstitial.html"})
   end
 
   pipeline :interstitial do
@@ -146,21 +146,21 @@ defmodule PlatformWeb.Router do
 
     # Redirect /map to avoid breaking old links
     get("/map", PageController, :index)
+    get("/new", PageController, :new)
     get("/", PageController, :index)
 
     get("/users/settings", UserSettingsController, :edit)
     put("/users/settings", UserSettingsController, :update)
     get("/users/settings/confirm_email/:token", UserSettingsController, :confirm_email)
 
-    post("/export/incidents", ExportController, :create)
+    post("/export/incidents", ExportController, :create_csv_export)
+    post("/export/full", ExportController, :create_project_full_export)
 
     live_session :default, on_mount: {MountHelperLive, :authenticated} do
       live("/settings", SettingsLive)
       live("/settings/mfa", SettingsLive.MFALive)
 
       live("/home", HomeLive.Index, :index)
-
-      live("/new", NewLive)
 
       live("/incidents", MediaLive.Index)
 

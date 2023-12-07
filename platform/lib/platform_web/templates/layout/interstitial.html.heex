@@ -1,21 +1,23 @@
-<div class="min-h-screen flex flex justify-center py-12 sm:px-6 lg:px-8 items-center bg-neutral-600">
+<div class="min-h-screen flex justify-center py-12 sm:px-6 lg:px-8 items-center bg-neutral-600">
   <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-sm">
-    <p class="text-center mb-8">
-      <%!-- We put classes in a variable to avoid "Atlos" being put on its own line when autoformatted, which results in spacing issues. --%>
-      <% classes =
-        "px-1 py-px rounded-sm font-mono bg-neutral-200 text-neutral-600 font-bold text-3xl uppercase" %>
-      <span class={classes}>Atlos</span>
-      <br />
-      <% name = Platform.Utils.get_instance_name() %>
-      <%= if not is_nil(name) do %>
-        <span class="font-mono md:text-sm uppercase font-medium text-white text-xl md:mt-1">
-          <%= name %>
-        </span>
-      <% end %>
-    </p>
+    <div class="text-center mb-8">
+      <a href="/">
+        <%!-- We put classes in a variable to avoid "Atlos" being put on its own line when autoformatted, which results in spacing issues. --%>
+        <% classes =
+          "px-1 py-px rounded-sm font-mono bg-neutral-200 text-neutral-600 font-bold text-3xl uppercase" %>
+        <span class={classes}>Atlos</span>
+        <br />
+        <% name = Platform.Utils.get_instance_name() %>
+        <%= if not is_nil(name) do %>
+          <span class="font-mono md:text-sm uppercase font-medium text-white text-xl md:mt-1">
+            <%= name %>
+          </span>
+        <% end %>
+      </a>
+    </div>
     <.card header_class="bg-neutral-100" class="overflow-hidden">
       <:header>
-        <p class="sec-head"><%= @title || "" %></p>
+        <p class="sec-head"><%= assigns[:title] || "" %></p>
       </:header>
       <%= if get(@flash, :info) do %>
         <p class="aside ~urge mb-4" role="alert"><%= get(@flash, :info) %></p>

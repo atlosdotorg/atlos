@@ -10,7 +10,7 @@ defmodule PlatformWeb.MediaLive.MergeVersionsLive do
        socket
        |> assign(assigns)
        |> assign_new(:destination, fn -> nil end)
-       |> assign_new(:changeset, fn -> changeset(%{}, assigns.source) end)}
+       |> assign_new(:changeset, fn -> changeset(%{}, assigns.source, socket) end)}
     else
       raise PlatformWeb.Errors.Unauthorized, "No permission"
     end
@@ -20,16 +20,16 @@ defmodule PlatformWeb.MediaLive.MergeVersionsLive do
     destination: :string
   }
 
-  def changeset(params, source) do
+  def changeset(params, source, socket) do
     data = %{}
 
     {data, @types}
     |> Ecto.Changeset.cast(params, Map.keys(@types))
     |> Ecto.Changeset.validate_required([:destination])
-    |> validate_slug(:destination, source)
+    |> validate_slug(:destination, source, socket)
   end
 
-  def validate_slug(changeset, field, source) when is_atom(field) do
+  def validate_slug(changeset, field, source, socket) when is_atom(field) do
     Ecto.Changeset.validate_change(changeset, field, fn field, value ->
       case value do
         nil ->
@@ -41,10 +41,18 @@ defmodule PlatformWeb.MediaLive.MergeVersionsLive do
               [{field, "This incident doesn't seem to exist. Is the six-character correct?"}]
 
             media ->
-              if media.id == source.id do
-                [{field, "You cannot merge media into itself."}]
-              else
-                []
+              cond do
+                not Permissions.can_view_media?(socket.assigns.current_user, media) ->
+                  [{field, "This incident doesn't seem to exist. Is the six-character correct?"}]
+
+                not Permissions.can_edit_media?(socket.assigns.current_user, media) ->
+                  [{field, "You don't have permission to edit this incident."}]
+
+                media.id == source.id ->
+                  [{field, "You cannot merge media into itself."}]
+
+                true ->
+                  []
               end
           end
       end
@@ -53,7 +61,7 @@ defmodule PlatformWeb.MediaLive.MergeVersionsLive do
 
   def handle_event("validate", %{"merge" => params}, socket) do
     cs =
-      changeset(params, socket.assigns.source)
+      changeset(params, socket.assigns.source, socket)
       |> Map.put(:action, :validate)
 
     destination_code = Ecto.Changeset.get_field(cs, :destination)
@@ -65,7 +73,7 @@ defmodule PlatformWeb.MediaLive.MergeVersionsLive do
   end
 
   def handle_event("save", %{"merge" => params}, socket) do
-    cs = changeset(params, socket.assigns.source)
+    cs = changeset(params, socket.assigns.source, socket)
 
     if cs.valid? do
       case Material.merge_media_versions_audited(

@@ -12,9 +12,9 @@
 #   - https://pkgs.org/ - resource for finding needed packages
 #   - Ex: hexpm/elixir:1.13.4-erlang-24.3.3-debian-bullseye-20210902-slim
 #
-ARG ELIXIR_VERSION=1.15.4
-ARG OTP_VERSION=26.0.2
-ARG DEBIAN_VERSION=bullseye-20230612
+ARG ELIXIR_VERSION=1.15.7
+ARG OTP_VERSION=26.1.2
+ARG DEBIAN_VERSION=bookworm-20231009
 
 ARG BUILDER_IMAGE="hexpm/elixir:${ELIXIR_VERSION}-erlang-${OTP_VERSION}-debian-${DEBIAN_VERSION}"
 ARG RUNNER_IMAGE="debian:${DEBIAN_VERSION}"
@@ -99,13 +99,13 @@ COPY utils utils
 ENV UTILS_DIR="/app/utils"
 
 # Install packages needed for runtime environment
-RUN apt-get update -y && apt-get install -y ffmpeg imagemagick curl python3 python3-pip chromium tmpreaper ca-certificates postgresql-client netcat jq \
-  && apt-get clean && rm -f /var/lib/apt/lists/*_* && python3 -m pip install poetry
+RUN apt-get update -y && apt-get install -y ffmpeg imagemagick curl python3-full dbus python3-pip python3-poetry chromium tmpreaper ca-certificates postgresql-client jq \
+  && apt-get clean && rm -f /var/lib/apt/lists/*_*
 
 USER atlos
 
 # Install and setup Poetry+Python for the `utils/` scripts (archiver, etc.)
-RUN cd /app/utils && poetry install --only main --no-interaction --no-ansi
+RUN cd /app/utils && PYTHON_KEYRING_BACKEND=keyring.backends.null.Keyring poetry install --only main --no-interaction --no-ansi
 
 # Only copy the final release from the build stage
 COPY --from=builder --chown=atlos:root /app/_build/${MIX_ENV}/rel/platform ./

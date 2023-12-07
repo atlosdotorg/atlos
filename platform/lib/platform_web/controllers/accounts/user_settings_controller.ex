@@ -8,7 +8,7 @@ defmodule PlatformWeb.UserSettingsController do
   plug :assign_email_and_password_changesets
 
   def edit(conn, _params) do
-    render(conn, "edit.html")
+    render(conn |> assign(:title, "Change Password"), "edit.html")
   end
 
   # For the time being, we do not support updating your email.
@@ -47,11 +47,13 @@ defmodule PlatformWeb.UserSettingsController do
 
         conn
         |> put_flash(:info, "Password updated successfully.")
-        |> put_session(:user_return_to, Routes.user_settings_path(conn, :edit))
+        |> put_session(:user_return_to, "/settings")
         |> UserAuth.log_in_user(user)
 
       {:error, changeset} ->
-        render(conn, "edit.html", password_changeset: changeset)
+        render(conn |> assign(:title, "Change Password"), "edit.html",
+          password_changeset: changeset
+        )
     end
   end
 

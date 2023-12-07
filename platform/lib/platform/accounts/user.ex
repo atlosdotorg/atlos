@@ -41,6 +41,9 @@ defmodule Platform.Accounts.User do
     many_to_many(:subscribed_media, Material.Media, join_through: "media_subscriptions")
     belongs_to(:invite, Platform.Invites.Invite, type: :binary_id)
 
+    # Computed tsvector field "searchable"; we tell Ecto it's an array of maps so we can use it in queries
+    field(:searchable, {:array, :map}, load_in_query: false)
+
     timestamps()
   end
 

@@ -259,39 +259,36 @@ defmodule PlatformWeb.ProjectsLive.MembersComponent do
                           <tr>
                             <th
                               scope="col"
-                              class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6"
+                              class="pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6"
                             >
                               User
                             </th>
-                            <th
-                              scope="col"
-                              class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
-                            >
+                            <th scope="col" class="px-3 text-left text-sm font-semibold text-gray-900">
                               Role
                             </th>
                             <th
                               scope="col"
-                              class="relative py-3.5 pl-3 pr-4 sm:pr-6 text-right lg:whitespace-nowrap"
+                              class="relative pl-3 pr-4 sm:pr-6 text-right lg:whitespace-nowrap"
                             >
-                              <%= if can_edit do %>
-                                <button
-                                  type="button"
-                                  class="button ~urge @high my-2"
-                                  phx-click="add_member"
-                                  phx-target={@myself}
-                                >
-                                  Add Member
-                                </button>
-                              <% end %>
                               <%= if @can_remove_self do %>
                                 <button
                                   type="button"
-                                  class="button ~critical @high ml-2"
+                                  class="button ~critical @high mr-1"
                                   phx-click="leave_project"
                                   data-confirm="Are you sure you want to leave this project? To rejoin it, you will need to be invited again."
                                   phx-target={@myself}
                                 >
                                   Leave Project
+                                </button>
+                              <% end %>
+                              <%= if can_edit do %>
+                                <button
+                                  type="button"
+                                  class="button ~urge @high -mr-4 my-2"
+                                  phx-click="add_member"
+                                  phx-target={@myself}
+                                >
+                                  Add Member
                                 </button>
                               <% end %>
                               <span class="sr-only">Manage</span>
@@ -300,11 +297,11 @@ defmodule PlatformWeb.ProjectsLive.MembersComponent do
                         </thead>
                         <tbody class="divide-y divide-gray-200 bg-white">
                           <%= for membership <- @memberships do %>
-                            <tr>
-                              <td class=" py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
-                                <.user_card user={membership.user} />
+                            <tr class="py-2">
+                              <td class="pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
+                                <.user_card user={membership.user} profile_photo_class="h-8 w-8" />
                               </td>
-                              <td class="px-3 py-4 text-sm text-gray-500">
+                              <td class="px-3 text-sm text-gray-500">
                                 <div>
                                   <%= case membership.role do %>
                                     <% :owner -> %>
@@ -318,7 +315,7 @@ defmodule PlatformWeb.ProjectsLive.MembersComponent do
                                   <% end %>
                                 </div>
                               </td>
-                              <td class="relative  py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
+                              <td class="relative pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
                                 <%= if can_edit do %>
                                   <%= if not (membership.role == :owner and Enum.filter(@memberships, & &1.role == :owner) |> length() == 1) do %>
                                     <button

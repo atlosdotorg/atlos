@@ -1167,7 +1167,7 @@ defmodule Platform.Material.Attribute do
       changeset
     else
       changeset
-      |> add_error(hd(attributes).schema_field, "A change is required to post an update.")
+      |> add_error(hd(attributes).schema_field, "A change is required.")
     end
   end
 

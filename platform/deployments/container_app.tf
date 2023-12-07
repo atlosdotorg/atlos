@@ -13,25 +13,32 @@ resource "random_password" "secret_key_base" {
   special = true
 }
 
-resource "azurerm_subnet" "container_app_subset" {
+resource "azurerm_subnet" "container_app_subnet" {
   name                 = "ca-subnet-${local.stack}"
   resource_group_name  = azurerm_resource_group.platform.name
   virtual_network_name = azurerm_virtual_network.vnet.name
   address_prefixes     = ["10.0.128.0/21"]
 }
 
+resource "azurerm_container_app_environment_certificate" "origin_certificate" {
+  name                         = "origin-certificate-${local.stack}"
+  container_app_environment_id = azurerm_container_app_environment.platform.id
+  certificate_blob_base64      = base64encode(var.origin_certificate)
+  certificate_password         = ""
+}
+
 resource "azurerm_container_app_environment" "platform" {
-  name                       = "container-app-environment-${local.stack}"
+  name                       = "ca-environment-main-${local.stack}"
   location                   = azurerm_resource_group.platform.location
   resource_group_name        = azurerm_resource_group.platform.name
   log_analytics_workspace_id = azurerm_log_analytics_workspace.platform.id
-  infrastructure_subnet_id   = azurerm_subnet.container_app_subset.id
+  infrastructure_subnet_id   = azurerm_subnet.container_app_subnet.id
 
   tags = local.default_tags
 }
 
 resource "azurerm_container_app" "platform" {
-  name = "ca-${local.stack}"
+  name = "ca-main-${local.stack}"
 
   container_app_environment_id = azurerm_container_app_environment.platform.id
   resource_group_name          = azurerm_resource_group.platform.name
@@ -43,16 +50,31 @@ resource "azurerm_container_app" "platform" {
     target_port                = 4000
     transport                  = "http"
 
+    custom_domain {
+      name           = var.host
+      certificate_id = azurerm_container_app_environment_certificate.origin_certificate.id
+    }
+
     traffic_weight {
-      percentage = 100
+      percentage      = 100
+      latest_revision = true
     }
   }
 
+  timeouts {
+    create = "2h"
+    update = "2h"
+    delete = "2h"
+  }
+
   template {
+    min_replicas = 1
+    max_replicas = 5
+
     container {
-      name   = "platform"
-      image  = "ghcr.io/atlosdotorg/atlos:main"
-      
+      name  = "platform"
+      image = "ghcr.io/atlosdotorg/atlos:main"
+
       cpu    = 1.0
       memory = "2Gi"
 
@@ -169,6 +191,31 @@ resource "azurerm_container_app" "platform" {
         name        = "DATABASE_URL"
         secret_name = "database-url"
       }
+
+      env {
+        name  = "S3_BUCKET"
+        value = var.platform_content_s3_bucket
+      }
+
+      env {
+        name  = "AWS_REGION"
+        value = var.platform_aws_region
+      }
+
+      env {
+        name  = "PHX_HOST"
+        value = var.host
+      }
+
+      env {
+        name        = "SPN_ARCHIVE_API_KEY"
+        secret_name = "spn-archive-api-key"
+      }
+
+      env {
+        name  = "HIGHLIGHT_CODE"
+        value = var.highlight_code
+      }
     }
   }
 
@@ -199,12 +246,12 @@ resource "azurerm_container_app" "platform" {
 
   secret {
     name  = "aws-access-key-id"
-    value = var.aws_access_key_id
+    value = var.platform_aws_access_key_id
   }
 
   secret {
     name  = "aws-secret-access-key"
-    value = var.aws_secret_access_key
+    value = var.platform_aws_secret_access_key
   }
 
   secret {

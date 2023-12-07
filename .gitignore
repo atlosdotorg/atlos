@@ -1,3 +1,4 @@
 .nova
 .DS_Store
 .vscode
+.terraform/environment

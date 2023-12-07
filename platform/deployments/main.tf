@@ -7,15 +7,13 @@ locals {
   }
 }
 
+# Data
+data "azurerm_client_config" "current" {}
+
 # Resource group
 resource "azurerm_resource_group" "platform" {
   name     = "rg-${local.stack}"
-  location = "East US 2"
-}
-
-resource "azurerm_resource_group" "core" {
-  name     = "core"
-  location = "East US 2"
+  location = var.region
 }
 
 # Log analytics with 90 day retention

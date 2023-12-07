@@ -240,8 +240,8 @@ defmodule Platform.Utils do
     queryable
     |> where(
       [q],
-      fragment("? @@ websearch_to_tsquery('english', ?)", q.searchable, ^search_terms) or
-        fragment("? @@ websearch_to_tsquery('english', ?)", q.searchable, ^wrapped)
+      fragment("? @@ websearch_to_tsquery('simple', ?)", q.searchable, ^search_terms) or
+        fragment("? @@ websearch_to_tsquery('simple', ?)", q.searchable, ^wrapped)
     )
   end
 end

@@ -1,16 +1,11 @@
 <main class="h-full flex flex-col md:flex-row">
-  <.nav path={@path} current_user={@current_user} endpoint={@socket} />
+  <.nav path={@path} current_user={@current_user} endpoint={@socket} live={true} />
 
   <div class="flex-1 flex flex-col overflow-hidden z-0">
     <div class={"mx-auto w-full " <> (if @full_width, do: "", else: "my-8")}>
       <div class={"mx-auto w-full " <> (if @full_width, do: "", else: "2xl:w-[1280px] min-h-[85vh]")}>
         <%= @inner_content %>
       </div>
-      <%= if not @full_width do %>
-        <div class="mx-auto w-full">
-          <.footer />
-        </div>
-      <% end %>
       <div
         aria-live="assertive"
         class="fixed inset-0 z-[9999] flex items-end px-4 py-6 pointer-events-none sm:p-6 sm:items-start z-[100]"

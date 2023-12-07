@@ -36,7 +36,7 @@ defmodule Platform.MixProject do
       {:bcrypt_elixir, "~> 3.0"},
       {:phoenix, "~> 1.7.0"},
       {:phoenix_ecto, "~> 4.4"},
-      {:ecto_sql, "~> 3.10.0"},
+      {:ecto_sql, "~> 3.11.0"},
       {:postgrex, "~> 0.17.0"},
       {:phoenix_html, "~> 3.0"},
       {:phoenix_live_reload, "~> 1.2", only: :dev},
@@ -63,7 +63,7 @@ defmodule Platform.MixProject do
       {:waffle, "~> 1.1"},
       {:sweet_xml, "~> 0.7.3"},
       {:gen_smtp, "~> 1.1"},
-      {:hackney, "~> 1.18.0"},
+      {:hackney, "~> 1.20.1"},
       {:appsignal, "~> 2.3"},
       {:appsignal_phoenix, "~> 2.1"},
       {:earmark, "~> 1.4"},
@@ -77,6 +77,8 @@ defmodule Platform.MixProject do
       {:heroicons, "~> 0.5.1"},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:vega_lite, "~> 0.1.7"},
+      {:zstream, "~> 0.6"},
+      {:httpoison, "~> 2.0"},
       # Temporarily set the manager option for this so it compiles
       # https://elixirforum.com/t/elixir-v1-15-0-released/56584/4?u=axelson
       {:ssl_verify_fun, ">= 0.0.0", manager: :rebar3, override: true}

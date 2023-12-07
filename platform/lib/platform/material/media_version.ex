@@ -40,6 +40,9 @@ defmodule Platform.Material.MediaVersion do
     # Virtual field for when creating new media versions (used by Updates)
     field(:explanation, :string, virtual: true)
 
+    # Computed tsvector field "searchable"; we tell Ecto it's an array of maps so we can use it in queries
+    field(:searchable, {:array, :map}, load_in_query: false)
+
     belongs_to(:media, Media, type: :binary_id)
 
     timestamps()

@@ -41,15 +41,14 @@ defmodule Platform.Updates.Update do
 
     field(:hidden, :boolean, default: false)
 
-    # Used for project changes
-    belongs_to(:old_project, Platform.Projects.Project, type: :binary_id)
-    belongs_to(:new_project, Platform.Projects.Project, type: :binary_id)
-
     # General association metadata
     belongs_to(:user, Platform.Accounts.User, type: :binary_id)
     belongs_to(:media, Platform.Material.Media, type: :binary_id)
     belongs_to(:media_version, Platform.Material.MediaVersion, type: :binary_id)
     belongs_to(:api_token, Platform.API.APIToken, type: :binary_id)
+
+    # Computed tsvector field "searchable"; we tell Ecto it's an array of maps so we can use it in queries
+    field(:searchable, {:array, :map}, load_in_query: false)
 
     timestamps()
   end
@@ -84,8 +83,6 @@ defmodule Platform.Updates.Update do
         :user_id,
         :media_id,
         :media_version_id,
-        :old_project_id,
-        :new_project_id,
         :api_token_id
       ])
       |> then(fn cs ->
@@ -109,8 +106,6 @@ defmodule Platform.Updates.Update do
       |> assoc_constraint(:user)
       |> assoc_constraint(:media)
       |> assoc_constraint(:media_version)
-      |> assoc_constraint(:old_project)
-      |> assoc_constraint(:new_project)
       |> assoc_constraint(:api_token)
       |> validate_explanation()
 

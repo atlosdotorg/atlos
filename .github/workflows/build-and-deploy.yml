@@ -1,5 +1,4 @@
 # This action currently only handles building and pushing the container image to the registry.
-# 
 # We will expand it in the future to also handle deployments for our Atlos-native infrastructure.
 
 name: Build and deploy
@@ -9,7 +8,7 @@ on:
     branches:
       - main
       - deployments/gap
-      - deployments/platform
+      - deployments/prod
     paths:
       - "platform/**"
       - ".github/workflows/build-and-deploy.yml"
@@ -29,6 +28,8 @@ jobs:
     defaults:
       run:
         working-directory: ./platform
+    outputs:
+      image_digest: ${{ steps.docker-build.outputs.digest }}
     steps:
       - uses: actions/checkout@v3
 
@@ -50,6 +51,7 @@ jobs:
 
       - name: Build and push container image to registry
         uses: docker/build-push-action@v3
+        id: docker-build
         with:
           push: true
           context: ./platform
@@ -59,3 +61,40 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           build-args: APP_REVISION=${{ github.sha }}
+  deploy-staging:
+    # Only runs if the build job was successful
+    needs: build
+    # Only runs if the branch is main
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    concurrency:
+      group: deploy:${{ github.ref }}
+    environment:
+      name: "Staging (Azure)" # TODO: Figure out the right environment from the branch name
+      url: "staging.atlos.org"
+    steps:
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+      - name: Deploy New Revision
+        run: az containerapp revision copy --name ${{ secrets.AZURE_CONTAINER_APP_NAME }} --resource-group ${{ secrets.AZURE_CONTAINER_APP_RESOURCE_GROUP }} --image "ghcr.io/atlosdotorg/atlos@${{ needs.build.outputs.image_digest }}"
+  deploy-prod:
+    # Only runs if the build job was successful
+    needs: build
+    # Only runs if the branch is `deployments/prod`
+    if: github.ref == 'refs/heads/deployments/prod'
+    runs-on: ubuntu-latest
+    concurrency:
+      group: deploy:${{ github.ref }}
+    environment:
+      name: "Prod (Azure)" # TODO: Figure out the right environment from the branch name
+      url: "platform.atlos.org"
+    steps:
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+      - name: Deploy New Revision
+        run: az containerapp revision copy --name ${{ secrets.AZURE_CONTAINER_APP_NAME }} --resource-group ${{ secrets.AZURE_CONTAINER_APP_RESOURCE_GROUP }} --image "ghcr.io/atlosdotorg/atlos@${{ needs.build.outputs.image_digest }}"
+

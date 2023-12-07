@@ -4,6 +4,7 @@ defmodule Platform.Projects.ProjectAttribute do
 
   alias Platform.Material.Attribute
 
+  @derive {Jason.Encoder, only: [:name, :description, :type, :options]}
   @primary_key {:id, :binary_id, autogenerate: true}
   embedded_schema do
     field(:name, :string)

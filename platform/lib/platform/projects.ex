@@ -73,7 +73,10 @@ defmodule Platform.Projects do
   def get_project(""), do: nil
   def get_project("unset"), do: nil
   def get_project(nil), do: nil
-  def get_project(id), do: Repo.get(Project, id)
+
+  defmemo get_project(id), expires_in: 5000 do
+    Repo.get(Project |> preload_project_associations(), id)
+  end
 
   @doc """
   Creates a project. If the user is not nil, it will add the user as an owner of the project.
@@ -144,19 +147,16 @@ defmodule Platform.Projects do
   end
 
   @doc """
-  Deletes a project.
-
-  ## Examples
-
-      iex> delete_project(project)
-      {:ok, %Project{}}
-
-      iex> delete_project(project)
-      {:error, %Ecto.Changeset{}}
-
+  Marks a project as inactive.
   """
-  def delete_project(%Project{} = project) do
-    Repo.delete(project)
+  def update_project_active(%Project{} = project, is_active, user \\ nil) do
+    unless is_nil(user) or Permissions.can_change_project_active_status?(user, project) do
+      raise "User does not have permission to change the active status of this project"
+    end
+
+    project
+    |> Project.active_changeset(%{active: is_active})
+    |> Repo.update()
   end
 
   @doc """

@@ -14,21 +14,24 @@ export default function Home() {
 
   useEffect(() => {
     setPageIsMounted(true)
-    const map = new mapboxgl.Map({
-      container: 'map', // container ID
-      style: 'mapbox://styles/milesmcc/cl2mejeca000d14p2wg8hm1eo', // style URL
-      center: [36.1457427, 49.9947277], // starting position [lng, lat]
-      zoom: 9, // starting zoom
-      pitch: 60,
-      interactive: false,
-    });
-    map.on("load", () => {
-      setInterval(() => {
-        map.panBy([1, -1], {
-          easing: easing
-        });
-      }, 200);
-    });
+    try {
+      // This might fail if the user is on a browser without WebGL support
+      const map = new mapboxgl.Map({
+        container: 'map', // container ID
+        style: 'mapbox://styles/milesmcc/cl2mejeca000d14p2wg8hm1eo', // style URL
+        center: [36.1457427, 49.9947277], // starting position [lng, lat]
+        zoom: 9, // starting zoom
+        pitch: 60,
+        interactive: false,
+      });
+      map.on("load", () => {
+        setInterval(() => {
+          map.panBy([1, -1], {
+            easing: easing
+          });
+        }, 200);
+      });
+    } catch (e) {}
   }, []);
 
   return (

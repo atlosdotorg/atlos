@@ -38,13 +38,11 @@ defmodule Platform.Updates do
     Repo.all(query)
   end
 
-  defp preload_fields(queryable) do
+  def preload_fields(queryable) do
     queryable
     |> preload([
       :user,
       :media_version,
-      :old_project,
-      :new_project,
       :api_token,
       media: [:project]
     ])
@@ -359,41 +357,6 @@ defmodule Platform.Updates do
         "media_version_id" => version.id,
         "explanation" => Map.get(attrs, "explanation")
       }
-    )
-  end
-
-  def change_from_media_project_change(
-        %Media{} = old_media,
-        %Media{} = new_media,
-        %User{} = user
-      ) do
-    old_project = old_media.project_id
-    new_project = new_media.project_id
-
-    change_update(
-      %Update{},
-      new_media,
-      user,
-      case {old_project, new_project} do
-        {nil, id} when not is_nil(id) ->
-          %{
-            "type" => :add_project,
-            "new_project_id" => id
-          }
-
-        {id, nil} when not is_nil(id) ->
-          %{
-            "type" => :remove_project,
-            "old_project_id" => id
-          }
-
-        {old_id, new_id} when not is_nil(old_id) and not is_nil(new_id) ->
-          %{
-            "type" => :change_project,
-            "old_project_id" => old_id,
-            "new_project_id" => new_id
-          }
-      end
     )
   end
 
