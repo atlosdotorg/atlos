@@ -283,16 +283,16 @@
 /**
   Important CSS for our custom full-page map styling.,
 */
-.mapboxgl-map {
+.maplibregl-map {
   display: block;
   height: 100%;
 }
 
-.mapboxgl-ctrl-bottom-left {
+.maplibregl-ctrl-bottom-left {
   bottom: unset !important;
 }
 
-.mapboxgl-popup-content {
+.maplibregl-popup-content {
   background: unset !important;
   box-shadow: unset !important;
   border-radius: 4px;
