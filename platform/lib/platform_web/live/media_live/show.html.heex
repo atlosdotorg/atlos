@@ -9,7 +9,7 @@
               do: " (#{Enum.join(@media.attr_sensitive, ", ")})",
               else: "" %>
         <button
-          class="font-mono text-lg sm:text-2xl text-neutral-400 font-medium p-1 rounded hover:bg-neutral-200 transition-all"
+          class="font-mono text-base sm:text-xl text-neutral-500 font-medium p-1 rounded hover:bg-neutral-200 transition-all"
           x-bind:class="pulse ? 'animate-ping' : ''"
           data-tooltip="Copy information to your clipboard"
           type="button"
@@ -18,7 +18,7 @@
           <%= Media.slug_to_display(@media) %>
         </button>
         <% title_classes =
-          "text-xl font-medium leading-7 text-gray-700 sm:text-3xl block transition p-1 rounded " <>
+          "text-xl font-medium leading-7 text-neutral-700 sm:text-3xl block transition p-1 rounded " <>
             if @media.deleted, do: "line-through ", else: "" %>
         <%= if(
        Permissions.can_edit_media?(@current_user, @media, Attribute.get_attribute(:description))
