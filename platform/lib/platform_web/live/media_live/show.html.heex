@@ -9,7 +9,7 @@
               do: " (#{Enum.join(@media.attr_sensitive, ", ")})",
               else: "" %>
         <button
-          class="font-mono text-sm text-neutral-600 p-1 rounded hover:bg-neutral-200 transition-all"
+          class="font-mono text-base sm:text-xl text-neutral-500 font-medium p-1 rounded hover:bg-neutral-200 transition-all"
           x-bind:class="pulse ? 'animate-ping' : ''"
           data-tooltip="Copy information to your clipboard"
           type="button"
@@ -18,7 +18,7 @@
           <%= Media.slug_to_display(@media) %>
         </button>
         <% title_classes =
-          "text-xl font-medium leading-7 text-gray-700 sm:text-3xl block transition p-1 rounded " <>
+          "text-xl font-medium leading-7 text-neutral-700 sm:text-3xl block transition p-1 rounded " <>
             if @media.deleted, do: "line-through ", else: "" %>
         <%= if(
        Permissions.can_edit_media?(@current_user, @media, Attribute.get_attribute(:description))
@@ -193,7 +193,7 @@
                       <path d="M9.97.97a.75.75 0 011.06 0l3 3a.75.75 0 01-1.06 1.06l-1.72-1.72v3.44h-1.5V3.31L8.03 5.03a.75.75 0 01-1.06-1.06l3-3zM9.75 6.75v6a.75.75 0 001.5 0v-6h3a3 3 0 013 3v7.5a3 3 0 01-3 3h-7.5a3 3 0 01-3-3v-7.5a3 3 0 013-3h3z" />
                       <path d="M7.151 21.75a2.999 2.999 0 002.599 1.5h7.5a3 3 0 003-3v-7.5c0-1.11-.603-2.08-1.5-2.599v7.099a4.5 4.5 0 01-4.5 4.5H7.151z" />
                     </svg>
-                    Merge Source Material
+                    Copy Source Material
                   </.link>
                   <.link
                     :if={Permissions.can_copy_media?(@current_user, @media)}
@@ -214,7 +214,7 @@
         <% end %>
       </div>
     </div>
-    <div class="grid lg:grid-cols-3 gap-8 mt-8">
+    <div class="grid lg:grid-cols-3 gap-8 mt-12">
       <div class="lg:col-span-2 space-y-8">
         <.card>
           <:header>
@@ -531,10 +531,10 @@
           <div>
             <p class="support font-mono"><%= Media.slug_to_display(@media) %></p>
             <p class="sec-head">
-              Merge Source Material
+              Copy Source Material
             </p>
             <p class="sec-subhead">
-              Merge source material associated with this incident into another incident. Note that media that has been hidden from view (i.e., marked as hidden or removed) will not be merged.
+              Copy source material associated with this incident into another incident. Note that media that has been hidden from view (i.e., marked as hidden or removed) will not be merged.
             </p>
           </div>
         </div>
