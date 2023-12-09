@@ -54,6 +54,7 @@ defmodule PlatformWeb.Components do
       assign_new(assigns, :id, fn -> "default" end)
       |> assign_new(:js_on_close, fn -> "" end)
       |> assign_new(:wide, fn -> false end)
+      |> assign_new(:no_pad, fn -> false end)
 
     ~H"""
     <div
@@ -91,7 +92,7 @@ defmodule PlatformWeb.Components do
         </span>
 
         <div
-          class={"mt-24 mb-8 md:mt-0 relative inline-block opacity-0 scale-75 align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left shadow-xl transform transition-all sm:align-middle sm:max-w-xl sm:w-full sm:p-6 max-w-full min-w-0 " <> if @wide, do: "lg:max-w-3xl xl:max-w-4xl", else: ""}
+          class={"mt-24 mb-8 md:mt-0 relative inline-block opacity-0 scale-75 align-bottom bg-white rounded-lg text-left shadow-xl transform transition-all sm:align-middle sm:max-w-xl sm:w-full max-w-full min-w-0 " <> if @wide, do: "lg:max-w-3xl xl:max-w-4xl", else: "" <> if @no_pad, do: "", else: "px-4 pt-5 pb-4 sm:p-6"}
           phx-mounted={
             JS.transition({"ease-out duration-75", "opacity-0 scale-75", "opacity-100 scale-100"},
               time: 75
