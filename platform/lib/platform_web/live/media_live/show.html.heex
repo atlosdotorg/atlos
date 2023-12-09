@@ -837,10 +837,10 @@
                         >
                           <img
                             src={Material.media_version_artifact_location(artifact)}
-                            class="w-full object-contain overflow-hidden max-h-[28rem]"
+                            class="w-full object-contain overflow-hidden max-h-[28rem] blur-none group-hover:blur-sm transition-all"
                             x-bind:class="grayscale ? 'grayscale' : ''"
                           />
-                          <div class="border rounded-lg opacity-0 overflow-hidden group-hover:opacity-100 block absolute inset-0 backdrop-blur-sm transition bg-white/50 flex flex-col gap-2 items-center justify-center w-full h-full">
+                          <div class="opacity-0 overflow-hidden group-hover:opacity-100 block absolute inset-0 transition-all flex group-hover:bg-white/50 flex-col gap-2 items-center justify-center w-full h-full">
                             <Heroicons.link class="h-8 w-8 text-neutral-600" />
                             <span class="text-neutral-600">
                               Open full image in new tab (in color)
