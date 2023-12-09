@@ -437,30 +437,34 @@ defmodule PlatformWeb.Components do
             </.navlink>
           <% end %>
           <div class="hidden md:block flex-grow"></div>
-          <div class="w-full" data-tooltip="Ctrl + I">
+          <div class="w-full">
             <.live_component
               module={PlatformWeb.NewLive.NewComponent}
               current_user={@current_user}
               id="global-new-modal"
               path={@path}
             >
-              <.navlink label="New" request_path={@path}>
-                <Heroicons.plus mini class="text-neutral-300 group-hover:text-white h-6 w-6" />
-              </.navlink>
+              <div data-tooltip="Ctrl + I">
+                <.navlink label="New" request_path={@path}>
+                  <Heroicons.plus mini class="text-neutral-300 group-hover:text-white h-6 w-6" />
+                </.navlink>
+              </div>
             </.live_component>
           </div>
-          <div class="w-full" data-tooltip="Ctrl + K">
+          <div class="w-full">
             <.live_component
               module={PlatformWeb.SearchLive.SearchComponent}
               current_user={@current_user}
               id="global-search-modal"
             >
-              <.navlink label="Search" request_path={@path}>
-                <Heroicons.magnifying_glass
-                  mini
-                  class="text-neutral-300 group-hover:text-white h-6 w-6"
-                />
-              </.navlink>
+              <div data-tooltip="Ctrl + K">
+                <.navlink label="Search" request_path={@path}>
+                  <Heroicons.magnifying_glass
+                    mini
+                    class="text-neutral-300 group-hover:text-white h-6 w-6"
+                  />
+                </.navlink>
+              </div>
             </.live_component>
           </div>
           <%= if not is_nil(@current_user) do %>
