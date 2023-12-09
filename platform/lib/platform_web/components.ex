@@ -1793,7 +1793,7 @@ defmodule PlatformWeb.Components do
 
   def location_diff(%{old: _, new: _} = assigns) do
     ~H"""
-    <span>
+    <span class="flex flex-wrap gap-1">
       <%= if @old != @new do %>
         <%= case @old do %>
           <% %{"coordinates" => [lon, lat]} -> %>
@@ -1872,7 +1872,7 @@ defmodule PlatformWeb.Components do
         )
 
       ~H"""
-      <span class="inline">
+      <span class="inline-flex flex-wrap gap-1">
         <%= case @attr.type do %>
           <% :text -> %>
             <.text_diff old={@old_val} new={@new_val} label={@label} />
