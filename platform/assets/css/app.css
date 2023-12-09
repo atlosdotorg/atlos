@@ -11,6 +11,11 @@
     @apply badge ~neutral text-sm font-medium no-underline align-baseline;
   }
 
+  .modal-open {
+    overflow: hidden;
+  }
+  .modal-open::-webkit-scrollbar { width: 0 !important; }
+
   .sticky-headers {
     text-align: left;
     position: relative;

@@ -479,6 +479,57 @@ function debounce(func, timeout = 25) {
     };
 }
 
+window.getScrollbarWidth = () => {
+    // Creating a temporary div with scroll
+    let outer = document.createElement("div");
+    outer.style.visibility = "hidden";
+    outer.style.overflow = "scroll"; 
+    document.body.appendChild(outer);
+
+    // Creating a child div
+    let inner = document.createElement("div");
+    outer.appendChild(inner);
+
+    // Calculating scrollbar width
+    const scrollbarWidth = (outer.offsetWidth - inner.offsetWidth);
+
+    // Removing the divs
+    outer.parentNode.removeChild(outer);
+
+    return scrollbarWidth;
+}
+
+window.stopBodyScroll = () => {
+    console.log("stopping body scroll!");
+    const scrollbarWidth = getScrollbarWidth();
+    
+    // Add padding to compensate for the removed scrollbar
+    document.body.style.paddingRight = scrollbarWidth + "px";
+    document.body.classList.add("modal-open");
+}
+
+window.resumeBodyScroll = () => {
+    console.log("resuming body scroll!");
+    // Reset padding and overflow
+    document.body.style.paddingRight = "";
+    document.body.classList.remove("modal-open");
+}
+
+window.updateBodyScrollStatus = () => {
+    // If any elements exist with `data-blocks-body-scroll="true"`, then stop
+    // body scrolling; otherwise, resume it.
+
+    let modals = document.querySelectorAll("[data-blocks-body-scroll='true']");
+    let visibleModals = Array.from(modals).filter((elem) => {
+        return !!( elem.offsetWidth || elem.offsetHeight || elem.getClientRects().length );
+    });
+    if (visibleModals.length > 0) {
+        stopBodyScroll();
+    } else {
+        resumeBodyScroll();
+    }
+}
+
 // Used to centralize modal closing logic. See Hooks.Modal for core logic.
 window.closeModal = debounce(() => {
     // Find the target, if possible.
@@ -498,18 +549,25 @@ window.toggleClass = (id, classname) => {
 // Scroll to the hash position, if possible
 function scrollToHashPosition() {
     if (window.location.hash) {
-        let elem = document.querySelector(window.location.hash);
-        if (elem) {
-            elem.scrollIntoView();
-            elem.focus();
+        let elem = document.querySelectorAll(window.location.hash);
+        if (elem.length > 0) {
+            elem[0].scrollIntoView();
+            elem[0].focus();
         }
     }
 }
+
+document.addEventListener("modal-open", () => {window.stopBodyScroll();});
+document.addEventListener("modal-close", () => {window.resumeBodyScroll();});
+
 window.addEventListener("load", scrollToHashPosition);
 document.addEventListener("hashchange", scrollToHashPosition);
 
 document.addEventListener("phx:update", initializeSmartSelects);
 window.addEventListener("load", initializeSmartSelects);
+
+document.addEventListener("phx:update", window.updateBodyScrollStatus);
+window.addEventListener("load", window.updateBodyScrollStatus);
 
 document.addEventListener("phx:update", initializeMaps);
 window.addEventListener("load", initializeMaps);

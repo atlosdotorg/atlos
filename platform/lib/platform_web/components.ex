@@ -56,6 +56,11 @@ defmodule PlatformWeb.Components do
       |> assign_new(:wide, fn -> false end)
       |> assign_new(:no_pad, fn -> false end)
 
+    # Note: We have a check that runs in JavaScript that detects when any
+    # elements exist that are visible with the data-blocks-body-scroll attribute; if they
+    # are present, scrolling in the background is disabled. This is to prevent
+    # the background from scrolling when the modal is open.
+
     ~H"""
     <div
       class="fixed z-[10000] inset-0 overflow-y-auto"
@@ -63,6 +68,7 @@ defmodule PlatformWeb.Components do
       role="dialog"
       aria-modal="true"
       phx-hook="Modal"
+      data-blocks-body-scroll="true"
       data-is-modal
       id={"modal-" <> @id}
       phx-target={@target}

@@ -104,6 +104,12 @@ defmodule PlatformWeb.SearchLive.SearchComponent do
         setActive(val) {
           this.active = val
           this.selectDebounceStart = new Date().getTime()
+
+          if (val) {
+            window.stopBodyScroll()
+          } else {
+            window.resumeBodyScroll()
+          }
         },
         openItem(event, link) {
           // If the user is holding down ctrl or meta, open the link in a new tab.
@@ -153,6 +159,7 @@ defmodule PlatformWeb.SearchLive.SearchComponent do
             <div
               class="mx-auto max-w-xl lg:max-w-2xl transform divide-y divide-gray-100 overflow-hidden rounded-xl bg-white shadow-2xl ring-1 ring-black ring-opacity-5"
               x-on:click.outside="setActive(false)"
+              data-blocks-body-scroll="true"
             >
               <div class="relative">
                 <svg
