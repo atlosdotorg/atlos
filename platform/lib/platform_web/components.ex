@@ -68,7 +68,7 @@ defmodule PlatformWeb.Components do
       x-data
     >
       <div
-        class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0"
+        class="md:ml-28 min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0"
         x-on:keydown.escape.window={"window.closeModal(); "<> @js_on_close}
         phx-target={@target}
       >
@@ -91,7 +91,7 @@ defmodule PlatformWeb.Components do
         </span>
 
         <div
-          class={"mt-24 mb-8 md:mt-0 relative inline-block opacity-0 scale-75 align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left shadow-xl transform transition-all sm:align-middle md:ml-28 sm:max-w-xl sm:w-full sm:p-6 max-w-full " <> if @wide, do: "md:max-w-3xl lg:max-w-4xl xl:max-w-5xl", else: ""}
+          class={"mt-24 mb-8 md:mt-0 relative inline-block opacity-0 scale-75 align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left shadow-xl transform transition-all sm:align-middle sm:max-w-xl sm:w-full sm:p-6 max-w-full min-w-0 " <> if @wide, do: "lg:max-w-3xl xl:max-w-4xl", else: ""}
           phx-mounted={
             JS.transition({"ease-out duration-75", "opacity-0 scale-75", "opacity-100 scale-100"},
               time: 75
