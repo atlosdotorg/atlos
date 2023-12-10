@@ -376,7 +376,7 @@ function initializeMaps() {
                                                     />
                                                 </svg>
                                             </div>
-                                            <span class="text-neutral-600">Loading...</span>
+                                            <span class="text-neutral-600">Loading</span>
                                         </div>
                                     </div>
                                     <iframe
