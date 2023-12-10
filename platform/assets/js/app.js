@@ -460,7 +460,7 @@ function initializeMaps() {
 
         // Setup layer toggle button
         container.parentElement.querySelector(".layer-toggle-button").addEventListener("click", () => {
-            map.on("style.load", initializeLayers);
+            map.once("idle", initializeLayers);
             if (map.getStyle().name == "Satellite (Atlos)") {
                 style = defaultMapStyle;
             } else {
