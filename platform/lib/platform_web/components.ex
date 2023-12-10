@@ -2038,7 +2038,7 @@ defmodule PlatformWeb.Components do
           />
         </svg>
       </div>
-      Loading more...
+      Loading...
     </div>
     """
   end
@@ -2526,9 +2526,7 @@ defmodule PlatformWeb.Components do
     ~H"""
     <div>
       <div class="fixed w-[350px] h-[190px] flex rounded-lg shadow-lg items-center bg-white justify-around -z-50">
-        <div class="font-medium text-lg text-md p-4">
-          <span class="animate-pulse">Loading...</span>
-        </div>
+        <.loading_spinner />
       </div>
       <dynamic tag="iframe" src={"/incidents/#{@media.slug}/card"} width="350px" height="190px" />
     </div>
@@ -2587,7 +2585,7 @@ defmodule PlatformWeb.Components do
 
   def media_card_inner(assigns) do
     ~H"""
-    <div class={"flex items-stretch group flex-row bg-white overflow-hidden shadow rounded-lg justify-between min-h-[12rem] " <> (if @border, do: "border ", else: "") <> @class}>
+    <div class={"flex items-stretch group flex-row bg-white overflow-hidden shadow rounded-lg justify-between h-[190px] " <> (if @border, do: "border ", else: "") <> @class}>
       <%= if Permissions.can_view_media?(@current_user, @media) do %>
         <div class="p-2 flex flex-col w-3/4 gap-2 relative">
           <section>
@@ -2742,7 +2740,7 @@ defmodule PlatformWeb.Components do
       assigns
       |> assign(:sensitive, Media.is_sensitive(media))
       |> assign_new(:target, fn -> nil end)
-      |> assign(:border, Map.get(assigns, :border, false))
+      |> assign_new(:border, fn -> false end)
       |> assign(:link, Map.get(assigns, :link, true))
       |> assign(:class, Map.get(assigns, :class, ""))
 
