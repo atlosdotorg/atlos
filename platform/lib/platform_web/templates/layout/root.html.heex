@@ -47,6 +47,9 @@
         }
       </style>
     <% end %>
+    <%= if assigns[:connect_websocket] == false do %>
+      <meta name="no-livesocket" content="true" />
+    <% end %>
   </head>
   <body>
     <div id="tooltips"></div>
