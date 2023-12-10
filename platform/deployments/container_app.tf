@@ -211,6 +211,11 @@ resource "azurerm_container_app" "platform" {
         name        = "SPN_ARCHIVE_API_KEY"
         secret_name = "spn-archive-api-key"
       }
+
+      env {
+        name  = "HIGHLIGHT_CODE"
+        value = var.highlight_code
+      }
     }
   }
 

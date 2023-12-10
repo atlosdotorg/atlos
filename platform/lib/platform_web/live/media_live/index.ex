@@ -185,7 +185,7 @@ defmodule PlatformWeb.MediaLive.Index do
       |> Enum.map(action)
 
     Enum.reduce(media, socket, fn media, socket ->
-      assign_update_media(socket, media)
+      assign_update_media(socket, media.id)
     end)
   end
 
@@ -261,6 +261,45 @@ defmodule PlatformWeb.MediaLive.Index do
 
          media
        end
+     end)}
+  end
+
+  def handle_event("copy_to_project", %{"project-id" => project_id}, socket) do
+    project = Platform.Projects.get_project!(project_id)
+
+    if not Platform.Permissions.can_add_media_to_project?(socket.assigns.current_user, project) do
+      raise PlatformWeb.Errors.Forbidden,
+            "You don't have permission to add media to this project."
+    end
+
+    {:noreply,
+     socket
+     |> put_flash(
+       :info,
+       "Copied #{length(socket.assigns.selected_ids)} selected incident(s) into #{project.name |> Platform.Utils.truncate()}"
+     )
+     |> apply_bulk_action(fn media ->
+       case Material.copy_media_to_project_audited(
+              media,
+              project,
+              socket.assigns.current_user
+            ) do
+         {:ok, new_media} ->
+           Platform.Auditor.log(
+             :media_copied,
+             %{
+               source: media.slug,
+               destination: project.id,
+               destination_media_slug: new_media.slug
+             },
+             socket
+           )
+
+         {:error, %Ecto.Changeset{} = cs} ->
+           raise "Couldn't copy incident"
+       end
+
+       media
      end)}
   end
 

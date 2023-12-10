@@ -25,7 +25,7 @@ import TomSelect from "../node_modules/tom-select/dist/js/tom-select.complete"
 import { Socket } from "phoenix"
 import { LiveSocket } from "phoenix_live_view"
 import topbar from "../vendor/topbar"
-import mapboxgl from 'mapbox-gl'
+import maplibregl from 'maplibre-gl'
 import Alpine from 'alpinejs'
 import tippy from 'tippy.js';
 import Mark from 'mark.js';
@@ -34,8 +34,13 @@ import { setupTextboxInteractivity } from "./textbox_interactivity";
 import { initialize as initializeKeyboardFormSubmits } from "./keyboard_form_submit";
 import { initialize as initializeFormUnloadWarning } from "./form_warnings";
 
-mapboxgl.accessToken = 'pk.eyJ1IjoibWlsZXNtY2MiLCJhIjoiY2t6ZzdzZmY0MDRobjJvbXBydWVmaXBpNSJ9.-aHM8bjOOsSrGI0VvZenAQ';
-mapboxgl.setRTLTextPlugin('https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-rtl-text/v0.2.3/mapbox-gl-rtl-text.js');
+const defaultMapStyle = "https://api.maptiler.com/maps/7caa67c6-b9f8-4701-9750-0b16b2c85c26/style.json?key=3MNBcFq8hjQtKnOL3tae";
+const satelliteMapStyle = "https://api.maptiler.com/maps/b7ad4c43-0090-4968-8984-a5ea0862e749/style.json?key=3MNBcFq8hjQtKnOL3tae";
+maplibregl.setRTLTextPlugin(
+    'https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-rtl-text/v0.2.3/mapbox-gl-rtl-text.js',
+    null,
+    true // Lazy load the plugin
+);
 
 let Hooks = {};
 Hooks.Modal = {
@@ -72,22 +77,22 @@ let liveSocket = new LiveSocket("/live", Socket, {
             if (from._tippy) {
                 from._tippy.destroy();
             }
-            if(["DIALOG", "DETAILS"].indexOf(from.tagName) >= 0){
+            if (["DIALOG", "DETAILS"].indexOf(from.tagName) >= 0) {
                 Array.from(from.attributes).forEach(attr => {
-                  to.setAttribute(attr.name, attr.value)
+                    to.setAttribute(attr.name, attr.value)
                 })
-              }
+            }
         },
     },
     params: { _csrf_token: csrfToken },
     hooks: Hooks,
     metadata: {
         keydown: (event, _element) => {
-          return {
-            ctrlKey: event.ctrlKey,
-            metaKey: event.metaKey,
-            shiftKey: event.shiftKey
-          }
+            return {
+                ctrlKey: event.ctrlKey,
+                metaKey: event.metaKey,
+                shiftKey: event.shiftKey
+            }
         }
     }
 })
@@ -247,7 +252,7 @@ function _getTotalURLHashState() {
     let hashState = {}
     try {
         hashState = JSON.parse(atob(window.location.hash.slice(1)) || "{}")
-    } catch (e) {}
+    } catch (e) { }
     return hashState
 }
 
@@ -265,7 +270,7 @@ function setURLHashState(key, value) {
 
 function initializeMaps() {
     document.querySelectorAll("map-pin").forEach(s => {
-        if (s.classList.contains("mapboxgl-map")) {
+        if (s.classList.contains("maplibregl-map")) {
             return;
         }
 
@@ -274,14 +279,14 @@ function initializeMaps() {
         let lon = parseFloat(s.getAttribute("lon"));
         let lat = parseFloat(s.getAttribute("lat"));
 
-        let map = new mapboxgl.Map({
+        let map = new maplibregl.Map({
             container: s.id,
-            style: 'mapbox://styles/mapbox/satellite-streets-v11',
+            style: satelliteMapStyle,
             center: [lon, lat],
             zoom: 14
         });
 
-        new mapboxgl.Marker({ color: "#60a5fa" })
+        new maplibregl.Marker({ color: "#60a5fa" })
             .setLngLat([lon, lat])
             .addTo(map);
     });
@@ -291,23 +296,22 @@ function initializeMaps() {
         let persistedMapData = getURLHashState("map-" + containerID);
 
         let container = document.getElementById(containerID);
-        if (container.classList.contains("mapboxgl-map") || container.classList.contains("map-initialized")) {
+        if (container.classList.contains("maplibregl-map") || container.classList.contains("map-initialized")) {
             return;
         }
 
-        let defaultStyle = "mapbox://styles/milesmcc/cl89ukz84000514oebbd92bjm";
 
         let lon = persistedMapData["lon"] || parseFloat(s.getAttribute("lon"));
         let lat = persistedMapData["lat"] || parseFloat(s.getAttribute("lat"));
 
         let zoom = persistedMapData["zoom"] || parseFloat(s.getAttribute("zoom") || 6);
-        let style = persistedMapData["style"] || s.getAttribute("style") || defaultStyle;
+        let style = persistedMapData["style"] || s.getAttribute("style") || defaultMapStyle;
 
-        if (!style.startsWith("mapbox://")) {
+        if (!style.startsWith("https://api.maptiler.com/")) {
             style = defaultStyle;
         }
 
-        let map = new mapboxgl.Map({
+        let map = new maplibregl.Map({
             container: containerID,
             style: style,
             center: [lon, lat],
@@ -401,7 +405,7 @@ function initializeMaps() {
                     coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
                 }
 
-                new mapboxgl.Popup({ closeButton: false })
+                new maplibregl.Popup({ closeButton: false })
                     .setLngLat(coordinates)
                     .setHTML(description)
                     .setMaxWidth("600px")
@@ -434,12 +438,12 @@ function initializeMaps() {
         // Setup layer toggle button
         container.parentElement.querySelector(".layer-toggle-button").addEventListener("click", () => {
             map.on("style.load", initializeLayers);
-            if (map.getStyle().name == "Mapbox Satellite Streets") {
-                style = 'mapbox://styles/milesmcc/cl89ukz84000514oebbd92bjm'
+            if (map.getStyle().name == "Satellite (Atlos)") {
+                style = defaultMapStyle;
             } else {
-                style = 'mapbox://styles/mapbox/satellite-streets-v11'
+                style = satelliteMapStyle;
             }
-            map.setStyle(style)
+            map.setStyle(style);
         })
 
         s.classList.add("map-initialized");
@@ -475,6 +479,57 @@ function debounce(func, timeout = 25) {
     };
 }
 
+window.getScrollbarWidth = () => {
+    // Creating a temporary div with scroll
+    let outer = document.createElement("div");
+    outer.style.visibility = "hidden";
+    outer.style.overflow = "scroll"; 
+    document.body.appendChild(outer);
+
+    // Creating a child div
+    let inner = document.createElement("div");
+    outer.appendChild(inner);
+
+    // Calculating scrollbar width
+    const scrollbarWidth = (outer.offsetWidth - inner.offsetWidth);
+
+    // Removing the divs
+    outer.parentNode.removeChild(outer);
+
+    return scrollbarWidth;
+}
+
+window.stopBodyScroll = () => {
+    console.log("stopping body scroll!");
+    const scrollbarWidth = getScrollbarWidth();
+    
+    // Add padding to compensate for the removed scrollbar
+    document.body.style.paddingRight = scrollbarWidth + "px";
+    document.body.classList.add("modal-open");
+}
+
+window.resumeBodyScroll = () => {
+    console.log("resuming body scroll!");
+    // Reset padding and overflow
+    document.body.style.paddingRight = "";
+    document.body.classList.remove("modal-open");
+}
+
+window.updateBodyScrollStatus = () => {
+    // If any elements exist with `data-blocks-body-scroll="true"`, then stop
+    // body scrolling; otherwise, resume it.
+
+    let modals = document.querySelectorAll("[data-blocks-body-scroll='true']");
+    let visibleModals = Array.from(modals).filter((elem) => {
+        return !!( elem.offsetWidth || elem.offsetHeight || elem.getClientRects().length );
+    });
+    if (visibleModals.length > 0) {
+        stopBodyScroll();
+    } else {
+        resumeBodyScroll();
+    }
+}
+
 // Used to centralize modal closing logic. See Hooks.Modal for core logic.
 window.closeModal = debounce(() => {
     // Find the target, if possible.
@@ -494,18 +549,25 @@ window.toggleClass = (id, classname) => {
 // Scroll to the hash position, if possible
 function scrollToHashPosition() {
     if (window.location.hash) {
-        let elem = document.querySelector(window.location.hash);
-        if (elem) {
-            elem.scrollIntoView();
-            elem.focus();
+        let elem = document.querySelectorAll(window.location.hash);
+        if (elem.length > 0) {
+            elem[0].scrollIntoView();
+            elem[0].focus();
         }
     }
 }
+
+document.addEventListener("modal-open", () => {window.stopBodyScroll();});
+document.addEventListener("modal-close", () => {window.resumeBodyScroll();});
+
 window.addEventListener("load", scrollToHashPosition);
 document.addEventListener("hashchange", scrollToHashPosition);
 
 document.addEventListener("phx:update", initializeSmartSelects);
 window.addEventListener("load", initializeSmartSelects);
+
+document.addEventListener("phx:update", window.updateBodyScrollStatus);
+window.addEventListener("load", window.updateBodyScrollStatus);
 
 document.addEventListener("phx:update", initializeMaps);
 window.addEventListener("load", initializeMaps);

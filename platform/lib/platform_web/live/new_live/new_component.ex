@@ -131,6 +131,12 @@ defmodule PlatformWeb.NewLive.NewComponent do
         } else {
           this.active = val
         }
+
+        if (this.active) {
+          window.stopBodyScroll()
+        } else {
+          window.resumeBodyScroll()
+        }
       }
     }"
       x-init="() => {
@@ -168,6 +174,7 @@ defmodule PlatformWeb.NewLive.NewComponent do
             <div
               class="mx-auto max-w-xl lg:max-w-2xl divide-y transform overflow-hidden rounded-xl bg-white shadow-2xl ring-1 ring-black ring-opacity-5"
               x-on:click.outside="setActive(false)"
+              data-blocks-body-scroll="true"
             >
               <div class="flex">
                 <h2 class="font-medium text-xl p-4">New Incident</h2>

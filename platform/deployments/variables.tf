@@ -64,6 +64,12 @@ variable "spn_archive_api_key" {
   sensitive   = true
 }
 
+variable "highlight_code" {
+  description = "Highlight API code"
+  type        = string
+  default     = ""
+}
+
 variable "database_sku" {
   description = "Database SKU"
   type        = string

@@ -77,6 +77,35 @@
             </div>
           </.dropdown>
         </div>
+        <div
+          :if={Enum.all?(@media, &Platform.Permissions.can_copy_media?(@current_user, &1))}
+          class="p-4 hover:bg-neutral-50 transition"
+        >
+          <.dropdown label="Copy to project">
+            <div class="p-4 ts-ignore flex flex-col gap-4" x-data="{project_id: null}">
+              <select x-model="project_id" class="w-full input-base" id="project_id-select">
+                <option value="">Select a project...</option>
+                <% base_project_id = if Enum.empty?(@media), do: nil, else: hd(@media).project_id %>
+                <%= for project <- Platform.Projects.list_projects_for_user(@current_user) |> Enum.reject(& &1.id == base_project_id) |> Enum.filter(&Platform.Permissions.can_add_media_to_project?(assigns.current_user, &1)) do %>
+                  <option value={project.id}>
+                    <%= project.code %>: <%= project.name |> Platform.Utils.truncate() %>
+                  </option>
+                <% end %>
+              </select>
+              <button
+                class="button ~urge @high"
+                x-bind:disabled="project_id == null || project_id == ''"
+                phx-click="copy_to_project"
+                x-bind:phx-value-project-id="project_id"
+                x-bind:data-confirm={"\"Are you sure you want to copy the #{length(@selected_ids)} selected incident(s) into another project?\""}
+                x-on:click="open = false; window.topbar.show()"
+                phx-disable-with="Working..."
+              >
+                Apply
+              </button>
+            </div>
+          </.dropdown>
+        </div>
         <div class="p-4 hover:bg-neutral-50 transition flex gap-4 items-center flex-grow justify-end">
           <button phx-click="select_all" class="text-button" phx-disable-with="Selecting...">
             Select All

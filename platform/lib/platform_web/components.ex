@@ -54,6 +54,12 @@ defmodule PlatformWeb.Components do
       assign_new(assigns, :id, fn -> "default" end)
       |> assign_new(:js_on_close, fn -> "" end)
       |> assign_new(:wide, fn -> false end)
+      |> assign_new(:no_pad, fn -> false end)
+
+    # Note: We have a check that runs in JavaScript that detects when any
+    # elements exist that are visible with the data-blocks-body-scroll attribute; if they
+    # are present, scrolling in the background is disabled. This is to prevent
+    # the background from scrolling when the modal is open.
 
     ~H"""
     <div
@@ -62,13 +68,14 @@ defmodule PlatformWeb.Components do
       role="dialog"
       aria-modal="true"
       phx-hook="Modal"
+      data-blocks-body-scroll="true"
       data-is-modal
       id={"modal-" <> @id}
       phx-target={@target}
       x-data
     >
       <div
-        class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0"
+        class="md:ml-28 min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0"
         x-on:keydown.escape.window={"window.closeModal(); "<> @js_on_close}
         phx-target={@target}
       >
@@ -91,7 +98,7 @@ defmodule PlatformWeb.Components do
         </span>
 
         <div
-          class={"mt-24 mb-8 md:mt-0 relative inline-block opacity-0 scale-75 align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left shadow-xl transform transition-all sm:align-middle md:ml-28 sm:max-w-xl sm:w-full sm:p-6 max-w-full " <> if @wide, do: "md:max-w-3xl lg:max-w-4xl xl:max-w-5xl", else: ""}
+          class={"mt-24 mb-8 md:mt-0 relative inline-block opacity-0 scale-75 align-bottom bg-white rounded-lg text-left shadow-xl transform transition-all sm:align-middle sm:max-w-xl sm:w-full max-w-full min-w-0 " <> if @wide, do: "lg:max-w-3xl xl:max-w-4xl", else: "" <> if @no_pad, do: "", else: "px-4 pt-5 pb-4 sm:p-6"}
           phx-mounted={
             JS.transition({"ease-out duration-75", "opacity-0 scale-75", "opacity-100 scale-100"},
               time: 75
@@ -430,30 +437,34 @@ defmodule PlatformWeb.Components do
             </.navlink>
           <% end %>
           <div class="hidden md:block flex-grow"></div>
-          <div class="w-full" data-tooltip="Ctrl + I">
+          <div class="w-full">
             <.live_component
               module={PlatformWeb.NewLive.NewComponent}
               current_user={@current_user}
               id="global-new-modal"
               path={@path}
             >
-              <.navlink label="New" request_path={@path}>
-                <Heroicons.plus mini class="text-neutral-300 group-hover:text-white h-6 w-6" />
-              </.navlink>
+              <div data-tooltip="Ctrl + I">
+                <.navlink label="New" request_path={@path}>
+                  <Heroicons.plus mini class="text-neutral-300 group-hover:text-white h-6 w-6" />
+                </.navlink>
+              </div>
             </.live_component>
           </div>
-          <div class="w-full" data-tooltip="Ctrl + K">
+          <div class="w-full">
             <.live_component
               module={PlatformWeb.SearchLive.SearchComponent}
               current_user={@current_user}
               id="global-search-modal"
             >
-              <.navlink label="Search" request_path={@path}>
-                <Heroicons.magnifying_glass
-                  mini
-                  class="text-neutral-300 group-hover:text-white h-6 w-6"
-                />
-              </.navlink>
+              <div data-tooltip="Ctrl + K">
+                <.navlink label="Search" request_path={@path}>
+                  <Heroicons.magnifying_glass
+                    mini
+                    class="text-neutral-300 group-hover:text-white h-6 w-6"
+                  />
+                </.navlink>
+              </div>
             </.live_component>
           </div>
           <%= if not is_nil(@current_user) do %>
@@ -1792,7 +1803,7 @@ defmodule PlatformWeb.Components do
 
   def location_diff(%{old: _, new: _} = assigns) do
     ~H"""
-    <span>
+    <span class="flex flex-wrap gap-1">
       <%= if @old != @new do %>
         <%= case @old do %>
           <% %{"coordinates" => [lon, lat]} -> %>
@@ -1871,7 +1882,7 @@ defmodule PlatformWeb.Components do
         )
 
       ~H"""
-      <span class="inline">
+      <span class="inline-flex flex-wrap gap-1">
         <%= case @attr.type do %>
           <% :text -> %>
             <.text_diff old={@old_val} new={@new_val} label={@label} />
