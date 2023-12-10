@@ -506,7 +506,7 @@ window.getScrollbarWidth = () => {
     // Creating a temporary div with scroll
     let outer = document.createElement("div");
     outer.style.visibility = "hidden";
-    outer.style.overflow = "scroll"; 
+    outer.style.overflow = "scroll";
     document.body.appendChild(outer);
 
     // Creating a child div
@@ -523,16 +523,14 @@ window.getScrollbarWidth = () => {
 }
 
 window.stopBodyScroll = () => {
-    console.log("stopping body scroll!");
     const scrollbarWidth = getScrollbarWidth();
-    
+
     // Add padding to compensate for the removed scrollbar
     document.body.style.paddingRight = scrollbarWidth + "px";
     document.body.classList.add("modal-open");
 }
 
 window.resumeBodyScroll = () => {
-    console.log("resuming body scroll!");
     // Reset padding and overflow
     document.body.style.paddingRight = "";
     document.body.classList.remove("modal-open");
@@ -544,7 +542,7 @@ window.updateBodyScrollStatus = () => {
 
     let modals = document.querySelectorAll("[data-blocks-body-scroll='true']");
     let visibleModals = Array.from(modals).filter((elem) => {
-        return !!( elem.offsetWidth || elem.offsetHeight || elem.getClientRects().length );
+        return !!(elem.offsetWidth || elem.offsetHeight || elem.getClientRects().length);
     });
     if (visibleModals.length > 0) {
         stopBodyScroll();
@@ -571,17 +569,19 @@ window.toggleClass = (id, classname) => {
 
 // Scroll to the hash position, if possible
 function scrollToHashPosition() {
-    if (window.location.hash) {
-        let elem = document.querySelectorAll(window.location.hash);
-        if (elem.length > 0) {
-            elem[0].scrollIntoView();
-            elem[0].focus();
+    try {
+        if (window.location.hash) {
+            let elem = document.querySelectorAll(window.location.hash);
+            if (elem.length > 0) {
+                elem[0].scrollIntoView();
+                elem[0].focus();
+            }
         }
-    }
+    } catch (e) { }
 }
 
-document.addEventListener("modal-open", () => {window.stopBodyScroll();});
-document.addEventListener("modal-close", () => {window.resumeBodyScroll();});
+document.addEventListener("modal-open", () => { window.stopBodyScroll(); });
+document.addEventListener("modal-close", () => { window.resumeBodyScroll(); });
 
 window.addEventListener("load", scrollToHashPosition);
 document.addEventListener("hashchange", scrollToHashPosition);
