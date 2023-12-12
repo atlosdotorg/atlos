@@ -46,7 +46,7 @@
                 phx-click="apply_tag"
                 x-bind:phx-value-tag="tag"
                 x-bind:data-confirm={"\"Are you sure you want to apply the tag \" + tag + \" to the #{length(@selected_ids)} selected incident(s)?\""}
-                x-on:click="open = false; window.topbar.show()"
+                x-on:confirmed="open = false; window.topbar.show()"
                 phx-disable-with="Working..."
               >
                 Apply
@@ -69,7 +69,7 @@
                 phx-click="apply_status"
                 x-bind:phx-value-status="status"
                 x-bind:data-confirm={"\"Are you sure you want to set the status to \" + status + \" for the #{length(@selected_ids)} selected incident(s)?\""}
-                x-on:click="open = false; window.topbar.show()"
+                x-on:confirmed="open = false; window.topbar.show()"
                 phx-disable-with="Working..."
               >
                 Apply
@@ -98,7 +98,7 @@
                 phx-click="copy_to_project"
                 x-bind:phx-value-project-id="project_id"
                 x-bind:data-confirm={"\"Are you sure you want to copy the #{length(@selected_ids)} selected incident(s) into another project?\""}
-                x-on:click="open = false; window.topbar.show()"
+                x-on:confirmed="open = false; window.topbar.show()"
                 phx-disable-with="Working..."
               >
                 Apply

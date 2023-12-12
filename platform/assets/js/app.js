@@ -551,6 +551,21 @@ window.updateBodyScrollStatus = () => {
     }
 }
 
+// Override default data-confirm behavior
+document.body.addEventListener('phoenix.link.click', function (e) {
+    // Prevent default implementation
+    e.stopPropagation();
+    // Introduce alternative implementation
+    var message = e.target.getAttribute("data-confirm");
+    if (!message) { return true; }
+    var response = confirm(message);
+    if (response) {
+        e.target.dispatchEvent(new Event("confirmed", { bubbles: true }))
+    } else {
+        e.preventDefault();
+    }
+}, false);
+
 // Used to centralize modal closing logic. See Hooks.Modal for core logic.
 window.closeModal = debounce(() => {
     // Find the target, if possible.

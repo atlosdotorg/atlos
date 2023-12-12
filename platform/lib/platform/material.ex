@@ -84,7 +84,6 @@ defmodule Platform.Material do
     |> maybe_filter_accessible_to_user(opts)
     |> load_media_color()
     |> order_by(desc: :inserted_at)
-    |> distinct(true)
   end
 
   @doc """
@@ -203,7 +202,8 @@ defmodule Platform.Material do
       },
       where: ^(not Keyword.get(opts, :limit_to_unread_notifications, false)) or not is_nil(n),
       where: ^(not Keyword.get(opts, :limit_to_subscriptions, false)) or not is_nil(s),
-      where: ^(not Keyword.get(opts, :limit_to_assignments, false)) or not is_nil(a)
+      where: ^(not Keyword.get(opts, :limit_to_assignments, false)) or not is_nil(a),
+      distinct: [m.id]
     )
   end
 
