@@ -26,6 +26,17 @@ defmodule PlatformWeb.UpdatesLive.PaginatedMediaUpdateFeed do
       )
     )
     |> Enum.filter(&Permissions.can_view_media?(socket.assigns.current_user, &1))
+    |> Enum.map(fn m ->
+      m
+      |> Map.put(
+        :updates,
+        m.updates
+        |> Enum.sort_by(& &1.inserted_at, {:desc, NaiveDateTime})
+        |> Enum.take(3)
+        |> Enum.reverse()
+        |> Enum.filter(&Permissions.can_view_update?(socket.assigns.current_user, &1))
+      )
+    end)
   end
 
   def handle_event("load_more", _params, socket, depth \\ 10) do
@@ -78,14 +89,11 @@ defmodule PlatformWeb.UpdatesLive.PaginatedMediaUpdateFeed do
           <.media_line_preview media={incident} />
           <ul class="card shadow mt-2">
             <% len = min(3, length(incident.updates)) %>
-            <%= for {update, idx} <- incident.updates |> Enum.sort_by(& &1.inserted_at, {:desc, NaiveDateTime}) |> Enum.take(3) |> Enum.reverse() |> Enum.with_index() do %>
+            <%= for {update, idx} <- incident.updates |> Enum.with_index() do %>
               <.update_entry
                 update={update}
                 show_line={idx != len - 1}
                 show_media={false}
-                can_user_change_visibility={false}
-                target={@myself}
-                socket={@socket}
                 profile_ring={true}
                 left_indicator={:profile}
                 current_user={@current_user}

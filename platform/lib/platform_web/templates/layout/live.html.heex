@@ -1,5 +1,11 @@
 <main class="h-full flex flex-col md:flex-row">
-  <.nav path={@path} has_unread_notifications={Platform.Notifications.has_unread_notifications(@current_user)} current_user={@current_user} endpoint={@socket} live={true} />
+  <.nav
+    path={@path}
+    has_unread_notifications={Platform.Notifications.has_unread_notifications(@current_user)}
+    current_user={@current_user}
+    endpoint={@socket}
+    live={true}
+  />
 
   <div class="flex-1 flex flex-col overflow-hidden z-0">
     <div class={"mx-auto w-full " <> (if @full_width, do: "", else: "my-8")}>

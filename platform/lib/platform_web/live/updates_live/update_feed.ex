@@ -52,33 +52,6 @@ defmodule PlatformWeb.UpdatesLive.UpdateFeed do
     |> Enum.reverse()
   end
 
-  def handle_event("change_visibility", %{"update" => update_id}, socket) do
-    update = Updates.get_update!(update_id)
-
-    with true <-
-           Permissions.can_user_change_update_visibility?(socket.assigns.current_user, update) do
-      case Updates.update_update_from_changeset(
-             Updates.change_update_visibility(update, !update.hidden)
-           ) do
-        {:ok, _} ->
-          # We query because we need to preload the important fields
-          modified = Updates.get_update!(update_id)
-
-          {:noreply,
-           socket
-           |> assign(
-             :updates,
-             Enum.map(socket.assigns.updates, &if(&1.id == modified.id, do: modified, else: &1))
-           )}
-
-        {:error, _} ->
-          {:noreply, socket}
-      end
-    else
-      _ -> {:noreply, socket}
-    end
-  end
-
   defp reorder(updates, reverse) do
     if reverse, do: updates |> Enum.reverse(), else: updates
   end
@@ -109,10 +82,7 @@ defmodule PlatformWeb.UpdatesLive.UpdateFeed do
             current_user={@current_user}
             show_line={idx != length(@to_show) - 1 || @show_final_line}
             show_media={@show_media}
-            target={@myself}
-            socket={@socket}
             left_indicator={:profile}
-            ignore_permissions={@ignore_permissions}
             with_id={@with_id}
           />
         <% end %>

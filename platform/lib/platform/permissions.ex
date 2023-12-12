@@ -295,7 +295,7 @@ defmodule Platform.Permissions do
 
     with true <- can_view_media?(user, media),
          membership when not is_nil(membership) <-
-           Projects.get_project_membership_by_user_and_project(user, media.project) do
+           Projects.get_project_membership_by_user_and_project_id(user, media.project_id) do
       case update.hidden do
         true -> membership.role == :owner or membership.role == :manager
         false -> true
