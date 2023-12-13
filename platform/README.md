@@ -1,6 +1,16 @@
 # Atlos Platform
 
-This folder contains the primary source code for the Atlos platform. It's a standard Phoenix application written in Elixir. There should be (relatively) few surprises if you're accustomed to working on Phoenix applications. We have 200+ automated tests to help you catch logic errors quickly. 
+This folder contains the primary source code for the Atlos platform. It's a standard Phoenix application written in Elixir. There should be (relatively) few surprises if you're accustomed to working on Phoenix applications. We have 200+ automated tests to help you catch logic errors quickly.
+
+This document contains information about:
+
+* [Setting up a local development environment](#local-development-guide)
+* [Understanding the high-level architecture of the Atlos platform](#architecture-overview)
+* [Understanding the software architecture of the Atlos platform](#software-architecture)
+* [Self-hosting Atlos on your own infrastructure](#self-hosting)
+* [Contributing to Atlos](#contributing)
+* [Atlos' license (open source GPLv3)](#license)
+
 
 ## Local Development Guide
 
@@ -79,7 +89,7 @@ The Atlos web application will read the following environment variables. Some ar
 - `HCAPTCHA_SECRET` — hCaptcha secret
 - `ENABLE_CAPTCHAS` — captchas are _checked_ if `true` (default false for development; set to `true` in production!)
 - `INSTANCE_NAME` — user-facing instance name (appears in footer and below logo; not shown if empty) (optional)
-- `SPN_ARCHIVE_API_KEY` — API key for the Internet Archive [SPN API](https://docs.google.com/document/d/1Nsv52MvSjbLb2PCpHlat0gkzw0EvtSgpKHu4mk0MnrA/edit#) (if provided, Atlos will submit all links to the Internet Archive for persistent archival; key expected in the form `myaccesskey:mysecret`) (optional)
+- `SPN_ARCHIVE_API_KEY` — API key for the Internet Archive [SPN API](https://docs.google.com/document/d/1Nsv52MvSjbLb2PCpHlat0gkzw0EvtSgpKHu4mk0MnrA/edit#) (if provided, Atlos will give project owners the _option_ to submit all added links to the Internet Archive for persistent archival; key expected in the form `myaccesskey:mysecret`) (optional)
 - `COMMUNITY_DISCORD_LINK` — link to the community Discord server (shown in onboarding and in Settings) (optional)
 - `ATTRIBUTE_OPTIONS` — JSON object of attribute options; e.g., `{"type": ["Civilian Harm"], "impact": ["Structure", "Structure/Residential"], "equipment": ["Small Arm", "Munition"]}` (optional, and typically not needed)
 - `AUTOTAG_USER_INCIDENTS` — JSON object of tags to apply to incidents created by non-privileged users; e.g., `["Volunteer"]` (optional, and typically not needed)
@@ -196,6 +206,27 @@ There are four "sets" of dependencies that we need to be mindful of periodically
 3. **JavaScript libraries:** We use the latest stable versions of all JavaScript libraries. You can update these by running `npm upgrade` inside `/platform/assets` and `/landing`. You can see which dependencies have newer versions available by running `npm outdated`.
 4. **Python libraries:** We use the latest stable versions of all Python libraries. You can update these by running `poetry update` inside `platform/utils`. Some dependencies may require additional changes to the codebase; e.g., if a dependency changes its API, you may need to update your code to match. You can run `poetry show --outdated` to see which dependencies have newer versions available.
 
+## Self Hosting
+
+Atlos is open source, and you are welcome to self-host it on your own infrastructure. Self-hosting is a great option for larger organizations that have dedicated, experienced technical teams that can help maintain the infrastructure. While we work hard to keep Atlos simple, self-hosting the platform does require significant technical expertise. We generally only recommend self-hosting Atlos for organizations with:
+
+* A dedicated technical team who can manage the infrastructure
+* Special data security or governance requirements that prevent the use of our hosted platform
+
+While anyone is welcome to self-host, we recommend _against_ self-hosting for most organizations. (We also discourage self-hosting for organizations that do so principally to save on the costs of using our hosted version; purchasing or renting your own servers to run Atlos robustly is almost certainly going to be more expensive than our hosted version.) Our hosted version is designed to be secure, reliable, and easy to use, and we recommend that most organizations use it.
+
+For organizations that do self-host, we encourage you to follow roughly the same deployment steps that we use for our hosted version, though you will have to adapt those steps to your own infrastructure. (See the [Deployment](#deployment) section above for more information.)
+
+At a high level, here are the infrastructure components you'll need:
+
+* A PostgreSQL database
+* Some way to run a containerized web application on the internet (e.g., Azure Container Apps, Fly.io, Heroku, etc.)
+* S3-compatible object storage for media (e.g., Amazon AWS)
+
+While we cannot provide official support for self-hosting — after all, we do not know your infrastructure! — we are happy to answer questions and provide guidance on our Discord server to the extent that we are able. We are also able to provide priority support channels to organizations that contribute financially to the project.
+
+If you have any questions about self-hosting, please feel free to reach out to us on Discord or via email (contact@atlos.org).
+
 ## Contributing
 
 We welcome contributions to Atlos! If you're interested in contributing, please feel free to reach out to us via our Discord server. We're happy to help you get started.
@@ -211,11 +242,3 @@ Some additional tips:
 ## License
 
 Atlos is licensed under the GNU GPLv3 license. This is a copyleft license — beware! See [LICENSE.md](/LICENSE.md) for more information.
-
-## Learn more about Phoenix
-
-- Official website: https://www.phoenixframework.org/
-- Guides: https://hexdocs.pm/phoenix/overview.html
-- Docs: https://hexdocs.pm/phoenix
-- Forum: https://elixirforum.com/c/phoenix-forum
-- Source: https://github.com/phoenixframework/phoenix
