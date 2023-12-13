@@ -213,7 +213,7 @@ Atlos is open source, and you are welcome to self-host it on your own infrastruc
 * A dedicated technical team who can manage the infrastructure
 * Special data security or governance requirements that prevent the use of our hosted platform
 
-While anyone is welcome to self-host, we recommend _against_ self-hosting for most organizations. (We also discourage self-hosting for organizations that do so principally to save on the costs of using our hosted version; purchasing or renting your own servers to run Atlos robustly is almost certainly going to be more expensive than our hosted version.) Our hosted version is designed to be secure, reliable, and easy to use, and we recommend that most organizations use it.
+While anyone is welcome to self-host, we recommend _against_ self-hosting for most organizations. (We also discourage self-hosting for organizations that do so principally to save on the costs of using our hosted version; the cost of managing and purchasing/renting your own servers to run Atlos robustly is almost certainly going to be more expensive than our hosted version.) Our hosted version is designed to be secure, reliable, and easy to use, and we recommend that most organizations use it.
 
 For organizations that do self-host, we encourage you to follow roughly the same deployment steps that we use for our hosted version, though you will have to adapt those steps to your own infrastructure. (See the [Deployment](#deployment) section above for more information.)
 
@@ -223,7 +223,7 @@ At a high level, here are the infrastructure components you'll need:
 * Some way to run a containerized web application on the internet (e.g., Azure Container Apps, Fly.io, Heroku, etc.)
 * S3-compatible object storage for media (e.g., Amazon AWS)
 
-While we cannot provide official support for self-hosting — after all, we do not know your infrastructure! — we are happy to answer questions and provide guidance on our Discord server to the extent that we are able. We are also able to provide priority support channels to organizations that contribute financially to the project.
+We are also able to provide official and priority support channels to self-hosting organizations that contribute financially to the project. For all organizations, we are happy to answer questions and provide guidance on our Discord server to the extent that we are able.
 
 If you have any questions about self-hosting, please feel free to reach out to us on Discord or via email (contact@atlos.org).
 
