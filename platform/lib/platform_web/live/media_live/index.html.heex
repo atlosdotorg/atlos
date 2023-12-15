@@ -213,12 +213,12 @@
           </strong>
            <%= @bulk_background_task.result.success_count %> <%= Platform.Utils.pluralize(
             @bulk_background_task.result.success_count,
-            "incident was"
-            "incidents were",
+            "incident was",
+            "incidents were"
           ) %> modified, and <%= @bulk_background_task.result.failure_count %> <%= Platform.Utils.pluralize(
             @bulk_background_task.result.failure_count,
-            "incident was"
-            "incidents were",
+            "incident was",
+            "incidents were"
           ) %> skipped.
           <button
             type="button"
