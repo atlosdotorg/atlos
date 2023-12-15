@@ -141,7 +141,6 @@ defmodule PlatformWeb.NewLive.NewComponent do
     }"
       x-init="() => {
         window.openNewIncidentDialog = () => {
-          console.log('Opening new incident dialog...')
           setActive(true)
         };
       }"
