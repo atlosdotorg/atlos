@@ -214,7 +214,14 @@ defmodule PlatformWeb.MediaLive.Index do
       end
 
       results =
-        Enum.to_list(Task.async_stream(media, action, max_concurrency: 10, timeout: 60 * 1000))
+        Enum.to_list(Task.async_stream(media, fn item ->
+          try do
+            action.(item)
+          rescue
+            _error ->
+              :error
+          end
+        end, max_concurrency: 10, timeout: 60 * 1000))
 
       success_count = Enum.count(results, &(&1 == {:ok, :ok}))
       failure_count = Enum.count(results, &(&1 == {:ok, :error}))
