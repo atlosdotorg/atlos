@@ -30,6 +30,18 @@ defmodule Platform.Utils do
     :crypto.strong_rand_bytes(32) |> Base.url_encode64()
   end
 
+  def pluralize(count, singular, plural \\ nil) do
+    if count == 1 do
+      singular
+    else
+      if is_nil(plural) do
+        singular <> "s"
+      else
+        plural
+      end
+    end
+  end
+
   def migrated_attributes(media) do
     if is_nil(media.project) do
       []

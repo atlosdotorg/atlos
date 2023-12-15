@@ -86,6 +86,11 @@ defmodule PlatformWeb.Components do
               time: 75
             )
           }
+          phx-remove={
+            JS.transition({"ease-out duration-50", "opacity-100", "opacity-0"},
+              time: 50
+            )
+          }
           aria-hidden="true"
           x-on:click={"window.closeModal(); " <> @js_on_close}
           phx-target={@target}
@@ -1976,6 +1981,8 @@ defmodule PlatformWeb.Components do
   end
 
   def loading_spinner(assigns) do
+    assigns = assign_new(assigns, :text, fn -> "Loading" end)
+
     ~H"""
     <div class="flex items-center">
       <div role="status">
@@ -1995,187 +2002,8 @@ defmodule PlatformWeb.Components do
           />
         </svg>
       </div>
-      Loading...
+      <%= @text %>
     </div>
-    """
-  end
-
-  def media_table_row(%{media: _, current_user: _, attributes: _, source_cols: _} = assigns) do
-    assigns =
-      assigns
-      |> Map.put(
-        :versions,
-        assigns.media.versions
-        |> Enum.filter(&(&1.visibility == :visible))
-      )
-
-    ~H"""
-    <% is_subscribed = @media.has_subscription %>
-    <% has_unread_notification = @media.has_unread_notification %>
-    <% is_sensitive = Material.Media.is_sensitive(@media) %>
-    <% background_color =
-      case @media.attr_sensitive do
-        x when x == ["Not Sensitive"] or x == [] ->
-          "bg-white group-hover:bg-neutral-50 hover:bg-neutral-50"
-
-        ["Personal Information Visible"] ->
-          "bg-orange-50"
-
-        _ ->
-          "bg-red-50"
-      end %>
-    <tr
-      class={"search-highlighting group transition-all " <> background_color}
-      id={@id}
-      x-data={"{selected: #{@is_selected}}"}
-      x-bind:class={"{'!bg-urge-50': (selected || #{@is_selected})}"}
-    >
-      <td
-        id={"table-row-" <> @media.slug <> "-slug"}
-        class={"md:sticky left-0 z-[100] pl-4 pr-1 border-r whitespace-nowrap border-b border-gray-200 h-10 transition-all " <> background_color}
-        x-bind:class={"{'!bg-urge-50': (selected || #{@is_selected})}"}
-      >
-        <div class="flex items-center gap-1">
-          <div
-            class="flex-shrink-0 w-5 mr-2 group-hover:block"
-            x-bind:class={"{'hidden': !(selected || #{@is_selected})}"}
-            data-tooltip="Select this incident"
-            x-cloak
-          >
-            <input
-              phx-click="select"
-              phx-value-slug={@media.slug}
-              x-on:change="selected = $event.target.checked"
-              checked={@is_selected}
-              type="checkbox"
-              class="h-4 w-4 mb-1 rounded border-gray-300 text-urge-600 focus:ring-urge-600"
-            />
-          </div>
-          <div
-            class="flex-shrink-0 w-5 mr-2 group-hover:hidden"
-            x-bind:class={"{'hidden': (selected || #{@is_selected})}"}
-          >
-            <.user_stack
-              users={@media.updates |> Enum.take(1) |> Enum.map(& &1.user) |> Enum.reject(&is_nil/1)}
-              dynamic={false}
-              ring_class="ring-transparent"
-            />
-          </div>
-          <.link
-            navigate={"/incidents/#{@media.slug}"}
-            class="text-button text-sm flex items-center gap-1 mr-px font-mono"
-          >
-            <span style={"color: #{if @media.project, do: @media.project.color, else: "unset"}"}>
-              <%= Media.slug_to_display(@media) %>
-            </span>
-            <div class="flex flex-col h-full flex-wrap ml-px my-auto items-center">
-              <%= if is_sensitive do %>
-                <span data-tooltip={Enum.join(@media.attr_sensitive, ", ")} class="text-critical-400">
-                  <Heroicons.shield_exclamation mini class="h-4 w-4" />
-                </span>
-              <% end %>
-              <%= if is_subscribed do %>
-                <span data-tooltip="You're subscribed" class="text-neutral-400">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                    class="w-3 h-3"
-                  >
-                    <path d="M10 12.5a2.5 2.5 0 100-5 2.5 2.5 0 000 5z" />
-                    <path
-                      fill-rule="evenodd"
-                      d="M.664 10.59a1.651 1.651 0 010-1.186A10.004 10.004 0 0110 3c4.257 0 7.893 2.66 9.336 6.41.147.381.146.804 0 1.186A10.004 10.004 0 0110 17c-4.257 0-7.893-2.66-9.336-6.41zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
-                      clip-rule="evenodd"
-                    />
-                  </svg>
-                  <span class="sr-only">
-                    You&apos;re subscribed
-                  </span>
-                </span>
-              <% end %>
-              <%= if @media.is_assigned do %>
-                <span data-tooltip="You're assigned" class="text-urge-600">
-                  <Heroicons.bookmark mini class="h-3 w-3" />
-                  <span class="sr-only">
-                    You&apos;re assigned
-                  </span>
-                </span>
-              <% end %>
-              <%= if has_unread_notification do %>
-                <span data-tooltip="Unread notification">
-                  <svg
-                    viewBox="0 0 120 120"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="currentColor"
-                    class="h-3 w-3"
-                  >
-                    <circle cx="60" cy="60" r="40" />
-                  </svg>
-                  <span class="sr-only">
-                    Unread notification
-                  </span>
-                </span>
-              <% end %>
-            </div>
-          </.link>
-        </div>
-      </td>
-      <%= for attr <- @attributes do %>
-        <td
-          class="border-b cursor-pointer p-0"
-          phx-click={
-            if Permissions.can_edit_media?(@current_user, @media, attr),
-              do: "edit_attribute",
-              else: nil
-          }
-          phx-value-attribute={attr.name}
-          phx-value-media-id={@media.id}
-          id={"table-row-" <> @media.slug <> "-" <> to_string(attr.name)}
-        >
-          <div class="text-sm text-gray-900 px-4 overflow-hidden h-6 max-w-[36rem] truncate">
-            <.attr_display_compact
-              color={true}
-              truncate={true}
-              attr={attr}
-              media={@media}
-              current_user={@current_user}
-            />
-          </div>
-        </td>
-      <% end %>
-      <%= for idx <- 0..@source_cols do %>
-        <td
-          class="border-b cursor-pointer p-0"
-          id={"table-row-" <> @media.slug <> "-source-" <> to_string(idx)}
-        >
-          <% version = Enum.at(@versions, idx) %>
-          <%= cond do %>
-            <% length(@versions) > @source_cols + 1 && idx == @source_cols -> %>
-              <span class="text-neutral-400 px-4 text-sm whitespace-nowrap">
-                <%= length(@versions) - @source_cols %> more source(s) available on the incident page
-              </span>
-            <% not is_nil(version) -> %>
-              <div class="text-sm flex items-center text-gray-900 px-4 whitespace-nowrap text-ellipsis overflow-hidden h-6 w-[12rem]">
-                <a
-                  href={version.source_url}
-                  target="_blank"
-                  rel="nofollow"
-                  class="truncate"
-                  data-confirm="This will open the source media in a new tab. Are you sure?"
-                >
-                  <.url_icon url={version.source_url} class="h-4 w-4 inline mb-px" />
-                  <%= version.source_url %>
-                </a>
-              </div>
-            <% true -> %>
-              <span class="text-neutral-400 px-4">
-                &mdash;
-              </span>
-          <% end %>
-        </td>
-      <% end %>
-    </tr>
     """
   end
 
@@ -3778,22 +3606,28 @@ defmodule PlatformWeb.Components do
     """
   end
 
+  def project_list_item_inner(assigns) do
+    ~H"""
+    <div class="rounded-full hover:bg-white transition overflow-hidden text-sm border flex items-center gap-2 py-1 px-2">
+      <span><%= @project.name |> Platform.Utils.truncate() %></span>
+      <span style={"color: #{@project.color}"}>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+          class="w-4 h-4 ml-px"
+        >
+          <circle cx="10" cy="10" r="6" />
+        </svg>
+      </span>
+    </div>
+    """
+  end
+
   def project_list_item(assigns) do
     ~H"""
-    <.link navigate={"/projects/#{@project.id}"} class="group">
-      <div class="rounded-full hover:bg-white transition overflow-hidden text-sm border flex items-center gap-2 py-1 px-2">
-        <span><%= @project.name |> Platform.Utils.truncate() %></span>
-        <span style={"color: #{@project.color}"}>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-            class="w-4 h-4 ml-px"
-          >
-            <circle cx="10" cy="10" r="6" />
-          </svg>
-        </span>
-      </div>
+    <.link navigate={"/projects/#{@project.id}"}>
+      <.project_list_item_inner project={@project} />
     </.link>
     """
   end
