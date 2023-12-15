@@ -268,12 +268,12 @@ defmodule PlatformWeb.ProjectsLive.MembersComponent do
                             </th>
                             <th
                               scope="col"
-                              class="relative pl-3 pr-4 sm:pr-6 text-right lg:whitespace-nowrap"
+                              class="relative pl-3 pr-4 sm:pr-2 text-right lg:whitespace-nowrap"
                             >
                               <%= if @can_remove_self do %>
                                 <button
                                   type="button"
-                                  class="button ~critical @high mr-1"
+                                  class="button ~critical @high my-2"
                                   phx-click="leave_project"
                                   data-confirm="Are you sure you want to leave this project? To rejoin it, you will need to be invited again."
                                   phx-target={@myself}
@@ -284,7 +284,7 @@ defmodule PlatformWeb.ProjectsLive.MembersComponent do
                               <%= if can_edit do %>
                                 <button
                                   type="button"
-                                  class="button ~urge @high -mr-4 my-2"
+                                  class="button ~urge @high ml-1 my-2"
                                   phx-click="add_member"
                                   phx-target={@myself}
                                 >
