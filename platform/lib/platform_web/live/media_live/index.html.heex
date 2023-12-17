@@ -133,16 +133,13 @@
           </div>
         </.dropdown>
       </div>
-      <div
-        :if={Enum.all?(@media, &Platform.Permissions.can_copy_media?(@current_user, &1))}
-        class="p-4 hover:bg-neutral-50 transition"
-      >
+      <div class="p-4 hover:bg-neutral-50 transition">
         <.dropdown label="Copy to project">
           <div class="p-4 ts-ignore flex flex-col gap-4" x-data="{project_id: null}">
             <select x-model="project_id" class="w-full input-base" id="project_id-select">
               <option value="">Select a project...</option>
               <% base_project_id = if Enum.empty?(@media), do: nil, else: hd(@media).project_id %>
-              <%= for project <- Platform.Projects.list_projects_for_user(@current_user) |> Enum.reject(& &1.id == base_project_id) |> Enum.filter(&Platform.Permissions.can_add_media_to_project?(assigns.current_user, &1)) do %>
+              <%= for project <- Platform.Projects.list_editable_projects_for_user(@current_user) |> Enum.reject(& &1.id == base_project_id) do %>
                 <option value={project.id}>
                   <%= project.code %>: <%= project.name |> Platform.Utils.truncate() %>
                 </option>
@@ -219,6 +216,9 @@
             "incident was",
             "incidents were"
           ) %> skipped.
+          <%= if @bulk_background_task.result.failure_count > 0 do %>
+            Skipped actions are usually a result of insufficient permissions.
+          <% end %>
           <button
             type="button"
             phx-click="dismiss_bulk_background_task"
@@ -527,15 +527,7 @@
                             <%= for attr <- @attributes do %>
                               <td
                                 class="border-b cursor-pointer p-0"
-                                phx-click={
-                                  if Platform.Permissions.can_edit_media?(
-                                       @current_user,
-                                       media,
-                                       attr
-                                     ),
-                                     do: "edit_attribute",
-                                     else: nil
-                                }
+                                phx-click="edit_attribute"
                                 phx-value-attribute={attr.name}
                                 phx-value-media-id={media.id}
                                 id={"table-row-" <> media.slug <> "-" <> to_string(attr.name)}

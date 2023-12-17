@@ -1,4 +1,5 @@
 defmodule PlatformWeb.MediaLive.Index do
+  alias Platform.Material.Media
   alias Ecto.Repo
   use PlatformWeb, :live_view
   alias Platform.Material
@@ -36,12 +37,14 @@ defmodule PlatformWeb.MediaLive.Index do
     membership_id = if is_nil(membership), do: nil, else: membership.id
 
     # Update the user's prefered incident display, if necessary
-    Platform.Accounts.update_user_preferences(socket.assigns.current_user, %{
-      active_incidents_tab: display,
-      active_project_membership_id: membership_id,
-      active_incidents_tab_params: params,
-      active_incidents_tab_params_time: NaiveDateTime.utc_now()
-    })
+    Task.start(fn ->
+      Platform.Accounts.update_user_preferences(socket.assigns.current_user, %{
+        active_incidents_tab: display,
+        active_project_membership_id: membership_id,
+        active_incidents_tab_params: params,
+        active_incidents_tab_params_time: NaiveDateTime.utc_now()
+      })
+    end)
 
     # Pull cursor information from params
     before_cursor = params["bc"]
@@ -359,12 +362,29 @@ defmodule PlatformWeb.MediaLive.Index do
         %{"attribute" => attr_name, "media-id" => media_id} = _params,
         socket
       ) do
-    {:noreply,
-     socket
-     |> assign(
-       :editing,
-       {Enum.find(socket.assigns.media, &(&1.id == media_id)), attr_name}
-     )}
+    media = Enum.find(socket.assigns.media, &(&1.id == media_id))
+    attr = Attribute.get_attribute(attr_name, project: media.project)
+
+    if not is_nil(media) and
+         Platform.Permissions.can_edit_media?(
+           socket.assigns.current_user,
+           media,
+           attr
+         ) do
+      {:noreply,
+       socket
+       |> assign(
+         :editing,
+         {media, attr_name}
+       )}
+    else
+      {:noreply,
+       socket
+       |> put_flash(
+         :error,
+         "You cannot edit this data (#{attr.label}) on #{Media.slug_to_display(media)}."
+       )}
+    end
   end
 
   def handle_event("dismiss_bulk_background_task", _params, socket) do

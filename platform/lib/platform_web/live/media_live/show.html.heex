@@ -855,7 +855,9 @@
                           class="w-full object-contain mx-auto overflow-hidden max-h-[28rem]"
                           x-bind:class="grayscale ? 'grayscale' : ''"
                           poster={
-                            Material.media_version_artifact_location(artifact, version: :thumbnail)
+                            Material.media_version_artifact_location(artifact,
+                              version: :thumbnail
+                            )
                           }
                         >
                           <source src={Material.media_version_artifact_location(artifact)} />

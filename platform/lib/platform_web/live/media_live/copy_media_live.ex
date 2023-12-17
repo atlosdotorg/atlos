@@ -13,8 +13,7 @@ defmodule PlatformWeb.MediaLive.CopyMediaLive do
        |> assign_new(:destination, fn -> nil end)
        |> assign(
          :project_options,
-         Projects.list_projects_for_user(assigns.current_user)
-         |> Enum.filter(&Permissions.can_add_media_to_project?(assigns.current_user, &1))
+         Projects.list_editable_projects_for_user(assigns.current_user)
          |> Enum.filter(fn project -> project.id != assigns.source.project_id end)
        )
        |> assign_new(:changeset, fn -> changeset(%{}, assigns.source) end)}

@@ -3252,7 +3252,9 @@ defmodule PlatformWeb.Components do
           <p class="support">
             Type or select a time; alternatively,
             <span
-              x-on:click={'$refs.time_input.value = null; $refs.time_input.dispatchEvent(new Event("input", {bubbles: true}))'}
+              x-on:click={
+                ~c"$refs.time_input.value = null; $refs.time_input.dispatchEvent(new Event(\"input\", {bubbles: true}))"
+              }
               class="cursor-pointer text-urge-600"
             >
               unset
@@ -3272,7 +3274,9 @@ defmodule PlatformWeb.Components do
           <p class="support">
             Type or select a date; alternatively,
             <span
-              x-on:click={'$refs.date_input.value = null; $refs.date_input.dispatchEvent(new Event("input", {bubbles: true}))'}
+              x-on:click={
+                ~c"$refs.date_input.value = null; $refs.date_input.dispatchEvent(new Event(\"input\", {bubbles: true}))"
+              }
               class="cursor-pointer text-urge-600"
             >
               unset

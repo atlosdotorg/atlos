@@ -13,7 +13,7 @@ defmodule Platform.Utils do
   def get_identifier_regex(), do: @identifier_regex
 
   def generate_media_slug() do
-    slug = for _ <- 1..6, into: "", do: <<Enum.random('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ')>>
+    slug = for _ <- 1..6, into: "", do: <<Enum.random(~c"0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ")>>
 
     if is_nil(Platform.Material.get_full_media_by_slug(slug)) do
       slug
@@ -23,7 +23,7 @@ defmodule Platform.Utils do
   end
 
   def generate_random_sequence(length) do
-    for _ <- 1..length, into: "", do: <<Enum.random('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ')>>
+    for _ <- 1..length, into: "", do: <<Enum.random(~c"0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ")>>
   end
 
   def generate_secure_code() do

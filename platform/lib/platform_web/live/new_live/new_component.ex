@@ -23,8 +23,7 @@ defmodule PlatformWeb.NewLive.NewComponent do
      |> assign(:path_hash, :crypto.hash(:md5, assigns.path) |> Base.encode16())
      |> assign(
        :project_options,
-       Projects.list_projects_for_user(assigns.current_user)
-       |> Enum.filter(&Permissions.can_add_media_to_project?(assigns.current_user, &1))
+       Projects.list_editable_projects_for_user(assigns.current_user)
      )
      |> assign(:disabled, false)
      |> assign(:url_deconfliction, [])

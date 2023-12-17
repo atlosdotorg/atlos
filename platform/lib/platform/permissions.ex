@@ -183,9 +183,9 @@ defmodule Platform.Permissions do
         _ -> Platform.Repo.preload(media, :project)
       end
 
-      if project_membership.project_id != media.project_id do
-        raise "Project membership and media project ID do not match"
-      end
+    if project_membership.project_id != media.project_id do
+      raise "Project membership and media project ID do not match"
+    end
 
     case can_view_project?(user, media.project, project_membership) do
       true ->
@@ -209,6 +209,19 @@ defmodule Platform.Permissions do
         # The user can't view the project, so they can't view the media.
         false
     end
+  end
+
+  defp filter_to_users_with_roles(media_list, %User{} = user, necessary_roles)
+       when is_list(media_list) and is_list(necessary_roles) do
+    user_memberships =
+      Projects.get_users_project_memberships(user)
+      |> Enum.into(%{}, fn membership -> {membership.project_id, membership} end)
+
+    media_list
+    |> Enum.filter(fn media ->
+      membership = user_memberships[media.project_id]
+      not is_nil(membership) and Enum.member?(necessary_roles, membership.role)
+    end)
   end
 
   @doc """
