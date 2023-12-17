@@ -103,7 +103,7 @@ defmodule PlatformWeb.Components do
         </span>
 
         <div
-          class={"mt-24 mb-8 md:mt-0 relative inline-block opacity-0 scale-75 align-bottom bg-white rounded-lg text-left shadow-xl transform transition-all sm:align-middle sm:max-w-xl sm:w-full max-w-full min-w-0 " <> if @wide, do: "lg:max-w-3xl xl:max-w-4xl", else: "" <> if @no_pad, do: "", else: "px-4 pt-5 pb-4 sm:p-6"}
+          class={"mt-24 mb-8 md:mt-0 relative inline-block opacity-0 scale-75 align-bottom bg-white rounded-lg text-left shadow-xl transform transition-all sm:align-middle sm:max-w-xl sm:w-full max-w-full min-w-0 " <> (if @wide, do: "lg:max-w-3xl xl:max-w-4xl", else: "") <> (if @no_pad, do: "", else: "px-4 pt-5 pb-4 sm:p-6")}
           phx-mounted={
             JS.transition({"ease-out duration-75", "opacity-0 scale-75", "opacity-100 scale-100"},
               time: 75
@@ -1414,7 +1414,7 @@ defmodule PlatformWeb.Components do
   end
 
   def attr_entry(%{name: name, value: value, project: project} = assigns) do
-    attr = Attribute.get_attribute(name, project: project)
+    attr = Attribute.get_attribute(name, project: project, exclude_options: true)
 
     tone =
       if Map.get(assigns, :color, false), do: Attribute.attr_color(name, value), else: "~neutral"
@@ -1978,13 +1978,14 @@ defmodule PlatformWeb.Components do
   end
 
   def loading_spinner(assigns) do
-    assigns = assign_new(assigns, :text, fn -> "Loading" end)
+    assigns =
+      assign_new(assigns, :text, fn -> "Loading" end) |> assign_new(:class, fn -> "h-4 w-4" end)
 
     ~H"""
     <div class="flex items-center">
       <div role="status">
         <svg
-          class="inline mr-2 w-4 h-4 text-neutral-200 animate-spin fill-neutral-700"
+          class={"inline mr-2 text-neutral-200 animate-spin fill-neutral-700 " <> @class}
           viewBox="0 0 100 101"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"

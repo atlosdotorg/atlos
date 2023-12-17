@@ -538,6 +538,12 @@ defmodule Platform.Material.Attribute do
 
   @doc """
   Get an attribute by its name. Will check whether the attribute has been renamed.
+
+  Options:
+
+    * :project - the project to use for project attributes (default: nil)
+    * :projects - the projects to use for project attributes (default: [])
+    * :exclude_options - whether to exclude the options for multi-selects (default: false) (speeds up the call)
   """
   def get_attribute(name_or_id, opts \\ []) do
     # Some attributes have been renamed; this allows us to keep updates
@@ -564,7 +570,8 @@ defmodule Platform.Material.Attribute do
         project = Keyword.get(opts, :project)
         projects = Keyword.get(opts, :projects, if(is_nil(project), do: [], else: [project]))
 
-        if not Enum.empty?(projects) and allow_user_defined_options(attr) and
+        if Keyword.get(opts, :exclude_options, false) == false and not Enum.empty?(projects) and
+             allow_user_defined_options(attr) and
              attr.type == :multi_select do
           Map.put(
             attr,

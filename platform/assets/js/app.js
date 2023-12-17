@@ -50,6 +50,14 @@ Hooks.Modal = {
         })
     }
 }
+Hooks.CanTriggerLiveViewEvent = {
+    mounted() {
+        this.el.addEventListener("platform:liveview_event", e => {
+            this.pushEventTo(this.el, e.detail.event, e.detail.payload || {});
+        }
+        )
+    }
+};
 Hooks.ScrollToTop = {
     mounted() {
         this.el.addEventListener("click", e => {

@@ -8,14 +8,6 @@ defmodule PlatformWeb.NewLive.NewComponent do
   alias Platform.Projects
 
   def update(assigns, socket) do
-    active_project_membership =
-      Platform.Accounts.get_user!(assigns.current_user.id).active_project_membership
-
-    project_id =
-      if is_nil(active_project_membership),
-        do: nil,
-        else: active_project_membership.project_id
-
     {:ok,
      socket
      |> assign(assigns)
@@ -27,7 +19,7 @@ defmodule PlatformWeb.NewLive.NewComponent do
      )
      |> assign(:disabled, false)
      |> assign(:url_deconfliction, [])
-     |> assign_changeset(%{"project_id" => project_id})}
+     |> assign(:active, false)}
   end
 
   defp assign_changeset(socket, params, opts \\ []) do
@@ -77,6 +69,18 @@ defmodule PlatformWeb.NewLive.NewComponent do
     |> assign(:form, to_form(cs))
   end
 
+  def handle_event("activate", _, socket) do
+    active_project_membership =
+      Platform.Accounts.get_user!(socket.assigns.current_user.id).active_project_membership
+
+    project_id =
+      if is_nil(active_project_membership),
+        do: nil,
+        else: active_project_membership.project_id
+
+    {:noreply, socket |> assign(:active, true) |> assign_changeset(%{"project_id" => project_id})}
+  end
+
   def handle_event("validate", %{"media" => media_params}, socket) do
     # TODO: We don't currently do live validation because it causes the multiselect panel to jump around.
     # Given the time, it'd be nice to fix this.
@@ -119,13 +123,17 @@ defmodule PlatformWeb.NewLive.NewComponent do
   def render(assigns) do
     ~H"""
     <div
+      phx-hook="CanTriggerLiveViewEvent"
       x-data="{
       // Active if the URL fragment is #new
       active: window.location.hash === '#new',
       setActive(val) {
+        if (val) {
+          this.$refs.base.dispatchEvent(new CustomEvent('platform:liveview_event', {detail: {event: 'activate'}}))
+        }
         if (!val && document.elementContainsActiveUnsavedForms($refs.base)) {
           if (confirm('You have unsaved changes. Are you sure you want to exit?')) {
-            this.active = val
+            this.active = false
           }
         } else {
           this.active = val
@@ -144,6 +152,7 @@ defmodule PlatformWeb.NewLive.NewComponent do
         };
       }"
       id="globalcreate"
+      phx-target={@myself}
       class="w-full flex flex-col items-center"
       x-on:keydown.escape.window.prevent="setActive(false)"
       x-on:keydown.ctrl.i.window.prevent="setActive(!active)"
@@ -170,9 +179,17 @@ defmodule PlatformWeb.NewLive.NewComponent do
             x-show="active"
           >
             <div
-              class="mx-auto max-w-xl lg:max-w-2xl divide-y transform overflow-hidden rounded-xl bg-white shadow-2xl ring-1 ring-black ring-opacity-5"
+              :if={@active}
+              class="mx-auto max-w-xl lg:max-w-2xl transition-all divide-y transform overflow-hidden rounded-xl bg-white shadow-2xl ring-1 ring-black ring-opacity-5"
               x-on:click.outside="setActive(false)"
               data-blocks-body-scroll="true"
+              id="new-dialog"
+              phx-mounted={
+                JS.show(
+                  transition: {"ease-in duration-100", "opacity-0 scale-90", "opacity-100 scale-100"},
+                  time: 100
+                )
+              }
             >
               <div class="flex">
                 <h2 class="font-medium text-xl p-4">New Incident</h2>
