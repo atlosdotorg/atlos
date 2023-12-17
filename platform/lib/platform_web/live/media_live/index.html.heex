@@ -210,7 +210,7 @@
           <strong class="font-medium text-neutral-700">
             <%= @bulk_background_task.result.message %>
           </strong>
-           <%= @bulk_background_task.result.success_count %> <%= Platform.Utils.pluralize(
+          <%= @bulk_background_task.result.success_count %> <%= Platform.Utils.pluralize(
             @bulk_background_task.result.success_count,
             "incident was",
             "incidents were"
