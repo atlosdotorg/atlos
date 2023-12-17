@@ -1260,11 +1260,14 @@ defmodule Platform.Material do
     Repo.all(
       from(w in MediaSubscription,
         where: w.media_id == ^media.id,
+        inner_join: u in assoc(w, :user),
+        inner_join: membership in assoc(u, :memberships),
+        on: membership.project_id == ^media.project_id,
         preload: :user
       )
     )
-    |> Enum.filter(&Permissions.can_view_media?(&1.user, media))
     |> Enum.map(& &1.user)
+    |> Enum.uniq_by(& &1.id)
   end
 
   def total_subscribed!(%Media{} = media) do

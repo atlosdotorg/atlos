@@ -299,7 +299,7 @@ defmodule Platform.Projects do
   @doc """
   Gets the project memberships for a user.
   """
-  def get_users_project_memberships(%Accounts.User{} = user) do
+  defmemo get_users_project_memberships(%Accounts.User{} = user), expires_in: 1000 do
     Repo.all(
       from(pm in (ProjectMembership |> preload_project_memberships()),
         where: pm.user_id == ^user.id

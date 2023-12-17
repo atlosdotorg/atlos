@@ -14,10 +14,19 @@ defmodule Platform.Permissions do
   alias Platform.Updates.Update
   alias Platform.Projects
   alias Platform.Projects.Project
+  alias Platform.Projects.ProjectMembership
   alias Platform.API.APIToken
 
   def can_view_project?(%User{} = user, %Project{} = project) do
-    not is_nil(Projects.get_project_membership_by_user_and_project(user, project))
+    can_view_project?(
+      user,
+      project,
+      Projects.get_project_membership_by_user_and_project(user, project)
+    )
+  end
+
+  defp can_view_project?(%User{}, %Project{} = project, membership) do
+    not is_nil(membership) and membership.project_id == project.id
   end
 
   def can_create_project?(%User{} = user) do
@@ -154,34 +163,67 @@ defmodule Platform.Permissions do
 
   def can_view_media?(%User{} = user, %Media{} = media) do
     membership = Projects.get_project_membership_by_user_and_project_id(user, media.project_id)
-    project = Projects.get_project(media.project_id)
 
-    if is_nil(membership) do
-      false
-    else
-      case can_view_project?(user, project) do
-        true ->
-          case {media.attr_restrictions, media.deleted} do
-            {nil, false} ->
-              true
+    can_view_media?(user, media, membership)
+  end
 
-            {_, true} ->
-              membership.role == :owner or membership.role == :manager
+  defp can_view_media?(%User{}, %Media{}, nil) do
+    # The user is not a member of the project, so they can't view the media.
+    false
+  end
 
-            {values, false} ->
-              # Restrictions are present.
-              if Enum.member?(values, "Hidden") do
-                membership.role == :owner or membership.role == :manager
-              else
-                true
-              end
-          end
-
-        false ->
-          # The user can't view the project, so they can't view the media.
-          false
+  defp can_view_media?(
+         %User{} = user,
+         %Media{} = media,
+         %ProjectMembership{} = project_membership
+       ) do
+    media =
+      case media.project do
+        %Project{} -> media
+        _ -> Platform.Repo.preload(media, :project)
       end
+
+      if project_membership.project_id != media.project_id do
+        raise "Project membership and media project ID do not match"
+      end
+
+    case can_view_project?(user, media.project, project_membership) do
+      true ->
+        case {media.attr_restrictions, media.deleted} do
+          {nil, false} ->
+            true
+
+          {_, true} ->
+            project_membership.role == :owner or project_membership.role == :manager
+
+          {values, false} ->
+            # Restrictions are present.
+            if Enum.member?(values, "Hidden") do
+              project_membership.role == :owner or project_membership.role == :manager
+            else
+              true
+            end
+        end
+
+      false ->
+        # The user can't view the project, so they can't view the media.
+        false
     end
+  end
+
+  @doc """
+  Equivalent to `can_view_media?`, but takes a list of media instead of a single
+  media. Helpful for filtering lists of media and avoiding n+1 queries.
+
+  Unlike most other functions in this module, this function takes the list of
+  media as the first argument so that it can more easily be used in pipes.
+  """
+  def filter_to_viewable_media(media_list, %User{} = user) when is_list(media_list) do
+    user_memberships =
+      Projects.get_users_project_memberships(user)
+      |> Enum.into(%{}, fn membership -> {membership.project_id, membership} end)
+
+    media_list |> Enum.filter(&can_view_media?(user, &1, user_memberships[&1.project_id]))
   end
 
   def can_edit_media?(%User{} = user, %Media{} = media) do
@@ -292,10 +334,22 @@ defmodule Platform.Permissions do
 
   def can_view_update?(%User{} = user, %Update{} = update) do
     media = _get_media_from_id(update.media_id)
+    membership = Projects.get_project_membership_by_user_and_project_id(user, media.project_id)
 
-    with true <- can_view_media?(user, media),
-         membership when not is_nil(membership) <-
-           Projects.get_project_membership_by_user_and_project_id(user, media.project_id) do
+    can_view_update?(user, %{update | media: media}, membership)
+  end
+
+  defp can_view_update?(%User{}, %Update{}, nil) do
+    # The user is not a member of the project, so they can't view the update.
+    false
+  end
+
+  defp can_view_update?(
+         %User{} = user,
+         %Update{media: %Media{}} = update,
+         %ProjectMembership{} = membership
+       ) do
+    with true <- can_view_media?(user, update.media, membership) do
       case update.hidden do
         true -> membership.role == :owner or membership.role == :manager
         false -> true
@@ -303,6 +357,17 @@ defmodule Platform.Permissions do
     else
       _ -> false
     end
+  end
+
+  def filter_to_viewable_updates(update_list, %User{} = user) when is_list(update_list) do
+    user_memberships =
+      Projects.get_users_project_memberships(user)
+      |> Enum.into(%{}, fn membership -> {membership.project_id, membership} end)
+
+    updates_with_media = Platform.Repo.preload(update_list, :media)
+
+    updates_with_media
+    |> Enum.filter(&can_view_update?(user, &1, user_memberships[&1.media.project_id]))
   end
 
   def can_view_media_version?(%User{} = user, %MediaVersion{} = version) do

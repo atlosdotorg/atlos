@@ -25,7 +25,7 @@ defmodule PlatformWeb.UpdatesLive.PaginatedMediaUpdateFeed do
         restrict_to_project_id: socket.assigns.restrict_to_project_id
       )
     )
-    |> Enum.filter(&Permissions.can_view_media?(socket.assigns.current_user, &1))
+    |> Permissions.filter_to_viewable_media(socket.assigns.current_user)
     |> Enum.map(fn m ->
       m
       |> Map.put(
@@ -34,7 +34,7 @@ defmodule PlatformWeb.UpdatesLive.PaginatedMediaUpdateFeed do
         |> Enum.sort_by(& &1.inserted_at, {:desc, NaiveDateTime})
         |> Enum.take(3)
         |> Enum.reverse()
-        |> Enum.filter(&Permissions.can_view_update?(socket.assigns.current_user, &1))
+        |> Permissions.filter_to_viewable_updates(socket.assigns.current_user)
       )
     end)
   end

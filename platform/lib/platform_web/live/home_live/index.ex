@@ -32,7 +32,7 @@ defmodule PlatformWeb.HomeLive.Index do
         for_user: socket.assigns.current_user
       )
     )
-    |> Enum.filter(&Permissions.can_view_media?(socket.assigns.current_user, &1))
+    |> Permissions.filter_to_viewable_media(socket.assigns.current_user)
   end
 
   defp get_overview_media(socket, opts \\ []) do
@@ -88,7 +88,7 @@ defmodule PlatformWeb.HomeLive.Index do
     |> Enum.sort_by(& &1.last_update_time, {:desc, NaiveDateTime})
     |> Enum.uniq_by(& &1.id)
     |> Enum.concat(unclaimed_for_backfill)
-    |> Enum.filter(&Permissions.can_view_media?(socket.assigns.current_user, &1))
+    |> Permissions.filter_to_viewable_media(socket.assigns.current_user)
     |> Enum.take(4)
   end
 

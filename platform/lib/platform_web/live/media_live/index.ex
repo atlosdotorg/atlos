@@ -130,15 +130,11 @@ defmodule PlatformWeb.MediaLive.Index do
   end
 
   defp assign_media(socket, media) do
-    IO.puts("Assigning media: length is #{Enum.count(media)}")
-
     existing_media = Map.get(socket.assigns, :media, [])
 
     socket
     |> assign(:media, media)
     |> then(fn s ->
-      IO.puts("Existing media: length is #{Enum.count(existing_media)}")
-
       s =
         Enum.reduce(existing_media, s, fn m, s ->
           stream_delete_by_dom_id(s, :media_stream, "incident-#{m.slug}")

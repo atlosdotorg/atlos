@@ -1913,10 +1913,7 @@ defmodule PlatformWeb.Components do
       |> assign(
         :has_dupes,
         Enum.any?(pairs, fn {_url, media} ->
-          not Enum.empty?(
-            media
-            |> Enum.filter(&Permissions.can_view_media?(assigns.current_user, &1))
-          )
+          not Enum.empty?(Permissions.filter_to_viewable_media(media, assigns.current_user))
         end)
       )
 
