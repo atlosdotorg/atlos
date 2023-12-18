@@ -221,6 +221,33 @@ defmodule Platform.Utils do
     markdown
   end
 
+  @spec escape_markdown_string(String.t()) :: String.t()
+  @doc """
+  Escape the given string so that it can be used in a markdown document without
+  causing formatting issues. Note that this function is not "load bearing" from
+  a security perspective; it's just for formatting. There should be no way to
+  render markdown on Atlos that is not properly sanitized, regardless of whether
+  or not this function is used.
+  """
+  def escape_markdown_string(str) when is_binary(str) do
+    str
+    |> String.replace("\\", "\\\\")
+    |> String.replace("`", "\\`")
+    |> String.replace("*", "\\*")
+    |> String.replace("_", "\\_")
+    |> String.replace("{", "\\{")
+    |> String.replace("}", "\\}")
+    |> String.replace("[", "\\[")
+    |> String.replace("]", "\\]")
+    |> String.replace("(", "\\(")
+    |> String.replace(")", "\\)")
+    |> String.replace("#", "\\#")
+    |> String.replace("+", "\\+")
+    |> String.replace("-", "\\-")
+    |> String.replace(".", "\\.")
+    |> String.replace("!", "\\!")
+  end
+
   def generate_qrcode(uri) do
     uri
     |> EQRCode.encode()

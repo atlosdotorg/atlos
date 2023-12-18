@@ -143,11 +143,29 @@ defmodule Platform.Accounts do
 
   """
   def register_user(attrs, opts \\ []) do
-    %User{}
-    |> User.registration_changeset(attrs, opts)
-    # We only validate the invite code when they actually submit, to prevent enumeration (at this point, they must have completed the captcha)
-    |> User.validate_invite_code()
-    |> Repo.insert()
+    changeset =
+      %User{}
+      |> User.registration_changeset(attrs, opts)
+      # We only validate the invite code when they actually submit, to prevent enumeration (at this point, they must have completed the captcha)
+      |> User.validate_invite_code()
+
+    Repo.transaction(fn ->
+      case changeset
+           |> Repo.insert() do
+        {:ok, user} ->
+          # Apply the invite code to the user, if applicable
+          invite_code = Ecto.Changeset.get_field(changeset, :invite_code)
+
+          if not is_nil(invite_code) do
+            {:ok, _} = Invites.apply_invite_code(user, invite_code)
+          end
+
+          {:ok, user}
+
+        {:error, changeset} ->
+          Repo.rollback(changeset)
+      end
+    end)
   end
 
   @doc """
