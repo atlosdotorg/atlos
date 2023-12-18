@@ -13,10 +13,6 @@ defmodule PlatformWeb.NewLive.NewComponent do
      |> assign(assigns)
      # We do this so that we rerender the project selector on page changes
      |> assign(:path_hash, :crypto.hash(:md5, assigns.path) |> Base.encode16())
-     |> assign(
-       :project_options,
-       Projects.list_editable_projects_for_user(assigns.current_user)
-     )
      |> assign(:disabled, false)
      |> assign(:url_deconfliction, [])
      |> assign(:active, false)}
@@ -25,8 +21,10 @@ defmodule PlatformWeb.NewLive.NewComponent do
   defp assign_changeset(socket, params, opts \\ []) do
     # Also assigns the @project and @media
 
+    project_options = Projects.list_editable_projects_for_user(socket.assigns.current_user)
+
     project_id =
-      Map.get(params, "project_id") || Enum.at(socket.assigns.project_options, 0, %{id: nil}).id
+      Map.get(params, "project_id") || Enum.at(project_options, 0, %{id: nil}).id
 
     project = Platform.Projects.get_project(project_id)
     media = %Material.Media{project_id: project_id, project: project}
@@ -53,6 +51,10 @@ defmodule PlatformWeb.NewLive.NewComponent do
     |> assign(
       :changeset,
       cs
+    )
+    |> assign(
+      :project_options,
+      project_options
     )
     |> assign(
       :url_deconfliction,
