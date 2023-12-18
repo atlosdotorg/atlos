@@ -435,4 +435,8 @@ defmodule Platform.Permissions do
       _ -> false
     end
   end
+
+  def can_create_invite?(%User{} = _) do
+    true
+  end
 end

@@ -296,7 +296,7 @@ defmodule Platform.Accounts do
   end
 
   defp preload_user(queryable) do
-    queryable |> preload([:active_project_membership, invite: [:owner]])
+    queryable |> preload([:active_project_membership])
   end
 
   @doc """
@@ -373,7 +373,7 @@ defmodule Platform.Accounts do
   """
   def get_user_by_session_token(token) do
     {:ok, query} = UserToken.verify_session_token_query(token)
-    Repo.one(query) |> Repo.preload([:active_project_membership, invite: [:owner]])
+    Repo.one(query) |> Repo.preload([:active_project_membership])
   end
 
   @doc """

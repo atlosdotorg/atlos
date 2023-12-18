@@ -76,19 +76,24 @@ defmodule Platform.Invites do
   Gets an invite by its user.
   """
   def get_invites_by_user(user) when is_nil(user),
-    do: from(i in Invite, where: is_nil(i.owner_id)) |> Repo.all()
+    do: from(i in preload_invites(Invite), where: is_nil(i.owner_id)) |> Repo.all()
 
   def get_invites_by_user(user),
-    do: from(i in Invite, where: i.owner_id == ^user.id) |> Repo.all()
+    do: from(i in preload_invites(Invite), where: i.owner_id == ^user.id) |> Repo.all()
 
   @doc """
   Gets an invite by its project.
   """
   def get_invites_by_project(project) when is_nil(project),
-    do: from(i in Invite, where: is_nil(i.project_id)) |> Repo.all()
+    do: from(i in preload_invites(Invite), where: is_nil(i.project_id)) |> Repo.all()
 
   def get_invites_by_project(project),
-    do: from(i in Invite, where: i.project_id == ^project.id) |> Repo.all()
+    do: from(i in preload_invites(Invite), where: i.project_id == ^project.id) |> Repo.all()
+
+  defp preload_invites(query) do
+    query
+    |> preload([:owner, uses: [:user]])
+  end
 
   @doc """
   Creates a invite.

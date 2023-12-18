@@ -1005,23 +1005,23 @@ defmodule PlatformWeb.Components do
   def naive_pluralise(amt, word) when amt == 1, do: word
   def naive_pluralise(_amt, word), do: word <> "s"
 
-  defp time_ago_in_words(seconds) when seconds < 60 do
-    "just now"
+  defp time_delta_in_words(seconds) when seconds < 60 and seconds > -60 do
+    "less than a minute"
   end
 
-  defp time_ago_in_words(seconds) when seconds < 3600 do
-    amt = round(seconds / 60)
-    "#{amt} #{naive_pluralise(amt, "minute")} ago"
+  defp time_delta_in_words(seconds) when seconds < 3600 and seconds > -3600 do
+    amt = abs(round(seconds / 60))
+    "#{amt} #{naive_pluralise(amt, "minute")}"
   end
 
-  defp time_ago_in_words(seconds) when seconds < 86400 do
-    amt = round(seconds / 3600)
-    "#{amt} #{naive_pluralise(amt, "hour")} ago"
+  defp time_delta_in_words(seconds) when seconds < 86400 and seconds > -86400 do
+    amt = abs(round(seconds / 3600))
+    "#{amt} #{naive_pluralise(amt, "hour")}"
   end
 
-  defp time_ago_in_words(seconds) do
-    amt = round(seconds / 86400)
-    "#{amt} #{naive_pluralise(amt, "day")} ago"
+  defp time_delta_in_words(seconds) do
+    amt = abs(round(seconds / 86400))
+    "#{amt} #{naive_pluralise(amt, "day")}"
   end
 
   defp seconds_ago(datetime) do
@@ -1061,7 +1061,7 @@ defmodule PlatformWeb.Components do
       |> assign(:ago, ago)
       |> assign(:months, months)
 
-    if ago > 7 * 24 * 60 * 60 do
+    if abs(ago) > 7 * 24 * 60 * 60 do
       ~H"""
       <span data-tooltip={@full_display_time}>
         <%= @months[@time.month] %> <%= @time.day %> <%= @time.year %>
@@ -1069,7 +1069,9 @@ defmodule PlatformWeb.Components do
       """
     else
       ~H"""
-      <span data-tooltip={@full_display_time}><%= @ago |> time_ago_in_words() %></span>
+      <span data-tooltip={@full_display_time}>
+        <span :if={@ago <= 0}>in</span> <%= time_delta_in_words(@ago) %> <span :if={@ago > 0}>ago</span>
+      </span>
       """
     end
   end

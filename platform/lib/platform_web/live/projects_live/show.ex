@@ -297,6 +297,13 @@ defmodule PlatformWeb.ProjectsLive.Show do
           />
 
           <.live_component
+            module={PlatformWeb.ProjectsLive.InvitesComponent}
+            id="project-invites"
+            current_user={@current_user}
+            project={@project}
+          />
+
+          <.live_component
             module={PlatformWeb.ProjectsLive.APITokensComponent}
             id="project-api-tokens"
             current_user={@current_user}
