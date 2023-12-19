@@ -409,7 +409,7 @@ defmodule PlatformWeb.ProjectsLive.InvitesComponent do
           <div>
             <div class="flex items-center gap-2">
               <%= checkbox(@form, :single_use) %>
-              <%= label(@form, :single_use, "Allow this invite to be used only once",
+              <%= label(@form, :single_use, "Limit this invite to one use only",
                 class: "text-neutral-600"
               ) %>
             </div>
