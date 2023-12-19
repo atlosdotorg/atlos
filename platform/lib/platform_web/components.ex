@@ -1070,7 +1070,7 @@ defmodule PlatformWeb.Components do
     else
       ~H"""
       <span data-tooltip={@full_display_time}>
-        <span :if={@ago <= 0}>in</span> <%= time_delta_in_words(@ago) %> <span :if={@ago > 0}>ago</span>
+        <span :if={@ago <= 0}>in</span> <%= time_delta_in_words(@ago) %><span :if={@ago > 0}> ago</span>
       </span>
       """
     end
@@ -1079,6 +1079,60 @@ defmodule PlatformWeb.Components do
   def location(assigns) do
     ~H"""
     <%= @lat %>, <%= @lon %> &nearr;
+    """
+  end
+
+  def invitation_display(assigns) do
+    assigns = assign_new(assigns, :inner_block, fn -> nil end)
+
+    ~H"""
+    <section class="flex flex-col items-center gap-4">
+      <div class="flex items-center">
+        <img
+          class="relative z-30 inline-block rounded-full ring-2 h-12 w-12 ring-white"
+          src={Platform.Accounts.get_profile_photo_path(@invite.owner)}
+          alt={"Profile photo for #{@invite.owner.username}"}
+          loading="lazy"
+        />
+        <%= if not is_nil(@current_user) do %>
+          <span class="mx-4 text-neutral-400">
+            <Heroicons.plus class="h-6 w-6" />
+          </span>
+          <img
+            class="relative z-30 inline-block rounded-full ring-2 h-12 w-12 ring-white"
+            src={Platform.Accounts.get_profile_photo_path(@current_user)}
+            alt={"Profile photo for #{@current_user.username}"}
+            loading="lazy"
+          />
+        <% end %>
+      </div>
+      <h2 class="text-lg md:text-xl text-neutral-500 font-medium text-center px-4">
+        <span class="text-neutral-800"><%= @invite.owner.username %></span>
+        invites you to join
+        <%= if is_nil(@invite.project) do %>
+          <span class="text-neutral-800">
+            Atlos
+          </span>
+        <% else %>
+          <span class="text-neutral-800">
+            <%= @invite.project.name %>
+          </span>
+          as <%= if Enum.member?(
+                      [:editor, :owner],
+                      @invite.project_access_level
+                    ),
+                    do: "an",
+                    else: "a" %>
+          <span class="text-neutral-800"><%= to_string(@invite.project_access_level) %></span>
+        <% end %>
+      </h2>
+      <div :if={not is_nil(@inner_block)}>
+        <%= render_slot(@inner_block) %>
+      </div>
+      <p class="text-xs text-neutral-500">
+        This invitation will expire <.rel_time time={@invite.expires} />
+      </p>
+    </section>
     """
   end
 

@@ -9,7 +9,7 @@
               do: " (#{Enum.join(@media.attr_sensitive, ", ")})",
               else: "" %>
         <button
-          class="font-mono text-base sm:text-xl text-neutral-500 font-medium p-1 rounded hover:bg-neutral-200 transition-all"
+          class="font-mono text-base sm:text-xl transition-all text-neutral-500 font-medium p-1 rounded hover:bg-neutral-200 transition-all"
           x-bind:class="pulse ? 'animate-ping' : ''"
           data-tooltip="Copy information to your clipboard"
           type="button"

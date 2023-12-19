@@ -190,8 +190,8 @@ defmodule PlatformWeb.ProjectsLive.BulkUploadLive do
       )
 
     ~H"""
-    <section class="flex flex-col md:flex-row mt-8 mb-32">
-      <div class="mb-4 md:w-[20rem] md:min-w-[20rem] md:mr-20">
+    <section class="flex flex-col lg:flex-row mt-8 mb-32">
+      <div class="mb-4 lg:w-[20rem] lg:min-w-[20rem] lg:mr-20">
         <p class="sec-head text-xl">Bulk Import</p>
         <p class="sec-subhead">Upload many incidents from a CSV file.</p>
       </div>
@@ -201,7 +201,7 @@ defmodule PlatformWeb.ProjectsLive.BulkUploadLive do
             <div class="flex-shrink-0">
               <Heroicons.information_circle mini class="h-5 w-5 text-blue-500" />
             </div>
-            <div class="ml-3 flex-1 md:flex flex-col text-sm text-blue-700 md:justify-between prose prose-sm">
+            <div class="ml-3 flex-1 lg:flex flex-col text-sm text-blue-700 lg:justify-between prose prose-sm">
               <p>
                 Atlos requires a very specific format for bulk uploads.
               </p>
@@ -434,15 +434,15 @@ defmodule PlatformWeb.ProjectsLive.BulkUploadLive do
                     <div class="flex-shrink-0">
                       <Heroicons.exclamation_circle mini class="h-5 w-5 text-critical-500" />
                     </div>
-                    <div class="ml-3 flex-1 md:flex flex-col text-sm text-critical-700 md:justify-between prose prose-sm max-w-full">
+                    <div class="ml-3 flex-1 lg:flex flex-col text-sm text-critical-700 lg:justify-between prose prose-sm max-w-full">
                       <p>
                         There were errors processing your upload. Please review the errors and try again.
                       </p>
                       <div>
                         <div class="flex flex-col divide-y">
                           <%= for {changeset, idx} <- invalid do %>
-                            <article class="py-2 border-t border-t-critical-300 flex flex-col md:flex-row">
-                              <strong class="font-semibold text-critical-600 md:w-1/6 mt-2">
+                            <article class="py-2 border-t border-t-critical-300 flex flex-col lg:flex-row">
+                              <strong class="font-semibold text-critical-600 lg:w-1/6 mt-2">
                                 Row <%= idx %>
                               </strong>
                               <div class="-mt-2">
@@ -496,7 +496,7 @@ defmodule PlatformWeb.ProjectsLive.BulkUploadLive do
                           :attr_description
                         ) %>
                       </p>
-                      <div class="grid gap-4 grid-cols-1 md:grid-cols-3 text-sm p-4">
+                      <div class="grid gap-4 grid-cols-1 lg:grid-cols-3 text-sm p-4">
                         <% applied_media =
                           Ecto.Changeset.apply_changes(changeset)
                           |> Platform.Repo.preload([attr_assignments: [:user]], force: true) %>

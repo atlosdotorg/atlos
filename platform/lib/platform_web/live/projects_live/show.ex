@@ -67,7 +67,7 @@ defmodule PlatformWeb.ProjectsLive.Show do
   def render(assigns) do
     ~H"""
     <div>
-      <div class="mb-8 pt-6 shadow-sm border-b bg-white overflow-hidden relative z-[1000]">
+      <div class="mb-8 pt-6 shadow-sm border-b bg-white overflow-hidden max-w-full relative z-[1000]">
         <.project_archived_banner :if={not @project.active} class="-mt-6 mb-6" />
         <article class="w-full h-full xl:max-w-screen-xl md:mx-auto px-4">
           <div class="pt-4 w-full flex flex-col md:flex-row md:justify-between gap-4">
@@ -180,7 +180,7 @@ defmodule PlatformWeb.ProjectsLive.Show do
           </nav>
         </article>
       </div>
-      <article class="w-full xl:max-w-screen-xl md:mx-auto px-4 overflow-x-auto">
+      <article class="w-full xl:max-w-screen-xl md:mx-auto px-4">
         <%= if @live_action == :overview do %>
           <section class="flex flex-col-reverse h-full lg:flex-row gap-8 max-w-full md:divide-x">
             <div class="lg:w-2/3">
@@ -296,19 +296,23 @@ defmodule PlatformWeb.ProjectsLive.Show do
             project={@project}
           />
 
-          <.live_component
-            module={PlatformWeb.ProjectsLive.InvitesComponent}
-            id="project-invites"
-            current_user={@current_user}
-            project={@project}
-          />
+          <%= if Permissions.can_edit_project_members?(@current_user, @project) do %>
+            <.live_component
+              module={PlatformWeb.ProjectsLive.InvitesComponent}
+              id="project-invites"
+              current_user={@current_user}
+              project={@project}
+            />
+          <% end %>
 
-          <.live_component
-            module={PlatformWeb.ProjectsLive.APITokensComponent}
-            id="project-api-tokens"
-            current_user={@current_user}
-            project={@project}
-          />
+          <%= if Permissions.can_edit_project_api_tokens?(@current_user, @project) do %>
+            <.live_component
+              module={PlatformWeb.ProjectsLive.APITokensComponent}
+              id="project-api-tokens"
+              current_user={@current_user}
+              project={@project}
+            />
+          <% end %>
         <% end %>
         <%= if @live_action == :deleted and Permissions.can_view_project_deleted_media?(@current_user, @project) do %>
           <.live_component

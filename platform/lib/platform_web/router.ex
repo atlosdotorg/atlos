@@ -109,6 +109,7 @@ defmodule PlatformWeb.Router do
 
   scope "/", PlatformWeb do
     pipe_through([:browser, :interstitial])
+
     get("/users/suspended", UserRegistrationController, :suspended)
     get("/users/no_access", UserRegistrationController, :no_access)
   end
@@ -144,6 +145,14 @@ defmodule PlatformWeb.Router do
     pipe_through([:browser, :require_authenticated_user, :interstitial_minimal])
 
     get("/users/onboarding", UserRegistrationController, :onboarding)
+  end
+
+  scope "/invite", PlatformWeb do
+    pipe_through([:browser, :interstitial_minimal])
+
+    get("/:code", InviteController, :new)
+    get("/:code/sign_in_redirect", InviteController, :redirect_to_sign_in)
+    post("/:code", InviteController, :accept)
   end
 
   scope "/", PlatformWeb do

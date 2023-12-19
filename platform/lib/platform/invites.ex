@@ -56,7 +56,7 @@ defmodule Platform.Invites do
       Repo.get_by(Invite, code: Accounts.get_valid_invite_code())
     else
       _ ->
-        invite = Repo.get_by(Invite, code: code)
+        invite = Repo.get_by(Invite |> preload_invites(), code: code)
 
         if must_be_active and
              not is_invite_active(invite) do
@@ -67,9 +67,12 @@ defmodule Platform.Invites do
     end
   end
 
+  def is_invite_active(nil), do: false
+
   def is_invite_active(%Invite{} = invite) do
     invite.active and
-      (is_nil(invite.expires) or NaiveDateTime.utc_now() < invite.expires)
+      (is_nil(invite.expires) or
+         NaiveDateTime.compare(NaiveDateTime.utc_now(), invite.expires) == :lt)
   end
 
   @doc """
@@ -92,7 +95,7 @@ defmodule Platform.Invites do
 
   defp preload_invites(query) do
     query
-    |> preload([:owner, uses: [:user]])
+    |> preload([:owner, :project, uses: [:user]])
   end
 
   @doc """
@@ -199,7 +202,7 @@ defmodule Platform.Invites do
     invite = get_invite_by_code(code)
     owner = Accounts.get_user!(invite.owner_id)
 
-    if is_nil(invite) do
+    if is_nil(invite) or not is_invite_active(invite) do
       {:error, "Invalid invite code"}
     else
       # If the code is single use, mark it as used

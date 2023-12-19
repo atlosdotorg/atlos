@@ -160,7 +160,7 @@ defmodule Platform.Accounts do
             {:ok, _} = Invites.apply_invite_code(user, invite_code)
           end
 
-          {:ok, user}
+          user
 
         {:error, changeset} ->
           Repo.rollback(changeset)

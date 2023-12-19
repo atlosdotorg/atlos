@@ -261,7 +261,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
             <div class="flex-shrink-0">
               <Heroicons.information_circle mini class="h-5 w-5 text-blue-400" />
             </div>
-            <div class="ml-3 flex-1 md:flex md:justify-between">
+            <div class="ml-3 flex-1 lg:flex lg:justify-between">
               <p class="text-sm text-blue-700">
                 Once you change this attribute to a multi-select, you will not be able to change it back to a single-select.
               </p>
@@ -282,7 +282,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
       <%= @attr.type
       |> then(&Map.get(name_mapping(), &1)) %>
     </td>
-    <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 truncate hidden md:table-cell">
+    <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 truncate hidden lg:table-cell">
       <%= @attr.description |> Platform.Utils.truncate(40) %>
     </td>
     <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6 flex justify-end">
@@ -310,7 +310,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
 
   def render(assigns) do
     ~H"""
-    <article class="overflow-x-hidden">
+    <article>
       <div class="grid grid-cols-1 gap-8 divide-y">
         <%= if Enum.member?(@show_panes, :general) do %>
           <.form
@@ -320,10 +320,10 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
             phx-target={@myself}
             phx-submit="save_general"
             phx-change="validate_general"
-            class="phx-form flex flex-col md:flex-row gap-4"
+            class="phx-form flex flex-col lg:flex-row gap-4"
           >
             <%= if length(@show_panes) > 1 do %>
-              <div class="mb-4 md:w-[20rem] md:mr-16">
+              <div class="mb-4 lg:w-[20rem] lg:mr-16">
                 <p class="sec-head text-xl">General</p>
                 <p class="sec-subhead">General information about the project.</p>
               </div>
@@ -487,9 +487,9 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
             phx-change="validate_custom_attributes"
             class="phx-form"
           >
-            <div class="flex flex-col md:flex-row gap-4 pt-8">
+            <div class="flex flex-col lg:flex-row gap-4 pt-8">
               <%= if length(@show_panes) > 1 do %>
-                <div class="mb-4 md:w-[20rem] md:mr-16 shrink-0">
+                <div class="mb-4 lg:w-[20rem] lg:mr-16 shrink-0">
                   <p class="sec-head text-xl">Attributes</p>
                   <p class="sec-subhead">
                     Define the data model for incidents in this project. You can add new attributes, or edit the existing ones.
@@ -503,7 +503,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                       <div class="flex-shrink-0">
                         <Heroicons.information_circle mini class="h-5 w-5 text-blue-500" />
                       </div>
-                      <div class="ml-3 flex-1 md:flex md:justify-between">
+                      <div class="ml-3 flex-1 lg:flex lg:justify-between">
                         <p class="text-sm text-blue-700">
                           We've provided some default suggested attributes for this project. You can edit these attributes, or add new ones.
                         </p>
@@ -532,7 +532,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                               </th>
                               <th
                                 scope="col"
-                                class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 hidden md:block"
+                                class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 hidden lg:block"
                               >
                                 Description
                               </th>

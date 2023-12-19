@@ -88,7 +88,7 @@ defmodule Platform.Accounts.User do
     |> validate_change(:invite_code, fn _, code ->
       case Invites.get_invite_by_code(code) do
         nil ->
-          [invite_code: "not a valid invite code"]
+          [invite_code: "Please provide a valid invite code."]
 
         _ ->
           []

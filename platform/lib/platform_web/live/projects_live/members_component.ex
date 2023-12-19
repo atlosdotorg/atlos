@@ -221,8 +221,8 @@ defmodule PlatformWeb.ProjectsLive.MembersComponent do
 
   def render(assigns) do
     ~H"""
-    <div class="flex flex-col md:flex-row gap-4 pt-8 w-full">
-      <div class="mb-4 md:w-[20rem] md:mr-16">
+    <div class="flex flex-col lg:flex-row gap-4 pt-8 w-full">
+      <div class="mb-4 lg:w-[20rem] lg:mr-16">
         <p class="sec-head text-xl">Members</p>
         <p class="sec-subhead">
           View and manage the users who have access to the project.

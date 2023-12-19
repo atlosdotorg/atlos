@@ -15,6 +15,22 @@
         <% end %>
       </a>
     </div>
+    <%= if not is_nil(assigns[:invite]) do %>
+      <.card class="mb-8 overflow-hidden">
+        <section :if={not is_nil(@invite)}>
+          <.invitation_display invite={@invite} current_user={nil}>
+            <div :if={not is_nil(@invite.project)} class="prose prose-sm text-center">
+              <p>
+                Create an Atlos account to join the project. If you already have an Atlos account, please <% redirect =
+                  Routes.invite_path(@conn, :redirect_to_sign_in, @invite.code) %>
+                <a href={redirect} class="text-button">sign in</a>
+                to accept the invite.
+              </p>
+            </div>
+          </.invitation_display>
+        </section>
+      </.card>
+    <% end %>
     <.card header_class="bg-neutral-100" class="overflow-hidden">
       <:header>
         <p class="sec-head"><%= assigns[:title] || "" %></p>

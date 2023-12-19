@@ -1,4 +1,4 @@
-<div class="phx-form">
+<section class="phx-form">
   <.form :let={f} for={@changeset} action={Routes.user_registration_path(@conn, :create)}>
     <%= if @changeset.action do %>
       <div class="aside ~critical mb-4">
@@ -20,8 +20,12 @@
     <%= password_input(f, :password, required: true) %>
     <%= error_tag(f, :password) %>
 
-    <%= label(f, :invite_code, "Invite Code") %>
-    <%= text_input(f, :invite_code, required: true) %>
+    <%= if is_nil(@invite) do %>
+      <%= label(f, :invite_code, "Invite Code") %>
+      <%= text_input(f, :invite_code, required: true) %>
+    <% else %>
+      <%= hidden_input(f, :invite_code, required: true) %>
+    <% end %>
     <%= error_tag(f, :invite_code) %>
 
     <div class="flex mt-4 items-center gap-2">
@@ -57,4 +61,4 @@
       <%= link("Sign in to existing account", to: Routes.user_session_path(@conn, :new)) %>
     </div>
   </.form>
-</div>
+</section>

@@ -139,8 +139,8 @@ defmodule PlatformWeb.ProjectsLive.APITokensComponent do
     ~H"""
     <div>
       <% can_edit = Permissions.can_edit_project_api_tokens?(@current_user, @project) %>
-      <div :if={can_edit} class="flex flex-col md:flex-row gap-4 pt-8 w-full">
-        <div class="mb-4 md:w-[20rem] md:mr-16">
+      <div :if={can_edit} class="flex flex-col lg:flex-row gap-4 pt-8 w-full">
+        <div class="mb-4 lg:w-[20rem] lg:mr-16">
           <p class="sec-head text-xl">API Tokens</p>
           <p class="sec-subhead">
             Use API tokens to connect your project to external services. You can create multiple tokens with different permissions.

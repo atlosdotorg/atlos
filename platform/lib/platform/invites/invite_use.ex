@@ -6,7 +6,7 @@ defmodule Platform.Invites.InviteUse do
 
   @primary_key {:id, :binary_id, autogenerate: true}
   schema "invite_uses" do
-    belongs_to :user, Accounts.User
+    belongs_to :user, Accounts.User, type: :binary_id
     belongs_to :invite, Invite, type: :binary_id
 
     timestamps()
