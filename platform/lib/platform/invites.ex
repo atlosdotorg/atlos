@@ -23,7 +23,7 @@ defmodule Platform.Invites do
 
   """
   def list_invites do
-    Repo.all(Invite)
+    Repo.all(preload_invites(Invite))
   end
 
   @doc """
@@ -40,7 +40,7 @@ defmodule Platform.Invites do
       ** (Ecto.NoResultsError)
 
   """
-  def get_invite!(id), do: Repo.get!(Invite, id)
+  def get_invite!(id), do: Repo.get!(preload_invites(Invite), id)
 
   @doc """
   Gets an invite by its code.
@@ -196,7 +196,7 @@ defmodule Platform.Invites do
   Applies the invite code to the user. This will mark the invite as used and
   grant the user access to the project, if specified.
 
-  It's recommend to run this in a transaction.
+  It's recommended to run this in a transaction.
   """
   def apply_invite_code(%Accounts.User{} = user, code) do
     invite = get_invite_by_code(code)

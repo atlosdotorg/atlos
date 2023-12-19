@@ -2653,7 +2653,7 @@ defmodule PlatformWeb.Components do
       <%= if length(@users) > @max do %>
         <.link
           class={"relative block bg-gray-200 text-gray-700 text-xl rounded-full z-30 ring-2 flex items-center justify-center " <> Map.get(assigns, :size_classes, "h-5 w-5") <>" " <> Map.get(assigns, :ring_class, "ring-white")}
-          data-tooltip={"Shared with #{length(@users) - 5} more user#{if length(@users) - 5 == 1, do: "", else: "s"}"}
+          data-tooltip={"#{length(@users) - 5} more user#{if length(@users) - 5 == 1, do: "", else: "s"}"}
           navigate={@link_remaining_users}
         >
           <Heroicons.ellipsis_horizontal mini class="h-4 w-4" />

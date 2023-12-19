@@ -89,6 +89,12 @@
           </svg>
           Legacy API Access
         <% end %>
+        <%= live_patch(
+              class: if(@live_action == :invites, do: active_classes, else: inactive_classes),
+              to: "/adminland/invites"
+            ) do %>
+          <Heroicons.link mini class="h-4 w-4 opacity-75" /> Invites
+        <% end %>
       </nav>
     </div>
   </div>
@@ -109,6 +115,13 @@
           current_user={@current_user}
           parent_socket={@full_socket}
           id="announcements"
+        />
+      <% :invites -> %>
+        <.live_component
+          module={PlatformWeb.AdminlandLive.InvitesLive}
+          current_user={@current_user}
+          parent_socket={@full_socket}
+          id="invites"
         />
       <% action when action in [:security, :security_mode_create] -> %>
         <.live_component
