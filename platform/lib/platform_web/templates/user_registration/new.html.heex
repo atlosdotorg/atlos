@@ -32,13 +32,9 @@
       <%= checkbox(f, :terms_agree, required: true) %>
       <%= label(f, :terms_agree) do %>
         <span>
-          I agree to Atlos'
-          <a
-            href="https://github.com/atlosdotorg/atlos/blob/main/policy/TERMS_OF_USE.md"
-            class="underline"
-          >
-            Terms
-          </a>
+          I agree to Atlos' <% terms_link =
+            "https://github.com/atlosdotorg/atlos/blob/main/policy/TERMS_OF_USE.md" %>
+          <a href={terms_link} class="underline">Terms</a>
           and
           <a
             href="https://github.com/atlosdotorg/atlos/blob/main/policy/PRIVACY_POLICY.md"
