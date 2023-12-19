@@ -245,12 +245,9 @@ defmodule PlatformWeb.ProjectsLive.InvitesComponent do
                         </thead>
                         <tbody class="divide-y divide-gray-200 bg-white">
                           <%= for invite <- @invites do %>
-                            <tr class={
-                              "py-2 " <>
-                                if not Invites.is_invite_active(invite), do: "opacity-50", else: ""
-                            }>
+                            <tr class="py-2">
                               <td
-                                class="pl-4 sm:pl-6 pr-3 text-sm font-medium text-urge-600"
+                                class="pl-4 sm:pl-6 pr-3 text-sm font-medium text-urge-600 py-3"
                                 x-data="{pulse: false}"
                               >
                                 <button
@@ -276,7 +273,7 @@ defmodule PlatformWeb.ProjectsLive.InvitesComponent do
                                 <% end %>
                               </td>
                               <td class="pr-3 text-sm text-gray-600 -ml-2">
-                                <.user_card user={invite.owner} profile_photo_class="h-6 w-6" />
+                                <.user_text user={invite.owner} icon={true} profile_photo_class="h-6 w-6" />
                               </td>
                               <td class="pr-3 text-sm  text-gray-600">
                                 <.user_stack

@@ -169,7 +169,7 @@ defmodule PlatformWeb.AdminlandLive.InvitesLive do
                         <%= if is_nil(invite.owner) do %>
                           Unknown
                         <% else %>
-                          <.user_card user={invite.owner} profile_photo_class="h-6 w-6" />
+                          <.user_text user={invite.owner} icon={true} profile_photo_class="h-6 w-6" />
                         <% end %>
                       </td>
                       <td class="pr-3 text-sm text-gray-600 -ml-2">

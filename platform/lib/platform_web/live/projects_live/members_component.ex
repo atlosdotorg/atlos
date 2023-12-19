@@ -279,7 +279,7 @@ defmodule PlatformWeb.ProjectsLive.MembersComponent do
                           <%= for membership <- @memberships do %>
                             <tr class="py-2">
                               <td class="pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
-                                <.user_card user={membership.user} profile_photo_class="h-8 w-8" />
+                                <.user_text user={membership.user} icon={true} profile_photo_class="h-8 w-8" />
                               </td>
                               <td class="px-3 text-sm text-gray-500">
                                 <div>
