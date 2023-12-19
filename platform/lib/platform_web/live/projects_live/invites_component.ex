@@ -273,7 +273,11 @@ defmodule PlatformWeb.ProjectsLive.InvitesComponent do
                                 <% end %>
                               </td>
                               <td class="pr-3 text-sm text-gray-600 -ml-2">
-                                <.user_text user={invite.owner} icon={true} profile_photo_class="h-6 w-6" />
+                                <.user_text
+                                  user={invite.owner}
+                                  icon={true}
+                                  profile_photo_class="h-6 w-6"
+                                />
                               </td>
                               <td class="pr-3 text-sm  text-gray-600">
                                 <.user_stack
