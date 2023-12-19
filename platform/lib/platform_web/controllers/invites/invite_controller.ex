@@ -28,10 +28,10 @@ defmodule PlatformWeb.InviteController do
             "Invalid invite code"
 
           %Invites.Invite{project: nil} ->
-            "#{invite.owner.username} invites you to Atlos"
+            "#{invite.owner.username} has invited you to Atlos"
 
           %Invites.Invite{project: project} ->
-            "#{invite.owner.username} invites you to #{project.name}"
+            "#{invite.owner.username} has invited you to #{project.name}"
         end
 
       render(conn, "new.html", title: title, invite: invite, is_member_already: is_member_already)

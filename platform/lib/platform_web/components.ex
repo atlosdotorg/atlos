@@ -1108,7 +1108,7 @@ defmodule PlatformWeb.Components do
       </div>
       <h2 class="text-lg md:text-xl text-neutral-500 font-medium text-center px-4">
         <span class="text-neutral-800"><%= @invite.owner.username %></span>
-        invites you to join
+        has invited you to join
         <%= if is_nil(@invite.project) do %>
           <span class="text-neutral-800">
             Atlos
