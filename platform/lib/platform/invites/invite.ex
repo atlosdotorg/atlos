@@ -36,6 +36,6 @@ defmodule Platform.Invites.Invite do
   def changeset(invite, attrs) do
     invite
     |> cast(attrs, [:active, :owner_id, :expires, :single_use, :project_id, :project_access_level])
-    |> validate_required([:active, :owner_id, :expires, :single_use])
+    |> validate_required([:active, :single_use])
   end
 end

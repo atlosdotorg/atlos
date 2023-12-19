@@ -78,7 +78,7 @@ defmodule Platform.Invites do
   @doc """
   Gets an invite by its user.
   """
-  def get_invites_by_user(user) when is_nil(user),
+  def get_invites_by_user(nil),
     do: from(i in preload_invites(Invite), where: is_nil(i.owner_id)) |> Repo.all()
 
   def get_invites_by_user(user),
@@ -200,7 +200,6 @@ defmodule Platform.Invites do
   """
   def apply_invite_code(%Accounts.User{} = user, code) do
     invite = get_invite_by_code(code)
-    owner = Accounts.get_user!(invite.owner_id)
 
     if is_nil(invite) or not is_invite_active(invite) do
       {:error, "Invalid invite code"}
@@ -233,19 +232,23 @@ defmodule Platform.Invites do
             {:error, "Failed to add user to project"}
         end
 
-        {:ok, _} =
-          Notifications.send_message_notification_to_user(
-            owner,
-            "[@#{user.username}](/profile/#{user.username}) accepted your invite to join [#{Utils.escape_markdown_string(project.name)}](/projects/#{project.id}) as #{if Enum.member?([:editor, :owner], invite.project_access_level), do: "an", else: "a"} #{to_string(invite.project_access_level)}."
-          )
+        if not is_nil(invite.owner) do
+          {:ok, _} =
+            Notifications.send_message_notification_to_user(
+              invite.owner,
+              "[@#{user.username}](/profile/#{user.username}) accepted your invite to join [#{Utils.escape_markdown_string(project.name)}](/projects/#{project.id}) as #{if Enum.member?([:editor, :owner], invite.project_access_level), do: "an", else: "a"} #{to_string(invite.project_access_level)}."
+            )
+        end
 
         {:ok, invite}
       else
-        {:ok, _} =
-          Notifications.send_message_notification_to_user(
-            owner,
-            "[@#{user.username}](/profile/#{user.username}) accepted your invite."
-          )
+        if not is_nil(invite.owner) do
+          {:ok, _} =
+            Notifications.send_message_notification_to_user(
+              invite.owner,
+              "[@#{user.username}](/profile/#{user.username}) accepted your invite."
+            )
+        end
 
         {:ok, invite}
       end

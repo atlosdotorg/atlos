@@ -14,12 +14,18 @@ defmodule Platform.Accounts do
 
   def get_valid_invite_code() do
     # Find invites created by the system (nil user)
-    invites = Invites.get_invites_by_user(nil)
+    invites = Invites.get_invites_by_user(nil) |> Enum.filter(&Invites.is_invite_active/1)
 
     case length(invites) do
       0 ->
         # No root invites; create a system invite (i.e., root `owner_id`)
-        {:ok, invite} = Invites.create_invite()
+        {:ok, invite} =
+          Invites.create_invite(%{
+            owner_id: nil,
+            expires: NaiveDateTime.utc_now() |> NaiveDateTime.add(99999, :day),
+            single_use: false
+          })
+
         invite.code
 
       _ ->
