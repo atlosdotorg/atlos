@@ -186,7 +186,7 @@ defmodule PlatformWeb.MediaLive.Show do
            put_flash(
              x,
              :info,
-             "Added media successfully. Atlos will archive and process it in the background."
+             "Atlos will archive and process the media in the background. Check back in a few minutes."
            )
      end)
      |> push_patch(
