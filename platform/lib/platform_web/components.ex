@@ -1395,7 +1395,7 @@ defmodule PlatformWeb.Components do
             </span>
           <% end %>
         </span>
-        <%= live_patch(class: "text-button inline-block",
+        <%= live_patch(class: "text-button inline-block mb-1",
             to: Routes.media_show_path(@socket, :history, @media.slug, @attr.name)
           ) do %>
           <.user_stack users={
@@ -3388,12 +3388,12 @@ defmodule PlatformWeb.Components do
     >
       <%= if @icon do %>
         <img
-          class="absolute z-30 inline-block h-4 w-4 rounded-full"
+          class="absolute z-30 min-w-5 inline-block h-5 w-5 rounded-full"
           src={Accounts.get_profile_photo_path(@user)}
           alt={"Profile photo for #{@user.username}"}
         />
       <% end %>
-      <span class={if @icon, do: "ml-5", else: ""}>
+      <span class={if @icon, do: "ml-7", else: ""}>
         <%= if is_nil(@user) do %>
           [System]
         <% else %>
@@ -3414,16 +3414,16 @@ defmodule PlatformWeb.Components do
     assigns = assign_new(assigns, :profile_photo_class, fn -> "" end)
 
     ~H"""
-    <.link navigate={"/profile/" <> @user.username}>
-      <div class="flex items-center gap-4 p-2 overflow-hidden">
-        <div>
+    <.link navigate={"/profile/" <> @user.username} class="shrink-0">
+      <div class="flex gap-4 p-2 overflow-hidden items-center">
+        <div class="shrink-0">
           <img
-            class={"relative z-30 inline-block h-12 w-12 rounded-full ring-2 ring-white " <> @profile_photo_class}
+            class={"h-12 w-12 rounded-full ring-2 ring-white " <> @profile_photo_class}
             src={Accounts.get_profile_photo_path(@user)}
             alt={"Profile photo for #{@user.username}"}
           />
         </div>
-        <div class="flex flex-col gap-1 max-w-full">
+        <div class="flex flex-col gap-1">
           <.user_name_display user={@user} />
           <p class="text-neutral-600 break-words max-w-full">
             <%= if is_nil(@user.bio) or String.length(@user.bio |> String.trim()) == 0,
