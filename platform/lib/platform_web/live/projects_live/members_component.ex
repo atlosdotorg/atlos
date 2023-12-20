@@ -278,7 +278,7 @@ defmodule PlatformWeb.ProjectsLive.MembersComponent do
                         <tbody class="divide-y divide-gray-200 bg-white">
                           <%= for membership <- @memberships do %>
                             <tr class="py-2">
-                              <td class="pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
+                              <td class="pl-4 py-3 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
                                 <.user_text
                                   user={membership.user}
                                   icon={true}
