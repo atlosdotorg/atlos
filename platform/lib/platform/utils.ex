@@ -265,6 +265,14 @@ defmodule Platform.Utils do
     end)
   end
 
+  def format_recovery_code(code) do
+    code
+    |> String.split("", trim: true)
+    |> Enum.chunk_every(4)
+    |> Enum.map(&Enum.join(&1))
+    |> Enum.join(" ")
+  end
+
   def get_instance_name() do
     System.get_env("INSTANCE_NAME")
   end

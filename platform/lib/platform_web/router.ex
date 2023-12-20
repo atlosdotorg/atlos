@@ -169,6 +169,7 @@ defmodule PlatformWeb.Router do
 
     post("/export/incidents", ExportController, :create_csv_export)
     post("/export/full", ExportController, :create_project_full_export)
+    post("/export/backup_codes", ExportController, :create_backup_codes_export)
 
     live_session :default, on_mount: {MountHelperLive, :authenticated} do
       live("/settings", SettingsLive)
