@@ -58,6 +58,10 @@ defmodule PlatformWeb.SettingsLive.MFALive do
     end
   end
 
+  def handle_event("generate_recovery_code", _v, socket) do
+
+  end
+
   defp secret_url(user, secret) do
     NimbleTOTP.otpauth_uri(
       "Atlos:" <> user.username,

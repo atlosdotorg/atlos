@@ -252,6 +252,11 @@ defmodule Platform.Accounts do
     User.confirm_mfa_changeset(user, attrs)
   end
 
+  def update_user_recovery_code(user, attrs \\ %{}) do
+    User.update_recovery_codes_changeset(user, attrs)
+    |> Repo.update()
+  end
+
   @doc """
   Emulates that the email will change without actually changing
   it in the database.

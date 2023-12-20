@@ -255,6 +255,16 @@ defmodule Platform.Utils do
     |> Phoenix.HTML.raw()
   end
 
+  def generate_recovery_codes(n \\ 10) do
+    Enum.map(1..n, fn _ ->
+      :crypto.strong_rand_bytes(4)
+      |> :binary.decode_unsigned()
+      |> rem(100000000)
+      |> Integer.to_string()
+      |> String.pad_leading(8, "0")
+    end)
+  end
+
   def get_instance_name() do
     System.get_env("INSTANCE_NAME")
   end

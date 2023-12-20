@@ -24,6 +24,8 @@ defmodule Platform.Accounts.User do
     field(:has_mfa, :boolean, default: false)
     field(:otp_secret, :binary, redact: true)
     field(:current_otp_code, :string, virtual: true, redact: true)
+    field(:recovery_codes, {:array, :string}, redact: true, default: [])
+    field(:used_recovery_codes, {:array, :string}, redact: true, default: [])
 
     # Platform settings and preferences
     field(:active_incidents_tab, :string, default: "map")
@@ -222,6 +224,18 @@ defmodule Platform.Accounts.User do
     user
     |> cast(attrs, [:current_otp_code])
     |> validate_required([:current_otp_code])
+    |> validate_change(:current_otp_code, fn _, code ->
+      if verify_otp_code(user.otp_secret, code) do
+        []
+      else
+        [current_otp_code: "This code is not valid."]
+      end
+    end)
+  end
+
+  def update_recovery_codes_changeset(user, attrs) do
+    user
+    |> cast(attrs, [:current_otp_code, :recovery_codes])
     |> validate_change(:current_otp_code, fn _, code ->
       if verify_otp_code(user.otp_secret, code) do
         []
