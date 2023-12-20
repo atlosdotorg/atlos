@@ -67,6 +67,46 @@
         <p class="sec-subhead">
           Generate backup codes to use in case you lose access to your authenticator app.
         </p>
+        <p>
+          <%= if length(@current_user.recovery_codes)>0 || length(@current_user.used_recovery_codes)>0 do %>
+            <%= for code <- @current_user.recovery_codes do %>
+              <span class="font-mono text-sm bg-gray-100 px-2 py-1 rounded mr-2 mt-2 inline-block">
+                <%= code %>
+              </span>
+            <% end %>
+            <%= for code <- @current_user.used_recovery_codes do %>
+              <span class="font-mono text-sm bg-gray-100 px-2 py-1 rounded mr-2 mt-2 inline-block line-through">
+                <%= code %>
+              </span>
+            <% end %>
+            <div>
+              <button
+                phx-click="generate_recovery_codes"
+                phx-disable-with="Generating codes..."
+                data-confirm="Please confirm that you want to generate a new set of backup codes. Your old codes will no longer work after this action."
+                class="button ~urge @high mt-4"
+              >
+                Regenerate
+              </button>
+              <button
+                phx-click="delete_recovery_codes"
+                data-confirm="Please confirm that you want to remove all backup codes. You won't be able to use those backup codes again."
+                phx-disable-with="Generating codes..."
+                class="button ~critical @high mt-4"
+              >
+                Delete
+              </button>
+            </div>
+          <% else %>
+            <button
+              phx-click="generate_recovery_codes"
+              phx-disable-with="Generating codes..."
+              class="button ~urge @high mt-4"
+            >
+              Get Backup Codes
+            </button>
+          <% end %>
+        </p>
       </:header>
       
     </.card>

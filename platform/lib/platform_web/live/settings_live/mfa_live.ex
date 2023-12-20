@@ -58,8 +58,36 @@ defmodule PlatformWeb.SettingsLive.MFALive do
     end
   end
 
-  def handle_event("generate_recovery_code", _v, socket) do
+  def handle_event("generate_recovery_codes", _v, socket) do
+    case Accounts.update_user_recovery_code(
+      socket.assigns.current_user,
+      %{:recovery_codes => Utils.generate_recovery_codes(), :used_recovery_codes => []}
+    ) do
+      {:ok, user} ->
+        {:noreply,
+         socket
+         |> assign(:current_user, user)
+         |> put_flash(:info, "Recovery code was generated successfully.")}
 
+      {:error, changeset} ->
+        {:noreply, socket |> assign(:disable_changeset, changeset)}
+    end
+  end
+
+  def handle_event("delete_recovery_codes", _v, socket) do
+    case Accounts.update_user_recovery_code(
+      socket.assigns.current_user,
+      %{:recovery_codes => [], :used_recovery_codes => []}
+    ) do
+      {:ok, user} ->
+        {:noreply,
+         socket
+         |> assign(:current_user, user)
+         |> put_flash(:info, "Recovery code was deleted successfully.")}
+
+      {:error, changeset} ->
+        {:noreply, socket |> assign(:disable_changeset, changeset)}
+    end
   end
 
   defp secret_url(user, secret) do
