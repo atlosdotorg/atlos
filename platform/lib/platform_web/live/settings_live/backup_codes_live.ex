@@ -4,8 +4,7 @@ defmodule PlatformWeb.SettingsLive.BackupCodesLive do
   def mount(_params, _session, socket) do
     {:ok,
      socket
-     |> assign(:title, "Set Up Backup Codes")
-    }
+     |> assign(:title, "Set Up Backup Codes")}
   end
 
   def render(assigns) do

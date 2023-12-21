@@ -6,8 +6,7 @@ defmodule PlatformWeb.SettingsLive.BackupComponent do
   def update(assigns, socket) do
     {:ok,
      socket
-     |> assign(assigns)
-    }
+     |> assign(assigns)}
   end
 
   def handle_event("generate_recovery_codes", _v, socket) do
@@ -20,8 +19,8 @@ defmodule PlatformWeb.SettingsLive.BackupComponent do
 
         {:noreply,
          socket
-         |> assign(:current_user, user)
-        }
+         |> assign(:current_user, user)}
+
       {:error, changeset} ->
         {:noreply, socket |> assign(:disable_changeset, changeset)}
     end
@@ -37,8 +36,8 @@ defmodule PlatformWeb.SettingsLive.BackupComponent do
 
         {:noreply,
          socket
-         |> assign(:current_user, user)
-        }
+         |> assign(:current_user, user)}
+
       {:error, changeset} ->
         {:noreply, socket |> assign(:disable_changeset, changeset)}
     end
