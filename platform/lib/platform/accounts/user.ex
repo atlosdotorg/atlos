@@ -200,6 +200,8 @@ defmodule Platform.Accounts.User do
     |> cast(attrs, [:current_otp_code, :password])
     |> put_change(:has_mfa, false)
     |> put_change(:otp_secret, nil)
+    |> put_change(:recovery_codes, [])
+    |> put_change(:used_recovery_codes, [])
     |> validate_required([:has_mfa, :current_otp_code, :password])
     |> validate_change(:password, fn _, password ->
       if valid_password?(user, password) do

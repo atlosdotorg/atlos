@@ -3,13 +3,10 @@ defmodule PlatformWeb.SettingsLive.BackupComponent do
   alias Platform.Accounts
   alias Platform.Utils
 
-  def update(%{current_user: current_user} = assigns, socket) do
-    changeset = Accounts.change_user_profile(current_user)
-
+  def update(assigns, socket) do
     {:ok,
      socket
      |> assign(assigns)
-     |> assign(:changeset, changeset)
     }
   end
 
@@ -24,8 +21,7 @@ defmodule PlatformWeb.SettingsLive.BackupComponent do
         {:noreply,
          socket
          |> assign(:current_user, user)
-         |> put_flash(:info, "Recovery code was generated successfully.")}
-
+        }
       {:error, changeset} ->
         {:noreply, socket |> assign(:disable_changeset, changeset)}
     end
@@ -42,8 +38,7 @@ defmodule PlatformWeb.SettingsLive.BackupComponent do
         {:noreply,
          socket
          |> assign(:current_user, user)
-         |> put_flash(:info, "Recovery code was deleted successfully.")}
-
+        }
       {:error, changeset} ->
         {:noreply, socket |> assign(:disable_changeset, changeset)}
     end

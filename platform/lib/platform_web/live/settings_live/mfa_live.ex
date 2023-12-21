@@ -34,8 +34,8 @@ defmodule PlatformWeb.SettingsLive.MFALive do
       {:ok, user} ->
         {:noreply,
          socket
-         |> assign(:current_user, user)
-         |> put_flash(:info, "MFA was enabled successfully.")}
+         |> redirect(to: "/settings/backup_codes")
+         }
 
       {:error, changeset} ->
         {:noreply, socket |> assign(:enable_changeset, changeset)}
