@@ -222,7 +222,6 @@ defmodule PlatformWeb.ExportController do
 
     codes =
       user.recovery_codes
-      |> Enum.concat(user.used_recovery_codes)
       |> Enum.map(&Utils.format_recovery_code(&1))
 
     path = Temp.path!(suffix: "atlos-backup-codes.txt")
