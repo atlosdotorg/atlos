@@ -64,6 +64,7 @@ defmodule PlatformWeb.SettingsLive.MFALive do
       %{:recovery_codes => Utils.generate_recovery_codes(), :used_recovery_codes => []}
     ) do
       {:ok, user} ->
+        Platform.Auditor.log(:recovery_codes_generated, %{email: user.email}, socket)
         {:noreply,
          socket
          |> assign(:current_user, user)
@@ -80,6 +81,7 @@ defmodule PlatformWeb.SettingsLive.MFALive do
       %{:recovery_codes => [], :used_recovery_codes => []}
     ) do
       {:ok, user} ->
+      Platform.Auditor.log(:recovery_codes_deleted, %{email: user.email}, socket)
         {:noreply,
          socket
          |> assign(:current_user, user)

@@ -273,6 +273,12 @@ defmodule Platform.Utils do
     |> Enum.join(" ")
   end
 
+  def parse_recovery_code(code) do
+    code
+    |> String.split(" ", trim: true)
+    |> Enum.join("")
+  end
+
   def get_instance_name() do
     System.get_env("INSTANCE_NAME")
   end

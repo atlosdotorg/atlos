@@ -1,4 +1,5 @@
 defmodule PlatformWeb.UserSessionController do
+  require Logger
   use PlatformWeb, :controller
 
   alias Platform.Accounts
@@ -50,6 +51,8 @@ defmodule PlatformWeb.UserSessionController do
          false <- is_nil(username),
          user = %Accounts.User{} <- Accounts.get_user_by_username(username) do
       changeset = Accounts.confirm_user_mfa(user, mfa_params) |> Map.put(:action, :validate)
+
+      Logger.info("MFA changeset: #{inspect(changeset)}")
 
       if changeset.valid? do
         UserAuth.log_in_user(conn, user)
