@@ -60,11 +60,12 @@ defmodule PlatformWeb.SettingsLive.MFALive do
 
   def handle_event("generate_recovery_codes", _v, socket) do
     case Accounts.update_user_recovery_code(
-      socket.assigns.current_user,
-      %{:recovery_codes => Utils.generate_recovery_codes(), :used_recovery_codes => []}
-    ) do
+           socket.assigns.current_user,
+           %{:recovery_codes => Utils.generate_recovery_codes(), :used_recovery_codes => []}
+         ) do
       {:ok, user} ->
         Platform.Auditor.log(:recovery_codes_generated, %{email: user.email}, socket)
+
         {:noreply,
          socket
          |> assign(:current_user, user)
@@ -77,11 +78,12 @@ defmodule PlatformWeb.SettingsLive.MFALive do
 
   def handle_event("delete_recovery_codes", _v, socket) do
     case Accounts.update_user_recovery_code(
-      socket.assigns.current_user,
-      %{:recovery_codes => [], :used_recovery_codes => []}
-    ) do
+           socket.assigns.current_user,
+           %{:recovery_codes => [], :used_recovery_codes => []}
+         ) do
       {:ok, user} ->
-      Platform.Auditor.log(:recovery_codes_deleted, %{email: user.email}, socket)
+        Platform.Auditor.log(:recovery_codes_deleted, %{email: user.email}, socket)
+
         {:noreply,
          socket
          |> assign(:current_user, user)

@@ -259,7 +259,7 @@ defmodule Platform.Utils do
     Enum.map(1..n, fn _ ->
       :crypto.strong_rand_bytes(4)
       |> :binary.decode_unsigned()
-      |> rem(100000000)
+      |> rem(100_000_000)
       |> Integer.to_string()
       |> String.pad_leading(8, "0")
     end)

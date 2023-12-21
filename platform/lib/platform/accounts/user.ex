@@ -154,6 +154,7 @@ defmodule Platform.Accounts.User do
     NimbleTOTP.valid?(secret, code, time: time) or
       NimbleTOTP.valid?(secret, code, time: time - 30)
   end
+
   @doc """
   A user changeset for changing the email.
 
@@ -239,10 +240,12 @@ defmodule Platform.Accounts.User do
 
   def verify_recovery_code(user, attrs) do
     code = attrs["current_otp_code"] |> Platform.Utils.parse_recovery_code()
+
     if code in user.recovery_codes do
-      {:ok, change(user)
-      |> put_change(:recovery_codes, user.recovery_codes -- [code])
-      |> put_change(:used_recovery_codes, user.used_recovery_codes ++ [code])}
+      {:ok,
+       change(user)
+       |> put_change(:recovery_codes, user.recovery_codes -- [code])
+       |> put_change(:used_recovery_codes, user.used_recovery_codes ++ [code])}
     else
       {:err, nil}
     end

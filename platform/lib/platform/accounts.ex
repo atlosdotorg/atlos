@@ -250,15 +250,22 @@ defmodule Platform.Accounts do
   """
   def confirm_user_mfa(user, attrs \\ %{}) do
     changeset = User.confirm_mfa_changeset(user, attrs)
+
     if changeset.valid? do
       changeset
     else
       case User.verify_recovery_code(user, attrs) do
         {:ok, cs} ->
-          Platform.Auditor.log(:mfa_recovery_code_used, %{email: user.email, used_code: attrs["current_otp_code"]})
+          Platform.Auditor.log(:mfa_recovery_code_used, %{
+            email: user.email,
+            used_code: attrs["current_otp_code"]
+          })
+
           cs |> Repo.update()
           cs
-        {:err, _} -> changeset
+
+        {:err, _} ->
+          changeset
       end
     end
   end
