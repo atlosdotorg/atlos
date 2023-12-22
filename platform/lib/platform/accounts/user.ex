@@ -253,11 +253,6 @@ defmodule Platform.Accounts.User do
     end
   end
 
-  def check_consume_recovery_changeset(user, attrs) do
-    user
-    |> cast(attrs, [:recovery_codes, :current_otp_code])
-  end
-
   @doc """
   A user changeset for changing user-modifiable profile attributes,
   like the profile photo and bio.

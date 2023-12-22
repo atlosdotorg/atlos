@@ -274,9 +274,13 @@ defmodule Platform.Utils do
   end
 
   def parse_recovery_code(code) do
-    code
-    |> String.split(" ", trim: true)
-    |> Enum.join("")
+    if code == nil do
+      nil
+    else
+      code
+      |> String.split(" ", trim: true)
+      |> Enum.join("")
+    end
   end
 
   def get_instance_name() do
