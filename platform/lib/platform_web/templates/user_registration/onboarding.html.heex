@@ -34,7 +34,7 @@
 } %>
 
 <div>
-  <div x-data="{page: 0, pages: [0, 1, 2, 3, 4, 5], maxPage: 5}">
+  <div x-data="{page: 0, pages: [0, 1, 2, 3, 4, 5, 6], maxPage: 6}">
     <nav aria-label="Progress">
       <ol role="list" class="flex items-center -ml-5 space-x-5 justify-center">
         <template x-for="p in pages">
@@ -246,6 +246,39 @@
         </div>
       </article>
       <article x-show="page === 5" class="flex flex-col gap-4" x-transition:enter>
+        <div>
+          <h3 class="text-3xl font-bold text-neutral-900 text-gray-900 text-center">
+            Start for free. When you're ready, choose from one of three tiers:
+          </h3>
+        </div>
+        <p class="flex gap-2 sm:gap-4 items-center">
+          <span class="text-3xl">⚡️</span>
+          <span>
+            <strong class="font-semibold">Free:</strong>
+            You'll be able to edit a limited number of incidents per month and will have unlimited view access.
+          </span>
+        </p>
+        <p class="flex gap-2 sm:gap-4 items-center">
+          <span class="text-3xl">📈</span>
+          <span>
+            <strong class="font-semibold">Pro:</strong>
+            Power users pay $20 per month for full access to Atlos.
+          </span>
+        </p>
+        <p class="flex gap-2 sm:gap-4 items-center">
+          <span class="text-3xl">🏢</span>
+          <span>
+            <strong class="font-semibold">Enterprise:</strong>
+            Teams of fewer than 17 pay $500 per month for invoice billing and priority support. Larger teams pay $30 per person per month.
+          </span>
+        </p>
+        <div class="mt-8">
+          <button x-on:click="page++" class="button ~urge @high w-full !text-base">
+            Continue &rarr;
+          </button>
+        </div>
+      </article>
+      <article x-show="page === 6" class="flex flex-col gap-4" x-transition:enter>
         <div>
           <h3 class="text-3xl font-bold text-neutral-900 text-gray-900 text-center">
             Time to get started!
