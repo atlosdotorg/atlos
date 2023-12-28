@@ -34,10 +34,12 @@ defmodule PlatformWeb.Components do
 
     if to != "" do
       ~H"""
-      <.link navigate={@to} class={@classes}>
-        <%= render_slot(@inner_block) %>
-        <span class="mt-2"><%= @label %></span>
-      </.link>
+      <div>
+        <.link navigate={@to} class={@classes}>
+          <%= render_slot(@inner_block) %>
+          <span class="mt-2"><%= @label %></span>
+        </.link>
+      </div>
       """
     else
       ~H"""
@@ -285,7 +287,6 @@ defmodule PlatformWeb.Components do
 
     ~H"""
     <div class="md:w-28 h-20"></div>
-    <%# Due to a Safari bug, we can't use overflow-y-auto on the nav element itself; we have to make sure it's not applied when the modal is open. %>
     <div
       class="w-full md:w-28 bg-neutral-700 fixed z-50 md:h-screen self-start non-modal-overflow-y-auto"
       x-data="{ open: window.innerWidth >= 768 }"
@@ -3383,31 +3384,33 @@ defmodule PlatformWeb.Components do
       |> assign_new(:class, fn -> "text-gray-900 hover:text-urge-600" end)
 
     ~H"""
-    <.link
-      class={"font-medium inline-flex gap-2 flex-wrap items-center #{@class}"}
-      navigate={if is_nil(@user), do: "#", else: "/profile/#{@user.username}"}
-    >
-      <%= if @icon do %>
-        <img
-          class="absolute z-30 min-w-5 inline-block h-5 w-5 rounded-full"
-          src={Accounts.get_profile_photo_path(@user)}
-          alt={"Profile photo for #{@user.username}"}
-        />
-      <% end %>
-      <span class={if @icon, do: "ml-7", else: ""}>
-        <%= if is_nil(@user) do %>
-          [System]
-        <% else %>
-          <%= @user.username %>
-          <%= if Accounts.is_admin(@user) and @flair do %>
-            <span class="font-normal text-xs badge ~critical self-center">Admin</span>
-          <% end %>
-          <%= if String.length(@user.flair) > 0 and @flair do %>
-            <span class="font-normal text-xs badge ~urge self-center"><%= @user.flair %></span>
-          <% end %>
+    <span>
+      <.link
+        class={"font-medium inline-flex gap-2 flex-wrap items-center #{@class}"}
+        navigate={if is_nil(@user), do: "#", else: "/profile/#{@user.username}"}
+      >
+        <%= if @icon do %>
+          <img
+            class="absolute z-30 min-w-5 inline-block h-5 w-5 rounded-full"
+            src={Accounts.get_profile_photo_path(@user)}
+            alt={"Profile photo for #{@user.username}"}
+          />
         <% end %>
-      </span>
-    </.link>
+        <span class={if @icon, do: "ml-7", else: ""}>
+          <%= if is_nil(@user) do %>
+            [System]
+          <% else %>
+            <%= @user.username %>
+            <%= if Accounts.is_admin(@user) and @flair do %>
+              <span class="font-normal text-xs badge ~critical self-center">Admin</span>
+            <% end %>
+            <%= if String.length(@user.flair) > 0 and @flair do %>
+              <span class="font-normal text-xs badge ~urge self-center"><%= @user.flair %></span>
+            <% end %>
+          <% end %>
+        </span>
+      </.link>
+    </span>
     """
   end
 
@@ -3415,25 +3418,27 @@ defmodule PlatformWeb.Components do
     assigns = assign_new(assigns, :profile_photo_class, fn -> "" end)
 
     ~H"""
-    <.link navigate={"/profile/" <> @user.username} class="shrink-0">
-      <div class="flex gap-4 p-2 overflow-hidden items-center">
-        <div class="shrink-0">
-          <img
-            class={"h-12 w-12 rounded-full ring-2 ring-white " <> @profile_photo_class}
-            src={Accounts.get_profile_photo_path(@user)}
-            alt={"Profile photo for #{@user.username}"}
-          />
+    <div>
+      <.link navigate={"/profile/" <> @user.username} class="shrink-0">
+        <div class="flex gap-4 p-2 overflow-hidden items-center">
+          <div class="shrink-0">
+            <img
+              class={"h-12 w-12 rounded-full ring-2 ring-white " <> @profile_photo_class}
+              src={Accounts.get_profile_photo_path(@user)}
+              alt={"Profile photo for #{@user.username}"}
+            />
+          </div>
+          <div class="flex flex-col gap-1">
+            <.user_name_display user={@user} />
+            <p class="text-neutral-600 break-words max-w-full">
+              <%= if is_nil(@user.bio) or String.length(@user.bio |> String.trim()) == 0,
+                do: "",
+                else: @user.bio %>
+            </p>
+          </div>
         </div>
-        <div class="flex flex-col gap-1">
-          <.user_name_display user={@user} />
-          <p class="text-neutral-600 break-words max-w-full">
-            <%= if is_nil(@user.bio) or String.length(@user.bio |> String.trim()) == 0,
-              do: "",
-              else: @user.bio %>
-          </p>
-        </div>
-      </div>
-    </.link>
+      </.link>
+    </div>
     """
   end
 
@@ -3659,9 +3664,11 @@ defmodule PlatformWeb.Components do
 
   def project_card(assigns) do
     ~H"""
-    <.link navigate={"/projects/#{@project.id}"}>
-      <.project_card_inner project={@project} />
-    </.link>
+    <div>
+      <.link navigate={"/projects/#{@project.id}"}>
+        <.project_card_inner project={@project} />
+      </.link>
+    </div>
     """
   end
 
@@ -3685,9 +3692,11 @@ defmodule PlatformWeb.Components do
 
   def project_list_item(assigns) do
     ~H"""
-    <.link navigate={"/projects/#{@project.id}"}>
-      <.project_list_item_inner project={@project} />
-    </.link>
+    <div>
+      <.link navigate={"/projects/#{@project.id}"}>
+        <.project_list_item_inner project={@project} />
+      </.link>
+    </div>
     """
   end
 

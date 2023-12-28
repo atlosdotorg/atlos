@@ -356,9 +356,10 @@ defmodule PlatformWeb.ProjectsLive.MembersComponent do
             phx-target={@myself}
           >
             <div class="rounded-lg border shadow-sm text-sm">
-              <%= hidden_input(@form, :username, value: @editing) %>
               <.user_card user={Enum.find(@memberships, &(&1.user.username == @editing)).user} />
             </div>
+
+            <%= hidden_input(@form, :username, value: @editing) %>
 
             <div>
               <%= label(
