@@ -102,7 +102,7 @@
           </button>
         </div>
       </article>
-      <article x-show="page === 1" class="flex flex-col gap-4" x-transition:enter>
+      <article x-show="page === 1" class="flex flex-col gap-4" x-transition:enter x-cloak>
         <div>
           <h3 class="text-3xl font-bold text-neutral-900 text-gray-900 text-center">
             Atlos is built around incidents.
@@ -127,57 +127,7 @@
           </button>
         </div>
       </article>
-      <article x-show="page === 2" class="flex flex-col gap-4" x-transition:enter>
-        <div>
-          <h3 class="text-3xl font-bold text-neutral-900 text-gray-900 text-center">
-            Attributes describe incidents.
-          </h3>
-        </div>
-        <div>
-          <p class="supra mb-1 text-xs">Example Attributes</p>
-          <div class="px-4 pt-6 pb-4 rounded border">
-            <.attr_display_block
-              set_attrs={[
-                Platform.Material.Attribute.get_attribute(:date),
-                Platform.Material.Attribute.get_attribute(:impact),
-                Platform.Material.Attribute.get_attribute(:equipment),
-                Platform.Material.Attribute.get_attribute(:geolocation)
-              ]}
-              media={example_media}
-              updates={example_media.updates}
-              socket={@conn}
-              unset_attrs={[]}
-              current_user={@current_user}
-              immutable={true}
-            />
-          </div>
-        </div>
-        <p class="flex gap-2 sm:gap-4 items-center">
-          <span class="text-3xl">🔒</span>
-          <span>
-            <strong class="font-medium">Core attributes</strong>
-            like date and geolocation describe essential information about events, so they apply to all incidents.
-          </span>
-        </p>
-        <p class="flex gap-2 sm:gap-4 items-center">
-          <span class="text-3xl">💡</span>
-          <span>
-            Every incident comes with several default attributes to help you build your own descriptive model.
-          </span>
-        </p>
-        <p class="flex gap-2 sm:gap-4 items-center">
-          <span class="text-3xl">✏️</span>
-          <span>
-            If the default options don't work for your project, you can create new <strong class="font-medium">custom attributes</strong>.
-          </span>
-        </p>
-        <div class="mt-8">
-          <button x-on:click="page++" class="button ~urge @high w-full !text-base">
-            Continue &rarr;
-          </button>
-        </div>
-      </article>
-      <article x-show="page === 3" class="flex flex-col gap-4" x-transition:enter>
+      <article x-show="page === 2" class="flex flex-col gap-4" x-transition:enter x-cloak>
         <div>
           <h3 class="text-3xl font-bold text-neutral-900 text-gray-900 text-center">
             Use projects to organize investigations.
@@ -211,7 +161,7 @@
           </button>
         </div>
       </article>
-      <article x-show="page === 4" class="flex flex-col gap-4" x-transition:enter>
+      <article x-show="page === 3" class="flex flex-col gap-4" x-transition:enter x-cloak>
         <div>
           <h3 class="text-3xl font-bold text-neutral-900 text-gray-900 text-center">
             We take safety seriously.
@@ -245,7 +195,37 @@
           </button>
         </div>
       </article>
-      <article x-show="page === 5" class="flex flex-col gap-4" x-transition:enter>
+      <article x-show="page === 4" class="flex flex-col gap-4" x-transition:enter x-cloak>
+        <div>
+          <h3 class="text-3xl font-bold text-neutral-900 text-gray-900 text-center">
+            We're deeply committed to security.
+          </h3>
+        </div>
+        <p class="flex gap-2 sm:gap-4 items-center">
+          <span class="text-3xl">🔒</span>
+          <span>
+            Security is central to everything we do, and Atlos has undergone an <strong class="font-semibold">independent security audit</strong>.
+          </span>
+        </p>
+        <p class="flex gap-2 sm:gap-4 items-center">
+          <span class="text-3xl">🛟</span>
+          <span>
+            We also recognize that <strong class="font-semibold">all tools carry risk</strong>. We recommend against uploading material that could jeopardize anyone's safety if made public.
+          </span>
+        </p>
+        <p class="flex gap-2 sm:gap-4 items-center">
+          <span class="text-3xl">🔗</span>
+          <span>
+            We encourage you to learn more about our approach to security in our <a class="font-semibold underline" href="https://docs.google.com/document/d/1L17_NFDaijtyiaoxQGRtau5g2xBoDcCWT92saiei0NE/view">risk model</a>.
+          </span>
+        </p>
+        <div class="mt-8">
+          <button x-on:click="page++" class="button ~urge @high w-full !text-base">
+            Continue &rarr;
+          </button>
+        </div>
+      </article>
+      <article x-show="page === 5" class="flex flex-col gap-4" x-transition:enter x-cloak>
         <div>
           <h3 class="text-3xl font-bold text-neutral-900 text-gray-900 text-center">
             Start for free. When you're ready, choose from one of three tiers:
@@ -278,7 +258,7 @@
           </button>
         </div>
       </article>
-      <article x-show="page === 6" class="flex flex-col gap-4" x-transition:enter>
+      <article x-show="page === 6" class="flex flex-col gap-4" x-transition:enter x-cloak>
         <div>
           <h3 class="text-3xl font-bold text-neutral-900 text-gray-900 text-center">
             Time to get started!
