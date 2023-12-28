@@ -40,10 +40,7 @@ defmodule PlatformWeb.AdminlandLive.SecurityLive do
               <:header>
                 <div class="md:flex justify-between items-center">
                   <p class="sec-head">Security Mode</p>
-                  <%= live_patch("Change Security Mode",
-                    class: "button ~urge @high float-right",
-                    to: Routes.adminland_index_path(@socket, :security_mode_create)
-                  ) %>
+                  <.link method = "Change Security Mode" class = "button ~urge @high float-right" patch = {Routes.adminland_index_path(@socket, :security_mode_create)}></.link>
                 </div>
               </:header>
               <div class="aside ~neutral text-sm mb-4">
@@ -125,10 +122,7 @@ defmodule PlatformWeb.AdminlandLive.SecurityLive do
                   <h3 class="mt-2 text-sm font-medium text-gray-900">No security mode changes</h3>
                   <p class="mt-1 text-sm text-gray-500">You can change the security mode below.</p>
                   <div class="mt-6">
-                    <%= live_patch("Change Security Mode",
-                      class: "button ~urge @high",
-                      to: Routes.adminland_index_path(@socket, :security_mode_create)
-                    ) %>
+                    <.link method = "Change Security Mode" class = "button ~urge @high" patch = {Routes.adminland_index_path(@socket, :security_mode_create)}></.link>
                   </div>
                 </div>
               <% end %>

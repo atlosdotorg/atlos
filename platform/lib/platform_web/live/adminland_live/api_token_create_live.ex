@@ -94,10 +94,7 @@ defmodule PlatformWeb.AdminlandLive.APITokenCreateLive do
             Your API token "<%= @token.description %>" is shown above. Be sure to store it somewhere, as you won't be able to see it again.
           </p>
           <p class="mt-4">
-            <%= live_patch("Close",
-              class: "text-button text-sm",
-              to: Routes.adminland_index_path(@socket, :api)
-            ) %>
+            <.link method = "Close" class = "text-button text-sm" patch =  {Routes.adminland_index_path(@socket, :api)}></.link>
           </p>
         </div>
       <% end %>

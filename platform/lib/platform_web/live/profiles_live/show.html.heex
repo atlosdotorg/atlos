@@ -162,10 +162,7 @@
                   </p>
                 </div>
                 <div>
-                  <%= live_patch("Edit",
-                    class: "button ~urge @high",
-                    to: Routes.profiles_show_path(@socket, :admin_edit, @username)
-                  ) %>
+                  <.link method = "Edit" class = "button ~urge @high" patch = {Routes.profiles_show_path(@socket, :admin_edit, @username)}></.link>
                 </div>
               </div>
             </:header>

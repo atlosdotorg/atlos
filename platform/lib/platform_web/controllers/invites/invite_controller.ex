@@ -1,11 +1,9 @@
 defmodule PlatformWeb.InviteController do
   alias Platform.Projects
-  alias Platform.Projects.Project
   use PlatformWeb, :controller
 
-  alias Platform.Accounts
   alias Platform.Invites
-  alias Platform.Auditor
+
 
   def new(conn, %{"code" => code}) do
     invite = Invites.get_invite_by_code(code)
