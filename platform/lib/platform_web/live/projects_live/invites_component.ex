@@ -381,13 +381,13 @@ defmodule PlatformWeb.ProjectsLive.InvitesComponent do
           <div>
             <%= label(
               @form,
-              :role,
+              :project_access_level,
               "Role"
             ) %>
             <div class="phx-form" id="member-role-select" phx-update="ignore">
               <%= select(
                 @form,
-                :role,
+                :project_access_level,
                 [
                   {"Viewer", "viewer"},
                   {"Editor", "editor"},
@@ -405,7 +405,7 @@ defmodule PlatformWeb.ProjectsLive.InvitesComponent do
                   })
               ) %>
             </div>
-            <%= error_tag(@form, :role) %>
+            <%= error_tag(@form, :project_access_level) %>
           </div>
           <div>
             <div class="flex items-center gap-2">
