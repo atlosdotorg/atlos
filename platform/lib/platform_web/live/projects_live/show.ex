@@ -107,7 +107,7 @@ defmodule PlatformWeb.ProjectsLive.Show do
                 <Heroicons.magnifying_glass mini class="-ml-0.5 mr-2 h-5 w-5 text-neutral-400" />
                 <span>Search</span>
               </.link>
-              <%= if Permissions.can_edit_project_metadata?(@current_user, @project) do %>
+              <%= if Permissions.can_add_media_to_project?(@current_user, @project) do %>
                 <button
                   type="button"
                   x-on:click="window.openNewIncidentDialog"
