@@ -87,7 +87,7 @@ defmodule PlatformWeb.UpdatesLive.PaginatedMediaUpdateFeed do
       <%= for incident <- @media do %>
         <div class="w-full max-w-full group" x-data>
           <.media_line_preview media={incident} />
-          <ul class="card shadow mt-2">
+          <ul class="rounded-lg p-4 bg-white shadow mt-2">
             <% len = min(3, length(incident.updates)) %>
             <%= for {update, idx} <- incident.updates |> Enum.with_index() do %>
               <.update_entry

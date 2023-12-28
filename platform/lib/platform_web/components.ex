@@ -285,8 +285,9 @@ defmodule PlatformWeb.Components do
 
     ~H"""
     <div class="md:w-28 h-20"></div>
+    <%# Due to a Safari bug, we can't use overflow-y-auto on the nav element itself; we have to make sure it's not applied when the modal is open. %>
     <div
-      class="w-full md:w-28 bg-neutral-700 overflow-y-auto fixed z-50 md:h-screen self-start"
+      class="w-full md:w-28 bg-neutral-700 fixed z-50 md:h-screen self-start non-modal-overflow-y-auto"
       x-data="{ open: window.innerWidth >= 768 }"
       x-transition
     >

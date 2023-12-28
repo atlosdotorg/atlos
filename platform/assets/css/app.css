@@ -15,6 +15,13 @@
     overflow: hidden;
   }
   .modal-open::-webkit-scrollbar { width: 0 !important; }
+  .non-modal-overflow-y-auto {
+    overflow-y: auto;
+  }
+
+  .modal-open .non-modal-overflow-y-auto {
+    overflow-y: hidden;
+  }
 
   .sticky-headers {
     text-align: left;
