@@ -633,6 +633,12 @@ defmodule Platform.Material do
           |> join(:inner, [v, m], p in assoc(m, :project))
           |> join(:inner, [v, m, p], membership in assoc(p, :memberships))
           |> where([v, m, p, membersip], membersip.user_id == ^user.id)
+          # If the media version is removed, make sure the member is a manager or an owner
+          |> where(
+            [v, m, p, membership],
+            m.visibility != :removed or
+              (membership.role == :owner or membership.role == :manager)
+          )
         end
       end)
     )

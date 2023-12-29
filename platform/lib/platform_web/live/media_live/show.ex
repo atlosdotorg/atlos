@@ -68,6 +68,10 @@ defmodule PlatformWeb.MediaLive.Show do
 
       socket
       |> assign(:media, media)
+      |> assign(
+        :media_versions,
+        media.versions |> filter_viewable_versions(socket.assigns.current_user) |> sort_by_date()
+      )
       |> assign(:active_project, media.project)
       |> assign(:updates, media.updates |> Enum.sort_by(& &1.inserted_at, {:asc, NaiveDateTime}))
       |> subscribe_to_media(media)
