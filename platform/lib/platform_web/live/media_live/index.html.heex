@@ -1,4 +1,55 @@
-<article class={"w-full min-h-[90vh] px-4 md:px-8 " <> (if @full_width, do: "mt-8", else: "")}>
+<article
+  data-pagination-cap-exceeded={@results.metadata.total_count_cap_exceeded}
+  data-pagination-total-count={@results.metadata.total_count}
+  x-ref="article"
+  x-data="{
+  selected: {},
+  isAllSelected: false,
+  isActionInProgress() {
+    return this.$refs.article.dataset.isActionInProgress === 'true'
+  },
+  selectedValuesJSON() {
+    // This is what we pass up to the server
+    if (this.isAllSelected) {
+      return JSON.stringify({all: true})
+    }
+    return JSON.stringify(Object.keys(this.selected).filter(key => this.selected[key] === true))
+  },
+  hasItemSelected(id) {
+    return this.isAllSelected || (this.selected[id] === true)
+  },
+  setItemSelected(id, value) {
+    this.selected[id] = value
+  },
+  hasAnySelected() {
+    return this.isAllSelected || (Object.values(this.selected).indexOf(true) >= 0)
+  },
+  selectedCount() {
+    if (this.isAllSelected) {
+      return this.$refs.article.dataset.paginationTotalCount
+    }
+    return Object.values(this.selected).filter(Boolean).length
+  },
+  maxSelectableToDisplay() {
+    return this.$refs.article.dataset.paginationTotalCount + (this.$refs.article.dataset.paginationCapExceeded === 'true' ? '+' : '')
+  },
+  selectedCountToDisplay() {
+    if (this.isAllSelected) {
+      return this.maxSelectableToDisplay()
+    }
+    return this.selectedCount()
+  },
+  selectAll() {
+    this.isAllSelected = true
+    this.selected = {}
+  },
+  deselectAll() {
+    this.isAllSelected = false
+    this.selected = {}
+  }
+  }"
+  class={"w-full min-h-[90vh] px-4 md:px-8" <> (if @full_width, do: " mt-8", else: "") <> (if (not is_nil(@bulk_background_task) and not is_nil(@bulk_background_task.loading)), do: " processing", else: "")}
+>
   <% next_link =
     Routes.live_path(
       @socket,
@@ -18,104 +69,185 @@
       |> Map.put(:pi, @pagination_index - 1)
     ) %>
   <div class="relative z-[1000] 2xl:max-w-[1210px] mx-auto h-[9rem]">
-    <%= if @selected_ids != [] do %>
-      <div class="mb-4 w-full flex text-sm items-center divide-x border bg-white shadow-sm rounded-lg transition-all">
-        <p class="p-4 text-urge-600">
-          <span class="font-medium">
-            <%= length(@selected_ids) %>
-          </span>
-          <%= if length(@selected_ids) != 1 do %>
-            incidents
-          <% else %>
-            incident
-          <% end %>
-          selected
-        </p>
-        <div class="p-4 hover:bg-neutral-50 transition">
-          <.dropdown label="Add tag">
-            <div class="p-4 ts-ignore flex flex-col gap-4" x-data="{tag: null}">
-              <select x-model="tag" class="w-full input-base" id="bulk-action-select">
-                <option value="">Select a tag</option>
-                <%= for tag <- Platform.Material.Attribute.options(Platform.Material.Attribute.get_attribute(:tags, project: @active_project)) do %>
-                  <option value={tag}><%= tag %></option>
-                <% end %>
-              </select>
-              <button
-                class="button ~urge @high"
-                x-bind:disabled="tag == null || tag == ''"
-                phx-click="apply_tag"
-                x-bind:phx-value-tag="tag"
-                x-bind:data-confirm={"\"Are you sure you want to apply the tag \" + tag + \" to the #{length(@selected_ids)} selected incident(s)?\""}
-                x-on:click="open = false; window.topbar.show()"
-                phx-disable-with="Working..."
-              >
-                Apply
-              </button>
-            </div>
-          </.dropdown>
-        </div>
-        <div class="p-4 hover:bg-neutral-50 transition">
-          <.dropdown label="Set status">
-            <div class="p-4 ts-ignore flex flex-col gap-4" x-data="{status: null}">
-              <select x-model="status" class="w-full input-base" id="status-select">
-                <option value="">Select a status</option>
-                <%= for status <- Platform.Material.Attribute.options(Platform.Material.Attribute.get_attribute(:status, project: @active_project)) do %>
-                  <option value={status}><%= status %></option>
-                <% end %>
-              </select>
-              <button
-                class="button ~urge @high"
-                x-bind:disabled="status == null || status == ''"
-                phx-click="apply_status"
-                x-bind:phx-value-status="status"
-                x-bind:data-confirm={"\"Are you sure you want to set the status to \" + status + \" for the #{length(@selected_ids)} selected incident(s)?\""}
-                x-on:click="open = false; window.topbar.show()"
-                phx-disable-with="Working..."
-              >
-                Apply
-              </button>
-            </div>
-          </.dropdown>
-        </div>
-        <div
-          :if={Enum.all?(@media, &Platform.Permissions.can_copy_media?(@current_user, &1))}
-          class="p-4 hover:bg-neutral-50 transition"
-        >
-          <.dropdown label="Copy to project">
-            <div class="p-4 ts-ignore flex flex-col gap-4" x-data="{project_id: null}">
-              <select x-model="project_id" class="w-full input-base" id="project_id-select">
-                <option value="">Select a project...</option>
-                <% base_project_id = if Enum.empty?(@media), do: nil, else: hd(@media).project_id %>
-                <%= for project <- Platform.Projects.list_projects_for_user(@current_user) |> Enum.reject(& &1.id == base_project_id) |> Enum.filter(&Platform.Permissions.can_add_media_to_project?(assigns.current_user, &1)) do %>
-                  <option value={project.id}>
-                    <%= project.code %>: <%= project.name |> Platform.Utils.truncate() %>
-                  </option>
-                <% end %>
-              </select>
-              <button
-                class="button ~urge @high"
-                x-bind:disabled="project_id == null || project_id == ''"
-                phx-click="copy_to_project"
-                x-bind:phx-value-project-id="project_id"
-                x-bind:data-confirm={"\"Are you sure you want to copy the #{length(@selected_ids)} selected incident(s) into another project?\""}
-                x-on:click="open = false; window.topbar.show()"
-                phx-disable-with="Working..."
-              >
-                Apply
-              </button>
-            </div>
-          </.dropdown>
-        </div>
-        <div class="p-4 hover:bg-neutral-50 transition flex gap-4 items-center flex-grow justify-end">
-          <button phx-click="select_all" class="text-button" phx-disable-with="Selecting...">
-            Select All
-          </button>
-          <button phx-click="deselect_all" class="text-button" phx-disable-with="Closing...">
-            Cancel
-          </button>
-        </div>
+    <div
+      x-show="hasAnySelected()"
+      x-transition:enter
+      x-cloak
+      class="mb-4 w-full flex text-sm items-center divide-x border bg-white shadow-sm rounded-lg transition-all"
+    >
+      <p class="p-4 text-urge-600">
+        <span class="font-medium" x-text="selectedCountToDisplay()" />
+        <span x-show="selectedCount() > 1">
+          incidents
+        </span>
+        <span x-show="selectedCount() === 1">
+          incident
+        </span>
+        selected
+      </p>
+      <div class="p-4 hover:bg-neutral-50 transition">
+        <.dropdown label="Add tag">
+          <div class="p-4 ts-ignore flex flex-col gap-4" x-data="{tag: null}">
+            <select x-model="tag" class="w-full input-base" id="bulk-action-select">
+              <option value="">Select a tag</option>
+              <%= for tag <- Platform.Material.Attribute.options(Platform.Material.Attribute.get_attribute(:tags, project: @active_project)) do %>
+                <option value={tag}><%= tag %></option>
+              <% end %>
+            </select>
+            <button
+              class="button ~urge @high"
+              x-bind:disabled="tag == null || tag == ''"
+              phx-click="bulk_apply_tag"
+              x-bind:phx-value-tag="tag"
+              x-bind:phx-value-selection="selectedValuesJSON()"
+              x-bind:data-confirm="`Are you sure you want to apply the tag '${tag}' to the ${selectedCountToDisplay()} selected incident(s)?`"
+              x-on:confirmed="open = false"
+              phx-disable-with="Working..."
+            >
+              Apply
+            </button>
+          </div>
+        </.dropdown>
       </div>
-    <% else %>
+      <div class="p-4 hover:bg-neutral-50 transition">
+        <.dropdown label="Set status">
+          <div class="p-4 ts-ignore flex flex-col gap-4" x-data="{status: null}">
+            <select x-model="status" class="w-full input-base" id="status-select">
+              <option value="">Select a status</option>
+              <%= for status <- Platform.Material.Attribute.options(Platform.Material.Attribute.get_attribute(:status, project: @active_project)) do %>
+                <option value={status}><%= status %></option>
+              <% end %>
+            </select>
+            <button
+              class="button ~urge @high"
+              x-bind:disabled="status == null || status == ''"
+              phx-click="bulk_apply_status"
+              x-bind:phx-value-status="status"
+              x-bind:phx-value-selection="selectedValuesJSON()"
+              x-bind:data-confirm="`Are you sure you want to set the status to ${status} for the ${selectedCountToDisplay()} selected incident(s)?`"
+              x-on:confirmed="open = false"
+              phx-disable-with="Working..."
+            >
+              Apply
+            </button>
+          </div>
+        </.dropdown>
+      </div>
+      <div class="p-4 hover:bg-neutral-50 transition">
+        <.dropdown label="Copy to project">
+          <div class="p-4 ts-ignore flex flex-col gap-4" x-data="{project_id: null}">
+            <select x-model="project_id" class="w-full input-base" id="project_id-select">
+              <option value="">Select a project...</option>
+              <% base_project_id = if Enum.empty?(@media), do: nil, else: hd(@media).project_id %>
+              <%= for project <- Platform.Projects.list_editable_projects_for_user(@current_user) |> Enum.reject(& &1.id == base_project_id) do %>
+                <option value={project.id}>
+                  <%= project.code %>: <%= project.name |> Platform.Utils.truncate() %>
+                </option>
+              <% end %>
+            </select>
+            <button
+              class="button ~urge @high"
+              x-bind:disabled="project_id == null || project_id == ''"
+              phx-click="bulk_copy_to_project"
+              x-bind:phx-value-project-id="project_id"
+              x-bind:phx-value-selection="selectedValuesJSON()"
+              x-bind:data-confirm="`Are you sure you want to copy the ${selectedCountToDisplay()} selected incidents into another project?`"
+              x-on:confirmed="open = false"
+              phx-disable-with="Working..."
+            >
+              Apply
+            </button>
+          </div>
+        </.dropdown>
+      </div>
+      <div class="p-4 hover:bg-neutral-50 transition flex gap-4 items-center flex-grow justify-end">
+        <button
+          x-on:click="selectAll()"
+          class="text-button"
+          x-bind:disabled="isAllSelected"
+          x-bind:class="{'opacity-50': isAllSelected}"
+        >
+          Select All <span x-text="maxSelectableToDisplay()" />
+        </button>
+        <button x-on:click="deselectAll()" class="text-button">
+          Close
+        </button>
+      </div>
+    </div>
+    <div
+      :if={not is_nil(@bulk_background_task)}
+      class="flex w-full justify-around transition-all"
+      x-show="hasAnySelected()"
+    >
+      <div
+        class="text-sm rounded-full bg-white transition-all border shadow-sm pl-2 pr-3 py-1 text-neutral-700"
+        phx-mounted={
+          JS.transition({"ease-out duration-75", "opacity-0 scale-75", "opacity-100 scale-100"},
+            time: 75
+          )
+        }
+        phx-remove={
+          JS.transition({"ease-out duration-50", "opacity-100 scale-100", "opacity-0 scale-75"},
+            time: 50
+          )
+        }
+      >
+        <section :if={@bulk_background_task.loading} class="flex gap-2 items-center">
+          <.loading_spinner text="" />
+          <p><%= @bulk_background_task_name %></p>
+        </section>
+        <section
+          :if={
+            @bulk_background_task.ok? and is_nil(@bulk_background_task.failed) and
+              is_nil(@bulk_background_task.loading)
+          }
+          class="flex gap-2 items-center"
+        >
+          <Heroicons.check_circle mini class="h-5 w-5 text-green-600" />
+          <strong class="font-medium text-neutral-700">
+            <%= @bulk_background_task.result.message %>
+          </strong>
+          <%= @bulk_background_task.result.success_count %> <%= Platform.Utils.pluralize(
+            @bulk_background_task.result.success_count,
+            "incident was",
+            "incidents were"
+          ) %> modified, and <%= @bulk_background_task.result.failure_count %> <%= Platform.Utils.pluralize(
+            @bulk_background_task.result.failure_count,
+            "incident was",
+            "incidents were"
+          ) %> skipped.
+          <%= if @bulk_background_task.result.failure_count > 0 do %>
+            Skipped actions are usually a result of insufficient permissions.
+          <% end %>
+          <button
+            type="button"
+            phx-click="dismiss_bulk_background_task"
+            class="ml-2"
+            data-tooltip="Dismiss"
+          >
+            <span class="sr-only">Dismiss</span>
+            <Heroicons.x_mark mini class="h-5 w-5 text-gray-400" />
+          </button>
+        </section>
+        <section
+          :if={not is_nil(@bulk_background_task.failed) and is_nil(@bulk_background_task.loading)}
+          class="flex gap-2 items-center"
+        >
+          <Heroicons.x_circle mini class="h-5 w-5 text-red-600" />
+          Unable to complete your bulk action.
+          <button
+            type="button"
+            phx-click="dismiss_bulk_background_task"
+            class="ml-2"
+            data-tooltip="Dismiss"
+          >
+            <span class="sr-only">Dismiss</span>
+            <Heroicons.x_mark mini class="h-5 w-5 text-gray-400" />
+          </button>
+        </section>
+      </div>
+    </div>
+    <div x-show="!hasAnySelected()" x-transition:enter>
       <.search_form
         changeset={@changeset}
         exclude={if @display == "map", do: [:sort], else: []}
@@ -126,23 +258,21 @@
         active_project={@active_project}
       >
         <:pagination>
-          <%= if @display != "map" do %>
-            <div class="flex items-center">
-              <div>
-                <.pagination_controls
-                  next_link={next_link}
-                  prev_link={prev_link}
-                  pagination_metadata={@results.metadata}
-                  pagination_index={@pagination_index}
-                  currently_displayed_results={length(@media)}
-                  id="pagination-table"
-                />
-              </div>
+          <div :if={@display != "map"} class="flex items-center">
+            <div>
+              <.pagination_controls
+                next_link={next_link}
+                prev_link={prev_link}
+                pagination_metadata={@results.metadata}
+                pagination_index={@pagination_index}
+                currently_displayed_results={length(@media)}
+                id="pagination-table"
+              />
             </div>
-          <% end %>
+          </div>
         </:pagination>
       </.search_form>
-    <% end %>
+    </div>
   </div>
   <section>
     <%= if (not Enum.empty?(@media)) or @display == "map" do %>
@@ -202,7 +332,7 @@
                     Every project has a different schema &mdash; select a project to view these incidents in a table.
                   </p>
                   <%= if not Enum.empty?(@user_projects) do %>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                    <div class="flex flex-wrap justify-center gap-2 md:max-w-prose">
                       <%= for project <- @user_projects |> Enum.sort_by(& &1.updated_at, {:desc, NaiveDateTime}) do %>
                         <.link
                           navigate={
@@ -215,7 +345,7 @@
                           }
                           replace={true}
                         >
-                          <.project_card_inner project={project} />
+                          <.project_list_item_inner project={project} />
                         </.link>
                       <% end %>
                     </div>
@@ -262,14 +392,192 @@
                       <div class="top-scroll-anchor"></div>
                       <tbody class="bg-white" id="media-list-table-body">
                         <%= for media <- @media do %>
-                          <.media_table_row
-                            media={media}
-                            id={"incident-row-#{media.slug}"}
-                            current_user={@current_user}
-                            attributes={@attributes}
-                            source_cols={@source_cols}
-                            is_selected={Enum.member?(@selected_ids, media.id)}
-                          />
+                          <% versions =
+                            media.versions |> Enum.filter(&(&1.visibility == :visible)) %>
+                          <% is_subscribed = media.has_subscription %>
+                          <% id = "table-row-#{media.slug}" %>
+                          <% has_unread_notification = media.has_unread_notification %>
+                          <% is_sensitive = Material.Media.is_sensitive(media) %>
+                          <% background_color =
+                            case media.attr_sensitive do
+                              x when x == ["Not Sensitive"] or x == [] ->
+                                "bg-white group-hover:bg-neutral-50 hover:bg-neutral-50"
+
+                              ["Personal Information Visible"] ->
+                                "bg-orange-50"
+
+                              _ ->
+                                "bg-red-50"
+                            end %>
+                          <tr
+                            class={"search-highlighting group transition-all " <> background_color}
+                            id={id}
+                            x-bind:class={"{'!bg-urge-50': hasItemSelected('#{media.id}'), 'processing:animate-pulse': hasItemSelected('#{media.id}')}"}
+                          >
+                            <td
+                              id={"table-row-" <> media.slug <> "-slug"}
+                              class={"md:sticky left-0 z-[100] pl-4 pr-1 border-r whitespace-nowrap border-b border-gray-200 h-10 transition-all " <> background_color}
+                              x-bind:class={"{'!bg-urge-50': hasItemSelected('#{media.id}')}"}
+                            >
+                              <div class="flex items-center gap-1">
+                                <div
+                                  class="flex-shrink-0 w-5 mr-2 group-hover:block"
+                                  x-bind:class={"{'hidden': !hasItemSelected('#{media.id}')}"}
+                                  x-cloak
+                                  x-bind:title="(() => {
+                                    if (isAllSelected) {
+                                      return `All ${selectedCountToDisplay()} incidents are selected, so individual incidents cannot be deselected.`
+                                    } else if (hasItemSelected('#{media.id}')) {
+                                      return 'Deselect this incident'
+                                    } else {
+                                      return 'Select this incident'
+                                    }
+                                  })()"
+                                >
+                                  <input
+                                    x-on:change={"setItemSelected('#{media.id}', $event.target.checked)"}
+                                    type="checkbox"
+                                    x-bind:checked={"hasItemSelected('#{media.id}')"}
+                                    x-bind:disabled="isAllSelected"
+                                    class="h-4 w-4 mb-1 rounded border-gray-300 text-urge-600 focus:ring-urge-600"
+                                    x-bind:class="{'opacity-50': isAllSelected}"
+                                  />
+                                </div>
+                                <div
+                                  class="flex-shrink-0 w-5 mr-2 group-hover:hidden"
+                                  x-bind:class={"{'hidden': hasItemSelected('#{media.id}')}"}
+                                >
+                                  <.user_stack
+                                    users={
+                                      media.updates
+                                      |> Enum.take(1)
+                                      |> Enum.map(& &1.user)
+                                      |> Enum.reject(&is_nil/1)
+                                    }
+                                    dynamic={false}
+                                    ring_class="ring-transparent"
+                                  />
+                                </div>
+                                <.link
+                                  navigate={"/incidents/#{media.slug}"}
+                                  class="text-button text-sm flex items-center gap-1 mr-px font-mono"
+                                >
+                                  <span style={"color: #{if media.project, do: media.project.color, else: "unset"}"}>
+                                    <%= Platform.Material.Media.slug_to_display(media) %>
+                                  </span>
+                                  <div class="flex flex-col h-full flex-wrap ml-px my-auto items-center">
+                                    <%= if is_sensitive do %>
+                                      <span
+                                        data-tooltip={Enum.join(media.attr_sensitive, ", ")}
+                                        class="text-critical-400"
+                                      >
+                                        <Heroicons.shield_exclamation mini class="h-4 w-4" />
+                                      </span>
+                                    <% end %>
+                                    <%= if is_subscribed do %>
+                                      <span
+                                        data-tooltip="You're subscribed"
+                                        class="text-neutral-400"
+                                      >
+                                        <svg
+                                          xmlns="http://www.w3.org/2000/svg"
+                                          viewBox="0 0 20 20"
+                                          fill="currentColor"
+                                          class="w-3 h-3"
+                                        >
+                                          <path d="M10 12.5a2.5 2.5 0 100-5 2.5 2.5 0 000 5z" />
+                                          <path
+                                            fill-rule="evenodd"
+                                            d="M.664 10.59a1.651 1.651 0 010-1.186A10.004 10.004 0 0110 3c4.257 0 7.893 2.66 9.336 6.41.147.381.146.804 0 1.186A10.004 10.004 0 0110 17c-4.257 0-7.893-2.66-9.336-6.41zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
+                                            clip-rule="evenodd"
+                                          />
+                                        </svg>
+                                        <span class="sr-only">
+                                          You&apos;re subscribed
+                                        </span>
+                                      </span>
+                                    <% end %>
+                                    <%= if media.is_assigned do %>
+                                      <span data-tooltip="You're assigned" class="text-urge-600">
+                                        <Heroicons.bookmark mini class="h-3 w-3" />
+                                        <span class="sr-only">
+                                          You&apos;re assigned
+                                        </span>
+                                      </span>
+                                    <% end %>
+                                    <%= if has_unread_notification do %>
+                                      <span data-tooltip="Unread notification">
+                                        <svg
+                                          viewBox="0 0 120 120"
+                                          xmlns="http://www.w3.org/2000/svg"
+                                          fill="currentColor"
+                                          class="h-3 w-3"
+                                        >
+                                          <circle cx="60" cy="60" r="40" />
+                                        </svg>
+                                        <span class="sr-only">
+                                          Unread notification
+                                        </span>
+                                      </span>
+                                    <% end %>
+                                  </div>
+                                </.link>
+                              </div>
+                            </td>
+                            <%= for attr <- @attributes do %>
+                              <td
+                                class="border-b cursor-pointer p-0"
+                                phx-click="edit_attribute"
+                                phx-value-attribute={attr.name}
+                                phx-value-media-id={media.id}
+                                id={"table-row-" <> media.slug <> "-" <> to_string(attr.name)}
+                              >
+                                <div class="text-sm text-gray-900 px-4 overflow-hidden h-6 max-w-[36rem] truncate">
+                                  <.attr_display_compact
+                                    color={true}
+                                    truncate={true}
+                                    attr={attr}
+                                    media={media}
+                                    current_user={@current_user}
+                                  />
+                                </div>
+                              </td>
+                            <% end %>
+                            <%= for idx <- 0..@source_cols do %>
+                              <td
+                                class="border-b cursor-pointer p-0"
+                                id={"table-row-" <> media.slug <> "-source-" <> to_string(idx)}
+                              >
+                                <% version = Enum.at(versions, idx) %>
+                                <%= cond do %>
+                                  <% length(versions) > @source_cols + 1 && idx == @source_cols -> %>
+                                    <span class="text-neutral-400 px-4 text-sm whitespace-nowrap">
+                                      <%= length(versions) - @source_cols %> more source(s) available on the incident page
+                                    </span>
+                                  <% not is_nil(version) -> %>
+                                    <div class="text-sm flex items-center text-gray-900 px-4 whitespace-nowrap text-ellipsis overflow-hidden h-6 w-[12rem]">
+                                      <a
+                                        href={version.source_url}
+                                        target="_blank"
+                                        rel="nofollow"
+                                        class="truncate"
+                                        data-confirm="This will open the source media in a new tab. Are you sure?"
+                                      >
+                                        <.url_icon
+                                          url={version.source_url}
+                                          class="h-4 w-4 inline mb-px"
+                                        />
+                                        <%= version.source_url %>
+                                      </a>
+                                    </div>
+                                  <% true -> %>
+                                    <span class="text-neutral-400 px-4">
+                                      &mdash;
+                                    </span>
+                                <% end %>
+                              </td>
+                            <% end %>
+                          </tr>
                         <% end %>
                       </tbody>
                     </table>

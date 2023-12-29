@@ -37,6 +37,8 @@ config :platform, PlatformWeb.Endpoint,
     ]
   ]
 
+config :logger, level: :info
+
 # ## SSL Support
 #
 # In order to use HTTPS in development, a self-signed

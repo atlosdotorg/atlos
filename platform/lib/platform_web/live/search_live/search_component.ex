@@ -379,8 +379,6 @@ defmodule PlatformWeb.SearchLive.SearchComponent do
                             >
                               <div class="pointer-events-none w-full">
                                 <.update_entry
-                                  socket={@socket}
-                                  can_user_change_visibility={false}
                                   profile_ring={false}
                                   left_indicator={:small_profile}
                                   update={item}

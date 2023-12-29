@@ -12,22 +12,6 @@
     />
   </.card>
 
-  <%= if Accounts.is_privileged(@current_user) do %>
-    <.card>
-      <:header>
-        <h3 class="sec-head">Invite Code</h3>
-        <p class="sec-subhead">
-          Your invite code can be used to join Atlos. An invite code can be used multiple times.
-        </p>
-      </:header>
-      <.live_component
-        module={PlatformWeb.SettingsLive.InvitesComponent}
-        id="invites-settings"
-        current_user={@current_user}
-      />
-    </.card>
-  <% end %>
-
   <.card>
     <:header>
       <h3 class="sec-head">Account &amp; Security</h3>

@@ -13,7 +13,7 @@ defmodule Platform.Utils do
   def get_identifier_regex(), do: @identifier_regex
 
   def generate_media_slug() do
-    slug = for _ <- 1..6, into: "", do: <<Enum.random('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ')>>
+    slug = for _ <- 1..6, into: "", do: <<Enum.random(~c"0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ")>>
 
     if is_nil(Platform.Material.get_full_media_by_slug(slug)) do
       slug
@@ -23,11 +23,23 @@ defmodule Platform.Utils do
   end
 
   def generate_random_sequence(length) do
-    for _ <- 1..length, into: "", do: <<Enum.random('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ')>>
+    for _ <- 1..length, into: "", do: <<Enum.random(~c"0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ")>>
   end
 
   def generate_secure_code() do
     :crypto.strong_rand_bytes(32) |> Base.url_encode64()
+  end
+
+  def pluralize(count, singular, plural \\ nil) do
+    if count == 1 do
+      singular
+    else
+      if is_nil(plural) do
+        singular <> "s"
+      else
+        plural
+      end
+    end
   end
 
   def migrated_attributes(media) do
@@ -207,6 +219,33 @@ defmodule Platform.Utils do
     markdown = markdown |> HtmlSanitizeEx.Scrubber.scrub(Platform.Security.UgcSanitizer)
 
     markdown
+  end
+
+  @spec escape_markdown_string(String.t()) :: String.t()
+  @doc """
+  Escape the given string so that it can be used in a markdown document without
+  causing formatting issues. Note that this function is not "load bearing" from
+  a security perspective; it's just for formatting. There should be no way to
+  render markdown on Atlos that is not properly sanitized, regardless of whether
+  or not this function is used.
+  """
+  def escape_markdown_string(str) when is_binary(str) do
+    str
+    |> String.replace("\\", "\\\\")
+    |> String.replace("`", "\\`")
+    |> String.replace("*", "\\*")
+    |> String.replace("_", "\\_")
+    |> String.replace("{", "\\{")
+    |> String.replace("}", "\\}")
+    |> String.replace("[", "\\[")
+    |> String.replace("]", "\\]")
+    |> String.replace("(", "\\(")
+    |> String.replace(")", "\\)")
+    |> String.replace("#", "\\#")
+    |> String.replace("+", "\\+")
+    |> String.replace("-", "\\-")
+    |> String.replace(".", "\\.")
+    |> String.replace("!", "\\!")
   end
 
   def generate_qrcode(uri) do

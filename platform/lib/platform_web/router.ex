@@ -48,13 +48,18 @@ defmodule PlatformWeb.Router do
   # If your application does not have an admins-only section yet,
   # you can use Plug.BasicAuth to set up some basic authentication
   # as long as you are also using SSL (which you should anyway).
-  if Mix.env() in [:dev, :test] do
+  if Mix.env() in [:dev] do
     import Phoenix.LiveDashboard.Router
 
     scope "/" do
       pipe_through(:browser)
 
-      live_dashboard("/dashboard", metrics: PlatformWeb.Telemetry)
+      live_dashboard("/dashboard",
+        metrics: PlatformWeb.Telemetry,
+        additional_pages: [
+          flame_on: FlameOn.DashboardPage
+        ]
+      )
     end
   end
 
@@ -104,6 +109,7 @@ defmodule PlatformWeb.Router do
 
   scope "/", PlatformWeb do
     pipe_through([:browser, :interstitial])
+
     get("/users/suspended", UserRegistrationController, :suspended)
     get("/users/no_access", UserRegistrationController, :no_access)
   end
@@ -139,6 +145,14 @@ defmodule PlatformWeb.Router do
     pipe_through([:browser, :require_authenticated_user, :interstitial_minimal])
 
     get("/users/onboarding", UserRegistrationController, :onboarding)
+  end
+
+  scope "/invite", PlatformWeb do
+    pipe_through([:browser, :interstitial_minimal])
+
+    get("/:code", InviteController, :new)
+    get("/:code/sign_in_redirect", InviteController, :redirect_to_sign_in)
+    post("/:code", InviteController, :accept)
   end
 
   scope "/", PlatformWeb do
@@ -201,6 +215,7 @@ defmodule PlatformWeb.Router do
       live("/adminland/announcements", AdminlandLive.Index, :announcements)
       live("/adminland/security", AdminlandLive.Index, :security)
       live("/adminland/security/update", AdminlandLive.Index, :security_mode_create)
+      live("/adminland/invites", AdminlandLive.Index, :invites)
       live("/adminland/api", AdminlandLive.Index, :api)
       live("/adminland/api/new", AdminlandLive.Index, :api_new)
     end

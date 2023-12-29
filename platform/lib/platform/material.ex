@@ -84,7 +84,6 @@ defmodule Platform.Material do
     |> maybe_filter_accessible_to_user(opts)
     |> load_media_color()
     |> order_by(desc: :inserted_at)
-    |> distinct(true)
   end
 
   @doc """
@@ -203,7 +202,8 @@ defmodule Platform.Material do
       },
       where: ^(not Keyword.get(opts, :limit_to_unread_notifications, false)) or not is_nil(n),
       where: ^(not Keyword.get(opts, :limit_to_subscriptions, false)) or not is_nil(s),
-      where: ^(not Keyword.get(opts, :limit_to_assignments, false)) or not is_nil(a)
+      where: ^(not Keyword.get(opts, :limit_to_assignments, false)) or not is_nil(a),
+      distinct: [m.id]
     )
   end
 
@@ -633,6 +633,12 @@ defmodule Platform.Material do
           |> join(:inner, [v, m], p in assoc(m, :project))
           |> join(:inner, [v, m, p], membership in assoc(p, :memberships))
           |> where([v, m, p, membersip], membersip.user_id == ^user.id)
+          # If the media version is removed, make sure the member is a manager or an owner
+          |> where(
+            [v, m, p, membership],
+            m.visibility != :removed or
+              (membership.role == :owner or membership.role == :manager)
+          )
         end
       end)
     )
@@ -1260,11 +1266,14 @@ defmodule Platform.Material do
     Repo.all(
       from(w in MediaSubscription,
         where: w.media_id == ^media.id,
+        inner_join: u in assoc(w, :user),
+        inner_join: membership in assoc(u, :memberships),
+        on: membership.project_id == ^media.project_id,
         preload: :user
       )
     )
-    |> Enum.filter(&Permissions.can_view_media?(&1.user, media))
     |> Enum.map(& &1.user)
+    |> Enum.uniq_by(& &1.id)
   end
 
   def total_subscribed!(%Media{} = media) do

@@ -1,0 +1,42 @@
+<section class="flex flex-col items-center gap-4">
+  <%= if not is_nil(@invite) and Platform.Invites.is_invite_active(@invite) do %>
+    <.invitation_display current_user={@current_user} invite={@invite}>
+      <div class="flex flex-col items-center gap-4">
+        <%= if @is_member_already do %>
+          <div class="prose prose-sm text-center">
+            <p>
+              You are already a member of the project, so you don't need to accept this invitation.
+            </p>
+          </div>
+          <a href={"/projects/#{@invite.project.id}"} class="base-button">
+            Go to project
+          </a>
+        <% else %>
+          <.form
+            class="flex gap-4 items-center"
+            method="post"
+            action={Routes.invite_path(@conn, :accept, @invite.code)}
+          >
+            <%= submit("Accept invitation", class: "button ~urge @high shadow-xs") %>
+            <.link to="/" class="base-button">
+              Cancel
+            </.link>
+          </.form>
+        <% end %>
+      </div>
+    </.invitation_display>
+  <% else %>
+    <Heroicons.exclamation_triangle class="h-12 w-12 text-critical-500" />
+    <h2 class="text-lg md:text-xl text-neutral-800 font-medium text-center px-4">
+      Sorry, this invite is not valid.
+    </h2>
+    <div class="prose prose-sm text-center">
+      <p>
+        Please ask the person who invited you to send you a new invitation.
+      </p>
+    </div>
+    <a href="/" class="base-button">
+      Return home
+    </a>
+  <% end %>
+</section>

@@ -36,9 +36,6 @@ defmodule PlatformWeb.AdminlandLive.UserListLive do
                       Bio
                     </th>
                     <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                      Invited By
-                    </th>
-                    <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
                       Joined
                     </th>
                     <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
@@ -88,14 +85,6 @@ defmodule PlatformWeb.AdminlandLive.UserListLive do
                       </td>
                       <td class="max-w-md px-3 py-4 text-sm text-gray-500">
                         <%= user.bio %>
-                      </td>
-                      <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                        <%= case user.invite do %>
-                          <% nil -> %>
-                            (none)
-                          <% invite -> %>
-                            <.user_text user={invite.owner || Accounts.get_auto_account()} />
-                        <% end %>
                       </td>
                       <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                         <.rel_time time={user.inserted_at} />

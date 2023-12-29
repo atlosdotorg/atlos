@@ -1,6 +1,7 @@
 defmodule PlatformWeb.NotificationsLive.NotificationsList do
   use PlatformWeb, :live_component
   alias Platform.Notifications
+  alias Platform.Permissions
 
   def update(assigns, socket) do
     {:ok,
@@ -16,7 +17,20 @@ defmodule PlatformWeb.NotificationsLive.NotificationsList do
         opts
       )
 
-    socket |> assign(:result, result) |> assign(:notifications, extend ++ result.entries)
+    # Filter out notifications that the user does not have permission to see and mark them as read
+    entries =
+      result.entries
+      |> Enum.filter(fn n ->
+        if not is_nil(n.update) and
+             not Permissions.can_view_update?(socket.assigns.current_user, n.update) do
+          Notifications.update_notification(n, %{read: true})
+          false
+        else
+          true
+        end
+      end)
+
+    socket |> assign(:result, result) |> assign(:notifications, extend ++ entries)
   end
 
   def handle_event("load_more", _params, socket) do
@@ -43,22 +57,6 @@ defmodule PlatformWeb.NotificationsLive.NotificationsList do
        |> Enum.map(fn n ->
          # Manually mark that notification as read, without hitting the database again
          if n.id == notification.id, do: n |> Map.put(:read, not notification.read), else: n
-       end)
-     )}
-  end
-
-  def handle_event("delete_notification", %{"notification" => id}, socket) do
-    notification = socket.assigns.notifications |> Enum.find(&(to_string(&1.id) == id))
-    {:ok, _} = Notifications.delete_notification(notification)
-
-    {:noreply,
-     socket
-     |> assign(
-       :notifications,
-       socket.assigns.notifications
-       |> Enum.filter(fn n ->
-         # Manually remove that notification, without hitting the database again
-         n.id != notification.id
        end)
      )}
   end
@@ -133,10 +131,7 @@ defmodule PlatformWeb.NotificationsLive.NotificationsList do
                         update={notification.update}
                         show_line={false}
                         show_media={true}
-                        can_user_change_visibility={false}
                         current_user={@current_user}
-                        target={@myself}
-                        socket={@socket}
                         left_indicator={:profile}
                         profile_ring={false}
                       />

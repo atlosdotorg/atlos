@@ -1,4 +1,6 @@
 defmodule PlatformWeb.MediaLive.Index do
+  alias Platform.Material.Media
+  alias Ecto.Repo
   use PlatformWeb, :live_view
   alias Platform.Material
   alias Platform.Material.Attribute
@@ -35,12 +37,14 @@ defmodule PlatformWeb.MediaLive.Index do
     membership_id = if is_nil(membership), do: nil, else: membership.id
 
     # Update the user's prefered incident display, if necessary
-    Platform.Accounts.update_user_preferences(socket.assigns.current_user, %{
-      active_incidents_tab: display,
-      active_project_membership_id: membership_id,
-      active_incidents_tab_params: params,
-      active_incidents_tab_params_time: NaiveDateTime.utc_now()
-    })
+    Task.start(fn ->
+      Platform.Accounts.update_user_preferences(socket.assigns.current_user, %{
+        active_incidents_tab: display,
+        active_project_membership_id: membership_id,
+        active_incidents_tab_params: params,
+        active_incidents_tab_params_time: NaiveDateTime.utc_now()
+      })
+    end)
 
     # Pull cursor information from params
     before_cursor = params["bc"]
@@ -74,52 +78,51 @@ defmodule PlatformWeb.MediaLive.Index do
         search_keywords
       )
 
-    {:noreply,
-     socket
-     |> assign(
-       :changeset,
-       changeset
-     )
-     |> assign(:display, display)
-     |> assign(:full_width, display == "table")
-     |> assign(:query_params, params)
-     |> assign(:before_cursor, before_cursor)
-     |> assign(:after_cursor, after_cursor)
-     |> assign(:active_project, active_project)
-     |> assign(:results, results)
-     |> assign(:root_pid, self())
-     |> assign(:pagination_index, pagination_index)
-     |> assign(:editing, nil)
-     |> assign_media(results.entries)
-     |> assign(:selected_ids, [])
-     |> assign(
-       :user_projects,
-       Platform.Projects.list_projects_for_user(socket.assigns.current_user)
-     )
-     |> assign(
-       :attributes,
-       Attribute.active_attributes(project: active_project) |> Enum.filter(&is_nil(&1.parent))
-     )
-     |> then(fn s ->
-       if display == "table",
-         do:
-           assign(
-             s,
-             :source_cols,
-             Enum.min([
-               Enum.max(results.entries |> Enum.map(&length(&1.versions)), &>=/2, fn -> 0 end) -
-                 1,
-               20
-             ])
-           ),
-         else: s
-     end)}
+    socket
+    |> assign(
+      :changeset,
+      changeset
+    )
+    |> assign(:display, display)
+    |> assign(:full_width, display == "table")
+    |> assign(:query_params, params)
+    |> assign(:before_cursor, before_cursor)
+    |> assign(:after_cursor, after_cursor)
+    |> assign(:active_project, active_project)
+    |> assign(:results, results)
+    |> assign(:root_pid, self())
+    |> assign(:pagination_index, pagination_index)
+    |> assign(:editing, nil)
+    |> assign_media(results.entries)
+    |> assign(:bulk_background_task, nil)
+    |> assign(
+      :user_projects,
+      Platform.Projects.list_projects_for_user(socket.assigns.current_user)
+    )
+    |> assign(
+      :attributes,
+      Attribute.active_attributes(project: active_project) |> Enum.filter(&is_nil(&1.parent))
+    )
+    |> then(fn s ->
+      if display == "table",
+        do:
+          assign(
+            s,
+            :source_cols,
+            Enum.min([
+              Enum.max(results.entries |> Enum.map(&length(&1.versions)), &>=/2, fn -> 0 end) -
+                1,
+              20
+            ])
+          ),
+        else: s
+    end)
   end
 
   def handle_params(params, _uri, socket) do
     # Wrap and catch CastErrors, in which case we put a flash and redirect to /incidents
     try do
-      handle_params_internal(params, socket)
+      {:noreply, handle_params_internal(params, socket)}
     rescue
       _error ->
         {:noreply,
@@ -130,15 +133,11 @@ defmodule PlatformWeb.MediaLive.Index do
   end
 
   defp assign_media(socket, media) do
-    IO.puts("Assigning media: length is #{Enum.count(media)}")
-
     existing_media = Map.get(socket.assigns, :media, [])
 
     socket
     |> assign(:media, media)
     |> then(fn s ->
-      IO.puts("Existing media: length is #{Enum.count(existing_media)}")
-
       s =
         Enum.reduce(existing_media, s, fn m, s ->
           stream_delete_by_dom_id(s, :media_stream, "incident-#{m.slug}")
@@ -178,129 +177,167 @@ defmodule PlatformWeb.MediaLive.Index do
     )
   end
 
-  defp apply_bulk_action(socket, action) do
-    media =
-      socket.assigns.media
-      |> Enum.filter(&Enum.member?(socket.assigns.selected_ids, &1.id))
-      |> Enum.map(action)
+  defp apply_bulk_action(socket, selection, action, during_message, result_message) do
+    main_process = self()
 
-    Enum.reduce(media, socket, fn media, socket ->
-      assign_update_media(socket, media.id)
+    socket
+    |> assign(:bulk_background_task_name, during_message)
+    |> assign_async(:bulk_background_task, fn ->
+      # Action should return :ok or :error
+      media =
+        case Jason.decode(selection) do
+          {:ok, %{"all" => true}} ->
+            {query, pagination_options} =
+              Material.MediaSearch.search_query(
+                Material.Media,
+                socket.assigns.changeset,
+                socket.assigns.current_user
+              )
+
+            Platform.Material.query_media(
+              query
+              |> Material.MediaSearch.filter_viewable(socket.assigns.current_user),
+              for_user: socket.assigns.current_user
+            )
+
+          {:ok, x} when is_list(x) ->
+            socket.assigns.media
+            |> Enum.filter(&Enum.member?(x, to_string(&1.id)))
+
+          _ ->
+            []
+        end
+
+      if Enum.empty?(media) do
+        raise PlatformWeb.Errors.BadRequest, "No media selected"
+      end
+
+      results =
+        Enum.to_list(
+          Task.async_stream(
+            media,
+            fn item ->
+              try do
+                action.(item)
+              rescue
+                _error ->
+                  :error
+              end
+            end,
+            max_concurrency: 10,
+            timeout: 60 * 1000
+          )
+        )
+
+      success_count = Enum.count(results, &(&1 == {:ok, :ok}))
+      failure_count = Enum.count(results, &(&1 == {:ok, :error}))
+
+      # Tell the main process to refresh the data
+      send(main_process, {:refresh_data})
+
+      {:ok,
+       %{
+         bulk_background_task: %{
+           success_count: success_count,
+           failure_count: failure_count,
+           message: result_message
+         }
+       }}
     end)
   end
 
-  def handle_event("select", %{"slug" => slug}, socket) do
-    media = Enum.find(socket.assigns.media, &(&1.slug == slug))
-    prev_was_selected = Enum.member?(socket.assigns.selected_ids, media.id)
-
+  def handle_event("bulk_apply_tag", %{"tag" => tag, "selection" => selection}, socket) do
     {:noreply,
      socket
-     |> assign(
-       :selected_ids,
-       if(prev_was_selected,
-         do: Enum.filter(socket.assigns.selected_ids, &(&1 != media.id)),
-         else: [media.id | socket.assigns.selected_ids]
-       )
-     )
-     |> assign_update_media(media.id)}
+     |> apply_bulk_action(
+       selection,
+       fn media ->
+         if (media.attr_tags || []) |> Enum.member?(tag) do
+           :ok
+         else
+           case Platform.Material.update_media_attribute_audited(
+                  media,
+                  Platform.Material.Attribute.get_attribute(:tags),
+                  socket.assigns.current_user,
+                  %{"attr_tags" => (media.attr_tags || []) ++ [tag]}
+                ) do
+             {:ok, _} -> :ok
+             _ -> :error
+           end
+         end
+       end,
+       "Applying the tag #{tag}...",
+       "Applied the tag #{tag}."
+     )}
   end
 
-  def handle_event("select_all", _params, socket) do
+  def handle_event("bulk_apply_status", %{"status" => status, "selection" => selection}, socket) do
     {:noreply,
      socket
-     |> assign(:selected_ids, socket.assigns.media |> Enum.map(& &1.id))
-     |> assign_media(socket.assigns.media)}
+     |> apply_bulk_action(
+       selection,
+       fn media ->
+         if media.attr_status == status do
+           :ok
+         else
+           case Platform.Material.update_media_attribute_audited(
+                  media,
+                  Platform.Material.Attribute.get_attribute(:status),
+                  socket.assigns.current_user,
+                  %{"attr_status" => status}
+                ) do
+             {:ok, _} -> :ok
+             {:error, _} -> :error
+           end
+         end
+       end,
+       "Setting status to #{status}...",
+       "Status set to #{status}."
+     )}
   end
 
-  def handle_event("deselect_all", _params, socket) do
-    {:noreply, socket |> assign(:selected_ids, []) |> assign_media(socket.assigns.media)}
-  end
-
-  def handle_event("apply_tag", %{"tag" => tag}, socket) do
-    {:noreply,
-     socket
-     |> put_flash(
-       :info,
-       "Applied the tag \"#{tag}\" to #{length(socket.assigns.selected_ids)} incident(s)"
-     )
-     |> apply_bulk_action(fn media ->
-       if (media.attr_tags || []) |> Enum.member?(tag) do
-         media
-       else
-         {:ok, media} =
-           Platform.Material.update_media_attribute_audited(
-             media,
-             Platform.Material.Attribute.get_attribute(:tags),
-             socket.assigns.current_user,
-             %{"attr_tags" => (media.attr_tags || []) ++ [tag]}
-           )
-
-         media
-       end
-     end)}
-  end
-
-  def handle_event("apply_status", %{"status" => status}, socket) do
-    {:noreply,
-     socket
-     |> put_flash(
-       :info,
-       "Status set to \"#{status}\" on the #{length(socket.assigns.selected_ids)} selected incident(s)"
-     )
-     |> apply_bulk_action(fn media ->
-       if media.attr_status == status do
-         media
-       else
-         {:ok, media} =
-           Platform.Material.update_media_attribute_audited(
-             media,
-             Platform.Material.Attribute.get_attribute(:status),
-             socket.assigns.current_user,
-             %{"attr_status" => status}
-           )
-
-         media
-       end
-     end)}
-  end
-
-  def handle_event("copy_to_project", %{"project-id" => project_id}, socket) do
+  def handle_event(
+        "bulk_copy_to_project",
+        %{"project-id" => project_id, "selection" => selection},
+        socket
+      ) do
     project = Platform.Projects.get_project!(project_id)
 
     if not Platform.Permissions.can_add_media_to_project?(socket.assigns.current_user, project) do
-      raise PlatformWeb.Errors.Forbidden,
+      raise PlatformWeb.Errors.Unauthorized,
             "You don't have permission to add media to this project."
     end
 
     {:noreply,
      socket
-     |> put_flash(
-       :info,
-       "Copied #{length(socket.assigns.selected_ids)} selected incident(s) into #{project.name |> Platform.Utils.truncate()}"
-     )
-     |> apply_bulk_action(fn media ->
-       case Material.copy_media_to_project_audited(
-              media,
-              project,
-              socket.assigns.current_user
-            ) do
-         {:ok, new_media} ->
-           Platform.Auditor.log(
-             :media_copied,
-             %{
-               source: media.slug,
-               destination: project.id,
-               destination_media_slug: new_media.slug
-             },
-             socket
-           )
+     |> apply_bulk_action(
+       selection,
+       fn media ->
+         case Material.copy_media_to_project_audited(
+                media,
+                project,
+                socket.assigns.current_user
+              ) do
+           {:ok, new_media} ->
+             Platform.Auditor.log(
+               :media_copied,
+               %{
+                 source: media.slug,
+                 destination: project.id,
+                 destination_media_slug: new_media.slug
+               },
+               socket
+             )
 
-         {:error, %Ecto.Changeset{} = cs} ->
-           raise "Couldn't copy incident"
-       end
+             :ok
 
-       media
-     end)}
+           {:error, %Ecto.Changeset{} = cs} ->
+             :error
+         end
+       end,
+       "Copying to #{project.name |> Platform.Utils.truncate()}...",
+       "Copied into #{project.name |> Platform.Utils.truncate()}."
+     )}
   end
 
   def handle_event("validate", params, socket) do
@@ -325,12 +362,33 @@ defmodule PlatformWeb.MediaLive.Index do
         %{"attribute" => attr_name, "media-id" => media_id} = _params,
         socket
       ) do
-    {:noreply,
-     socket
-     |> assign(
-       :editing,
-       {Enum.find(socket.assigns.media, &(&1.id == media_id)), attr_name}
-     )}
+    media = Enum.find(socket.assigns.media, &(&1.id == media_id))
+    attr = Attribute.get_attribute(attr_name, project: media.project)
+
+    if not is_nil(media) and
+         Platform.Permissions.can_edit_media?(
+           socket.assigns.current_user,
+           media,
+           attr
+         ) do
+      {:noreply,
+       socket
+       |> assign(
+         :editing,
+         {media, attr_name}
+       )}
+    else
+      {:noreply,
+       socket
+       |> put_flash(
+         :error,
+         "You cannot edit this data (#{attr.label}) on #{Media.slug_to_display(media)}."
+       )}
+    end
+  end
+
+  def handle_event("dismiss_bulk_background_task", _params, socket) do
+    {:noreply, socket |> assign(:bulk_background_task, nil)}
   end
 
   def handle_info(
@@ -346,5 +404,12 @@ defmodule PlatformWeb.MediaLive.Index do
        |> assign_update_media(updated_media.id)
        |> put_flash(:info, "Your changes were applied successfully.")}
     end
+  end
+
+  def handle_info(
+        {:refresh_data},
+        socket
+      ) do
+    {:noreply, handle_params_internal(socket.assigns.query_params, socket)}
   end
 end

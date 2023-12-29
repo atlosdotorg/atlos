@@ -30,7 +30,7 @@ defmodule PlatformWeb.MediaLive.LinkVersionLive do
       |> assign(
         :url_duplicate_of,
         Material.get_media_by_source_url(source_url, for_user: socket.assigns.current_user)
-        |> Enum.filter(&Permissions.can_view_media?(socket.assigns.current_user, &1))
+        |> Permissions.filter_to_viewable_media(socket.assigns.current_user)
       )
     else
       socket |> assign(:url_duplicate_of, [])
