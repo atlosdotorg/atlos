@@ -8,6 +8,8 @@ defmodule PlatformWeb.SettingsLive.MFALive do
      socket
      |> assign(:title, "Multi-Factor Authentication")
      |> assign(:secret, nil)
+     |> assign(:otp_passed, false)
+     |> assign(:otp_gate, Accounts.confirm_user_mfa_changeset(socket.assigns.current_user))
      |> assign(:enable_changeset, Accounts.change_user_mfa_enabled(socket.assigns.current_user))
      |> assign(:disable_changeset, Accounts.change_user_mfa_disabled(socket.assigns.current_user))}
   end
@@ -54,6 +56,18 @@ defmodule PlatformWeb.SettingsLive.MFALive do
 
       {:error, changeset} ->
         {:noreply, socket |> assign(:disable_changeset, changeset)}
+    end
+  end
+
+  def handle_event("access_otp", %{"access_otp" => query}, socket) do
+    changeset =  Accounts.confirm_user_mfa(socket.assigns.current_user, query)
+    if changeset.valid? do
+      {:noreply, socket |> assign(:otp_passed, true)}
+    else
+      {:error, changeset} = changeset |> Ecto.Changeset.apply_action(:validate)
+      {:noreply, socket
+        |> assign(:otp_gate, changeset)
+      }
     end
   end
 

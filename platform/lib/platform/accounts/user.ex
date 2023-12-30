@@ -148,7 +148,7 @@ defmodule Platform.Accounts.User do
     end
   end
 
-  defp verify_otp_code(secret, code) do
+  def verify_otp_code(secret, code) do
     time = System.os_time(:second)
 
     NimbleTOTP.valid?(secret, code, time: time) or
@@ -243,7 +243,7 @@ defmodule Platform.Accounts.User do
   def verify_recovery_code(user, attrs) do
     code = attrs["current_otp_code"] |> Platform.Utils.parse_recovery_code()
 
-    if code in user.recovery_codes do
+    if code != nil && code in user.recovery_codes do
       {:ok,
        change(user)
        |> put_change(:recovery_codes, user.recovery_codes -- [code])

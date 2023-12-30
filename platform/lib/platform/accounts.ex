@@ -237,6 +237,10 @@ defmodule Platform.Accounts do
     User.disable_mfa_changeset(user, attrs)
   end
 
+  def confirm_user_mfa_changeset(user, attrs \\ %{}) do
+    User.confirm_mfa_changeset(user, attrs)
+  end
+
   @doc """
   Disables MFA for a user.
   """
