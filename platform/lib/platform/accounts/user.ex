@@ -197,24 +197,17 @@ defmodule Platform.Accounts.User do
   """
   def disable_mfa_changeset(user, attrs) do
     user
-    |> cast(attrs, [:current_otp_code, :password])
+    |> cast(attrs, [:password])
     |> put_change(:has_mfa, false)
     |> put_change(:otp_secret, nil)
     |> put_change(:recovery_codes, [])
     |> put_change(:used_recovery_codes, [])
-    |> validate_required([:has_mfa, :current_otp_code, :password])
+    |> validate_required([:has_mfa, :password])
     |> validate_change(:password, fn _, password ->
       if valid_password?(user, password) do
         []
       else
         [password: "This password is not correct."]
-      end
-    end)
-    |> validate_change(:current_otp_code, fn _, code ->
-      if verify_otp_code(user.otp_secret, code) do
-        []
-      else
-        [current_otp_code: "This code is not valid."]
       end
     end)
   end

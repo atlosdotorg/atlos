@@ -91,14 +91,6 @@
               ) %>
               <%= error_tag(f, :password) %>
             </div>
-            <div class="mt-4">
-              <%= label(f, :current_otp_code, "Current Code") %>
-              <%= text_input(f, :current_otp_code,
-                placeholder: "Enter the code from your authenticator app...",
-                class: "my-1"
-              ) %>
-              <%= error_tag(f, :current_otp_code) %>
-            </div>
             <%= submit("Disable MFA",
               phx_disable_with: "Saving...",
               class: "button ~urge @high mt-4"
