@@ -636,7 +636,7 @@ defmodule Platform.Material do
           # If the media version is removed, make sure the member is a manager or an owner
           |> where(
             [v, m, p, membership],
-            m.visibility != :removed or
+            v.visibility != :removed or
               (membership.role == :owner or membership.role == :manager)
           )
         end
