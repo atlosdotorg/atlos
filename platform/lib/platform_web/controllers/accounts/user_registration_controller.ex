@@ -63,12 +63,16 @@ defmodule PlatformWeb.UserRegistrationController do
           render(conn, "new.html", changeset: changeset, title: "Register", invite: invite)
       end
     else
+      invite_code = Map.get(params, "invite_code", "")
+      invite = Platform.Invites.get_invite_by_code(invite_code)
+
       render(conn, "new.html",
         changeset:
           Accounts.change_user_registration(%User{}, user_params)
           |> Ecto.Changeset.add_error(:captcha, "Invalid captcha. Please try again.")
           |> Map.put(:action, :save),
-        title: "Register"
+        title: "Register",
+        invite: invite
       )
     end
   end

@@ -221,6 +221,7 @@ defmodule Platform.Accounts.User do
   def confirm_mfa_changeset(user, attrs) do
     user
     |> cast(attrs, [:current_otp_code])
+    |> validate_required([:current_otp_code])
     |> validate_change(:current_otp_code, fn _, code ->
       if verify_otp_code(user.otp_secret, code) do
         []
