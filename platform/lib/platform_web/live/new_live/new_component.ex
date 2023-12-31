@@ -182,7 +182,7 @@ defmodule PlatformWeb.NewLive.NewComponent do
           >
             <div
               :if={@active}
-              class="mx-auto max-w-xl lg:max-w-2xl transition-all divide-y transform overflow-hidden rounded-xl bg-white shadow-2xl ring-1 ring-black ring-opacity-5"
+              class="mx-auto max-w-xl lg:max-w-2xl transition-all divide-y transform overflow-auto rounded-xl bg-white shadow-2xl ring-1 ring-black ring-opacity-5"
               x-on:click.outside="setActive(false)"
               data-blocks-body-scroll="true"
               id="new-dialog"
