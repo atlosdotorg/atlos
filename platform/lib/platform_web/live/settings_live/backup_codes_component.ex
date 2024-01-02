@@ -17,7 +17,6 @@ defmodule PlatformWeb.SettingsLive.BackupComponent do
       {:ok, user} ->
         Platform.Auditor.log(:recovery_codes_generated, %{email: user.email}, socket)
 
-        Process.sleep(1000)
         {:noreply,
          socket
          |> assign(:current_user, user)}
