@@ -36,7 +36,7 @@ defmodule PlatformWeb.SettingsLive.MFALive do
       {:ok, user} ->
         {:noreply,
          socket
-         |> redirect(to: "/settings/backup_codes")}
+         |> redirect(to: Routes.settings_backup_codes_path(socket, :backupcode, query))}
 
       {:error, changeset} ->
         {:noreply, socket |> assign(:enable_changeset, changeset)}

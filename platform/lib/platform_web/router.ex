@@ -174,7 +174,7 @@ defmodule PlatformWeb.Router do
     live_session :default, on_mount: {MountHelperLive, :authenticated} do
       live("/settings", SettingsLive)
       live("/settings/mfa", SettingsLive.MFALive)
-      live("/settings/backup_codes", SettingsLive.BackupCodesLive)
+      live("/settings/backup_codes", SettingsLive.BackupCodesLive, :backupcode)
 
       live("/home", HomeLive.Index, :index)
 
