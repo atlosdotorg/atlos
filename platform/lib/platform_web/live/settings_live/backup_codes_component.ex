@@ -17,6 +17,7 @@ defmodule PlatformWeb.SettingsLive.BackupComponent do
       {:ok, user} ->
         Platform.Auditor.log(:recovery_codes_generated, %{email: user.email}, socket)
 
+        Process.sleep(1000)
         {:noreply,
          socket
          |> assign(:current_user, user)}
@@ -70,25 +71,35 @@ defmodule PlatformWeb.SettingsLive.BackupComponent do
                     class: "button ~urge @high",
                     method: :post
                 do %>
-                <Heroicons.arrow_down_tray class="w-4 h-4 mr-1 inline-block" /> Download
+                  <div>
+                    <Heroicons.arrow_down_tray class="w-4 h-4 mr-1 inline-block" /> Download
+                  </div>
               <% end %>
               <button
                 phx-click="generate_recovery_codes"
-                phx-disable-with="Generating codes..."
                 phx-target={@myself}
                 data-confirm="Please confirm that you want to generate a new set of backup codes. Your old codes will no longer work after this action."
                 class="button ~urge @high mt-4"
               >
-                <Heroicons.arrow_path class="w-4 h-4 mr-1 inline-block" /> Regenerate Codes
+                <span class="phx-only-during-reg">
+                  <Heroicons.arrow_path class="w-4 h-4 mr-1 inline-block" /> Regenerate Codes
+                </span>
+                <span class="phx-only-during-submit">
+                  <.loading_spinner text="Generating..." />
+                </span>
               </button>
               <button
                 phx-click="delete_recovery_codes"
                 data-confirm="Please confirm that you want to remove all backup codes. You won't be able to use those backup codes again."
-                phx-disable-with="Generating codes..."
                 phx-target={@myself}
                 class="button ~critical @high mt-4"
               >
-                <Heroicons.trash class="w-4 h-4 mr-1 inline-block" /> Delete All Codes
+                <span class="phx-only-during-reg">
+                  <Heroicons.trash class="w-4 h-4 mr-1 inline-block" /> Delete All Codes
+                </span>
+                <span class="phx-only-during-submit">
+                  <.loading_spinner text="Deleting..." />
+                </span>
               </button>
             </div>
           <% else %>
