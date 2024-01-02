@@ -6,18 +6,17 @@ defmodule PlatformWeb.SettingsLive.BackupCodesLive do
 
   def mount(query, _session, socket) do
     cs = Accounts.confirm_user_mfa(socket.assigns.current_user, query)
+
     if cs.valid? do
       {:ok,
-      socket
-        |> assign(:title, "Set Up Backup Codes")
-        |> assign(:valid, true)
-      }
+       socket
+       |> assign(:title, "Set Up Backup Codes")
+       |> assign(:valid, true)}
     else
       # This should normally be unreachable
       {:ok,
-      socket
-      |> assign(:valid, false)
-    }
+       socket
+       |> assign(:valid, false)}
     end
   end
 

@@ -99,13 +99,7 @@
         </div>
       </.card>
     <% else %>
-      <.form
-        :let={f}
-        as={:access_otp}
-        phx-submit="access_otp"
-        for={@otp_gate}
-        class="phx-form"
-      >
+      <.form :let={f} as={:access_otp} phx-submit="access_otp" for={@otp_gate} class="phx-form">
         <div class="prose prose-sm">
           <p>
             To view your backup codes or disable MFA, please enter your current MFA code below.
@@ -118,7 +112,10 @@
           ) %>
           <%= error_tag(f, :current_otp_code) %>
         </div>
-        <%= submit("Continue", phx_disable_with: "Validating...", class: "button ~urge @high mt-4") %>
+        <%= submit("Continue",
+          phx_disable_with: "Validating...",
+          class: "button ~urge @high mt-4"
+        ) %>
       </.form>
     <% end %>
   <% end %>

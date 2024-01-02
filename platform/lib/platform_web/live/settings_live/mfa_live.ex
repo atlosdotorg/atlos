@@ -60,14 +60,16 @@ defmodule PlatformWeb.SettingsLive.MFALive do
   end
 
   def handle_event("access_otp", %{"access_otp" => query}, socket) do
-    changeset =  Accounts.confirm_user_mfa(socket.assigns.current_user, query)
+    changeset = Accounts.confirm_user_mfa(socket.assigns.current_user, query)
+
     if changeset.valid? do
       {:noreply, socket |> assign(:otp_passed, true)}
     else
       {:error, changeset} = changeset |> Ecto.Changeset.apply_action(:validate)
-      {:noreply, socket
-        |> assign(:otp_gate, changeset)
-      }
+
+      {:noreply,
+       socket
+       |> assign(:otp_gate, changeset)}
     end
   end
 
