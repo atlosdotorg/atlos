@@ -1,6 +1,5 @@
 defmodule PlatformWeb.MediaLive.Index do
   alias Platform.Material.Media
-  alias Ecto.Repo
   use PlatformWeb, :live_view
   alias Platform.Material
   alias Platform.Material.Attribute
