@@ -31,7 +31,7 @@ defmodule Platform.Projects do
     |> preload(memberships: [:user])
   end
 
-  def list_projects_for_user(%Accounts.User{} = user) do
+  defmemo list_projects_for_user(%Accounts.User{} = user), expires_in: 1000 do
     get_users_project_memberships(user)
     |> Enum.sort_by(
       &if(user.active_project_membership_id == &1.id,
@@ -41,6 +41,24 @@ defmodule Platform.Projects do
       {:desc, NaiveDateTime}
     )
     |> Enum.map(& &1.project)
+  end
+
+  @doc """
+  Returns active projects where the viewer is both 1) added and 2) is more than
+  a viewer.
+  """
+  defmemo list_editable_projects_for_user(%Accounts.User{} = user), expires_in: 1000 do
+    get_users_project_memberships(user)
+    |> Enum.filter(fn pm -> pm.role != :viewer end)
+    |> Enum.sort_by(
+      &if(user.active_project_membership_id == &1.id,
+        do: NaiveDateTime.local_now(),
+        else: &1.updated_at
+      ),
+      {:desc, NaiveDateTime}
+    )
+    |> Enum.map(& &1.project)
+    |> Enum.filter(& &1.active)
   end
 
   @doc """
@@ -299,7 +317,7 @@ defmodule Platform.Projects do
   @doc """
   Gets the project memberships for a user.
   """
-  def get_users_project_memberships(%Accounts.User{} = user) do
+  defmemo get_users_project_memberships(%Accounts.User{} = user), expires_in: 1000 do
     Repo.all(
       from(pm in (ProjectMembership |> preload_project_memberships()),
         where: pm.user_id == ^user.id

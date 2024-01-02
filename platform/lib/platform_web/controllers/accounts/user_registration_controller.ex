@@ -32,8 +32,9 @@ defmodule PlatformWeb.UserRegistrationController do
 
   def new(conn, params) do
     invite_code = Map.get(params, "invite_code", "")
+    invite = Platform.Invites.get_invite_by_code(invite_code)
     changeset = Accounts.change_user_registration(%User{invite_code: invite_code})
-    render(conn, "new.html", changeset: changeset, title: "Register")
+    render(conn, "new.html", changeset: changeset, title: "Register", invite: invite)
   end
 
   def create(conn, %{"user" => user_params} = params) do
@@ -57,15 +58,21 @@ defmodule PlatformWeb.UserRegistrationController do
           |> UserAuth.log_in_user(user)
 
         {:error, %Ecto.Changeset{} = changeset} ->
-          render(conn, "new.html", changeset: changeset, title: "Register")
+          invite_code = Map.get(params, "invite_code", "")
+          invite = Platform.Invites.get_invite_by_code(invite_code)
+          render(conn, "new.html", changeset: changeset, title: "Register", invite: invite)
       end
     else
+      invite_code = Map.get(params, "invite_code", "")
+      invite = Platform.Invites.get_invite_by_code(invite_code)
+
       render(conn, "new.html",
         changeset:
           Accounts.change_user_registration(%User{}, user_params)
           |> Ecto.Changeset.add_error(:captcha, "Invalid captcha. Please try again.")
           |> Map.put(:action, :save),
-        title: "Register"
+        title: "Register",
+        invite: invite
       )
     end
   end

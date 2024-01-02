@@ -9,7 +9,7 @@
               do: " (#{Enum.join(@media.attr_sensitive, ", ")})",
               else: "" %>
         <button
-          class="font-mono text-base sm:text-xl text-neutral-500 font-medium p-1 rounded hover:bg-neutral-200 transition-all"
+          class="font-mono text-base sm:text-xl transition-all text-neutral-500 font-medium p-1 rounded hover:bg-neutral-200 transition-all"
           x-bind:class="pulse ? 'animate-ping' : ''"
           data-tooltip="Copy information to your clipboard"
           type="button"
@@ -214,7 +214,7 @@
         <% end %>
       </div>
     </div>
-    <div class="grid lg:grid-cols-3 gap-8 mt-12">
+    <div class="grid lg:grid-cols-3 gap-8 mt-10">
       <div class="lg:col-span-2 space-y-8">
         <.card>
           <:header>
@@ -312,11 +312,9 @@
             </div>
           </:header>
           <div class="-mt-10 pt-5 -mb-5">
-            <% versions =
-              @media.versions |> filter_viewable_versions(@current_user) |> sort_by_date() %>
-            <% visible_versions = versions |> Enum.filter(&(&1.visibility == :visible)) %>
-            <% hidden_versions = versions |> Enum.filter(&(&1.visibility == :hidden)) %>
-            <% removed_versions = versions |> Enum.filter(&(&1.visibility == :removed)) %>
+            <% visible_versions = @media_versions |> Enum.filter(&(&1.visibility == :visible)) %>
+            <% hidden_versions = @media_versions |> Enum.filter(&(&1.visibility == :hidden)) %>
+            <% removed_versions = @media_versions |> Enum.filter(&(&1.visibility == :removed)) %>
             <%= if length(visible_versions) == 0 do %>
               <div class="relative block border-2 my-5 border-gray-300 border-dashed rounded-lg p-12 text-center">
                 <svg
@@ -586,10 +584,10 @@
       </.modal>
     <% end %>
     <%= if @live_action == :media_version_detail do %>
-      <% version = Enum.find(@media.versions, &(to_string(&1.scoped_id) == @scoped_id)) %>
-      <.modal target={} close_confirmation="" wide={true}>
-        <div class="flex flex-col md:flex-row md:max-h-[85vh] h-full rounded-lg md:overflow-hidden -m-8">
-          <section class="md:max-w-[20rem] md:min-w-[15rem] flex flex-col self-stretch p-8">
+      <% version = Enum.find(@media_versions, &(to_string(&1.scoped_id) == @scoped_id)) %>
+      <.modal :if={not is_nil(version)} target={} close_confirmation="" wide={true} no_pad={true}>
+        <div class="flex flex-col sm:flex-row sm:max-h-[85vh] h-full rounded-lg sm:overflow-hidden">
+          <section class="sm:max-w-[20rem] sm:min-w-[15rem] flex flex-col self-stretch p-8 overflow-y-auto">
             <div>
               <p class="font-mono text-sm text-neutral-500 flex items-center gap-2">
                 <%= if version.source_url != nil do %>
@@ -613,14 +611,14 @@
                   <p class="leading-snug font-medium text-lg my-2">
                     <%= if Platform.Material.get_media_version_title(version) != nil do %>
                       <%= Platform.Material.get_media_version_title(version)
-                      |> Platform.Utils.truncate(100) %>
+                      |> Platform.Utils.truncate(80) %>
                     <% else %>
                       Uploaded File
                     <% end %>
                   </p>
                   <%= if Platform.Material.get_media_version_title(version) != version.source_url do %>
                     <p class="text-neutral-500 text-sm">
-                      <%= version.source_url |> Platform.Utils.truncate(80) %>
+                      <%= version.source_url |> Platform.Utils.truncate(60) %>
                     </p>
                   <% end %>
                 </a>
@@ -745,7 +743,7 @@
               Atlos provides best-effort archival. Archives may be incomplete or missing, and should not be relied on for legal evidence.
             </p>
           </section>
-          <section class="grow flex flex-col bg-neutral-50 md:border-l m-4 md:m-2 rounded-lg md:rounded-l-none rounded-r-lg md:overflow-y-auto md:max-h-full">
+          <section class="grow flex flex-col bg-neutral-50 sm:border-l py-8 sm:py-0 rounded-lg sm:rounded-l-none rounded-r-lg sm:overflow-y-auto sm:max-h-full">
             <%= if Enum.empty?(version.artifacts) do %>
               <div class="flex flex-col items-center justify-center h-full">
                 <Heroicons.cloud class="w-16 h-16 text-neutral-300" />
@@ -837,10 +835,10 @@
                         >
                           <img
                             src={Material.media_version_artifact_location(artifact)}
-                            class="w-full object-contain overflow-hidden max-h-[28rem]"
+                            class="w-full object-contain overflow-hidden max-h-[28rem] blur-none group-hover:blur-sm transition-all"
                             x-bind:class="grayscale ? 'grayscale' : ''"
                           />
-                          <div class="border rounded-lg opacity-0 overflow-hidden group-hover:opacity-100 block absolute inset-0 backdrop-blur-sm transition bg-white/50 flex flex-col gap-2 items-center justify-center w-full h-full">
+                          <div class="opacity-0 overflow-hidden group-hover:opacity-100 block absolute inset-0 transition-all flex group-hover:bg-white/50 flex-col gap-2 items-center justify-center w-full h-full">
                             <Heroicons.link class="h-8 w-8 text-neutral-600" />
                             <span class="text-neutral-600">
                               Open full image in new tab (in color)
@@ -855,7 +853,9 @@
                           class="w-full object-contain mx-auto overflow-hidden max-h-[28rem]"
                           x-bind:class="grayscale ? 'grayscale' : ''"
                           poster={
-                            Material.media_version_artifact_location(artifact, version: :thumbnail)
+                            Material.media_version_artifact_location(artifact,
+                              version: :thumbnail
+                            )
                           }
                         >
                           <source src={Material.media_version_artifact_location(artifact)} />
@@ -869,7 +869,7 @@
                         </audio>
                       <% true -> %>
                         <!-- Show some kind of file preview -->
-                        <div class="flex flex-col md:flex-row items-center m-4 gap-2 md:gap-4">
+                        <div class="flex flex-col sm:flex-row items-center m-4 gap-2 sm:gap-4">
                           <Heroicons.archive_box class="h-12 w-12 text-neutral-500" />
                           <div class="grow">
                             <p class="font-medium">
@@ -911,7 +911,7 @@
                     <% end %>
                   </div>
                   <!-- Show the metadata -->
-                  <dl class="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 truncate uppercase font-mono text-sm">
+                  <dl class="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 truncate uppercase font-mono text-sm">
                     <div>
                       <dt class="text-neutral-500">File Size</dt>
                       <dd>

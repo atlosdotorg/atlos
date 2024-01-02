@@ -15,6 +15,7 @@ defmodule PlatformWeb.MediaLive.Card do
      |> assign(:slug, slug)
      |> assign(:title, "Incident #{slug}")
      |> assign(:iframe_mode, true)
+     |> assign(:connect_websocket, false)
      |> assign(:_no_background, true)
      |> assign(:media, Material.get_full_media_by_slug(slug))}
   end
@@ -22,7 +23,7 @@ defmodule PlatformWeb.MediaLive.Card do
   def render(assigns) do
     ~H"""
     <a class="h-full w-full overflow-visible" target="_parent" href={"/incidents/#{@slug}"}>
-      <.media_card class="border" media={@media} current_user={@current_user} link={false} />
+      <.media_card media={@media} border={false} current_user={@current_user} link={false} />
     </a>
     """
   end

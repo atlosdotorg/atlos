@@ -39,7 +39,8 @@ defmodule Platform.Accounts.User do
     field(:confirmed_at, :naive_datetime)
 
     many_to_many(:subscribed_media, Material.Media, join_through: "media_subscriptions")
-    belongs_to(:invite, Platform.Invites.Invite, type: :binary_id)
+    has_many(:memberships, Platform.Projects.ProjectMembership)
+    has_many(:invite_uses, Invites.InviteUse)
 
     # Computed tsvector field "searchable"; we tell Ecto it's an array of maps so we can use it in queries
     field(:searchable, {:array, :map}, load_in_query: false)
@@ -87,29 +88,12 @@ defmodule Platform.Accounts.User do
     |> validate_change(:invite_code, fn _, code ->
       case Invites.get_invite_by_code(code) do
         nil ->
-          [invite_code: "not a valid invite code"]
+          [invite_code: "Please provide a valid invite code."]
 
-        code ->
-          case code.active do
-            true -> []
-            false -> [invite_code: "this invite code has expired"]
-          end
+        _ ->
+          []
       end
     end)
-    # Actually insert the invite code into the changeset so that it persists
-    |> put_change(
-      :invite_id,
-      case Map.get(changeset.changes, :invite_code) do
-        nil ->
-          nil
-
-        code ->
-          case Invites.get_invite_by_code(code) do
-            nil -> nil
-            invite -> invite.id
-          end
-      end
-    )
   end
 
   defp validate_terms_agreement(changeset) do

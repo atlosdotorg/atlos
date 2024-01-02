@@ -68,6 +68,10 @@ defmodule PlatformWeb.MediaLive.Show do
 
       socket
       |> assign(:media, media)
+      |> assign(
+        :media_versions,
+        media.versions |> filter_viewable_versions(socket.assigns.current_user) |> sort_by_date()
+      )
       |> assign(:active_project, media.project)
       |> assign(:updates, media.updates |> Enum.sort_by(& &1.inserted_at, {:asc, NaiveDateTime}))
       |> subscribe_to_media(media)
@@ -186,7 +190,7 @@ defmodule PlatformWeb.MediaLive.Show do
            put_flash(
              x,
              :info,
-             "Added media successfully. Atlos will archive and process it in the background."
+             "Atlos will archive and process the media in the background. Check back in a few minutes."
            )
      end)
      |> push_patch(

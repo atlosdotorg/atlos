@@ -14,12 +14,18 @@ defmodule Platform.Accounts do
 
   def get_valid_invite_code() do
     # Find invites created by the system (nil user)
-    invites = Invites.get_invites_by_user(nil)
+    invites = Invites.get_invites_by_user(nil) |> Enum.filter(&Invites.is_invite_active/1)
 
     case length(invites) do
       0 ->
         # No root invites; create a system invite (i.e., root `owner_id`)
-        {:ok, invite} = Invites.create_invite()
+        {:ok, invite} =
+          Invites.create_invite(%{
+            owner_id: nil,
+            expires: NaiveDateTime.utc_now() |> NaiveDateTime.add(99999, :day),
+            single_use: false
+          })
+
         invite.code
 
       _ ->
@@ -143,11 +149,29 @@ defmodule Platform.Accounts do
 
   """
   def register_user(attrs, opts \\ []) do
-    %User{}
-    |> User.registration_changeset(attrs, opts)
-    # We only validate the invite code when they actually submit, to prevent enumeration (at this point, they must have completed the captcha)
-    |> User.validate_invite_code()
-    |> Repo.insert()
+    changeset =
+      %User{}
+      |> User.registration_changeset(attrs, opts)
+      # We only validate the invite code when they actually submit, to prevent enumeration (at this point, they must have completed the captcha)
+      |> User.validate_invite_code()
+
+    Repo.transaction(fn ->
+      case changeset
+           |> Repo.insert() do
+        {:ok, user} ->
+          # Apply the invite code to the user, if applicable
+          invite_code = Ecto.Changeset.get_field(changeset, :invite_code)
+
+          if not is_nil(invite_code) do
+            {:ok, _} = Invites.apply_invite_code(user, invite_code)
+          end
+
+          user
+
+        {:error, changeset} ->
+          Repo.rollback(changeset)
+      end
+    end)
   end
 
   @doc """
@@ -278,7 +302,7 @@ defmodule Platform.Accounts do
   end
 
   defp preload_user(queryable) do
-    queryable |> preload([:active_project_membership, invite: [:owner]])
+    queryable |> preload([:active_project_membership])
   end
 
   @doc """
@@ -355,7 +379,7 @@ defmodule Platform.Accounts do
   """
   def get_user_by_session_token(token) do
     {:ok, query} = UserToken.verify_session_token_query(token)
-    Repo.one(query) |> Repo.preload([:active_project_membership, invite: [:owner]])
+    Repo.one(query) |> Repo.preload([:active_project_membership])
   end
 
   @doc """

@@ -25,7 +25,7 @@ defmodule Platform.GlobalSearch do
       String.trim(query)
       |> String.downcase()
 
-    query_only_alphaneumeric = String.replace(query, ~r/[^a-zA-Z0-9\s\-]/, "") |> dbg()
+    query_only_alphaneumeric = String.replace(query, ~r/[^a-zA-Z0-9\s\-]/, "")
     query = query |> String.replace(~r/\s+/, " OR ") |> String.replace(~r/[^a-zA-Z0-9\s\-]/, "")
 
     media_version_query =

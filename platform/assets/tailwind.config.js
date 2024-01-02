@@ -1,4 +1,5 @@
 let colors = require("tailwindcss/colors")
+const plugin = require('tailwindcss/plugin')
 
 module.exports = {
   content: [
@@ -28,5 +29,8 @@ module.exports = {
     require('@tailwindcss/forms'),
     require('@tailwindcss/typography'),
     require('a17t'),
+    plugin(function({ addVariant }) {
+      addVariant('processing', '.processing &', 'processing')
+    })
   ]
 };

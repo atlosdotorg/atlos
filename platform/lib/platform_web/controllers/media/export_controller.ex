@@ -184,7 +184,7 @@ defmodule PlatformWeb.ExportController do
             ]),
             Zstream.entry("#{root_folder_name}/#{media_slug}/updates.json", [
               media.updates
-              |> Enum.filter(&Permissions.can_view_update?(conn.assigns.current_user, &1))
+              |> Permissions.filter_to_viewable_updates(conn.assigns.current_user)
               |> Jason.encode!()
             ])
           ])

@@ -11,6 +11,18 @@
     @apply badge ~neutral text-sm font-medium no-underline align-baseline;
   }
 
+  .modal-open {
+    overflow: hidden;
+  }
+  .modal-open::-webkit-scrollbar { width: 0 !important; }
+  .non-modal-overflow-y-auto {
+    overflow-y: auto;
+  }
+
+  .modal-open .non-modal-overflow-y-auto {
+    overflow-y: hidden;
+  }
+
   .sticky-headers {
     text-align: left;
     position: relative;
@@ -283,16 +295,16 @@
 /**
   Important CSS for our custom full-page map styling.,
 */
-.mapboxgl-map {
+.maplibregl-map {
   display: block;
   height: 100%;
 }
 
-.mapboxgl-ctrl-bottom-left {
+.maplibregl-ctrl-bottom-left {
   bottom: unset !important;
 }
 
-.mapboxgl-popup-content {
+.maplibregl-popup-content {
   background: unset !important;
   box-shadow: unset !important;
   border-radius: 4px;

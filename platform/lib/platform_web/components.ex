@@ -34,10 +34,12 @@ defmodule PlatformWeb.Components do
 
     if to != "" do
       ~H"""
-      <.link navigate={@to} class={@classes}>
-        <%= render_slot(@inner_block) %>
-        <span class="mt-2"><%= @label %></span>
-      </.link>
+      <div>
+        <.link navigate={@to} class={@classes}>
+          <%= render_slot(@inner_block) %>
+          <span class="mt-2"><%= @label %></span>
+        </.link>
+      </div>
       """
     else
       ~H"""
@@ -54,6 +56,12 @@ defmodule PlatformWeb.Components do
       assign_new(assigns, :id, fn -> "default" end)
       |> assign_new(:js_on_close, fn -> "" end)
       |> assign_new(:wide, fn -> false end)
+      |> assign_new(:no_pad, fn -> false end)
+
+    # Note: We have a check that runs in JavaScript that detects when any
+    # elements exist that are visible with the data-blocks-body-scroll attribute; if they
+    # are present, scrolling in the background is disabled. This is to prevent
+    # the background from scrolling when the modal is open.
 
     ~H"""
     <div
@@ -62,13 +70,14 @@ defmodule PlatformWeb.Components do
       role="dialog"
       aria-modal="true"
       phx-hook="Modal"
+      data-blocks-body-scroll="true"
       data-is-modal
       id={"modal-" <> @id}
       phx-target={@target}
       x-data
     >
       <div
-        class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0"
+        class="md:ml-28 min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0"
         x-on:keydown.escape.window={"window.closeModal(); "<> @js_on_close}
         phx-target={@target}
       >
@@ -77,6 +86,11 @@ defmodule PlatformWeb.Components do
           phx-mounted={
             JS.transition({"ease-in duration-75", "opacity-0", "opacity-100"},
               time: 75
+            )
+          }
+          phx-remove={
+            JS.transition({"ease-out duration-50", "opacity-100", "opacity-0"},
+              time: 50
             )
           }
           aria-hidden="true"
@@ -91,7 +105,7 @@ defmodule PlatformWeb.Components do
         </span>
 
         <div
-          class={"mt-24 mb-8 md:mt-0 relative inline-block opacity-0 scale-75 align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left shadow-xl transform transition-all sm:align-middle md:ml-28 sm:max-w-xl sm:w-full sm:p-6 max-w-full " <> if @wide, do: "md:max-w-3xl lg:max-w-4xl xl:max-w-5xl", else: ""}
+          class={"mt-24 mb-8 md:mt-0 relative inline-block opacity-0 scale-75 align-bottom bg-white rounded-lg text-left shadow-xl transform transition-all sm:align-middle sm:max-w-xl sm:w-full max-w-full min-w-0 " <> (if @wide, do: "lg:max-w-3xl xl:max-w-4xl", else: "") <> (if @no_pad, do: "", else: "px-4 pt-5 pb-4 sm:p-6")}
           phx-mounted={
             JS.transition({"ease-out duration-75", "opacity-0 scale-75", "opacity-100 scale-100"},
               time: 75
@@ -274,7 +288,7 @@ defmodule PlatformWeb.Components do
     ~H"""
     <div class="md:w-28 h-20"></div>
     <div
-      class="w-full md:w-28 bg-neutral-700 overflow-y-auto fixed z-50 md:h-screen self-start"
+      class="w-full md:w-28 bg-neutral-700 fixed z-50 md:h-screen self-start non-modal-overflow-y-auto"
       x-data="{ open: window.innerWidth >= 768 }"
       x-transition
     >
@@ -398,7 +412,7 @@ defmodule PlatformWeb.Components do
                   d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
                 />
               </svg>
-              <%= if Notifications.has_unread_notifications(@current_user) do %>
+              <%= if @has_unread_notifications do %>
                 <% active = String.starts_with?(@path, "/notifications") %>
                 <div class={"text-urge-400 absolute top-[3px] right-[3px] rounded-full ring-2 group-hover:ring-neutral-800 " <> (if active, do: "ring-neutral-800", else: "ring-neutral-700")}>
                   <svg
@@ -430,30 +444,34 @@ defmodule PlatformWeb.Components do
             </.navlink>
           <% end %>
           <div class="hidden md:block flex-grow"></div>
-          <div class="w-full" data-tooltip="Ctrl + I">
+          <div class="w-full">
             <.live_component
               module={PlatformWeb.NewLive.NewComponent}
               current_user={@current_user}
               id="global-new-modal"
               path={@path}
             >
-              <.navlink label="New" request_path={@path}>
-                <Heroicons.plus mini class="text-neutral-300 group-hover:text-white h-6 w-6" />
-              </.navlink>
+              <div data-tooltip="Ctrl + I">
+                <.navlink label="New" request_path={@path}>
+                  <Heroicons.plus mini class="text-neutral-300 group-hover:text-white h-6 w-6" />
+                </.navlink>
+              </div>
             </.live_component>
           </div>
-          <div class="w-full" data-tooltip="Ctrl + K">
+          <div class="w-full">
             <.live_component
               module={PlatformWeb.SearchLive.SearchComponent}
               current_user={@current_user}
               id="global-search-modal"
             >
-              <.navlink label="Search" request_path={@path}>
-                <Heroicons.magnifying_glass
-                  mini
-                  class="text-neutral-300 group-hover:text-white h-6 w-6"
-                />
-              </.navlink>
+              <div data-tooltip="Ctrl + K">
+                <.navlink label="Search" request_path={@path}>
+                  <Heroicons.magnifying_glass
+                    mini
+                    class="text-neutral-300 group-hover:text-white h-6 w-6"
+                  />
+                </.navlink>
+              </div>
             </.live_component>
           </div>
           <%= if not is_nil(@current_user) do %>
@@ -711,7 +729,6 @@ defmodule PlatformWeb.Components do
         assign(assigns, :n_attributes, n_attributes)
         |> assign(:attributes, attributes)
         |> assign(:head, head)
-        |> assign(:can_user_change_visibility, false)
 
       ~H"""
       <li x-data="{expanded: false}" id={"collapsed-#{@id_prefix}-#{@head.id}"}>
@@ -789,30 +806,17 @@ defmodule PlatformWeb.Components do
               show_line={true}
               show_media={false}
               id_prefix={@id_prefix}
-              target={@target}
-              socket={@socket}
               left_indicator={:dot}
               current_user={@current_user}
-              ignore_permissions={@ignore_permissions}
             />
           <% end %>
         </ul>
       </li>
       """
     else
-      assigns =
-        assigns
-        |> assign_new(
-          :can_user_change_visibility,
-          fn ->
-            Permissions.can_user_change_update_visibility?(assigns.current_user, assigns.update)
-          end
-        )
-
       ~H"""
-      <% can_user_view = Permissions.can_view_update?(@current_user, @update) %>
       <li
-        class={"transition-all " <> (if @update.hidden and can_user_view, do: "opacity-50", else: "")}
+        class={"transition-all " <> (if @update.hidden, do: "opacity-50", else: "")}
         id={"#{@id_prefix}-#{@update.id}"}
       >
         <div class={"relative group word-breaks " <> (if @show_line, do: "pb-8", else: "")}>
@@ -821,207 +825,178 @@ defmodule PlatformWeb.Components do
             </span>
           <% end %>
           <div class="relative flex items-start space-x-2">
-            <%= if can_user_view or @ignore_permissions do %>
-              <%= case @left_indicator do %>
-                <% x when x in [:profile, :small_profile] -> %>
-                  <% profile_size_classes =
-                    case @left_indicator do
-                      :profile -> "h-10 w-10"
-                      :small_profile -> "h-6 w-6 mt-2"
-                    end %>
-                  <div class="relative">
-                    <.link :if={@update.user} navigate={"/profile/#{@update.user.username}"}>
-                      <img
-                        class={"rounded-full bg-gray-400 flex items-center justify-center " <> @profile_ring_classes <> " " <> profile_size_classes}
-                        src={Accounts.get_profile_photo_path(@update.user)}
-                        alt={"Profile photo for #{@update.user.username}"}
-                        loading="lazy"
-                      />
-                    </.link>
-                    <span
-                      :if={@update.api_token}
-                      class={"rounded-full bg-gray-300 flex items-center justify-center " <> profile_size_classes}
-                    >
-                      <img
-                        class={"rounded-full bg-gray-400 flex items-center justify-center  " <> profile_size_classes}
-                        src="/images/bot_profile.png"
-                        alt="Bot account icon"
-                        loading="lazy"
-                      />
-                    </span>
-                  </div>
-                <% :dot -> %>
-                  <div class="relative ml-[0.90em] mt-3 mr-4">
-                    <svg viewBox="0 0 100 100" class="h-3 w-3 bg-white text-gray-400">
-                      <circle cx="50" cy="50" r="40" stroke-width="3" fill="currentColor" />
-                    </svg>
-                  </div>
-                <% _ -> %>
-              <% end %>
-              <div class="min-w-0 flex-1 flex flex-col flex-grow pl-1">
-                <div>
-                  <div class="text-sm text-gray-600 mt-2">
-                    <%= if @show_media do %>
-                      <.media_text media={@update.media} />
-                    <% end %>
-                    <.user_text :if={@update.user} user={@update.user} />
-                    <span
-                      :if={@update.api_token}
-                      class="text-gray-900 font-medium inline-flex gap-1 flex-wrap"
-                      data-tooltip="This action was taken by a bot."
-                    >
-                      <%= @update.api_token.name %>
-                      <span class="font-normal text-xs badge ~urge self-center">Bot</span>
-                    </span>
-                    <%= case @update.type do %>
-                      <% :update_attribute -> %>
-                        <% attr =
-                          Attribute.get_attribute(@update.modified_attribute,
-                            project: @update.media.project
-                          ) %> updated
-                        <%= if not is_nil(attr) do %>
-                          <%= live_patch class: "text-button text-gray-800 inline-block", to: Routes.media_show_path(@socket, :history, @update.media.slug, attr.name) do %>
-                            <%= attr.label %> &nearr;
-                          <% end %>
-                        <% else %>
-                          a deleted or unknown attribute
-                        <% end %>
-                      <% :create -> %>
-                        added this incident
-                      <% :delete -> %>
-                        deleted this incident
-                      <% :undelete -> %>
-                        restored this incident
-                      <% :upload_version -> %>
-                        uploaded
-                        <.link
-                          patch={
-                            Routes.media_show_path(
-                              @socket,
-                              :media_version_detail,
-                              @update.media.slug,
-                              @update.media_version.scoped_id
-                            )
-                          }
-                          class="text-button text-gray-800"
-                        >
-                          <span>
-                            <%= Material.get_human_readable_media_version_name(
-                              @update.media,
-                              @update.media_version
-                            ) %>
-                          </span>
-                          &nearr;
-                        </.link>
-                      <% :comment -> %>
-                        commented
-                      <% _ -> %>
-                        performed an unknown action
-                    <% end %>
-                    <.rel_time time={@update.inserted_at} />
-                    <%= if @update.hidden do %>
-                      <span class="badge ~neutral">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          class="h-3 w-3 mr-1"
-                          viewBox="0 0 20 20"
-                          fill="currentColor"
-                        >
-                          <path
-                            fill-rule="evenodd"
-                            d="M3.707 2.293a1 1 0 00-1.414 1.414l14 14a1 1 0 001.414-1.414l-1.473-1.473A10.014 10.014 0 0019.542 10C18.268 5.943 14.478 3 10 3a9.958 9.958 0 00-4.512 1.074l-1.78-1.781zm4.261 4.26l1.514 1.515a2.003 2.003 0 012.45 2.45l1.514 1.514a4 4 0 00-5.478-5.478z"
-                            clip-rule="evenodd"
-                          />
-                          <path d="M12.454 16.697L9.75 13.992a4 4 0 01-3.742-3.741L2.335 6.578A9.98 9.98 0 00.458 10c1.274 4.057 5.065 7 9.542 7 .847 0 1.669-.105 2.454-.303z" />
-                        </svg>
-                        Hidden
-                      </span>
-                    <% end %>
-                    <%= if @can_user_change_visibility do %>
-                      <button
-                        type="button"
-                        phx-target={@target}
-                        phx-click="change_visibility"
-                        phx-value-update={@update.id}
-                        class="opacity-0 group-hover:opacity-100 text-critical-700 transition text-xs ml-2"
-                        data-confirm="Are you sure you want to change the visibility of this update?"
-                      >
-                        <%= if @update.hidden, do: "Show", else: "Hide" %>
-                      </button>
-                    <% end %>
-                  </div>
-                </div>
-
-                <% has_attr_change_to_show =
-                  @update.type == :update_attribute and
-                    not is_nil(
-                      Attribute.get_attribute(@update.modified_attribute, project: @update.media.project)
-                    ) %>
-                <%= if has_attr_change_to_show || @update.explanation do %>
-                  <div class="mt-1 text-sm text-gray-700 border border-gray-300 rounded-lg shadow-sm overflow-hidden flex flex-col divide-y">
-                    <!-- Update detail section -->
-                    <%= if has_attr_change_to_show do %>
-                      <div class="bg-gray-50 p-2 flex">
-                        <div class="flex-grow">
-                          <.attr_diff
-                            name={@update.modified_attribute}
-                            old={Jason.decode!(@update.old_value)}
-                            new={Jason.decode!(@update.new_value)}
-                            project={@update.media.project}
-                          />
-                        </div>
-                      </div>
-                    <% end %>
-                    <!-- Text comment section -->
-                    <%= if @update.explanation do %>
-                      <article class="prose text-sm p-2 w-full max-w-full">
-                        <%= raw(@update.explanation |> Platform.Utils.render_markdown()) %>
-                      </article>
-                    <% end %>
-
-                    <%= if not Enum.empty?(@update.attachments) do %>
-                      <div class="p-2 grid grid-cols-2 md:grid-cols-3 gap-2">
-                        <%= for {attachment, idx} <- @update.attachments |> Enum.with_index() do %>
-                          <% url =
-                            Uploads.UpdateAttachment.url({attachment, @update.media}, :original,
-                              signed: true,
-                              expires_in: 60 * 60 * 6
-                            ) %>
-                          <div class="rounded overflow-hidden max-h-64 cursor highlight-block">
-                            <%= cond do %>
-                              <% String.ends_with?(attachment, ".jpg") || String.ends_with?(attachment, ".jpeg") || String.ends_with?(attachment, ".png") -> %>
-                                <a href={url} target="_blank">
-                                  <img src={url} loading="lazy" />
-                                </a>
-                              <% String.ends_with?(attachment, ".mp4") -> %>
-                                <video controls preload="auto" muted>
-                                  <source src={url} />
-                                </video>
-                              <% true -> %>
-                                <a href={url} target="_blank">
-                                  <.document_preview
-                                    file_name={"Attachment #" <> to_string(idx + 1)}
-                                    description="PDF Document"
-                                  />
-                                </a>
-                            <% end %>
-                          </div>
-                        <% end %>
-                      </div>
-                    <% end %>
-                  </div>
-                <% end %>
-              </div>
-            <% else %>
-              <div class="text-sm bg-white flex items-center border-2 border-dashed border-neutral-300 text-neutral-600 p-2 rounded">
-                <p>
-                  <span class="font-medium text-gray-800">
-                    You do not have permission to see this update.
+            <%= case @left_indicator do %>
+              <% x when x in [:profile, :small_profile] -> %>
+                <% profile_size_classes =
+                  case @left_indicator do
+                    :profile -> "h-10 w-10"
+                    :small_profile -> "h-6 w-6 mt-2"
+                  end %>
+                <div class="relative">
+                  <.link :if={@update.user} navigate={"/profile/#{@update.user.username}"}>
+                    <img
+                      class={"rounded-full bg-gray-400 flex items-center justify-center " <> @profile_ring_classes <> " " <> profile_size_classes}
+                      src={Accounts.get_profile_photo_path(@update.user)}
+                      alt={"Profile photo for #{@update.user.username}"}
+                      loading="lazy"
+                    />
+                  </.link>
+                  <span
+                    :if={@update.api_token}
+                    class={"rounded-full bg-gray-300 flex items-center justify-center " <> profile_size_classes}
+                  >
+                    <img
+                      class={"rounded-full bg-gray-400 flex items-center justify-center  " <> profile_size_classes}
+                      src="/images/bot_profile.png"
+                      alt="Bot account icon"
+                      loading="lazy"
+                    />
                   </span>
-                  The incident may have been removed, you may have been removed from the project, or the update may have been hidden.
-                </p>
-              </div>
+                </div>
+              <% :dot -> %>
+                <div class="relative ml-[0.90em] mt-3 mr-4">
+                  <svg viewBox="0 0 100 100" class="h-3 w-3 bg-white text-gray-400">
+                    <circle cx="50" cy="50" r="40" stroke-width="3" fill="currentColor" />
+                  </svg>
+                </div>
+              <% _ -> %>
             <% end %>
+            <div class="min-w-0 flex-1 flex flex-col flex-grow pl-1">
+              <div>
+                <div class="text-sm text-gray-600 mt-2">
+                  <%= if @show_media do %>
+                    <.media_text media={@update.media} />
+                  <% end %>
+                  <.user_text :if={@update.user} user={@update.user} />
+                  <span
+                    :if={@update.api_token}
+                    class="text-gray-900 font-medium inline-flex gap-1 flex-wrap"
+                    data-tooltip="This action was taken by a bot."
+                  >
+                    <%= @update.api_token.name %>
+                    <span class="font-normal text-xs badge ~urge self-center">Bot</span>
+                  </span>
+                  <%= case @update.type do %>
+                    <% :update_attribute -> %>
+                      <% attr =
+                        Attribute.get_attribute(@update.modified_attribute,
+                          project: @update.media.project
+                        ) %> updated
+                      <%= if not is_nil(attr) do %>
+                        <%= live_patch class: "text-button text-gray-800 inline-block", to: "/incidents/#{@update.media.slug}/history/#{attr.name}" do %>
+                          <%= attr.label %> &nearr;
+                        <% end %>
+                      <% else %>
+                        a deleted or unknown attribute
+                      <% end %>
+                    <% :create -> %>
+                      added this incident
+                    <% :delete -> %>
+                      deleted this incident
+                    <% :undelete -> %>
+                      restored this incident
+                    <% :upload_version -> %>
+                      uploaded
+                      <.link
+                        patch={
+                            "/incidents/#{@update.media.slug}/detail/#{@update.media_version.scoped_id}"
+                          }
+                        class="text-button text-gray-800"
+                      >
+                        <span>
+                          <%= Material.get_human_readable_media_version_name(
+                            @update.media,
+                            @update.media_version
+                          ) %>
+                        </span>
+                        &nearr;
+                      </.link>
+                    <% :comment -> %>
+                      commented
+                    <% _ -> %>
+                      performed an unknown action
+                  <% end %>
+                  <.rel_time time={@update.inserted_at} />
+                  <%= if @update.hidden do %>
+                    <span class="badge ~neutral">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-3 w-3 mr-1"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
+                        <path
+                          fill-rule="evenodd"
+                          d="M3.707 2.293a1 1 0 00-1.414 1.414l14 14a1 1 0 001.414-1.414l-1.473-1.473A10.014 10.014 0 0019.542 10C18.268 5.943 14.478 3 10 3a9.958 9.958 0 00-4.512 1.074l-1.78-1.781zm4.261 4.26l1.514 1.515a2.003 2.003 0 012.45 2.45l1.514 1.514a4 4 0 00-5.478-5.478z"
+                          clip-rule="evenodd"
+                        />
+                        <path d="M12.454 16.697L9.75 13.992a4 4 0 01-3.742-3.741L2.335 6.578A9.98 9.98 0 00.458 10c1.274 4.057 5.065 7 9.542 7 .847 0 1.669-.105 2.454-.303z" />
+                      </svg>
+                      Hidden
+                    </span>
+                  <% end %>
+                </div>
+              </div>
+              <% has_attr_change_to_show =
+                @update.type == :update_attribute and
+                  not is_nil(
+                    Attribute.get_attribute(@update.modified_attribute, project: @update.media.project)
+                  ) %>
+              <%= if has_attr_change_to_show || @update.explanation do %>
+                <div class="mt-1 text-sm text-gray-700 border border-gray-300 rounded-lg shadow-sm overflow-hidden flex flex-col divide-y">
+                  <!-- Update detail section -->
+                  <%= if has_attr_change_to_show do %>
+                    <div class="bg-gray-50 p-2 flex">
+                      <div class="flex-grow">
+                        <.attr_diff
+                          name={@update.modified_attribute}
+                          old={Jason.decode!(@update.old_value)}
+                          new={Jason.decode!(@update.new_value)}
+                          project={@update.media.project}
+                        />
+                      </div>
+                    </div>
+                  <% end %>
+                  <!-- Text comment section -->
+                  <%= if @update.explanation do %>
+                    <article class="prose text-sm p-2 w-full max-w-full">
+                      <%= raw(@update.explanation |> Platform.Utils.render_markdown()) %>
+                    </article>
+                  <% end %>
+
+                  <%= if not Enum.empty?(@update.attachments) do %>
+                    <div class="p-2 grid grid-cols-2 md:grid-cols-3 gap-2">
+                      <%= for {attachment, idx} <- @update.attachments |> Enum.with_index() do %>
+                        <% url =
+                          Uploads.UpdateAttachment.url({attachment, @update.media}, :original,
+                            signed: true,
+                            expires_in: 60 * 60 * 6
+                          ) %>
+                        <div class="rounded overflow-hidden max-h-64 cursor highlight-block">
+                          <%= cond do %>
+                            <% String.ends_with?(attachment, ".jpg") || String.ends_with?(attachment, ".jpeg") || String.ends_with?(attachment, ".png") -> %>
+                              <a href={url} target="_blank">
+                                <img src={url} loading="lazy" />
+                              </a>
+                            <% String.ends_with?(attachment, ".mp4") -> %>
+                              <video controls preload="auto" muted>
+                                <source src={url} />
+                              </video>
+                            <% true -> %>
+                              <a href={url} target="_blank">
+                                <.document_preview
+                                  file_name={"Attachment #" <> to_string(idx + 1)}
+                                  description="PDF Document"
+                                />
+                              </a>
+                          <% end %>
+                        </div>
+                      <% end %>
+                    </div>
+                  <% end %>
+                </div>
+              <% end %>
+            </div>
           </div>
         </div>
       </li>
@@ -1032,23 +1007,23 @@ defmodule PlatformWeb.Components do
   def naive_pluralise(amt, word) when amt == 1, do: word
   def naive_pluralise(_amt, word), do: word <> "s"
 
-  defp time_ago_in_words(seconds) when seconds < 60 do
-    "just now"
+  defp time_delta_in_words(seconds) when seconds < 60 and seconds > -60 do
+    "less than a minute"
   end
 
-  defp time_ago_in_words(seconds) when seconds < 3600 do
-    amt = round(seconds / 60)
-    "#{amt} #{naive_pluralise(amt, "minute")} ago"
+  defp time_delta_in_words(seconds) when seconds < 3600 and seconds > -3600 do
+    amt = abs(round(seconds / 60))
+    "#{amt} #{naive_pluralise(amt, "minute")}"
   end
 
-  defp time_ago_in_words(seconds) when seconds < 86400 do
-    amt = round(seconds / 3600)
-    "#{amt} #{naive_pluralise(amt, "hour")} ago"
+  defp time_delta_in_words(seconds) when seconds < 86400 and seconds > -86400 do
+    amt = abs(round(seconds / 3600))
+    "#{amt} #{naive_pluralise(amt, "hour")}"
   end
 
-  defp time_ago_in_words(seconds) do
-    amt = round(seconds / 86400)
-    "#{amt} #{naive_pluralise(amt, "day")} ago"
+  defp time_delta_in_words(seconds) do
+    amt = abs(round(seconds / 86400))
+    "#{amt} #{naive_pluralise(amt, "day")}"
   end
 
   defp seconds_ago(datetime) do
@@ -1088,7 +1063,7 @@ defmodule PlatformWeb.Components do
       |> assign(:ago, ago)
       |> assign(:months, months)
 
-    if ago > 7 * 24 * 60 * 60 do
+    if abs(ago) > 7 * 24 * 60 * 60 do
       ~H"""
       <span data-tooltip={@full_display_time}>
         <%= @months[@time.month] %> <%= @time.day %> <%= @time.year %>
@@ -1096,7 +1071,9 @@ defmodule PlatformWeb.Components do
       """
     else
       ~H"""
-      <span data-tooltip={@full_display_time}><%= @ago |> time_ago_in_words() %></span>
+      <span data-tooltip={@full_display_time}>
+        <span :if={@ago <= 0}>in</span> <%= time_delta_in_words(@ago) %><span :if={@ago > 0}> ago</span>
+      </span>
       """
     end
   end
@@ -1104,6 +1081,60 @@ defmodule PlatformWeb.Components do
   def location(assigns) do
     ~H"""
     <%= @lat %>, <%= @lon %> &nearr;
+    """
+  end
+
+  def invitation_display(assigns) do
+    assigns = assign_new(assigns, :inner_block, fn -> nil end)
+
+    ~H"""
+    <section class="flex flex-col items-center gap-4">
+      <div class="flex items-center">
+        <img
+          class="relative z-30 inline-block rounded-full ring-2 h-12 w-12 ring-white"
+          src={Platform.Accounts.get_profile_photo_path(@invite.owner)}
+          alt={"Profile photo for #{@invite.owner.username}"}
+          loading="lazy"
+        />
+        <%= if not is_nil(@current_user) do %>
+          <span class="mx-4 text-neutral-400">
+            <Heroicons.plus class="h-6 w-6" />
+          </span>
+          <img
+            class="relative z-30 inline-block rounded-full ring-2 h-12 w-12 ring-white"
+            src={Platform.Accounts.get_profile_photo_path(@current_user)}
+            alt={"Profile photo for #{@current_user.username}"}
+            loading="lazy"
+          />
+        <% end %>
+      </div>
+      <h2 class="text-lg md:text-xl text-neutral-500 font-medium text-center px-4">
+        <span class="text-neutral-800"><%= @invite.owner.username %></span>
+        has invited you to join
+        <%= if is_nil(@invite.project) do %>
+          <span class="text-neutral-800">
+            Atlos
+          </span>
+        <% else %>
+          <span class="text-neutral-800">
+            <%= @invite.project.name %>
+          </span>
+          as <%= if Enum.member?(
+                      [:editor, :owner],
+                      @invite.project_access_level
+                    ),
+                    do: "an",
+                    else: "a" %>
+          <span class="text-neutral-800"><%= to_string(@invite.project_access_level) %></span>
+        <% end %>
+      </h2>
+      <div :if={not is_nil(@inner_block)}>
+        <%= render_slot(@inner_block) %>
+      </div>
+      <p class="text-xs text-neutral-500">
+        This invitation will expire <.rel_time time={@invite.expires} />
+      </p>
+    </section>
     """
   end
 
@@ -1366,7 +1397,7 @@ defmodule PlatformWeb.Components do
             </span>
           <% end %>
         </span>
-        <%= live_patch(class: "text-button inline-block",
+        <%= live_patch(class: "text-button inline-block mb-1",
             to: Routes.media_show_path(@socket, :history, @media.slug, @attr.name)
           ) do %>
           <.user_stack users={
@@ -1441,7 +1472,7 @@ defmodule PlatformWeb.Components do
   end
 
   def attr_entry(%{name: name, value: value, project: project} = assigns) do
-    attr = Attribute.get_attribute(name, project: project)
+    attr = Attribute.get_attribute(name, project: project, exclude_options: true)
 
     tone =
       if Map.get(assigns, :color, false), do: Attribute.attr_color(name, value), else: "~neutral"
@@ -1792,7 +1823,7 @@ defmodule PlatformWeb.Components do
 
   def location_diff(%{old: _, new: _} = assigns) do
     ~H"""
-    <span>
+    <span class="flex flex-wrap gap-1">
       <%= if @old != @new do %>
         <%= case @old do %>
           <% %{"coordinates" => [lon, lat]} -> %>
@@ -1871,7 +1902,7 @@ defmodule PlatformWeb.Components do
         )
 
       ~H"""
-      <span class="inline">
+      <span class="inline-flex flex-wrap gap-1">
         <%= case @attr.type do %>
           <% :text -> %>
             <.text_diff old={@old_val} new={@new_val} label={@label} />
@@ -1940,10 +1971,7 @@ defmodule PlatformWeb.Components do
       |> assign(
         :has_dupes,
         Enum.any?(pairs, fn {_url, media} ->
-          not Enum.empty?(
-            media
-            |> Enum.filter(&Permissions.can_view_media?(assigns.current_user, &1))
-          )
+          not Enum.empty?(Permissions.filter_to_viewable_media(media, assigns.current_user))
         end)
       )
 
@@ -2008,11 +2036,14 @@ defmodule PlatformWeb.Components do
   end
 
   def loading_spinner(assigns) do
+    assigns =
+      assign_new(assigns, :text, fn -> "Loading" end) |> assign_new(:class, fn -> "h-4 w-4" end)
+
     ~H"""
     <div class="flex items-center">
       <div role="status">
         <svg
-          class="inline mr-2 w-4 h-4 text-neutral-200 animate-spin fill-neutral-700"
+          class={"inline mr-2 text-neutral-200 animate-spin fill-neutral-700 " <> @class}
           viewBox="0 0 100 101"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
@@ -2027,187 +2058,8 @@ defmodule PlatformWeb.Components do
           />
         </svg>
       </div>
-      Loading more...
+      <%= @text %>
     </div>
-    """
-  end
-
-  def media_table_row(%{media: _, current_user: _, attributes: _, source_cols: _} = assigns) do
-    assigns =
-      assigns
-      |> Map.put(
-        :versions,
-        assigns.media.versions
-        |> Enum.filter(&(&1.visibility == :visible))
-      )
-
-    ~H"""
-    <% is_subscribed = @media.has_subscription %>
-    <% has_unread_notification = @media.has_unread_notification %>
-    <% is_sensitive = Material.Media.is_sensitive(@media) %>
-    <% background_color =
-      case @media.attr_sensitive do
-        x when x == ["Not Sensitive"] or x == [] ->
-          "bg-white group-hover:bg-neutral-50 hover:bg-neutral-50"
-
-        ["Personal Information Visible"] ->
-          "bg-orange-50"
-
-        _ ->
-          "bg-red-50"
-      end %>
-    <tr
-      class={"search-highlighting group transition-all " <> background_color}
-      id={@id}
-      x-data={"{selected: #{@is_selected}}"}
-      x-bind:class={"{'!bg-urge-50': (selected || #{@is_selected})}"}
-    >
-      <td
-        id={"table-row-" <> @media.slug <> "-slug"}
-        class={"md:sticky left-0 z-[100] pl-4 pr-1 border-r whitespace-nowrap border-b border-gray-200 h-10 transition-all " <> background_color}
-        x-bind:class={"{'!bg-urge-50': (selected || #{@is_selected})}"}
-      >
-        <div class="flex items-center gap-1">
-          <div
-            class="flex-shrink-0 w-5 mr-2 group-hover:block"
-            x-bind:class={"{'hidden': !(selected || #{@is_selected})}"}
-            data-tooltip="Select this incident"
-            x-cloak
-          >
-            <input
-              phx-click="select"
-              phx-value-slug={@media.slug}
-              x-on:change="selected = $event.target.checked"
-              checked={@is_selected}
-              type="checkbox"
-              class="h-4 w-4 mb-1 rounded border-gray-300 text-urge-600 focus:ring-urge-600"
-            />
-          </div>
-          <div
-            class="flex-shrink-0 w-5 mr-2 group-hover:hidden"
-            x-bind:class={"{'hidden': (selected || #{@is_selected})}"}
-          >
-            <.user_stack
-              users={@media.updates |> Enum.take(1) |> Enum.map(& &1.user) |> Enum.reject(&is_nil/1)}
-              dynamic={false}
-              ring_class="ring-transparent"
-            />
-          </div>
-          <.link
-            navigate={"/incidents/#{@media.slug}"}
-            class="text-button text-sm flex items-center gap-1 mr-px font-mono"
-          >
-            <span style={"color: #{if @media.project, do: @media.project.color, else: "unset"}"}>
-              <%= Media.slug_to_display(@media) %>
-            </span>
-            <div class="flex flex-col h-full flex-wrap ml-px my-auto items-center">
-              <%= if is_sensitive do %>
-                <span data-tooltip={Enum.join(@media.attr_sensitive, ", ")} class="text-critical-400">
-                  <Heroicons.shield_exclamation mini class="h-4 w-4" />
-                </span>
-              <% end %>
-              <%= if is_subscribed do %>
-                <span data-tooltip="You're subscribed" class="text-neutral-400">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                    class="w-3 h-3"
-                  >
-                    <path d="M10 12.5a2.5 2.5 0 100-5 2.5 2.5 0 000 5z" />
-                    <path
-                      fill-rule="evenodd"
-                      d="M.664 10.59a1.651 1.651 0 010-1.186A10.004 10.004 0 0110 3c4.257 0 7.893 2.66 9.336 6.41.147.381.146.804 0 1.186A10.004 10.004 0 0110 17c-4.257 0-7.893-2.66-9.336-6.41zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
-                      clip-rule="evenodd"
-                    />
-                  </svg>
-                  <span class="sr-only">
-                    You&apos;re subscribed
-                  </span>
-                </span>
-              <% end %>
-              <%= if @media.is_assigned do %>
-                <span data-tooltip="You're assigned" class="text-urge-600">
-                  <Heroicons.bookmark mini class="h-3 w-3" />
-                  <span class="sr-only">
-                    You&apos;re assigned
-                  </span>
-                </span>
-              <% end %>
-              <%= if has_unread_notification do %>
-                <span data-tooltip="Unread notification">
-                  <svg
-                    viewBox="0 0 120 120"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="currentColor"
-                    class="h-3 w-3"
-                  >
-                    <circle cx="60" cy="60" r="40" />
-                  </svg>
-                  <span class="sr-only">
-                    Unread notification
-                  </span>
-                </span>
-              <% end %>
-            </div>
-          </.link>
-        </div>
-      </td>
-      <%= for attr <- @attributes do %>
-        <td
-          class="border-b cursor-pointer p-0"
-          phx-click={
-            if Permissions.can_edit_media?(@current_user, @media, attr),
-              do: "edit_attribute",
-              else: nil
-          }
-          phx-value-attribute={attr.name}
-          phx-value-media-id={@media.id}
-          id={"table-row-" <> @media.slug <> "-" <> to_string(attr.name)}
-        >
-          <div class="text-sm text-gray-900 px-4 overflow-hidden h-6 max-w-[36rem] truncate">
-            <.attr_display_compact
-              color={true}
-              truncate={true}
-              attr={attr}
-              media={@media}
-              current_user={@current_user}
-            />
-          </div>
-        </td>
-      <% end %>
-      <%= for idx <- 0..@source_cols do %>
-        <td
-          class="border-b cursor-pointer p-0"
-          id={"table-row-" <> @media.slug <> "-source-" <> to_string(idx)}
-        >
-          <% version = Enum.at(@versions, idx) %>
-          <%= cond do %>
-            <% length(@versions) > @source_cols + 1 && idx == @source_cols -> %>
-              <span class="text-neutral-400 px-4 text-sm whitespace-nowrap">
-                <%= length(@versions) - @source_cols %> more source(s) available on the incident page
-              </span>
-            <% not is_nil(version) -> %>
-              <div class="text-sm flex items-center text-gray-900 px-4 whitespace-nowrap text-ellipsis overflow-hidden h-6 w-[12rem]">
-                <a
-                  href={version.source_url}
-                  target="_blank"
-                  rel="nofollow"
-                  class="truncate"
-                  data-confirm="This will open the source media in a new tab. Are you sure?"
-                >
-                  <.url_icon url={version.source_url} class="h-4 w-4 inline mb-px" />
-                  <%= version.source_url %>
-                </a>
-              </div>
-            <% true -> %>
-              <span class="text-neutral-400 px-4">
-                &mdash;
-              </span>
-          <% end %>
-        </td>
-      <% end %>
-    </tr>
     """
   end
 
@@ -2515,9 +2367,7 @@ defmodule PlatformWeb.Components do
     ~H"""
     <div>
       <div class="fixed w-[350px] h-[190px] flex rounded-lg shadow-lg items-center bg-white justify-around -z-50">
-        <div class="font-medium text-lg text-md p-4">
-          <span class="animate-pulse">Loading...</span>
-        </div>
+        <.loading_spinner />
       </div>
       <dynamic tag="iframe" src={"/incidents/#{@media.slug}/card"} width="350px" height="190px" />
     </div>
@@ -2576,7 +2426,7 @@ defmodule PlatformWeb.Components do
 
   def media_card_inner(assigns) do
     ~H"""
-    <div class={"flex items-stretch group flex-row bg-white overflow-hidden shadow rounded-lg justify-between min-h-[12rem] " <> (if @border, do: "border ", else: "") <> @class}>
+    <div class={"flex items-stretch group flex-row bg-white overflow-hidden shadow rounded-lg justify-between h-[190px] " <> (if @border, do: "border ", else: "") <> @class}>
       <%= if Permissions.can_view_media?(@current_user, @media) do %>
         <div class="p-2 flex flex-col w-3/4 gap-2 relative">
           <section>
@@ -2731,7 +2581,7 @@ defmodule PlatformWeb.Components do
       assigns
       |> assign(:sensitive, Media.is_sensitive(media))
       |> assign_new(:target, fn -> nil end)
-      |> assign(:border, Map.get(assigns, :border, false))
+      |> assign_new(:border, fn -> false end)
       |> assign(:link, Map.get(assigns, :link, true))
       |> assign(:class, Map.get(assigns, :class, ""))
 
@@ -2805,7 +2655,7 @@ defmodule PlatformWeb.Components do
       <%= if length(@users) > @max do %>
         <.link
           class={"relative block bg-gray-200 text-gray-700 text-xl rounded-full z-30 ring-2 flex items-center justify-center " <> Map.get(assigns, :size_classes, "h-5 w-5") <>" " <> Map.get(assigns, :ring_class, "ring-white")}
-          data-tooltip={"Shared with #{length(@users) - 5} more user#{if length(@users) - 5 == 1, do: "", else: "s"}"}
+          data-tooltip={"#{length(@users) - 5} more user#{if length(@users) - 5 == 1, do: "", else: "s"}"}
           navigate={@link_remaining_users}
         >
           <Heroicons.ellipsis_horizontal mini class="h-4 w-4" />
@@ -3461,7 +3311,9 @@ defmodule PlatformWeb.Components do
           <p class="support">
             Type or select a time; alternatively,
             <span
-              x-on:click={'$refs.time_input.value = null; $refs.time_input.dispatchEvent(new Event("input", {bubbles: true}))'}
+              x-on:click={
+                ~c"$refs.time_input.value = null; $refs.time_input.dispatchEvent(new Event(\"input\", {bubbles: true}))"
+              }
               class="cursor-pointer text-urge-600"
             >
               unset
@@ -3481,7 +3333,9 @@ defmodule PlatformWeb.Components do
           <p class="support">
             Type or select a date; alternatively,
             <span
-              x-on:click={'$refs.date_input.value = null; $refs.date_input.dispatchEvent(new Event("input", {bubbles: true}))'}
+              x-on:click={
+                ~c"$refs.date_input.value = null; $refs.date_input.dispatchEvent(new Event(\"input\", {bubbles: true}))"
+              }
               class="cursor-pointer text-urge-600"
             >
               unset
@@ -3530,31 +3384,33 @@ defmodule PlatformWeb.Components do
       |> assign_new(:class, fn -> "text-gray-900 hover:text-urge-600" end)
 
     ~H"""
-    <.link
-      class={"font-medium inline-flex gap-2 flex-wrap items-center #{@class}"}
-      navigate={if is_nil(@user), do: "#", else: "/profile/#{@user.username}"}
-    >
-      <%= if @icon do %>
-        <img
-          class="absolute z-30 inline-block h-4 w-4 rounded-full"
-          src={Accounts.get_profile_photo_path(@user)}
-          alt={"Profile photo for #{@user.username}"}
-        />
-      <% end %>
-      <span class={if @icon, do: "ml-5", else: ""}>
-        <%= if is_nil(@user) do %>
-          [System]
-        <% else %>
-          <%= @user.username %>
-          <%= if Accounts.is_admin(@user) and @flair do %>
-            <span class="font-normal text-xs badge ~critical self-center">Admin</span>
-          <% end %>
-          <%= if String.length(@user.flair) > 0 and @flair do %>
-            <span class="font-normal text-xs badge ~urge self-center"><%= @user.flair %></span>
-          <% end %>
+    <span>
+      <.link
+        class={"font-medium inline-flex gap-2 flex-wrap items-center #{@class}"}
+        navigate={if is_nil(@user), do: "#", else: "/profile/#{@user.username}"}
+      >
+        <%= if @icon do %>
+          <img
+            class="absolute z-30 min-w-5 inline-block h-5 w-5 rounded-full"
+            src={Accounts.get_profile_photo_path(@user)}
+            alt={"Profile photo for #{@user.username}"}
+          />
         <% end %>
-      </span>
-    </.link>
+        <span class={if @icon, do: "ml-7", else: ""}>
+          <%= if is_nil(@user) do %>
+            [System]
+          <% else %>
+            <%= @user.username %>
+            <%= if Accounts.is_admin(@user) and @flair do %>
+              <span class="font-normal text-xs badge ~critical self-center">Admin</span>
+            <% end %>
+            <%= if String.length(@user.flair) > 0 and @flair do %>
+              <span class="font-normal text-xs badge ~urge self-center"><%= @user.flair %></span>
+            <% end %>
+          <% end %>
+        </span>
+      </.link>
+    </span>
     """
   end
 
@@ -3562,25 +3418,27 @@ defmodule PlatformWeb.Components do
     assigns = assign_new(assigns, :profile_photo_class, fn -> "" end)
 
     ~H"""
-    <.link navigate={"/profile/" <> @user.username}>
-      <div class="flex items-center gap-4 p-2 overflow-hidden">
-        <div>
-          <img
-            class={"relative z-30 inline-block h-12 w-12 rounded-full ring-2 ring-white " <> @profile_photo_class}
-            src={Accounts.get_profile_photo_path(@user)}
-            alt={"Profile photo for #{@user.username}"}
-          />
+    <div>
+      <.link navigate={"/profile/" <> @user.username} class="shrink-0">
+        <div class="flex gap-4 p-2 overflow-hidden items-center">
+          <div class="shrink-0">
+            <img
+              class={"h-12 w-12 rounded-full ring-2 ring-white " <> @profile_photo_class}
+              src={Accounts.get_profile_photo_path(@user)}
+              alt={"Profile photo for #{@user.username}"}
+            />
+          </div>
+          <div class="flex flex-col gap-1">
+            <.user_name_display user={@user} />
+            <p class="text-neutral-600 break-words max-w-full">
+              <%= if is_nil(@user.bio) or String.length(@user.bio |> String.trim()) == 0,
+                do: "",
+                else: @user.bio %>
+            </p>
+          </div>
         </div>
-        <div class="flex flex-col gap-1 max-w-full">
-          <.user_name_display user={@user} />
-          <p class="text-neutral-600 break-words max-w-full">
-            <%= if is_nil(@user.bio) or String.length(@user.bio |> String.trim()) == 0,
-              do: "",
-              else: @user.bio %>
-          </p>
-        </div>
-      </div>
-    </.link>
+      </.link>
+    </div>
     """
   end
 
@@ -3800,41 +3658,45 @@ defmodule PlatformWeb.Components do
           </svg>
         </span>
       </p>
-      <p class="support font-base text-neutral-600">
-        <% total_incidents = Material.total_media_in_project!(@project) %>
-        <%= total_incidents |> Formatter.format_number() %> <%= if total_incidents == 1,
-          do: "incident",
-          else: "incidents" %>
-      </p>
     </div>
     """
   end
 
   def project_card(assigns) do
     ~H"""
-    <.link navigate={"/projects/#{@project.id}"}>
-      <.project_card_inner project={@project} />
-    </.link>
+    <div>
+      <.link navigate={"/projects/#{@project.id}"}>
+        <.project_card_inner project={@project} />
+      </.link>
+    </div>
+    """
+  end
+
+  def project_list_item_inner(assigns) do
+    ~H"""
+    <div class="rounded-full hover:bg-white transition overflow-hidden text-sm border flex items-center gap-2 py-1 px-2">
+      <span><%= @project.name |> Platform.Utils.truncate() %></span>
+      <span style={"color: #{@project.color}"}>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+          class="w-4 h-4 ml-px"
+        >
+          <circle cx="10" cy="10" r="6" />
+        </svg>
+      </span>
+    </div>
     """
   end
 
   def project_list_item(assigns) do
     ~H"""
-    <.link navigate={"/projects/#{@project.id}"} class="group">
-      <div class="rounded-full hover:bg-white transition overflow-hidden text-sm border flex items-center gap-2 py-1 px-2">
-        <span><%= @project.name |> Platform.Utils.truncate() %></span>
-        <span style={"color: #{@project.color}"}>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-            class="w-4 h-4 ml-px"
-          >
-            <circle cx="10" cy="10" r="6" />
-          </svg>
-        </span>
-      </div>
-    </.link>
+    <div>
+      <.link navigate={"/projects/#{@project.id}"}>
+        <.project_list_item_inner project={@project} />
+      </.link>
+    </div>
     """
   end
 

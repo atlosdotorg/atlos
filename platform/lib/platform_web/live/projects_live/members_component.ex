@@ -69,13 +69,6 @@ defmodule PlatformWeb.ProjectsLive.MembersComponent do
     {:noreply, socket |> assign_changeset(nil) |> assign(:editing, nil)}
   end
 
-  def handle_event("add_member", _params, socket) do
-    {:noreply,
-     socket
-     |> assign_changeset(changeset(socket))
-     |> assign(:editing, nil)}
-  end
-
   def handle_event("delete_member", %{"username" => username}, socket) do
     if not can_edit(socket) do
       raise PlatformWeb.Errors.Unauthorized, "You do not have permission to edit this project"
@@ -123,6 +116,10 @@ defmodule PlatformWeb.ProjectsLive.MembersComponent do
   end
 
   def handle_event("edit_member", %{"username" => username}, socket) do
+    if not can_edit(socket) do
+      raise PlatformWeb.Errors.Unauthorized, "You do not have permission to edit this project"
+    end
+
     socket =
       socket
       |> assign(:editing, username)
@@ -169,25 +166,23 @@ defmodule PlatformWeb.ProjectsLive.MembersComponent do
   end
 
   def handle_event("save", %{"project_membership" => params}, socket) do
+    if not can_edit(socket) do
+      raise PlatformWeb.Errors.Unauthorized, "You do not have permission to edit this project"
+    end
+
+    params = params |> Map.put("project_id", socket.assigns.project.id)
     cs = changeset(socket, params)
 
-    is_creation = is_nil(socket.assigns.editing)
-
     if cs.valid? do
-      params = params |> Map.put("project_id", socket.assigns.project.id)
-
       result =
-        if is_creation,
-          do: Projects.create_project_membership(params),
-          else:
-            Projects.update_project_membership(
-              Enum.find(socket.assigns.memberships, fn m ->
-                String.downcase(m.user.username) ==
-                  String.downcase(Ecto.Changeset.get_field(cs, :username))
-              end),
-              params,
-              all_memberships: socket.assigns.memberships
-            )
+        Projects.update_project_membership(
+          Enum.find(socket.assigns.memberships, fn m ->
+            String.downcase(m.user.username) ==
+              String.downcase(Ecto.Changeset.get_field(cs, :username))
+          end),
+          params,
+          all_memberships: socket.assigns.memberships
+        )
 
       case result do
         {:ok, membership} ->
@@ -200,14 +195,6 @@ defmodule PlatformWeb.ProjectsLive.MembersComponent do
               project_membership_id: membership.id
             }
           )
-
-          if is_creation do
-            # Send a notification to the invited user
-            Platform.Notifications.send_message_notification_to_user(
-              Platform.Accounts.get_user!(membership.user_id),
-              "You have been added to the project [#{socket.assigns.project.name |> Phoenix.HTML.html_escape() |> Phoenix.HTML.safe_to_string()}](/projects/#{socket.assigns.project.id}) by [#{socket.assigns.current_user.username}](/profile/#{socket.assigns.current_user.username})."
-            )
-          end
 
           {:noreply,
            socket
@@ -234,8 +221,8 @@ defmodule PlatformWeb.ProjectsLive.MembersComponent do
 
   def render(assigns) do
     ~H"""
-    <div class="flex flex-col md:flex-row gap-4 pt-8 w-full">
-      <div class="mb-4 md:w-[20rem] md:mr-16">
+    <div class="flex flex-col lg:flex-row gap-4 pt-8 w-full">
+      <div class="mb-4 lg:w-[20rem] lg:mr-16">
         <p class="sec-head text-xl">Members</p>
         <p class="sec-subhead">
           View and manage the users who have access to the project.
@@ -259,36 +246,29 @@ defmodule PlatformWeb.ProjectsLive.MembersComponent do
                           <tr>
                             <th
                               scope="col"
-                              class="pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6"
+                              class="pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6 py-4"
                             >
                               User
                             </th>
-                            <th scope="col" class="px-3 text-left text-sm font-semibold text-gray-900">
+                            <th
+                              scope="col"
+                              class="px-3 text-left text-sm font-semibold text-gray-900 py-4"
+                            >
                               Role
                             </th>
                             <th
                               scope="col"
-                              class="relative pl-3 pr-4 sm:pr-6 text-right lg:whitespace-nowrap"
+                              class="relative pl-3 pr-4 sm:pr-2 text-right lg:whitespace-nowrap"
                             >
                               <%= if @can_remove_self do %>
                                 <button
                                   type="button"
-                                  class="button ~critical @high mr-1"
+                                  class="button ~critical @high my-2"
                                   phx-click="leave_project"
                                   data-confirm="Are you sure you want to leave this project? To rejoin it, you will need to be invited again."
                                   phx-target={@myself}
                                 >
                                   Leave Project
-                                </button>
-                              <% end %>
-                              <%= if can_edit do %>
-                                <button
-                                  type="button"
-                                  class="button ~urge @high -mr-4 my-2"
-                                  phx-click="add_member"
-                                  phx-target={@myself}
-                                >
-                                  Add Member
                                 </button>
                               <% end %>
                               <span class="sr-only">Manage</span>
@@ -298,8 +278,12 @@ defmodule PlatformWeb.ProjectsLive.MembersComponent do
                         <tbody class="divide-y divide-gray-200 bg-white">
                           <%= for membership <- @memberships do %>
                             <tr class="py-2">
-                              <td class="pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
-                                <.user_card user={membership.user} profile_photo_class="h-8 w-8" />
+                              <td class="pl-4 py-3 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
+                                <.user_text
+                                  user={membership.user}
+                                  icon={true}
+                                  profile_photo_class="h-8 w-8"
+                                />
                               </td>
                               <td class="px-3 text-sm text-gray-500">
                                 <div>
@@ -361,11 +345,7 @@ defmodule PlatformWeb.ProjectsLive.MembersComponent do
         <.modal target={} close_confirmation="Your changes will be lost. Are you sure?">
           <div class="mb-8">
             <p class="sec-head">
-              <%= if is_nil(@editing) do %>
-                Add member
-              <% else %>
-                Edit role
-              <% end %>
+              Edit role
             </p>
           </div>
           <.form
@@ -375,27 +355,11 @@ defmodule PlatformWeb.ProjectsLive.MembersComponent do
             phx-submit="save"
             phx-target={@myself}
           >
-            <%= if is_nil(@editing) do %>
-              <div>
-                <%= label(
-                  @form,
-                  :username,
-                  "Username"
-                ) %>
-                <%= text_input(
-                  @form,
-                  :username,
-                  placeholder: "The username of the user you want to add",
-                  phx_debounce: 1000
-                ) %>
-                <%= error_tag(@form, :username) %>
-              </div>
-            <% else %>
-              <div class="rounded-lg border shadow-sm text-sm">
-                <%= hidden_input(@form, :username, value: @editing) %>
-                <.user_card user={Enum.find(@memberships, &(&1.user.username == @editing)).user} />
-              </div>
-            <% end %>
+            <div class="rounded-lg border shadow-sm text-sm">
+              <.user_card user={Enum.find(@memberships, &(&1.user.username == @editing)).user} />
+            </div>
+
+            <%= hidden_input(@form, :username, value: @editing) %>
 
             <div>
               <%= label(
@@ -428,7 +392,7 @@ defmodule PlatformWeb.ProjectsLive.MembersComponent do
             </div>
             <div>
               <%= submit(
-                if(@editing, do: "Save", else: "Add Member"),
+                "Save",
                 phx_disable_with: "Saving...",
                 class: "button ~urge @high"
               ) %>

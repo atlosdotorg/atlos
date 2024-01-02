@@ -5,8 +5,8 @@ defmodule PlatformWeb.ProjectsLive.ExportComponent do
 
   def render(assigns) do
     ~H"""
-    <section class="flex flex-col md:flex-row my-8">
-      <div class="mb-4 md:w-[20rem] md:min-w-[20rem] md:mr-20">
+    <section class="flex flex-col lg:flex-row my-8">
+      <div class="mb-4 lg:w-[20rem] lg:min-w-[20rem] lg:mr-20">
         <p class="sec-head text-xl">Export</p>
         <p class="sec-subhead">Export your data to other portable formats.</p>
       </div>
@@ -19,7 +19,7 @@ defmodule PlatformWeb.ProjectsLive.ExportComponent do
             <div class="flex-shrink-0">
               <Heroicons.information_circle mini class="h-5 w-5 text-blue-500" />
             </div>
-            <div class="ml-3 flex-1 md:flex flex-col text-sm text-blue-700 md:justify-between prose prose-sm max-w-full">
+            <div class="ml-3 flex-1 lg:flex flex-col text-sm text-blue-700 lg:justify-between prose prose-sm max-w-full">
               <p class="text-sm text-blue-700">
                 Your data on Atlos is fully portable. You can export your project's data to a spreadsheet (CSV), or you can export all of your project's data and media to a zip file.
               </p>
@@ -53,7 +53,7 @@ defmodule PlatformWeb.ProjectsLive.ExportComponent do
         </div>
         <.card no_pad={true} class="grow border">
           <div class="divide-y grid grid-cols-1">
-            <div class="md:flex gap-4 justify-between py-4 px-5 sm:py-5">
+            <div class="lg:flex gap-4 justify-between py-4 px-5 sm:py-5">
               <div>
                 <p class="sec-head">Export Incidents</p>
                 <p class="sec-subhead">Export metadata about all incidents in this project.</p>
@@ -72,7 +72,7 @@ defmodule PlatformWeb.ProjectsLive.ExportComponent do
 
             <div
               :if={feature_available?(:full_export)}
-              class="md:flex gap-4 justify-between py-4 px-5 sm:py-5"
+              class="lg:flex gap-4 justify-between py-4 px-5 sm:py-5"
             >
               <div>
                 <p class="sec-head">Full Export</p>

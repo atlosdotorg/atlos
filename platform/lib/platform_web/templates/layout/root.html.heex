@@ -36,7 +36,7 @@
       name="active_project_id"
       content={if assigns[:active_project], do: assigns[:active_project].id, else: nil}
     />
-    <link href="https://api.mapbox.com/mapbox-gl-js/v2.8.0/mapbox-gl.css" rel="stylesheet" />
+    <link href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css" rel="stylesheet" />
     <%= if assigns[:iframe_mode] do %>
       <base target="_parent" />
     <% end %>
@@ -46,6 +46,9 @@
           background-color: #fde68a !important;
         }
       </style>
+    <% end %>
+    <%= if assigns[:connect_websocket] == false do %>
+      <meta name="no-livesocket" content="true" />
     <% end %>
   </head>
   <body>
