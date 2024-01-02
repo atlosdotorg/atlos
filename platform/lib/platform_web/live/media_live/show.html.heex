@@ -23,13 +23,14 @@
         <%= if(
        Permissions.can_edit_media?(@current_user, @media, Attribute.get_attribute(:description))
       ) do %>
-          <%= live_patch(class: title_classes <> "hover:bg-neutral-200 focus:bg-neutral-200",
-              to: Routes.media_show_path(@socket, :edit, @media.slug, :description),
-              "data-tooltip": "Edit description",
-              replace: true
-            ) do %>
+          <.link
+            class={title_classes <> "hover:bg-neutral-200 focus:bg-neutral-200"}
+            patch={Routes.media_show_path(@socket, :edit, @media.slug, :description)}
+            data-tooltip="Edit description"
+            replace={true}
+          >
             <%= @media.attr_description %>
-          <% end %>
+          </.link>
         <% else %>
           <div class={title_classes}>
             <%= @media.attr_description %>

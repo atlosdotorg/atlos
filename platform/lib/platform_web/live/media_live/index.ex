@@ -186,7 +186,7 @@ defmodule PlatformWeb.MediaLive.Index do
       media =
         case Jason.decode(selection) do
           {:ok, %{"all" => true}} ->
-            {query, pagination_options} =
+            {query, _pagination_options} =
               Material.MediaSearch.search_query(
                 Material.Media,
                 socket.assigns.changeset,
@@ -330,7 +330,7 @@ defmodule PlatformWeb.MediaLive.Index do
 
              :ok
 
-           {:error, %Ecto.Changeset{} = cs} ->
+           {:error, %Ecto.Changeset{}} ->
              :error
          end
        end,
