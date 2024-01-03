@@ -9,7 +9,6 @@ defmodule PlatformWeb.Components do
   alias Platform.Material.Media
   alias Platform.Material
   alias Platform.Utils
-  alias Platform.Notifications
   alias Platform.Uploads
   alias PlatformWeb.Router.Helpers, as: Routes
   alias Platform.Permissions
@@ -883,9 +882,12 @@ defmodule PlatformWeb.Components do
                           project: @update.media.project
                         ) %> updated
                       <%= if not is_nil(attr) do %>
-                        <%= live_patch class: "text-button text-gray-800 inline-block", to: "/incidents/#{@update.media.slug}/history/#{attr.name}" do %>
+                        <.link
+                          class="text-button text-gray-800 inline-block"
+                          patch={"/incidents/#{@update.media.slug}/history/#{attr.name}"}
+                        >
                           <%= attr.label %> &nearr;
-                        <% end %>
+                        </.link>
                       <% else %>
                         a deleted or unknown attribute
                       <% end %>
@@ -1158,11 +1160,13 @@ defmodule PlatformWeb.Components do
           <dt class="text-sm font-medium text-gray-500 mt-1">Add Attributes</dt>
           <dd class="mt-1 flex flex-wrap gap-2 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
             <%= for attr <- @unset_attrs do %>
-              <%= live_patch("+ #{attr.label}",
-                class: "button original",
-                to: Routes.media_show_path(@socket, :edit, @media.slug, attr.name),
-                replace: true
-              ) %>
+              <.link
+                class="button original"
+                patch={Routes.media_show_path(@socket, :edit, @media.slug, attr.name)}
+                replace={true}
+              >
+                + <%= attr.label %>
+              </.link>
             <% end %>
           </dd>
         </div>
@@ -1397,9 +1401,10 @@ defmodule PlatformWeb.Components do
             </span>
           <% end %>
         </span>
-        <%= live_patch(class: "text-button inline-block mb-1",
-            to: Routes.media_show_path(@socket, :history, @media.slug, @attr.name)
-          ) do %>
+        <.link
+          class="text-button inline-block mb-1"
+          patch={Routes.media_show_path(@socket, :history, @media.slug, @attr.name)}
+        >
           <.user_stack users={
             @updates
             |> Enum.filter(&(&1.modified_attribute == to_string(@attr.name) || &1.type == :create))
@@ -1409,7 +1414,7 @@ defmodule PlatformWeb.Components do
             |> Enum.reject(&is_nil/1)
             |> Enum.take(1)
           } />
-        <% end %>
+        </.link>
       </dt>
       <dd class="mt-1 flex items-center text-sm text-gray-900 sm:mt-0 sm:col-span-2">
         <span class="flex-grow gap-1 flex flex-wrap">
@@ -1435,11 +1440,13 @@ defmodule PlatformWeb.Components do
         </span>
         <span class="ml-4 flex-shrink-0">
           <%= if Permissions.can_edit_media?(@current_user, @media, @attr) and not @immutable do %>
-            <%= live_patch("Update",
-              class: "text-button mt-1 inline-block",
-              to: Routes.media_show_path(@socket, :edit, @media.slug, @attr.name),
-              replace: true
-            ) %>
+            <.link
+              class="text-button mt-1 inline-block"
+              patch={Routes.media_show_path(@socket, :edit, @media.slug, @attr.name)}
+              replace={true}
+            >
+              Update
+            </.link>
           <% end %>
         </span>
       </dd>
