@@ -26,15 +26,16 @@ defmodule PlatformWeb.UpdatesLive.PaginatedMediaUpdateFeed do
       )
     )
     |> Permissions.filter_to_viewable_media(socket.assigns.current_user)
+    |> Enum.sort_by(& &1.last_update_time, {:desc, NaiveDateTime})
     |> Enum.map(fn m ->
       m
       |> Map.put(
         :updates,
         m.updates
+        |> Permissions.filter_to_viewable_updates(socket.assigns.current_user)
         |> Enum.sort_by(& &1.inserted_at, {:desc, NaiveDateTime})
         |> Enum.take(3)
         |> Enum.reverse()
-        |> Permissions.filter_to_viewable_updates(socket.assigns.current_user)
       )
     end)
   end

@@ -1007,7 +1007,11 @@ defmodule PlatformWeb.Components do
   def naive_pluralise(amt, word) when amt == 1, do: word
   def naive_pluralise(_amt, word), do: word <> "s"
 
-  defp time_delta_in_words(seconds) when seconds < 60 and seconds > -60 do
+  defp time_delta_in_words(seconds) when seconds < 60 and seconds >= 0 do
+    "just now"
+  end
+
+  defp time_delta_in_words(seconds) when seconds > -60 and seconds < 0 do
     "less than a minute"
   end
 
@@ -1072,7 +1076,7 @@ defmodule PlatformWeb.Components do
     else
       ~H"""
       <span data-tooltip={@full_display_time}>
-        <span :if={@ago <= 0}>in</span> <%= time_delta_in_words(@ago) %><span :if={@ago > 0}> ago</span>
+        <span :if={@ago <= 0}>in</span> <%= time_delta_in_words(@ago) %><span :if={@ago >= 60}> ago</span>
       </span>
       """
     end
