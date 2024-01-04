@@ -3738,7 +3738,6 @@ defmodule PlatformWeb.Components do
 
       #for latitude
       lat_meters = (1 / ((2 * pi / 360) * earth)) / 1000
-      IO.puts("prev_lat: #{prev_lat}")
       new_lat = prev_lat + (lat_movement * lat_meters)
 
       #for longtitude
