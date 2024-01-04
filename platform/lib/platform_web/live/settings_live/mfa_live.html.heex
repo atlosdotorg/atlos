@@ -99,24 +99,29 @@
         </div>
       </.card>
     <% else %>
-      <.form :let={f} as={:access_otp} phx-submit="access_otp" for={@otp_gate} class="phx-form">
-        <div class="prose prose-sm">
-          <p>
+      <.card>
+        <:header>
+          <p class="sec-head">Security Check</p>
+          <p class="sec-subhead">
             To view your backup codes or disable MFA, please enter your current MFA code below.
           </p>
-          <%= label(f, :current_otp_code, "Current Code") %>
-          <%= text_input(f, :current_otp_code,
-            placeholder: "Enter the code from your authenticator app...",
-            class: "my-1",
-            required: true
+        </:header>
+        <.form :let={f} as={:access_otp} phx-submit="access_otp" for={@otp_gate} class="phx-form">
+          <div class="prose prose-sm">
+            <%= label(f, :current_otp_code, "Current Code") %>
+            <%= text_input(f, :current_otp_code,
+              placeholder: "Enter the code from your authenticator app...",
+              class: "my-1",
+              required: true
+            ) %>
+            <%= error_tag(f, :current_otp_code) %>
+          </div>
+          <%= submit("Continue",
+            phx_disable_with: "Validating...",
+            class: "button ~urge @high mt-4"
           ) %>
-          <%= error_tag(f, :current_otp_code) %>
-        </div>
-        <%= submit("Continue",
-          phx_disable_with: "Validating...",
-          class: "button ~urge @high mt-4"
-        ) %>
-      </.form>
+        </.form>
+      </.card>
     <% end %>
   <% end %>
 

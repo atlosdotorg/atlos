@@ -53,7 +53,7 @@ defmodule PlatformWeb.SettingsLive.BackupComponent do
             Generate backup codes to use in case you lose access to your authenticator app.
           </p>
         </:header>
-        <p>
+        <p class="-mt-1">
           <%= if length(@current_user.recovery_codes)>0 || length(@current_user.used_recovery_codes)>0 do %>
             <%= for code <- @current_user.recovery_codes do %>
               <span class="font-mono text-sm bg-gray-100 px-2 py-1 rounded mr-2 mt-2 inline-block">
@@ -70,9 +70,9 @@ defmodule PlatformWeb.SettingsLive.BackupComponent do
                     class: "button ~urge @high",
                     method: :post
                 do %>
-                  <div>
-                    <Heroicons.arrow_down_tray class="w-4 h-4 mr-1 inline-block" /> Download
-                  </div>
+                <div>
+                  <Heroicons.arrow_down_tray mini class="w-4 h-4 mr-1 inline-block" /> Download
+                </div>
               <% end %>
               <button
                 phx-click="generate_recovery_codes"
@@ -81,7 +81,7 @@ defmodule PlatformWeb.SettingsLive.BackupComponent do
                 class="button ~urge @high mt-4"
               >
                 <span class="phx-only-during-reg">
-                  <Heroicons.arrow_path class="w-4 h-4 mr-1 inline-block" /> Regenerate Codes
+                  <Heroicons.arrow_path mini class="w-4 h-4 mr-1 inline-block" /> Regenerate Codes
                 </span>
                 <span class="phx-only-during-submit">
                   <.loading_spinner text="Generating..." />
@@ -94,7 +94,7 @@ defmodule PlatformWeb.SettingsLive.BackupComponent do
                 class="button ~critical @high mt-4"
               >
                 <span class="phx-only-during-reg">
-                  <Heroicons.trash class="w-4 h-4 mr-1 inline-block" /> Delete All Codes
+                  <Heroicons.trash mini class="w-4 h-4 mr-1 inline-block" /> Delete All Codes
                 </span>
                 <span class="phx-only-during-submit">
                   <.loading_spinner text="Deleting..." />
@@ -102,6 +102,9 @@ defmodule PlatformWeb.SettingsLive.BackupComponent do
               </button>
             </div>
           <% else %>
+            <p class="support">
+              You currently don't have any backup codes setup. Backup codes can be used to log into Atlos if you lose access to your authenticator app.
+            </p>
             <button
               phx-click="generate_recovery_codes"
               phx-disable-with="Generating codes..."
