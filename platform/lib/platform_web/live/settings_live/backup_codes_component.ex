@@ -56,12 +56,12 @@ defmodule PlatformWeb.SettingsLive.BackupComponent do
         <p class="-mt-1">
           <%= if length(@current_user.recovery_codes)>0 || length(@current_user.used_recovery_codes)>0 do %>
             <%= for code <- @current_user.recovery_codes do %>
-              <span class="font-mono text-sm bg-gray-100 px-2 py-1 rounded mr-2 mt-2 inline-block">
+              <span class="font-mono bg-gray-100 px-2 py-1 rounded mr-2 mt-2 inline-block">
                 <%= Platform.Utils.format_recovery_code(code) %>
               </span>
             <% end %>
             <%= for code <- @current_user.used_recovery_codes do %>
-              <span class="font-mono text-sm bg-gray-100 px-2 py-1 rounded mr-2 mt-2 inline-block line-through">
+              <span class="font-mono bg-gray-100 px-2 py-1 rounded mr-2 mt-2 inline-block line-through">
                 <%= Platform.Utils.format_recovery_code(code) %>
               </span>
             <% end %>
