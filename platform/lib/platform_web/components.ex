@@ -14,6 +14,8 @@ defmodule PlatformWeb.Components do
   alias PlatformWeb.Router.Helpers, as: Routes
   alias Platform.Permissions
 
+  alias :crypto, as: Crypto
+
   def navlink(%{request_path: path} = assigns) do
     assigns =
       assigns
@@ -3717,7 +3719,40 @@ defmodule PlatformWeb.Components do
         _ -> {35, 35}
       end
 
+
     assigns = assign(assigns, :lat, lat) |> assign(:lon, lon)
+
+    map_data = Enum.map(map_data, fn incident ->
+      seed = incident[:id]
+      {prev_lat, _} =  Float.parse(incident[:lat])
+      {prev_lon, _} = Float.parse(incident[:lon])
+
+      # Generate a random number of movement between 0 and 1 meter for each directions
+      hash = :erlang.phash2(seed)
+      _ = :rand.seed(:exsss, {hash, hash, hash})
+
+      lat_movement = :rand.uniform(100)/100
+      lon_movement = :rand.uniform(100)/100
+
+      #calculate new coordinates
+      earth = 6378.137
+      pi = 3.141592653589793238462643383279502884197169399375105820974944592307816406286
+
+      #for latitude
+      lat_meters = (1 / ((2 * pi / 360) * earth)) / 1000
+      IO.puts("prev_lat: #{prev_lat}")
+      new_lat = prev_lat + (lat_movement * lat_meters)
+
+      #for longtitude
+      lon_meters = (1 / ((2 * pi / 360) * earth)) / 1000
+      new_lon = prev_lon + (lon_movement * lon_meters) / :math.cos(new_lat * (pi / 180));
+
+      updated_incident = %{incident | lat: new_lat, lon: new_lon}
+      updated_incident
+
+    end)
+
+    assigns = assign(assigns, :map_data, map_data)
 
     ~H"""
     <map-events

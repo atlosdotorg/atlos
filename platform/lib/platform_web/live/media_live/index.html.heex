@@ -284,7 +284,7 @@
             |> Enum.map(fn item ->
               {lon, lat} = item.attr_geolocation.coordinates
 
-              %{
+              %{id: item.id,
                 slug: item.slug,
                 # Stringify to avoid floating point issues
                 lat: "#{lat}",
