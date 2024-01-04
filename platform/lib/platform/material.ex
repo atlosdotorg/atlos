@@ -83,6 +83,7 @@ defmodule Platform.Material do
     end)
     |> maybe_filter_accessible_to_user(opts)
     |> load_media_color()
+    |> order_by(desc: :inserted_at)
   end
 
   @doc """
@@ -138,7 +139,7 @@ defmodule Platform.Material do
       |> offset(^Keyword.get(opts, :offset, 0))
 
     _query_media(query, Keyword.put(opts, :distinct, false))
-    |> order_by([m, update: u],
+    |> prepend_order_by([m, update: u],
       desc: fragment("MAX(?) OVER (PARTITION BY ?)", u.inserted_at, m.id),
       desc: m.id
     )
