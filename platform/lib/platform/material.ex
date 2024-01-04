@@ -83,7 +83,6 @@ defmodule Platform.Material do
     end)
     |> maybe_filter_accessible_to_user(opts)
     |> load_media_color()
-    |> order_by(desc: :inserted_at)
   end
 
   @doc """
@@ -130,15 +129,19 @@ defmodule Platform.Material do
       |> join(:left, [m], u in assoc(m, :updates), as: :update)
       |> where([m, update: u], ^filter_user)
       |> where([m, update: u], ^filter_project_id)
-      |> order_by([m, update: u], desc: u.inserted_at)
       |> preload([m, update: u], updates: u)
       |> preload([m, update: u], updates: [media: [:project]])
-      |> select_merge([m, update: u], %{last_update_time: u.inserted_at})
-      |> order_by([m, update: u], desc: m.id)
+      |> select_merge([m, update: u], %{
+        last_update_time: fragment("MAX(?) OVER (PARTITION BY ?)", u.inserted_at, m.id)
+      })
       |> limit(^Keyword.get(opts, :limit, 25))
       |> offset(^Keyword.get(opts, :offset, 0))
 
-    _query_media(query, opts)
+    _query_media(query, Keyword.put(opts, :distinct, false))
+    |> order_by([m, update: u],
+      desc: fragment("MAX(?) OVER (PARTITION BY ?)", u.inserted_at, m.id),
+      desc: m.id
+    )
     |> Repo.all()
   end
 
@@ -202,9 +205,15 @@ defmodule Platform.Material do
       },
       where: ^(not Keyword.get(opts, :limit_to_unread_notifications, false)) or not is_nil(n),
       where: ^(not Keyword.get(opts, :limit_to_subscriptions, false)) or not is_nil(s),
-      where: ^(not Keyword.get(opts, :limit_to_assignments, false)) or not is_nil(a),
-      distinct: [m.id]
+      where: ^(not Keyword.get(opts, :limit_to_assignments, false)) or not is_nil(a)
     )
+    |> then(fn query ->
+      if Keyword.get(opts, :distinct, true) do
+        query |> distinct([m], m.id)
+      else
+        query
+      end
+    end)
   end
 
   def maybe_filter_accessible_to_user(query, opts) do
