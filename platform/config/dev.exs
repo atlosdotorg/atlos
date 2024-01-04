@@ -37,7 +37,7 @@ config :platform, PlatformWeb.Endpoint,
     ]
   ]
 
-config :logger, level: :info
+config :logger, level: :debug
 
 # ## SSL Support
 #
