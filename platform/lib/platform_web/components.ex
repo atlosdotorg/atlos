@@ -14,8 +14,6 @@ defmodule PlatformWeb.Components do
   alias PlatformWeb.Router.Helpers, as: Routes
   alias Platform.Permissions
 
-  alias :crypto, as: Crypto
-
   def navlink(%{request_path: path} = assigns) do
     assigns =
       assigns
