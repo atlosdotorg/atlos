@@ -17,4 +17,4 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: superfly/flyctl-actions/setup-flyctl@master
-      - run: flyctl deploy --config deployments/fly.gap.toml --build-arg APP_REVISION=${{ github.sha }} --wait-timeout 300
+      - run: LOG_LEVEL=debug flyctl deploy --config deployments/fly.gap.toml --build-arg APP_REVISION=${{ github.sha }} --wait-timeout 300
