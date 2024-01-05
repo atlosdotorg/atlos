@@ -1,7 +1,6 @@
 defmodule PlatformWeb.ProjectsLive.ExportComponent do
   use PlatformWeb, :live_component
 
-  alias Platform.Permissions
 
   def render(assigns) do
     ~H"""
