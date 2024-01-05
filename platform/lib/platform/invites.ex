@@ -206,7 +206,7 @@ defmodule Platform.Invites do
     else
       # If the code is single use, mark it as used
       if invite.single_use do
-        ^invite = update_invite(invite, %{active: false})
+        {:ok, _} = update_invite(invite, %{active: false})
       end
 
       # Create an invite use
