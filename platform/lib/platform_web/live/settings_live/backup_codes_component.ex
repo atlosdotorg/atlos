@@ -43,7 +43,20 @@ defmodule PlatformWeb.SettingsLive.BackupComponent do
     end
   end
 
+  def handle_event("download", _v, socket) do
+    {:noreply, socket |> redirect(to: Routes.export_path(socket, :create_backup_codes_export, %{
+      :token => Phoenix.Token.sign(PlatformWeb.Endpoint, "backup_codes_export", %{
+        :uid => socket.assigns.current_user.id
+      })
+    }
+    ), method: :post
+    )}
+  end
+
   def render(assigns) do
+    token = Phoenix.Token.sign(PlatformWeb.Endpoint, "backup_codes_export", %{
+      :uid => assigns.current_user.id
+    })
     ~H"""
     <div>
       <.card>
@@ -66,7 +79,9 @@ defmodule PlatformWeb.SettingsLive.BackupComponent do
               </span>
             <% end %>
             <div>
-              <%= button type: "button", to: Routes.export_path(@socket, :create_backup_codes_export, %{}),
+              <%= button type: "button", to: Routes.export_path(@socket, :create_backup_codes_export, %{
+                :token => token
+              }),
                     class: "button ~urge @high",
                     method: :post
                 do %>
