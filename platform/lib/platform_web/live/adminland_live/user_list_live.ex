@@ -97,7 +97,7 @@ defmodule PlatformWeb.AdminlandLive.UserListLive do
                         <% end %>
                       </td>
                       <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                        <.link patch={ "/profile/#{user.username}"} class="text-button">
+                        <.link patch={"/profile/#{user.username}"} class="text-button">
                           Details
                         </.link>
                       </td>
