@@ -273,19 +273,19 @@ defmodule Platform.Material.MediaSearch do
             uploaded_desc
 
           "uploaded_asc" ->
-            {queryable |> Ecto.Query.order_by([i], asc: i.inserted_at), []}
+            {queryable |> Ecto.Query.prepend_order_by([i], asc: i.inserted_at), []}
 
           "modified_desc" ->
-            {queryable |> Ecto.Query.order_by([i], desc: i.updated_at), []}
+            {queryable |> Ecto.Query.prepend_order_by([i], desc: i.updated_at), []}
 
           "modified_asc" ->
-            {queryable |> Ecto.Query.order_by([i], asc: i.updated_at), []}
+            {queryable |> Ecto.Query.prepend_order_by([i], asc: i.updated_at), []}
 
           "description_desc" ->
-            {queryable |> Ecto.Query.order_by([i], desc: i.attr_description), []}
+            {queryable |> Ecto.Query.prepend_order_by([i], desc: i.attr_description), []}
 
           "description_asc" ->
-            {queryable |> Ecto.Query.order_by([i], asc: i.attr_description), []}
+            {queryable |> Ecto.Query.prepend_order_by([i], asc: i.attr_description), []}
         end
     end
   end
