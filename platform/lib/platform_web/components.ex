@@ -3741,23 +3741,15 @@ defmodule PlatformWeb.Components do
             hash = :erlang.phash2(seed)
             _ = :rand.seed(:exsss, {hash, hash, hash})
 
-            lat_movement = :rand.uniform(100) / 100
-            lon_movement = :rand.uniform(100) / 100
+            lat_movement = :rand.uniform()
+            lon_movement = :rand.uniform()
 
-            # calculate new coordinates
-            earth = 6378.137
-            pi = 3.141592653589793238462643383279502884197169399375105820974944592307816406286
+            # Calculate new coordinates
+            lat_lon_meters = 0.0009
+            new_lat = prev_lat + lat_movement * lat_lon_meters
+            new_lon = prev_lon + lon_movement * lat_lon_meters
 
-            # for latitude
-            lat_meters = 1 / (2 * pi / 360 * earth) / 1000
-            IO.puts("prev_lat: #{prev_lat}")
-            new_lat = prev_lat + lat_movement * lat_meters
-
-            # for longtitude
-            lon_meters = 1 / (2 * pi / 360 * earth) / 1000
-            new_lon = prev_lon + lon_movement * lon_meters / :math.cos(new_lat * (pi / 180))
-
-            updated_incident = %{incident | lat: new_lat, lon: new_lon}
+            updated_incident = %{incident | lat: "#{new_lat}", lon: "#{new_lon}"}
             updated_incident
         end
       end)
