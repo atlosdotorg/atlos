@@ -3752,7 +3752,7 @@ defmodule PlatformWeb.Components do
   def pagination_controls(assigns) do
     ~H"""
     <nav class="flex items-center justify-center sm:justify-between w-full" aria-label="Pagination">
-      <%= if @pagination_metadata.total_count > 51 do %>
+      <%= if @pagination_metadata.total_count > 50 do %>
         <div class="flex flex-1 gap-2 md:mr-8" phx-hook="ScrollToTop" id={@id}>
           <%= if not is_nil(@pagination_metadata.before) do %>
             <.link patch={@prev_link} class="text-button">
