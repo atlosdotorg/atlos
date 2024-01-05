@@ -210,7 +210,7 @@ defmodule Platform.Material do
     )
     |> then(fn query ->
       if Keyword.get(opts, :distinct, true) do
-        query |> distinct([m], m.id)
+        query |> distinct(true)
       else
         query
       end
