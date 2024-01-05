@@ -3717,37 +3717,50 @@ defmodule PlatformWeb.Components do
         _ -> {35, 35}
       end
 
-
     assigns = assign(assigns, :lat, lat) |> assign(:lon, lon)
 
-    map_data = Enum.map(map_data, fn incident ->
-      seed = incident[:id]
-      {prev_lat, _} =  Float.parse(incident[:lat])
-      {prev_lon, _} = Float.parse(incident[:lon])
+    duplicates =
+      map_data
+      |> Enum.group_by(&{&1.lat, &1.lon})
+      |> Enum.filter(fn {_coord, items} -> length(items) > 1 end)
+      |> Enum.flat_map(fn {_coord, items} -> items end)
 
-      # Generate a random number of movement between 0 and 1 meter for each directions
-      hash = :erlang.phash2(seed)
-      _ = :rand.seed(:exsss, {hash, hash, hash})
+    map_data =
+      Enum.map(map_data, fn incident ->
+        case Enum.find_value(duplicates, &(&1.id == incident.id)) do
+          # If not a duplicate, keep the original data
+          nil ->
+            incident
 
-      lat_movement = :rand.uniform(100)/100
-      lon_movement = :rand.uniform(100)/100
+          _ ->
+            seed = incident[:id]
+            {prev_lat, _} = Float.parse(incident[:lat])
+            {prev_lon, _} = Float.parse(incident[:lon])
 
-      #calculate new coordinates
-      earth = 6378.137
-      pi = 3.141592653589793238462643383279502884197169399375105820974944592307816406286
+            # Generate a random number of movement between 0 and 1 meter for each direction
+            hash = :erlang.phash2(seed)
+            _ = :rand.seed(:exsss, {hash, hash, hash})
 
-      #for latitude
-      lat_meters = (1 / ((2 * pi / 360) * earth)) / 1000
-      new_lat = prev_lat + (lat_movement * lat_meters)
+            lat_movement = :rand.uniform(100) / 100
+            lon_movement = :rand.uniform(100) / 100
 
-      #for longtitude
-      lon_meters = (1 / ((2 * pi / 360) * earth)) / 1000
-      new_lon = prev_lon + (lon_movement * lon_meters) / :math.cos(new_lat * (pi / 180));
+            # calculate new coordinates
+            earth = 6378.137
+            pi = 3.141592653589793238462643383279502884197169399375105820974944592307816406286
 
-      updated_incident = %{incident | lat: new_lat, lon: new_lon}
-      updated_incident
+            # for latitude
+            lat_meters = 1 / (2 * pi / 360 * earth) / 1000
+            IO.puts("prev_lat: #{prev_lat}")
+            new_lat = prev_lat + lat_movement * lat_meters
 
-    end)
+            # for longtitude
+            lon_meters = 1 / (2 * pi / 360 * earth) / 1000
+            new_lon = prev_lon + lon_movement * lon_meters / :math.cos(new_lat * (pi / 180))
+
+            updated_incident = %{incident | lat: new_lat, lon: new_lon}
+            updated_incident
+        end
+      end)
 
     assigns = assign(assigns, :map_data, map_data)
 
