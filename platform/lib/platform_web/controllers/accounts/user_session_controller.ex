@@ -1,5 +1,4 @@
 defmodule PlatformWeb.UserSessionController do
-  require Logger
   use PlatformWeb, :controller
 
   alias Platform.Accounts

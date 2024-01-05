@@ -277,9 +277,7 @@ defmodule Platform.Utils do
     if code == nil do
       nil
     else
-      code
-      |> String.split(" ", trim: true)
-      |> Enum.join("")
+      String.replace(code, " ", "")
     end
   end
 

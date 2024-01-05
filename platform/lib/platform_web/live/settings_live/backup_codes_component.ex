@@ -54,7 +54,7 @@ defmodule PlatformWeb.SettingsLive.BackupComponent do
           </p>
         </:header>
         <p class="-mt-1">
-          <%= if length(@current_user.recovery_codes)>0 || length(@current_user.used_recovery_codes)>0 do %>
+          <%= if not (Enum.empty?(@current_user.recovery_codes) and Enum.empty?(@current_user.used_recovery_codes)) do %>
             <%= for code <- @current_user.recovery_codes do %>
               <span class="font-mono bg-gray-100 px-2 py-1 rounded mr-2 mt-2 inline-block">
                 <%= Platform.Utils.format_recovery_code(code) %>
