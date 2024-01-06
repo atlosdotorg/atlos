@@ -3745,7 +3745,7 @@ defmodule PlatformWeb.Components do
             lon_movement = :rand.uniform()
 
             # Calculate new coordinates
-            lat_lon_meters = 0.0009
+            lat_lon_meters = 0.000009
             new_lat = prev_lat + lat_movement * lat_lon_meters
             new_lon = prev_lon + lon_movement * lat_lon_meters
 
