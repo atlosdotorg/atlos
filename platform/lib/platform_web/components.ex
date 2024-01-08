@@ -3730,6 +3730,43 @@ defmodule PlatformWeb.Components do
 
     assigns = assign(assigns, :lat, lat) |> assign(:lon, lon)
 
+    duplicates =
+      map_data
+      |> Enum.group_by(&{&1.lat, &1.lon})
+      |> Enum.filter(fn {_coord, items} -> length(items) > 1 end)
+      |> Enum.flat_map(fn {_coord, items} -> items end)
+
+    map_data =
+      Enum.map(map_data, fn incident ->
+        case Enum.find_value(duplicates, &(&1.id == incident.id)) do
+          # If not a duplicate, keep the original data
+          nil ->
+            incident
+
+          _ ->
+            seed = incident[:id]
+            {prev_lat, _} = Float.parse(incident[:lat])
+            {prev_lon, _} = Float.parse(incident[:lon])
+
+            # Generate a random number of movement between 0 and 1 meter for each direction
+            hash = :erlang.phash2(seed)
+            _ = :rand.seed(:exsss, {hash, hash, hash})
+
+            lat_movement = :rand.uniform()
+            lon_movement = :rand.uniform()
+
+            # Calculate new coordinates
+            lat_lon_meters = 0.000009
+            new_lat = prev_lat + lat_movement * lat_lon_meters
+            new_lon = prev_lon + lon_movement * lat_lon_meters
+
+            updated_incident = %{incident | lat: "#{new_lat}", lon: "#{new_lon}"}
+            updated_incident
+        end
+      end)
+
+    assigns = assign(assigns, :map_data, map_data)
+
     ~H"""
     <map-events
       lat={@lat}
