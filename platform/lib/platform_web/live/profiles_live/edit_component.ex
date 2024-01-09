@@ -108,7 +108,7 @@ defmodule PlatformWeb.ProfilesLive.EditComponent do
               </div>
               <p class="support">
                 For more information about roles on Atlos, view our <a
-                  href="https://github.com/atlosdotorg/atlos/blob/main/policy/ROLES.md"
+                  href="https://docs.atlos.org/investigations/collaboration/#roles--permissions"
                   class="underline"
                   target="blank"
                 >role documentation</a>.

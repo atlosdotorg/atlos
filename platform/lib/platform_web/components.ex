@@ -3586,10 +3586,10 @@ defmodule PlatformWeb.Components do
       </p>
       <p>
         By using Atlos, you agree to our
-        <a href="https://github.com/atlosdotorg/atlos/blob/main/policy/TERMS_OF_USE.md">
+        <a href="https://docs.atlos.org/legal/terms/">
           <span class="underline">Terms</span>
         </a>
-        and <a href="https://github.com/atlosdotorg/atlos/blob/main/policy/PRIVACY_POLICY.md"><span class="underline">Privacy Policy</span></a>.
+        and <a href="https://docs.atlos.org/legal/privacy-policy/"><span class="underline">Privacy Policy</span></a>.
       </p>
     </div>
     """
