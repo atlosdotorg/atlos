@@ -20,13 +20,6 @@ resource "azurerm_subnet" "container_app_subnet" {
   address_prefixes     = ["10.0.128.0/21"]
 }
 
-resource "azurerm_container_app_environment_certificate" "origin_certificate" {
-  name                         = "origin-certificate-${local.stack}"
-  container_app_environment_id = azurerm_container_app_environment.platform.id
-  certificate_blob_base64      = base64encode(var.origin_certificate)
-  certificate_password         = ""
-}
-
 resource "azurerm_container_app_environment" "platform" {
   name                       = "ca-environment-main-${local.stack}"
   location                   = azurerm_resource_group.platform.location
@@ -50,15 +43,16 @@ resource "azurerm_container_app" "platform" {
     target_port                = 4000
     transport                  = "http"
 
-    custom_domain {
-      name           = var.host
-      certificate_id = azurerm_container_app_environment_certificate.origin_certificate.id
-    }
-
     traffic_weight {
       percentage      = 100
       latest_revision = true
     }
+  }
+
+  lifecycle {
+    ignore_changes = [
+      ingress[0].custom_domain
+    ]
   }
 
   timeouts {
