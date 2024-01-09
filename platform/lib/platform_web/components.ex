@@ -9,7 +9,6 @@ defmodule PlatformWeb.Components do
   alias Platform.Material.Media
   alias Platform.Material
   alias Platform.Utils
-  alias Platform.Notifications
   alias Platform.Uploads
   alias PlatformWeb.Router.Helpers, as: Routes
   alias Platform.Permissions
@@ -883,9 +882,12 @@ defmodule PlatformWeb.Components do
                           project: @update.media.project
                         ) %> updated
                       <%= if not is_nil(attr) do %>
-                        <%= live_patch class: "text-button text-gray-800 inline-block", to: "/incidents/#{@update.media.slug}/history/#{attr.name}" do %>
+                        <.link
+                          class="text-button text-gray-800 inline-block"
+                          patch={"/incidents/#{@update.media.slug}/history/#{attr.name}"}
+                        >
                           <%= attr.label %> &nearr;
-                        <% end %>
+                        </.link>
                       <% else %>
                         a deleted or unknown attribute
                       <% end %>
@@ -1162,11 +1164,13 @@ defmodule PlatformWeb.Components do
           <dt class="text-sm font-medium text-gray-500 mt-1">Add Attributes</dt>
           <dd class="mt-1 flex flex-wrap gap-2 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
             <%= for attr <- @unset_attrs do %>
-              <%= live_patch("+ #{attr.label}",
-                class: "button original",
-                to: Routes.media_show_path(@socket, :edit, @media.slug, attr.name),
-                replace: true
-              ) %>
+              <.link
+                class="button original"
+                patch={Routes.media_show_path(@socket, :edit, @media.slug, attr.name)}
+                replace={true}
+              >
+                + <%= attr.label %>
+              </.link>
             <% end %>
           </dd>
         </div>
@@ -1401,9 +1405,10 @@ defmodule PlatformWeb.Components do
             </span>
           <% end %>
         </span>
-        <%= live_patch(class: "text-button inline-block mb-1",
-            to: Routes.media_show_path(@socket, :history, @media.slug, @attr.name)
-          ) do %>
+        <.link
+          class="text-button inline-block mb-1"
+          patch={Routes.media_show_path(@socket, :history, @media.slug, @attr.name)}
+        >
           <.user_stack users={
             @updates
             |> Enum.filter(&(&1.modified_attribute == to_string(@attr.name) || &1.type == :create))
@@ -1413,7 +1418,7 @@ defmodule PlatformWeb.Components do
             |> Enum.reject(&is_nil/1)
             |> Enum.take(1)
           } />
-        <% end %>
+        </.link>
       </dt>
       <dd class="mt-1 flex items-center text-sm text-gray-900 sm:mt-0 sm:col-span-2">
         <span class="flex-grow gap-1 flex flex-wrap">
@@ -1439,11 +1444,13 @@ defmodule PlatformWeb.Components do
         </span>
         <span class="ml-4 flex-shrink-0">
           <%= if Permissions.can_edit_media?(@current_user, @media, @attr) and not @immutable do %>
-            <%= live_patch("Update",
-              class: "text-button mt-1 inline-block",
-              to: Routes.media_show_path(@socket, :edit, @media.slug, @attr.name),
-              replace: true
-            ) %>
+            <.link
+              class="text-button mt-1 inline-block"
+              patch={Routes.media_show_path(@socket, :edit, @media.slug, @attr.name)}
+              replace={true}
+            >
+              Update
+            </.link>
           <% end %>
         </span>
       </dd>
@@ -3723,6 +3730,43 @@ defmodule PlatformWeb.Components do
 
     assigns = assign(assigns, :lat, lat) |> assign(:lon, lon)
 
+    duplicates =
+      map_data
+      |> Enum.group_by(&{&1.lat, &1.lon})
+      |> Enum.filter(fn {_coord, items} -> length(items) > 1 end)
+      |> Enum.flat_map(fn {_coord, items} -> items end)
+
+    map_data =
+      Enum.map(map_data, fn incident ->
+        case Enum.find_value(duplicates, &(&1.id == incident.id)) do
+          # If not a duplicate, keep the original data
+          nil ->
+            incident
+
+          _ ->
+            seed = incident[:id]
+            {prev_lat, _} = Float.parse(incident[:lat])
+            {prev_lon, _} = Float.parse(incident[:lon])
+
+            # Generate a random number of movement between 0 and 1 meter for each direction
+            hash = :erlang.phash2(seed)
+            _ = :rand.seed(:exsss, {hash, hash, hash})
+
+            lat_movement = :rand.uniform()
+            lon_movement = :rand.uniform()
+
+            # Calculate new coordinates
+            lat_lon_meters = 0.000009
+            new_lat = prev_lat + lat_movement * lat_lon_meters
+            new_lon = prev_lon + lon_movement * lat_lon_meters
+
+            updated_incident = %{incident | lat: "#{new_lat}", lon: "#{new_lon}"}
+            updated_incident
+        end
+      end)
+
+    assigns = assign(assigns, :map_data, map_data)
+
     ~H"""
     <map-events
       lat={@lat}
@@ -3756,50 +3800,52 @@ defmodule PlatformWeb.Components do
   def pagination_controls(assigns) do
     ~H"""
     <nav class="flex items-center justify-center sm:justify-between w-full" aria-label="Pagination">
-      <div class="flex flex-1 gap-2 md:mr-8" phx-hook="ScrollToTop" id={@id}>
-        <%= if not is_nil(@pagination_metadata.before) do %>
-          <.link patch={@prev_link} class="text-button">
-            <Heroicons.arrow_left mini class="h-6 w-6" />
-            <span class="sr-only">Previous</span>
-          </.link>
-        <% else %>
-          <span class="cursor-not-allowed opacity-75 text-neutral-600">
-            <Heroicons.arrow_left mini class="h-6 w-6" />
-            <span class="sr-only">Previous</span>
-          </span>
-        <% end %>
-        <%= if not is_nil(@pagination_metadata.after) do %>
-          <.link patch={@next_link} class="text-button">
-            <Heroicons.arrow_right mini class="h-6 w-6" />
-            <span class="sr-only">Next</span>
-          </.link>
-        <% else %>
-          <span class="cursor-not-allowed opacity-75 text-neutral-600">
-            <Heroicons.arrow_right mini class="h-6 w-6" />
-            <span class="sr-only">Next</span>
-          </span>
-        <% end %>
-      </div>
-      <div class="hidden sm:block">
-        <p class="text-sm text-gray-700">
-          Showing results
-          <span class="font-medium">
-            <%= (@pagination_index * @pagination_metadata.limit + 1) |> Formatter.format_number() %>
-          </span>
-          to
-          <span class="font-medium">
-            <%= (@pagination_index * @pagination_metadata.limit +
-                   @currently_displayed_results)
-            |> Formatter.format_number() %>
-          </span>
-          of
-          <span class="font-medium">
-            <%= @pagination_metadata.total_count |> Formatter.format_number() %><%= if @pagination_metadata.total_count_cap_exceeded,
-              do: "+",
-              else: "" %>
-          </span>
-        </p>
-      </div>
+      <%= if @pagination_metadata.total_count > 50 do %>
+        <div class="flex flex-1 gap-2 md:mr-8" phx-hook="ScrollToTop" id={@id}>
+          <%= if not is_nil(@pagination_metadata.before) do %>
+            <.link patch={@prev_link} class="text-button">
+              <Heroicons.arrow_left mini class="h-6 w-6" />
+              <span class="sr-only">Previous</span>
+            </.link>
+          <% else %>
+            <span class="cursor-not-allowed opacity-75 text-neutral-600">
+              <Heroicons.arrow_left mini class="h-6 w-6" />
+              <span class="sr-only">Previous</span>
+            </span>
+          <% end %>
+          <%= if not is_nil(@pagination_metadata.after) do %>
+            <.link patch={@next_link} class="text-button">
+              <Heroicons.arrow_right mini class="h-6 w-6" />
+              <span class="sr-only">Next</span>
+            </.link>
+          <% else %>
+            <span class="cursor-not-allowed opacity-75 text-neutral-600">
+              <Heroicons.arrow_right mini class="h-6 w-6" />
+              <span class="sr-only">Next</span>
+            </span>
+          <% end %>
+        </div>
+        <div class="hidden sm:block">
+          <p class="text-sm text-gray-700">
+            Showing results
+            <span class="font-medium">
+              <%= (@pagination_index * @pagination_metadata.limit + 1) |> Formatter.format_number() %>
+            </span>
+            to
+            <span class="font-medium">
+              <%= (@pagination_index * @pagination_metadata.limit +
+                    @currently_displayed_results)
+              |> Formatter.format_number() %>
+            </span>
+            of
+            <span class="font-medium">
+              <%= @pagination_metadata.total_count |> Formatter.format_number() %><%= if @pagination_metadata.total_count_cap_exceeded,
+                do: "+",
+                else: "" %>
+            </span>
+          </p>
+        </div>
+      <% end %>
     </nav>
     """
   end

@@ -255,6 +255,32 @@ defmodule Platform.Utils do
     |> Phoenix.HTML.raw()
   end
 
+  def generate_recovery_codes(n \\ 10) do
+    Enum.map(1..n, fn _ ->
+      :crypto.strong_rand_bytes(4)
+      |> :binary.decode_unsigned()
+      |> rem(100_000_000)
+      |> Integer.to_string()
+      |> String.pad_leading(8, "0")
+    end)
+  end
+
+  def format_recovery_code(code) do
+    code
+    |> String.split("", trim: true)
+    |> Enum.chunk_every(4)
+    |> Enum.map(&Enum.join(&1))
+    |> Enum.join(" ")
+  end
+
+  def parse_recovery_code(code) do
+    if code == nil do
+      nil
+    else
+      String.replace(code, " ", "")
+    end
+  end
+
   def get_instance_name() do
     System.get_env("INSTANCE_NAME")
   end

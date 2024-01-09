@@ -24,6 +24,8 @@ defmodule Platform.Accounts.User do
     field(:has_mfa, :boolean, default: false)
     field(:otp_secret, :binary, redact: true)
     field(:current_otp_code, :string, virtual: true, redact: true)
+    field(:recovery_codes, {:array, :string}, redact: true, default: [])
+    field(:used_recovery_codes, {:array, :string}, redact: true, default: [])
 
     # Platform settings and preferences
     field(:active_incidents_tab, :string, default: "map")
@@ -146,7 +148,7 @@ defmodule Platform.Accounts.User do
     end
   end
 
-  defp verify_otp_code(secret, code) do
+  def verify_otp_code(secret, code) do
     time = System.os_time(:second)
 
     NimbleTOTP.valid?(secret, code, time: time) or
@@ -195,22 +197,17 @@ defmodule Platform.Accounts.User do
   """
   def disable_mfa_changeset(user, attrs) do
     user
-    |> cast(attrs, [:current_otp_code, :password])
+    |> cast(attrs, [:password])
     |> put_change(:has_mfa, false)
     |> put_change(:otp_secret, nil)
-    |> validate_required([:has_mfa, :current_otp_code, :password])
+    |> put_change(:recovery_codes, [])
+    |> put_change(:used_recovery_codes, [])
+    |> validate_required([:has_mfa, :password])
     |> validate_change(:password, fn _, password ->
       if valid_password?(user, password) do
         []
       else
         [password: "This password is not correct."]
-      end
-    end)
-    |> validate_change(:current_otp_code, fn _, code ->
-      if verify_otp_code(user.otp_secret, code) do
-        []
-      else
-        [current_otp_code: "This code is not valid."]
       end
     end)
   end
@@ -229,6 +226,24 @@ defmodule Platform.Accounts.User do
         [current_otp_code: "This code is not valid."]
       end
     end)
+  end
+
+  def update_recovery_codes_changeset(user, attrs) do
+    user
+    |> cast(attrs, [:recovery_codes, :used_recovery_codes])
+  end
+
+  def verify_recovery_code(user, attrs) do
+    code = attrs["current_otp_code"] |> Platform.Utils.parse_recovery_code()
+
+    if code != nil && code in user.recovery_codes do
+      {:ok,
+       change(user)
+       |> put_change(:recovery_codes, user.recovery_codes -- [code])
+       |> put_change(:used_recovery_codes, user.used_recovery_codes ++ [code])}
+    else
+      {:err, nil}
+    end
   end
 
   @doc """

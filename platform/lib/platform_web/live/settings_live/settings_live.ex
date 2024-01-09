@@ -1,6 +1,5 @@
 defmodule PlatformWeb.SettingsLive do
   use PlatformWeb, :live_view
-  alias Platform.Accounts
 
   def mount(_params, _session, socket) do
     {:ok,
