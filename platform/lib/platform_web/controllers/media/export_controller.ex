@@ -218,31 +218,33 @@ defmodule PlatformWeb.ExportController do
   end
 
   def create_backup_codes_export(conn, %{"token" => tok}) do
-    with {:ok, %{:uid => uid} } <- Phoenix.Token.verify(PlatformWeb.Endpoint, "backup_codes_export", tok, max_age: 3600),
-      true <- uid == conn.assigns.current_user.id do
-          user = conn.assigns.current_user
-          codes =
-            user.recovery_codes
-            |> Enum.map(&Utils.format_recovery_code(&1))
+    with {:ok, %{:uid => uid}} <-
+           Phoenix.Token.verify(PlatformWeb.Endpoint, "backup_codes_export", tok, max_age: 3600),
+         true <- uid == conn.assigns.current_user.id do
+      user = conn.assigns.current_user
 
-          path = Temp.path!(suffix: "atlos-backup-codes.txt")
-          file = File.open!(path, [:write, :utf8])
+      codes =
+        user.recovery_codes
+        |> Enum.map(&Utils.format_recovery_code(&1))
 
-          file
-          |> IO.write("""
-          Atlos Backup Codes
+      path = Temp.path!(suffix: "atlos-backup-codes.txt")
+      file = File.open!(path, [:write, :utf8])
 
-          #{1..length(codes) |> Enum.zip(codes) |> Enum.map(fn {idx, code} -> "#{idx}. #{code}" end) |> Enum.join("\n")}
+      file
+      |> IO.write("""
+      Atlos Backup Codes
 
-          (#{user.email})
+      #{1..length(codes) |> Enum.zip(codes) |> Enum.map(fn {idx, code} -> "#{idx}. #{code}" end) |> Enum.join("\n")}
 
-          - You can only use each code once.
-          - Generate more at Account > Manage Account > Multi-factor auth
-          - Generated at #{DateTime.utc_now()}
-          """)
+      (#{user.email})
 
-          :ok = File.close(file)
-          send_download(conn, {:file, path}, filename: "atlos-backup-codes.txt")
+      - You can only use each code once.
+      - Generate more at Account > Manage Account > Multi-factor auth
+      - Generated at #{DateTime.utc_now()}
+      """)
+
+      :ok = File.close(file)
+      send_download(conn, {:file, path}, filename: "atlos-backup-codes.txt")
     else
       _ -> raise PlatformWeb.Errors.Unauthorized, "Token Invalid or Not Found"
     end

@@ -1,7 +1,6 @@
 defmodule PlatformWeb.ProjectsLive.ExportComponent do
   use PlatformWeb, :live_component
 
-
   def render(assigns) do
     ~H"""
     <section class="flex flex-col lg:flex-row my-8">

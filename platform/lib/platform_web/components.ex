@@ -3834,7 +3834,7 @@ defmodule PlatformWeb.Components do
             to
             <span class="font-medium">
               <%= (@pagination_index * @pagination_metadata.limit +
-                    @currently_displayed_results)
+                     @currently_displayed_results)
               |> Formatter.format_number() %>
             </span>
             of

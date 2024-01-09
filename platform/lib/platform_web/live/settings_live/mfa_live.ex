@@ -63,10 +63,10 @@ defmodule PlatformWeb.SettingsLive.MFALive do
     changeset = Accounts.confirm_user_mfa(socket.assigns.current_user, query)
 
     if changeset.valid? do
-      {:noreply, socket
-        |> assign(:otp_passed, true)
-        |> assign(:current_user, Ecto.Changeset.apply_changes(changeset))
-      }
+      {:noreply,
+       socket
+       |> assign(:otp_passed, true)
+       |> assign(:current_user, Ecto.Changeset.apply_changes(changeset))}
     else
       {:error, changeset} = changeset |> Ecto.Changeset.apply_action(:validate)
 
