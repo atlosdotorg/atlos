@@ -153,64 +153,10 @@ defmodule PlatformWeb.ProjectsLive.APITokensComponent do
                 <div class="mb-8 bg-urge-50 border border-urge-400 aside ~urge prose text-sm w-full min-w-full">
                   <p>
                     <strong class="text-blue-800">
-                      The beta Atlos API allows you to connect your project to external services.
+                      The beta <a class="text-blue-800" href="https://docs.atlos.org/technical/api/">Atlos API</a> allows you to connect your project to external services.
                     </strong>
-                    You can learn more about the API authentication scheme and endpoints below. API tokens are sensitive, as they allow access to your project. Keep them secret!
+                    API tokens are sensitive, as they allow access to your project. Learn more about how to use the Atlos API in our <a class="text-blue-800" href="https://docs.atlos.org/technical/api/">documentation</a>.
                   </p>
-                  <details class="-mt-2">
-                    <summary class="cursor-pointer font-medium">How to use the API</summary>
-                    <p>The Atlos API supports the following endpoints:</p>
-                    <ul>
-                      <li>
-                        <code>GET /api/v2/incidents</code>
-                        &mdash; returns all incidents, with the most recently modified incidents listed first.
-                      </li>
-                      <li>
-                        <code>GET /api/v2/source_material</code>
-                        &mdash; returns all source material, with the most recently modified source material listed first
-                      </li>
-                      <li>
-                        <code>POST /api/v2/add_comment/:slug</code>
-                        with string parameter <code>message</code>
-                        &mdash; adds a comment to the incident with slug <code>:slug</code>
-                        (the slug is the last part of the URL for the incident, and is also available in the
-                        <code>slug</code>
-                        field of the incident object)
-                      </li>
-                      <li>
-                        <code>POST /api/v2/update/:slug/:attribute_name</code>
-                        with parameter <code>value</code>
-                        and optional string parameter <code>message</code>
-                        &mdash; updates the value of <code>attribute_name</code>
-                        to <code>value</code>
-                        for the incident with slug <code>:slug</code>
-                        (the slug is the last part of the URL for the incident, and is also available in the
-                        <code>slug</code>
-                        field of the incident object). If <code>message</code>
-                        is provided, it will be added as a comment to the incident (as part of the tracked change). The value of
-                        <code>attribute_name</code>
-                        is available in the URL of the incident page when editing the incident. Core attributes have string names (such as
-                        <code>description</code>
-                        and <code>status</code>) while custom attributes are identified by their UUID. The
-                        <code>value</code>
-                        must be a string for text-based or single-select attributes, and a list of strings for multi-select attributes. Please note that the API is in beta and not all operations are necessarily supported; if you need something, please get in touch.
-                      </li>
-                    </ul>
-                    <p>
-                      All <code>GET</code>
-                      endpoints return 30 results at a time. You can paginate using the
-                      <code>cursor</code>
-                      query parameter, whose value is provided by the <code>next</code>
-                      and <code>previous</code>
-                      keys in the response. Results are available under the <code>results</code>
-                      key.
-                    </p>
-                    <p>
-                      To authenticate against the API, include a <code>Authorization</code>
-                      header and set its value to <code>Bearer &lt;your token&gt;</code>
-                      (without the brackets).
-                    </p>
-                  </details>
                 </div>
                 <div class="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
                   <div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
