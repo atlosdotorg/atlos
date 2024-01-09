@@ -1,0 +1,49 @@
+# Hugo configuration file
+title: Docs
+page:
+
+contentDir: content/docs
+enableInlineShortcodes: true
+
+# import hextra as module
+module:
+  imports:
+  - path: github.com/imfing/hextra
+
+markup:
+  # allow raw html
+  goldmark:
+    renderer:
+      unsafe: true
+
+  # enable hextra syntax highlight
+  highlight:
+    noClasses: false
+
+menu:
+  main:
+    - name: Search
+      weight: 5
+      params:
+        type: search
+    - name: Get Help on Discord Now ↗
+      url: "https://discord.gg/gqCcHc9Gav"
+      weight: 3
+
+params:
+  navbar:
+    width: normal
+    
+    displayLogo: true
+    logo: 
+      path: Logo.png
+      dark: Logodark.png
+      link: /
+      width: 60
+
+  footer:
+    displayCopyright: true
+    displayPoweredBy: false
+    width: normal
+
+  
