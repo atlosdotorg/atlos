@@ -3213,6 +3213,7 @@ defmodule PlatformWeb.Components do
     """
   end
 
+  # change this
   defp edit_attribute(%{attr: attr, form: form, media_slug: slug, project: _project} = assigns) do
     assigns =
       assigns
@@ -3308,6 +3309,15 @@ defmodule PlatformWeb.Components do
                 <%= error_tag(@f, @schema_field) %>
                 <%= error_tag(@f, :location) %>
               </p>
+            </div>
+            <div>
+              <%= label(@f, :address, "Address") %>
+              <%= text_input(@f, :address,
+                placeholder: "Enter the address (Main Street 123, City, Country)",
+                novalidate: true,
+                phx_debounce: "blur",
+                "x-on:input": "user_address = $event.target.value"
+              ) %>
             </div>
           </div>
         <% :time -> %>
@@ -3797,7 +3807,7 @@ defmodule PlatformWeb.Components do
             to
             <span class="font-medium">
               <%= (@pagination_index * @pagination_metadata.limit +
-                    @currently_displayed_results)
+                     @currently_displayed_results)
               |> Formatter.format_number() %>
             </span>
             of

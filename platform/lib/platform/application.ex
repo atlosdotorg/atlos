@@ -23,9 +23,10 @@ defmodule Platform.Application do
       # Start the task worker
       {Oban, Application.fetch_env!(:platform, Oban)},
       # Start the cluster supervisor
-      {Cluster.Supervisor, [topologies, [name: Platform.ClusterSupervisor]]}
+      {Cluster.Supervisor, [topologies, [name: Platform.ClusterSupervisor]]},
       # Start a worker by calling: Platform.Worker.start_link(arg)
       # {Platform.Worker, arg}
+      Geocoder.Supervisor
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

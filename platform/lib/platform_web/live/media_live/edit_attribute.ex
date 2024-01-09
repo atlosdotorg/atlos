@@ -78,6 +78,33 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
     # To allow empty strings, lists, etc.
     params = Map.get(input, "media", %{}) |> inject_attr_fields_if_missing(socket.assigns.attrs)
 
+    # To input coordinates, address, or a map pin
+    target = Enum.at(input["_target"], 1)
+
+    params =
+      case target do
+        "location" ->
+          with {:ok, coordinates} <- Geocoder.call(params["location"]) do
+            loc = coordinates.location.formatted_address
+            Map.put(params, "address", loc)
+          else
+            _ ->
+              params
+          end
+
+        "address" ->
+          with {:ok, coordinates} <- Geocoder.call(params["address"]) do
+            loc = "#{coordinates.lat}, #{coordinates.lon}"
+            Map.put(params, "location", loc)
+          else
+            _ ->
+              params
+          end
+
+        _ ->
+          params
+      end
+
     changeset =
       socket.assigns.media
       # When validating, don't require the change to exist (that will be validated on submit)
@@ -132,6 +159,7 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
           class="phx-form"
         >
           <div class="space-y-6">
+            <%!-- change this --> responsible for editing attributes --%>
             <.edit_attributes
               attrs={@attrs}
               form={f}

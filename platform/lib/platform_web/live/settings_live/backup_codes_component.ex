@@ -44,9 +44,11 @@ defmodule PlatformWeb.SettingsLive.BackupComponent do
   end
 
   def render(assigns) do
-    token = Phoenix.Token.sign(PlatformWeb.Endpoint, "backup_codes_export", %{
-      :uid => assigns.current_user.id
-    })
+    token =
+      Phoenix.Token.sign(PlatformWeb.Endpoint, "backup_codes_export", %{
+        :uid => assigns.current_user.id
+      })
+
     ~H"""
     <div>
       <.card>
