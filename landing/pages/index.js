@@ -1,9 +1,7 @@
 import Head from 'next/head'
 import Image from 'next/image'
-import mapboxgl from 'mapbox-gl';
+import maplibregl from 'maplibre-gl';
 import { useState, useEffect } from 'react';
-
-mapboxgl.accessToken = 'pk.eyJ1IjoibWlsZXNtY2MiLCJhIjoiY2t6ZzdzZmY0MDRobjJvbXBydWVmaXBpNSJ9.-aHM8bjOOsSrGI0VvZenAQ';
 
 function easing(t) {
   return t * (2 - t);
@@ -16,9 +14,9 @@ export default function Home() {
     setPageIsMounted(true)
     try {
       // This might fail if the user is on a browser without WebGL support
-      const map = new mapboxgl.Map({
+      const map = new maplibregl.Map({
         container: 'map', // container ID
-        style: 'mapbox://styles/milesmcc/cl2mejeca000d14p2wg8hm1eo', // style URL
+        style: 'https://api.maptiler.com/maps/f500afba-9462-4a87-a22c-11a73e457abb/style.json?key=3MNBcFq8hjQtKnOL3tae', // style URL
         center: [36.1457427, 49.9947277], // starting position [lng, lat]
         zoom: 9, // starting zoom
         pitch: 60,
@@ -51,7 +49,7 @@ export default function Home() {
             <p className='text-2xl pl-2'>
               <span className="text-white font-mono font-bold">ATLOS</span>
             </p>
-            <span class="grow"></span>
+            <span className="grow"></span>
             <a href="https://docs.atlos.org" className="text-sm font-medium shrink text-neutral-300 hover:text-white focus:text-white transition">Docs</a>
             <a href="https://platform.atlos.org" className="text-sm font-medium shrink text-neutral-300 hover:text-white focus:text-white transition">Log in</a>
             <a href="https://platform.atlos.org" className="text-sm font-medium shrink transition bg-white text-neutral-700 p-2 rounded">Join Atlos</a>
@@ -63,7 +61,7 @@ export default function Home() {
           </p>
           <section>
             <p className='text-xs text-white/50 text-center uppercase mt-16'>Atlos is a non-profit, open source platform supported by</p>
-            <div class="flex flex-wrap justify-center items-center gap-8 mt-4 opacity-[0.8]">
+            <div className="flex flex-wrap justify-center items-center gap-8 mt-4 opacity-[0.8]">
               <a href='https://www.microsoft.com/en-us/corporate-responsibility/democracy-forward'>
                 <Image src="/microsoft.svg" alt="The logo of Microsoft" height={141 / 3} width={520 / 3} />
               </a>
@@ -75,7 +73,7 @@ export default function Home() {
               </a>
             </div>
           </section>
-          <section class="lg:-mx-32">
+          <section className="lg:-mx-32">
             <Image src="/screenshots/map.jpeg" alt="A photo of the Atlos map" height={1588 / 2} width={2304 / 2} className='mt-16 rounded-lg border border-slate-800 border-2' />
             <p class="text-white/50 text-xs text-center mt-4">The Atlos map view, where you can see your geolocated incidents at a glance.</p>
           </section>
