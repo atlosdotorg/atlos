@@ -275,6 +275,27 @@ defmodule Platform.Material.Media do
   def import_changeset(media, attrs, %Projects.Project{} = project) do
     possible_attrs = Attribute.active_attributes(project: project)
 
+    # If "latitude" and "longitude" are present, we need to combine them into a single
+    # "geolocation" field.
+    attrs =
+      case {Map.get(attrs, "latitude"), Map.get(attrs, "longitude")} do
+        {nil, nil} ->
+          attrs
+
+        {"", ""} ->
+          attrs
+
+        {lat, lon} ->
+          # Remove all non-numeric characters
+          lat = String.replace(lat, ~r/[^0-9.-]/, "")
+          lon = String.replace(lon, ~r/[^0-9.-]/, "")
+
+          attrs
+          |> Map.put("location", "#{lat},#{lon}")
+          |> Map.delete("latitude")
+          |> Map.delete("longitude")
+      end
+
     # First, we rename and parse fields to match their internal representation.
     attrs =
       Enum.map(attrs, fn {k, v} ->

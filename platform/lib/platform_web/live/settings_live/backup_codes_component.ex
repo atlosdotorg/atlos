@@ -49,6 +49,8 @@ defmodule PlatformWeb.SettingsLive.BackupComponent do
         :uid => assigns.current_user.id
       })
 
+    assigns = Map.put(assigns, :token, token)
+
     ~H"""
     <div>
       <.card>
@@ -72,7 +74,7 @@ defmodule PlatformWeb.SettingsLive.BackupComponent do
             <% end %>
             <div>
               <%= button type: "button", to: Routes.export_path(@socket, :create_backup_codes_export, %{
-                :token => token
+                :token => @token
               }),
                     class: "button ~urge @high",
                     method: :post
