@@ -60,7 +60,7 @@ export default function Home() {
             Atlos makes large-scale visual investigations faster, easier, and safer.
           </p>
           <section>
-            <p className='text-xs text-white/50 text-center uppercase mt-16'>Atlos is a non-profit, open source platform supported by</p>
+            <p className='text-xs text-white/50 text-center uppercase mt-16'>Supported by</p>
             <div className="flex flex-wrap justify-center items-center gap-8 mt-4 opacity-[0.8]">
               <a href='https://www.microsoft.com/en-us/corporate-responsibility/democracy-forward'>
                 <Image src="/microsoft.svg" alt="The logo of Microsoft" height={141 / 3} width={520 / 3} />
