@@ -55,8 +55,8 @@ export default function Home() {
             <a href="https://platform.atlos.org/invite/MPBXPLUR5C" className="text-sm font-medium shrink transition bg-white text-neutral-700 p-2 rounded">Join Atlos</a>
           </div>
         </div>
-        <section className='relative z-10 flex flex-col space-y-6 top-0 mx-auto p-6 lg:max-w-2xl mt-32 lg:mt-40'>
-          <p className="text-3xl font-semibold md:text-5xl text-white pt-2 text-center lg:-mx-48">
+        <section className='relative z-10 flex flex-col space-y-6 top-0 mx-auto p-6 lg:max-w-2xl mt-32 lg:mt-44'>
+          <p className="text-3xl md:text-5xl text-white pt-2 text-center lg:-mx-48">
             Atlos makes large-scale visual investigations faster, easier, and safer.
           </p>
           <section>
