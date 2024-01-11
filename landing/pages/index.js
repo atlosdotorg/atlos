@@ -52,7 +52,7 @@ export default function Home() {
             <span className="grow"></span>
             <a href="https://docs.atlos.org" className="text-sm font-medium shrink text-neutral-300 hover:text-white focus:text-white transition">Docs</a>
             <a href="https://platform.atlos.org" className="text-sm font-medium shrink text-neutral-300 hover:text-white focus:text-white transition">Log in</a>
-            <a href="https://platform.atlos.org" className="text-sm font-medium shrink transition bg-white text-neutral-700 p-2 rounded">Join Atlos</a>
+            <a href="https://platform.atlos.org/invite/MPBXPLUR5C" className="text-sm font-medium shrink transition bg-white text-neutral-700 p-2 rounded">Join Atlos</a>
           </div>
         </div>
         <section className='relative z-10 flex flex-col space-y-6 top-0 mx-auto p-6 lg:max-w-2xl mt-32 lg:mt-40'>
