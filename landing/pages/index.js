@@ -42,7 +42,7 @@ export default function Home() {
 
       <main>
         <div className="w-full h-full -z-1">
-          <div id="map" className="fixed w-full h-full top-0 left-0 bg-stone-700 -z-1 max-h-screen overflow-hidden"></div>
+          <div id="map" className="fixed w-full h-full top-0 left-0 bg-[#212121] -z-1 max-h-screen overflow-hidden"></div>
         </div>
         <div className="fixed top-0 left-0 w-full h-full z-[100] p-4">
           <div className='text-white text-lg flex flex-wrap gap-4 p-2 border rounded-lg lg:mt-8 lg:max-w-3xl bg-neutral-600/75 backdrop-blur-md mx-auto border-neutral-500 items-center'>
