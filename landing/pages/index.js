@@ -77,7 +77,7 @@ export default function Home() {
             <Image src="/screenshots/map.jpeg" alt="A photo of the Atlos map" height={1588 / 2} width={2304 / 2} className='mt-16 rounded-lg border border-slate-800 border-2' />
             <p className="text-white/50 text-xs text-center mt-4">The Atlos map view, where you can see your geolocated incidents at a glance.</p>
           </section>
-          <div className='text-white prose prose-invert prose-lg marker:text-white/50 blockquote:border-white/50 pb-24'>
+          <div className='text-white prose prose-invert prose-lg max-w-prose mx-auto marker:text-white/50 blockquote:border-white/50 pb-24'>
             <p className='mt-16'>Anyone can post visual evidence of a war crime online.</p>
             <p>Journalists, human rights investigators, and open source researchers use this media to tell stories, pursue accountability, and document history.</p>
             <p>But they rely on general-purpose tools like Google Sheets to conduct highly-specialized investigations. Today&apos;s tools slow investigations, hamper collaboration, and risk researchers&apos; safety.</p>
