@@ -153,9 +153,16 @@ defmodule PlatformWeb.ProjectsLive.APITokensComponent do
                 <div class="mb-8 bg-urge-50 border border-urge-400 aside ~urge prose text-sm w-full min-w-full">
                   <p>
                     <strong class="text-blue-800">
-                      The beta <a class="text-blue-800" href="https://docs.atlos.org/technical/api/">Atlos API</a> allows you to connect your project to external services.
+                      The beta
+                      <a class="text-blue-800" href="https://docs.atlos.org/technical/api/">
+                        Atlos API
+                      </a>
+                      allows you to connect your project to external services.
                     </strong>
-                    API tokens are sensitive, as they allow access to your project. Learn more about how to use the Atlos API in our <a class="text-blue-800" href="https://docs.atlos.org/technical/api/">documentation</a>.
+                    API tokens are sensitive, as they allow access to your project. Learn more about how to use the Atlos API in our <a
+                      class="text-blue-800"
+                      href="https://docs.atlos.org/technical/api/"
+                    >documentation</a>.
                   </p>
                 </div>
                 <div class="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
