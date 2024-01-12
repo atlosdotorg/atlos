@@ -93,7 +93,7 @@ export default function Home() {
               <li>An analysis of our <a href="https://docs.atlos.org/safety-and-security/risk-model/">security and risk model</a>.</li>
               <li>A <a href="https://docs.atlos.org/overview/roadmap/">roadmap</a> for where we&apos;re headed next.</li>
             </ul>
-            <p>We are proud to support some of the largest open source visual investigations, such as Bellingcat&apos;s investigation into civilian harm in Ukraine&apos;s war against Russia.</p>
+            <p>We are proud to power large-scale open source visual investigations around the world, such as Bellingcat&apos;s investigation into civilian harm in Ukraine&apos;s war against Russia.</p>
             <p>Atlos is a 501(c)(3) non-profit, <a href="https://github.com/atlosdotorg/atlos">open source</a> platform. For more information about Atlos, please see our <a href="https://docs.atlos.org">documentation</a> or <a href="mailto:contact@atlos.org">contact us</a>.</p>
           </div>
         </section>
