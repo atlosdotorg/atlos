@@ -3339,7 +3339,7 @@ defmodule PlatformWeb.Components do
             <%= label(@f, @schema_field, @label) %>
             <button
               type="button"
-              x-on:click="$refs.date_input.valueAsDate = new Date(); $refs.date_input.dispatchEvent(new Event("input", {bubbles: true}))"
+              x-on:click="$refs.date_input.valueAsDate = new Date(); $refs.date_input.dispatchEvent(new Event('input', {bubbles: true}))"
               class="text-urge-600 flex items-center gap-1 text-sm p-1 rounded hover:bg-urge-50 transition"
             >
               <Heroicons.calendar_days class="h-4 w-4 text-urge-400" /> Today
@@ -3355,7 +3355,7 @@ defmodule PlatformWeb.Components do
           <p class="support mt-2">
             Type or select a date; alternatively,
             <span
-              x-on:click="$refs.date_input.value = null; $refs.date_input.dispatchEvent(new Event("input", {bubbles: true}))"
+              x-on:click="$refs.date_input.value = null; $refs.date_input.dispatchEvent(new Event('input', {bubbles: true}))"
               class="cursor-pointer text-urge-600"
             >
               unset
