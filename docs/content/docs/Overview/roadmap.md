@@ -11,8 +11,11 @@ Here's what we're working on next:
 
 {{% steps %}}
 
-### Help center
-We're publishing a detailed help center to help investigators answer their questions about Atlos faster. [Track our progress](https://github.com/atlosdotorg/atlos/milestone/17).
+### New customization options for attributes and metadata
+Atlos currently lets investigators customize and add new attributes. We're expanding data model configurability in two ways:
+- Investigators will be able to group and sort attributes, making it easier to organize information in investigations with a complex data model.
+- Investigators will be able to customize the values and descriptions of metadata fields like status and sensitivity, because Atlos should be able to match each team's unique workflow and safety standards.\
+[Track our progress](https://github.com/atlosdotorg/atlos/milestone/15).
 
 ### Backup codes for MFA
 We implore investigators to enable multi-factor authentication on their Atlos accounts. But if you lose access to your authenticator app, you'll
@@ -40,12 +43,6 @@ Incidents do not exist in isolation, and the ability to “network” incidents 
 ### Improved incident page
 Once source material is decoupled from incidents, we plan to improve the incident page to reduce clutter, increase focus, and make routine actions faster to complete. More details to come. 
 
-### New customization options for attributes and metadata
-Atlos currently lets investigators customize and add new attributes. We're expanding data model configurability in two ways:
-- Investigators will be able to group and sort attributes, making it easier to organize information in investigations with a complex data model.
-- Investigators will be able to customize the values and descriptions of metadata fields like status and sensitivity, because Atlos should be able to match each team's unique workflow and safety standards.\
-[Track our progress](https://github.com/atlosdotorg/atlos/milestone/15).
-
 ### Publishing tools 
 We've heard the requests. We plan to add the ability to export and self-host a map of incidents that looks just like the once you'd find on Atlos' incidents page. More details to come.
 
@@ -61,6 +58,9 @@ Atlos makes it easy to filter by some attributes; it should be just as easy to f
 ## Changelog
 Here are some major updates we've shipped recently:
 {{% steps %}}
+
+### Help center
+We published a detailed help center to help investigators answer their questions about Atlos faster. [Check it out](https://docs.atlos.org).
 
 ### Full export
 Atlos has always supported CSV export of project data; we now support a full export of projects' source material, metadata, attribute information, and updates. 
