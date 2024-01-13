@@ -19,6 +19,41 @@ jobs:
         with:
           branch: main
           title: "Deploy recent changes to production"
+          labels: automatic, deployment
+  updateDocs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: deployments/docs
+      - name: Reset promotion branch
+        run: |
+          git fetch origin main:main
+          git reset --hard main
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v3
+        with:
+          branch: main
+          add-paths: docs
+          title: "Deploy recent documentation changes to `docs.atlos.org`"
+          labels: automatic, deployment, docs
+  updateLanding:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: deployments/landing
+      - name: Reset promotion branch
+        run: |
+          git fetch origin main:main
+          git reset --hard main
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v3
+        with:
+          branch: main
+          add-paths: landing
+          title: "Deploy recent landing page changes to `atlos.org`"
+          labels: automatic, deployment, landing
   updateGAP:
     runs-on: ubuntu-latest
     steps:
@@ -34,3 +69,4 @@ jobs:
         with:
           branch: main
           title: "Deploy recent changes to `GAP`"
+          labels: automatic, deployment, GAP
