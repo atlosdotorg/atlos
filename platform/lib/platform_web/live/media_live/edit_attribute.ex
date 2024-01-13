@@ -98,15 +98,15 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
 
     ~H"""
     <article>
-      <.modal target={@myself} close_confirmation={@confirm_prompt}>
-        <div class="md:flex justify-between">
+      <.modal target={@myself} close_confirmation={@confirm_prompt} no_pad={true}>
+        <div class="md:flex justify-between border-b px-6 py-4">
           <div>
             <p class="support font-mono"><%= @media.slug %></p>
-            <h3 class="sec-head">Update: <%= hd(@attrs).label %></h3>
-            <p class="sec-subhead"><%= hd(@attrs).description %></p>
+            <h3 class="sec-head mt-1"><%= hd(@attrs).label %></h3>
+            <p class="sec-subhead text-neutral-500"><%= hd(@attrs).description %></p>
           </div>
         </div>
-        <hr class="h-8 sep" />
+        <hr class="h-4 sep" />
         <%= if hd(@attrs).schema_field == :attr_status and Enum.member?(@media.attr_tags || [], "Volunteer") do %>
           <div class="rounded-md bg-blue-50 p-4 mb-4">
             <div class="flex">
@@ -131,7 +131,7 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
           phx-submit="save"
           class="phx-form"
         >
-          <div class="space-y-6">
+          <div class="mx-6 space-y-6">
             <.edit_attributes
               attrs={@attrs}
               form={f}
@@ -162,22 +162,22 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
                 </div>
               </div>
             <% end %>
-            <div>
-              <%= label(f, :explanation, "Briefly Explain Your Change") %>
-              <div class="border border-gray-300 rounded shadow-sm overflow-hidden focus-within:border-urge-500 focus-within:ring-1 focus-within:ring-urge-500 transition">
-                <.interactive_textarea
-                  form={f}
-                  disabled={false}
-                  name={:explanation}
-                  placeholder="Recommended for all non-trivial changes."
-                  id="comment-box-parent-input"
-                  rows={1}
-                  class="block w-full !border-0 resize-none focus:ring-0 sm:text-sm shadow-none"
-                />
-              </div>
-              <%= error_tag(f, :explanation) %>
+          </div>
+          <div class="px-6 py-6 border-t mt-6 bg-neutral-50 rounded-b-lg">
+            <%= label(f, :explanation, "Briefly Explain Your Change") %>
+            <div class="border border-gray-300 rounded shadow-sm overflow-hidden focus-within:border-urge-500 focus-within:ring-1 min-h-[5rem] focus-within:ring-urge-500 transition mt !bg-white">
+              <.interactive_textarea
+                form={f}
+                disabled={false}
+                name={:explanation}
+                placeholder="Recommended for all non-trivial changes."
+                id="comment-box-parent-input"
+                rows={1}
+                class="!border-0 resize-none focus:ring-0 sm:text-sm shadow-none"
+              />
             </div>
-            <div class="flex md:justify-between">
+            <%= error_tag(f, :explanation) %>
+            <div class="flex md:justify-between mt-6">
               <%= submit("Post update →",
                 phx_disable_with: "Saving...",
                 class: "button ~urge @high transition-all mr-2"

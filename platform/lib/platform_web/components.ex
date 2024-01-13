@@ -2730,7 +2730,7 @@ defmodule PlatformWeb.Components do
       |> assign(:human_name, Material.get_human_readable_media_version_name(media, version))
       |> assign(:detail_url, "/incidents/#{media.slug}/detail/#{version.scoped_id}")
 
-      ~H"""
+    ~H"""
     <section
       id={"version-#{@version.id}"}
       class="py-2 target:outline outline-2 outline-urge-600 rounded group outline-offset-2"
@@ -2898,12 +2898,12 @@ defmodule PlatformWeb.Components do
         <% end %>
       </div>
       <div class="flex gap-1 mt-1 text-sm max-w-full items-center justify-between">
-      <.link patch={@detail_url}>
-        <p class="font-mono text-sm">
-          <%= @human_name %>
-        </p>
-      </.link>
-      <%= if @artifact_to_show or @show_controls do %>
+        <.link patch={@detail_url}>
+          <p class="font-mono text-sm">
+            <%= @human_name %>
+          </p>
+        </.link>
+        <%= if @artifact_to_show or @show_controls do %>
           <div class="flex gap-1 items-center">
             <div class="relative inline-block text-left" x-data="{open: false}">
               <div>
@@ -3321,7 +3321,7 @@ defmodule PlatformWeb.Components do
               phx_debounce: "blur"
             ) %>
           </div>
-          <p class="support">
+          <p class="support mt-2">
             Type or select a time; alternatively,
             <span
               x-on:click={
@@ -3335,7 +3335,16 @@ defmodule PlatformWeb.Components do
           </p>
           <%= error_tag(@f, @schema_field) %>
         <% :date -> %>
-          <%= label(@f, @schema_field, @label) %>
+          <div class="flex items-center w-full justify-between">
+            <%= label(@f, @schema_field, @label) %>
+            <button
+              type="button"
+              x-on:click="$refs.date_input.valueAsDate = new Date(); $refs.date_input.dispatchEvent(new Event("input", {bubbles: true}))"
+              class="text-urge-600 flex items-center gap-1 text-sm p-1 rounded hover:bg-urge-50 transition"
+            >
+              <Heroicons.calendar_days class="h-4 w-4 text-urge-400" /> Today
+            </button>
+          </div>
           <div class="flex items-center gap-2 ts-ignore apply-a17t-fields">
             <%= date_input(@f, @schema_field,
               "x-ref": "date_input",
@@ -3343,12 +3352,10 @@ defmodule PlatformWeb.Components do
               phx_debounce: "blur"
             ) %>
           </div>
-          <p class="support">
+          <p class="support mt-2">
             Type or select a date; alternatively,
             <span
-              x-on:click={
-                ~c"$refs.date_input.value = null; $refs.date_input.dispatchEvent(new Event(\"input\", {bubbles: true}))"
-              }
+              x-on:click="$refs.date_input.value = null; $refs.date_input.dispatchEvent(new Event("input", {bubbles: true}))"
               class="cursor-pointer text-urge-600"
             >
               unset
