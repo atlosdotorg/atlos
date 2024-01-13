@@ -3213,7 +3213,6 @@ defmodule PlatformWeb.Components do
     """
   end
 
-  # change this
   defp edit_attribute(%{attr: attr, form: form, media_slug: slug, project: _project} = assigns) do
     assigns =
       assigns
@@ -3228,6 +3227,8 @@ defmodule PlatformWeb.Components do
         :schema_field,
         if(attr.schema_field == :project_attributes, do: :value, else: attr.schema_field)
       )
+
+    {lat, lon} = assigns.media.attr_geolocation.coordinates
 
     ~H"""
     <article x-data="{user_loc: null}" id={"editor-" <> (@attr.name |> to_string())}>
@@ -3319,6 +3320,7 @@ defmodule PlatformWeb.Components do
                 "x-on:input": "user_address = $event.target.value"
               ) %>
             </div>
+            <map-container-pin id="map-container-pin" lat={lat} lon={lon} />
           </div>
         <% :time -> %>
           <%= label(@f, @schema_field, @label) %>

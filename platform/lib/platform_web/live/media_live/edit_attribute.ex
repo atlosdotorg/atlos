@@ -81,6 +81,8 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
     # To input coordinates, address, or a map pin
     target = Enum.at(input["_target"], 1)
 
+    IO.inspect(input, label: "EditAttribute input")
+
     params =
       case target do
         "location" ->

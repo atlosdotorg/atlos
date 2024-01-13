@@ -278,6 +278,49 @@ function setURLHashState(key, value) {
     window.location.hash = btoa(JSON.stringify(currentState))
 }
 
+function displayMapPin(){
+    document.querySelectorAll("#map-container-pin").forEach(s => {
+        const lat = s.getAttribute("lat") || 35;
+        const lon = s.getAttribute("lon") || 36;    
+
+        const map = new maplibregl.Map({
+            container: 'map-container-pin',
+            style: defaultMapStyle,
+            center: [lat, lon],
+            zoom: 14
+        });    
+        
+        const marker = new maplibregl.Marker()
+        .setLngLat([lat, lon])
+        .addTo(map);
+
+        // Capture user interaction to update the marker position
+        map.on('click', function (e) {
+            const { lng, lat } = e.lngLat;
+            marker.setLngLat([lng, lat]);
+
+            document.dispatchEvent(event);
+
+        });
+
+        const locationInput = document.querySelector('[phx-target="location"]');
+        console.log(locationInput, "locationInput")
+        if (locationInput) {
+            locationInput.addEventListener('input', function () {
+                const coordinates = locationInput.value.split(',').map(coord => parseFloat(coord.trim()));
+                if (coordinates.length === 2 && !isNaN(coordinates[0]) && !isNaN(coordinates[1])) {
+                    const [newLat, newLon] = coordinates;
+                    marker.setLngLat([newLon, newLat]);
+                    map.setCenter([newLat, newLon]);
+                }
+            });
+        }
+    });
+
+    
+}
+
+
 function initializeMaps() {
     document.querySelectorAll("map-pin").forEach(s => {
         if (s.classList.contains("maplibregl-map")) {
@@ -617,6 +660,9 @@ window.addEventListener("load", window.updateBodyScrollStatus);
 
 document.addEventListener("phx:update", initializeMaps);
 window.addEventListener("load", initializeMaps);
+
+document.addEventListener("phx:update", displayMapPin);
+window.addEventListener("load", displayMapPin);
 
 document.addEventListener("phx:update", initializePopovers);
 window.addEventListener("load", initializePopovers);
