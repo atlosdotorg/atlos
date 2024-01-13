@@ -2730,16 +2730,50 @@ defmodule PlatformWeb.Components do
       |> assign(:human_name, Material.get_human_readable_media_version_name(media, version))
       |> assign(:detail_url, "/incidents/#{media.slug}/detail/#{version.scoped_id}")
 
-    ~H"""
+      ~H"""
     <section
       id={"version-#{@version.id}"}
       class="py-2 target:outline outline-2 outline-urge-600 rounded group outline-offset-2"
     >
-      <.link patch={@detail_url}>
-        <p class="font-mono text-sm">
-          <%= @human_name %>
-        </p>
-      </.link>
+      <div class="flex gap-1 mb-1 text-sm max-w-full items-center justify-between">
+        <span class="flex items-center gap-2 overflow-hidden">
+          <%= if @version.status != :error and @version.source_url != nil do %>
+            <.url_icon url={@version.source_url} class="h-6" />
+          <% end %>
+          <%= if @version.source_url != nil do %>
+            <a
+              class="text-neutral-600 truncate"
+              href={@version.source_url}
+              target="_blank"
+              data-confirm="This link will open an external site in a new tab. Are you sure?"
+            >
+              <%= @version.source_url %>
+            </a>
+          <% end %>
+          <%= if @version.upload_type == :user_provided do %>
+            <span class="badge ~neutral self-start shrink-0">User Upload</span>
+          <% end %>
+          <%= if @version.status == :error and @show_controls do %>
+            <div
+              class="text-gray-400"
+              data-tooltip="Atlos could not archive this URL automatically, but you can view it directly."
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+                class="w-4 h-4"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+            </div>
+          <% end %>
+        </span>
+      </div>
       <div class="relative">
         <%= if @artifact_to_show do %>
           <.link
@@ -2864,44 +2898,12 @@ defmodule PlatformWeb.Components do
         <% end %>
       </div>
       <div class="flex gap-1 mt-1 text-sm max-w-full items-center justify-between">
-        <span class="flex items-center gap-2 overflow-hidden">
-          <%= if @version.status != :error and @version.source_url != nil do %>
-            <.url_icon url={@version.source_url} class="h-6" />
-          <% end %>
-          <%= if @version.source_url != nil do %>
-            <a
-              class="text-neutral-600 truncate"
-              href={@version.source_url}
-              target="_blank"
-              data-confirm="This link will open an external site in a new tab. Are you sure?"
-            >
-              <%= @version.source_url %>
-            </a>
-          <% end %>
-          <%= if @version.upload_type == :user_provided do %>
-            <span class="badge ~neutral self-start shrink-0">User Upload</span>
-          <% end %>
-          <%= if @version.status == :error and @show_controls do %>
-            <div
-              class="text-gray-400"
-              data-tooltip="Atlos could not archive this URL automatically, but you can view it directly."
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-                class="w-4 h-4"
-              >
-                <path
-                  fill-rule="evenodd"
-                  d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z"
-                  clip-rule="evenodd"
-                />
-              </svg>
-            </div>
-          <% end %>
-        </span>
-        <%= if @artifact_to_show or @show_controls do %>
+      <.link patch={@detail_url}>
+        <p class="font-mono text-sm">
+          <%= @human_name %>
+        </p>
+      </.link>
+      <%= if @artifact_to_show or @show_controls do %>
           <div class="flex gap-1 items-center">
             <div class="relative inline-block text-left" x-data="{open: false}">
               <div>
