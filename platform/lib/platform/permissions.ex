@@ -211,19 +211,6 @@ defmodule Platform.Permissions do
     end
   end
 
-  defp filter_to_users_with_roles(media_list, %User{} = user, necessary_roles)
-       when is_list(media_list) and is_list(necessary_roles) do
-    user_memberships =
-      Projects.get_users_project_memberships(user)
-      |> Enum.into(%{}, fn membership -> {membership.project_id, membership} end)
-
-    media_list
-    |> Enum.filter(fn media ->
-      membership = user_memberships[media.project_id]
-      not is_nil(membership) and Enum.member?(necessary_roles, membership.role)
-    end)
-  end
-
   @doc """
   Equivalent to `can_view_media?`, but takes a list of media instead of a single
   media. Helpful for filtering lists of media and avoiding n+1 queries.
