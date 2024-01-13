@@ -77,7 +77,8 @@ defmodule PlatformWeb.SettingsLive.BackupComponent do
                 :token => @token
               }),
                     class: "button ~urge @high",
-                    method: :post
+                    method: :post,
+                    target: "_blank"
                 do %>
                 <div>
                   <Heroicons.arrow_down_tray mini class="w-4 h-4 mr-1 inline-block" /> Download
