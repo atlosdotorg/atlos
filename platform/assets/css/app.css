@@ -66,12 +66,12 @@
 
   #map-container-pin{
     position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 0;
+    top: 25%;
+    bottom: 30%;
+    left: 70%;
     right: 0;
-    width: 25%;
-    height: 25%;
+    width: 30%;
+    height: 30%;
   }
 
   div[data-phx-main="true"] {

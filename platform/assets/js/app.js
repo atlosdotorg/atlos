@@ -49,7 +49,7 @@ Hooks.Modal = {
             this.pushEventTo(event.detail.elem, "close_modal", {});
         })
     }
-}
+},
 Hooks.CanTriggerLiveViewEvent = {
     mounted() {
         this.el.addEventListener("platform:liveview_event", e => {
@@ -295,32 +295,22 @@ function displayMapPin(){
         .addTo(map);
 
         // Capture user interaction to update the marker position
-        map.on('click', function (e) {
+        map.on('click', (e) => {
             const { lng, lat } = e.lngLat;
             marker.setLngLat([lng, lat]);
-
-            document.dispatchEvent(event);
-
+        
+            //update location and address when pin is changed
+            document.dispatchEvent(new Event("process_moved_pin", { detail: { lon: lng, lat: lat }}));
         });
-
-        const locationInput = document.querySelector('[phx-target="location"]');
-        console.log(locationInput, "locationInput")
-        if (locationInput) {
-            locationInput.addEventListener('input', function () {
-                const coordinates = locationInput.value.split(',').map(coord => parseFloat(coord.trim()));
-                if (coordinates.length === 2 && !isNaN(coordinates[0]) && !isNaN(coordinates[1])) {
-                    const [newLat, newLon] = coordinates;
-                    marker.setLngLat([newLon, newLat]);
-                    map.setCenter([newLat, newLon]);
-                }
-            });
-        }
-    });
-
-    
+    });    
 }
 
+// update pin on the map when the address or location is changed
+window.addEventListener("phx:update-pin", (event) => {
+    console.log("Received update-pin event from server", event);
+});
 
+  
 function initializeMaps() {
     document.querySelectorAll("map-pin").forEach(s => {
         if (s.classList.contains("maplibregl-map")) {

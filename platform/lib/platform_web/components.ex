@@ -3228,7 +3228,13 @@ defmodule PlatformWeb.Components do
         if(attr.schema_field == :project_attributes, do: :value, else: attr.schema_field)
       )
 
+    # add coordinates here
     {lat, lon} = assigns.media.attr_geolocation.coordinates
+
+    assigns =
+      assigns
+      |> assign(:lat, lat)
+      |> assign(:lon, lon)
 
     ~H"""
     <article x-data="{user_loc: null}" id={"editor-" <> (@attr.name |> to_string())}>
@@ -3320,7 +3326,7 @@ defmodule PlatformWeb.Components do
                 "x-on:input": "user_address = $event.target.value"
               ) %>
             </div>
-            <map-container-pin id="map-container-pin" lat={lat} lon={lon} />
+            <map-container-pin id="map-container-pin" lat={@lat} lon={@lon} />
           </div>
         <% :time -> %>
           <%= label(@f, @schema_field, @label) %>

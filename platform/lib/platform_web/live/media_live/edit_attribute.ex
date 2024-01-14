@@ -3,6 +3,7 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
   alias Platform.Material
   alias Material.Attribute
   alias Platform.Auditor
+  use Phoenix.LiveView
 
   def update(assigns, socket) do
     attr = Attribute.get_attribute(assigns.name, project: assigns.media.project)
@@ -74,6 +75,11 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
     end
   end
 
+  def handle_event("process_moved_pin", %{"lon" => lon, "lat" => lat}, socket) do
+    IO.inspect({lon, lat}, label: "Received process_moved_pin event")
+    {:noreply, socket}
+  end
+
   def handle_event("validate", input, socket) do
     # To allow empty strings, lists, etc.
     params = Map.get(input, "media", %{}) |> inject_attr_fields_if_missing(socket.assigns.attrs)
@@ -81,13 +87,12 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
     # To input coordinates, address, or a map pin
     target = Enum.at(input["_target"], 1)
 
-    IO.inspect(input, label: "EditAttribute input")
-
     params =
       case target do
         "location" ->
           with {:ok, coordinates} <- Geocoder.call(params["location"]) do
             loc = coordinates.location.formatted_address
+            push_event(socket, "update-pin", %{lat: coordinates.lat, lon: coordinates.lon})
             Map.put(params, "address", loc)
           else
             _ ->
@@ -97,6 +102,7 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
         "address" ->
           with {:ok, coordinates} <- Geocoder.call(params["address"]) do
             loc = "#{coordinates.lat}, #{coordinates.lon}"
+            push_event(socket, "update-pin", %{lat: coordinates.lat, lon: coordinates.lon})
             Map.put(params, "location", loc)
           else
             _ ->
