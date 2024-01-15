@@ -26,6 +26,13 @@ At a high level, here are the infrastructure components you'll need:
 
 For more information on self-hosting, refer to our [development and architecture guide](https://github.com/atlosdotorg/atlos/blob/main/platform/README.md) on GitHub.
 
+## Security recommendations
+When self-hosting, we highly recommend that you:
+
+* Enable [S3 object versioning and deletion protection](https://aws.amazon.com/getting-started/hands-on/protect-data-on-amazon-s3/) to ensure that media files cannot be deleted, even by someone with admin access to Atlos.
+* Provide only the minimum permissions necessary to the AWS keys that Atlos is configured to use. Currently, Atlos only needs permission to send emails via SES and read/write the S3 bucket where media is stored. We recommend that you create a new IAM user with these permissions and use those credentials in your Atlos configuration.
+* Enable point-in-time-restore and replication on your PostgreSQL database to ensure that you can recover from data loss or corruption.
+
 ## Support for self-hosting orgs
 We are also able to provide official and priority support channels to self-hosting organizations that contribute financially to the project. For all organizations, we are happy to answer questions and provide guidance on our [Discord](https://discord.gg/gqCcHc9Gav) server to the extent that we are able.
 
