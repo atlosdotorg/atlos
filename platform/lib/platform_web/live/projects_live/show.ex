@@ -104,8 +104,8 @@ defmodule PlatformWeb.ProjectsLive.Show do
                 }
                 class="base-button"
               >
-                <Heroicons.magnifying_glass mini class="-ml-0.5 mr-2 h-5 w-5 text-neutral-400" />
-                <span>Search</span>
+                <Heroicons.rectangle_stack mini class="-ml-0.5 mr-2 h-5 w-5 text-neutral-400" />
+                <span>Incidents</span>
               </.link>
               <%= if Permissions.can_add_media_to_project?(@current_user, @project) do %>
                 <button
@@ -249,6 +249,7 @@ defmodule PlatformWeb.ProjectsLive.Show do
                 # Stringify to avoid floating point issues
                 lat: "#{lat}",
                 lon: "#{lon}",
+                id: item.id,
                 color: @project.color
               }
             end) %>
