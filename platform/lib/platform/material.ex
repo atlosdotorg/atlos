@@ -1115,9 +1115,6 @@ defmodule Platform.Material do
   end
 
   def update_media_attributes(media, attributes, attrs, opts \\ []) do
-    # Update the media in case it was recently updated elsewhere
-    media = get_media!(media.id)
-
     result =
       change_media_attributes(media, attributes, attrs, opts)
       |> Repo.update()
@@ -1177,6 +1174,9 @@ defmodule Platform.Material do
   Either `user` or `api_token` must be provided in opts.
   """
   def update_media_attributes_audited(media, attributes, attrs, opts \\ []) do
+    # Get the most recent version of the media
+    media = get_media!(media.id)
+
     # Verify that either a user or an API token is provided
     user = Keyword.get(opts, :user, nil)
     api_token = Keyword.get(opts, :api_token, nil)
@@ -1192,7 +1192,8 @@ defmodule Platform.Material do
         attrs
       )
 
-    # Make sure both changesets are valid
+    # Make sure both changesets are valid. This is not critical to integrity,
+    # so it is not a transaction.
     cond do
       !(media_changeset.valid? && update_changeset.valid?) ->
         {:error, media_changeset}
