@@ -441,8 +441,8 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                       disabled: not Permissions.can_edit_project_metadata?(@current_user, @project)
                     ) %>
                   </div>
-                  <%= if not is_nil(@project.id) and Permissions.can_change_project_active_status?(@current_user, @project) do %>
-                    <div>
+                  <%= if not is_nil(@project.id) do %>
+                    <div :if={Permissions.can_change_project_active_status?(@current_user, @project)}>
                       <%= if @project.active do %>
                         <button
                           phx-click="toggle_active"
