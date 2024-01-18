@@ -441,7 +441,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                       disabled: not Permissions.can_edit_project_metadata?(@current_user, @project)
                     ) %>
                   </div>
-                  <%= if @project.id do %>
+                  <%= if not is_nil(@project.id) and Permissions.can_change_project_active_status?(@current_user, @project) do %>
                     <div>
                       <%= if @project.active do %>
                         <button
