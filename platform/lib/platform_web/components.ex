@@ -3695,7 +3695,9 @@ defmodule PlatformWeb.Components do
   def project_list_item_inner(assigns) do
     ~H"""
     <div class="rounded-full hover:bg-white transition overflow-hidden text-sm border flex items-center gap-2 py-1 px-2">
-      <span :if={not @project.active}><Heroicons.archive_box mini class="h-4 w-4 text-yellow-600/75 ml-1" /></span>
+      <span :if={not @project.active}>
+        <Heroicons.archive_box mini class="h-4 w-4 text-yellow-600/75 ml-1" />
+      </span>
       <span><%= @project.name |> Platform.Utils.truncate() %></span>
       <span style={"color: #{@project.color}"}>
         <svg
