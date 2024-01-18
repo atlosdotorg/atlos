@@ -215,7 +215,7 @@ defmodule Platform.GlobalSearch do
       ])
 
     %{
-      media_versions: dbg(media_version_results),
+      media_versions: media_version_results,
       media: media_results,
       users: users_results,
       projects: projects_results,
