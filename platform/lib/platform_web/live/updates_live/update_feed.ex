@@ -1,6 +1,5 @@
 defmodule PlatformWeb.UpdatesLive.UpdateFeed do
   use PlatformWeb, :live_component
-  alias Platform.Updates
   alias Platform.Permissions
 
   def update(

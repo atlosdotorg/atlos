@@ -37,5 +37,6 @@ defmodule Platform.Invites.Invite do
     invite
     |> cast(attrs, [:active, :owner_id, :expires, :single_use, :project_id, :project_access_level])
     |> validate_required([:active, :single_use])
+    |> unique_constraint(:code)
   end
 end

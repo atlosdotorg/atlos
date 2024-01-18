@@ -1,9 +1,7 @@
 defmodule PlatformWeb.ProjectsLive.InvitesComponent do
   use PlatformWeb, :live_component
 
-  alias Platform.Projects.ProjectMembership
   alias Platform.Auditor
-  alias Platform.Projects
   alias Platform.Invites
   alias Platform.Permissions
 

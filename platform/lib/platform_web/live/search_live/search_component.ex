@@ -39,18 +39,21 @@ defmodule PlatformWeb.SearchLive.SearchComponent do
     # of each ordinal across all result types.
     result_order =
       Map.keys(results_with_ranks)
-      |> Enum.sort_by(fn x ->
-        {Enum.min(
-           Enum.map(results_with_ranks[x], fn %{exact_match: em, cd_rank: rank} ->
-             if em do
-               -1
-             else
-               rank
-             end
-           end),
-           fn -> 9999 end
-         ), x}
-      end)
+      |> Enum.sort_by(
+        fn x ->
+          {Enum.max(
+             Enum.map(results_with_ranks[x], fn %{exact_match: em, cd_rank: rank} ->
+               if em do
+                 9999
+               else
+                 rank
+               end
+             end),
+             fn -> -1 end
+           ), length(Map.keys(results)) - Enum.find_index(Map.keys(results), &(&1 == x)), x}
+        end,
+        :desc
+      )
 
     results_with_ordinals =
       Enum.map(results, fn {result_type, values} ->

@@ -81,7 +81,7 @@ defmodule Platform.Permissions do
     end
   end
 
-  defmemo _is_media_editable?(%Media{project_id: nil} = media), expires_in: 5000 do
+  defmemo _is_media_editable?(%Media{project_id: nil}), expires_in: 5000 do
     true
   end
 
@@ -122,7 +122,7 @@ defmodule Platform.Permissions do
     end
   end
 
-  def can_add_media_to_project?(%User{} = user, %Project{active: false} = project) do
+  def can_add_media_to_project?(%User{}, %Project{active: false}) do
     false
   end
 
@@ -135,7 +135,7 @@ defmodule Platform.Permissions do
     end
   end
 
-  def can_bulk_upload_media_to_project?(%User{} = user, %Project{active: false} = project) do
+  def can_bulk_upload_media_to_project?(%User{}, %Project{active: false}) do
     false
   end
 
@@ -157,7 +157,7 @@ defmodule Platform.Permissions do
       end
   end
 
-  def can_view_media?(%User{} = user, %Media{project_id: nil} = media) do
+  def can_view_media?(%User{}, %Media{project_id: nil}) do
     true
   end
 
@@ -209,19 +209,6 @@ defmodule Platform.Permissions do
         # The user can't view the project, so they can't view the media.
         false
     end
-  end
-
-  defp filter_to_users_with_roles(media_list, %User{} = user, necessary_roles)
-       when is_list(media_list) and is_list(necessary_roles) do
-    user_memberships =
-      Projects.get_users_project_memberships(user)
-      |> Enum.into(%{}, fn membership -> {membership.project_id, membership} end)
-
-    media_list
-    |> Enum.filter(fn media ->
-      membership = user_memberships[media.project_id]
-      not is_nil(membership) and Enum.member?(necessary_roles, membership.role)
-    end)
   end
 
   @doc """

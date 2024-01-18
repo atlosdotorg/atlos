@@ -9,7 +9,6 @@ defmodule PlatformWeb.Components do
   alias Platform.Material.Media
   alias Platform.Material
   alias Platform.Utils
-  alias Platform.Notifications
   alias Platform.Uploads
   alias PlatformWeb.Router.Helpers, as: Routes
   alias Platform.Permissions
@@ -883,9 +882,12 @@ defmodule PlatformWeb.Components do
                           project: @update.media.project
                         ) %> updated
                       <%= if not is_nil(attr) do %>
-                        <%= live_patch class: "text-button text-gray-800 inline-block", to: "/incidents/#{@update.media.slug}/history/#{attr.name}" do %>
+                        <.link
+                          class="text-button text-gray-800 inline-block"
+                          patch={"/incidents/#{@update.media.slug}/history/#{attr.name}"}
+                        >
                           <%= attr.label %> &nearr;
-                        <% end %>
+                        </.link>
                       <% else %>
                         a deleted or unknown attribute
                       <% end %>
@@ -1162,11 +1164,13 @@ defmodule PlatformWeb.Components do
           <dt class="text-sm font-medium text-gray-500 mt-1">Add Attributes</dt>
           <dd class="mt-1 flex flex-wrap gap-2 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
             <%= for attr <- @unset_attrs do %>
-              <%= live_patch("+ #{attr.label}",
-                class: "button original",
-                to: Routes.media_show_path(@socket, :edit, @media.slug, attr.name),
-                replace: true
-              ) %>
+              <.link
+                class="button original"
+                patch={Routes.media_show_path(@socket, :edit, @media.slug, attr.name)}
+                replace={true}
+              >
+                + <%= attr.label %>
+              </.link>
             <% end %>
           </dd>
         </div>
@@ -1401,9 +1405,10 @@ defmodule PlatformWeb.Components do
             </span>
           <% end %>
         </span>
-        <%= live_patch(class: "text-button inline-block mb-1",
-            to: Routes.media_show_path(@socket, :history, @media.slug, @attr.name)
-          ) do %>
+        <.link
+          class="text-button inline-block mb-1"
+          patch={Routes.media_show_path(@socket, :history, @media.slug, @attr.name)}
+        >
           <.user_stack users={
             @updates
             |> Enum.filter(&(&1.modified_attribute == to_string(@attr.name) || &1.type == :create))
@@ -1413,7 +1418,7 @@ defmodule PlatformWeb.Components do
             |> Enum.reject(&is_nil/1)
             |> Enum.take(1)
           } />
-        <% end %>
+        </.link>
       </dt>
       <dd class="mt-1 flex items-center text-sm text-gray-900 sm:mt-0 sm:col-span-2">
         <span class="flex-grow gap-1 flex flex-wrap">
@@ -1439,11 +1444,13 @@ defmodule PlatformWeb.Components do
         </span>
         <span class="ml-4 flex-shrink-0">
           <%= if Permissions.can_edit_media?(@current_user, @media, @attr) and not @immutable do %>
-            <%= live_patch("Update",
-              class: "text-button mt-1 inline-block",
-              to: Routes.media_show_path(@socket, :edit, @media.slug, @attr.name),
-              replace: true
-            ) %>
+            <.link
+              class="text-button mt-1 inline-block"
+              patch={Routes.media_show_path(@socket, :edit, @media.slug, @attr.name)}
+              replace={true}
+            >
+              Update
+            </.link>
           <% end %>
         </span>
       </dd>
@@ -2728,11 +2735,45 @@ defmodule PlatformWeb.Components do
       id={"version-#{@version.id}"}
       class="py-2 target:outline outline-2 outline-urge-600 rounded group outline-offset-2"
     >
-      <.link patch={@detail_url}>
-        <p class="font-mono text-sm">
-          <%= @human_name %>
-        </p>
-      </.link>
+      <div class="flex gap-1 mb-1 text-sm max-w-full items-center justify-between">
+        <span class="flex items-center gap-2 overflow-hidden">
+          <%= if @version.status != :error and @version.source_url != nil do %>
+            <.url_icon url={@version.source_url} class="h-6" />
+          <% end %>
+          <%= if @version.source_url != nil do %>
+            <a
+              class="text-neutral-600 truncate"
+              href={@version.source_url}
+              target="_blank"
+              data-confirm="This link will open an external site in a new tab. Are you sure?"
+            >
+              <%= @version.source_url %>
+            </a>
+          <% end %>
+          <%= if @version.upload_type == :user_provided do %>
+            <span class="badge ~neutral self-start shrink-0">User Upload</span>
+          <% end %>
+          <%= if @version.status == :error and @show_controls do %>
+            <div
+              class="text-gray-400"
+              data-tooltip="Atlos could not archive this URL automatically, but you can view it directly."
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+                class="w-4 h-4"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+            </div>
+          <% end %>
+        </span>
+      </div>
       <div class="relative">
         <%= if @artifact_to_show do %>
           <.link
@@ -2857,43 +2898,11 @@ defmodule PlatformWeb.Components do
         <% end %>
       </div>
       <div class="flex gap-1 mt-1 text-sm max-w-full items-center justify-between">
-        <span class="flex items-center gap-2 overflow-hidden">
-          <%= if @version.status != :error and @version.source_url != nil do %>
-            <.url_icon url={@version.source_url} class="h-6" />
-          <% end %>
-          <%= if @version.source_url != nil do %>
-            <a
-              class="text-neutral-600 truncate"
-              href={@version.source_url}
-              target="_blank"
-              data-confirm="This link will open an external site in a new tab. Are you sure?"
-            >
-              <%= @version.source_url %>
-            </a>
-          <% end %>
-          <%= if @version.upload_type == :user_provided do %>
-            <span class="badge ~neutral self-start shrink-0">User Upload</span>
-          <% end %>
-          <%= if @version.status == :error and @show_controls do %>
-            <div
-              class="text-gray-400"
-              data-tooltip="Atlos could not archive this URL automatically, but you can view it directly."
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-                class="w-4 h-4"
-              >
-                <path
-                  fill-rule="evenodd"
-                  d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z"
-                  clip-rule="evenodd"
-                />
-              </svg>
-            </div>
-          <% end %>
-        </span>
+        <.link patch={@detail_url}>
+          <p class="font-mono text-sm">
+            <%= @human_name %>
+          </p>
+        </.link>
         <%= if @artifact_to_show or @show_controls do %>
           <div class="flex gap-1 items-center">
             <div class="relative inline-block text-left" x-data="{open: false}">
@@ -3312,7 +3321,7 @@ defmodule PlatformWeb.Components do
               phx_debounce: "blur"
             ) %>
           </div>
-          <p class="support">
+          <p class="support mt-2">
             Type or select a time; alternatively,
             <span
               x-on:click={
@@ -3326,7 +3335,16 @@ defmodule PlatformWeb.Components do
           </p>
           <%= error_tag(@f, @schema_field) %>
         <% :date -> %>
-          <%= label(@f, @schema_field, @label) %>
+          <div class="flex items-center w-full justify-between">
+            <%= label(@f, @schema_field, @label) %>
+            <button
+              type="button"
+              x-on:click="$refs.date_input.valueAsDate = new Date(); $refs.date_input.dispatchEvent(new Event('input', {bubbles: true}))"
+              class="text-urge-600 flex items-center gap-1 text-sm p-1 rounded hover:bg-urge-50 transition"
+            >
+              <Heroicons.calendar_days class="h-4 w-4 text-urge-400" /> Today
+            </button>
+          </div>
           <div class="flex items-center gap-2 ts-ignore apply-a17t-fields">
             <%= date_input(@f, @schema_field,
               "x-ref": "date_input",
@@ -3334,12 +3352,10 @@ defmodule PlatformWeb.Components do
               phx_debounce: "blur"
             ) %>
           </div>
-          <p class="support">
+          <p class="support mt-2">
             Type or select a date; alternatively,
             <span
-              x-on:click={
-                ~c"$refs.date_input.value = null; $refs.date_input.dispatchEvent(new Event(\"input\", {bubbles: true}))"
-              }
+              x-on:click="$refs.date_input.value = null; $refs.date_input.dispatchEvent(new Event('input', {bubbles: true}))"
               class="cursor-pointer text-urge-600"
             >
               unset
@@ -3579,10 +3595,10 @@ defmodule PlatformWeb.Components do
       </p>
       <p>
         By using Atlos, you agree to our
-        <a href="https://github.com/atlosdotorg/atlos/blob/main/policy/TERMS_OF_USE.md">
+        <a href="https://docs.atlos.org/legal/terms/">
           <span class="underline">Terms</span>
         </a>
-        and <a href="https://github.com/atlosdotorg/atlos/blob/main/policy/PRIVACY_POLICY.md"><span class="underline">Privacy Policy</span></a>.
+        and <a href="https://docs.atlos.org/legal/privacy-policy/"><span class="underline">Privacy Policy</span></a>.
       </p>
     </div>
     """
@@ -3724,6 +3740,43 @@ defmodule PlatformWeb.Components do
 
     assigns = assign(assigns, :lat, lat) |> assign(:lon, lon)
 
+    duplicates =
+      map_data
+      |> Enum.group_by(&{&1.lat, &1.lon})
+      |> Enum.filter(fn {_coord, items} -> length(items) > 1 end)
+      |> Enum.flat_map(fn {_coord, items} -> items end)
+
+    map_data =
+      Enum.map(map_data, fn incident ->
+        case Enum.find_value(duplicates, &(&1.id == incident.id)) do
+          # If not a duplicate, keep the original data
+          nil ->
+            incident
+
+          _ ->
+            seed = incident[:id]
+            {prev_lat, _} = Float.parse(incident[:lat])
+            {prev_lon, _} = Float.parse(incident[:lon])
+
+            # Generate a random number of movement between 0 and 1 meter for each direction
+            hash = :erlang.phash2(seed)
+            _ = :rand.seed(:exsss, {hash, hash, hash})
+
+            lat_movement = :rand.uniform()
+            lon_movement = :rand.uniform()
+
+            # Calculate new coordinates
+            lat_lon_meters = 0.000009
+            new_lat = prev_lat + lat_movement * lat_lon_meters
+            new_lon = prev_lon + lon_movement * lat_lon_meters
+
+            updated_incident = %{incident | lat: "#{new_lat}", lon: "#{new_lon}"}
+            updated_incident
+        end
+      end)
+
+    assigns = assign(assigns, :map_data, map_data)
+
     ~H"""
     <map-events
       lat={@lat}
@@ -3757,50 +3810,52 @@ defmodule PlatformWeb.Components do
   def pagination_controls(assigns) do
     ~H"""
     <nav class="flex items-center justify-center sm:justify-between w-full" aria-label="Pagination">
-      <div class="flex flex-1 gap-2 md:mr-8" phx-hook="ScrollToTop" id={@id}>
-        <%= if not is_nil(@pagination_metadata.before) do %>
-          <.link patch={@prev_link} class="text-button">
-            <Heroicons.arrow_left mini class="h-6 w-6" />
-            <span class="sr-only">Previous</span>
-          </.link>
-        <% else %>
-          <span class="cursor-not-allowed opacity-75 text-neutral-600">
-            <Heroicons.arrow_left mini class="h-6 w-6" />
-            <span class="sr-only">Previous</span>
-          </span>
-        <% end %>
-        <%= if not is_nil(@pagination_metadata.after) do %>
-          <.link patch={@next_link} class="text-button">
-            <Heroicons.arrow_right mini class="h-6 w-6" />
-            <span class="sr-only">Next</span>
-          </.link>
-        <% else %>
-          <span class="cursor-not-allowed opacity-75 text-neutral-600">
-            <Heroicons.arrow_right mini class="h-6 w-6" />
-            <span class="sr-only">Next</span>
-          </span>
-        <% end %>
-      </div>
-      <div class="hidden sm:block">
-        <p class="text-sm text-gray-700">
-          Showing results
-          <span class="font-medium">
-            <%= (@pagination_index * @pagination_metadata.limit + 1) |> Formatter.format_number() %>
-          </span>
-          to
-          <span class="font-medium">
-            <%= (@pagination_index * @pagination_metadata.limit +
-                   @currently_displayed_results)
-            |> Formatter.format_number() %>
-          </span>
-          of
-          <span class="font-medium">
-            <%= @pagination_metadata.total_count |> Formatter.format_number() %><%= if @pagination_metadata.total_count_cap_exceeded,
-              do: "+",
-              else: "" %>
-          </span>
-        </p>
-      </div>
+      <%= if @pagination_metadata.total_count > 50 do %>
+        <div class="flex flex-1 gap-2 md:mr-8" phx-hook="ScrollToTop" id={@id}>
+          <%= if not is_nil(@pagination_metadata.before) do %>
+            <.link patch={@prev_link} class="text-button">
+              <Heroicons.arrow_left mini class="h-6 w-6" />
+              <span class="sr-only">Previous</span>
+            </.link>
+          <% else %>
+            <span class="cursor-not-allowed opacity-75 text-neutral-600">
+              <Heroicons.arrow_left mini class="h-6 w-6" />
+              <span class="sr-only">Previous</span>
+            </span>
+          <% end %>
+          <%= if not is_nil(@pagination_metadata.after) do %>
+            <.link patch={@next_link} class="text-button">
+              <Heroicons.arrow_right mini class="h-6 w-6" />
+              <span class="sr-only">Next</span>
+            </.link>
+          <% else %>
+            <span class="cursor-not-allowed opacity-75 text-neutral-600">
+              <Heroicons.arrow_right mini class="h-6 w-6" />
+              <span class="sr-only">Next</span>
+            </span>
+          <% end %>
+        </div>
+        <div class="hidden sm:block">
+          <p class="text-sm text-gray-700">
+            Showing results
+            <span class="font-medium">
+              <%= (@pagination_index * @pagination_metadata.limit + 1) |> Formatter.format_number() %>
+            </span>
+            to
+            <span class="font-medium">
+              <%= (@pagination_index * @pagination_metadata.limit +
+                     @currently_displayed_results)
+              |> Formatter.format_number() %>
+            </span>
+            of
+            <span class="font-medium">
+              <%= @pagination_metadata.total_count |> Formatter.format_number() %><%= if @pagination_metadata.total_count_cap_exceeded,
+                do: "+",
+                else: "" %>
+            </span>
+          </p>
+        </div>
+      <% end %>
     </nav>
     """
   end

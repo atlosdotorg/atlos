@@ -60,15 +60,15 @@ defmodule PlatformWeb.AdminlandLive.UserListLive do
                             />
                           </div>
                           <div class="ml-4">
-                            <%= live_patch(
-                              to: "/profile/#{user.username}",
-                              class: "text-button group outline-none"
-                            ) do %>
+                            <.link
+                              class="text-button group outline-none"
+                              patch={"/profile/#{user.username}"}
+                            >
                               <div class="outline-none font-medium text-gray-900 group-focus:text-urge-600">
                                 <.user_text user={user} />
                               </div>
                               <div class="outline-none text-gray-500"><%= user.email %></div>
-                            <% end %>
+                            </.link>
                           </div>
                         </div>
                       </td>
@@ -97,11 +97,9 @@ defmodule PlatformWeb.AdminlandLive.UserListLive do
                         <% end %>
                       </td>
                       <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                        <%= live_patch(to: "/profile/#{user.username}",
-                          class: "text-button"
-                        ) do %>
+                        <.link patch={"/profile/#{user.username}"} class="text-button">
                           Details
-                        <% end %>
+                        </.link>
                       </td>
                     </tr>
                   <% end %>

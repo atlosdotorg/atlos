@@ -47,7 +47,7 @@ defmodule Platform.GlobalSearch do
               ilike(mv.source_url, ^"%#{query_only_alphaneumeric}%") or
                 fragment("LOWER(?) = ?", mv.source_url, ^query_lower_raw)
             ),
-          asc:
+          desc:
             fragment("ts_rank_cd(?, websearch_to_tsquery('simple', ?))", mv.searchable, ^query),
           desc: mv.inserted_at
         ],
@@ -81,7 +81,8 @@ defmodule Platform.GlobalSearch do
               ilike(m.attr_description, ^"%#{query_only_alphaneumeric}%") or
                 ilike(m.slug, ^"%#{query_only_alphaneumeric}%")
             ),
-          asc: fragment("ts_rank_cd(?, websearch_to_tsquery('simple', ?))", m.searchable, ^query),
+          desc:
+            fragment("ts_rank_cd(?, websearch_to_tsquery('simple', ?))", m.searchable, ^query),
           desc: m.inserted_at
         ],
         limit: 3,
@@ -109,7 +110,8 @@ defmodule Platform.GlobalSearch do
               "case when ? then 0 else 1 end",
               ilike(u.username, ^"%#{query_only_alphaneumeric}%")
             ),
-          asc: fragment("ts_rank_cd(?, websearch_to_tsquery('simple', ?))", u.searchable, ^query),
+          desc:
+            fragment("ts_rank_cd(?, websearch_to_tsquery('simple', ?))", u.searchable, ^query),
           desc: u.inserted_at
         ],
         limit: 3,
@@ -136,7 +138,8 @@ defmodule Platform.GlobalSearch do
               "case when ? then 0 else 1 end",
               ilike(p.name, ^"%#{query_only_alphaneumeric}%")
             ),
-          asc: fragment("ts_rank_cd(?, websearch_to_tsquery('simple', ?))", p.searchable, ^query),
+          desc:
+            fragment("ts_rank_cd(?, websearch_to_tsquery('simple', ?))", p.searchable, ^query),
           desc: p.inserted_at
         ],
         limit: 3,
@@ -167,7 +170,8 @@ defmodule Platform.GlobalSearch do
               ilike(u.explanation, ^"%#{query_only_alphaneumeric}%") or
                 ilike(u.explanation, ^"%#{query_lower_raw}%")
             ),
-          asc: fragment("ts_rank_cd(?, websearch_to_tsquery('simple', ?))", u.searchable, ^query),
+          desc:
+            fragment("ts_rank_cd(?, websearch_to_tsquery('simple', ?))", u.searchable, ^query),
           desc: u.inserted_at
         ],
         limit: 3,

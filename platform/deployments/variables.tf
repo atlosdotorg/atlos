@@ -105,12 +105,6 @@ variable "host" {
   default     = "staging-v2.atlos.org"
 }
 
-variable "origin_certificate" {
-  description = "Origin certificate (PEM)"
-  type        = string
-  sensitive   = true
-}
-
 variable "backup_age_recipients" {
   description = "AGE recipients for encrypted database backups; comma separated"
   type        = string

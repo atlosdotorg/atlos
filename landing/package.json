@@ -12,12 +12,13 @@
     "@fontsource/iosevka": "^5.0.7",
     "@netlify/plugin-nextjs": "^4.29.2",
     "a17t": "^0.10.1",
-    "mapbox-gl": "^3.0.0",
+    "maplibre-gl": "^3.6.2",
     "next": "^14.0.3",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },
   "devDependencies": {
+    "@tailwindcss/typography": "^0.5.10",
     "autoprefixer": "^10.4.2",
     "eslint": "^8.54.0",
     "eslint-config-next": "^14.0.3",
