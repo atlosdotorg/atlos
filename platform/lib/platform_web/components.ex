@@ -592,6 +592,9 @@ defmodule PlatformWeb.Components do
         class="md:hidden flex items-center flex-shrink-0 text-xs items-center flex-shrink-1 gap-1 justify-right"
       >
         <.media_badges media={@media} only_status={true} />
+        <span :if={not @media.project.active} class="badge ~yellow">
+          <Heroicons.archive_box mini class="h-3 w-3 mr-px" /> Archived
+        </span>
       </.link>
       <.link
         navigate={"/incidents/#{@media.slug}"}
@@ -604,6 +607,9 @@ defmodule PlatformWeb.Components do
         class="hidden md:block flex items-center flex-shrink-0 text-xs items-center flex-shrink-1 gap-1 justify-right"
       >
         <.media_badges media={@media} only_status={true} />
+        <span :if={not @media.project.active} class="badge ~yellow">
+          <Heroicons.archive_box mini class="h-3 w-3 mr-px" /> Archived
+        </span>
       </.link>
     </article>
     """
