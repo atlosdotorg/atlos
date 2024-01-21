@@ -1681,7 +1681,7 @@ defmodule PlatformWeb.Components do
     assigns = assign(assigns, :attr, Attribute.get_attribute(name, project: project))
 
     ~H"""
-    <span class="inline-flex flex-wrap gap-1">
+    <span>
       <span class="font-medium">
         <%= if @attr.schema_field == :project_attributes,
           do: String.downcase(@attr.label),
@@ -1694,12 +1694,12 @@ defmodule PlatformWeb.Components do
         <% :select -> %>
           one of
           <%= for item <- Attribute.options(@attr) do %>
-            <div class="badge ~urge inline-block"><%= item %></div>
+            <div class="badge ~urge inline-block m-px"><%= item %></div>
           <% end %>
         <% :multi_select -> %>
           a combination of
           <%= for item <- Attribute.options(@attr) do %>
-            <div class="badge ~urge inline-block"><%= item %></div>
+            <div class="badge ~urge inline-block m-px"><%= item %></div>
           <% end %>
           (comma separated)
           <%= if Attribute.allow_user_defined_options(@attr) do %>
@@ -1707,16 +1707,16 @@ defmodule PlatformWeb.Components do
           <% end %>
         <% :location -> %>
           put latitude in a
-          <div class="badge ~urge inline-block">latitude</div>
+          <div class="badge ~urge inline-block m-px">latitude</div>
           column, and longitude in a
-          <div class="badge ~urge inline-block">longitude</div>
+          <div class="badge ~urge inline-block m-px">longitude</div>
           column
         <% :time -> %>
           time of day, in the format
-          <div class="badge ~urge inline-block">HH:MM:SS</div>
+          <div class="badge ~urge inline-block m-px">HH:MM:SS</div>
         <% :date -> %>
           date, in the format
-          <div class="badge ~urge inline-block">YYYY-MM-DD</div>
+          <div class="badge ~urge inline-block m-px">YYYY-MM-DD</div>
         <% :multi_users -> %>
           usernames of users that are part of the project, comma separated
       <% end %>
