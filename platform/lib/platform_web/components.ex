@@ -3202,9 +3202,9 @@ defmodule PlatformWeb.Components do
         />
       <% end %>
 
-      <%= for sub_f <- inputs_for(@form, :project_attributes), not is_nil(Enum.find(@project_attributes, &(&1.name == input_value(sub_f, :id)))) do %>
+      <.inputs_for :let={sub_f} field={@form[:project_attributes]}>
         <% attr = @project_attributes |> Enum.find(&(&1.name == input_value(sub_f, :id))) %>
-        <div>
+        <div :if={not is_nil(Enum.find(@project_attributes, &(&1.name == input_value(sub_f, :id))))}>
           <%= hidden_input(sub_f, :project_id) %>
           <%= hidden_input(sub_f, :id) %>
           <.edit_attribute
@@ -3216,7 +3216,7 @@ defmodule PlatformWeb.Components do
             project={@project}
           />
         </div>
-      <% end %>
+      </.inputs_for>
     </section>
     """
   end
