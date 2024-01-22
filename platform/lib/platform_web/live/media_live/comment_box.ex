@@ -155,6 +155,17 @@ defmodule PlatformWeb.MediaLive.CommentBox do
       class="relative bg-white pt-2 mt-2"
       id={"#{@id}"}
       phx-drop-target={@uploads.attachments.ref}
+      x-data="{
+        onPaste(event) {
+          $refs.file_input.files = event.clipboardData.files;
+
+          // We must manually trigger the input event so that Phoenix LiveView can pick up the changes
+          // See https://goodtohear.co.uk/blog/post/Handle_Paste_Images_in_Phoenix_Live_View_Form_Uplo
+          var event = document.createEvent('HTMLEvents');
+          event.initEvent('input', true, true);
+          $refs.file_input.dispatchEvent(event);
+        }
+      }"
     >
       <.form
         :let={f}
@@ -164,6 +175,7 @@ defmodule PlatformWeb.MediaLive.CommentBox do
         phx-submit="save"
         id="comment-box-form"
         phx-auto-recover="recover"
+        x-on:paste="onPaste($event)"
       >
         <%!-- For form recovery --%>
         <%= hidden_input(f, :render_id, value: @render_id) %>
@@ -278,7 +290,11 @@ defmodule PlatformWeb.MediaLive.CommentBox do
               <div class="absolute bottom-0 inset-x-0 pl-3 pr-2 pt-1 pb-2 flex justify-between">
                 <div class="flex items-center space-x-5">
                   <div class="md:flex items-center">
-                    <.live_file_input upload={@uploads.attachments} class="sr-only" />
+                    <.live_file_input
+                      upload={@uploads.attachments}
+                      x-ref="file_input"
+                      class="sr-only"
+                    />
                     <button
                       type="button"
                       x-data
