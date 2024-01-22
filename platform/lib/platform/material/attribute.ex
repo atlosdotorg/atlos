@@ -836,7 +836,7 @@ defmodule Platform.Material.Attribute do
     end
   end
 
-  defp update_from_virtual_data(changeset, %Attribute{} = attribute) do
+  def update_from_virtual_data(changeset, %Attribute{} = attribute) do
     # Updates the data in the changeset for the given attribute from the virtual data. Specifically, it:
     # * Sets the location field by parsing the string representation of the location.
 
