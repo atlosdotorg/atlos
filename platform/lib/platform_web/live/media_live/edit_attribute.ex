@@ -188,6 +188,15 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
           phx-submit="save"
           class="phx-form"
           phx-drop-target={@uploads.attachments.ref}
+          x-data="{
+            onPaste(event) {
+              $refs.file_input.files = event.clipboardData.files;
+              var event = document.createEvent('HTMLEvents');
+              event.initEvent('input', true, true);
+              $refs.file_input.dispatchEvent(event);
+            }
+          }"
+          x-on:paste="onPaste($event)"
         >
           <div class="mx-6 space-y-6">
             <.edit_attributes
