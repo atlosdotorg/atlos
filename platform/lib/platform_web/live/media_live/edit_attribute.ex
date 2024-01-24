@@ -5,6 +5,7 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
   alias Platform.Auditor
   alias Platform.Uploads
 
+  # Note: the file upload logic is duplicated in `comment_box.ex`; if you change it, be sure to change `comment_box.ex` as well.
   def mount(socket) do
     Temp.track!()
 
@@ -91,18 +92,25 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
     # To allow empty strings, lists, etc.
     params = Map.get(input, "media", %{}) |> inject_attr_fields_if_missing(socket.assigns.attrs)
 
-    attachments =
-      consume_uploaded_entries(socket, :attachments, fn %{path: path}, entry ->
-        # Copying it to _another_ temporary path helps ensure we remove the user's provided filename
-        to_path =
-          Temp.path!(
-            prefix: socket.assigns.current_user.username,
-            suffix: "." <> hd(MIME.extensions(entry.client_type))
-          )
+    attribute_changeset =
+      Attribute.combined_changeset(socket.assigns.media, socket.assigns.attrs, params)
 
-        File.cp!(path, to_path)
-        Uploads.UpdateAttachment.store({to_path, socket.assigns.media})
-      end)
+    attachments =
+      if attribute_changeset.valid? do
+        consume_uploaded_entries(socket, :attachments, fn %{path: path}, entry ->
+          # Copying it to _another_ temporary path helps ensure we remove the user's provided filename
+          to_path =
+            Temp.path!(
+              prefix: socket.assigns.current_user.username,
+              suffix: "." <> hd(MIME.extensions(entry.client_type))
+            )
+
+          File.cp!(path, to_path)
+          Uploads.UpdateAttachment.store({to_path, socket.assigns.media})
+        end)
+      else
+        nil
+      end
 
     params =
       Map.put(

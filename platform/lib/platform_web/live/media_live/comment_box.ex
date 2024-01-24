@@ -5,6 +5,7 @@ defmodule PlatformWeb.MediaLive.CommentBox do
   alias Platform.Uploads
   alias Platform.Auditor
 
+  # Note: the file upload logic is duplicated in `edit_attribute.ex`; if you change it, be sure to change `edit_attribute.ex` as well.
   def mount(socket) do
     Temp.track!()
 
