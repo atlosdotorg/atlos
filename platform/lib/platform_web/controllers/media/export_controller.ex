@@ -151,6 +151,17 @@ defmodule PlatformWeb.ExportController do
     project_id = Map.get(params, "project_id")
     project = Projects.get_project!(project_id)
 
+    readme_content = """
+    This folder contains a comprehensive copy of the project "#{project.name}" and contains several different types of files and folders. This folder is organized as follows:
+
+    - create_project_full_export includes general information about the project, including its name, description, and code; its attributes, their descriptions, types, and values; and whether or not the project is archived.
+    - Each folder contains a single incident's data, which contains a metadata.json file, an updates.json file, and folders for each piece of source material.
+    - The incident-level metadata.json file contains information about the incident's source material, including each file's hashes.
+    - The incident-level updates.json file is a log of each update made to an incident, including who changed what data at what time.
+    - Each piece of source material has a folder which contains visual media and a metadata.json file.
+    - The source material-level metadata.json file contains information about the source material, including its hashes and source URL.
+    """
+
     {full_query, _} = MediaSearch.search_query(c)
     final_query = MediaSearch.filter_viewable(full_query, conn.assigns.current_user)
 
@@ -190,7 +201,8 @@ defmodule PlatformWeb.ExportController do
             ])
           ])
         end),
-        [Zstream.entry("#{root_folder_name}/project.json", [Jason.encode!(project)])]
+        [Zstream.entry("#{root_folder_name}/create_project_full_export", [Jason.encode!(project)])],
+        [Zstream.entry("#{root_folder_name}/README.txt", [readme_content])]
       ])
       |> Zstream.zip()
 
