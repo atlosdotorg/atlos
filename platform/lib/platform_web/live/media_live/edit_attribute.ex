@@ -232,7 +232,7 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
           </div>
           <div class="px-6 py-6 border-t mt-6 bg-neutral-50 rounded-b-lg">
             <%= label(f, :explanation, "Briefly Explain Your Change") %>
-            <div class="border border-gray-300 rounded shadow-sm overflow-hidden focus-within:border-urge-500 focus-within:ring-1 min-h-[5rem] focus-within:ring-urge-500 transition mt !bg-white">
+            <div class="border border-gray-300 rounded shadow-sm overflow-hidden focus-within:border-urge-500 focus-within:ring-1 min-h-[5rem] focus-within:ring-urge-500 transition mt !bg-white relative mb-4">
               <.interactive_textarea
                 form={f}
                 disabled={false}
@@ -242,6 +242,35 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
                 rows={1}
                 class="!border-0 resize-none focus:ring-0 sm:text-sm shadow-none"
               />
+              <div class="md:flex items-center absolute bottom-0 right-0 mb-2 z-[100]">
+                <.live_file_input upload={@uploads.attachments} x-ref="file_input" class="sr-only" />
+                <button
+                  type="button"
+                  x-data
+                  x-on:click={"document.getElementById('#{@uploads.attachments.ref}').click()"}
+                  class="-m-2.5 w-10 h-10 rounded-full bg-white/75 backdrop-blur flex items-center justify-center text-gray-400 hover:text-gray-500"
+                >
+                  <svg
+                    class="h-5 w-5"
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                    aria-hidden="true"
+                  >
+                    <path
+                      fill-rule="evenodd"
+                      d="M8 4a3 3 0 00-3 3v4a5 5 0 0010 0V7a1 1 0 112 0v4a7 7 0 11-14 0V7a5 5 0 0110 0v4a3 3 0 11-6 0V7a1 1 0 012 0v4a1 1 0 102 0V7a3 3 0 00-3-3z"
+                      clip-rule="evenodd"
+                    />
+                  </svg>
+                  <span class="sr-only">Attach a file</span>
+                </button>
+
+                <span class="phx-form md:ml-2">
+                  <%= error_tag(f, :explanation) %>
+                  <%= error_tag(f, :attachments) %>
+                </span>
+              </div>
               <section class="grid grid-cols-2 md:grid-cols-3 gap-2 p-2">
                 <%= for entry <- @uploads.attachments.entries do %>
                   <article class="upload-entry relative rounded group self-start">
@@ -312,47 +341,9 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
                   <p class="support ~critical"><%= friendly_error(err) %></p>
                 <% end %>
               </section>
-              <!-- Spacer element to match the height of the toolbar -->
-              <div class="pt-1 pb-2" aria-hidden="true">
-                <!-- Matches height of button in toolbar (1px border + 36px content height) -->
-                <div class="py-px">
-                  <div class="h-9"></div>
-                </div>
-              </div>
             </div>
             <%= error_tag(f, :explanation) %>
             <div class="flex md:justify-between mt-6">
-              <div class="flex items-center space-x-5">
-                <div class="md:flex items-center">
-                  <.live_file_input upload={@uploads.attachments} x-ref="file_input" class="sr-only" />
-                  <button
-                    type="button"
-                    x-data
-                    x-on:click={"document.getElementById('#{@uploads.attachments.ref}').click()"}
-                    class="-m-2.5 w-10 h-10 rounded-full flex items-center justify-center text-gray-400 hover:text-gray-500"
-                  >
-                    <svg
-                      class="h-5 w-5"
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                      aria-hidden="true"
-                    >
-                      <path
-                        fill-rule="evenodd"
-                        d="M8 4a3 3 0 00-3 3v4a5 5 0 0010 0V7a1 1 0 112 0v4a7 7 0 11-14 0V7a5 5 0 0110 0v4a3 3 0 11-6 0V7a1 1 0 012 0v4a1 1 0 102 0V7a3 3 0 00-3-3z"
-                        clip-rule="evenodd"
-                      />
-                    </svg>
-                    <span class="sr-only">Attach a file</span>
-                  </button>
-
-                  <span class="phx-form md:ml-2">
-                    <%= error_tag(f, :explanation) %>
-                    <%= error_tag(f, :attachments) %>
-                  </span>
-                </div>
-              </div>
               <%= submit("Post update →",
                 phx_disable_with: "Saving...",
                 class: "button ~urge @high transition-all mr-2"
