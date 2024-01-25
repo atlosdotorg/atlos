@@ -1370,12 +1370,12 @@ defmodule PlatformWeb.Components do
                   </p>
                 </div>
               <% :text -> %>
-                <div>
+                <div class="ts-ignore">
                   <%= select(
                     @form,
                     String.to_atom("#{@attr.schema_field}-matchtype"),
                     ["Contains": :contains, "Equals": :equals, "Does not Contain": :excludes],
-                    class: "ts-ignore block input-base grow",
+                    class: "block input-base grow",
                     id: "search-form-#{@attr.schema_field}_matchtype"
                     )
                   %>

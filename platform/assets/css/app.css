@@ -341,7 +341,7 @@
  * governing permissions and limitations under the License.
  *
  */
-select:not(.ts-ignore) {
+select:not(.ts-ignore *) {
   display: none;
 }
 
