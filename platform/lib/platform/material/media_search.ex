@@ -400,7 +400,7 @@ defmodule Platform.Material.MediaSearch do
     queryable |> Platform.Material.maybe_filter_accessible_to_user(for_user: user)
   end
 
-  defp get_attrid(attr) do
+  def get_attrid(attr) do
     case attr.schema_field do
       :project_attributes -> attr.name
       sf -> sf

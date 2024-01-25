@@ -1239,14 +1239,16 @@ defmodule PlatformWeb.Components do
   end
 
   def attr_filter(assigns) do
-    assigns =
-      assign(
-        assigns,
+    assigns = assigns
+      |> assign(
         :is_active,
         Ecto.Changeset.get_change(assigns.form.source, assigns.attr.schema_field) != nil or
           (assigns.attr.type == :date and
              (Ecto.Changeset.get_change(assigns.form.source, :attr_date_min) != nil or
                 Ecto.Changeset.get_change(assigns.form.source, :attr_date_max) != nil))
+      )
+      |> assign(
+        :attr_id, Material.MediaSearch.get_attrid(assigns.attr)
       )
 
     ~H"""
@@ -1302,7 +1304,7 @@ defmodule PlatformWeb.Components do
                 <div phx-update="ignore" id={"attr_select_#{@attr.name}"} class="phx-form">
                   <%= multiple_select(
                     @form,
-                    @attr.schema_field,
+                    String.to_atom("#{@attr_id}"),
                     Attribute.options(@attr) ++ if(not @attr.required, do: ["[Unset]"], else: []),
                     id: "attr_select_#{@attr.name}_input",
                     data_descriptions:
@@ -1374,18 +1376,18 @@ defmodule PlatformWeb.Components do
                 <div class="ts-ignore">
                   <%= select(
                     @form,
-                    String.to_atom("#{@attr.schema_field}-matchtype"),
+                    String.to_atom("#{@attr_id}-matchtype"),
                     ["Contains": :contains, "Equals": :equals, "Does not Contain": :excludes],
                     class: "block input-base grow",
-                    id: "search-form-#{@attr.schema_field}_matchtype"
+                    id: "search-form-#{@attr_id}_matchtype"
                     )
                   %>
                   <%= text_input(
                     @form,
-                    @attr.schema_field,
+                    String.to_atom("#{@attr_id}"),
                     class: "input-base grow",
                     "phx-debounce": "500",
-                    id: "search-form-#{@attr.schema_field}"
+                    id: "search-form-#{@attr_id}"
                   ) %>
                 </div>
               <% _ -> %>
@@ -3262,7 +3264,7 @@ defmodule PlatformWeb.Components do
       |> assign(:f, form)
       |> assign(
         :schema_field,
-        if(attr.schema_field == :project_attributes, do: attr.name, else: attr.schema_field)
+        if(attr.schema_field == :project_attributes, do: :value, else: attr.schema_field)
       )
 
     ~H"""
