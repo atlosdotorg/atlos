@@ -2,6 +2,7 @@ defmodule Platform.Material.MediaSearch do
   use Ecto.Schema
   import Ecto.Query
   require Logger
+  alias ElixirSense.Log
   alias Platform.Projects.ProjectAttribute
   alias Platform.Projects
   alias Ecto.UUID
@@ -40,24 +41,28 @@ defmodule Platform.Material.MediaSearch do
   def changeset(params \\ %{}) do
     data = %{}
 
-    valid_keys =  case Map.get(params, "project_id") do
-      nil -> Map.keys(@types)
+    new_types =  case Map.get(params, "project_id") do
+      nil -> @types
       pid -> case Projects.get_project(pid) do
-        nil -> Map.keys(@types)
-        project -> Map.keys(@types) ++ Enum.flat_map(project.attributes, fn pattr ->
+        nil -> @types
+        project -> Enum.reduce(project.attributes, @types, fn pattr, acc ->
           attr = ProjectAttribute.to_attribute(pattr)
           aid = get_attrid(attr)
           case attr.type do
-          :text -> [aid, String.to_atom("#{aid}-matchtype")]
-          _ -> [aid]
+          :text ->
+            acc |> Map.put(String.to_atom(aid), :string) |> Map.put(String.to_atom("#{aid}-matchtype"), :string)
+          x when x == :multi_select or x == :select ->
+            acc |> Map.put(String.to_atom(aid), {:array, :string})
+          _ -> acc |> Map.put(String.to_atom(aid), :string)
         end end)
       end
     end
 
-    Logger.debug("valid_keys: #{inspect(valid_keys)}")
+    Logger.debug("new types: #{inspect(new_types)}")
+    Logger.debug("params: #{inspect(params)}")
 
-    {data, @types}
-    |> Ecto.Changeset.cast(params, Map.keys(@types))
+    {data, new_types}
+    |> Ecto.Changeset.cast(params, Map.keys(new_types))
     |> Ecto.Changeset.validate_change(:attr_geolocation, fn _, value ->
       case parse_location(value) do
         :error ->
@@ -266,52 +271,68 @@ defmodule Platform.Material.MediaSearch do
     end
   end
 
-  # defp apply_query_component(queryable, changeset, arbitrary_key = :impossible) do
-  #   # TODO
-  #   Logger.debug("changeset changes: #{inspect(changeset.changes)}")
-  #   Logger.debug("apply_query_component: #{inspect(arbitrary_key)}")
-  #   rel_changes = Map.get(changeset.changes, arbitrary_key)
-  #   Logger.debug("rel_changes: #{inspect(rel_changes)}")
-  #   case Attribute.get_attribute(arbitrary_key) do
-  #     nil ->
-  #       queryable
+  defp apply_query_component(queryable, changeset, arbitrary_key) do
+    Logger.debug("it goes here, #{inspect(arbitrary_key)}")
+    Logger.debug("changeset changes: #{inspect(changeset.changes)}")
+    Logger.debug("apply_query_component: #{inspect(arbitrary_key)}")
+    rel_changes = Map.get(changeset.changes, arbitrary_key)
+    Logger.debug("rel_changes: #{inspect(rel_changes)}")
+    with rel_changes <- Map.get(changeset.changes, arbitrary_key),
+         false <- is_nil(rel_changes),
+         project_id <- Map.get(changeset.changes, :project_id),
+         false <- is_nil(project_id),
+         project <- Projects.get_project(project_id),
+         false <- is_nil(project),
+         attr <- Attribute.get_attribute(arbitrary_key, project: project),
+         false <- is_nil(attr)
+    do
+      Logger.debug("awesome: #{inspect(attr)}")
+      case attr.type do
+        :text ->
+          Logger.debug("text attr")
+          case Map.get(changeset.changes, String.to_atom("#{arbitrary_key}-matchtype")) do
+            nil -> queryable
+            match_type -> case {rel_changes, match_type} do
+              {nil, _} -> queryable
+              {_, nil} -> queryable
+              {values, "contains"} ->
+                where(queryable, [m],
+                  fragment("? ILIKE ?", field(m, ^arbitrary_key), ^"%#{values}%")
+                )
+              {values, "equals"} ->
+                where(queryable, [m],
+                  fragment("? = ?", field(m, ^arbitrary_key), ^values)
+                )
+              {values, "excludes"} ->
+                where(queryable, [m],
+                  fragment("? NOT ILIKE ?", field(m, ^arbitrary_key), ^"%#{values}%")
+                )
+              _ -> queryable # TODO
+            end
+          end
+        x when x == :multi_select or x == :select ->
+          Logger.debug("select attr")
+          case rel_changes do
+            nil -> queryable
+            [] -> queryable
+            values -> where(queryable, [m],
+              fragment("? && ?", field(m, ^arbitrary_key), ^values) or
+              ("[Unset]" in ^values and (is_nil(field(m, ^arbitrary_key)) or field(m, ^arbitrary_key) == ^[]))
+            )
+          end
+        _ ->
+          queryable
+        end
+      else
+        _ ->
+          Logger.debug("welppp")
+          queryable
+      end
+  end
 
-  #     attr ->
-  #       case attr.type do
-  #         :text ->
-  #           case Map.get(changeset.changes, String.to_atom("#{arbitrary_key}-matchtype")) do
-  #             nil -> queryable
-  #             match_type -> case {rel_changes, match_type} do
-  #               {nil, _} -> queryable
-  #               {_, nil} -> queryable
-  #               {values, "contains"} ->
-  #                 where(queryable, [m],
-  #                   fragment("? ILIKE ?", field(m, ^arbitrary_key), ^"%#{values}%")
-  #                 )
-  #               {values, "equals"} ->
-  #                 where(queryable, [m],
-  #                   fragment("? = ?", field(m, ^arbitrary_key), ^values)
-  #                 )
-  #               {values, "excludes"} ->
-  #                 where(queryable, [m],
-  #                   fragment("? NOT ILIKE ?", field(m, ^arbitrary_key), ^"%#{values}%")
-  #                 )
-  #               _ -> queryable # TODO
-  #             end
-  #           end
-  #         x when x == :multi_select or x == :select ->
-  #           case rel_changes do
-  #             nil -> queryable
-  #             [] -> queryable
-  #             values -> where(queryable, [m],
-  #               fragment("? && ?", field(m, ^arbitrary_key), ^values) or
-  #               ("[Unset]" in ^values and (is_nil(field(m, ^arbitrary_key)) or field(m, ^arbitrary_key) == ^[]))
-  #             )
-  #           end
-  #         _ ->
-  #           queryable # TODO
-  #       end
-  #   end
+  # defp apply_query_component(queryable, changeset, arbitrary_key) do
+  #   Logger.debug("it goes here, #{inspect(arbitrary_key)}")
+  #   queryable
   # end
 
   defp apply_query_component(queryable, changeset, :only_has_unread_notifications, current_user) do
@@ -375,20 +396,11 @@ defmodule Platform.Material.MediaSearch do
   def search_query(queryable \\ Media, %Ecto.Changeset{} = cs, current_user \\ nil) do
     Logger.debug("printing stacktrace...")
     Logger.debug(Exception.format_stacktrace())
+    Logger.debug("search_query current changeset: #{inspect(cs)}")
+    queryable = cs.changes |> Enum.reduce(queryable, fn {x, _},acc ->
+      apply_query_component(acc, cs, x)
+    end)
     queryable
-    |> apply_query_component(cs, :query)
-    |> apply_query_component(cs, :attr_status)
-    |> apply_query_component(cs, :attr_tags)
-    |> apply_query_component(cs, :attr_sensitive)
-    |> apply_query_component(cs, :attr_date_min)
-    |> apply_query_component(cs, :attr_date_max)
-    |> apply_query_component(cs, :attr_geolocation)
-    |> apply_query_component(cs, :no_media_versions)
-    |> apply_query_component(cs, :project_id)
-    |> apply_query_component(cs, :only_subscribed_id)
-    |> apply_query_component(cs, :only_assigned_id)
-    |> apply_query_component(cs, :has_been_edited_by_id)
-    |> apply_query_component(cs, :only_has_unread_notifications, current_user)
     |> apply_sort(cs)
     |> apply_deleted(cs)
   end

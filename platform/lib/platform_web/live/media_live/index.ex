@@ -125,7 +125,8 @@ defmodule PlatformWeb.MediaLive.Index do
     try do
       {:noreply, handle_params_internal(params, socket)}
     rescue
-      _error ->
+      error ->
+        Logger.error(error)
         {:noreply,
          socket
          |> put_flash(:error, "Your search had invalid parameters. Please try again.")
