@@ -1,4 +1,5 @@
 defmodule PlatformWeb.MediaLive.Index do
+  require Logger
   alias Platform.Material.Media
   use PlatformWeb, :live_view
   alias Platform.Material
@@ -13,6 +14,7 @@ defmodule PlatformWeb.MediaLive.Index do
 
   defp handle_params_internal(params, socket) do
     changeset = Material.MediaSearch.changeset(params)
+    Logger.debug("handle_params_internal: changeset: #{inspect(changeset)}")
 
     display =
       Ecto.Changeset.get_field(

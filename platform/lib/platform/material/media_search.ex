@@ -1,8 +1,12 @@
 defmodule Platform.Material.MediaSearch do
   use Ecto.Schema
   import Ecto.Query
+  require Logger
+  alias Platform.Projects.ProjectAttribute
+  alias Platform.Projects
   alias Ecto.UUID
   alias Platform.Material.Media
+  alias Platform.Material.Attribute
 
   # Search components:
   #   - Query (string)
@@ -35,6 +39,22 @@ defmodule Platform.Material.MediaSearch do
 
   def changeset(params \\ %{}) do
     data = %{}
+
+    valid_keys =  case Map.get(params, "project_id") do
+      nil -> Map.keys(@types)
+      pid -> case Projects.get_project(pid) do
+        nil -> Map.keys(@types)
+        project -> Map.keys(@types) ++ Enum.flat_map(project.attributes, fn pattr ->
+          attr = ProjectAttribute.to_attribute(pattr)
+          aid = get_attrid(attr)
+          case attr.type do
+          :text -> [aid, String.to_atom("#{aid}-matchtype")]
+          _ -> [aid]
+        end end)
+      end
+    end
+
+    Logger.debug("valid_keys: #{inspect(valid_keys)}")
 
     {data, @types}
     |> Ecto.Changeset.cast(params, Map.keys(@types))
@@ -246,6 +266,54 @@ defmodule Platform.Material.MediaSearch do
     end
   end
 
+  # defp apply_query_component(queryable, changeset, arbitrary_key = :impossible) do
+  #   # TODO
+  #   Logger.debug("changeset changes: #{inspect(changeset.changes)}")
+  #   Logger.debug("apply_query_component: #{inspect(arbitrary_key)}")
+  #   rel_changes = Map.get(changeset.changes, arbitrary_key)
+  #   Logger.debug("rel_changes: #{inspect(rel_changes)}")
+  #   case Attribute.get_attribute(arbitrary_key) do
+  #     nil ->
+  #       queryable
+
+  #     attr ->
+  #       case attr.type do
+  #         :text ->
+  #           case Map.get(changeset.changes, String.to_atom("#{arbitrary_key}-matchtype")) do
+  #             nil -> queryable
+  #             match_type -> case {rel_changes, match_type} do
+  #               {nil, _} -> queryable
+  #               {_, nil} -> queryable
+  #               {values, "contains"} ->
+  #                 where(queryable, [m],
+  #                   fragment("? ILIKE ?", field(m, ^arbitrary_key), ^"%#{values}%")
+  #                 )
+  #               {values, "equals"} ->
+  #                 where(queryable, [m],
+  #                   fragment("? = ?", field(m, ^arbitrary_key), ^values)
+  #                 )
+  #               {values, "excludes"} ->
+  #                 where(queryable, [m],
+  #                   fragment("? NOT ILIKE ?", field(m, ^arbitrary_key), ^"%#{values}%")
+  #                 )
+  #               _ -> queryable # TODO
+  #             end
+  #           end
+  #         x when x == :multi_select or x == :select ->
+  #           case rel_changes do
+  #             nil -> queryable
+  #             [] -> queryable
+  #             values -> where(queryable, [m],
+  #               fragment("? && ?", field(m, ^arbitrary_key), ^values) or
+  #               ("[Unset]" in ^values and (is_nil(field(m, ^arbitrary_key)) or field(m, ^arbitrary_key) == ^[]))
+  #             )
+  #           end
+  #         _ ->
+  #           queryable # TODO
+  #       end
+  #   end
+  # end
+
   defp apply_query_component(queryable, changeset, :only_has_unread_notifications, current_user) do
     case Map.get(changeset.changes, :only_has_unread_notifications, false) and
            not is_nil(current_user) do
@@ -305,6 +373,8 @@ defmodule Platform.Material.MediaSearch do
   Builds a composeable query given the search changeset. Returns a {queryable, pagination_opts} tuple.
   """
   def search_query(queryable \\ Media, %Ecto.Changeset{} = cs, current_user \\ nil) do
+    Logger.debug("printing stacktrace...")
+    Logger.debug(Exception.format_stacktrace())
     queryable
     |> apply_query_component(cs, :query)
     |> apply_query_component(cs, :attr_status)
@@ -328,5 +398,12 @@ defmodule Platform.Material.MediaSearch do
   """
   def filter_viewable(queryable \\ Media, %Platform.Accounts.User{} = user) do
     queryable |> Platform.Material.maybe_filter_accessible_to_user(for_user: user)
+  end
+
+  defp get_attrid(attr) do
+    case attr.schema_field do
+      :project_attributes -> attr.name
+      sf -> sf
+    end
   end
 end

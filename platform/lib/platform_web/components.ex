@@ -3,6 +3,7 @@ defmodule PlatformWeb.Components do
   use Phoenix.HTML
   import PlatformWeb.ErrorHelpers
 
+  alias Platform.Projects.ProjectAttribute
   alias Phoenix.LiveView.JS
   alias Platform.Accounts
   alias Platform.Material.Attribute
@@ -2348,7 +2349,10 @@ defmodule PlatformWeb.Components do
                     form={f}
                     attr={Attribute.get_attribute(:description)}
                   />
-                  <%= if false do %>
+                  <%= if @active_project do %>
+                    <%= for attr <- @active_project.attributes do %>
+                      <.attr_filter id={attr.id <> "_filter"} form={f} attr={ProjectAttribute.to_attribute(attr)} />
+                    <% end %>
                   <% end %>
                   <div
                     class="relative text-left overflow-visible"
@@ -3258,7 +3262,7 @@ defmodule PlatformWeb.Components do
       |> assign(:f, form)
       |> assign(
         :schema_field,
-        if(attr.schema_field == :project_attributes, do: :value, else: attr.schema_field)
+        if(attr.schema_field == :project_attributes, do: attr.name, else: attr.schema_field)
       )
 
     ~H"""
