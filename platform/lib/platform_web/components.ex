@@ -1369,6 +1369,24 @@ defmodule PlatformWeb.Components do
                     For an open ended range, leave the field blank.
                   </p>
                 </div>
+              <% :text -> %>
+                <div>
+                  <%= select(
+                    @form,
+                    String.to_atom("#{@attr.schema_field}-matchtype"),
+                    ["Contains": :contains, "Equals": :equals, "Does not Contain": :excludes],
+                    class: "ts-ignore block input-base grow",
+                    id: "search-form-#{@attr.schema_field}_matchtype"
+                    )
+                  %>
+                  <%= text_input(
+                    @form,
+                    @attr.schema_field,
+                    class: "input-base grow",
+                    "phx-debounce": "500",
+                    id: "search-form-#{@attr.schema_field}"
+                  ) %>
+                </div>
               <% _ -> %>
                 TODO
             <% end %>
@@ -2325,6 +2343,13 @@ defmodule PlatformWeb.Components do
                     form={f}
                     attr={Attribute.get_attribute(:sensitive)}
                   />
+                  <.attr_filter
+                    id="description_filter"
+                    form={f}
+                    attr={Attribute.get_attribute(:description)}
+                  />
+                  <%= if false do %>
+                  <% end %>
                   <div
                     class="relative text-left overflow-visible"
                     data-tooltip="Filter to my assignments"
