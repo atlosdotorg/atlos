@@ -272,60 +272,51 @@ defmodule Platform.Material.MediaSearch do
   end
 
   defp apply_query_component(queryable, changeset, arbitrary_key) do
-    Logger.debug("it goes here, #{inspect(arbitrary_key)}")
-    Logger.debug("changeset changes: #{inspect(changeset.changes)}")
-    Logger.debug("apply_query_component: #{inspect(arbitrary_key)}")
-    rel_changes = Map.get(changeset.changes, arbitrary_key)
-    Logger.debug("rel_changes: #{inspect(rel_changes)}")
+    # Filters for project attributes
     with rel_changes <- Map.get(changeset.changes, arbitrary_key),
          false <- is_nil(rel_changes),
          project_id <- Map.get(changeset.changes, :project_id),
-         false <- is_nil(project_id),
          project <- Projects.get_project(project_id),
          false <- is_nil(project),
          attr <- Attribute.get_attribute(arbitrary_key, project: project),
-         false <- is_nil(attr)
+         false <- is_nil(attr),
+         :project_attributes <- attr.schema_field
     do
-      Logger.debug("awesome: #{inspect(attr)}")
+      candidates = where(queryable, [m], m.project_id == ^project_id)
       case attr.type do
         :text ->
-          Logger.debug("text attr")
           case Map.get(changeset.changes, String.to_atom("#{arbitrary_key}-matchtype")) do
             nil -> queryable
             match_type -> case {rel_changes, match_type} do
               {nil, _} -> queryable
-              {_, nil} -> queryable
               {values, "contains"} ->
-                where(queryable, [m],
-                  fragment("? ILIKE ?", field(m, ^arbitrary_key), ^"%#{values}%")
+                where(candidates, [m],
+                  fragment("EXISTS (SELECT 1 FROM jsonb_array_elements(?) as elem WHERE elem->>'id' = ? AND elem->>'value' ILIKE ?)", m.project_attributes, ^attr.name, ^"%#{values}%")
                 )
               {values, "equals"} ->
-                where(queryable, [m],
-                  fragment("? = ?", field(m, ^arbitrary_key), ^values)
+                where(candidates, [m],
+                  fragment("EXISTS (SELECT 1 FROM jsonb_array_elements(?) as elem WHERE elem->>'id' = ? AND elem->>'value' = ?)", m.project_attributes, ^attr.name, ^values)
                 )
               {values, "excludes"} ->
-                where(queryable, [m],
-                  fragment("? NOT ILIKE ?", field(m, ^arbitrary_key), ^"%#{values}%")
+                where(candidates, [m],
+                  fragment("NOT EXISTS (SELECT 1 FROM jsonb_array_elements(?) as elem WHERE elem->>'id' = ? AND elem->>'value' ILIKE ?)", m.project_attributes, ^attr.name, ^"%#{values}%")
                 )
               _ -> queryable # TODO
             end
           end
         x when x == :multi_select or x == :select ->
-          Logger.debug("select attr")
           case rel_changes do
             nil -> queryable
             [] -> queryable
-            values -> where(queryable, [m],
-              fragment("? && ?", field(m, ^arbitrary_key), ^values) or
-              ("[Unset]" in ^values and (is_nil(field(m, ^arbitrary_key)) or field(m, ^arbitrary_key) == ^[]))
-            )
+            values -> where(candidates, [m],
+              fragment("EXISTS (SELECT 1 FROM jsonb_array_elements(?) AS elem WHERE elem->>'id' =? AND jsonb_typeof(elem->'value') = 'array' AND ARRAY(SELECT value FROM jsonb_array_elements_text(elem->'value')) && ?)", m.project_attributes, ^attr.name, ^values
+              ))
           end
         _ ->
           queryable
         end
       else
         _ ->
-          Logger.debug("welppp")
           queryable
       end
   end
@@ -394,12 +385,11 @@ defmodule Platform.Material.MediaSearch do
   Builds a composeable query given the search changeset. Returns a {queryable, pagination_opts} tuple.
   """
   def search_query(queryable \\ Media, %Ecto.Changeset{} = cs, current_user \\ nil) do
-    Logger.debug("printing stacktrace...")
-    Logger.debug(Exception.format_stacktrace())
     Logger.debug("search_query current changeset: #{inspect(cs)}")
     queryable = cs.changes |> Enum.reduce(queryable, fn {x, _},acc ->
       apply_query_component(acc, cs, x)
     end)
+    Logger.debug("composed queryable: #{inspect(queryable)}")
     queryable
     |> apply_sort(cs)
     |> apply_deleted(cs)
