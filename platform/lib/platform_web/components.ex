@@ -2324,7 +2324,7 @@ defmodule PlatformWeb.Components do
                 <% end %>
               </div>
               <div class={if Enum.member?(@exclude, :filters), do: "hidden", else: ""}>
-                <div class="relative flex flex-wrap items-center h-full gap-2">
+                <div class="relative flex flex-wrap items-center h-full gap-2" x-data="{toggles:{},cur_select:''}">
                   <.attr_filter id="status_filter" form={f} attr={Attribute.get_attribute(:status)} />
                   <.attr_filter
                     id="geolocation_filter"
@@ -2346,15 +2346,25 @@ defmodule PlatformWeb.Components do
                     form={f}
                     attr={Attribute.get_attribute(:sensitive)}
                   />
-                  <.attr_filter
-                    id="description_filter"
-                    form={f}
-                    attr={Attribute.get_attribute(:description)}
-                  />
                   <%= if @active_project do %>
                     <%= for attr <- @active_project.attributes do %>
-                      <.attr_filter id={attr.id <> "_filter"} form={f} attr={ProjectAttribute.to_attribute(attr)} />
+                      <div x-show={"toggles[\"#{attr.id}\"]===true"}>
+                        <.attr_filter id={attr.id <> "_filter"} form={f} attr={ProjectAttribute.to_attribute(attr)} />
+                      </div>
                     <% end %>
+                    <div class="ts-ignore">
+                      <select x-model="cur_select">
+                        <option value="">Select Attribute</option>
+                        <%= for attr <- @active_project.attributes do %>
+                          <option value={attr.id} x-show={"toggles[\"#{attr.id}\"]!==true"}>
+                            <%= attr.name %>
+                          </option>
+                        <% end %>
+                      </select>
+                      <button x-on:click={"toggles[cur_select]=true"}>
+                        +
+                      </button>
+                    </div>
                   <% end %>
                   <div
                     class="relative text-left overflow-visible"
