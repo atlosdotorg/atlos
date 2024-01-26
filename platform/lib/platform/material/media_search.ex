@@ -2,7 +2,6 @@ defmodule Platform.Material.MediaSearch do
   use Ecto.Schema
   import Ecto.Query
   require Logger
-  alias ElixirSense.Log
   alias Platform.Projects.ProjectAttribute
   alias Platform.Projects
   alias Ecto.UUID
@@ -391,6 +390,7 @@ defmodule Platform.Material.MediaSearch do
     end)
     Logger.debug("composed queryable: #{inspect(queryable)}")
     queryable
+    |> apply_query_component(cs, :only_has_unread_notifications, current_user)
     |> apply_sort(cs)
     |> apply_deleted(cs)
   end
