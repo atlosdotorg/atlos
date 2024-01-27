@@ -1239,7 +1239,8 @@ defmodule PlatformWeb.Components do
   end
 
   def attr_filter(assigns) do
-    assigns = assigns
+    assigns =
+      assigns
       |> assign(
         :is_active,
         Ecto.Changeset.get_change(assigns.form.source, assigns.attr.schema_field) != nil or
@@ -1248,7 +1249,8 @@ defmodule PlatformWeb.Components do
                 Ecto.Changeset.get_change(assigns.form.source, :attr_date_max) != nil))
       )
       |> assign(
-        :attr_id, Material.MediaSearch.get_attrid(assigns.attr)
+        :attr_id,
+        Material.MediaSearch.get_attrid(assigns.attr)
       )
 
     ~H"""
@@ -1377,11 +1379,10 @@ defmodule PlatformWeb.Components do
                   <%= select(
                     @form,
                     String.to_atom("#{@attr_id}-matchtype"),
-                    ["Contains": :contains, "Equals": :equals, "Does not Contain": :excludes],
+                    [Contains: :contains, Equals: :equals, "Does not Contain": :excludes],
                     class: "block input-base grow",
                     id: "search-form-#{@attr_id}_matchtype"
-                    )
-                  %>
+                  ) %>
                   <%= text_input(
                     @form,
                     String.to_atom("#{@attr_id}"),
@@ -2324,7 +2325,10 @@ defmodule PlatformWeb.Components do
                 <% end %>
               </div>
               <div class={if Enum.member?(@exclude, :filters), do: "hidden", else: ""}>
-                <div class="relative flex flex-wrap items-center h-full gap-2" x-data="{toggles:{},cur_select:''}">
+                <div
+                  class="relative flex flex-wrap items-center h-full gap-2"
+                  x-data="{toggles:{},cur_select:''}"
+                >
                   <.attr_filter id="status_filter" form={f} attr={Attribute.get_attribute(:status)} />
                   <.attr_filter
                     id="geolocation_filter"
@@ -2348,23 +2352,46 @@ defmodule PlatformWeb.Components do
                   />
                   <%= if @active_project do %>
                     <%= for attr <- @active_project.attributes do %>
-                      <div x-show={"toggles[\"#{attr.id}\"]===true"}>
-                        <.attr_filter id={attr.id <> "_filter"} form={f} attr={ProjectAttribute.to_attribute(attr)} />
+                      <div x-transition x-show={"toggles[\"#{attr.id}\"]===true"}>
+                        <.attr_filter
+                          id={attr.id <> "_filter"}
+                          form={f}
+                          attr={ProjectAttribute.to_attribute(attr)}
+                        />
                       </div>
                     <% end %>
-                    <div class="ts-ignore">
-                      <select x-model="cur_select">
-                        <option value="">Select Attribute</option>
+                    <article
+                      class="ts-ignore relative text-left overflow-visible"
+                      x-data="{open:false}"
+                      x-on:click.away="open = false"
+                    >
+                      <div>
+                        <button
+                          type="button"
+                          class="transition-all border border-dashed shadow-sm rounded-lg text-sm text-gray-900 bg-white py-1 px-2"
+                          x-on:click="open=!open"
+                        >
+                          Toggle Filter
+                        </button>
+                      </div>
+                      <div
+                        x-show="open"
+                        x-transition
+                        x-cloak
+                        role="menu"
+                        class="transition-all absolute left z-[10000] overflow-visible mt-2 w-44 origin-top-right rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none p-1"
+                      >
                         <%= for attr <- @active_project.attributes do %>
-                          <option value={attr.id} x-show={"toggles[\"#{attr.id}\"]!==true"}>
+                          <button
+                            value={attr.id}
+                            x-on:click={"toggles[\"#{attr.id}\"] = toggles[\"#{attr.id}\"]?false:true; open=false"}
+                            class="w-full hover:bg-gray-200 text-left shadow-sm rounded-lg text-sm text-gray-900 bg-white py-1 px-2"
+                          >
                             <%= attr.name %>
-                          </option>
+                          </button>
                         <% end %>
-                      </select>
-                      <button x-on:click={"toggles[cur_select]=true"}>
-                        +
-                      </button>
-                    </div>
+                      </div>
+                    </article>
                   <% end %>
                   <div
                     class="relative text-left overflow-visible"
