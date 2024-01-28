@@ -1238,6 +1238,24 @@ defmodule PlatformWeb.Components do
     """
   end
 
+
+  def filter_icon(assigns) do
+    ~H"""
+    <span>
+      <%= case @type do %>
+        <% x when x == :multi_select or x == :select -> %>
+          <Heroicons.tag solid class="h-5 w-5 py-px opacity-80" />
+        <% :location -> %>
+          <Heroicons.map_pin solid class="h-5 w-5 py-px opacity-80" />
+        <% :date -> %>
+          <Heroicons.calendar solid class="h-5 w-5 py-px opacity-80" />
+        <% :text -> %>
+          <Heroicons.bars_3_bottom_left solid class="h-5 w-5 py-px opacity-80" />
+      <% end %>
+      </span>
+    """
+  end
+
   def attr_filter(assigns) do
     assigns =
       assigns
@@ -1273,6 +1291,7 @@ defmodule PlatformWeb.Components do
           aria-haspopup="true"
           x-on:click="open = !open"
         >
+          <.filter_icon type={@attr.type}/>
           <%= @attr.label %>
           <svg
             class="-mr-1 h-5 w-5 opacity-75"
@@ -2386,9 +2405,12 @@ defmodule PlatformWeb.Components do
                           <button
                             value={attr.id}
                             x-on:click={"toggles[\"#{attr.id}\"] = toggles[\"#{attr.id}\"]?false:true; open=false"}
-                            class="w-full hover:bg-gray-200 text-left shadow-sm rounded-lg text-sm text-gray-900 bg-white py-1 px-2"
+                            class="w-full hover:bg-gray-200 text-left shadow-sm rounded-lg text-sm text-gray-900 bg-white py-1 px-2 flex"
                           >
-                            <%= attr.name %>
+                            <.filter_icon type={attr.type}/>
+                            <span class="ml-2">
+                              <%= attr.name %>
+                            </span>
                           </button>
                         <% end %>
                       </div>
