@@ -405,7 +405,7 @@ defmodule Platform.Material.MediaSearch do
   def get_attrid(attr) do
     case attr.schema_field do
       :project_attributes -> attr.name
-      sf -> sf
+      sf -> Atom.to_string(sf)
     end
   end
 end

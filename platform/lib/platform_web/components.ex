@@ -1247,6 +1247,7 @@ defmodule PlatformWeb.Components do
           (assigns.attr.type == :date and
              (Ecto.Changeset.get_change(assigns.form.source, :attr_date_min) != nil or
                 Ecto.Changeset.get_change(assigns.form.source, :attr_date_max) != nil))
+        or Ecto.Changeset.get_change(assigns.form.source, String.to_atom(Material.MediaSearch.get_attrid(assigns.attr))) != nil
       )
       |> assign(
         :attr_id,
