@@ -1,6 +1,7 @@
 defmodule PlatformWeb.Components do
   use Phoenix.Component
   use Phoenix.HTML
+  require Logger
   import PlatformWeb.ErrorHelpers
 
   alias Platform.Projects.ProjectAttribute
@@ -2123,11 +2124,29 @@ defmodule PlatformWeb.Components do
   end
 
   def search_form(%{changeset: c, query_params: _, socket: _, display: _} = assigns) do
+    default_attrs =
+      ["status", "geolocation", "date", "tags", "sensitive"]
+      |> Enum.map(fn x ->
+        at = Attribute.get_attribute(String.to_atom(x), projects: (if x == "tags", do: Platform.Projects.list_projects_for_user(assigns.current_user), else: []))
+        %{
+        id: "#{x}_filter",
+        attr: at,
+        label: at.label
+      } end)
+
+    available_attrs = default_attrs |> Enum.concat((if assigns.active_project, do: assigns.active_project.attributes |> Enum.map(
+      &(%{
+        id: "#{&1.id}_filter",
+        attr: ProjectAttribute.to_attribute(&1),
+        label: &1.name
+      })
+    ), else: []))
+
     assigns =
       assign_new(assigns, :exclude, fn -> [] end)
       |> assign(:changeset, Map.put(c, :action, :validate))
-
-    # We assign the ID to the top-level div to fix a Safari rendering bug
+      |> assign(:default_attrs, default_attrs)
+      |> assign(:available_attrs, available_attrs)
 
     ~H"""
     <div
@@ -2349,73 +2368,50 @@ defmodule PlatformWeb.Components do
                   class="relative flex flex-wrap items-center h-full gap-2"
                   x-data="{toggles:{},cur_select:''}"
                 >
-                  <.attr_filter id="status_filter" form={f} attr={Attribute.get_attribute(:status)} />
-                  <.attr_filter
-                    id="geolocation_filter"
-                    form={f}
-                    attr={Attribute.get_attribute(:geolocation)}
-                  />
-                  <.attr_filter id="date_filter" form={f} attr={Attribute.get_attribute(:date)} />
-                  <.attr_filter
-                    id="tags_filter"
-                    form={f}
-                    attr={
-                      Attribute.get_attribute(:tags,
-                        projects: Platform.Projects.list_projects_for_user(@current_user)
-                      )
-                    }
-                  />
-                  <.attr_filter
-                    id="sensitive_filter"
-                    form={f}
-                    attr={Attribute.get_attribute(:sensitive)}
-                  />
-                  <%= if @active_project do %>
-                    <%= for attr <- @active_project.attributes do %>
-                      <div x-transition x-show={"toggles[\"#{attr.id}\"]===true"}>
-                        <.attr_filter
-                          id={attr.id <> "_filter"}
-                          form={f}
-                          attr={ProjectAttribute.to_attribute(attr)}
-                        />
-                      </div>
-                    <% end %>
-                    <article
-                      class="ts-ignore relative text-left overflow-visible"
-                      x-data="{open:false}"
-                      x-on:click.away="open = false"
-                    >
-                      <div>
-                        <button
-                          type="button"
-                          class="transition-all border border-dashed shadow-sm rounded-lg text-sm text-gray-900 bg-white py-1 px-2"
-                          x-on:click="open=!open"
-                        >
-                          Toggle Filter
-                        </button>
-                      </div>
-                      <div
-                        x-show="open"
-                        x-transition
-                        x-cloak
-                        role="menu"
-                        class="transition-all absolute left z-[10000] overflow-visible mt-2 w-44 origin-top-right rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none p-1"
-                      >
-                        <%= for attr <- @active_project.attributes do %>
-                          <button
-                            value={attr.id}
-                            x-on:click={"toggles[\"#{attr.id}\"] = toggles[\"#{attr.id}\"]?false:true; open=false"}
-                            class="w-full hover:bg-gray-200 text-left shadow-sm rounded-lg text-sm text-gray-900 bg-white py-1 px-2 flex"
-                          >
-                            <.filter_icon type={attr.type}/>
-                            <span class="ml-2">
-                              <%= attr.name %>
-                            </span>
-                          </button>
-                        <% end %>
-                      </div>
-                    </article>
+                  <%= for attr <- @available_attrs do %>
+                    <div x-transition x-show={"toggles[\"#{attr.id}\"]===true"}>
+                      <.attr_filter
+                        id={attr.id}
+                        form={f}
+                        attr={attr.attr}
+                      />
+                    </div>
                   <% end %>
+                  <article
+                    class="ts-ignore relative text-left overflow-visible"
+                    x-data="{open:false}"
+                    x-on:click.away="open = false"
+                  >
+                    <div>
+                      <button
+                        type="button"
+                        class="transition-all border border-dashed shadow-sm rounded-lg text-sm text-gray-900 bg-white py-1 px-2"
+                        x-on:click="open=!open"
+                      >
+                        Toggle Filter
+                      </button>
+                    </div>
+                    <div
+                      x-show="open"
+                      x-transition
+                      x-cloak
+                      role="menu"
+                      class="transition-all absolute left z-[10000] overflow-visible mt-2 w-44 origin-top-right rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none p-1"
+                    >
+                      <%= for attr <- @available_attrs do %>
+                        <button
+                          value={attr.id}
+                          x-on:click={"toggles[\"#{attr.id}\"] = toggles[\"#{attr.id}\"]?false:true; open=false"}
+                          class="w-full hover:bg-gray-200 text-left shadow-sm rounded-lg text-sm text-gray-900 bg-white py-1 px-2 flex"
+                        >
+                          <.filter_icon type={attr.attr.type}/>
+                          <span class="ml-2">
+                            <%= attr.label %>
+                          </span>
+                        </button>
+                      <% end %>
+                    </div>
+                  </article>
                   <div
                     class="relative text-left overflow-visible"
                     data-tooltip="Filter to my assignments"
