@@ -202,7 +202,7 @@ defmodule PlatformWeb.ExportController do
           ])
         end),
         [
-          Zstream.entry("#{root_folder_name}/create_project_full_export", [Jason.encode!(project)])
+          Zstream.entry("#{root_folder_name}/project.json", [Jason.encode!(project)])
         ],
         [Zstream.entry("#{root_folder_name}/README.txt", [readme_content])]
       ])
