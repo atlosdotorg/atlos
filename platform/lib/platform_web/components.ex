@@ -1272,12 +1272,16 @@ defmodule PlatformWeb.Components do
         :attr_id,
         Material.MediaSearch.get_attrid(assigns.attr)
       )
+      |> assign(
+        :default_open,
+        (if is_nil(assigns[:default_open]), do: false, else: assigns.default_open)
+      )
 
     ~H"""
     <article
       class="relative text-left overflow-visible"
-      x-data="{open: false}"
-      x-on:click.away="open = false"
+      x-data={"{open: #{@default_open}}"}
+      x-on:mousedown.outside="open = false"
       id={@id}
     >
       <div>
@@ -2366,16 +2370,23 @@ defmodule PlatformWeb.Components do
               <div class={if Enum.member?(@exclude, :filters), do: "hidden", else: ""}>
                 <div
                   class="relative flex flex-wrap items-center h-full gap-2"
-                  x-data="{toggles:{},cur_select:''}"
+                  x-data="{toggles:{},cur_select:'',select_state:'norm'}"
                 >
+                  <div>
+                    Select State: <span x-text="select_state"></span>
+                    Cur select: <span x-text="cur_select"></span>
+                    Toggle State: <span x-text="JSON.stringify(toggles)"></span>
+                  </div>
                   <%= for attr <- @available_attrs do %>
-                    <div x-transition x-show={"toggles[\"#{attr.id}\"]===true"}>
-                      <.attr_filter
-                        id={attr.id}
-                        form={f}
-                        attr={attr.attr}
-                      />
-                    </div>
+                    <template x-if={"toggles[\"#{attr.id}\"]===true && select_state==='norm'"}>
+                      <div x-transition>
+                        <.attr_filter
+                          id={attr.id}
+                          form={f}
+                          attr={attr.attr}
+                        />
+                      </div>
+                    </template>
                   <% end %>
                   <article
                     class="ts-ignore relative text-left overflow-visible"
@@ -2392,7 +2403,7 @@ defmodule PlatformWeb.Components do
                       </button>
                     </div>
                     <div
-                      x-show="open"
+                      x-show="open && select_state==='norm'"
                       x-transition
                       x-cloak
                       role="menu"
@@ -2401,7 +2412,7 @@ defmodule PlatformWeb.Components do
                       <%= for attr <- @available_attrs do %>
                         <button
                           value={attr.id}
-                          x-on:click={"toggles[\"#{attr.id}\"] = toggles[\"#{attr.id}\"]?false:true; open=false"}
+                          x-on:click={"toggles[\"#{attr.id}\"] = toggles[\"#{attr.id}\"]?false:true;select_state='select_filt';console.log('mutating select filt state', select_state)"}
                           class="w-full hover:bg-gray-200 text-left shadow-sm rounded-lg text-sm text-gray-900 bg-white py-1 px-2 flex"
                         >
                           <.filter_icon type={attr.attr.type}/>
@@ -2411,6 +2422,18 @@ defmodule PlatformWeb.Components do
                         </button>
                       <% end %>
                     </div>
+                    <%= for attr <- @available_attrs do %>
+                    <template x-if={"toggles[\"#{attr.id}\"]===true && select_state==='select_filt'"}>
+                      <div x-transition x-on:mousedown.outside="open=false">
+                        <.attr_filter
+                          id={attr.id}
+                          form={f}
+                          attr={attr.attr}
+                          default_open={true}
+                        />
+                      </div>
+                    </template>
+                  <% end %>
                   </article>
                   <div
                     class="relative text-left overflow-visible"
