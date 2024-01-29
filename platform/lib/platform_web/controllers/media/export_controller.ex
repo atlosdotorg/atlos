@@ -154,7 +154,7 @@ defmodule PlatformWeb.ExportController do
     readme_content = """
     This folder contains a comprehensive copy of the project "#{project.name}" and contains several different types of files and folders. This folder is organized as follows:
 
-    - create_project_full_export includes general information about the project, including its name, description, and code; its attributes, their descriptions, types, and values; and whether or not the project is archived.
+    - project.json includes general information about the project, including its name, description, and code; its attributes, their descriptions, types, and values; and whether or not the project is archived.
     - Each folder contains a single incident's data, which contains a metadata.json file, an updates.json file, and folders for each piece of source material.
     - The incident-level metadata.json file contains information about the incident's source material, including each file's hashes.
     - The incident-level updates.json file is a log of each update made to an incident, including who changed what data at what time.
