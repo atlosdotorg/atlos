@@ -2412,7 +2412,7 @@ defmodule PlatformWeb.Components do
                       <%= for attr <- @available_attrs do %>
                         <button
                           value={attr.id}
-                          x-on:click={"toggles[\"#{attr.id}\"] = toggles[\"#{attr.id}\"]?false:true;select_state='select_filt';console.log('mutating select filt state', select_state)"}
+                          x-on:click={"toggles[\"#{attr.id}\"] = toggles[\"#{attr.id}\"]?false:true;select_state='select_filt';cur_select=\"#{attr.id}\""}
                           class="w-full hover:bg-gray-200 text-left shadow-sm rounded-lg text-sm text-gray-900 bg-white py-1 px-2 flex"
                         >
                           <.filter_icon type={attr.attr.type}/>
@@ -2423,8 +2423,8 @@ defmodule PlatformWeb.Components do
                       <% end %>
                     </div>
                     <%= for attr <- @available_attrs do %>
-                    <template x-if={"toggles[\"#{attr.id}\"]===true && select_state==='select_filt'"}>
-                      <div x-transition x-on:mousedown.outside="open=false">
+                    <template x-if={"toggles[\"#{attr.id}\"]===true && cur_select===\"#{attr.id}\" && select_state==='select_filt'"}>
+                      <div x-transition x-on:mousedown.outside="open=false;select_state='norm'">
                         <.attr_filter
                           id={attr.id}
                           form={f}
