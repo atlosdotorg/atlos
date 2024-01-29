@@ -117,10 +117,6 @@ defmodule Platform.Material.Media do
       user: user,
       required: true
     )
-    |> Attribute.validate_attribute(Attribute.get_attribute(:geolocation), media,
-      user: user,
-      required: true
-    )
     |> Attribute.validate_attribute(Attribute.get_attribute(:date), media,
       user: user,
       required: false
@@ -169,13 +165,13 @@ defmodule Platform.Material.Media do
     end)
   end
 
-  defp populate_geolocation(media) do
-    case get_change(media, :location) do
-      location ->
-        Attribute.update_from_virtual_data(media, Attribute.get_attribute(:geolocation))
+  defp populate_geolocation(changeset) do
+    case get_change(changeset, :location) do
+      _location ->
+        Attribute.update_from_virtual_data(changeset, Attribute.get_attribute(:geolocation))
 
       _ ->
-        media
+        changeset
     end
   end
 
