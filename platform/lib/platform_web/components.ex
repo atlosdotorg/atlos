@@ -1257,17 +1257,21 @@ defmodule PlatformWeb.Components do
     """
   end
 
+  defp is_active?(cs, attr) do
+    Ecto.Changeset.get_change(cs, attr.schema_field) != nil or
+          (attr.type == :date and
+             (Ecto.Changeset.get_change(cs, :attr_date_min) != nil or
+                Ecto.Changeset.get_change(cs, :attr_date_max) != nil))
+        or Ecto.Changeset.get_change(cs, String.to_atom(Material.MediaSearch.get_attrid(attr))) != nil
+  end
+
   def attr_filter(assigns) do
     assigns =
       assigns
       |> assign(
         :is_active,
-        Ecto.Changeset.get_change(assigns.form.source, assigns.attr.schema_field) != nil or
-          (assigns.attr.type == :date and
-             (Ecto.Changeset.get_change(assigns.form.source, :attr_date_min) != nil or
-                Ecto.Changeset.get_change(assigns.form.source, :attr_date_max) != nil))
-        or Ecto.Changeset.get_change(assigns.form.source, String.to_atom(Material.MediaSearch.get_attrid(assigns.attr))) != nil
-      )
+        is_active?(assigns.form.source, assigns.attr)
+        )
       |> assign(
         :attr_id,
         Material.MediaSearch.get_attrid(assigns.attr)
@@ -1328,12 +1332,12 @@ defmodule PlatformWeb.Components do
           <div>
             <%= case @attr.type do %>
               <% x when x == :multi_select or x == :select -> %>
-                <div phx-update="ignore" id={"attr_select_#{@attr.name}"} class="phx-form">
+                <div phx-update="ignore" id={"attr_select_#{@attr.name}_#{@id}"} class="phx-form">
                   <%= multiple_select(
                     @form,
                     String.to_atom("#{@attr_id}"),
                     Attribute.options(@attr) ++ if(not @attr.required, do: ["[Unset]"], else: []),
-                    id: "attr_select_#{@attr.name}_input",
+                    id: "attr_select_#{@attr.name}_input_#{@id}",
                     data_descriptions:
                       Jason.encode!(
                         (@attr.option_descriptions || %{})
@@ -2152,6 +2156,14 @@ defmodule PlatformWeb.Components do
       |> assign(:default_attrs, default_attrs)
       |> assign(:available_attrs, available_attrs)
 
+    initial_toggle = Enum.reduce(
+      available_attrs,
+      %{},
+      fn atr, acc ->
+        Map.put(acc, atr.id, is_active?(c, atr.attr))
+      end
+    )
+
     ~H"""
     <div
       x-data="{ open: window.innerWidth >= 768 }"
@@ -2370,16 +2382,17 @@ defmodule PlatformWeb.Components do
               <div class={if Enum.member?(@exclude, :filters), do: "hidden", else: ""}>
                 <div
                   class="relative flex flex-wrap items-center h-full gap-2"
-                  x-data="{toggles:{},cur_select:'',select_state:'norm'}"
+                  x-data={"{toggles:#{Jason.encode!(initial_toggle)},cur_select:'',select_state:'norm'}"}
                 >
                   <div>
-                    Select State: <span x-text="select_state"></span>
-                    Cur select: <span x-text="cur_select"></span>
-                    Toggle State: <span x-text="JSON.stringify(toggles)"></span>
+                    Select State: <span x-text="select_state" class="font-mono"></span>
+                    Cur select: <span x-text="cur_select" class="font-mono"></span>
+                    Toggle State: <span x-text="JSON.stringify(toggles)" class="font-mono"></span>
                   </div>
+                  <br/>
                   <%= for attr <- @available_attrs do %>
-                    <template x-if={"toggles[\"#{attr.id}\"]===true && select_state==='norm'"}>
-                      <div x-transition>
+                    <template x-if={"toggles[\"#{attr.id}\"]===true && !(cur_select===\"#{attr.id}\" && select_state==='select_filt')"}>
+                      <div x-transition x-init="document.dispatchEvent(new CustomEvent('load-selectors',{}))">
                         <.attr_filter
                           id={attr.id}
                           form={f}
@@ -2412,7 +2425,8 @@ defmodule PlatformWeb.Components do
                       <%= for attr <- @available_attrs do %>
                         <button
                           value={attr.id}
-                          x-on:click={"toggles[\"#{attr.id}\"] = toggles[\"#{attr.id}\"]?false:true;select_state='select_filt';cur_select=\"#{attr.id}\""}
+                          x-show={"toggles[\"#{attr.id}\"]===false"}
+                          x-on:click={"toggles[\"#{attr.id}\"] = toggles[\"#{attr.id}\"]?false:true;if(toggles[\"#{attr.id}\"]){select_state='select_filt';cur_select=\"#{attr.id}\"}"}
                           class="w-full hover:bg-gray-200 text-left shadow-sm rounded-lg text-sm text-gray-900 bg-white py-1 px-2 flex"
                         >
                           <.filter_icon type={attr.attr.type}/>
@@ -2424,9 +2438,9 @@ defmodule PlatformWeb.Components do
                     </div>
                     <%= for attr <- @available_attrs do %>
                     <template x-if={"toggles[\"#{attr.id}\"]===true && cur_select===\"#{attr.id}\" && select_state==='select_filt'"}>
-                      <div x-transition x-on:mousedown.outside="open=false;select_state='norm'">
+                      <div x-transition x-on:mousedown.outside="open=false;select_state='norm'" x-init="document.dispatchEvent(new CustomEvent('load-selectors',{}))">
                         <.attr_filter
-                          id={attr.id}
+                          id={attr.id<>"_dropdown"}
                           form={f}
                           attr={attr.attr}
                           default_open={true}
