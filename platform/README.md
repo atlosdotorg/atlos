@@ -78,6 +78,7 @@ On Azure, we use only three products directly: Azure Container Apps, Azure Datab
 The Atlos web application will read the following environment variables. Some are absolutely required in production, while others are optional.
 
 - `S3_BUCKET` — the primary S3 bucket to use for content
+- `MAILER_FROM_ADDRESS` — the email address to send mail from
 - `AWS_REGION` — the AWS region for S3
 - `AWS_MAILER_REGION` — the AWS region for mail
 - `AWS_ACCESS_KEY_ID` — the AWS access key id
