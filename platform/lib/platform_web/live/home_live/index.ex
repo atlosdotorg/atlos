@@ -18,7 +18,10 @@ defmodule PlatformWeb.HomeLive.Index do
      |> assign(:media, get_feed_media(socket, limit: 50))
      |> assign(
        :status_statistics,
-       Material.status_overview_statistics(for_user: socket.assigns.current_user)
+       Material.status_overview_statistics(
+         for_user: socket.assigns.current_user,
+         exclude_archived_projects: true
+       )
      )
      |> assign(:additional_results_available, true)
      |> assign(:overview_media, get_overview_media(socket))
