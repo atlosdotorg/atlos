@@ -140,6 +140,10 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
     {:noreply, socket |> assign(:changeset, changeset)}
   end
 
+  def handle_event("cancel_upload", %{"ref" => ref}, socket) do
+    {:noreply, cancel_upload(socket, :attachments, ref)}
+  end
+
   def render(assigns) do
     confirm_prompt = "This will discard your changes without saving. Are you sure?"
 
