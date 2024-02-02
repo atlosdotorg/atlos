@@ -103,9 +103,11 @@ defmodule Platform.Material.Media do
       :attr_date,
       :deleted,
       :project_id,
-      :urls
+      :urls,
+      :location
     ])
     |> validate_required([:project_id], message: "Please select a project")
+    |> populate_geolocation()
     # These are special attributes, since we define it at creation time. Eventually, it'd be nice to unify this logic with the attribute-specific editing logic.
     |> Attribute.validate_attribute(Attribute.get_attribute(:description), media,
       user: user,
@@ -161,6 +163,16 @@ defmodule Platform.Material.Media do
         cs
       end
     end)
+  end
+
+  defp populate_geolocation(changeset) do
+    case get_change(changeset, :location) do
+      _location ->
+        Attribute.update_from_virtual_data(changeset, Attribute.get_attribute(:geolocation))
+
+      _ ->
+        changeset
+    end
   end
 
   def parse_and_validate_validate_json_array(changeset, field, dest) when is_atom(field) do
