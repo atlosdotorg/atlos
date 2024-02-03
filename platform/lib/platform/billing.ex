@@ -69,10 +69,6 @@ defmodule Platform.Billing do
   end
 
   def get_portal_url(%Accounts.User{} = user) do
-    # curl https://api.stripe.com/v1/billing_portal/sessions \
-    # -u "sk...:" \
-    # -d customer={{USER_ID}} \
-    # --data-urlencode return_url="https://platform.atlos.org/settings"
     {:ok, user} = update_stripe_customer_information_for_user(user)
 
     case Req.post("https://api.stripe.com/v1/billing_portal/sessions",
