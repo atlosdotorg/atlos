@@ -1,15 +1,49 @@
 defmodule PlatformWeb.MediaLive.SearchForm do
   use PlatformWeb, :live_component
+  require Logger
   alias Platform.Material.Attribute
   alias Platform.Material
   alias Platform.Utils
   alias Platform.Projects.ProjectAttribute
+
+  def mount(socket) do
+    {:ok,
+     socket
+     |> assign_new(:select_state, fn -> "norm" end)
+     |> assign_new(:cur_select, fn -> "" end)
+     |> assign_new(:toggle_state, fn -> %{} end)
+    }
+  end
 
   def update(assigns, socket) do
     {:ok,
      socket
      |> assign(assigns)
     }
+  end
+
+  def handle_event("select_state_filt", _par, socket) do
+    Logger.debug("SELECT_STATE_TRANSITION: FILTER")
+    {:noreply, assign(socket, :select_state, "select_filt")}
+  end
+
+  def handle_event("select_state_norm", _par, socket) do
+    Logger.debug("SELECT_STATE_TRANSITION: NORM")
+    {:noreply, assign(socket, :select_state, "norm")}
+  end
+
+  def handle_event("cur_select", %{"select" => select}, socket) do
+    Logger.debug("SELECT_STATE_TRANSITION: #{inspect(select)}")
+    {:noreply, assign(socket, :cur_select, select)}
+  end
+
+  def handle_event("toggle", %{"attr" => attr_id}, socket) do
+    Logger.debug("TOGGLE: #{inspect(attr_id)}")
+    {:noreply, assign(socket, :toggle_state, Map.put(socket.assigns.toggle_state, attr_id, not Map.get(socket.assigns.toggle_state, attr_id, false)))}
+  end
+
+  def handle_event(event, _par, socket) do
+    {:noreply, socket}
   end
 
   defp is_active?(cs, attr) do
@@ -251,7 +285,6 @@ defmodule PlatformWeb.MediaLive.SearchForm do
           id="search-form"
           phx-change={JS.push("validate") |> JS.dispatch("atlos:updating", to: "body")}
           phx-submit={JS.push("save") |> JS.dispatch("atlos:updating", to: "body")}
-          phx-update="ignore"
           data-no-warn="true"
           class="w-full"
         >
@@ -439,28 +472,30 @@ defmodule PlatformWeb.MediaLive.SearchForm do
               <div class={if Enum.member?(@exclude, :filters), do: "hidden", else: ""}>
                 <div
                   class="relative flex flex-wrap items-center h-full gap-2"
-                  x-data={"{toggles:#{Jason.encode!(@initial_toggle)},cur_select:'',select_state:'norm'}"}
+                  x-data={"{toggles:#{Jason.encode!(@initial_toggle)}}"}
                 >
                   <div>
-                    Select State: <span x-text="select_state" class="font-mono"></span>
-                    Cur select: <span x-text="cur_select" class="font-mono"></span>
-                    Toggle State: <span x-text="JSON.stringify(toggles)" class="font-mono"></span>
+                    Select State: <span class="font-mono"><%= @select_state %></span>
+                    Cur select: <span class="font-mono"><%= @cur_select %></span>
+                    Toggle State: <span class="font-mono"><%= inspect(@toggle_state) %></span>
                   </div>
                   <br/>
                   <%= for attr <- @available_attrs do %>
-                    <template x-if={"toggles[\"#{attr.id}\"]===true && !(cur_select===\"#{attr.id}\" && select_state==='select_filt')"}>
+                    <template x-if={"#{@toggle_state[attr.id]}===true && !('#{@cur_select}'===\"#{attr.id}\" && '#{@select_state}'==='select_filt')"}>
                       <div x-transition x-init="document.dispatchEvent(new CustomEvent('load-selectors',{}))">
                         <.attr_filter
                           id={attr.id}
                           form={f}
                           attr={attr.attr}
+                          phx-click-away="select_state_norm"
+                          phx-target={@myself}
                         />
                       </div>
                     </template>
                   <% end %>
                   <article
                     class="ts-ignore relative text-left overflow-visible"
-                    x-data="{open:false}"
+                    x-data={"{open:false}"}
                     x-on:click.away="open = false"
                   >
                     <div>
@@ -473,7 +508,7 @@ defmodule PlatformWeb.MediaLive.SearchForm do
                       </button>
                     </div>
                     <div
-                      x-show="open && select_state==='norm'"
+                      x-show={"open && '#{@select_state}'==='norm'"}
                       x-transition
                       x-cloak
                       role="menu"
@@ -482,8 +517,9 @@ defmodule PlatformWeb.MediaLive.SearchForm do
                       <%= for attr <- @available_attrs do %>
                         <button
                           value={attr.id}
-                          x-show={"toggles[\"#{attr.id}\"]===false"}
-                          x-on:click={"toggles[\"#{attr.id}\"] = toggles[\"#{attr.id}\"]?false:true;if(toggles[\"#{attr.id}\"]){select_state='select_filt';cur_select=\"#{attr.id}\"}"}
+                          x-show={"#{@toggle_state[attr.id]}===false"}
+                          phx-click={JS.push("select_state_filt", target: @myself) |> JS.push("cur_select", value: %{select: attr.id}, target: @myself) |> JS.push("toggle", value: %{"attr": attr.id}, target: @myself)}
+                          phx-target={@myself}
                           class="w-full hover:bg-gray-200 text-left shadow-sm rounded-lg text-sm text-gray-900 bg-white py-1 px-2 flex"
                         >
                           <.filter_icon type={attr.attr.type}/>
@@ -494,8 +530,13 @@ defmodule PlatformWeb.MediaLive.SearchForm do
                       <% end %>
                     </div>
                     <%= for attr <- @available_attrs do %>
-                    <template x-if={"toggles[\"#{attr.id}\"]===true && cur_select===\"#{attr.id}\" && select_state==='select_filt'"}>
-                      <div x-transition x-on:mousedown.outside="open=false;select_state='norm';console.log('SELECT_STATE_TRANSITION_A')" x-init="document.dispatchEvent(new CustomEvent('load-selectors',{}))">
+                    <template x-if={"#{@toggle_state[attr.id]}===true && '#{@cur_select}'===\"#{attr.id}\" && '#{@select_state}'==='select_filt'"}>
+                      <div
+                        x-transition
+                        x-init="document.dispatchEvent(new CustomEvent('load-selectors',{}))"
+                        phx-click-away="select_state_norm"
+                        phx-target={@myself}
+                      >
                         <.attr_filter
                           id={attr.id<>"_dropdown"}
                           form={f}
