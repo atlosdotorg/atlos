@@ -40,6 +40,12 @@ defmodule Platform.Accounts.User do
     field(:hashed_password, :string, redact: true)
     field(:confirmed_at, :naive_datetime)
 
+    # Billing
+    field(:billing_customer_id, :string)
+    field(:billing_info, :map)
+    field(:billing_flags, {:array, :string})
+    field(:billing_expires_at, :utc_datetime)
+
     many_to_many(:subscribed_media, Material.Media, join_through: "media_subscriptions")
     has_many(:memberships, Platform.Projects.ProjectMembership)
     has_many(:invite_uses, Invites.InviteUse)
@@ -48,6 +54,16 @@ defmodule Platform.Accounts.User do
     field(:searchable, {:array, :map}, load_in_query: false)
 
     timestamps()
+  end
+
+  def billing_changeset(user, attrs) do
+    user
+    |> cast(attrs, [
+      :billing_customer_id,
+      :billing_info,
+      :billing_flags,
+      :billing_expires_at
+    ])
   end
 
   @doc """

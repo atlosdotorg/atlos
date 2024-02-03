@@ -100,6 +100,11 @@ The Atlos web application will read the following environment variables. Some ar
 - `ONBOARDING_PROJECT_ID` — the ID of the demo onboarding project template; if unset, the onboarding project will not be created (optional but recommended)
 - `COOKIE_SIGNING_SALT` — salt to use for cookie signing (must be at least 64 bytes)
 - `SECRET_KEY_BASE` — base secret key for Phoenix (must be at least 64 bytes)
+- `BILLING_ENABLED` — whether billing should be enabled (default `false`; does not make sense for self-hosted instances)
+- `STRIPE_CUSTOMER_PORTAL_URL` — Stripe customer portal URL (optional, required if `BILLING_ENABLED` is `true`)
+- `STRIPE_PRICING_TABLE_ID` — Stripe pricing table ID (optional, required if `BILLING_ENABLED` is `true`)
+- `STRIPE_PUBLISHABLE_KEY` — Stripe publishable key (optional, required if `BILLING_ENABLED` is `true`)
+- `STRIPE_SECRET_KEY` — Stripe secret key (optional, required if `BILLING_ENABLED` is `true`)
 
 ### A special note on the database
 

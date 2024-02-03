@@ -12,6 +12,26 @@
     />
   </.card>
 
+  <.card :if={Platform.Billing.is_enabled?()}>
+    <:header>
+      <h3 class="sec-head">Subscription and Billing</h3>
+      <p class="sec-subhead">
+        Manage your subscription and billing information.
+      </p>
+    </:header>
+    <script async src="https://js.stripe.com/v3/pricing-table.js">
+    </script>
+    <stripe-pricing-table
+      pricing-table-id={Platform.Billing.get_pricing_table_id()}
+      publishable-key={Platform.Billing.get_publishable_key()}
+      customer-session-client-secret={@billing_session_client_secret}
+    >
+    </stripe-pricing-table>
+    <button class="button ~urge @high" phx-click="visit_customer_portal">
+      Manage my subscription &rarr;
+    </button>
+  </.card>
+
   <.card>
     <:header>
       <h3 class="sec-head">Account &amp; Security</h3>
