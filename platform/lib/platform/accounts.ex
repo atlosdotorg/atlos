@@ -175,6 +175,21 @@ defmodule Platform.Accounts do
   end
 
   @doc """
+  Creates a changeset for the user's billing information.
+  """
+  def change_user_billing(user, attrs \\ %{}) do
+    User.billing_changeset(user, attrs)
+  end
+
+  @doc """
+  Updates the user's billing information.
+  """
+  def update_user_billing(user, attrs) do
+    change_user_billing(user, attrs)
+    |> Repo.update()
+  end
+
+  @doc """
   Returns an `%Ecto.Changeset{}` for tracking user changes.
 
   ## Examples

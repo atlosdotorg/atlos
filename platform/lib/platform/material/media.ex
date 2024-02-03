@@ -170,7 +170,7 @@ defmodule Platform.Material.Media do
       nil ->
         changeset
 
-      _location ->
+      _ ->
         Attribute.update_from_virtual_data(changeset, Attribute.get_attribute(:geolocation))
     end
   end

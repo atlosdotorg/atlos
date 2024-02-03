@@ -65,6 +65,7 @@ defmodule Platform.MixProject do
       {:sweet_xml, "~> 0.7.3"},
       {:gen_smtp, "~> 1.1"},
       {:hackney, "~> 1.20.1"},
+      {:req, "~> 0.4.8"},
       {:appsignal, "~> 2.3"},
       {:appsignal_phoenix, "~> 2.1"},
       {:earmark, "~> 1.4"},
