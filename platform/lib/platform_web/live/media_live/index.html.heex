@@ -248,11 +248,12 @@
       </div>
     </div>
     <div x-show="!hasAnySelected()" x-transition:enter>
-      <.search_form
+      <.live_component
+        module={PlatformWeb.MediaLive.SearchForm}
+        id="search-form"
         changeset={@changeset}
         exclude={if @display == "map", do: [:sort], else: []}
         query_params={@query_params}
-        socket={@socket}
         current_user={@current_user}
         display={@display}
         active_project={@active_project}
@@ -271,7 +272,7 @@
             </div>
           </div>
         </:pagination>
-      </.search_form>
+      </.live_component>
     </div>
   </div>
   <section>

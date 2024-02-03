@@ -4,6 +4,7 @@ defmodule PlatformWeb.MediaLive.Index do
   use PlatformWeb, :live_view
   alias Platform.Material
   alias Platform.Material.Attribute
+  alias PlatformWeb.MediaLive
 
   def mount(_params, _session, socket) do
     {:ok,
