@@ -469,7 +469,8 @@ defmodule PlatformWeb.MediaLive.SearchForm do
                 <div
                   class="relative flex flex-wrap items-center h-full gap-2"
                 >
-                  <div>
+                  <div class="hidden">
+                    TODO: remove later
                     Select State: <span class="font-mono"><%= @select_state %></span>
                     Cur select: <span class="font-mono"><%= @cur_select %></span>
                     Toggle State: <span class="font-mono"><%= inspect(@toggle_state) %></span>
