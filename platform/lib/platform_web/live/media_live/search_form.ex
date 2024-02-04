@@ -1,6 +1,7 @@
 defmodule PlatformWeb.MediaLive.SearchForm do
   use PlatformWeb, :live_component
   require Logger
+  require PlatformWeb.Components
   alias Platform.Material.Attribute
   alias Platform.Material
   alias Platform.Utils
@@ -32,7 +33,7 @@ defmodule PlatformWeb.MediaLive.SearchForm do
 
   def handle_event("select_state_norm", _par, socket) do
     Logger.debug("SELECT_STATE_TRANSITION: NORM")
-    {:noreply, assign(socket, :select_state, "norm")}
+    {:noreply, socket |> assign(:select_state, "norm") |> assign(:cur_select, "")}
   end
 
   def handle_event("cur_select", %{"select" => select}, socket) do
@@ -49,55 +50,9 @@ defmodule PlatformWeb.MediaLive.SearchForm do
     {:noreply, socket}
   end
 
-  defp preprocess_attrs(socket, %{changeset: c} = assigns) do
-    default_attrs =
-      ["status", "geolocation", "date", "tags", "sensitive"]
-      |> Enum.map(fn x ->
-        at = Attribute.get_attribute(String.to_atom(x), projects: (if x == "tags", do: Platform.Projects.list_projects_for_user(assigns.current_user), else: []))
-        %{
-        id: "#{x}_filter",
-        attr: at,
-        label: at.label
-      } end)
-
-    available_attrs = default_attrs |> Enum.concat((if assigns.active_project, do: assigns.active_project.attributes |> Enum.map(
-      &(%{
-        id: "#{&1.id}_filter",
-        attr: ProjectAttribute.to_attribute(&1),
-        label: &1.name
-      })
-    ), else: []))
-
-    initial_toggle = Enum.reduce(
-      available_attrs,
-      %{},
-      fn atr, acc ->
-        Map.put(acc, atr.id, is_active?(c, atr.attr))
-      end
-    )
-
-    socket |> assign_new(:available_attrs, fn -> available_attrs end) |> assign_new(:toggle_state, fn -> initial_toggle end)
-  end
-
-  defp is_active?(cs, attr) do
-    Ecto.Changeset.get_change(cs, attr.schema_field) != nil or
-          (attr.type == :date and
-             (Ecto.Changeset.get_change(cs, :attr_date_min) != nil or
-                Ecto.Changeset.get_change(cs, :attr_date_max) != nil))
-        or Ecto.Changeset.get_change(cs, String.to_atom(Material.MediaSearch.get_attrid(attr))) != nil
-  end
-
   defp attr_filter(assigns) do
     assigns =
       assigns
-      |> assign(
-        :is_active,
-        is_active?(assigns.form.source, assigns.attr)
-        )
-      |> assign(
-        :attr_id,
-        Material.MediaSearch.get_attrid(assigns.attr)
-      )
       |> assign(
         :default_open,
         (if is_nil(assigns[:default_open]), do: false, else: assigns.default_open)
@@ -154,7 +109,7 @@ defmodule PlatformWeb.MediaLive.SearchForm do
           <div>
             <%= case @attr.type do %>
               <% x when x == :multi_select or x == :select -> %>
-                <div phx-update="ignore" id={"attr_select_#{@attr.name}"} class="phx-form">
+                <div phx-update="ignore" id={"attr_select_#{@attr.name}"} class="phx-form" x-init="setTimeout(() => document.dispatchEvent(new CustomEvent('load-selects', { detail: {} })), 10000)">
                   <%= multiple_select(
                     @form,
                     String.to_atom("#{@attr_id}"),
@@ -250,6 +205,45 @@ defmodule PlatformWeb.MediaLive.SearchForm do
       </div>
     </article>
     """
+  end
+
+
+  defp preprocess_attrs(socket, %{changeset: c} = assigns) do
+    default_attrs =
+      ["status", "geolocation", "date", "tags", "sensitive"]
+      |> Enum.map(fn x ->
+        at = Attribute.get_attribute(String.to_atom(x), projects: (if x == "tags", do: Platform.Projects.list_projects_for_user(assigns.current_user), else: []))
+        %{
+        id: "#{x}_filter",
+        attr: at,
+        label: at.label
+      } end)
+
+    available_attrs = default_attrs |> Enum.concat((if assigns.active_project, do: assigns.active_project.attributes |> Enum.map(
+      &(%{
+        id: "#{&1.id}_filter",
+        attr: ProjectAttribute.to_attribute(&1),
+        label: &1.name
+      })
+    ), else: []))
+
+    initial_toggle = Enum.reduce(
+      available_attrs,
+      %{},
+      fn atr, acc ->
+        Map.put(acc, atr.id, is_active?(c, atr.attr))
+      end
+    )
+
+    socket |> assign_new(:available_attrs, fn -> available_attrs end) |> assign_new(:toggle_state, fn -> initial_toggle end)
+  end
+
+  defp is_active?(cs, attr) do
+    Ecto.Changeset.get_change(cs, attr.schema_field) != nil or
+          (attr.type == :date and
+             (Ecto.Changeset.get_change(cs, :attr_date_min) != nil or
+                Ecto.Changeset.get_change(cs, :attr_date_max) != nil))
+        or Ecto.Changeset.get_change(cs, String.to_atom(Material.MediaSearch.get_attrid(attr))) != nil
   end
 
   def render(%{changeset: c, query_params: _, socket: _, display: _} = assigns) do
@@ -472,7 +466,7 @@ defmodule PlatformWeb.MediaLive.SearchForm do
                 <div
                   class="relative flex flex-wrap items-center h-full gap-2"
                 >
-                  <div>
+                  <div class="hidden">
                     Select State: <span class="font-mono"><%= @select_state %></span>
                     Cur select: <span class="font-mono"><%= @cur_select %></span>
                     Toggle State: <span class="font-mono"><%= inspect(@toggle_state) %></span>
@@ -480,13 +474,17 @@ defmodule PlatformWeb.MediaLive.SearchForm do
                   <br/>
                   <%= for attr <- @available_attrs do %>
                     <template x-if={"#{@toggle_state[attr.id]}===true && !('#{@cur_select}'===\"#{attr.id}\" && '#{@select_state}'==='select_filt')"}>
-                      <div x-transition x-init="document.dispatchEvent(new CustomEvent('load-selectors',{}))">
+                      <div
+                        x-transition
+                        x-show={"#{@toggle_state[attr.id]}===true && !('#{@cur_select}'===\"#{attr.id}\" && '#{@select_state}'==='select_filt')"} x-init="document.dispatchEvent(new CustomEvent('load-selectors',{}))"
+                      >
                         <.attr_filter
                           id={attr.id}
+                          attr_id={Material.MediaSearch.get_attrid(attr.attr)}
                           form={f}
+                          is_active={is_active?(@changeset, attr.attr)}
                           attr={attr.attr}
-                          phx-click-away="select_state_norm"
-                          phx-target={@myself}
+                          myself={@myself}
                         />
                       </div>
                     </template>
@@ -531,15 +529,18 @@ defmodule PlatformWeb.MediaLive.SearchForm do
                     <template x-if={"#{@toggle_state[attr.id]}===true && '#{@cur_select}'===\"#{attr.id}\" && '#{@select_state}'==='select_filt'"}>
                       <div
                         x-transition
-                        x-init="document.dispatchEvent(new CustomEvent('load-selectors',{}))"
+                        x-show={"#{@toggle_state[attr.id]}===true && '#{@cur_select}'===\"#{attr.id}\" && '#{@select_state}'==='select_filt'"}
                         phx-click-away="select_state_norm"
                         phx-target={@myself}
                       >
                         <.attr_filter
                           id={attr.id<>"_dropdown"}
+                          attr_id={Material.MediaSearch.get_attrid(attr.attr)}
                           form={f}
                           attr={attr.attr}
+                          is_active={is_active?(@changeset, attr.attr)}
                           default_open={true}
+                          myself={@myself}
                         />
                       </div>
                     </template>
