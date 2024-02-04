@@ -26,6 +26,36 @@ defmodule PlatformWeb.MediaLive.SearchForm do
     }
   end
 
+  defp preprocess_attrs(socket, %{changeset: c} = assigns) do
+    default_attrs =
+      ["status", "geolocation", "date", "tags", "sensitive"]
+      |> Enum.map(fn x ->
+        at = Attribute.get_attribute(String.to_atom(x), projects: (if x == "tags", do: Platform.Projects.list_projects_for_user(assigns.current_user), else: []))
+        %{
+        id: "#{x}_filter",
+        attr: at,
+        label: at.label
+      } end)
+
+    available_attrs = default_attrs |> Enum.concat((if assigns.active_project, do: assigns.active_project.attributes |> Enum.map(
+      &(%{
+        id: "#{&1.id}_filter",
+        attr: ProjectAttribute.to_attribute(&1),
+        label: &1.name
+      })
+    ), else: []))
+
+    initial_toggle = Enum.reduce(
+      available_attrs,
+      %{},
+      fn atr, acc ->
+        Map.put(acc, atr.id, is_active?(c, atr.attr))
+      end
+    )
+
+    socket |> assign(:available_attrs, available_attrs) |> assign_new(:toggle_state, fn -> initial_toggle end)
+  end
+
   def handle_event("select_state_filt", _par, socket) do
     Logger.debug("SELECT_STATE_TRANSITION: FILTER")
     {:noreply, assign(socket, :select_state, "select_filt")}
@@ -205,37 +235,6 @@ defmodule PlatformWeb.MediaLive.SearchForm do
       </div>
     </article>
     """
-  end
-
-
-  defp preprocess_attrs(socket, %{changeset: c} = assigns) do
-    default_attrs =
-      ["status", "geolocation", "date", "tags", "sensitive"]
-      |> Enum.map(fn x ->
-        at = Attribute.get_attribute(String.to_atom(x), projects: (if x == "tags", do: Platform.Projects.list_projects_for_user(assigns.current_user), else: []))
-        %{
-        id: "#{x}_filter",
-        attr: at,
-        label: at.label
-      } end)
-
-    available_attrs = default_attrs |> Enum.concat((if assigns.active_project, do: assigns.active_project.attributes |> Enum.map(
-      &(%{
-        id: "#{&1.id}_filter",
-        attr: ProjectAttribute.to_attribute(&1),
-        label: &1.name
-      })
-    ), else: []))
-
-    initial_toggle = Enum.reduce(
-      available_attrs,
-      %{},
-      fn atr, acc ->
-        Map.put(acc, atr.id, is_active?(c, atr.attr))
-      end
-    )
-
-    socket |> assign_new(:available_attrs, fn -> available_attrs end) |> assign_new(:toggle_state, fn -> initial_toggle end)
   end
 
   defp is_active?(cs, attr) do
@@ -466,7 +465,7 @@ defmodule PlatformWeb.MediaLive.SearchForm do
                 <div
                   class="relative flex flex-wrap items-center h-full gap-2"
                 >
-                  <div class="hidden">
+                  <div>
                     Select State: <span class="font-mono"><%= @select_state %></span>
                     Cur select: <span class="font-mono"><%= @cur_select %></span>
                     Toggle State: <span class="font-mono"><%= inspect(@toggle_state) %></span>
