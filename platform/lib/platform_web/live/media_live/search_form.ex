@@ -473,7 +473,7 @@ defmodule PlatformWeb.MediaLive.SearchForm do
                   </div>
                   <br/>
                   <%= for attr <- @available_attrs do %>
-                    <template x-if={"#{@toggle_state[attr.id]}===true && !('#{@cur_select}'===\"#{attr.id}\" && '#{@select_state}'==='select_filt')"}>
+                    <template x-if={"#{@toggle_state[attr.id]}===true"}>
                       <div
                         x-transition
                         x-show={"#{@toggle_state[attr.id]}===true && !('#{@cur_select}'===\"#{attr.id}\" && '#{@select_state}'==='select_filt')"} x-init="document.dispatchEvent(new CustomEvent('load-selectors',{}))"
@@ -484,7 +484,6 @@ defmodule PlatformWeb.MediaLive.SearchForm do
                           form={f}
                           is_active={is_active?(@changeset, attr.attr)}
                           attr={attr.attr}
-                          myself={@myself}
                         />
                       </div>
                     </template>
@@ -540,7 +539,6 @@ defmodule PlatformWeb.MediaLive.SearchForm do
                           attr={attr.attr}
                           is_active={is_active?(@changeset, attr.attr)}
                           default_open={true}
-                          myself={@myself}
                         />
                       </div>
                     </template>
