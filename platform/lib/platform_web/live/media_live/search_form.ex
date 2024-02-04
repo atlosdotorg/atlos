@@ -139,12 +139,16 @@ defmodule PlatformWeb.MediaLive.SearchForm do
           <div>
             <%= case @attr.type do %>
               <% x when x == :multi_select or x == :select -> %>
+                <span class="hidden"><%= inspect(@form.source.changes) %></span>
+                <span class="hidden"><%= inspect(@attr_id) %></span>
+                <span class="hidden"><%= inspect(@form.source.changes[String.to_atom("#{@attr_id}")] || []) %></span>
                 <div phx-update="ignore" id={"attr_select_#{@attr.name}"} class="phx-form" x-init="setTimeout(() => document.dispatchEvent(new CustomEvent('load-selects', { detail: {} })), 10000)">
                   <%= multiple_select(
                     @form,
                     String.to_atom("#{@attr_id}"),
                     Attribute.options(@attr) ++ if(not @attr.required, do: ["[Unset]"], else: []),
-                    id: "attr_select_#{@attr.name}_input",
+                    selected: @form.source.changes[String.to_atom("#{@attr_id}")] || [],
+                    id: "attr_select_#{@attr.name}_input_#{@id}",
                     data_descriptions:
                       Jason.encode!(
                         (@attr.option_descriptions || %{})
@@ -469,6 +473,7 @@ defmodule PlatformWeb.MediaLive.SearchForm do
                     Select State: <span class="font-mono"><%= @select_state %></span>
                     Cur select: <span class="font-mono"><%= @cur_select %></span>
                     Toggle State: <span class="font-mono"><%= inspect(@toggle_state) %></span>
+                    Changeset: <span class="font-mono"><%= inspect(@changeset.changes) %></span>
                   </div>
                   <br/>
                   <%= for attr <- @available_attrs do %>
