@@ -509,4 +509,21 @@ defmodule Platform.Updates do
     })
     |> create_update_from_changeset()
   end
+
+  @doc """
+  Gets the total number of updates by the given user over the past 30 days.
+  Returns an integer.
+  """
+  def get_total_updates_by_user_over_30d(%User{} = user) do
+    query =
+      from(u in Update,
+        where: u.user_id == ^user.id,
+        where: u.inserted_at >= fragment("now() - interval '30 days'"),
+        select: count(u.id)
+      )
+
+    query
+    |> Repo.one()
+    |> dbg()
+  end
 end

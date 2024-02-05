@@ -21,6 +21,19 @@ defmodule Platform.Billing do
     System.get_env("STRIPE_SECRET_KEY")
   end
 
+  defp get_user_subscriptions(%Accounts.User{} = user) do
+    case Req.get("https://api.stripe.com/v1/subscriptions",
+           auth: {:bearer, get_secret_key()},
+           params: [customer: user.billing_customer_id]
+         ) do
+      {:ok, response} ->
+        response.body
+
+      {:error, _} ->
+        []
+    end
+  end
+
   def update_stripe_customer_information_for_user(%Accounts.User{billing_customer_id: nil} = user) do
     case Req.post("https://api.stripe.com/v1/customers",
            auth: {:bearer, get_secret_key()},
@@ -31,7 +44,9 @@ defmodule Platform.Billing do
 
         Platform.Accounts.update_user_billing(user, %{
           billing_customer_id: data["id"],
-          billing_info: data
+          billing_info: data,
+          billing_expires_at: DateTime.utc_now() |> DateTime.add(24, :hour),
+          billing_subscriptions: get_user_subscriptions(%{user | billing_customer_id: data["id"]})
         })
 
       {:error, _} ->
@@ -40,13 +55,18 @@ defmodule Platform.Billing do
   end
 
   def update_stripe_customer_information_for_user(user) do
-    case Req.get("https://api.stripe.com/v1/customers/#{user.billing_customer_id}",
+    case Req.post("https://api.stripe.com/v1/customers/#{user.billing_customer_id}",
            auth: {:bearer, get_secret_key()},
            form: [email: user.email, description: "Username: #{user.username}, ID: #{user.id}"]
          ) do
       {:ok, response} ->
         data = response.body
-        Platform.Accounts.update_user_billing(user, %{billing_info: data})
+
+        Platform.Accounts.update_user_billing(user, %{
+          billing_info: data,
+          billing_expires_at: DateTime.utc_now() |> DateTime.add(24, :hour),
+          billing_subscriptions: get_user_subscriptions(user)
+        })
 
       {:error, _} ->
         {:error, "Failed to get customer information"}
@@ -83,6 +103,49 @@ defmodule Platform.Billing do
 
       {:error, _} ->
         {:error, "Failed to get customer portal URL"}
+    end
+  end
+
+  @doc """
+  This is the main function from which we pull the user's entitlements.
+  """
+  def get_user_plan(%Accounts.User{} = user) do
+    if not is_enabled?() do
+      %Platform.Billing.Plan{
+        allowed_api: true,
+        allowed_edits_per_30d_period: :unlimited,
+        is_organizational: false,
+        name: "(Billing disabled)",
+        is_free: false
+      }
+    else
+      user =
+        if is_nil(user.billing_expires_at) or user.billing_expires_at < DateTime.utc_now() do
+          {:ok, user} = update_stripe_customer_information_for_user(user)
+          user
+        else
+          user
+        end
+
+      case Map.get(user.billing_subscriptions, "data", []) do
+        [] ->
+          %Platform.Billing.Plan{
+            allowed_api: true,
+            allowed_edits_per_30d_period: :unlimited,
+            is_organizational: false,
+            name: "Free",
+            is_free: true
+          }
+
+        [_ | _] ->
+          %Platform.Billing.Plan{
+            allowed_api: true,
+            allowed_edits_per_30d_period: :unlimited,
+            is_organizational: false,
+            name: "Pro",
+            is_free: false
+          }
+      end
     end
   end
 end
