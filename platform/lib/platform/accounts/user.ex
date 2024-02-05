@@ -42,8 +42,12 @@ defmodule Platform.Accounts.User do
 
     # Billing
     field(:billing_customer_id, :string)
+    # Customer object from Stripe
     field(:billing_info, :map)
+    # In format returned by Stripe's API
+    field(:billing_subscriptions, :map)
     field(:billing_flags, {:array, :string})
+    # When does this billing information become stale?
     field(:billing_expires_at, :utc_datetime)
 
     many_to_many(:subscribed_media, Material.Media, join_through: "media_subscriptions")
@@ -62,7 +66,8 @@ defmodule Platform.Accounts.User do
       :billing_customer_id,
       :billing_info,
       :billing_flags,
-      :billing_expires_at
+      :billing_expires_at,
+      :billing_subscriptions
     ])
   end
 
