@@ -281,7 +281,15 @@ defmodule Platform.Updates do
       attrs
       |> Map.put("type", :comment)
     )
-    |> Ecto.Changeset.validate_required([:explanation], message: "A comment is required to post")
+    # Verify that _either_ files have been uploaded _or_ an explanation has been provided
+    |> then(fn cs ->
+      if (Ecto.Changeset.get_field(cs, :attachments) || []) == [] and
+           is_nil(Ecto.Changeset.get_field(cs, :explanation)) do
+        Ecto.Changeset.add_error(cs, :explanation, "A comment or file upload is required to post")
+      else
+        cs
+      end
+    end)
     |> Ecto.Changeset.validate_length(:explanation, min: 1, max: 10000)
   end
 

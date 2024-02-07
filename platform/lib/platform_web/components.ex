@@ -950,7 +950,7 @@ defmodule PlatformWeb.Components do
                   not is_nil(
                     Attribute.get_attribute(@update.modified_attribute, project: @update.media.project)
                   ) %>
-              <%= if has_attr_change_to_show || @update.explanation do %>
+              <%= if has_attr_change_to_show || @update.explanation || not Enum.empty?(@update.attachments) do %>
                 <div class="mt-1 text-sm text-gray-700 border border-gray-300 rounded-lg shadow-sm overflow-hidden flex flex-col divide-y">
                   <!-- Update detail section -->
                   <%= if has_attr_change_to_show do %>
@@ -2814,7 +2814,9 @@ defmodule PlatformWeb.Components do
         />
         <path d="M14.25 5.25a5.23 5.23 0 00-1.279-3.434 9.768 9.768 0 016.963 6.963A5.23 5.23 0 0016.5 7.5h-1.875a.375.375 0 01-.375-.375V5.25z" />
       </svg>
-      <p class="text-sm font-medium text-center truncate max-w-full overflow-hidden"><%= @file_name %></p>
+      <p class="text-sm font-medium text-center truncate max-w-full overflow-hidden">
+        <%= @file_name %>
+      </p>
       <p class="text-xs text-center max-w-full overflow-hidden"><%= @description %></p>
     </div>
     """

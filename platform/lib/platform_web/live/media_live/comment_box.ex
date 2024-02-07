@@ -56,7 +56,7 @@ defmodule PlatformWeb.MediaLive.CommentBox do
       Updates.change_from_comment(
         socket.assigns.media,
         socket.assigns.current_user,
-        params
+        params |> Map.put("attachments", ["dummy_attachment"])
       )
 
     # If it is valid, we consume the uploads as attachments
@@ -65,10 +65,10 @@ defmodule PlatformWeb.MediaLive.CommentBox do
         consume_uploaded_entries(socket, :attachments, fn %{path: path}, entry ->
           # Copying it to _another_ temporary path helps ensure we remove the user's provided filename
           to_path =
-            Temp.path!(
+            Temp.path!(%{
               prefix: socket.assigns.current_user.username,
               suffix: "." <> hd(MIME.extensions(entry.client_type))
-            )
+            })
 
           File.cp!(path, to_path)
           Uploads.UpdateAttachment.store({to_path, socket.assigns.media})
@@ -122,6 +122,10 @@ defmodule PlatformWeb.MediaLive.CommentBox do
   def handle_event("validate", %{"update" => params} = _input, socket) do
     # If they are reconnecting, we want to preserve the old content — and not rerender
     render_id = Map.get(params, "render_id", socket.assigns.render_id)
+
+    # Mock the "attachments" field; it will be validated for real when we save.
+    # We just don't want to have to consume the uploads here.
+    params = Map.put(params, "attachments", ["dummy_attachment"])
 
     changeset =
       Updates.change_from_comment(
@@ -184,7 +188,7 @@ defmodule PlatformWeb.MediaLive.CommentBox do
                   disabled={@disabled}
                   form={f}
                   name={:explanation}
-                  required={true}
+                  required={false}
                   model="content"
                   placeholder={
                     if(@disabled,

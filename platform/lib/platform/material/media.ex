@@ -167,11 +167,11 @@ defmodule Platform.Material.Media do
 
   defp populate_geolocation(changeset) do
     case get_change(changeset, :location) do
+      nil ->
+        changeset
+
       _location ->
         Attribute.update_from_virtual_data(changeset, Attribute.get_attribute(:geolocation))
-
-      _ ->
-        changeset
     end
   end
 
