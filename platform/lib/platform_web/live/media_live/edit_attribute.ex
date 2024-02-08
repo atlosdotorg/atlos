@@ -228,7 +228,7 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
           </div>
           <div class="px-6 py-6 border-t mt-6 bg-neutral-50 rounded-b-lg">
             <%= label(f, :explanation, "Briefly Explain Your Change") %>
-            <div class="border border-gray-300 rounded shadow-sm overflow-hidden focus-within:border-urge-500 focus-within:ring-1 min-h-[5rem] focus-within:ring-urge-500 transition mt !bg-white relative mb-4">
+            <div class="border border-gray-300 rounded shadow-sm overflow-hidden focus-within:border-urge-500 focus-within:ring-1 min-h-[5rem] focus-within:ring-urge-500 transition mt !bg-white relative mb-4 mt-1">
               <.interactive_textarea
                 form={f}
                 disabled={false}

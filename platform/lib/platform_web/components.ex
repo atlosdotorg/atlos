@@ -3356,7 +3356,7 @@ defmodule PlatformWeb.Components do
     <article x-data="{user_loc: null}" id={"editor-" <> (@attr.name |> to_string())}>
       <%= case @attr.type do %>
         <% :text -> %>
-          <%= label(@f, @schema_field, @label) %>
+          <%= label(@f, @schema_field, @label, class: "mb-1") %>
           <%= case @attr.input_type || :textarea do %>
             <% :textarea -> %>
               <%= textarea(@f, @schema_field, rows: 3, phx_debounce: "blur") %>
@@ -3421,7 +3421,7 @@ defmodule PlatformWeb.Components do
         <% :location -> %>
           <div class="space-y-4">
             <div>
-              <%= label(@f, :location, @label <> " (latitude, longitude)") %>
+              <%= label(@f, :location, @label <> " (latitude, longitude)", class: "mb-1") %>
               <%= text_input(@f, :location,
                 placeholder: "Comma-separated coordinates (lat, lon).",
                 novalidate: true,
@@ -3435,7 +3435,7 @@ defmodule PlatformWeb.Components do
             </div>
           </div>
         <% :time -> %>
-          <%= label(@f, @schema_field, @label) %>
+          <%= label(@f, @schema_field, @label, class: "mb-1") %>
           <div class="flex items-center gap-2 ts-ignore sm:w-64 apply-a17t-fields">
             <%= time_input(@f, @schema_field,
               "x-ref": "time_input",
@@ -3458,7 +3458,7 @@ defmodule PlatformWeb.Components do
           <%= error_tag(@f, @schema_field) %>
         <% :date -> %>
           <div class="flex items-center w-full justify-between">
-            <%= label(@f, @schema_field, @label) %>
+            <%= label(@f, @schema_field, @label, class: "mb-1") %>
             <button
               type="button"
               x-on:click="$refs.date_input.valueAsDate = new Date(); $refs.date_input.dispatchEvent(new Event('input', {bubbles: true}))"
