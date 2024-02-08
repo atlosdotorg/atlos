@@ -2720,9 +2720,16 @@ defmodule PlatformWeb.Components do
 
     ~H"""
     <%= if @link do %>
-      <.link navigate={if @link, do: "/incidents/#{@media.slug}", else: nil} target={@target}>
-        <.media_card_inner {@inner_assigns} />
-      </.link>
+      <%= case @target do %>
+        <% nil -> %>
+          <.link navigate={"/incidents/#{@media.slug}"}>
+            <.media_card_inner {@inner_assigns} />
+          </.link>
+        <% _ -> %>
+          <a href={"/incidents/#{@media.slug}"} target={@target}>
+            <.media_card_inner {@inner_assigns} />
+          </a>
+      <% end %>
     <% else %>
       <.media_card_inner {@inner_assigns} />
     <% end %>
