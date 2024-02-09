@@ -94,35 +94,38 @@ defmodule PlatformWeb.MediaLive.SearchForm do
       x-data={"{open: #{@default_open}}"}
       x-on:mousedown.outside="open = false"
       id={@id}
-    >
+      >
       <div class={if @default_open, do: "hidden", else: ""}>
+      <div class={"flex h-8 border shadow-sm rounded-lg justify-center items-center" <> if @is_active do
+          "text-white bg-urge-500 border-urge-500"
+        else
+          "bg-white text-gray-900"
+        end}>
         <button
           type="button"
-          class={"transition-all flex h-8 border shadow-sm rounded-lg py-1 px-2 w-full justify-center items-center gap-x-1 text-sm text-gray-900 " <>
-            if @is_active do
-              "text-white bg-urge-500 border-urge-500"
-            else
-              "bg-white"
-            end}
+          class={"transition-all flex-auto h-full flex justify-center items-center px-2 gap-x-1 text-sm " <> if @is_active
+            do "text-white"
+            else "text-gray-900"
+          end}
           aria-haspopup="true"
           x-on:click="open = !open"
         >
           <.filter_icon type={@attr.type}/>
           <%= @attr.label %>
-          <svg
-            class="-mr-1 h-5 w-5 opacity-75"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-            aria-hidden="true"
-          >
-            <path
-              fill-rule="evenodd"
-              d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
-              clip-rule="evenodd"
-            />
-          </svg>
+        </button>
+        <button
+          type="button"
+          class="transition flex-none flex items-center justify-center bg-gray-200 bg-opacity-30 hover:bg-opacity-60 rounded-lg text-white w-5 h-5 my-auto mr-0.5 "
+          aria-label="Remove filter"
+          phx-click={JS.push("toggle", value: %{"attr" => @_attr.id}, target: @myself) |> JS.push("save", value: %{"search" => @changeset.changes |>
+            Map.put((if @attr.type==:date, do: :attr_date_min , else: @attr_id), nil)})
+            |> JS.dispatch("atlos:updating", to: "body")
+          }
+        >
+          <Heroicons.x_mark mini class="h-5 w-5" data-tooltip="Remove Filter"/>
         </button>
       </div>
+    </div>
       <div
         class="absolute right-0 z-[10000] overflow-visible mt-2 w-96 origin-top-right rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
         role="menu"
@@ -502,6 +505,9 @@ defmodule PlatformWeb.MediaLive.SearchForm do
                           form={f}
                           is_active={is_active?(@changeset, attr.attr)}
                           attr={attr.attr}
+                          _attr={attr}
+                          myself={@myself}
+                          changeset={@changeset}
                         />
                       </div>
                     </template>
@@ -574,7 +580,10 @@ defmodule PlatformWeb.MediaLive.SearchForm do
                           attr_id={Material.MediaSearch.get_attrid(attr.attr)}
                           form={f}
                           attr={attr.attr}
+                          _attr={attr}
+                          changeset={@changeset}
                           is_active={is_active?(@changeset, attr.attr)}
+                          myself={@myself}
                           default_open={true}
                         />
                       </div>
