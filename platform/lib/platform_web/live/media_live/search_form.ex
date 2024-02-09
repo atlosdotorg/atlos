@@ -95,7 +95,7 @@ defmodule PlatformWeb.MediaLive.SearchForm do
       x-on:mousedown.outside="open = false"
       id={@id}
     >
-      <div>
+      <div class={if @default_open, do: "hidden", else: ""}>
         <button
           type="button"
           class={"transition-all flex h-8 border shadow-sm rounded-lg py-1 px-2 w-full justify-center items-center gap-x-1 text-sm text-gray-900 " <>
@@ -142,7 +142,12 @@ defmodule PlatformWeb.MediaLive.SearchForm do
                 <span class="hidden"><%= inspect(@form.source.changes) %></span>
                 <span class="hidden"><%= inspect(@attr_id) %></span>
                 <span class="hidden"><%= inspect(@form.source.changes[String.to_atom("#{@attr_id}")] || []) %></span>
-                <div phx-update="ignore" id={"attr_select_#{@attr.name}"} class="phx-form" x-init="setTimeout(() => document.dispatchEvent(new CustomEvent('load-selects', { detail: {} })), 10000)">
+                <div
+                  phx-update="ignore"
+                  id={"attr_select_#{@attr.name}"}
+                  class="phx-form"
+                  x-effect="if(open){setTimeout(() => document.dispatchEvent(new CustomEvent('load-selects', { detail: {} })), 10)}"
+                >
                   <%= multiple_select(
                     @form,
                     String.to_atom("#{@attr_id}"),
@@ -252,7 +257,12 @@ defmodule PlatformWeb.MediaLive.SearchForm do
   def render(%{changeset: c, query_params: _, socket: _, display: _} = assigns) do
     ~H"""
     <div
-      x-data="{ open: window.innerWidth >= 768 }"
+      x-data="{
+        open: window.innerWidth >= 768,
+        contains(source, query){
+          return source.toLowerCase().includes(query.toLowerCase());
+        }
+      }"
       id={"search-form-component-#{Ecto.Changeset.get_field(@changeset, :display) |> to_string()}"}
     >
       <button
@@ -432,7 +442,9 @@ defmodule PlatformWeb.MediaLive.SearchForm do
               <div
                 class={"flex place-self-center w-full md:w-auto h-full pr-2 pl-1 text-sm md:py-[14px] py-4 pl-2 " <>
                   (if Enum.member?(@exclude, :more_options), do: "hidden", else: "")}
-                x-data="{open: false}"
+                x-data="{
+                  open: false
+                }"
               >
                 <div class="text-left z-10">
                   <div class="h-full flex gap-1">
@@ -478,13 +490,14 @@ defmodule PlatformWeb.MediaLive.SearchForm do
                   </div>
                   <br/>
                   <%= for attr <- @available_attrs do %>
-                    <template x-if={"#{@toggle_state[attr.id]}===true"}>
+                    <template x-if={"#{@toggle_state[attr.id] || 'false'}===true"}>
                       <div
                         x-transition
-                        x-show={"#{@toggle_state[attr.id]}===true && !('#{@cur_select}'===\"#{attr.id}\" && '#{@select_state}'==='select_filt')"} x-init="document.dispatchEvent(new CustomEvent('load-selectors',{}))"
+                        x-show={"#{@toggle_state[attr.id] || 'false'}===true && !('#{@cur_select}'===\"#{attr.id}\" && '#{@select_state}'==='select_filt')"} x-init="document.dispatchEvent(new CustomEvent('load-selectors',{}))"
                       >
                         <.attr_filter
                           id={attr.id}
+                          type={:bar}
                           attr_id={Material.MediaSearch.get_attrid(attr.attr)}
                           form={f}
                           is_active={is_active?(@changeset, attr.attr)}
@@ -509,19 +522,37 @@ defmodule PlatformWeb.MediaLive.SearchForm do
                     </div>
                     <div
                       x-show={"open && '#{@select_state}'==='norm'"}
+                      x-data="{atquery:''}"
+                      x-effect="console.log('atquery', atquery)"
                       x-transition
                       x-cloak
                       role="menu"
                       class="transition-all absolute left z-[10000] overflow-visible mt-2 w-44 origin-top-right rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none p-1"
                     >
+                      <input
+                        type="text"
+                        x-model="atquery"
+                        x-ref="fsearch"
+                        x-effect="if(open){setTimeout(() => { $refs.fsearch.focus(); $refs.fsearch.select() }, 10)}"
+                        phx-target={@myself}
+                        phx-change="ignore"
+                        id="attrqueryinput"
+                        class="h-7 border-none w-full outline-none text-gray-900 placeholder-gray-500 focus:ring-0 sm:text-sm"
+                        placeholder="Filter..."
+                      >
+                      <hr class="my-1">
                       <%= for attr <- @available_attrs do %>
                         <button
                           value={attr.id}
-                          x-show={"#{@toggle_state[attr.id]}===false"}
+                          x-show={"#{@toggle_state[attr.id] || 'false'}===false && contains('#{attr.label}', atquery)"}
                           phx-click={JS.push("select_state_filt", target: @myself) |> JS.push("cur_select", value: %{select: attr.id}, target: @myself) |> JS.push("toggle", value: %{"attr": attr.id}, target: @myself)}
                           phx-target={@myself}
-                          class="w-full hover:bg-gray-200 text-left shadow-sm rounded-lg text-sm text-gray-900 bg-white py-1 px-2 flex"
+                          class="w-full hover:bg-gray-200 text-left hover:shadow-sm rounded-lg text-sm text-gray-900 py-1 px-2 flex"
                         >
+                          <span class="hidden"
+                            x-text={"#{@toggle_state[attr.id] || 'false'}===false && contains('#{attr.label}', atquery)"}></span>
+                          <span class="hidden"
+                            x-text="atquery"></span>
                           <.filter_icon type={attr.attr.type}/>
                           <span class="ml-2">
                             <%= attr.label %>
@@ -530,15 +561,16 @@ defmodule PlatformWeb.MediaLive.SearchForm do
                       <% end %>
                     </div>
                     <%= for attr <- @available_attrs do %>
-                    <template x-if={"#{@toggle_state[attr.id]}===true && '#{@cur_select}'===\"#{attr.id}\" && '#{@select_state}'==='select_filt'"}>
+                    <template x-if={"#{@toggle_state[attr.id] || 'false'}===true && '#{@cur_select}'===\"#{attr.id}\" && '#{@select_state}'==='select_filt'"}>
                       <div
                         x-transition
-                        x-show={"#{@toggle_state[attr.id]}===true && '#{@cur_select}'===\"#{attr.id}\" && '#{@select_state}'==='select_filt'"}
+                        x-show={"#{@toggle_state[attr.id] || 'false'}===true && '#{@cur_select}'===\"#{attr.id}\" && '#{@select_state}'==='select_filt'"}
                         phx-click-away="select_state_norm"
                         phx-target={@myself}
                       >
                         <.attr_filter
                           id={attr.id<>"_dropdown"}
+                          type={:dropdown}
                           attr_id={Material.MediaSearch.get_attrid(attr.attr)}
                           form={f}
                           attr={attr.attr}
@@ -563,7 +595,7 @@ defmodule PlatformWeb.MediaLive.SearchForm do
                         class: "hidden",
                         checked_value: @current_user.id
                       ) %>
-                    <% end %>
+                      <% end %>
                   </div>
                   <div
                     class="relative text-left overflow-visible"
