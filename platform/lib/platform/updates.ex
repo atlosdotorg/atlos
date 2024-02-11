@@ -518,6 +518,7 @@ defmodule Platform.Updates do
     query =
       from(u in Update,
         where: u.user_id == ^user.id,
+        where: u.type != ^:comment,
         where: u.inserted_at >= fragment("now() - interval '30 days'"),
         select: count(u.id)
       )

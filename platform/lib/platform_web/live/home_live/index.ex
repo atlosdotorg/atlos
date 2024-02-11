@@ -24,6 +24,10 @@ defmodule PlatformWeb.HomeLive.Index do
        )
      )
      |> assign(:additional_results_available, true)
+     |> assign(
+       :user_updates_last_30d,
+       Platform.Updates.get_total_updates_by_user_over_30d(socket.assigns.current_user)
+     )
      |> assign(:overview_media, get_overview_media(socket))
      |> assign(:full_width, true)
      |> assign(:search_changeset, Material.MediaSearch.changeset())}

@@ -23,17 +23,49 @@
         Manage your subscription and billing information.
       </p>
     </div>
-    <.card class="md:w-2/3">
-      <div :if={@current_plan.is_free}>
-        <div class="mb-6 text-sm text-neutral-600 p-4 border border-urge-600 bg-urge-50 text-urge-700 rounded mb-8">
-          <strong class="font-medium text-urge-800">
-            You don't currently have an Atlos subscription.
-          </strong>
-          As a result, you will be limited to 10 edits per month. To unlock unlimited edits and access to the Atlos API, you can subscribe to a paid plan below.
+    <.card class="md:w-2/3 text-sm flex flex-col gap-4">
+      <div
+        :if={String.contains?(@current_plan.name, "early adopter")}
+        class="mb-6 text-sm text-neutral-600 p-4 border border-warning-600 bg-warning-50 text-warning-700 rounded"
+      >
+        <strong class="font-medium text-warning-800">
+          You're an early adopter — thank you! We're providing free access to Atlos for early adopters until March 31, 2024.
+        </strong>
+        On April 1, 2024, you will need to subscribe to a paid plan for unlimited edits.
+      </div>
+      <div :if={@current_plan.is_free} class="flex flex-col md:flex-row border-b pb-6">
+        <div class="flex flex-col gap-4">
+          <p class="grow flex gap-2 sm:gap-4 items-center">
+            <span class="text-3xl">🛟</span>
+            <span>
+              Atlos is a non-profit platform, and we rely on subscriptions to cover our costs.
+            </span>
+          </p>
+          <p class="grow flex gap-2 sm:gap-4 items-center">
+            <span class="text-3xl">🌐</span>
+            <span>
+              We have some capacity to support in-need investigations at no cost.
+              If you are a human rights organization and our subscription fees are a barrier to using Atlos, please <a
+                href="mailto:contact@atlos.org"
+                class="font-bold text-urge-600"
+              >contact us</a>.
+            </span>
+          </p>
         </div>
-        <hr class="h-4 opacity-0" />
-        <script async src="https://js.stripe.com/v3/pricing-table.js">
-        </script>
+        <div class="md:ml-16 justify-end">
+          <p class="support font-medium text-neutral-600 whitespace-nowrap">
+            Allowed Edits (30d)
+          </p>
+          <p class="text-3xl font-medium whitespace-nowrap">
+            <%= if @current_plan.allowed_edits_per_30d_period == :unlimited do %>
+              Unlimited
+            <% else %>
+              <%= @user_rolling_update_count %>/<%= @current_plan.allowed_edits_per_30d_period %>
+            <% end %>
+          </p>
+        </div>
+      </div>
+      <div :if={@current_plan.is_free} class="mt-4">
         <stripe-pricing-table
           pricing-table-id={Platform.Billing.get_pricing_table_id()}
           publishable-key={Platform.Billing.get_publishable_key()}
@@ -48,8 +80,14 @@
               <Heroicons.check_circle mini class="h-5 w-5 text-green-600" />
             </div>
             <div class="ml-3">
-              <h3 class="text-sm font-medium text-green-800">
-                You have Atlos <%= @current_plan.name %>.
+              <h3 class="text-sm text-green-800">
+                <span class="font-medium">You have Atlos <%= @current_plan.name %>.</span>
+                <span :if={@current_plan.is_organizational}>
+                  Your plan is managed by an organization.
+                </span>
+                <span>
+                  Thank you for supporting Atlos.
+                </span>
               </h3>
             </div>
           </div>
@@ -70,14 +108,18 @@
               >contact@atlos.org</a>.
             </span>
           </p>
-          <p class="flex gap-2 sm:gap-4 items-center">
+          <p :if={@current_plan.managed_by_stripe} class="flex gap-2 sm:gap-4 items-center">
             <span class="text-3xl">⚙️</span>
             <span>
               If you would like to cancel your subscription, change your payment method, or view past invoices, you can do so below.
             </span>
           </p>
         </article>
-        <button class="button ~urge @high mt-8" phx-click="visit_customer_portal">
+        <button
+          :if={@current_plan.managed_by_stripe}
+          class="button ~urge @high mt-8"
+          phx-click="visit_customer_portal"
+        >
           Manage my subscription &rarr;
         </button>
       </div>

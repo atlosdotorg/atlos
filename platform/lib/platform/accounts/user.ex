@@ -283,7 +283,7 @@ defmodule Platform.Accounts.User do
   """
   def admin_changeset(user, attrs) do
     user
-    |> cast(attrs, [:roles, :restrictions, :bio, :flair, :admin_notes])
+    |> cast(attrs, [:roles, :restrictions, :bio, :flair, :admin_notes, :billing_flags])
     |> validate_length(:bio, max: 240, message: "Bios may not exceed 240 characters.")
   end
 

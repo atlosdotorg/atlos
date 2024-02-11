@@ -635,4 +635,10 @@ defmodule Platform.Accounts do
   def is_bot(%User{} = user) do
     user.username == "Atlos"
   end
+
+  defmemo get_all_billing_flags(), expires_in: 5000 do
+    Repo.all(from u in User, select: u.billing_flags)
+    |> List.flatten()
+    |> Enum.uniq()
+  end
 end
