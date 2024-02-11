@@ -4,5 +4,12 @@ defmodule Platform.Billing.Plan do
   what a user is allowed to do based on their plan, as well as information about
   the plan itself.
   """
-  defstruct [:allowed_api, :allowed_edits_per_30d_period, :is_organizational, :name, :is_free]
+  defstruct [
+    :allowed_api,
+    :allowed_edits_per_30d_period,
+    :is_organizational,
+    :name,
+    :is_free,
+    :managed_by_stripe
+  ]
 end

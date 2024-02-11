@@ -127,25 +127,97 @@ defmodule Platform.Billing do
           user
         end
 
-      case Map.get(user.billing_subscriptions, "data", []) do
-        [] ->
+      cond do
+        "Complimentary" in user.billing_flags ->
           %Platform.Billing.Plan{
             allowed_api: true,
             allowed_edits_per_30d_period: :unlimited,
             is_organizational: false,
-            name: "Free",
-            is_free: true
-          }
-
-        [_ | _] ->
-          %Platform.Billing.Plan{
-            allowed_api: true,
-            allowed_edits_per_30d_period: :unlimited,
-            is_organizational: false,
-            name: "Pro",
+            name: "Complimentary",
+            managed_by_stripe: false,
             is_free: false
           }
+
+        Enum.any?(user.billing_flags, fn flag ->
+          String.starts_with?(flag, "Organization/")
+        end) ->
+          flag =
+            Enum.find(user.billing_flags, fn flag ->
+              String.starts_with?(flag, "Organization/")
+            end)
+
+          org_name = String.replace(flag, "Organization/", "")
+
+          %Platform.Billing.Plan{
+            allowed_api: true,
+            allowed_edits_per_30d_period: :unlimited,
+            is_organizational: true,
+            name: "Pro (via #{org_name})",
+            managed_by_stripe: false,
+            is_free: false
+          }
+
+        true ->
+          case Map.get(user.billing_subscriptions, "data", []) do
+            [] ->
+              # If the user's sign up date is before Feb 10, 2024, they get a free plan with unlimited edits.
+
+              if NaiveDateTime.compare(
+                   user.inserted_at,
+                   DateTime.from_naive!(~N[2020-02-01 00:00:00], "Etc/UTC")
+                 ) == :lt do
+                %Platform.Billing.Plan{
+                  allowed_api: false,
+                  allowed_edits_per_30d_period: :unlimited,
+                  is_organizational: false,
+                  name: "Free (early adopter)",
+                  managed_by_stripe: false,
+                  is_free: true
+                }
+              else
+                %Platform.Billing.Plan{
+                  allowed_api: false,
+                  allowed_edits_per_30d_period: 10,
+                  is_organizational: false,
+                  name: "Free",
+                  managed_by_stripe: false,
+                  is_free: true
+                }
+              end
+
+            [_ | _] ->
+              %Platform.Billing.Plan{
+                allowed_api: true,
+                allowed_edits_per_30d_period: :unlimited,
+                is_organizational: false,
+                name: "Pro",
+                managed_by_stripe: true,
+                is_free: false
+              }
+          end
       end
     end
+  end
+
+  def has_user_exceeded_edit_limit?(%Accounts.User{} = user) do
+    case get_user_plan(user) do
+      %Platform.Billing.Plan{allowed_edits_per_30d_period: :unlimited} ->
+        false
+
+      %Platform.Billing.Plan{allowed_edits_per_30d_period: limit} ->
+        case Platform.Updates.get_total_updates_by_user_over_30d(user) do
+          count when count >= limit ->
+            true
+
+          _ ->
+            false
+        end
+    end
+  end
+
+  def get_billing_flags() do
+    [
+      "Complimentary"
+    ] ++ Platform.Accounts.get_all_billing_flags()
   end
 end

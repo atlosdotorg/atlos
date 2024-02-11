@@ -212,6 +212,11 @@ defmodule PlatformWeb.Components do
           </svg>
           """
 
+          "billing" ->
+            ~H"""
+            <Heroicons.x_circle mini class="w-6 h-6 text-critical-600" />
+            """
+
         "loading" ->
           ~H"""
           <svg
@@ -472,6 +477,16 @@ defmodule PlatformWeb.Components do
                 </.navlink>
               </div>
             </.live_component>
+          </div>
+          <div
+            :if={
+              Platform.Billing.is_enabled?() and Platform.Billing.get_user_plan(@current_user).is_free
+            }
+            class="w-full"
+          >
+            <.navlink to="/settings#billing" label="Upgrade" request_path={@path}>
+              <Heroicons.arrow_up_circle mini class="text-neutral-300 group-hover:text-white h-6 w-6" />
+            </.navlink>
           </div>
           <%= if not is_nil(@current_user) do %>
             <.navlink to="/settings" label="Account" request_path={@path}>

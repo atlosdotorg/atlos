@@ -32,6 +32,13 @@ defmodule PlatformWeb.AdminlandLive.UserListLive do
                     <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
                       Status
                     </th>
+                    <th
+                      :if={Platform.Billing.is_enabled?()}
+                      scope="col"
+                      class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
+                    >
+                      Plan
+                    </th>
                     <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
                       Bio
                     </th>
@@ -82,6 +89,18 @@ defmodule PlatformWeb.AdminlandLive.UserListLive do
                         <%= if length(user.restrictions || []) + length(user.roles || []) == 0 do %>
                           <span class="chip ~neutral mb-1">regular</span>
                         <% end %>
+                      </td>
+                      <td
+                        :if={Platform.Billing.is_enabled?()}
+                        class="max-w-md px-3 py-4 text-sm text-gray-500"
+                      >
+                        <% plan = Platform.Billing.get_user_plan(user) %>
+                        <p :if={plan.is_free} class="chip ~neutral whitespace-nowrap">
+                          No Plan
+                        </p>
+                        <p :if={not plan.is_free} class="chip ~positive whitespace-nowrap">
+                          <%= plan.name %>
+                        </p>
                       </td>
                       <td class="max-w-md px-3 py-4 text-sm text-gray-500">
                         <%= user.bio %>

@@ -1,7 +1,7 @@
 defmodule PlatformWeb.SettingsLive do
   use PlatformWeb, :live_view
 
-  def mount(params, _session, socket) do
+  def mount(_params, _session, socket) do
     # If billing is enabled and we have a user, we need to check if the user has a billing_customer_id
     billing_session_client_secret =
       if Platform.Billing.is_enabled?() do
