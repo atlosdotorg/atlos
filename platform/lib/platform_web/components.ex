@@ -212,10 +212,10 @@ defmodule PlatformWeb.Components do
           </svg>
           """
 
-          "billing" ->
-            ~H"""
-            <Heroicons.x_circle mini class="w-6 h-6 text-critical-600" />
-            """
+        "billing" ->
+          ~H"""
+          <Heroicons.x_circle mini class="w-6 h-6 text-critical-600" />
+          """
 
         "loading" ->
           ~H"""
