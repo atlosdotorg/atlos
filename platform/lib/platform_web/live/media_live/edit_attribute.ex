@@ -40,7 +40,10 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
      |> assign(assigns)
      |> assign(:attrs, attributes)
      |> assign(:current_plan, Platform.Billing.get_user_plan(assigns.current_user))
-     |> assign(:total_updates_by_user_over_30d, Platform.Updates.get_total_updates_by_user_over_30d(assigns.current_user))
+     |> assign(
+       :total_updates_by_user_over_30d,
+       Platform.Updates.get_total_updates_by_user_over_30d(assigns.current_user)
+     )
      |> assign_new(
        :changeset,
        fn ->
@@ -185,8 +188,15 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
               </div>
               <div class="ml-3 flex-1 md:flex md:justify-between">
                 <p class="text-sm text-blue-700">
-                  <span class="font-medium">You are limited to <%= @current_plan.allowed_edits_per_30d_period %> edits every 30 days.</span>
-                  To make unlimited edits, please <.link href="/settings#billing">upgrade your plan</.link>. You have made <%= @total_updates_by_user_over_30d %> edit<%= if @total_updates_by_user_over_30d == 1, do: "", else: "s" %> in the last 30 days.
+                  <span class="font-medium">
+                    You are limited to <%= @current_plan.allowed_edits_per_30d_period %> edits every 30 days.
+                  </span>
+                  To make unlimited edits, please <.link href="/settings#billing">upgrade your plan</.link>. You have made <%= @total_updates_by_user_over_30d %> edit<%= if @total_updates_by_user_over_30d ==
+                                                                                                                                                                               1,
+                                                                                                                                                                             do:
+                                                                                                                                                                               "",
+                                                                                                                                                                             else:
+                                                                                                                                                                               "s" %> in the last 30 days.
                 </p>
               </div>
             </div>

@@ -329,7 +329,10 @@ defmodule PlatformWeb.ProjectsLive.Show do
                     <h3 class="mt-2 text-sm font-medium text-gray-900">Upgrade to use the API</h3>
                     <p class="mt-1 text-sm text-gray-500 max-w-prose mx-auto">
                       The
-                      <a class="text-urge-600 font-medium" href="https://docs.atlos.org/technical/api/">
+                      <a
+                        class="text-urge-600 font-medium"
+                        href="https://docs.atlos.org/technical/api/"
+                      >
                         Atlos API
                       </a>
                       is a powerful way to connect your investigations on Atlos to other tools.
