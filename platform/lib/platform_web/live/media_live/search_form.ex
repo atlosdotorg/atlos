@@ -171,7 +171,8 @@ defmodule PlatformWeb.MediaLive.SearchForm do
                       @form,
                       :attr_geolocation,
                       class: "input-base grow",
-                      "phx-debounce": "500"
+                      "phx-debounce": "500",
+                      id: "#{@id}_search-form-#{@attr_id}"
                     ) %>
                     <span class="text-gray-600 text-sm">within</span>
                     <%= select(
@@ -189,7 +190,8 @@ defmodule PlatformWeb.MediaLive.SearchForm do
                         {"1000 km", 1000}
                       ],
                       default: 10,
-                      class: "input-base shrink"
+                      class: "input-base shrink",
+                      id: "#{@id}_search-form-#{@attr_id}_radius"
                     ) %>
                   </div>
                   <p class="support text-gray-600 my-1">
@@ -493,7 +495,6 @@ defmodule PlatformWeb.MediaLive.SearchForm do
                   </div>
                   <br/>
                   <%= for attr <- @available_attrs do %>
-                    <template x-if={"#{@toggle_state[attr.id] || 'false'}===true"}>
                       <div
                         x-transition
                         x-show={"#{@toggle_state[attr.id] || 'false'}===true && !('#{@cur_select}'===\"#{attr.id}\" && '#{@select_state}'==='select_filt')"} x-init="document.dispatchEvent(new CustomEvent('load-selectors',{}))"
@@ -510,7 +511,6 @@ defmodule PlatformWeb.MediaLive.SearchForm do
                           changeset={@changeset}
                         />
                       </div>
-                    </template>
                   <% end %>
                   <article
                     class="ts-ignore relative text-left overflow-visible"
@@ -528,8 +528,7 @@ defmodule PlatformWeb.MediaLive.SearchForm do
                     </div>
                     <div
                       x-show={"open && '#{@select_state}'==='norm'"}
-                      x-data="{atquery:''}"
-                      x-effect="console.log('atquery', atquery)"
+                      x-init="Alpine.store('atquery', '')"
                       x-transition
                       x-cloak
                       role="menu"
@@ -537,7 +536,7 @@ defmodule PlatformWeb.MediaLive.SearchForm do
                     >
                       <input
                         type="text"
-                        x-model="atquery"
+                        x-model="$store.atquery"
                         x-ref="fsearch"
                         x-effect="if(open){setTimeout(() => { $refs.fsearch.focus(); $refs.fsearch.select() }, 10)}"
                         phx-target={@myself}
@@ -550,15 +549,16 @@ defmodule PlatformWeb.MediaLive.SearchForm do
                       <%= for attr <- @available_attrs do %>
                         <button
                           value={attr.id}
-                          x-show={"#{@toggle_state[attr.id] || 'false'}===false && contains('#{attr.label}', atquery)"}
+                          id={attr.id<>"_drop_button"}
+                          x-show={"#{@toggle_state[attr.id] || 'false'}===false && contains('#{attr.label}', $store.atquery)"}
                           phx-click={JS.push("select_state_filt", target: @myself) |> JS.push("cur_select", value: %{select: attr.id}, target: @myself) |> JS.push("toggle", value: %{"attr": attr.id}, target: @myself)}
                           phx-target={@myself}
                           class="w-full hover:bg-gray-200 text-left hover:shadow-sm rounded-lg text-sm text-gray-900 py-1 px-2 flex"
                         >
                           <span class="hidden"
-                            x-text={"#{@toggle_state[attr.id] || 'false'}===false && contains('#{attr.label}', atquery)"}></span>
+                            x-text={"#{@toggle_state[attr.id] || 'false'}===false && contains('#{attr.label}', $store.atquery)"}></span>
                           <span class="hidden"
-                            x-text="atquery"></span>
+                            x-text="$store.atquery"></span>
                           <.filter_icon type={attr.attr.type}/>
                           <span class="ml-2">
                             <%= attr.label %>
@@ -567,7 +567,6 @@ defmodule PlatformWeb.MediaLive.SearchForm do
                       <% end %>
                     </div>
                     <%= for attr <- @available_attrs do %>
-                    <template x-if={"#{@toggle_state[attr.id] || 'false'}===true && '#{@cur_select}'===\"#{attr.id}\" && '#{@select_state}'==='select_filt'"}>
                       <div
                         x-transition
                         x-show={"#{@toggle_state[attr.id] || 'false'}===true && '#{@cur_select}'===\"#{attr.id}\" && '#{@select_state}'==='select_filt'"}
@@ -587,7 +586,6 @@ defmodule PlatformWeb.MediaLive.SearchForm do
                           default_open={true}
                         />
                       </div>
-                    </template>
                   <% end %>
                   </article>
                   <div
