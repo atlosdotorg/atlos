@@ -495,6 +495,7 @@ defmodule PlatformWeb.MediaLive.SearchForm do
                   </div>
                   <br/>
                   <%= for attr <- @available_attrs do %>
+                    <%= if (@toggle_state[attr.id] || 'false') == true && !(@cur_select == attr.id && @select_state == "select_filt") do %>
                       <div
                         x-transition
                         x-show={"#{@toggle_state[attr.id] || 'false'}===true && !('#{@cur_select}'===\"#{attr.id}\" && '#{@select_state}'==='select_filt')"} x-init="document.dispatchEvent(new CustomEvent('load-selectors',{}))"
@@ -511,6 +512,7 @@ defmodule PlatformWeb.MediaLive.SearchForm do
                           changeset={@changeset}
                         />
                       </div>
+                    <% end %>
                   <% end %>
                   <article
                     class="ts-ignore relative text-left overflow-visible"
@@ -547,16 +549,17 @@ defmodule PlatformWeb.MediaLive.SearchForm do
                       >
                       <hr class="my-1">
                       <%= for attr <- @available_attrs do %>
+                        <%= if (@toggle_state[attr.id] || false) == false do %>
                         <button
                           value={attr.id}
                           id={attr.id<>"_drop_button"}
-                          x-show={"#{@toggle_state[attr.id] || 'false'}===false && contains('#{attr.label}', $store.atquery)"}
+                          x-show={"contains('#{attr.label}', $store.atquery)"}
                           phx-click={JS.push("select_state_filt", target: @myself) |> JS.push("cur_select", value: %{select: attr.id}, target: @myself) |> JS.push("toggle", value: %{"attr": attr.id}, target: @myself)}
                           phx-target={@myself}
                           class="w-full hover:bg-gray-200 text-left hover:shadow-sm rounded-lg text-sm text-gray-900 py-1 px-2 flex"
                         >
                           <span class="hidden"
-                            x-text={"#{@toggle_state[attr.id] || 'false'}===false && contains('#{attr.label}', $store.atquery)"}></span>
+                            x-text={"contains('#{attr.label}', $store.atquery)"}></span>
                           <span class="hidden"
                             x-text="$store.atquery"></span>
                           <.filter_icon type={attr.attr.type}/>
@@ -564,6 +567,7 @@ defmodule PlatformWeb.MediaLive.SearchForm do
                             <%= attr.label %>
                           </span>
                         </button>
+                        <% end %>
                       <% end %>
                     </div>
                     <%= for attr <- @available_attrs do %>
@@ -572,7 +576,6 @@ defmodule PlatformWeb.MediaLive.SearchForm do
                       >
                       <div
                         x-transition
-                        x-show={"#{@toggle_state[attr.id] || 'false'}===true && '#{@cur_select}'===\"#{attr.id}\" && '#{@select_state}'==='select_filt'"}
                         phx-click-away="select_state_norm"
                         phx-target={@myself}
                       >
