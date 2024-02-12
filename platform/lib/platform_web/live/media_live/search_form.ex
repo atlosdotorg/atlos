@@ -147,7 +147,7 @@ defmodule PlatformWeb.MediaLive.SearchForm do
                 <span class="hidden"><%= inspect(@form.source.changes[String.to_atom("#{@attr_id}")] || []) %></span>
                 <div
                   phx-update="ignore"
-                  id={"attr_select_#{@attr.name}"}
+                  id={"attr_select_#{@attr.name}_#{@id}"}
                   class="phx-form"
                   x-effect="if(open){setTimeout(() => document.dispatchEvent(new CustomEvent('load-selects', { detail: {} })), 10)}"
                 >
@@ -205,7 +205,7 @@ defmodule PlatformWeb.MediaLive.SearchForm do
                     <%= date_input(
                       @form,
                       :attr_date_min,
-                      id: "search-form-date-min",
+                      id: "#{@id}_search-form-date-min",
                       class: "input-base inline-flex items-center",
                       phx_debounce: 2000
                     ) %>
@@ -213,7 +213,7 @@ defmodule PlatformWeb.MediaLive.SearchForm do
                     <%= date_input(
                       @form,
                       :attr_date_max,
-                      id: "search-form-date-max",
+                      id: "#{@id}_search-form-date-max",
                       class: "input-base inline-flex items-center",
                       phx_debounce: 2000
                     ) %>
@@ -229,14 +229,14 @@ defmodule PlatformWeb.MediaLive.SearchForm do
                     String.to_atom("#{@attr_id}-matchtype"),
                     [Contains: :contains, Equals: :equals, "Does not Contain": :excludes],
                     class: "block input-base grow",
-                    id: "search-form-#{@attr_id}_matchtype"
+                    id: "#{@id}_search-form-#{@attr_id}_matchtype"
                   ) %>
                   <%= text_input(
                     @form,
                     String.to_atom("#{@attr_id}"),
                     class: "input-base grow",
                     "phx-debounce": "500",
-                    id: "search-form-#{@attr_id}"
+                    id: "#{@id}_search-form-#{@attr_id}"
                   ) %>
                 </div>
               <% _ -> %>
