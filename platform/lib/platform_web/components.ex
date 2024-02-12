@@ -3469,13 +3469,6 @@ defmodule PlatformWeb.Components do
         <% :date -> %>
           <div class="flex items-center w-full justify-between">
             <%= label(@f, @schema_field, @label, class: "mb-1") %>
-          </div>
-          <div class="flex items-center gap-2 ts-ignore apply-a17t-fields">
-            <%= date_input(@f, @schema_field,
-              "x-ref": "date_input",
-              class: "base-button",
-              phx_debounce: "blur"
-            ) %>
             <button
               type="button"
               x-on:click="$refs.date_input.valueAsDate = new Date(); $refs.date_input.dispatchEvent(new Event('input', {bubbles: true}))"
@@ -3483,6 +3476,13 @@ defmodule PlatformWeb.Components do
             >
               <Heroicons.calendar_days class="h-4 w-4 text-urge-400" /> Today
             </button>
+          </div>
+          <div class="flex items-center gap-2 ts-ignore apply-a17t-fields">
+            <%= date_input(@f, @schema_field,
+              "x-ref": "date_input",
+              class: "base-button",
+              phx_debounce: "blur"
+            ) %>
           </div>
           <p class="support mt-2">
             Type or select a date; alternatively,
