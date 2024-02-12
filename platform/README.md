@@ -20,12 +20,12 @@ Once the Codespace opens up in your VS Code window, you'll be able to start the 
 
 You can log into an admin using the following credentials:
 
-- Email: `admin@localhost`
+- Email: `admin@localhost.com`
 - Password: `localhost123`
 
 And you can log into a regular user account using the following credentials:
 
-- Email: `user@localhost`
+- Email: `user@localhost.com`
 - Password: `localhost123`
 
 Other tasks you might want to perform from inside the `platform` subdirectory (i.e., this one):
