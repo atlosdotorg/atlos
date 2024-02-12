@@ -145,12 +145,6 @@ defmodule PlatformWeb.MediaLive.LinkVersionLive do
               phx_disable_with: "Uploading...",
               class: "button ~urge @high"
             ) %>
-            <.link navigate={"/incidents/#{@media.slug}/"} class="text-button text-sm text-right">
-              Or cancel media upload
-              <span class="text-gray-500 font-normal block text-xs">
-                You can upload media later
-              </span>
-            </.link>
           </div>
         </div>
       </.form>
