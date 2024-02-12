@@ -525,6 +525,5 @@ defmodule Platform.Updates do
 
     query
     |> Repo.one()
-    |> dbg()
   end
 end
