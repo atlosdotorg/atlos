@@ -515,9 +515,56 @@ defmodule PlatformWeb.MediaLive.SearchForm do
                   <% end %>
                   <article
                     class="relative text-left overflow-visible"
-                    x-data={"{open:false}"}
+                    x-data={"{
+                      open:false,
+                      sel: 0,
+                      len: 0,
+                      getbtns(){
+                        return document.querySelectorAll('#attr-list > :not([style*=\"display: none\"])');
+                      },
+                      findId(id){
+                        let attrList=this.getbtns();
+                        for(var i=0; i<attrList.length; i++){
+                          if (attrList[i].id==id){
+                            return i;
+                            break;
+                          }
+                        }
+                        return -1;
+                      },
+                      setSelectedViaHover(id){
+                        console.log('A', id)
+                        this.sel=this.findId(id);
+                        console.log('C', this.sel)
+                      },
+                      clickSelected(){
+                        let attrList=this.getbtns();
+                        attrList[this.sel].click();
+                      },
+                      isSelected(id){
+                        console.log('D', id, this.sel)
+                        return this.sel==this.findId(id);
+                      }
+                    }"}
+                    x-effect="
+                    len = getbtns().length;
+                    console.log('sel: ', sel);
+                    if(sel>=len){
+                      sel=0;
+                    }else if (sel<0){
+                      sel=len-1;
+                    }
+                    "
                     x-on:click.away="open = false"
                   >
+                    <template x-if="open">
+                      <span
+                        x-on:keydown.down.window.prevent="sel = sel + 1;console.log('down', sel)"
+                        x-on:keydown.up.window.prevent="sel = sel - 1;console.log('up', sel)"
+                        x-on:keydown.enter.window.prevent="clickSelected()"
+                      >
+                      </span>
+                    </template>
                     <div>
                       <button
                         type="button"
@@ -547,27 +594,31 @@ defmodule PlatformWeb.MediaLive.SearchForm do
                         placeholder="Filter..."
                       >
                       <hr class="my-1">
-                      <%= for attr <- @available_attrs do %>
-                        <%= if (@toggle_state[attr.id] || false) == false do %>
-                        <button
-                          value={attr.id}
-                          id={attr.id<>"_drop_button"}
-                          x-show={"contains('#{attr.label}', $store.atquery)"}
-                          phx-click={JS.push("select_state_filt", target: @myself) |> JS.push("cur_select", value: %{select: attr.id}, target: @myself) |> JS.push("toggle", value: %{"attr": attr.id}, target: @myself)}
-                          phx-target={@myself}
-                          class="w-full hover:bg-gray-200 text-left hover:shadow-sm rounded-lg text-sm text-gray-900 py-1 px-2 flex"
-                        >
-                          <span class="hidden"
-                            x-text={"contains('#{attr.label}', $store.atquery)"}></span>
-                          <span class="hidden"
-                            x-text="$store.atquery"></span>
-                          <.filter_icon type={attr.attr.type}/>
-                          <span class="ml-2">
-                            <%= attr.label %>
-                          </span>
-                        </button>
+                      <div id="attr-list">
+                        <%= for attr <- @available_attrs do %>
+                          <%= if (@toggle_state[attr.id] || false) == false do %>
+                          <button
+                            value={attr.id}
+                            id={attr.id<>"_drop_button"}
+                            x-show={"contains('#{attr.label}', $store.atquery)"}
+                            phx-click={JS.push("select_state_filt", target: @myself) |> JS.push("cur_select", value: %{select: attr.id}, target: @myself) |> JS.push("toggle", value: %{"attr": attr.id}, target: @myself)}
+                            phx-target={@myself}
+                            class="w-full text-left rounded-lg text-sm text-gray-900 py-1 px-2 flex"
+                            x-on:mouseenter={"setSelectedViaHover('#{attr.id}_drop_button')"}
+                            x-bind:class={"isSelected('#{attr.id}_drop_button') ? 'bg-neutral-200' : 'bg-white'"}
+                          >
+                            <span class="hidden"
+                              x-text={"contains('#{attr.label}', $store.atquery)"}></span>
+                            <span class="hidden"
+                              x-text="$store.atquery"></span>
+                            <.filter_icon type={attr.attr.type}/>
+                            <span class="ml-2">
+                              <%= attr.label %>
+                            </span>
+                          </button>
                         <% end %>
                       <% end %>
+                      </div>
                     </div>
                     <%= for attr <- @available_attrs do %>
                       <template
