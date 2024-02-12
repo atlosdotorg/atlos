@@ -175,7 +175,7 @@ defmodule Platform.Updates do
       # "through" model with a `user_id` column
       attr.type == :multi_users ->
         Ecto.Changeset.get_field(changeset, attr.schema_field)
-        |> Enum.map(&Map.get(&1, :user_id))
+        |> Enum.map(& &1.user_id)
 
       true ->
         Ecto.Changeset.get_field(changeset, attr.schema_field)

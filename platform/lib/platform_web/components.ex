@@ -2624,7 +2624,7 @@ defmodule PlatformWeb.Components do
           </section>
           <section class="mb-2 h-4" />
           <section class="bottom-0 mb-2 pr-4 w-full absolute flex gap-2 justify-between items-center">
-            <.user_stack users={@media.assignees} />
+            <.user_stack users={@media.attr_assignments |> Enum.map(& &1.user)} />
             <p class="text-xs text-gray-500 flex items-center">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
