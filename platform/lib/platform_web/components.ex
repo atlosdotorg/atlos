@@ -2394,6 +2394,7 @@ defmodule PlatformWeb.Components do
                       class: "rounded-full flex items-center align-center text-gray-600 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-urge-500",
                       role: "menuitem",
                       method: :post,
+                      target: "_blank",
                       "x-cloak": true,
                       data_tooltip: "Export Incidents"
                     do %>
