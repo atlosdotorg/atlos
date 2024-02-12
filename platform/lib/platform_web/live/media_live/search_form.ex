@@ -513,54 +513,57 @@ defmodule PlatformWeb.MediaLive.SearchForm do
                       </div>
                     <% end %>
                   <% end %>
-                  <article
-                    class="relative text-left overflow-visible"
-                    x-data={"{
-                      open:false,
-                      sel: 0,
-                      len: 0,
-                      getbtns(){
-                        return document.querySelectorAll('#attr-list > :not([style*=\"display: none\"])');
-                      },
-                      findId(id){
-                        let attrList=this.getbtns();
-                        for(var i=0; i<attrList.length; i++){
-                          if (attrList[i].id==id){
-                            return i;
-                            break;
-                          }
+                  <article x-data="{
+                    init() {
+                      Alpine.store('dropdown', { sel: 0 });
+                      this.updateLen();
+
+                    },
+                    open: false,
+                    updateLen() {
+                      $store.dropdown.len = this.getbtns().length;
+                    },
+                    getbtns() {
+                      return document.querySelectorAll('#attr-list > :not([style*=\'display: none\'])');
+                    },
+                    findId(id) {
+                      let attrList = this.getbtns();
+                      for (var i = 0; i < attrList.length; i++) {
+                        if (attrList[i].id == id) {
+                          return i;
                         }
-                        return -1;
-                      },
-                      setSelectedViaHover(id){
-                        console.log('A', id)
-                        this.sel=this.findId(id);
-                        console.log('C', this.sel)
-                      },
-                      clickSelected(){
-                        let attrList=this.getbtns();
-                        attrList[this.sel].click();
-                      },
-                      isSelected(id){
-                        console.log('D', id, this.sel)
-                        return this.sel==this.findId(id);
                       }
-                    }"}
-                    x-effect="
-                    len = getbtns().length;
-                    console.log('sel: ', sel);
-                    if(sel>=len){
-                      sel=0;
-                    }else if (sel<0){
-                      sel=len-1;
+                      return 0;
+                    },
+                    setSelectedViaHover(id) {
+                      console.log('A', id);
+                      $store.dropdown.sel = this.findId(id);
+                      console.log('C', $store.dropdown.sel);
+                    },
+                    clickSelected() {
+                      let attrList = this.getbtns();
+                      attrList[$store.dropdown.sel].click();
+                    },
+                    isSelected(id) {
+                      return $store.dropdown.sel === this.findId(id);
                     }
-                    "
-                    x-on:click.away="open = false"
-                  >
+                  }" x-init="init()" x-effect="
+                    let aq = $store.atquery;
+                    let sl = $store.dropdown.sel;
+                    setTimeout(() => {
+                      let len = getbtns().length;
+                      console.log('trigger', $store.dropdown.sel, len, aq);
+                      if($store.dropdown.sel >= len){
+                        $store.dropdown.sel = 0; console.log('reset', $store.dropdown.sel);
+                      } else if ($store.dropdown.sel < 0){
+                        $store.dropdown.sel = len - 1; console.log('reset', $store.dropdown.sel);
+                      }
+                    }, 10); // there might be a better solution for this
+                  " x-on:click.away="open = false">
                     <template x-if="open">
                       <span
-                        x-on:keydown.down.window.prevent="sel = sel + 1;console.log('down', sel)"
-                        x-on:keydown.up.window.prevent="sel = sel - 1;console.log('up', sel)"
+                        x-on:keydown.down.window.prevent="$store.dropdown.sel += 1; console.log('down', $store.dropdown.sel)"
+                        x-on:keydown.up.window.prevent="$store.dropdown.sel -= 1; console.log('up', $store.dropdown.sel)"
                         x-on:keydown.enter.window.prevent="clickSelected()"
                       >
                       </span>
