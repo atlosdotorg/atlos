@@ -179,7 +179,7 @@ defmodule Platform.Material do
   end
 
   defp preload_media_assignees(query) do
-    query |> preload([:assignees]) |> preload(attr_assignments: [:user])
+    query |> preload(attr_assignments: [:user])
   end
 
   defp apply_user_fields(query, user, opts)
@@ -643,7 +643,6 @@ defmodule Platform.Material do
           media: [
             [updates: [:user, :api_token]],
             [attr_assignments: [:user]],
-            :assignees,
             :versions,
             :project
           ]
@@ -879,6 +878,12 @@ defmodule Platform.Material do
               equivalent_attr.schema_field == :attr_geolocation ->
                 {lng, lat} = get_attribute_value(source, attr).coordinates
                 %{"location" => "#{lat}, #{lng}"}
+
+              equivalent_attr.type == :multi_users ->
+                %{
+                  to_string(equivalent_attr.schema_field) =>
+                    get_attribute_value(source, attr) |> Enum.map(& &1.user_id)
+                }
 
               true ->
                 %{to_string(equivalent_attr.schema_field) => get_attribute_value(source, attr)}
