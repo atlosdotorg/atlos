@@ -175,6 +175,21 @@ defmodule Platform.Accounts do
   end
 
   @doc """
+  Creates a changeset for the user's billing information.
+  """
+  def change_user_billing(user, attrs \\ %{}) do
+    User.billing_changeset(user, attrs)
+  end
+
+  @doc """
+  Updates the user's billing information.
+  """
+  def update_user_billing(user, attrs) do
+    change_user_billing(user, attrs)
+    |> Repo.update()
+  end
+
+  @doc """
   Returns an `%Ecto.Changeset{}` for tracking user changes.
 
   ## Examples
@@ -237,6 +252,10 @@ defmodule Platform.Accounts do
     User.disable_mfa_changeset(user, attrs)
   end
 
+  def confirm_user_mfa_changeset(user, attrs \\ %{}) do
+    User.confirm_mfa_changeset(user, attrs)
+  end
+
   @doc """
   Disables MFA for a user.
   """
@@ -249,7 +268,30 @@ defmodule Platform.Accounts do
   Confirms a user's MFA code.
   """
   def confirm_user_mfa(user, attrs \\ %{}) do
-    User.confirm_mfa_changeset(user, attrs)
+    changeset = User.confirm_mfa_changeset(user, attrs)
+
+    if changeset.valid? do
+      changeset
+    else
+      case User.verify_recovery_code(user, attrs) do
+        {:ok, cs} ->
+          Platform.Auditor.log(:mfa_recovery_code_used, %{
+            email: user.email,
+            used_code: attrs["current_otp_code"]
+          })
+
+          cs |> Repo.update()
+          cs
+
+        {:err, _} ->
+          changeset
+      end
+    end
+  end
+
+  def update_user_recovery_code(user, attrs \\ %{}) do
+    User.update_recovery_codes_changeset(user, attrs)
+    |> Repo.update()
   end
 
   @doc """
@@ -592,5 +634,11 @@ defmodule Platform.Accounts do
 
   def is_bot(%User{} = user) do
     user.username == "Atlos"
+  end
+
+  defmemo get_all_billing_flags(), expires_in: 5000 do
+    Repo.all(from u in User, select: u.billing_flags)
+    |> List.flatten()
+    |> Enum.uniq()
   end
 end

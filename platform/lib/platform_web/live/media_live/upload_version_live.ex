@@ -414,15 +414,6 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
                 phx_disable_with: "Uploading...",
                 class: "button ~urge @high"
               ) %>
-              <a
-                navigate={"/incidents/#{@media.slug}/"}
-                class="text-button text-sm text-right phx-only-during-reg"
-              >
-                Or cancel media upload
-                <span class="text-gray-500 font-normal block text-xs">
-                  You can upload media later
-                </span>
-              </a>
             </div>
           <% end %>
         </div>

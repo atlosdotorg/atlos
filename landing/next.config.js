@@ -9,7 +9,7 @@ module.exports = {
       },
       {
         source: '/resilience',
-        destination: 'https://github.com/atlosdotorg/atlos/blob/main/policy/RESILIENCE.md',
+        destination: 'https://docs.atlos.org/safety-and-security/vicarious-trauma/',
         permanent: false,
       },
       {

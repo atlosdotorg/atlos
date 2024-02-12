@@ -108,7 +108,7 @@ defmodule PlatformWeb.ProfilesLive.EditComponent do
               </div>
               <p class="support">
                 For more information about roles on Atlos, view our <a
-                  href="https://github.com/atlosdotorg/atlos/blob/main/policy/ROLES.md"
+                  href="https://docs.atlos.org/investigations/collaboration/#roles--permissions"
                   class="underline"
                   target="blank"
                 >role documentation</a>.
@@ -133,6 +133,19 @@ defmodule PlatformWeb.ProfilesLive.EditComponent do
               <%= label(f, :flair, "Flair") %>
               <%= text_input(f, :flair) %>
               <%= error_tag(f, :flair) %>
+            </div>
+            <div>
+              <%= label(f, :billing_flags, "Billing Flags") %>
+              <div phx-update="ignore" id="ignore-user-billing-flags">
+                <%= multiple_select(f, :billing_flags, Platform.Billing.get_billing_flags(),
+                  id: "user-billing-flags-input",
+                  data_allow_user_defined_options: "true"
+                ) %>
+              </div>
+              <p class="support">
+                To associate a user with an organizational account, add billing flag "Organization/Org Name", e.g., "Organization/Atlos". "Complimentary" will provide the user free Pro access without interfacing with the billing system.
+              </p>
+              <%= error_tag(f, :billing_flags) %>
             </div>
             <div>
               <%= label(f, :admin_notes, "Admin Notes") %>

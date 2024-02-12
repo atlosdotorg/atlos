@@ -11,6 +11,7 @@ module.exports = {
     }
   },
   plugins: [
-    require("a17t")
+    require("a17t"),
+    require('@tailwindcss/typography')
   ],
 }

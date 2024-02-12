@@ -16,24 +16,7 @@ defmodule PlatformWeb.ProfilesLive.Show do
      socket
      |> assign(:username, username)
      |> assign(:title, username)
-     |> assign_user()
-     |> then(fn socket ->
-       current_user_projects =
-         Projects.get_users_project_memberships(socket.assigns.current_user)
-         |> Enum.map(fn pm -> pm.project end)
-         |> MapSet.new()
-
-       user_projects =
-         Projects.get_users_project_memberships(socket.assigns.user)
-         |> Enum.map(fn pm -> pm.project end)
-         |> MapSet.new()
-
-       socket
-       |> assign(
-         :shared_projects,
-         MapSet.intersection(current_user_projects, user_projects)
-       )
-     end)}
+     |> assign_user()}
   end
 
   defp assign_user(socket) do
@@ -74,6 +57,23 @@ defmodule PlatformWeb.ProfilesLive.Show do
       |> assign(:most_recent_update, Updates.most_recent_update_by_user(user))
       |> assign(:updates_over_time, updates_over_time)
       |> assign(:activity_indicator_chart, activity_indicator_chart)
+      |> then(fn socket ->
+        current_user_projects =
+          Projects.get_users_project_memberships(socket.assigns.current_user)
+          |> Enum.map(fn pm -> pm.project end)
+          |> MapSet.new()
+
+        user_projects =
+          Projects.get_users_project_memberships(socket.assigns.user)
+          |> Enum.map(fn pm -> pm.project end)
+          |> MapSet.new()
+
+        socket
+        |> assign(
+          :shared_projects,
+          MapSet.intersection(current_user_projects, user_projects)
+        )
+      end)
     else
       _ ->
         socket

@@ -63,10 +63,12 @@ defmodule PlatformWeb.AdminlandLive.APITokenLive do
                       </th>
                       <th scope="col" class="py-3.5 pl-3 pr-4 sm:pr-6">
                         <span class="sr-only">More Actions</span>
-                        <%= live_patch("New Token",
-                          class: "button ~urge @high float-right",
-                          to: Routes.adminland_index_path(@socket, :api_new)
-                        ) %>
+                        <.link
+                          class="button ~urge @high float-right"
+                          patch={Routes.adminland_index_path(@socket, :api_new)}
+                        >
+                          New Token
+                        </.link>
                       </th>
                     </tr>
                   </thead>
@@ -120,10 +122,12 @@ defmodule PlatformWeb.AdminlandLive.APITokenLive do
                 <h3 class="mt-2 text-sm font-medium text-gray-900">No API tokens</h3>
                 <p class="mt-1 text-sm text-gray-500">Get started by creating a new API token.</p>
                 <div class="mt-6">
-                  <%= live_patch("New Token",
-                    class: "button ~urge @high",
-                    to: Routes.adminland_index_path(@socket, :api_new)
-                  ) %>
+                  <.link
+                    class="button ~urge @high"
+                    patch={Routes.adminland_index_path(@socket, :api_new)}
+                  >
+                    New Token
+                  </.link>
                 </div>
               </div>
             <% end %>

@@ -18,9 +18,16 @@ defmodule PlatformWeb.HomeLive.Index do
      |> assign(:media, get_feed_media(socket, limit: 50))
      |> assign(
        :status_statistics,
-       Material.status_overview_statistics(for_user: socket.assigns.current_user)
+       Material.status_overview_statistics(
+         for_user: socket.assigns.current_user,
+         exclude_archived_projects: true
+       )
      )
      |> assign(:additional_results_available, true)
+     |> assign(
+       :user_updates_last_30d,
+       Platform.Updates.get_total_updates_by_user_over_30d(socket.assigns.current_user)
+     )
      |> assign(:overview_media, get_overview_media(socket))
      |> assign(:full_width, true)
      |> assign(:search_changeset, Material.MediaSearch.changeset())}

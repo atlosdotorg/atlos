@@ -17,5 +17,6 @@ defmodule Platform.Invites.InviteUse do
     invite
     |> cast(attrs, [:user_id, :invite_id])
     |> validate_required([:user_id, :invite_id])
+    |> unique_constraint([:user_id, :invite_id], name: :invite_uses_invite_id_user_id_index)
   end
 end

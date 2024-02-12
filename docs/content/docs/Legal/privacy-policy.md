@@ -1,12 +1,17 @@
-# Privacy Policy 
+---
+title: Privacy policy
+description: The Atlos platform privacy policy.
+weight: 2
+---
+
 We take your privacy seriously. The full version is below, but the simple version is this: Atlos tries to collect as little information from our users as possible. Unless you pay for the platform, we don't even ask for your name. Atlos is a non-profit, open source project. Our goal isn't to sell you targeted ads — it's only to support your visual investigations. If you have any questions, feel free to reach out to contact@atlos.org.
 
 ## Changelog
-You can view a history of the changes made to these terms on [GitHub](https://github.com/milesmcc/atlos/blame/main/policy/PRIVACY_POLICY.md).
+You can view a history of the changes made to these terms on [GitHub](https://github.com/atlosdotorg/atlos/blob/main/docs/content/docs/Legal/privacy-policy.md).
 
 ## Introduction
 The Privacy Policy describes how Atlos (“Atlos,” “we” and “us”) collects, uses, protects, and discloses
-information when you visit or use our website, [atlos.org](atlos.org) (“Site”), communicate with us, apply to work
+information when you visit or use our website, [atlos.org](https://atlos.org) (“Site”), communicate with us, apply to work
 with us, otherwise interact with us, or purchase our services. This Privacy Policy applies to all users of
 the website. This policy does not apply to our employees or contractors.
 
@@ -135,7 +140,7 @@ navigate to and around our Site, view different pages, access content and reques
 them, for example, to keep track of your preferences and profile information and collect general usage
 and volume statistical information. If you want to remove or block cookies, you may be able to update
 your browser settings. You can also find instructions on how to manage cookies on different types of
-web browsers at [www.allaboutcookies.org](www.allaboutcookies.org).
+web browsers at [www.allaboutcookies.org](https://www.allaboutcookies.org).
 
 ### Do Not Track Signals
 Some browsers have a “do not track” feature. It lets you tell websites you visit that you do not want
@@ -222,7 +227,8 @@ commonly used, machine readable format;
 - or to revoke consent previously granted to the extent permitted by law.
 
 To exercise any of these rights please contact our please email our Data Protection Officer at contact@atlos.org.
-You can also write to us at:
+You can also write to us at:\
+
 Attn: Atlos Legal    
 Atlos, Inc.      
 Northwest Registered Agent, Inc. (#C3184722)      

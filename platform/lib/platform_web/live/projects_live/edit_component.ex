@@ -441,8 +441,8 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                       disabled: not Permissions.can_edit_project_metadata?(@current_user, @project)
                     ) %>
                   </div>
-                  <%= if @project.id do %>
-                    <div>
+                  <%= if not is_nil(@project.id) do %>
+                    <div :if={Permissions.can_change_project_active_status?(@current_user, @project)}>
                       <%= if @project.active do %>
                         <button
                           phx-click="toggle_active"
@@ -553,7 +553,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                             </tr>
                           </thead>
                           <tbody class="divide-y divide-gray-200 bg-white">
-                            <%= for f_attr <- inputs_for(f, :attributes) do %>
+                            <.inputs_for :let={f_attr} field={f[:attributes]}>
                               <%= if f_attr.data.id do %>
                                 <tr x-data="{active: false}" class="group">
                                   <.attribute_table_row
@@ -608,7 +608,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                                   <.edit_custom_project_attribute f_attr={f_attr} />
                                 </div>
                               <% end %>
-                            <% end %>
+                            </.inputs_for>
                             <%= for attr <- Platform.Material.Attribute.active_attributes() |> Enum.filter(& &1.pane != :metadata && is_nil(&1.parent)) do %>
                               <tr>
                                 <.attribute_table_row

@@ -285,6 +285,7 @@
               {lon, lat} = item.attr_geolocation.coordinates
 
               %{
+                id: item.id,
                 slug: item.slug,
                 # Stringify to avoid floating point issues
                 lat: "#{lat}",
@@ -361,7 +362,10 @@
             <section class="-mx-4 md:-mx-8">
               <div class="overflow-x-scroll overflow-y-visible w-full">
                 <div class="inline-block align-middle w-full">
-                  <div class="!shadow-inner ring-1 ring-black ring-opacity-5 max-h-[calc(100vh-11rem)] relative w-full">
+                  <div
+                    class="!shadow-inner ring-1 ring-black ring-opacity-5 relative w-full"
+                    x-bind:style="{'max-height': `calc(100vh - 11rem - ${window.getScrollbarWidth()}px)`}"
+                  >
                     <table class="border-separate sticky-headers w-full" style="border-spacing: 0">
                       <thead class="bg-gray-200 whitespace-nowrap">
                         <tr>

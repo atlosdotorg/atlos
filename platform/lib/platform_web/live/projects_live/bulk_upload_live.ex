@@ -60,7 +60,24 @@ defmodule PlatformWeb.ProjectsLive.BulkUploadLive do
   defp handle_uploaded_file(socket, entry) do
     path = consume_uploaded_entry(socket, entry, &handle_static_file(&1))
 
-    rows = CSV.decode(File.stream!(path), headers: true, unescape_formulas: true)
+    data = File.read!(path)
+
+    # If data begins with \uFEFF, remove it.
+    data =
+      case String.split(data, "\uFEFF") do
+        [_, rest] -> rest
+        _ -> data
+      end
+
+    {:ok, stream} =
+      data
+      |> StringIO.open()
+
+    rows =
+      stream
+      |> IO.binstream(4)
+      |> CSV.decode(headers: true, unescape_formulas: true)
+      |> Enum.to_list()
 
     decoding_errors =
       Enum.filter(rows, fn {k, _v} ->
@@ -147,6 +164,7 @@ defmodule PlatformWeb.ProjectsLive.BulkUploadLive do
       end
     end)
     |> List.flatten()
+    |> Enum.filter(fn {_, errors} -> length(errors) > 0 end)
     |> Enum.into(%{})
   end
 

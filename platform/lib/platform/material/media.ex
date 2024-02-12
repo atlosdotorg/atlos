@@ -52,12 +52,11 @@ defmodule Platform.Material.Media do
     field(:attr_status, :string)
     field(:attr_tags, {:array, :string})
 
-    # Assignees -- Note that we have :attr_assignments and :assignees, which are
-    # different. :attr_assignments is the list of assignments, which supports
-    # cast_assoc; :assignees is a helper item that is populated during querying
-    # and contains actual assigned users.
-    has_many(:attr_assignments, Platform.Material.MediaAssignment, on_replace: :delete)
-    many_to_many(:assignees, Platform.Accounts.User, join_through: "media_assignments")
+    # Assignees
+    has_many(:attr_assignments, Platform.Material.MediaAssignment,
+      on_replace: :delete,
+      foreign_key: :media_id
+    )
 
     # Automatically-generated Metadata
     field(:auto_metadata, :map, default: %{})
@@ -103,9 +102,11 @@ defmodule Platform.Material.Media do
       :attr_date,
       :deleted,
       :project_id,
-      :urls
+      :urls,
+      :location
     ])
     |> validate_required([:project_id], message: "Please select a project")
+    |> populate_geolocation()
     # These are special attributes, since we define it at creation time. Eventually, it'd be nice to unify this logic with the attribute-specific editing logic.
     |> Attribute.validate_attribute(Attribute.get_attribute(:description), media,
       user: user,
@@ -161,6 +162,16 @@ defmodule Platform.Material.Media do
         cs
       end
     end)
+  end
+
+  defp populate_geolocation(changeset) do
+    case get_change(changeset, :location) do
+      nil ->
+        changeset
+
+      _ ->
+        Attribute.update_from_virtual_data(changeset, Attribute.get_attribute(:geolocation))
+    end
   end
 
   def parse_and_validate_validate_json_array(changeset, field, dest) when is_atom(field) do
@@ -274,6 +285,27 @@ defmodule Platform.Material.Media do
   """
   def import_changeset(media, attrs, %Projects.Project{} = project) do
     possible_attrs = Attribute.active_attributes(project: project)
+
+    # If "latitude" and "longitude" are present, we need to combine them into a single
+    # "geolocation" field.
+    attrs =
+      case {Map.get(attrs, "latitude"), Map.get(attrs, "longitude")} do
+        {nil, nil} ->
+          attrs
+
+        {"", ""} ->
+          attrs
+
+        {lat, lon} ->
+          # Remove all non-numeric characters
+          lat = String.replace(lat, ~r/[^0-9.-]/, "")
+          lon = String.replace(lon, ~r/[^0-9.-]/, "")
+
+          attrs
+          |> Map.put("location", "#{lat},#{lon}")
+          |> Map.delete("latitude")
+          |> Map.delete("longitude")
+      end
 
     # First, we rename and parse fields to match their internal representation.
     attrs =
