@@ -545,6 +545,7 @@ defmodule PlatformWeb.MediaLive.SearchForm do
                       attrList[$store.dropdown.sel].click();
                     },
                     isSelected(id) {
+                      console.log('B', id, $store.dropdown.sel, this.findId(id));
                       return $store.dropdown.sel === this.findId(id);
                     }
                   }" x-init="init()" x-effect="
@@ -608,7 +609,7 @@ defmodule PlatformWeb.MediaLive.SearchForm do
                             phx-target={@myself}
                             class="w-full text-left rounded-lg text-sm text-gray-900 py-1 px-2 flex"
                             x-on:mouseenter={"setSelectedViaHover('#{attr.id}_drop_button')"}
-                            x-bind:class={"isSelected('#{attr.id}_drop_button') ? 'bg-neutral-200' : 'bg-white'"}
+                            x-bind:class={"let k=$store.atquery; let j=$store.dropdown.sel; let q = open; return isSelected('#{attr.id}_drop_button') ? 'bg-neutral-200' : 'bg-white'"}
                           >
                             <span class="hidden"
                               x-text={"contains('#{attr.label}', $store.atquery)"}></span>
