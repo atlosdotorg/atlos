@@ -149,7 +149,6 @@ defmodule PlatformWeb.MediaLive.SearchForm do
                   phx-update="ignore"
                   id={"attr_select_#{@attr.name}_#{@id}"}
                   class="phx-form"
-                  x-effect="if(open){setTimeout(() => document.dispatchEvent(new CustomEvent('load-selects', { detail: {} })), 10)}"
                 >
                   <%= multiple_select(
                     @form,
@@ -498,7 +497,7 @@ defmodule PlatformWeb.MediaLive.SearchForm do
                     <%= if (@toggle_state[attr.id] || 'false') == true && !(@cur_select == attr.id && @select_state == "select_filt") do %>
                       <div
                         x-transition
-                        x-show={"#{@toggle_state[attr.id] || 'false'}===true && !('#{@cur_select}'===\"#{attr.id}\" && '#{@select_state}'==='select_filt')"} x-init="document.dispatchEvent(new CustomEvent('load-selectors',{}))"
+                        x-show={"#{@toggle_state[attr.id] || 'false'}===true && !('#{@cur_select}'===\"#{attr.id}\" && '#{@select_state}'==='select_filt')"}
                       >
                         <.attr_filter
                           id={attr.id}
@@ -515,7 +514,7 @@ defmodule PlatformWeb.MediaLive.SearchForm do
                     <% end %>
                   <% end %>
                   <article
-                    class="ts-ignore relative text-left overflow-visible"
+                    class="relative text-left overflow-visible"
                     x-data={"{open:false}"}
                     x-on:click.away="open = false"
                   >

@@ -634,10 +634,6 @@ window.addEventListener("load", scrollToHashPosition);
 document.addEventListener("hashchange", scrollToHashPosition);
 
 document.addEventListener("phx:update", initializeSmartSelects);
-document.addEventListener("load-selects", () => {
-    console.log("Loading selects...");
-    initializeSmartSelects();
-});
 window.addEventListener("load", initializeSmartSelects);
 
 document.addEventListener("phx:update", window.updateBodyScrollStatus);
