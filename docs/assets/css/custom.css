@@ -1,3 +1,11 @@
 img[alt$="The metadata pane."] {
     width: 75%;
 }
+
+img[alt$="The message Atlos shows to suspended users."] {
+    width: 50%;
+}
+
+img[alt$="An image showing a user's name, profile picture, and flair."] {
+    width: 75%;
+}
