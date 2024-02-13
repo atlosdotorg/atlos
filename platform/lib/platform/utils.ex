@@ -221,6 +221,10 @@ defmodule Platform.Utils do
     markdown
   end
 
+  def strip_html_tags(html) do
+    html |> HtmlSanitizeEx.Scrubber.scrub(HtmlSanitizeEx.Scrubber.StripTags)
+  end
+
   @spec escape_markdown_string(String.t()) :: String.t()
   @doc """
   Escape the given string so that it can be used in a markdown document without

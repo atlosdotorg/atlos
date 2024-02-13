@@ -4,6 +4,9 @@ defmodule Platform.Notifications do
   """
 
   import Ecto.Query, warn: false
+  alias PlatformWeb.Router
+  alias Platform.Accounts.UserNotifier
+  alias Platform.Permissions
   alias Platform.Repo
 
   alias Platform.Accounts.User
@@ -103,12 +106,35 @@ defmodule Platform.Notifications do
     recipients = recipients ++ Material.get_subscribers(Material.get_media!(update.media_id))
 
     # Add people who are tagged
+    media = Material.get_media!(update.media_id)
+
+    tagged_users =
+      Regex.scan(Platform.Utils.get_tag_regex(), update.explanation || "")
+      |> Enum.map(&List.last(&1))
+      |> Enum.map(&Accounts.get_user_by_username(&1))
+      |> Enum.reject(&is_nil/1)
+      # Ensure all tagged users are a member of the project and can view the media
+      |> Enum.filter(fn user ->
+        Permissions.can_view_media?(user, media)
+      end)
+
+    # Send email notifications to tagged users
+    tagger = Accounts.get_user!(update.user_id)
+    Task.start(fn ->
+      Enum.each(tagged_users, fn user ->
+        UserNotifier.deliver_tag_notification(
+          user,
+          tagger,
+          media,
+          update,
+          Router.Helpers.media_show_url(PlatformWeb.Endpoint, :show, media.slug) <> "#update-#{update.id}"
+        )
+      end)
+    end)
+
     recipients =
       recipients ++
-        (Regex.scan(Platform.Utils.get_tag_regex(), update.explanation || "")
-         |> Enum.map(&List.last(&1))
-         |> Enum.map(&Accounts.get_user_by_username(&1))
-         |> Enum.filter(&(!is_nil(&1))))
+        tagged_users
 
     # Add people who are newly assigned or newly removed
     recipients =

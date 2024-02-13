@@ -1,4 +1,7 @@
 defmodule Platform.Accounts.UserNotifier do
+  alias Platform.Accounts.User
+  alias Platform.Material.Media
+  alias Platform.Updates.Update
   alias Platform.Mailer
 
   @doc """
@@ -15,6 +18,24 @@ defmodule Platform.Accounts.UserNotifier do
     #{url}
 
     If you didn't create an account with us, please ignore this message.
+
+    Best,
+    The Atlos Team
+    """)
+  end
+
+  @doc """
+  Deliver a notification that the user has been tagged.
+  """
+  def deliver_tag_notification(%User{} = user, %User{} = tagger, %Media{} = media, %Update{} = update, url) do
+    Mailer.construct_and_send(user.email, "#", """
+    Hi #{user.username},
+
+    #{tagger.username} tagged you on #{Media.slug_to_display(media)}:
+
+    #{update.explanation |> Platform.Utils.render_markdown() |> Platform.Utils.strip_html_tags()}
+
+    View the comment here: #{url}
 
     Best,
     The Atlos Team
