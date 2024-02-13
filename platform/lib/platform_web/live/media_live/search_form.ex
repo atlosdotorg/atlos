@@ -96,16 +96,12 @@ defmodule PlatformWeb.MediaLive.SearchForm do
       id={@id}
       >
       <div class={if @default_open, do: "hidden", else: ""}>
-      <div class={"flex h-8 border shadow-sm rounded-lg justify-center items-center" <> if @is_active do
-          "text-white bg-urge-500 border-urge-500"
-        else
-          "bg-white text-gray-900"
-        end}>
+      <div class={"flex h-8 border shadow-sm rounded-lg justify-center items-center overflow-hidden"}>
         <button
           type="button"
           class={"transition-all flex-auto h-full flex justify-center items-center px-2 gap-x-1 text-sm " <> if @is_active
-            do "text-white"
-            else "text-gray-900"
+            do "text-white bg-urge-500 border-urge-500"
+            else "text-gray-900 bg-white"
           end}
           aria-haspopup="true"
           x-on:click="open = !open"
@@ -115,8 +111,7 @@ defmodule PlatformWeb.MediaLive.SearchForm do
         </button>
         <button
           type="button"
-          class="transition flex-none flex items-center justify-center bg-gray-200 bg-opacity-30 hover:bg-opacity-60 rounded-lg text-white w-5 h-5 my-auto mr-0.5 "
-          aria-label="Remove filter"
+          class="transition flex-none flex items-center justify-center bg-white text-gray-500 hover:bg-gray-200 w-5 h-full my-auto px-0.5 "
           phx-click={JS.push("toggle", value: %{"attr" => @_attr.id}, target: @myself) |> JS.push("save", value: %{"search" => @changeset.changes |>
             Map.put((if @attr.type==:date, do: :attr_date_min , else: @attr_id), nil)})
             |> JS.dispatch("atlos:updating", to: "body")
