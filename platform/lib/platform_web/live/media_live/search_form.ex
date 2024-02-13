@@ -111,13 +111,16 @@ defmodule PlatformWeb.MediaLive.SearchForm do
         </button>
         <button
           type="button"
-          class="transition flex-none flex items-center justify-center bg-white text-gray-500 hover:bg-gray-200 w-5 h-full my-auto px-0.5 "
+          class={"transition flex-none flex items-center justify-center text-gray-500w-5 h-full my-auto px-0.5 " <> if @is_active
+            do "bg-urge-600 hover:bg-urge-700 text-neutral-200"
+            else "bg-neutral-200 hover:bg-neutral-300 text-neutral-500"
+          end}
           phx-click={JS.push("toggle", value: %{"attr" => @_attr.id}, target: @myself) |> JS.push("save", value: %{"search" => @changeset.changes |>
             Map.put((if @attr.type==:date, do: :attr_date_min , else: @attr_id), nil)})
             |> JS.dispatch("atlos:updating", to: "body")
           }
         >
-          <Heroicons.x_mark mini class="h-5 w-5" data-tooltip="Remove Filter"/>
+          <Heroicons.x_mark mini class="h-5 w-5"/>
         </button>
       </div>
     </div>
@@ -137,9 +140,6 @@ defmodule PlatformWeb.MediaLive.SearchForm do
           <div>
             <%= case @attr.type do %>
               <% x when x == :multi_select or x == :select -> %>
-                <span class="hidden"><%= inspect(@form.source.changes) %></span>
-                <span class="hidden"><%= inspect(@attr_id) %></span>
-                <span class="hidden"><%= inspect(@form.source.changes[String.to_atom("#{@attr_id}")] || []) %></span>
                 <div
                   phx-update="ignore"
                   id={"attr_select_#{@attr.name}_#{@id}"}
@@ -480,13 +480,6 @@ defmodule PlatformWeb.MediaLive.SearchForm do
                 <div
                   class="relative flex flex-wrap items-center h-full gap-2"
                 >
-                  <div class="hidden">
-                    TODO: remove later
-                    Select State: <span class="font-mono"><%= @select_state %></span>
-                    Cur select: <span class="font-mono"><%= @cur_select %></span>
-                    Toggle State: <span class="font-mono"><%= inspect(@toggle_state) %></span>
-                    Changeset: <span class="font-mono"><%= inspect(@changeset.changes) %></span>
-                  </div>
                   <br/>
                   <%= for attr <- @available_attrs do %>
                     <%= if (@toggle_state[attr.id] || 'false') == true && !(@cur_select == attr.id && @select_state == "select_filt") do %>
@@ -567,7 +560,8 @@ defmodule PlatformWeb.MediaLive.SearchForm do
                         class="transition-all border border-dashed shadow-sm rounded-lg text-sm text-gray-900 bg-white py-1 px-2"
                         x-on:click="open=!open"
                       >
-                        Toggle Filter
+                        <Heroicons.funnel solid class="h-5 w-5 py-px -mt-0.5 inline-block text-gray-600" />
+                        Add Filter
                       </button>
                     </div>
                     <div
@@ -616,10 +610,6 @@ defmodule PlatformWeb.MediaLive.SearchForm do
                             "}
                             x-bind:class={"$store.dropdown.sel == curi ? 'bg-neutral-200' : 'bg-white'"}
                           >
-                            <span class="hidden"
-                              x-text={"contains('#{attr.label}', $store.atquery)"}></span>
-                            <span class="hidden"
-                              x-text="$store.atquery"></span>
                             <.filter_icon type={attr.attr.type}/>
                             <span class="ml-2">
                               <%= attr.label %>
@@ -627,6 +617,14 @@ defmodule PlatformWeb.MediaLive.SearchForm do
                           </button>
                         <% end %>
                       <% end %>
+                        <%= if !@active_project do %>
+                          <div data-tooltip="Select a specific project <br/> for more filtering options" data-tooltip-placement="left">
+                            <Heroicons.ellipsis_horizontal class="h-5 w-5 ml-2 py-px inline-block text-neutral-500" />
+                            <span class="text-sm ml-1 leading-normal text-neutral-500">
+                                More Options
+                            </span>
+                          </div>
+                        <% end %>
                       </div>
                     </div>
                     <%= for attr <- @available_attrs do %>
