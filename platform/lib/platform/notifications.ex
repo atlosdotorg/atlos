@@ -119,18 +119,22 @@ defmodule Platform.Notifications do
       end)
 
     # Send email notifications to tagged users
-    tagger = Accounts.get_user!(update.user_id)
-    Task.start(fn ->
-      Enum.each(tagged_users, fn user ->
-        UserNotifier.deliver_tag_notification(
-          user,
-          tagger,
-          media,
-          update,
-          Router.Helpers.media_show_url(PlatformWeb.Endpoint, :show, media.slug) <> "#update-#{update.id}"
-        )
+    if not is_nil(update.user_id) do
+      tagger = Accounts.get_user(update.user_id)
+
+      Task.start(fn ->
+        Enum.each(tagged_users, fn user ->
+          UserNotifier.deliver_tag_notification(
+            user,
+            tagger,
+            media,
+            update,
+            Router.Helpers.media_show_url(PlatformWeb.Endpoint, :show, media.slug) <>
+              "#update-#{update.id}"
+          )
+        end)
       end)
-    end)
+    end
 
     recipients =
       recipients ++
