@@ -40,6 +40,16 @@ defmodule Platform.Accounts.User do
     field(:hashed_password, :string, redact: true)
     field(:confirmed_at, :naive_datetime)
 
+    # Billing
+    field(:billing_customer_id, :string)
+    # Customer object from Stripe
+    field(:billing_info, :map)
+    # In format returned by Stripe's API
+    field(:billing_subscriptions, :map)
+    field(:billing_flags, {:array, :string})
+    # When does this billing information become stale?
+    field(:billing_expires_at, :utc_datetime)
+
     many_to_many(:subscribed_media, Material.Media, join_through: "media_subscriptions")
     has_many(:memberships, Platform.Projects.ProjectMembership)
     has_many(:invite_uses, Invites.InviteUse)
@@ -48,6 +58,17 @@ defmodule Platform.Accounts.User do
     field(:searchable, {:array, :map}, load_in_query: false)
 
     timestamps()
+  end
+
+  def billing_changeset(user, attrs) do
+    user
+    |> cast(attrs, [
+      :billing_customer_id,
+      :billing_info,
+      :billing_flags,
+      :billing_expires_at,
+      :billing_subscriptions
+    ])
   end
 
   @doc """
@@ -262,7 +283,7 @@ defmodule Platform.Accounts.User do
   """
   def admin_changeset(user, attrs) do
     user
-    |> cast(attrs, [:roles, :restrictions, :bio, :flair, :admin_notes])
+    |> cast(attrs, [:roles, :restrictions, :bio, :flair, :admin_notes, :billing_flags])
     |> validate_length(:bio, max: 240, message: "Bios may not exceed 240 characters.")
   end
 

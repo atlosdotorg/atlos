@@ -179,7 +179,7 @@ defmodule Platform.Material do
   end
 
   defp preload_media_assignees(query) do
-    query |> preload([:assignees]) |> preload(attr_assignments: [:user])
+    query |> preload(attr_assignments: [:user])
   end
 
   defp apply_user_fields(query, user, opts)
@@ -240,6 +240,21 @@ defmodule Platform.Material do
           end
         end)
         |> where([m, project_membership: pm], not is_nil(pm))
+        |> then(fn q ->
+          if Keyword.get(opts, :exclude_archived_projects, false) do
+            join(
+              q,
+              :left,
+              [m],
+              project in Platform.Projects.Project,
+              on: project.id == m.project_id,
+              as: :project
+            )
+            |> where([m, project: p], p.active)
+          else
+            q
+          end
+        end)
 
       query
       |> where(
@@ -628,7 +643,6 @@ defmodule Platform.Material do
           media: [
             [updates: [:user, :api_token]],
             [attr_assignments: [:user]],
-            :assignees,
             :versions,
             :project
           ]
@@ -864,6 +878,12 @@ defmodule Platform.Material do
               equivalent_attr.schema_field == :attr_geolocation ->
                 {lng, lat} = get_attribute_value(source, attr).coordinates
                 %{"location" => "#{lat}, #{lng}"}
+
+              equivalent_attr.type == :multi_users ->
+                %{
+                  to_string(equivalent_attr.schema_field) =>
+                    get_attribute_value(source, attr) |> Enum.map(& &1.user_id)
+                }
 
               true ->
                 %{to_string(equivalent_attr.schema_field) => get_attribute_value(source, attr)}
@@ -1434,7 +1454,10 @@ defmodule Platform.Material do
   @doc """
   Return summary statistics about the number of incidents by status.
 
-  Optionally include `project_id` to filter to a particular project.
+  Options:
+  - `project_id`: filter to a particular project.
+  - `for_user`: filter to incidents accessible to the given user
+  - `exclude_archived_projects`: exclude projects that are archived
   """
   defmemo status_overview_statistics(opts \\ []), expires_in: 1000 do
     from(m in Media,

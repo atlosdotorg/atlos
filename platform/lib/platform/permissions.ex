@@ -5,6 +5,7 @@ defmodule Platform.Permissions do
 
   use Memoize
 
+  alias Platform.Updates
   alias Platform.Material
   alias Platform.Accounts
   alias Platform.Accounts.User
@@ -76,8 +77,12 @@ defmodule Platform.Permissions do
 
   def can_edit_project_api_tokens?(%User{} = user, %Project{} = project) do
     case Projects.get_project_membership_by_user_and_project(user, project) do
-      %Projects.ProjectMembership{role: :owner} -> true
-      _ -> false
+      %Projects.ProjectMembership{role: :owner} ->
+        not Platform.Billing.is_enabled?() or
+          (Platform.Billing.is_enabled?() and Platform.Billing.get_user_plan(user).allowed_api)
+
+      _ ->
+        false
     end
   end
 
@@ -226,11 +231,20 @@ defmodule Platform.Permissions do
     media_list |> Enum.filter(&can_view_media?(user, &1, user_memberships[&1.project_id]))
   end
 
+  defmemo has_hit_edit_limit(%User{} = user), expires_in: 1000 do
+    if not Platform.Billing.is_enabled?() do
+      false
+    else
+      Platform.Billing.has_user_exceeded_edit_limit?(user)
+    end
+  end
+
   def can_edit_media?(%User{} = user, %Media{} = media) do
     # This includes uploading new media versions as well as editing attributes.
     membership = Projects.get_project_membership_by_user_and_project_id(user, media.project_id)
 
     with true <- _is_media_editable?(media),
+         false <- has_hit_edit_limit(user),
          true <- can_view_media?(user, media),
          true <- not is_nil(membership) or is_nil(media.project_id),
          false <- Enum.member?(user.restrictions || [], :muted),

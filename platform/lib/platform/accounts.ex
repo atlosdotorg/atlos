@@ -175,6 +175,21 @@ defmodule Platform.Accounts do
   end
 
   @doc """
+  Creates a changeset for the user's billing information.
+  """
+  def change_user_billing(user, attrs \\ %{}) do
+    User.billing_changeset(user, attrs)
+  end
+
+  @doc """
+  Updates the user's billing information.
+  """
+  def update_user_billing(user, attrs) do
+    change_user_billing(user, attrs)
+    |> Repo.update()
+  end
+
+  @doc """
   Returns an `%Ecto.Changeset{}` for tracking user changes.
 
   ## Examples
@@ -619,5 +634,11 @@ defmodule Platform.Accounts do
 
   def is_bot(%User{} = user) do
     user.username == "Atlos"
+  end
+
+  defmemo get_all_billing_flags(), expires_in: 5000 do
+    Repo.all(from u in User, select: u.billing_flags)
+    |> List.flatten()
+    |> Enum.uniq()
   end
 end

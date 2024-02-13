@@ -214,6 +214,11 @@ defmodule PlatformWeb.Components do
           </svg>
           """
 
+        "billing" ->
+          ~H"""
+          <Heroicons.x_circle mini class="w-6 h-6 text-critical-600" />
+          """
+
         "loading" ->
           ~H"""
           <svg
@@ -474,6 +479,16 @@ defmodule PlatformWeb.Components do
                 </.navlink>
               </div>
             </.live_component>
+          </div>
+          <div
+            :if={
+              Platform.Billing.is_enabled?() and Platform.Billing.get_user_plan(@current_user).is_free
+            }
+            class="w-full"
+          >
+            <.navlink to="/settings#billing" label="Upgrade" request_path={@path}>
+              <Heroicons.arrow_up_circle mini class="text-neutral-300 group-hover:text-white h-6 w-6" />
+            </.navlink>
           </div>
           <%= if not is_nil(@current_user) do %>
             <.navlink to="/settings" label="Account" request_path={@path}>
@@ -952,7 +967,7 @@ defmodule PlatformWeb.Components do
                   not is_nil(
                     Attribute.get_attribute(@update.modified_attribute, project: @update.media.project)
                   ) %>
-              <%= if has_attr_change_to_show || @update.explanation do %>
+              <%= if has_attr_change_to_show || @update.explanation || not Enum.empty?(@update.attachments) do %>
                 <div class="mt-1 text-sm text-gray-700 border border-gray-300 rounded-lg shadow-sm overflow-hidden flex flex-col divide-y">
                   <!-- Update detail section -->
                   <%= if has_attr_change_to_show do %>
@@ -1090,6 +1105,120 @@ defmodule PlatformWeb.Components do
       </span>
       """
     end
+  end
+
+  def file_upload(assigns) do
+    ~H"""
+    <.live_file_input upload={@uploads.attachments} x-ref="file_input" class="sr-only" />
+    <button
+      type="button"
+      x-data
+      x-on:click={"document.getElementById('#{@uploads.attachments.ref}').click()"}
+      class="-m-2.5 w-10 h-10 rounded-full bg-white/75 backdrop-blur flex items-center justify-center text-gray-400 hover:text-gray-500"
+    >
+      <svg
+        class="h-5 w-5"
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 20 20"
+        fill="currentColor"
+        aria-hidden="true"
+      >
+        <path
+          fill-rule="evenodd"
+          d="M8 4a3 3 0 00-3 3v4a5 5 0 0010 0V7a1 1 0 112 0v4a7 7 0 11-14 0V7a5 5 0 0110 0v4a3 3 0 11-6 0V7a1 1 0 012 0v4a1 1 0 102 0V7a3 3 0 00-3-3z"
+          clip-rule="evenodd"
+        />
+      </svg>
+      <span class="sr-only">Attach a file</span>
+    </button>
+    """
+  end
+
+  defp friendly_error(:too_large),
+    do: "This file is too large; the maximum size is 50 megabytes."
+
+  defp friendly_error(:not_accepted),
+    do:
+      "The file type you are uploading is not supported. Please contact us if you think this is an error."
+
+  defp friendly_error(:too_many_files),
+    do: "You have selected too many files. At most 9 are allowed."
+
+  defp friendly_error(val), do: val
+
+  def display_uploads(assigns) do
+    ~H"""
+    <section class="grid grid-cols-2 md:grid-cols-3 gap-2 p-2">
+      <%= for entry <- @uploads.attachments.entries do %>
+        <article class="upload-entry relative rounded group self-start">
+          <div
+            role="status"
+            class="w-full h-full top-0 absolute bg-[#00000050] phx-only-during-submit"
+          >
+            <div class="flex items-center justify-around h-full w-full">
+              <svg
+                aria-hidden="true"
+                class="mr-2 w-8 h-8 text-gray-100 animate-spin fill-urge-600"
+                viewBox="0 0 100 101"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
+                  fill="currentColor"
+                />
+                <path
+                  d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z"
+                  fill="currentFill"
+                />
+              </svg>
+              <span class="sr-only">Uploading...</span>
+            </div>
+          </div>
+          <figure class="rounded">
+            <%= if entry.client_type == "application/pdf" do %>
+              <.document_preview
+                file_name={entry.client_name}
+                description="The file's name won't be published."
+              />
+            <% else %>
+              <.live_img_preview entry={entry} />
+            <% end %>
+          </figure>
+
+          <button
+            type="button"
+            phx-click="cancel_upload"
+            phx-value-ref={entry.ref}
+            phx-target={@myself}
+            aria-label="cancel"
+            class="absolute top-0 left-0 -ml-2 -mt-2 bg-white rounded-full text-gray-400 phx-only-during-reg"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-4 w-4"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fill-rule="evenodd"
+                d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                clip-rule="evenodd"
+              />
+            </svg>
+          </button>
+
+          <%= for err <- upload_errors(@uploads.attachments, entry) do %>
+            <p class="support ~critical"><%= friendly_error(err) %></p>
+          <% end %>
+        </article>
+      <% end %>
+
+      <%= for err <- upload_errors(@uploads.attachments) do %>
+        <p class="support ~critical"><%= friendly_error(err) %></p>
+      <% end %>
+    </section>
+    """
   end
 
   def location(assigns) do
@@ -1530,19 +1659,7 @@ defmodule PlatformWeb.Components do
       <div class="rounded-md bg-green-50 p-4 border border-green-500">
         <div class="flex">
           <div class="flex-shrink-0">
-            <svg
-              class="h-5 w-5 text-green-400"
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-              aria-hidden="true"
-            >
-              <path
-                fill-rule="evenodd"
-                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                clip-rule="evenodd"
-              />
-            </svg>
+            <Heroicons.check_circle mini class="h-5 w-5 text-green-600" />
           </div>
           <div class="ml-3">
             <h3 class="text-sm font-medium text-green-800">
@@ -2085,7 +2202,7 @@ defmodule PlatformWeb.Components do
           </section>
           <section class="mb-2 h-4" />
           <section class="bottom-0 mb-2 pr-4 w-full absolute flex gap-2 justify-between items-center">
-            <.user_stack users={@media.assignees} />
+            <.user_stack users={@media.attr_assignments |> Enum.map(& &1.user)} />
             <p class="text-xs text-gray-500 flex items-center">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -2184,9 +2301,16 @@ defmodule PlatformWeb.Components do
 
     ~H"""
     <%= if @link do %>
-      <.link navigate={if @link, do: "/incidents/#{@media.slug}", else: nil} target={@target}>
-        <.media_card_inner {@inner_assigns} />
-      </.link>
+      <%= case @target do %>
+        <% nil -> %>
+          <.link navigate={"/incidents/#{@media.slug}"}>
+            <.media_card_inner {@inner_assigns} />
+          </.link>
+        <% _ -> %>
+          <a href={"/incidents/#{@media.slug}"} target={@target}>
+            <.media_card_inner {@inner_assigns} />
+          </a>
+      <% end %>
     <% else %>
       <.media_card_inner {@inner_assigns} />
     <% end %>
@@ -2278,8 +2402,10 @@ defmodule PlatformWeb.Components do
         />
         <path d="M14.25 5.25a5.23 5.23 0 00-1.279-3.434 9.768 9.768 0 016.963 6.963A5.23 5.23 0 0016.5 7.5h-1.875a.375.375 0 01-.375-.375V5.25z" />
       </svg>
-      <p class="text-sm font-medium text-center"><%= @file_name %></p>
-      <p class="text-xs text-center"><%= @description %></p>
+      <p class="text-sm font-medium text-center truncate max-w-full overflow-hidden">
+        <%= @file_name %>
+      </p>
+      <p class="text-xs text-center max-w-full overflow-hidden"><%= @description %></p>
     </div>
     """
   end
@@ -2818,7 +2944,7 @@ defmodule PlatformWeb.Components do
     <article x-data="{user_loc: null}" id={"editor-" <> (@attr.name |> to_string())}>
       <%= case @attr.type do %>
         <% :text -> %>
-          <%= label(@f, @schema_field, @label) %>
+          <%= label(@f, @schema_field, @label, class: "mb-1") %>
           <%= case @attr.input_type || :textarea do %>
             <% :textarea -> %>
               <%= textarea(@f, @schema_field, rows: 3, phx_debounce: "blur") %>
@@ -2883,7 +3009,7 @@ defmodule PlatformWeb.Components do
         <% :location -> %>
           <div class="space-y-4">
             <div>
-              <%= label(@f, :location, @label <> " (latitude, longitude)") %>
+              <%= label(@f, :location, @label <> " (latitude, longitude)", class: "mb-1") %>
               <%= text_input(@f, :location,
                 placeholder: "Comma-separated coordinates (lat, lon).",
                 novalidate: true,
@@ -2897,7 +3023,7 @@ defmodule PlatformWeb.Components do
             </div>
           </div>
         <% :time -> %>
-          <%= label(@f, @schema_field, @label) %>
+          <%= label(@f, @schema_field, @label, class: "mb-1") %>
           <div class="flex items-center gap-2 ts-ignore sm:w-64 apply-a17t-fields">
             <%= time_input(@f, @schema_field,
               "x-ref": "time_input",
@@ -2919,8 +3045,13 @@ defmodule PlatformWeb.Components do
           </p>
           <%= error_tag(@f, @schema_field) %>
         <% :date -> %>
-          <div class="flex items-center w-full justify-between">
-            <%= label(@f, @schema_field, @label) %>
+          <%= label(@f, @schema_field, @label, class: "mb-1") %>
+          <div class="flex items-center gap-2 ts-ignore apply-a17t-fields">
+            <%= date_input(@f, @schema_field,
+              "x-ref": "date_input",
+              class: "base-button",
+              phx_debounce: "blur"
+            ) %>
             <button
               type="button"
               x-on:click="$refs.date_input.valueAsDate = new Date(); $refs.date_input.dispatchEvent(new Event('input', {bubbles: true}))"
@@ -2928,13 +3059,6 @@ defmodule PlatformWeb.Components do
             >
               <Heroicons.calendar_days class="h-4 w-4 text-urge-400" /> Today
             </button>
-          </div>
-          <div class="flex items-center gap-2 ts-ignore apply-a17t-fields">
-            <%= date_input(@f, @schema_field,
-              "x-ref": "date_input",
-              class: "base-button",
-              phx_debounce: "blur"
-            ) %>
           </div>
           <p class="support mt-2">
             Type or select a date; alternatively,

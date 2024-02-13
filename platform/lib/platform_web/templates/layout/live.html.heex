@@ -86,6 +86,21 @@
       >
         <div class="w-full h-full flex flex-row-reverse space-y-4 items-end place-items-end">
           <.security_mode_notifications />
+          <.notification
+            :if={
+              Platform.Billing.is_enabled?() and
+                Platform.Billing.has_user_exceeded_edit_limit?(@current_user)
+            }
+            type="billing"
+          >
+            <span>
+              <span class="font-medium">You've hit your monthly edit limit.</span>
+              Please upgrade your plan to continue editing data on Atlos.
+            </span>
+            <.link to="/settings#billing" class="text-urge-500 font-medium block mt-4">
+              Upgrade my account &rarr;
+            </.link>
+          </.notification>
         </div>
       </div>
     </div>

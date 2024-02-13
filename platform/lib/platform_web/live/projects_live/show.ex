@@ -314,6 +314,39 @@ defmodule PlatformWeb.ProjectsLive.Show do
               project={@project}
             />
           <% end %>
+          <%= if Platform.Billing.is_enabled?() and Permissions.can_edit_project_members?(@current_user, @project) and not Permissions.can_edit_project_api_tokens?(@current_user, @project) do %>
+            <div>
+              <div class="flex flex-col lg:flex-row gap-4 pt-8 w-full">
+                <div class="mb-4 lg:w-[20rem] lg:mr-16">
+                  <p class="sec-head text-xl">API Tokens</p>
+                  <p class="sec-subhead">
+                    Connect with external tools and manage your project's data via an API.
+                  </p>
+                </div>
+                <section class="flex flex-col mb-8 grow">
+                  <div class="text-center w-full bg-white border rounded-lg shadow py-8 px-8">
+                    <Heroicons.code_bracket class="mx-auto h-8 w-8 text-gray-400" />
+                    <h3 class="mt-2 text-sm font-medium text-gray-900">Upgrade to use the API</h3>
+                    <p class="mt-1 text-sm text-gray-500 max-w-prose mx-auto">
+                      The
+                      <a
+                        class="text-urge-600 font-medium"
+                        href="https://docs.atlos.org/technical/api/"
+                      >
+                        Atlos API
+                      </a>
+                      is a powerful way to connect your investigations on Atlos to other tools.
+                    </p>
+                    <div class="mt-6">
+                      <.link class="button ~urge @high" href="/settings#billing">
+                        Upgrade my account
+                      </.link>
+                    </div>
+                  </div>
+                </section>
+              </div>
+            </div>
+          <% end %>
         <% end %>
         <%= if @live_action == :deleted and Permissions.can_view_project_deleted_media?(@current_user, @project) do %>
           <.live_component

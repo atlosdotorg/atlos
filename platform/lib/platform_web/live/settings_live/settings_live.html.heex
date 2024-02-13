@@ -1,74 +1,216 @@
-<div class="space-y-8 max-w-xl md:mx-auto mx-4">
-  <h1 class="page-header">Your Account</h1>
-  <.card>
-    <:header>
+<div class="w-full lg:max-w-screen-xl px-4 lg:mx-auto flex flex-col gap-16">
+  <div>
+    <h1 class="page-header mb-4">Account</h1>
+  </div>
+  <div class="flex flex-col md:flex-row gap-4">
+    <div class="md:w-1/3 self-start top-[2rem] md:sticky">
       <h3 class="sec-head">Profile</h3>
-      <p class="sec-subhead">This information will be displayed publicly.</p>
-    </:header>
-    <.live_component
-      module={PlatformWeb.SettingsLive.ProfileComponent}
-      id="profile-settings"
-      current_user={@current_user}
-    />
-  </.card>
+      <p class="sec-subhead">This information will be displayed to others on Atlos.</p>
+    </div>
+    <.card class="md:w-2/3">
+      <.live_component
+        module={PlatformWeb.SettingsLive.ProfileComponent}
+        id="profile-settings"
+        current_user={@current_user}
+      />
+    </.card>
+  </div>
 
-  <.card>
-    <:header>
+  <div :if={Platform.Billing.is_enabled?()} class="flex flex-col md:flex-row gap-4" id="billing">
+    <div class="md:w-1/3 self-start top-[2rem] md:sticky">
+      <h3 class="sec-head">Subscription &amp; Billing</h3>
+      <p class="sec-subhead">
+        Manage your subscription and billing information.
+      </p>
+    </div>
+    <.card class="md:w-2/3 text-sm flex flex-col gap-4">
+      <div
+        :if={String.contains?(@current_plan.name, "early adopter")}
+        class="mb-6 text-sm text-neutral-600 p-4 border border-warning-600 bg-warning-50 text-warning-700 rounded"
+      >
+        <strong class="font-medium text-warning-800">
+          You're an early adopter — thank you! We're providing free access to Atlos for early adopters until March 31, 2024.
+        </strong>
+        On April 1, 2024, you will need to subscribe to a paid plan for unlimited edits.
+      </div>
+      <div :if={@current_plan.is_free} class="flex flex-col md:flex-row border-b pb-6">
+        <div class="flex flex-col gap-4">
+          <p class="grow flex gap-2 sm:gap-4 items-center">
+            <span class="text-3xl">🛟</span>
+            <span>
+              Atlos is a non-profit platform, and we rely on subscriptions to cover our costs.
+            </span>
+          </p>
+          <p class="grow flex gap-2 sm:gap-4 items-center">
+            <span class="text-3xl">🌐</span>
+            <span>
+              We have some capacity to support in-need investigations at no cost.
+              If you are a human rights organization and our subscription fees are a barrier to using Atlos, please <a
+                href="mailto:contact@atlos.org"
+                class="font-bold text-urge-600"
+              >contact us</a>.
+            </span>
+          </p>
+        </div>
+        <div class="md:ml-16 justify-end">
+          <p class="support font-medium text-neutral-600 whitespace-nowrap">
+            Allowed Edits (30d)
+          </p>
+          <p class="text-3xl font-medium whitespace-nowrap">
+            <%= if @current_plan.allowed_edits_per_30d_period == :unlimited do %>
+              Unlimited
+            <% else %>
+              <%= @user_rolling_update_count %>/<%= @current_plan.allowed_edits_per_30d_period %>
+            <% end %>
+          </p>
+        </div>
+      </div>
+      <div :if={@current_plan.is_free} class="mt-4">
+        <stripe-pricing-table
+          pricing-table-id={Platform.Billing.get_pricing_table_id()}
+          publishable-key={Platform.Billing.get_publishable_key()}
+          customer-session-client-secret={@billing_session_client_secret}
+        >
+        </stripe-pricing-table>
+      </div>
+      <div :if={not @current_plan.is_free}>
+        <div class="rounded-md bg-green-50 p-4 border border-green-500 mb-8">
+          <div class="flex">
+            <div class="flex-shrink-0">
+              <Heroicons.check_circle mini class="h-5 w-5 text-green-600" />
+            </div>
+            <div class="ml-3">
+              <h3 class="text-sm text-green-800">
+                <span class="font-medium">You have Atlos <%= @current_plan.name %>.</span>
+                <span :if={@current_plan.is_organizational}>
+                  Your plan is managed by an organization.
+                </span>
+                <span>
+                  Thank you for supporting Atlos.
+                </span>
+              </h3>
+            </div>
+          </div>
+        </div>
+        <article class="text-sm flex flex-col gap-4">
+          <p class="flex gap-2 sm:gap-4 items-center">
+            <span class="text-3xl">💡</span>
+            <span>
+              Thank you for being an Atlos subscriber. Your subscription provides full access to the Atlos platform.
+            </span>
+          </p>
+          <p class="flex gap-2 sm:gap-4 items-center">
+            <span class="text-3xl">✉️</span>
+            <span>
+              If you have any questions, please do not hesitate to reach out to us at <a
+                href="mailto:contact@atlos.org"
+                class="text-urge-600 font-semibold"
+              >contact@atlos.org</a>.
+            </span>
+          </p>
+          <p :if={@current_plan.managed_by_stripe} class="flex gap-2 sm:gap-4 items-center">
+            <span class="text-3xl">⚙️</span>
+            <span>
+              If you would like to cancel your subscription, change your payment method, or view past invoices, you can do so below.
+            </span>
+          </p>
+        </article>
+        <button
+          :if={@current_plan.managed_by_stripe}
+          class="button ~urge @high mt-8"
+          phx-click="visit_customer_portal"
+        >
+          Manage my subscription &rarr;
+        </button>
+      </div>
+    </.card>
+  </div>
+
+  <div class="flex flex-col md:flex-row gap-4">
+    <div class="md:w-1/3 self-start top-[2rem] md:sticky">
       <h3 class="sec-head">Account &amp; Security</h3>
       <p class="sec-subhead">
         To change your email or username, please contact us.
       </p>
-    </:header>
-    <div class="mb-6">
-      <.mfa_status user={@current_user} />
     </div>
-    <div class="grid md:grid-cols-3 gap-4">
-      <%= link("Log out →",
-        to: Routes.user_session_path(@socket, :delete),
-        method: :delete,
-        class: "button ~urge @high"
-      ) %>
-      <.link navigate="/users/settings" class="button ~urge @high">Change password &rarr;</.link>
-      <.link navigate="/settings/mfa" class="button ~urge @high">Multi-factor auth &rarr;</.link>
-    </div>
-  </.card>
-
-  <.card>
-    <:header>
+    <.card class="md:w-2/3">
+      <div class="mb-6">
+        <.mfa_status user={@current_user} />
+      </div>
+      <div class="grid md:grid-cols-3 gap-4">
+        <%= link("Log out →",
+          to: Routes.user_session_path(@socket, :delete),
+          method: :delete,
+          class: "button ~urge @high"
+        ) %>
+        <.link navigate="/users/settings" class="button ~urge @high">
+          Change password &rarr;
+        </.link>
+        <.link navigate="/settings/mfa" class="button ~urge @high">
+          Multi-factor auth &rarr;
+        </.link>
+      </div>
+    </.card>
+  </div>
+  <div class="flex flex-col md:flex-row gap-4">
+    <div class="md:w-1/3 self-start top-[2rem] md:sticky">
       <h3 class="sec-head">Additional Resources</h3>
       <p class="sec-subhead">
         These resources can help you use Atlos more effectively.
       </p>
-    </:header>
-    <article class="text-sm flex flex-col gap-4">
-      <%= if not is_nil(@discord_link) do %>
+    </div>
+    <.card class="md:w-2/3">
+      <article class="text-sm flex flex-col gap-4">
+        <%= if not is_nil(@discord_link) do %>
+          <p class="flex gap-2 sm:gap-4 items-center">
+            <span class="text-3xl">💬</span>
+            <span>
+              If you haven't already, <a href={@discord_link} class="font-semibold text-urge-600">join our Discord server</a>, where you can chat with the Atlos team, connect with the community, and provide feedback.
+            </span>
+          </p>
+        <% end %>
         <p class="flex gap-2 sm:gap-4 items-center">
-          <span class="text-3xl">💬</span>
+          <span class="text-3xl">📚</span>
           <span>
-            If you haven't already, <a href={@discord_link} class="font-semibold text-urge-600">join our Discord server</a>, where you can chat with the Atlos team, connect with the community, and provide feedback.
+            See our tips on
+            <a href="https://atlos.org/resilience" class="font-semibold text-urge-600">
+              researcher resilience
+            </a>
+            for more information on staying safe.
           </span>
         </p>
-      <% end %>
-      <p class="flex gap-2 sm:gap-4 items-center">
-        <span class="text-3xl">📚</span>
-        <span>
-          See our tips on
-          <a href="https://atlos.org/resilience" class="font-semibold text-urge-600">
-            researcher resilience
-          </a>
-          for more information on staying safe.
-        </span>
-      </p>
-      <p class="flex gap-2 sm:gap-4 items-center">
-        <span class="text-3xl">🎓</span>
-        <span>
-          Repeat our brief
-          <.link navigate="/users/onboarding" class="font-semibold text-urge-600">
-            onboarding flow
-          </.link>
-          to refresh yourself on the basics of Atlos.
-        </span>
-      </p>
-    </article>
-  </.card>
+        <p class="flex gap-2 sm:gap-4 items-center">
+          <span class="text-3xl">🎓</span>
+          <span>
+            Repeat our brief
+            <.link navigate="/users/onboarding" class="font-semibold text-urge-600">
+              onboarding flow
+            </.link>
+            to refresh yourself on the basics of Atlos.
+          </span>
+        </p>
+      </article>
+    </.card>
+  </div>
 </div>
+<.modal :if={@show_billing_confirmation} target={}>
+  <div class="flex flex-col">
+    <div class="flex items-center">
+      <Heroicons.check_circle class="h-8 w-8 text-green-600 mr-4" />
+      <h3 class="text-center text-xl font-medium text-green-800">
+        Thank you for subscribing to Atlos.
+      </h3>
+    </div>
+    <p class="mt-8 text-neutral-700 text-sm">
+      Your subscription will be renewed automatically. Your payment helps keep our non-profit, open source platform running. We're grateful for your support.
+    </p>
+    <div class="flex mt-8 gap-4">
+      <button class="button ~urge @high" phx-click="close_modal">
+        Close
+      </button>
+      <button class="base-button" phx-click="visit_customer_portal">
+        Manage my subscription &rarr;
+      </button>
+    </div>
+  </div>
+</.modal>
