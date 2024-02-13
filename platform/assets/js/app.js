@@ -214,7 +214,7 @@ function initializePopovers() {
         tippy(s, {
             allowHTML: true,
             content: s.getAttribute("data-tooltip"),
-            placement: s.getAttribute("data-tooltip-placement"),
+            placement: s.getAttribute("data-tooltip-placement") || undefined,
             delay: [250, 0],
             appendTo: document.querySelector("#tooltips")
         });
