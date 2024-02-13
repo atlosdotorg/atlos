@@ -528,21 +528,17 @@ defmodule PlatformWeb.MediaLive.SearchForm do
                           return i;
                         }
                       }
-                      return 0;
+                      return -1;
                     },
                     setSelectedViaHover(id) {
                       console.log('A', id);
-                      $store.dropdown.sel = this.findId(id);
+                      $store.dropdown.sel=this.findId(id)
                       console.log('C', $store.dropdown.sel);
                     },
                     clickSelected() {
                       let attrList = this.getbtns();
                       attrList[$store.dropdown.sel].click();
                     },
-                    isSelected(id) {
-                      console.log('B', id, $store.dropdown.sel, this.findId(id));
-                      return $store.dropdown.sel === this.findId(id);
-                    }
                   }" x-init="init()" x-effect="
                     let aq = $store.atquery;
                     let sl = $store.dropdown.sel;
@@ -554,13 +550,14 @@ defmodule PlatformWeb.MediaLive.SearchForm do
                       } else if ($store.dropdown.sel < 0){
                         $store.dropdown.sel = len - 1; console.log('reset', $store.dropdown.sel);
                       }
-                    }, 10); // there might be a better solution for this
+                    }, 5); // there might be a better solution for this
                   " x-on:click.away="open = false">
                     <template x-if="open">
                       <span
                         x-on:keydown.down.window.prevent="$store.dropdown.sel += 1; console.log('down', $store.dropdown.sel)"
                         x-on:keydown.up.window.prevent="$store.dropdown.sel -= 1; console.log('up', $store.dropdown.sel)"
                         x-on:keydown.enter.window.prevent="clickSelected()"
+                        x-on:keydown.esc.window.prevent="open=false"
                       >
                       </span>
                     </template>
@@ -603,8 +600,21 @@ defmodule PlatformWeb.MediaLive.SearchForm do
                             phx-click={JS.push("select_state_filt", target: @myself) |> JS.push("cur_select", value: %{select: attr.id}, target: @myself) |> JS.push("toggle", value: %{"attr": attr.id}, target: @myself)}
                             phx-target={@myself}
                             class="w-full text-left rounded-lg text-sm text-gray-900 py-1 px-2 flex"
-                            x-on:mouseenter={"setSelectedViaHover('#{attr.id}_drop_button')"}
-                            x-bind:class={"let k=$store.atquery; let j=$store.dropdown.sel; let q = open; return isSelected('#{attr.id}_drop_button') ? 'bg-neutral-200' : 'bg-white'"}
+                            x-on:mouseenter={"
+                              setSelectedViaHover('#{attr.id}_drop_button')
+                              curi = findId('#{attr.id}_drop_button');
+                              "
+                            }
+                            x-data="{curi:-1}"
+                            x-effect={"
+                            let aq = $store.atquery;
+                            let sl = $store.dropdown.sel;
+                            setTimeout(() => {
+                              curi = findId('#{attr.id}_drop_button');
+                              console.log('#{attr.id} curi', curi);
+                            }, 5)
+                            "}
+                            x-bind:class={"$store.dropdown.sel == curi ? 'bg-neutral-200' : 'bg-white'"}
                           >
                             <span class="hidden"
                               x-text={"contains('#{attr.label}', $store.atquery)"}></span>
