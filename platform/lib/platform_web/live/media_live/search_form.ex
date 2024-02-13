@@ -165,8 +165,8 @@ defmodule PlatformWeb.MediaLive.SearchForm do
           <button
             type="button"
             class={"transition flex-none flex items-center justify-center text-gray-500w-5 h-full my-auto px-0.5 " <> if @is_active
-            do "bg-urge-600 hover:bg-urge-700 text-neutral-200"
-            else "bg-neutral-200 hover:bg-neutral-300 text-neutral-500"
+            do "bg-urge-500 hover:bg-urge-600 text-neutral-200"
+            else "bg-neutral-100 hover:bg-neutral-300 text-neutral-500"
           end}
             phx-click={
               JS.push("toggle", value: %{"attr" => @_attr.id}, target: @myself)
@@ -195,7 +195,7 @@ defmodule PlatformWeb.MediaLive.SearchForm do
       >
         <div class="p-2" role="none">
           <p class="text-xs font-medium uppercase tracking-wide text-gray-500 mb-1">
-            Filter <%= @attr.label %> to...
+            Filter <%= @attr.label %>
           </p>
           <div>
             <%= case @attr.type do %>
@@ -286,7 +286,7 @@ defmodule PlatformWeb.MediaLive.SearchForm do
                   <%= text_input(
                     @form,
                     String.to_atom("#{@attr_id}"),
-                    class: "input-base grow",
+                    class: "input-base grow mt-2",
                     "phx-debounce": "500",
                     id: "#{@id}_search-form-#{@attr_id}"
                   ) %>
@@ -594,13 +594,12 @@ defmodule PlatformWeb.MediaLive.SearchForm do
                     let sl = $store.dropdown.sel;
                     setTimeout(() => {
                       let len = getbtns().length;
-                      console.log('trigger', $store.dropdown.sel, len, aq);
                       if($store.dropdown.sel >= len){
-                        $store.dropdown.sel = 0; console.log('reset', $store.dropdown.sel);
+                        $store.dropdown.sel = 0;
                       } else if ($store.dropdown.sel < 0){
-                        $store.dropdown.sel = len - 1; console.log('reset', $store.dropdown.sel);
+                        $store.dropdown.sel = len - 1;
                       }
-                    }, 5); // there might be a better solution for this
+                    }, 5);
                   "
                     x-on:click.away="open = false"
                   >
@@ -616,13 +615,13 @@ defmodule PlatformWeb.MediaLive.SearchForm do
                     <div>
                       <button
                         type="button"
-                        class="transition-all border border-dashed shadow-sm rounded-lg text-sm text-gray-900 bg-white py-1 px-2"
+                        class="transition-all border shadow-sm rounded-lg h-8 text-sm text-gray-900 bg-white py-1 px-2"
                         x-on:click="open=!open"
                       >
                         <Heroicons.funnel
                           solid
                           class="h-5 w-5 py-px -mt-0.5 inline-block text-gray-600"
-                        /> Add Filter
+                        /> Filter
                       </button>
                     </div>
                     <div
@@ -658,7 +657,7 @@ defmodule PlatformWeb.MediaLive.SearchForm do
                                 |> JS.push("toggle", value: %{attr: attr.id}, target: @myself)
                               }
                               phx-target={@myself}
-                              class="w-full text-left rounded-lg text-sm text-gray-900 py-1 px-2 flex"
+                              class="w-full text-left rounded transition text-sm text-gray-900 py-1 px-2 flex"
                               x-on:mouseenter={"
                               setSelectedViaHover('#{attr.id}_drop_button')
                               curi = findId('#{attr.id}_drop_button');
