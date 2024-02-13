@@ -166,7 +166,7 @@ defmodule PlatformWeb.MediaLive.SearchForm do
             type="button"
             class={"transition flex-none flex items-center justify-center text-gray-500w-5 h-full my-auto px-0.5 " <> if @is_active
             do "bg-urge-500 hover:bg-urge-600 text-neutral-200"
-            else "bg-neutral-100 hover:bg-neutral-300 text-neutral-500"
+            else "bg-transparent hover:bg-neutral-100 text-neutral-500"
           end}
             phx-click={
               JS.push("toggle", value: %{"attr" => @_attr.id}, target: @myself)
