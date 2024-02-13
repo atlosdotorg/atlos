@@ -628,7 +628,7 @@ defmodule PlatformWeb.MediaLive.SearchForm do
                               console.log('#{attr.id} curi', curi);
                             }, 5)
                             "}
-                            x-bind:class={"$store.dropdown.sel == curi ? 'bg-neutral-200' : 'bg-white'"}
+                            x-bind:class={"let _ = open; return $store.dropdown.sel == curi ? 'bg-neutral-200' : 'bg-white'"}
                           >
                             <.filter_icon type={attr.attr.type}/>
                             <span class="ml-2">
