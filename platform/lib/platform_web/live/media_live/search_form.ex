@@ -80,6 +80,26 @@ defmodule PlatformWeb.MediaLive.SearchForm do
     {:noreply, socket}
   end
 
+  defp relevant_ids(attr_obj, attr_id) do
+    case attr_obj.type do
+      x when x == :multi_select or x == :select ->
+        [attr_id]
+      :location ->
+        [attr_id, "#{attr_id}_radius"]
+      :date ->
+        ["#{attr_id}_min", "#{attr_id}_max"]
+      :text ->
+        ["#{attr_id}_matchtype", attr_id]
+      _ ->
+        []
+    end
+  end
+
+  defp cs_remove_attr(cs, attr_obj, attr_id) do
+    rel = relevant_ids(attr_obj, attr_id)
+    Enum.reduce(rel, cs, fn id, acc -> Map.put(acc, id, nil) end)
+  end
+
   defp attr_filter(assigns) do
     assigns =
       assigns
@@ -116,7 +136,7 @@ defmodule PlatformWeb.MediaLive.SearchForm do
             else "bg-neutral-200 hover:bg-neutral-300 text-neutral-500"
           end}
           phx-click={JS.push("toggle", value: %{"attr" => @_attr.id}, target: @myself) |> JS.push("save", value: %{"search" => @changeset.changes |>
-            Map.put((if @attr.type==:date, do: :attr_date_min , else: @attr_id), nil)})
+            cs_remove_attr(@attr, @attr_id)})
             |> JS.dispatch("atlos:updating", to: "body")
           }
         >
