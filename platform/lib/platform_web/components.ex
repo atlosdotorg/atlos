@@ -1368,7 +1368,6 @@ defmodule PlatformWeb.Components do
     """
   end
 
-
   def filter_icon(assigns) do
     ~H"""
     <span>
@@ -1382,7 +1381,7 @@ defmodule PlatformWeb.Components do
         <% :text -> %>
           <Heroicons.bars_3_bottom_left solid class="h-5 w-5 py-px opacity-80" />
       <% end %>
-      </span>
+    </span>
     """
   end
 

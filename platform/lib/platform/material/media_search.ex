@@ -40,22 +40,36 @@ defmodule Platform.Material.MediaSearch do
   def changeset(params \\ %{}) do
     data = %{}
 
-    new_types =  case Map.get(params, "project_id") do
-      nil -> @types
-      pid -> case Projects.get_project(pid) do
-        nil -> @types
-        project -> Enum.reduce(project.attributes, @types, fn pattr, acc ->
-          attr = ProjectAttribute.to_attribute(pattr)
-          aid = get_attrid(attr)
-          case attr.type do
-          :text ->
-            acc |> Map.put(String.to_atom(aid), :string) |> Map.put(String.to_atom("#{aid}-matchtype"), :string)
-          x when x == :multi_select or x == :select ->
-            acc |> Map.put(String.to_atom(aid), {:array, :string})
-          _ -> acc |> Map.put(String.to_atom(aid), :string)
-        end end)
+    new_types =
+      case Map.get(params, "project_id") do
+        nil ->
+          @types
+
+        pid ->
+          case Projects.get_project(pid) do
+            nil ->
+              @types
+
+            project ->
+              Enum.reduce(project.attributes, @types, fn pattr, acc ->
+                attr = ProjectAttribute.to_attribute(pattr)
+                aid = get_attrid(attr)
+
+                case attr.type do
+                  :text ->
+                    acc
+                    |> Map.put(String.to_atom(aid), :string)
+                    |> Map.put(String.to_atom("#{aid}-matchtype"), :string)
+
+                  x when x == :multi_select or x == :select ->
+                    acc |> Map.put(String.to_atom(aid), {:array, :string})
+
+                  _ ->
+                    acc |> Map.put(String.to_atom(aid), :string)
+                end
+              end)
+          end
       end
-    end
 
     Logger.debug("new types: #{inspect(new_types)}")
     Logger.debug("params: #{inspect(params)}")
@@ -279,45 +293,90 @@ defmodule Platform.Material.MediaSearch do
          false <- is_nil(project),
          attr <- Attribute.get_attribute(arbitrary_key, project: project),
          false <- is_nil(attr),
-         :project_attributes <- attr.schema_field
-    do
+         :project_attributes <- attr.schema_field do
       candidates = where(queryable, [m], m.project_id == ^project_id)
+
       case attr.type do
         :text ->
           case Map.get(changeset.changes, String.to_atom("#{arbitrary_key}-matchtype")) do
-            nil -> queryable
-            match_type -> case {rel_changes, match_type} do
-              {nil, _} -> queryable
-              {values, "contains"} ->
-                where(candidates, [m],
-                  fragment("EXISTS (SELECT 1 FROM jsonb_array_elements(?) as elem WHERE elem->>'id' = ? AND elem->>'value' ILIKE ?)", m.project_attributes, ^attr.name, ^"%#{values}%")
-                )
-              {values, "equals"} ->
-                where(candidates, [m],
-                  fragment("EXISTS (SELECT 1 FROM jsonb_array_elements(?) as elem WHERE elem->>'id' = ? AND elem->>'value' = ?)", m.project_attributes, ^attr.name, ^values)
-                )
-              {values, "excludes"} ->
-                where(candidates, [m],
-                  fragment("NOT EXISTS (SELECT 1 FROM jsonb_array_elements(?) as elem WHERE elem->>'id' = ? AND elem->>'value' ILIKE ?)", m.project_attributes, ^attr.name, ^"%#{values}%")
-                )
-              _ -> queryable # TODO
-            end
+            nil ->
+              queryable
+
+            match_type ->
+              case {rel_changes, match_type} do
+                {nil, _} ->
+                  queryable
+
+                {values, "contains"} ->
+                  where(
+                    candidates,
+                    [m],
+                    fragment(
+                      "EXISTS (SELECT 1 FROM jsonb_array_elements(?) as elem WHERE elem->>'id' = ? AND elem->>'value' ILIKE ?)",
+                      m.project_attributes,
+                      ^attr.name,
+                      ^"%#{values}%"
+                    )
+                  )
+
+                {values, "equals"} ->
+                  where(
+                    candidates,
+                    [m],
+                    fragment(
+                      "EXISTS (SELECT 1 FROM jsonb_array_elements(?) as elem WHERE elem->>'id' = ? AND elem->>'value' = ?)",
+                      m.project_attributes,
+                      ^attr.name,
+                      ^values
+                    )
+                  )
+
+                {values, "excludes"} ->
+                  where(
+                    candidates,
+                    [m],
+                    fragment(
+                      "NOT EXISTS (SELECT 1 FROM jsonb_array_elements(?) as elem WHERE elem->>'id' = ? AND elem->>'value' ILIKE ?)",
+                      m.project_attributes,
+                      ^attr.name,
+                      ^"%#{values}%"
+                    )
+                  )
+
+                # TODO
+                _ ->
+                  queryable
+              end
           end
+
         x when x == :multi_select or x == :select ->
           case rel_changes do
-            nil -> queryable
-            [] -> queryable
-            values -> where(candidates, [m],
-              fragment("EXISTS (SELECT 1 FROM jsonb_array_elements(?) AS elem WHERE elem->>'id' =? AND jsonb_typeof(elem->'value') = 'array' AND ARRAY(SELECT value FROM jsonb_array_elements_text(elem->'value')) && ?)", m.project_attributes, ^attr.name, ^values
-              ))
+            nil ->
+              queryable
+
+            [] ->
+              queryable
+
+            values ->
+              where(
+                candidates,
+                [m],
+                fragment(
+                  "EXISTS (SELECT 1 FROM jsonb_array_elements(?) AS elem WHERE elem->>'id' =? AND jsonb_typeof(elem->'value') = 'array' AND ARRAY(SELECT value FROM jsonb_array_elements_text(elem->'value')) && ?)",
+                  m.project_attributes,
+                  ^attr.name,
+                  ^values
+                )
+              )
           end
-        _ ->
-          queryable
-        end
-      else
+
         _ ->
           queryable
       end
+    else
+      _ ->
+        queryable
+    end
   end
 
   # defp apply_query_component(queryable, changeset, arbitrary_key) do
@@ -385,10 +444,15 @@ defmodule Platform.Material.MediaSearch do
   """
   def search_query(queryable \\ Media, %Ecto.Changeset{} = cs, current_user \\ nil) do
     Logger.debug("search_query current changeset: #{inspect(cs)}")
-    queryable = cs.changes |> Enum.reduce(queryable, fn {x, _},acc ->
-      apply_query_component(acc, cs, x)
-    end)
+
+    queryable =
+      cs.changes
+      |> Enum.reduce(queryable, fn {x, _}, acc ->
+        apply_query_component(acc, cs, x)
+      end)
+
     Logger.debug("composed queryable: #{inspect(queryable)}")
+
     queryable
     |> apply_query_component(cs, :only_has_unread_notifications, current_user)
     |> apply_sort(cs)

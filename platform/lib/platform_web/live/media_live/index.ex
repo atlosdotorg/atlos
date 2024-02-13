@@ -128,6 +128,7 @@ defmodule PlatformWeb.MediaLive.Index do
     rescue
       error ->
         Logger.error(error)
+
         {:noreply,
          socket
          |> put_flash(:error, "Your search had invalid parameters. Please try again.")
@@ -350,6 +351,7 @@ defmodule PlatformWeb.MediaLive.Index do
   def handle_event("save", %{"search" => params}, socket) do
     # Also reset the pagination index, since we're doing a new search
     Logger.debug("SAVE: PARAMS: #{params |> inspect}")
+
     merged_params =
       params
       |> Map.delete("bc")

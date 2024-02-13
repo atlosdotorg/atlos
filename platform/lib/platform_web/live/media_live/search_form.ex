@@ -9,12 +9,12 @@ defmodule PlatformWeb.MediaLive.SearchForm do
 
   def mount(socket) do
     Logger.debug("About socket: #{inspect(socket)}")
+
     {:ok,
      socket
      |> assign_new(:select_state, fn -> "norm" end)
      |> assign_new(:cur_select, fn -> "" end)
-     |> assign_new(:exclude, fn -> [] end)
-    }
+     |> assign_new(:exclude, fn -> [] end)}
   end
 
   def update(%{changeset: c} = assigns, socket) do
@@ -22,38 +22,57 @@ defmodule PlatformWeb.MediaLive.SearchForm do
      socket
      |> assign(assigns)
      |> assign(:changeset, Map.put(c, :action, :validate))
-     |> preprocess_attrs(assigns)
-    }
+     |> preprocess_attrs(assigns)}
   end
 
   defp preprocess_attrs(socket, %{changeset: c} = assigns) do
     default_attrs =
       ["status", "geolocation", "date", "tags", "sensitive"]
       |> Enum.map(fn x ->
-        at = Attribute.get_attribute(String.to_atom(x), projects: (if x == "tags", do: Platform.Projects.list_projects_for_user(assigns.current_user), else: []))
+        at =
+          Attribute.get_attribute(String.to_atom(x),
+            projects:
+              if(x == "tags",
+                do: Platform.Projects.list_projects_for_user(assigns.current_user),
+                else: []
+              )
+          )
+
         %{
-        id: "#{x}_filter",
-        attr: at,
-        label: at.label
-      } end)
+          id: "#{x}_filter",
+          attr: at,
+          label: at.label
+        }
+      end)
 
-    available_attrs = default_attrs |> Enum.concat((if assigns.active_project, do: assigns.active_project.attributes |> Enum.map(
-      &(%{
-        id: "#{&1.id}_filter",
-        attr: ProjectAttribute.to_attribute(&1),
-        label: &1.name
-      })
-    ), else: []))
+    available_attrs =
+      default_attrs
+      |> Enum.concat(
+        if assigns.active_project,
+          do:
+            assigns.active_project.attributes
+            |> Enum.map(
+              &%{
+                id: "#{&1.id}_filter",
+                attr: ProjectAttribute.to_attribute(&1),
+                label: &1.name
+              }
+            ),
+          else: []
+      )
 
-    initial_toggle = Enum.reduce(
-      available_attrs,
-      %{},
-      fn atr, acc ->
-        Map.put(acc, atr.id, is_active?(c, atr.attr))
-      end
-    )
+    initial_toggle =
+      Enum.reduce(
+        available_attrs,
+        %{},
+        fn atr, acc ->
+          Map.put(acc, atr.id, is_active?(c, atr.attr))
+        end
+      )
 
-    socket |> assign(:available_attrs, available_attrs) |> assign_new(:toggle_state, fn -> initial_toggle end)
+    socket
+    |> assign(:available_attrs, available_attrs)
+    |> assign_new(:toggle_state, fn -> initial_toggle end)
   end
 
   def handle_event("select_state_filt", _par, socket) do
@@ -73,7 +92,17 @@ defmodule PlatformWeb.MediaLive.SearchForm do
 
   def handle_event("toggle", %{"attr" => attr_id}, socket) do
     Logger.debug("TOGGLE: #{inspect(attr_id)}")
-    {:noreply, assign(socket, :toggle_state, Map.put(socket.assigns.toggle_state, attr_id, not Map.get(socket.assigns.toggle_state, attr_id, false)))}
+
+    {:noreply,
+     assign(
+       socket,
+       :toggle_state,
+       Map.put(
+         socket.assigns.toggle_state,
+         attr_id,
+         not Map.get(socket.assigns.toggle_state, attr_id, false)
+       )
+     )}
   end
 
   def handle_event(event, _par, socket) do
@@ -84,12 +113,16 @@ defmodule PlatformWeb.MediaLive.SearchForm do
     case attr_obj.type do
       x when x == :multi_select or x == :select ->
         [attr_id]
+
       :location ->
         [attr_id, "#{attr_id}_radius"]
+
       :date ->
         ["#{attr_id}_min", "#{attr_id}_max"]
+
       :text ->
         ["#{attr_id}_matchtype", attr_id]
+
       _ ->
         []
     end
@@ -105,7 +138,7 @@ defmodule PlatformWeb.MediaLive.SearchForm do
       assigns
       |> assign(
         :default_open,
-        (if is_nil(assigns[:default_open]), do: false, else: assigns.default_open)
+        if(is_nil(assigns[:default_open]), do: false, else: assigns.default_open)
       )
 
     ~H"""
@@ -114,36 +147,43 @@ defmodule PlatformWeb.MediaLive.SearchForm do
       x-data={"{open: #{@default_open}}"}
       x-on:mousedown.outside="open = false"
       id={@id}
-      >
+    >
       <div class={if @default_open, do: "hidden", else: ""}>
-      <div class={"flex h-8 border shadow-sm rounded-lg justify-center items-center overflow-hidden"}>
-        <button
-          type="button"
-          class={"transition-all flex-auto h-full flex justify-center items-center px-2 gap-x-1 text-sm " <> if @is_active
+        <div class="flex h-8 border shadow-sm rounded-lg justify-center items-center overflow-hidden">
+          <button
+            type="button"
+            class={"transition-all flex-auto h-full flex justify-center items-center px-2 gap-x-1 text-sm " <> if @is_active
             do "text-white bg-urge-500 border-urge-500"
             else "text-gray-900 bg-white"
           end}
-          aria-haspopup="true"
-          x-on:click="open = !open"
-        >
-          <.filter_icon type={@attr.type}/>
-          <%= @attr.label %>
-        </button>
-        <button
-          type="button"
-          class={"transition flex-none flex items-center justify-center text-gray-500w-5 h-full my-auto px-0.5 " <> if @is_active
+            aria-haspopup="true"
+            x-on:click="open = !open"
+          >
+            <.filter_icon type={@attr.type} />
+            <%= @attr.label %>
+          </button>
+          <button
+            type="button"
+            class={"transition flex-none flex items-center justify-center text-gray-500w-5 h-full my-auto px-0.5 " <> if @is_active
             do "bg-urge-600 hover:bg-urge-700 text-neutral-200"
             else "bg-neutral-200 hover:bg-neutral-300 text-neutral-500"
           end}
-          phx-click={JS.push("toggle", value: %{"attr" => @_attr.id}, target: @myself) |> JS.push("save", value: %{"search" => @changeset.changes |>
-            cs_remove_attr(@attr, @attr_id)})
-            |> JS.dispatch("atlos:updating", to: "body")
-          }
-        >
-          <Heroicons.x_mark mini class="h-5 w-5"/>
-        </button>
+            phx-click={
+              JS.push("toggle", value: %{"attr" => @_attr.id}, target: @myself)
+              |> JS.push("save",
+                value: %{
+                  "search" =>
+                    @changeset.changes
+                    |> cs_remove_attr(@attr, @attr_id)
+                }
+              )
+              |> JS.dispatch("atlos:updating", to: "body")
+            }
+          >
+            <Heroicons.x_mark mini class="h-5 w-5" />
+          </button>
+        </div>
       </div>
-    </div>
       <div
         class="absolute right-0 z-[10000] overflow-visible mt-2 w-96 origin-top-right rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
         role="menu"
@@ -160,11 +200,7 @@ defmodule PlatformWeb.MediaLive.SearchForm do
           <div>
             <%= case @attr.type do %>
               <% x when x == :multi_select or x == :select -> %>
-                <div
-                  phx-update="ignore"
-                  id={"attr_select_#{@attr.name}_#{@id}"}
-                  class="phx-form"
-                >
+                <div phx-update="ignore" id={"attr_select_#{@attr.name}_#{@id}"} class="phx-form">
                   <%= multiple_select(
                     @form,
                     String.to_atom("#{@attr_id}"),
@@ -267,10 +303,10 @@ defmodule PlatformWeb.MediaLive.SearchForm do
 
   defp is_active?(cs, attr) do
     Ecto.Changeset.get_change(cs, attr.schema_field) != nil or
-          (attr.type == :date and
-             (Ecto.Changeset.get_change(cs, :attr_date_min) != nil or
-                Ecto.Changeset.get_change(cs, :attr_date_max) != nil))
-        or Ecto.Changeset.get_change(cs, String.to_atom(Material.MediaSearch.get_attrid(attr))) != nil
+      (attr.type == :date and
+         (Ecto.Changeset.get_change(cs, :attr_date_min) != nil or
+            Ecto.Changeset.get_change(cs, :attr_date_max) != nil)) or
+      Ecto.Changeset.get_change(cs, String.to_atom(Material.MediaSearch.get_attrid(attr))) != nil
   end
 
   def render(%{changeset: c, query_params: _, socket: _, display: _} = assigns) do
@@ -497,10 +533,8 @@ defmodule PlatformWeb.MediaLive.SearchForm do
                 <% end %>
               </div>
               <div class={if Enum.member?(@exclude, :filters), do: "hidden", else: ""}>
-                <div
-                  class="relative flex flex-wrap items-center h-full gap-2"
-                >
-                  <br/>
+                <div class="relative flex flex-wrap items-center h-full gap-2">
+                  <br />
                   <%= for attr <- @available_attrs do %>
                     <%= if (@toggle_state[attr.id] || 'false') == true && !(@cur_select == attr.id && @select_state == "select_filt") do %>
                       <div
@@ -521,7 +555,8 @@ defmodule PlatformWeb.MediaLive.SearchForm do
                       </div>
                     <% end %>
                   <% end %>
-                  <article x-data="{
+                  <article
+                    x-data="{
                     init() {
                       Alpine.store('dropdown', { sel: 0 });
                       this.updateLen();
@@ -552,7 +587,9 @@ defmodule PlatformWeb.MediaLive.SearchForm do
                       let attrList = this.getbtns();
                       attrList[$store.dropdown.sel].click();
                     },
-                  }" x-init="init()" x-effect="
+                  }"
+                    x-init="init()"
+                    x-effect="
                     let aq = $store.atquery;
                     let sl = $store.dropdown.sel;
                     setTimeout(() => {
@@ -564,7 +601,9 @@ defmodule PlatformWeb.MediaLive.SearchForm do
                         $store.dropdown.sel = len - 1; console.log('reset', $store.dropdown.sel);
                       }
                     }, 5); // there might be a better solution for this
-                  " x-on:click.away="open = false">
+                  "
+                    x-on:click.away="open = false"
+                  >
                     <template x-if="open">
                       <span
                         x-on:keydown.down.window.prevent="$store.dropdown.sel += 1; console.log('down', $store.dropdown.sel)"
@@ -580,8 +619,10 @@ defmodule PlatformWeb.MediaLive.SearchForm do
                         class="transition-all border border-dashed shadow-sm rounded-lg text-sm text-gray-900 bg-white py-1 px-2"
                         x-on:click="open=!open"
                       >
-                        <Heroicons.funnel solid class="h-5 w-5 py-px -mt-0.5 inline-block text-gray-600" />
-                        Add Filter
+                        <Heroicons.funnel
+                          solid
+                          class="h-5 w-5 py-px -mt-0.5 inline-block text-gray-600"
+                        /> Add Filter
                       </button>
                     </div>
                     <div
@@ -602,25 +643,29 @@ defmodule PlatformWeb.MediaLive.SearchForm do
                         id="attrqueryinput"
                         class="h-7 border-none w-full outline-none text-gray-900 placeholder-gray-500 focus:ring-0 sm:text-sm"
                         placeholder="Filter..."
-                      >
-                      <hr class="my-1">
+                      />
+                      <hr class="my-1" />
                       <div id="attr-list">
                         <%= for attr <- @available_attrs do %>
                           <%= if (@toggle_state[attr.id] || false) == false do %>
-                          <button
-                            value={attr.id}
-                            id={attr.id<>"_drop_button"}
-                            x-show={"contains('#{attr.label}', $store.atquery)"}
-                            phx-click={JS.push("select_state_filt", target: @myself) |> JS.push("cur_select", value: %{select: attr.id}, target: @myself) |> JS.push("toggle", value: %{"attr": attr.id}, target: @myself)}
-                            phx-target={@myself}
-                            class="w-full text-left rounded-lg text-sm text-gray-900 py-1 px-2 flex"
-                            x-on:mouseenter={"
+                            <button
+                              value={attr.id}
+                              id={attr.id<>"_drop_button"}
+                              x-show={"contains('#{attr.label}', $store.atquery)"}
+                              phx-click={
+                                JS.push("select_state_filt", target: @myself)
+                                |> JS.push("cur_select", value: %{select: attr.id}, target: @myself)
+                                |> JS.push("toggle", value: %{attr: attr.id}, target: @myself)
+                              }
+                              phx-target={@myself}
+                              class="w-full text-left rounded-lg text-sm text-gray-900 py-1 px-2 flex"
+                              x-on:mouseenter={"
                               setSelectedViaHover('#{attr.id}_drop_button')
                               curi = findId('#{attr.id}_drop_button');
                               "
                             }
-                            x-data="{curi:-1}"
-                            x-effect={"
+                              x-data="{curi:-1}"
+                              x-effect={"
                             let aq = $store.atquery;
                             let sl = $store.dropdown.sel;
                             setTimeout(() => {
@@ -628,49 +673,46 @@ defmodule PlatformWeb.MediaLive.SearchForm do
                               console.log('#{attr.id} curi', curi);
                             }, 5)
                             "}
-                            x-bind:class={"let _ = open; return $store.dropdown.sel == curi ? 'bg-neutral-200' : 'bg-white'"}
-                          >
-                            <.filter_icon type={attr.attr.type}/>
-                            <span class="ml-2">
-                              <%= attr.label %>
-                            </span>
-                          </button>
+                              x-bind:class="let _ = open; return $store.dropdown.sel == curi ? 'bg-neutral-200' : 'bg-white'"
+                            >
+                              <.filter_icon type={attr.attr.type} />
+                              <span class="ml-2">
+                                <%= attr.label %>
+                              </span>
+                            </button>
+                          <% end %>
                         <% end %>
-                      <% end %>
                         <%= if !@active_project do %>
-                          <div data-tooltip="Select a specific project <br/> for more filtering options" data-tooltip-placement="left">
+                          <div
+                            data-tooltip="Select a specific project <br/> for more filtering options"
+                            data-tooltip-placement="left"
+                          >
                             <Heroicons.ellipsis_horizontal class="h-5 w-5 ml-2 py-px inline-block text-neutral-500" />
                             <span class="text-sm ml-1 leading-normal text-neutral-500">
-                                More Options
+                              More Options
                             </span>
                           </div>
                         <% end %>
                       </div>
                     </div>
                     <%= for attr <- @available_attrs do %>
-                      <template
-                        x-if={"#{@toggle_state[attr.id] || 'false'}===true && '#{@cur_select}'===\"#{attr.id}\" && '#{@select_state}'==='select_filt'"}
-                      >
-                      <div
-                        x-transition
-                        phx-click-away="select_state_norm"
-                        phx-target={@myself}
-                      >
-                        <.attr_filter
-                          id={attr.id<>"_dropdown"}
-                          type={:dropdown}
-                          attr_id={Material.MediaSearch.get_attrid(attr.attr)}
-                          form={f}
-                          attr={attr.attr}
-                          _attr={attr}
-                          changeset={@changeset}
-                          is_active={is_active?(@changeset, attr.attr)}
-                          myself={@myself}
-                          default_open={true}
-                        />
-                      </div>
+                      <template x-if={"#{@toggle_state[attr.id] || 'false'}===true && '#{@cur_select}'===\"#{attr.id}\" && '#{@select_state}'==='select_filt'"}>
+                        <div x-transition phx-click-away="select_state_norm" phx-target={@myself}>
+                          <.attr_filter
+                            id={attr.id<>"_dropdown"}
+                            type={:dropdown}
+                            attr_id={Material.MediaSearch.get_attrid(attr.attr)}
+                            form={f}
+                            attr={attr.attr}
+                            _attr={attr}
+                            changeset={@changeset}
+                            is_active={is_active?(@changeset, attr.attr)}
+                            myself={@myself}
+                            default_open={true}
+                          />
+                        </div>
                       </template>
-                  <% end %>
+                    <% end %>
                   </article>
                   <div
                     class="relative text-left overflow-visible"
@@ -686,7 +728,7 @@ defmodule PlatformWeb.MediaLive.SearchForm do
                         class: "hidden",
                         checked_value: @current_user.id
                       ) %>
-                      <% end %>
+                    <% end %>
                   </div>
                   <div
                     class="relative text-left overflow-visible"
