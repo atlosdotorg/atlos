@@ -1373,13 +1373,13 @@ defmodule PlatformWeb.Components do
     <span>
       <%= case @type do %>
         <% x when x == :multi_select or x == :select -> %>
-          <Heroicons.tag solid class="h-5 w-5 py-px opacity-80" />
+          <Heroicons.tag solid class="h-5 w-5 py-px opacity-50" />
         <% :location -> %>
-          <Heroicons.map_pin solid class="h-5 w-5 py-px opacity-80" />
+          <Heroicons.map_pin solid class="h-5 w-5 py-px opacity-50" />
         <% :date -> %>
-          <Heroicons.calendar solid class="h-5 w-5 py-px opacity-80" />
+          <Heroicons.calendar solid class="h-5 w-5 py-px opacity-50" />
         <% :text -> %>
-          <Heroicons.bars_3_bottom_left solid class="h-5 w-5 py-px opacity-80" />
+          <Heroicons.bars_3_bottom_left solid class="h-5 w-5 py-px opacity-50" />
       <% end %>
     </span>
     """
