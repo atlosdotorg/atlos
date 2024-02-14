@@ -58,7 +58,7 @@ defmodule Platform.Notifications do
     query =
       from(n in Notification,
         where: n.user_id == ^user.id,
-        join: u in assoc(n, :update),
+        left_join: u in assoc(n, :update),
         preload: [
           update: [
             :user,
