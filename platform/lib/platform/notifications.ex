@@ -53,19 +53,67 @@ defmodule Platform.Notifications do
   Gets all the notifications for a user.
   """
   def get_notifications_by_user_paginated(%User{} = user, options \\ []) do
-    from(n in Notification,
-      where: n.user_id == ^user.id,
-      preload: [
-        update: [
-          :user,
-          :media_version,
-          :api_token,
-          media: [project: [memberships: [:user]]]
+    dbg(options)
+
+    query =
+      from(n in Notification,
+        where: n.user_id == ^user.id,
+        join: u in assoc(n, :update),
+        preload: [
+          update: [
+            :user,
+            :media_version,
+            :api_token,
+            media: [project: [memberships: [:user]]]
+          ]
         ]
-      ],
-      order_by: [desc: :inserted_at]
-    )
-    |> Repo.paginate(options)
+      )
+
+    # Apply the filter option
+    query =
+      case Keyword.get(options, :filter, "all") do
+        "unread" ->
+          query |> where([n, _], n.read == false)
+
+        # tags: update explanation contains [[@user.username]]
+        "tags" ->
+          filter = "%[[@" <> user.username <> "]]%"
+
+          query
+          |> where([_, u], fragment("? ILIKE ?", u.explanation, ^filter))
+
+        _ ->
+          query
+      end
+
+    # Apply the sort option
+    query =
+      case Keyword.get(options, :sort, "newest") do
+        "oldest" -> query |> order_by(asc: :inserted_at)
+        _ -> query |> order_by(desc: :inserted_at)
+      end
+
+    # Apply the query option
+    query =
+      case Keyword.get(options, :query, "") do
+        "" ->
+          query
+
+        q ->
+          query
+          |> where(
+            [n, u],
+            fragment(
+              "? @@ websearch_to_tsquery('simple', ?) or ? @@ websearch_to_tsquery('simple', ?)",
+              n.searchable,
+              ^q,
+              u.searchable,
+              ^q
+            )
+          )
+      end
+
+    Repo.paginate(query, options)
   end
 
   @doc """

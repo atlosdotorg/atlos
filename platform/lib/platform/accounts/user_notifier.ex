@@ -27,7 +27,13 @@ defmodule Platform.Accounts.UserNotifier do
   @doc """
   Deliver a notification that the user has been tagged.
   """
-  def deliver_tag_notification(%User{} = user, %User{} = tagger, %Media{} = media, %Update{} = update, url) do
+  def deliver_tag_notification(
+        %User{} = user,
+        %User{} = tagger,
+        %Media{} = media,
+        %Update{} = update,
+        url
+      ) do
     Mailer.construct_and_send(user.email, "#", """
     Hi #{user.username},
 
