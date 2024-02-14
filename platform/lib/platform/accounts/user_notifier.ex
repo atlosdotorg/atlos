@@ -31,21 +31,18 @@ defmodule Platform.Accounts.UserNotifier do
         %User{} = user,
         %User{} = tagger,
         %Media{} = media,
-        %Update{} = update,
         url
       ) do
-    Mailer.construct_and_send(user.email, "#", """
-    Hi #{user.username},
+    if user.send_mention_notification_emails do
+      Mailer.construct_and_send(user.email, "#{tagger.username} mentioned you on Atlos", """
+      Hi #{user.username},
 
-    #{tagger.username} tagged you on #{Media.slug_to_display(media)}:
+      #{tagger.username} mentioned you on #{Media.slug_to_display(media)}. View the comment here: #{url}
 
-    #{update.explanation |> Platform.Utils.render_markdown() |> Platform.Utils.strip_html_tags()}
-
-    View the comment here: #{url}
-
-    Best,
-    The Atlos Team
-    """)
+      Best,
+      The Atlos Team
+      """)
+    end
   end
 
   @doc """

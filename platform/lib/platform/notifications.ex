@@ -174,7 +174,6 @@ defmodule Platform.Notifications do
             user,
             tagger,
             media,
-            update,
             Router.Helpers.media_show_url(PlatformWeb.Endpoint, :show, media.slug) <>
               "#update-#{update.id}"
           )

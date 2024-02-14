@@ -32,6 +32,7 @@ defmodule Platform.Accounts.User do
     field(:active_incidents_tab_params, :map, default: %{})
     field(:active_incidents_tab_params_time, :naive_datetime)
     belongs_to(:active_project_membership, Platform.Projects.ProjectMembership, type: :binary_id)
+    field(:send_mention_notification_emails, :boolean, default: true)
 
     # Authentication, identity, and compliance
     field(:invite_code, :string, virtual: true)
@@ -320,7 +321,8 @@ defmodule Platform.Accounts.User do
       :active_incidents_tab,
       :active_project_membership_id,
       :active_incidents_tab_params_time,
-      :active_incidents_tab_params
+      :active_incidents_tab_params,
+      :send_mention_notification_emails
     ])
   end
 
