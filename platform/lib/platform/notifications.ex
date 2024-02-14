@@ -53,8 +53,6 @@ defmodule Platform.Notifications do
   Gets all the notifications for a user.
   """
   def get_notifications_by_user_paginated(%User{} = user, options \\ []) do
-    dbg(options)
-
     query =
       from(n in Notification,
         where: n.user_id == ^user.id,

@@ -18,8 +18,6 @@ defmodule PlatformWeb.NotificationsLive do
   end
 
   def handle_event("update_filters", params, socket) do
-    dbg(params)
-
     {:noreply,
      socket
      |> push_patch(to: Routes.live_path(socket, PlatformWeb.NotificationsLive, params))}
