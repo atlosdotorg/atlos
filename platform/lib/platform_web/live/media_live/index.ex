@@ -15,7 +15,6 @@ defmodule PlatformWeb.MediaLive.Index do
 
   defp handle_params_internal(params, socket) do
     changeset = Material.MediaSearch.changeset(params)
-    Logger.debug("handle_params_internal: changeset: #{inspect(changeset)}")
 
     display =
       Ecto.Changeset.get_field(
@@ -350,8 +349,6 @@ defmodule PlatformWeb.MediaLive.Index do
 
   def handle_event("save", %{"search" => params}, socket) do
     # Also reset the pagination index, since we're doing a new search
-    Logger.debug("SAVE: PARAMS: #{params |> inspect}")
-
     merged_params =
       params
       |> Map.delete("bc")
