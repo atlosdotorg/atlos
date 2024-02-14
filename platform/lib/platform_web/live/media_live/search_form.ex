@@ -1,6 +1,5 @@
 defmodule PlatformWeb.MediaLive.SearchForm do
   use PlatformWeb, :live_component
-  require Logger
   require PlatformWeb.Components
   alias Platform.Material.Attribute
   alias Platform.Material
@@ -8,8 +7,6 @@ defmodule PlatformWeb.MediaLive.SearchForm do
   alias Platform.Projects.ProjectAttribute
 
   def mount(socket) do
-    Logger.debug("About socket: #{inspect(socket)}")
-
     {:ok,
      socket
      |> assign_new(:select_state, fn -> "norm" end)
@@ -30,7 +27,7 @@ defmodule PlatformWeb.MediaLive.SearchForm do
       ["status", "geolocation", "date", "tags", "sensitive"]
       |> Enum.map(fn x ->
         at =
-          Attribute.get_attribute(String.to_atom(x),
+          Attribute.get_attribute(String.to_existing_atom(x),
             projects:
               if(x == "tags",
                 do: Platform.Projects.list_projects_for_user(assigns.current_user),
@@ -76,23 +73,18 @@ defmodule PlatformWeb.MediaLive.SearchForm do
   end
 
   def handle_event("select_state_filt", _par, socket) do
-    Logger.debug("SELECT_STATE_TRANSITION: FILTER")
     {:noreply, assign(socket, :select_state, "select_filt")}
   end
 
   def handle_event("select_state_norm", _par, socket) do
-    Logger.debug("SELECT_STATE_TRANSITION: NORM")
     {:noreply, socket |> assign(:select_state, "norm") |> assign(:cur_select, "")}
   end
 
   def handle_event("cur_select", %{"select" => select}, socket) do
-    Logger.debug("SELECT_STATE_TRANSITION: #{inspect(select)}")
     {:noreply, assign(socket, :cur_select, select)}
   end
 
   def handle_event("toggle", %{"attr" => attr_id}, socket) do
-    Logger.debug("TOGGLE: #{inspect(attr_id)}")
-
     {:noreply,
      assign(
        socket,
@@ -203,9 +195,9 @@ defmodule PlatformWeb.MediaLive.SearchForm do
                 <div phx-update="ignore" id={"attr_select_#{@attr.name}_#{@id}"} class="phx-form">
                   <%= multiple_select(
                     @form,
-                    String.to_atom("#{@attr_id}"),
+                    String.to_existing_atom("#{@attr_id}"),
                     Attribute.options(@attr) ++ if(not @attr.required, do: ["[Unset]"], else: []),
-                    selected: @form.source.changes[String.to_atom("#{@attr_id}")] || [],
+                    selected: @form.source.changes[String.to_existing_atom("#{@attr_id}")] || [],
                     id: "attr_select_#{@attr.name}_input_#{@id}",
                     data_descriptions:
                       Jason.encode!(
@@ -278,14 +270,14 @@ defmodule PlatformWeb.MediaLive.SearchForm do
                 <div class="ts-ignore">
                   <%= select(
                     @form,
-                    String.to_atom("#{@attr_id}-matchtype"),
+                    String.to_existing_atom("#{@attr_id}-matchtype"),
                     [Contains: :contains, Equals: :equals, "Does not Contain": :excludes],
                     class: "block input-base grow",
                     id: "#{@id}_search-form-#{@attr_id}_matchtype"
                   ) %>
                   <%= text_input(
                     @form,
-                    String.to_atom("#{@attr_id}"),
+                    String.to_existing_atom("#{@attr_id}"),
                     class: "input-base grow mt-2",
                     "phx-debounce": "500",
                     id: "#{@id}_search-form-#{@attr_id}"
@@ -306,7 +298,7 @@ defmodule PlatformWeb.MediaLive.SearchForm do
       (attr.type == :date and
          (Ecto.Changeset.get_change(cs, :attr_date_min) != nil or
             Ecto.Changeset.get_change(cs, :attr_date_max) != nil)) or
-      Ecto.Changeset.get_change(cs, String.to_atom(Material.MediaSearch.get_attrid(attr))) != nil
+      Ecto.Changeset.get_change(cs, String.to_existing_atom(Material.MediaSearch.get_attrid(attr))) != nil
   end
 
   def render(%{changeset: c, query_params: _, socket: _, display: _} = assigns) do

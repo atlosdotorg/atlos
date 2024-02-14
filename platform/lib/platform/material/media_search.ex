@@ -1,7 +1,6 @@
 defmodule Platform.Material.MediaSearch do
   use Ecto.Schema
   import Ecto.Query
-  require Logger
   alias Platform.Projects.ProjectAttribute
   alias Platform.Projects
   alias Ecto.UUID
@@ -70,9 +69,6 @@ defmodule Platform.Material.MediaSearch do
               end)
           end
       end
-
-    Logger.debug("new types: #{inspect(new_types)}")
-    Logger.debug("params: #{inspect(params)}")
 
     {data, new_types}
     |> Ecto.Changeset.cast(params, Map.keys(new_types))
@@ -286,19 +282,16 @@ defmodule Platform.Material.MediaSearch do
 
   defp apply_query_component(queryable, changeset, arbitrary_key) do
     # Filters for project attributes
-    with rel_changes <- Map.get(changeset.changes, arbitrary_key),
-         false <- is_nil(rel_changes),
+    with rel_changes when not is_nil(rel_changes) <- Map.get(changeset.changes, arbitrary_key),
          project_id <- Map.get(changeset.changes, :project_id),
-         project <- Projects.get_project(project_id),
-         false <- is_nil(project),
-         attr <- Attribute.get_attribute(arbitrary_key, project: project),
-         false <- is_nil(attr),
+         project when not is_nil(project) <- Projects.get_project(project_id),
+         attr when not is_nil(attr) <- Attribute.get_attribute(arbitrary_key, project: project),
          :project_attributes <- attr.schema_field do
       candidates = where(queryable, [m], m.project_id == ^project_id)
 
       case attr.type do
         :text ->
-          case Map.get(changeset.changes, String.to_atom("#{arbitrary_key}-matchtype")) do
+          case Map.get(changeset.changes, String.to_existing_atom("#{arbitrary_key}-matchtype")) do
             nil ->
               queryable
 
@@ -443,15 +436,11 @@ defmodule Platform.Material.MediaSearch do
   Builds a composeable query given the search changeset. Returns a {queryable, pagination_opts} tuple.
   """
   def search_query(queryable \\ Media, %Ecto.Changeset{} = cs, current_user \\ nil) do
-    Logger.debug("search_query current changeset: #{inspect(cs)}")
-
     queryable =
       cs.changes
       |> Enum.reduce(queryable, fn {x, _}, acc ->
         apply_query_component(acc, cs, x)
       end)
-
-    Logger.debug("composed queryable: #{inspect(queryable)}")
 
     queryable
     |> apply_query_component(cs, :only_has_unread_notifications, current_user)
