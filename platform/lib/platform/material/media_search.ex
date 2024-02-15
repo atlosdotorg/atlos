@@ -361,12 +361,14 @@ defmodule Platform.Material.MediaSearch do
                   m.project_attributes,
                   ^attr.name,
                   ^values
-                ) or ("[Unset]" in ^values and fragment(
-                  "EXISTS (SELECT 1 FROM jsonb_array_elements(?) AS elem
+                ) or
+                  ("[Unset]" in ^values and
+                     fragment(
+                       "EXISTS (SELECT 1 FROM jsonb_array_elements(?) AS elem
                   WHERE elem->>'id' =? AND (jsonb_typeof(elem->'value') = 'null' OR elem->'value' = '[]'))",
-                  m.project_attributes,
-                  ^attr.name
-                ))
+                       m.project_attributes,
+                       ^attr.name
+                     ))
               )
           end
 

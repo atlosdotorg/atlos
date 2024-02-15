@@ -78,8 +78,10 @@ defmodule PlatformWeb.MediaLive.SearchForm do
 
   def handle_event("select_state_norm", %{"active" => active, "attr" => attr_id}, socket) do
     socket = socket |> assign(:select_state, "norm") |> assign(:cur_select, "")
+
     if not active do
-      {:noreply, socket |> assign(:toggle_state, Map.put(socket.assigns.toggle_state, attr_id, false))}
+      {:noreply,
+       socket |> assign(:toggle_state, Map.put(socket.assigns.toggle_state, attr_id, false))}
     else
       {:noreply, socket}
     end
@@ -304,7 +306,10 @@ defmodule PlatformWeb.MediaLive.SearchForm do
       (attr.type == :date and
          (Ecto.Changeset.get_change(cs, :attr_date_min) != nil or
             Ecto.Changeset.get_change(cs, :attr_date_max) != nil)) or
-      Ecto.Changeset.get_change(cs, String.to_existing_atom(Material.MediaSearch.get_attrid(attr))) != nil
+      Ecto.Changeset.get_change(
+        cs,
+        String.to_existing_atom(Material.MediaSearch.get_attrid(attr))
+      ) != nil
   end
 
   def render(%{changeset: c, query_params: _, socket: _, display: _} = assigns) do
@@ -689,7 +694,7 @@ defmodule PlatformWeb.MediaLive.SearchForm do
                               let lst = getbtns();
                               show = lst.length == 0;
                             }, 10)"
-                          >
+                        >
                           No filters found
                         </span>
                         <%= if !@active_project do %>
@@ -707,8 +712,13 @@ defmodule PlatformWeb.MediaLive.SearchForm do
                     </div>
                     <%= for attr <- @available_attrs do %>
                       <template x-if={"#{@toggle_state[attr.id] || 'false'}===true && '#{@cur_select}'===\"#{attr.id}\" && '#{@select_state}'==='select_filt'"}>
-                        <div x-transition
-                          phx-click-away={JS.push("select_state_norm", value: %{active: is_active?(@changeset, attr.attr), attr: attr.id})}
+                        <div
+                          x-transition
+                          phx-click-away={
+                            JS.push("select_state_norm",
+                              value: %{active: is_active?(@changeset, attr.attr), attr: attr.id}
+                            )
+                          }
                           phx-target={@myself}
                         >
                           <.attr_filter
