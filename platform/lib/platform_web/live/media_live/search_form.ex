@@ -76,8 +76,13 @@ defmodule PlatformWeb.MediaLive.SearchForm do
     {:noreply, assign(socket, :select_state, "select_filt")}
   end
 
-  def handle_event("select_state_norm", _par, socket) do
-    {:noreply, socket |> assign(:select_state, "norm") |> assign(:cur_select, "")}
+  def handle_event("select_state_norm", %{"active" => active, "attr" => attr_id}, socket) do
+    socket = socket |> assign(:select_state, "norm") |> assign(:cur_select, "")
+    if not active do
+      {:noreply, socket |> assign(:toggle_state, Map.put(socket.assigns.toggle_state, attr_id, false))}
+    else
+      {:noreply, socket}
+    end
   end
 
   def handle_event("cur_select", %{"select" => select}, socket) do
@@ -213,6 +218,7 @@ defmodule PlatformWeb.MediaLive.SearchForm do
                       @form,
                       :attr_geolocation,
                       class: "input-base grow",
+                      placeholder: "Latitude, Longitude",
                       "phx-debounce": "500",
                       id: "#{@id}_search-form-#{@attr_id}"
                     ) %>
@@ -559,7 +565,7 @@ defmodule PlatformWeb.MediaLive.SearchForm do
                       $store.dropdown.len = this.getbtns().length;
                     },
                     getbtns() {
-                      return document.querySelectorAll('#attr-list > :not([style*=\'display: none\'])');
+                      return document.querySelectorAll('#attr-list > .filter-btn:not([style*=\'display: none\'])');
                     },
                     findId(id) {
                       let attrList = this.getbtns();
@@ -649,7 +655,7 @@ defmodule PlatformWeb.MediaLive.SearchForm do
                                 |> JS.push("toggle", value: %{attr: attr.id}, target: @myself)
                               }
                               phx-target={@myself}
-                              class="w-full text-left rounded transition text-sm text-gray-900 py-1 px-2 flex"
+                              class="w-full text-left rounded transition text-sm text-gray-900 py-1 px-2 flex filter-btn"
                               x-on:mouseenter={"
                               setSelectedViaHover('#{attr.id}_drop_button')
                               curi = findId('#{attr.id}_drop_button');
@@ -673,6 +679,19 @@ defmodule PlatformWeb.MediaLive.SearchForm do
                             </button>
                           <% end %>
                         <% end %>
+                        <span
+                          class="text-sm ml-1 leading-normal text-neutral-500"
+                          x-data="{show:false}"
+                          x-show="show"
+                          x-effect="let aq = $store.atquery;
+                            let sl = $store.dropdown.sel;
+                            setTimeout(() => {
+                              let lst = getbtns();
+                              show = lst.length == 0;
+                            }, 10)"
+                          >
+                          No filters found
+                        </span>
                         <%= if !@active_project do %>
                           <div
                             data-tooltip="Select a specific project <br/> for more filtering options"
@@ -688,7 +707,10 @@ defmodule PlatformWeb.MediaLive.SearchForm do
                     </div>
                     <%= for attr <- @available_attrs do %>
                       <template x-if={"#{@toggle_state[attr.id] || 'false'}===true && '#{@cur_select}'===\"#{attr.id}\" && '#{@select_state}'==='select_filt'"}>
-                        <div x-transition phx-click-away="select_state_norm" phx-target={@myself}>
+                        <div x-transition
+                          phx-click-away={JS.push("select_state_norm", value: %{active: is_active?(@changeset, attr.attr), attr: attr.id})}
+                          phx-target={@myself}
+                        >
                           <.attr_filter
                             id={attr.id<>"_dropdown"}
                             type={:dropdown}

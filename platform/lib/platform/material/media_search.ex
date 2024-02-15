@@ -355,11 +355,18 @@ defmodule Platform.Material.MediaSearch do
                 candidates,
                 [m],
                 fragment(
-                  "EXISTS (SELECT 1 FROM jsonb_array_elements(?) AS elem WHERE elem->>'id' =? AND jsonb_typeof(elem->'value') = 'array' AND ARRAY(SELECT value FROM jsonb_array_elements_text(elem->'value')) && ?)",
+                  "EXISTS (SELECT 1 FROM jsonb_array_elements(?) AS elem
+                  WHERE elem->>'id' =? AND
+                  (jsonb_typeof(elem->'value') = 'array' AND ARRAY(SELECT value FROM jsonb_array_elements_text(elem->'value')) && ?))",
                   m.project_attributes,
                   ^attr.name,
                   ^values
-                )
+                ) or ("[Unset]" in ^values and fragment(
+                  "EXISTS (SELECT 1 FROM jsonb_array_elements(?) AS elem
+                  WHERE elem->>'id' =? AND (jsonb_typeof(elem->'value') = 'null' OR elem->'value' = '[]'))",
+                  m.project_attributes,
+                  ^attr.name
+                ))
               )
           end
 
