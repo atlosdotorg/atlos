@@ -646,7 +646,7 @@ defmodule PlatformWeb.MediaLive.SearchForm do
                         class="h-7 border-none w-full outline-none text-gray-900 placeholder-gray-500 focus:ring-0 sm:text-sm"
                         placeholder="Filter..."
                       />
-                      <hr class="my-1" />
+                      <hr class="my-1 -mx-1" />
                       <div id="attr-list">
                         <%= for attr <- @available_attrs do %>
                           <%= if (@toggle_state[attr.id] || false) == false do %>
