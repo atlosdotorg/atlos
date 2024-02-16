@@ -44,6 +44,30 @@ If you have forgotten your password:
 5. Follow the instructions you receive in your inbox. 
 
 ## Multi-factor authentication (MFA)
+### Enable MFA
 We implore all users enable multi-factor authentication (MFA) for their Atlos account. To enable MFA: 
 1. Navigate to the **Account** page by clicking **Account** on the left sidebar menu.
-2. Click the **Multi-factor auth** button on the **Account and Security** pane. 
+2. Click the **Multi-factor auth** button on the **Account and Security** pane.
+
+### Generate backup codes
+We encourage you to generate and save single-use backup MFA codes in case you lose access to your MFA device. To generate backup codes:
+1. Navigate to the **Account** page by clicking **Account** on the left sidebar menu.
+2. Click the **Multi-factor auth** button on the **Account and Security** pane.
+3. Enter your current MFA code and click **Continue**.
+4. Click **Get Backup Codes**.
+5. Click **Download** to store your backup codes. 
+
+### Regenerate backup codes
+If you have run out of backup codes or lost access to your codes, or someone you don't trust has access to your backup codes, you should regenerate new backup codes. Your old codes will no longer work after you have regenerated new backup codes. To regenerate new codes:
+1. Navigate to the **Account** page by clicking **Account** on the left sidebar menu.
+2. Click the **Multi-factor auth** button on the **Account and Security** pane.
+3. Enter your current MFA code and click **Continue**.
+4. Click **Regenerate Codes**.
+5. Click **Download** to store your new backup codes. 
+   
+### Delete backup codes 
+If someone you don't trust has access to your backup codes and you don't want to generate new codes, you can delete your existing codes instead. To delete backup codes:
+1. Navigate to the **Account** page by clicking **Account** on the left sidebar menu.
+2. Click the **Multi-factor auth** button on the **Account and Security** pane.
+3. Enter your current MFA code and click **Continue**.
+4. Click **Delete All Codes**.
