@@ -30,6 +30,9 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
      |> assign_new(:custom_attribute_changeset, fn ->
        Projects.change_project(socket.assigns.project)
      end)
+     |> assign_new(:all_attributes, fn ->
+       Platform.Material.Attribute.active_attributes(project: socket.assigns.project)
+     end)
      |> assign_new(:show_panes, fn -> [:general, :custom_attributes] end)}
   end
 
@@ -255,10 +258,14 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
       |> assign_new(:id, fn -> "edit-#{Ecto.Changeset.get_field(assigns.f_attr.source, :id)}" end)
 
     ~H"""
-    <div class={[
-      "relative group grid grid-cols-1 gap-4",
-      Ecto.Changeset.get_field(@f_attr.source, :delete) && "hidden"
-    ]} x-data={"{open: #{is_nil(@decorator_for)}}"} id={@id}>
+    <div
+      class={[
+        "relative group grid grid-cols-1 gap-4",
+        Ecto.Changeset.get_field(@f_attr.source, :delete) && "hidden"
+      ]}
+      x-data={"{open: #{is_nil(@decorator_for)}}"}
+      id={@id}
+    >
       <%= hidden_input(@f_attr, :id) %>
       <%= hidden_input(@f_attr, :decorator_for) %>
 
@@ -273,11 +280,28 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
         <%= text_input(@f_attr, :name, class: "my-1") %>
         <%= error_tag(@f_attr, :name) %>
       </div>
-      <div :if={not is_nil(@decorator_for)} class="flex justify-between items-center w-full gap-4 group" x-bind:class="{''}" x-on:click="open = !open; console.log(open)">
-        <span class={["text-sm font-medium text-gray-900 grow flex items-center gap-2", @enabled && "cursor-pointer"]}>
+      <div
+        :if={not is_nil(@decorator_for)}
+        class="flex justify-between items-center w-full gap-4 group"
+        x-on:click="open = !open"
+      >
+        <span class={[
+          "text-sm font-medium text-gray-900 grow flex items-center gap-2",
+          @enabled && "cursor-pointer"
+        ]}>
           <%= @decorator_for.label %>
-          <Heroicons.plus mini class="h-5 w-5 text-gray-400" x-bind:class="{hidden: open}" :if={@enabled} />
-          <Heroicons.minus mini class="h-5 w-5 text-gray-400" x-bind:class="{hidden: !open}" :if={@enabled} />
+          <Heroicons.plus
+            :if={@enabled}
+            mini
+            class="h-5 w-5 text-gray-400"
+            x-bind:class="{hidden: open}"
+          />
+          <Heroicons.minus
+            :if={@enabled}
+            mini
+            class="h-5 w-5 text-gray-400"
+            x-bind:class="{hidden: !open}"
+          />
         </span>
         <%= label(@f_attr, :enabled, class: "!flex items-center gap-2") do %>
           <span class="text-xs text-neutral-500 !font-normal">Enable</span>
@@ -341,7 +365,11 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
         </div>
       <% end %>
       <%= if Ecto.Changeset.get_field(@f_attr.source, :type) == :multi_select and @f_attr.data.type == :select do %>
-        <div class={["rounded-md bg-blue-50 p-4", not @enabled && "hidden"]} x-show="open" x-transition>
+        <div
+          class={["rounded-md bg-blue-50 p-4", not @enabled && "hidden"]}
+          x-show="open"
+          x-transition
+        >
           <div class="flex">
             <div class="flex-shrink-0">
               <Heroicons.information_circle mini class="h-5 w-5 text-blue-400" />
@@ -355,6 +383,14 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
         </div>
       <% end %>
     </div>
+    """
+  end
+
+  def decorator_description(assigns) do
+    ~H"""
+    <span>
+      Decorators capture additional data for each attribute. For example, you can use decorators to associate confidence values with each attribute value.
+    </span>
     """
   end
 
@@ -598,7 +634,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                 <% end %>
                 <div class="flow-root">
                   <div class="-mx-4 overflow-x-auto sm:-mx-6 lg:-mx-8">
-                    <div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
+                    <div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8 flex flex-col gap-8">
                       <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg relative">
                         <table class="min-w-full divide-y divide-gray-300">
                           <thead class="bg-gray-50">
@@ -622,17 +658,6 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                                 Description
                               </th>
                               <div scope="col" class="absolute right-3 top-3">
-                                <button
-                                  :if={
-                                    Permissions.can_edit_project_metadata?(@current_user, @project)
-                                  }
-                                  type="button"
-                                  phx-click="edit_decorators"
-                                  phx-target={@myself}
-                                  class="text-button text-sm"
-                                >
-                                  Decorators
-                                </button>
                                 <button
                                   :if={
                                     Permissions.can_edit_project_metadata?(@current_user, @project)
@@ -731,7 +756,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                             <section class="mb-4">
                               <h2 class="sec-head">Manage Decorators</h2>
                               <p class="sec-subhead">
-                                Decorators capture additional data for each attribute. For example, you can use decorators to associate confidence values with each attribute value.
+                                <.decorator_description />
                               </p>
                             </section>
                             <div class="flex flex-col mt-12">
@@ -778,6 +803,41 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                             </div>
                           </.modal>
                         <% end %>
+                      </div>
+                      <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg relative divide-y divide-gray-300">
+                        <div class="bg-gray-50 flex items-center justify-between px-4 sm:px-6">
+                          <p class="py-3.5 text-left text-sm font-semibold text-gray-900">
+                            Decorators
+                          </p>
+                          <button
+                            :if={Permissions.can_edit_project_metadata?(@current_user, @project)}
+                            type="button"
+                            phx-click="edit_decorators"
+                            phx-target={@myself}
+                            class="text-button text-sm"
+                          >
+                            Edit Decorators
+                          </button>
+                        </div>
+                        <div class="p-4 sm:p-6 bg-white">
+                        <% decorators = @all_attributes |> Enum.filter(& &1.is_decorator) %>
+                          <p class="text-sm text-neutral-600 mb-4">
+                            <.decorator_description />
+                            <span :if={Enum.empty?(decorators)}>You have not enabled any decorators.</span>
+                            <span :if={not Enum.empty?(decorators)}>
+                              You have enabled the following decorators:
+                            </span>
+                          </p>
+                          <div class="flex gap-2 flex-wrap">
+                            <div
+                              :for={attr <- decorators}
+                              class="px-2 py-1 text-left text-xs rounded-full border font-medium text-gray-700 bg-neutral-100"
+                            >
+                              <% parent = Enum.find(@all_attributes, & to_string(&1.name) == to_string(attr.parent)) %>
+                              <%= parent.label %>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>

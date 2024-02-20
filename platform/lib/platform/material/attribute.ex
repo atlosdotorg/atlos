@@ -39,7 +39,8 @@ defmodule Platform.Material.Attribute do
     # allows users to define their own options in a multi-select
     :allow_user_defined_options,
     # allows the attribute to be embedded on another attribute's edit pane (i.e., combine attributes)
-    :parent
+    :parent,
+    :is_decorator,
   ]
 
   defp renamed_attributes() do
@@ -55,7 +56,7 @@ defmodule Platform.Material.Attribute do
 
     project_attrs =
       if project do
-        Enum.map(project.attributes, &ProjectAttribute.to_attribute/1)
+        Enum.map(project.attributes |> Enum.filter(& &1.enabled), &ProjectAttribute.to_attribute/1)
       else
         []
       end

@@ -11,7 +11,8 @@ defmodule Platform.Projects.ProjectAttribute do
     field(:description, :string, default: "")
     field(:type, Ecto.Enum, values: [:select, :text, :date, :multi_select])
     field(:options, {:array, :string}, default: [])
-    field(:decorator_for, :string, default: "") # empty string if not a decorator
+    # empty string if not a decorator
+    field(:decorator_for, :string, default: "")
     field(:enabled, :boolean, default: true)
 
     # JSON array of options
@@ -98,7 +99,9 @@ defmodule Platform.Projects.ProjectAttribute do
       options: attribute.options,
       description: attribute.description,
       pane: :attributes,
-      required: false
+      required: false,
+      is_decorator: attribute.decorator_for != "",
+      parent: if(attribute.decorator_for != "", do: attribute.decorator_for, else: nil)
     }
   end
 
