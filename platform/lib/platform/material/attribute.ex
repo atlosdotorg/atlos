@@ -40,7 +40,7 @@ defmodule Platform.Material.Attribute do
     :allow_user_defined_options,
     # allows the attribute to be embedded on another attribute's edit pane (i.e., combine attributes)
     :parent,
-    :is_decorator,
+    :is_decorator
   ]
 
   defp renamed_attributes() do
@@ -56,7 +56,10 @@ defmodule Platform.Material.Attribute do
 
     project_attrs =
       if project do
-        Enum.map(project.attributes |> Enum.filter(& &1.enabled), &ProjectAttribute.to_attribute/1)
+        Enum.map(
+          project.attributes |> Enum.filter(& &1.enabled),
+          &ProjectAttribute.to_attribute/1
+        )
       else
         []
       end
@@ -473,6 +476,16 @@ defmodule Platform.Material.Attribute do
       }
     ]
 
+    # Filter out decorators without a parent (e.g., the parent has been deleted)
+    project_attrs =
+      Enum.filter(
+        project_attrs,
+        &(&1.is_decorator != true or
+            Enum.any?(core_attrs ++ project_attrs ++ secondary_attrs, fn attr ->
+              to_string(attr.name) == to_string(&1.parent)
+            end))
+      )
+
     core_attrs ++ project_attrs ++ secondary_attrs
   end
 
@@ -624,7 +637,9 @@ defmodule Platform.Material.Attribute do
     |> update_from_virtual_data(attribute)
     |> verify_can_edit(attribute, media, user: user, api_token: api_token)
     |> then(fn c ->
-      if verify_change_exists, do: verify_change_exists(c, [attribute]), else: c
+      if verify_change_exists,
+        do: verify_change_exists(c, [attribute]),
+        else: c
     end)
   end
 
@@ -724,6 +739,7 @@ defmodule Platform.Material.Attribute do
             |> put_change(:id, attr.name)
             |> put_change(:project_id, media.project_id)
           )
+          |> Keyword.put(:verify_change_exists, false)
         )
       end
     end

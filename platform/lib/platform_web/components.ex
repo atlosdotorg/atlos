@@ -1329,7 +1329,11 @@ defmodule PlatformWeb.Components do
     attr = Map.get(assigns, :attr)
 
     assigns =
-      assign(assigns, :children, Attribute.get_children(attr.name))
+      assign(
+        assigns,
+        :children,
+        Attribute.get_children(attr.name, project: assigns.media.project)
+      )
       |> assign_new(:truncate, fn -> true end)
       |> assign(:attr_value, Material.get_attribute_value(assigns.media, attr))
 
@@ -1346,12 +1350,13 @@ defmodule PlatformWeb.Components do
               value={@attr_value}
             />
             <%= for child <- @children do %>
-              <%= if not is_nil(Map.get(@media, child.schema_field)) do %>
+              <% value = Material.get_attribute_value(@media, child) %>
+              <%= if not is_nil(value) do %>
                 <.attr_entry
                   color={true}
                   compact={@truncate}
                   name={child.name}
-                  value={Material.get_attribute_value(@media, child)}
+                  value={value}
                   project={@media.project}
                   label={child.label}
                 />
@@ -1511,7 +1516,7 @@ defmodule PlatformWeb.Components do
   def attr_display_row(assigns) do
     attr = Map.get(assigns, :attr)
 
-    children = Attribute.get_children(attr.name)
+    children = Attribute.get_children(attr.name, project: assigns.media.project)
 
     assigns =
       assign(assigns, :children, children)
@@ -1566,11 +1571,12 @@ defmodule PlatformWeb.Components do
             />
           <% end %>
           <%= for child <- @children do %>
-            <%= if not is_nil(Map.get(@media, child.schema_field)) do %>
+            <% value = Material.get_attribute_value(@media, child) %>
+            <%= if not is_nil(value) do %>
               <.attr_entry
                 name={child.name}
                 color={false}
-                value={Map.get(@media, child.schema_field)}
+                value={value}
                 label={child.label}
                 project={@media.project}
               />
@@ -1666,7 +1672,6 @@ defmodule PlatformWeb.Components do
             </div>
           </div>
         <% :multi_select -> %>
-          <.attr_label label={@label} />
           <%= for item <- (if @compact, do: @value |> Enum.take(1), else: @value) do %>
             <div class={"chip #{@tone} flex items-center gap-1 inline-block self-start break-all xl:break-normal"}>
               <.attribute_icon
@@ -1675,6 +1680,7 @@ defmodule PlatformWeb.Components do
                 value={item}
                 class="h-4 w-4 shrink-0 opacity-50"
               />
+              <.attr_label label={@label} />
               <span><%= item %></span>
             </div>
             <%= if @compact and length(@value) > 1 do %>
@@ -2017,7 +2023,7 @@ defmodule PlatformWeb.Components do
         assigns
         |> assign(:attr, attr)
         |> assign(:label, Map.get(assigns, :label, ""))
-        |> assign(:children, Attribute.get_children(name))
+        |> assign(:children, Attribute.get_children(name, project: project))
         |> assign(
           :old_val,
           # It's possible to encode changes to multiple schema fields in one update, but some legacy/existing updates

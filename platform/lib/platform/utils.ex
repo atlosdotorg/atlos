@@ -154,6 +154,8 @@ defmodule Platform.Utils do
     end
   end
 
+  def render_markdown(nil), do: ""
+
   def render_markdown(markdown) do
     # Safe markdown rendering. No images or headers.
 

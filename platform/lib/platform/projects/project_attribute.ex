@@ -47,7 +47,14 @@ defmodule Platform.Projects.ProjectAttribute do
       %{options: Jason.decode!(json_options)},
       [:options]
     )
-    |> validate_required([:name, :type])
+    |> validate_required([:type])
+    |> then(fn changeset ->
+      if get_field(changeset, :enabled) == true do
+        validate_required(changeset, [:name], description: "Please provide a value.")
+      else
+        changeset
+      end
+    end)
     |> validate_length(:name, min: 1, max: 240)
     |> validate_length(:description, min: 0, max: 240)
     |> validate_inclusion(:type, [:select, :text, :date, :multi_select])
@@ -98,7 +105,7 @@ defmodule Platform.Projects.ProjectAttribute do
       type: attribute.type,
       options: attribute.options,
       description: attribute.description,
-      pane: :attributes,
+      pane: if(attribute.decorator_for != "", do: :not_shown, else: :attributes),
       required: false,
       is_decorator: attribute.decorator_for != "",
       parent: if(attribute.decorator_for != "", do: attribute.decorator_for, else: nil)

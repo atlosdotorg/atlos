@@ -174,14 +174,13 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
     socket =
       update(socket, :custom_attribute_changeset, fn changeset ->
         all_existing_custom_attributes = Ecto.Changeset.get_field(changeset, :attributes, [])
+        core_attribute_ids = get_core_attributes() |> Enum.map(& &1.name)
 
         non_decorator_attributes =
           Enum.filter(all_existing_custom_attributes, &(&1.decorator_for == ""))
 
         decorator_attributes =
           Enum.filter(all_existing_custom_attributes, &(&1.decorator_for != ""))
-
-        core_attribute_ids = get_core_attributes() |> Enum.map(& &1.name)
 
         # Add any missing decorators to the changeset
         all_attribute_ids = Enum.map(non_decorator_attributes, & &1.id) ++ core_attribute_ids
@@ -200,8 +199,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                 decorator_for: id,
                 enabled: false,
                 type: :select,
-                # Not used or shown anywhere; just a sane default
-                name: "#{id}/decorator",
+                name: "",
                 id: Ecto.UUID.generate()
               }
             end)
@@ -260,7 +258,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
         "relative group grid grid-cols-1 gap-4",
         Ecto.Changeset.get_field(@f_attr.source, :delete) && "hidden"
       ]}
-      x-data={"{open: #{is_nil(@decorator_for)}}"}
+      x-data={"{open: #{is_nil(@decorator_for) or (!@f_attr.data.enabled)}}"}
       id={@id}
     >
       <%= hidden_input(@f_attr, :id) %>
@@ -268,55 +266,59 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
 
       <%= if is_nil(@decorator_for) do %>
         <%= hidden_input(@f_attr, :enabled) %>
-      <% else %>
-        <%= hidden_input(@f_attr, :name) %>
       <% end %>
 
-      <div :if={is_nil(@decorator_for)}>
+      <div
+        :if={not is_nil(@decorator_for)}
+        class="flex justify-between items-center w-full gap-4 group"
+      >
+        <span
+          class={[
+            "text-sm font-medium text-gray-900 grow flex items-center gap-2",
+            @enabled && "cursor-pointer"
+          ]}
+          x-on:click={"if (#{@enabled}) { open = !open; console.log('toggling', open) }"}
+        >
+          <%= @decorator_for.label %>
+          <Heroicons.minus :if={@enabled} mini class="h-5 w-5 text-gray-400" x-show="open" />
+          <Heroicons.plus :if={@enabled} mini class="h-5 w-5 text-gray-400" x-show="!open" />
+        </span>
+        <%= label(@f_attr, :enabled, class: "!flex items-center gap-2") do %>
+          <span class="text-xs text-neutral-500 !font-normal">Enable</span>
+          <%= checkbox(@f_attr, :enabled,
+            "x-on:change": "if ($event.target.checked) { open = true; console.log('opening', open) }"
+          ) %>
+        <% end %>
+      </div>
+      <%= if not @enabled do %>
+        <%= hidden_input(@f_attr, :name) %>
+        <%= hidden_input(@f_attr, :type) %>
+        <%= hidden_input(@f_attr, :description) %>
+        <%= hidden_input(@f_attr, :options_json) %>
+      <% end %>
+      <div :if={@enabled} x-show="open" x-transition>
         <%= label(@f_attr, :name, class: "!text-neutral-600 !font-normal") %>
         <%= text_input(@f_attr, :name, class: "my-1") %>
         <%= error_tag(@f_attr, :name) %>
       </div>
-      <div
-        :if={not is_nil(@decorator_for)}
-        class="flex justify-between items-center w-full gap-4 group"
-        x-on:click="open = !open"
-      >
-        <span class={[
-          "text-sm font-medium text-gray-900 grow flex items-center gap-2",
-          @enabled && "cursor-pointer"
-        ]}>
-          <%= @decorator_for.label %>
-          <Heroicons.plus
-            :if={@enabled}
-            mini
-            class="h-5 w-5 text-gray-400"
-            x-bind:class="{hidden: open}"
-          />
-          <Heroicons.minus
-            :if={@enabled}
-            mini
-            class="h-5 w-5 text-gray-400"
-            x-bind:class="{hidden: !open}"
-          />
-        </span>
-        <%= label(@f_attr, :enabled, class: "!flex items-center gap-2") do %>
-          <span class="text-xs text-neutral-500 !font-normal">Enable</span>
-          <%= checkbox(@f_attr, :enabled, "x-on:change": "open = true") %>
-        <% end %>
-      </div>
-      <div class={["ts-ignore", not @enabled && "hidden"]} x-show="open" x-transition>
+      <div :if={@enabled} class={["ts-ignore"]} x-show="open" x-transition>
         <%= label(@f_attr, :type, class: "!text-neutral-600 !font-normal") %>
         <%= select(
           @f_attr,
           :type,
           type_mapping()
-          |> Enum.filter(fn {_, v} -> v != :location and v != :date end)
+          |> Enum.filter(fn {_, v} ->
+            (v != :location and v != :date and v != :text) || is_nil(@decorator_for)
+          end)
           |> Enum.map(fn {k, v} ->
             [
               key: k,
               value: v,
-              disabled: not Enum.member?(ProjectAttribute.compatible_types(@f_attr.data.type), v)
+              disabled:
+                not Enum.member?(
+                  ProjectAttribute.compatible_types(Ecto.Changeset.get_field(@f_attr.source, :type)),
+                  v
+                )
             ]
           end),
           phx_debounce: 0,
@@ -326,7 +328,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
         <p class="support">After creation, modifying an attribute's type is limited.</p>
         <%= error_tag(@f_attr, :type) %>
       </div>
-      <div class={[not @enabled && "hidden"]} x-show="open" x-transition>
+      <div :if={@enabled} x-show="open" x-transition>
         <%= label(@f_attr, :description, class: "!text-neutral-600 !font-normal") %>
         <%= text_input(@f_attr, :description, class: "my-1") %>
         <%= error_tag(@f_attr, :description) %>
@@ -335,9 +337,9 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
         </p>
       </div>
       <%= if (Ecto.Changeset.get_field(@f_attr.source, :type) in [:select, :multi_select] or Ecto.Changeset.get_field(@f_attr.source, :type) == nil) do %>
-        <div class={[not @enabled && "hidden"]} x-show="open" x-transition>
+        <div :if={@enabled} x-show="open" x-transition>
           <%= label(@f_attr, :options, class: "!text-neutral-600 !font-normal") %>
-          <% id = "field-#{@f_attr.data.id}-options" %>
+          <% id = "field-#{Ecto.Changeset.get_field(@f_attr.source, :id)}-options" %>
           <div id={id} phx-update="ignore" class="my-1">
             <div id={"child-#{id}"} x-data>
               <%= textarea(@f_attr, :options_json,
@@ -361,12 +363,8 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
           </p>
         </div>
       <% end %>
-      <%= if Ecto.Changeset.get_field(@f_attr.source, :type) == :multi_select and @f_attr.data.type == :select do %>
-        <div
-          class={["rounded-md bg-blue-50 p-4", not @enabled && "hidden"]}
-          x-show="open"
-          x-transition
-        >
+      <%= if Ecto.Changeset.get_field(@f_attr.source, :type) == :multi_select and Ecto.Changeset.get_field(@f_attr.source, :type) == :select do %>
+        <div :if={@enabled} class={["rounded-md bg-blue-50 p-4"]} x-show="open" x-transition>
           <div class="flex">
             <div class="flex-shrink-0">
               <Heroicons.information_circle mini class="h-5 w-5 text-blue-400" />
@@ -672,7 +670,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                           </thead>
                           <tbody class="divide-y divide-gray-200 bg-white">
                             <.inputs_for :let={f_attr} field={f[:attributes]}>
-                              <%= if not is_nil(f_attr.data.id) and f_attr.data.decorator_for == "" do %>
+                              <%= if not is_nil(Ecto.Changeset.get_field(f_attr.source, :id)) and Ecto.Changeset.get_field(f_attr.source, :decorator_for) == "" do %>
                                 <tr x-data="{active: false}" class="group">
                                   <.attribute_table_row
                                     attr={ProjectAttribute.to_attribute(f_attr.data)}
@@ -683,7 +681,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                                   />
                                 </tr>
                               <% end %>
-                              <%= if (@actively_editing_id == f_attr.data.id) || (f_attr.data.id == nil and @actively_editing_id == :new) do %>
+                              <%= if (@actively_editing_id == Ecto.Changeset.get_field(f_attr.source, :id)) || (Ecto.Changeset.get_field(f_attr.source, :id) == nil and @actively_editing_id == :new) do %>
                                 <.modal
                                   target={@myself}
                                   id={(@actively_editing_id || "nil") |> to_string()}
@@ -706,13 +704,13 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                                         Cancel
                                       </button>
                                     </div>
-                                    <%= if f_attr.data.id do %>
+                                    <%= if Ecto.Changeset.get_field(f_attr.source, :id) do %>
                                       <button
                                         type="button"
                                         phx-target={@myself}
                                         phx-click="delete_attr"
-                                        phx-value-id={f_attr.data.id}
-                                        data-confirm={"Are you sure you want to delete the attribute \"#{f_attr.data.name}\"? This action cannot be undone. This will remove this attribute from all incidents in this project."}
+                                        phx-value-id={Ecto.Changeset.get_field(f_attr.source, :id)}
+                                        data-confirm={"Are you sure you want to delete the attribute \"#{Ecto.Changeset.get_field(f_attr.source, :name)}\"? This action cannot be undone. This will remove this attribute from all incidents in this project."}
                                         data-tooltip="Delete this attribute"
                                         class="button ~critical @high"
                                       >
@@ -725,7 +723,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                                 <div
                                   :if={
                                     @actively_editing_id != :decorators ||
-                                      f_attr.data.decorator_for == ""
+                                      Ecto.Changeset.get_field(f_attr.source, :decorator_for) == ""
                                   }
                                   class="hidden"
                                 >
@@ -779,7 +777,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                                       )
                                     }
                                     allow_disable={true}
-                                    id={"edit-decorator-#{f_attr.data.decorator_for}"}
+                                    id={"edit-decorator-#{Ecto.Changeset.get_field(f_attr.source, :decorator_for)}"}
                                   />
                                 </div>
                               </.inputs_for>
@@ -817,10 +815,12 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                           </button>
                         </div>
                         <div class="p-4 sm:p-6 bg-white">
-                        <% decorators = @all_attributes |> Enum.filter(& &1.is_decorator) %>
+                          <% decorators = @all_attributes |> Enum.filter(& &1.is_decorator) %>
                           <p class="text-sm text-neutral-600 mb-4">
                             <.decorator_description />
-                            <span :if={Enum.empty?(decorators)}>You have not enabled any decorators.</span>
+                            <span :if={Enum.empty?(decorators)}>
+                              You have not enabled any decorators.
+                            </span>
                             <span :if={not Enum.empty?(decorators)}>
                               You have enabled the following decorators:
                             </span>
@@ -830,8 +830,12 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                               :for={attr <- decorators}
                               class="px-2 py-1 text-left text-xs rounded-full border font-medium text-gray-700 bg-neutral-100"
                             >
-                              <% parent = Enum.find(@all_attributes, & to_string(&1.name) == to_string(attr.parent)) %>
-                              <%= parent.label %>
+                              <% parent =
+                                Enum.find(
+                                  @all_attributes,
+                                  &(to_string(&1.name) == to_string(attr.parent))
+                                ) %>
+                              <%= parent.label %>: <%= attr.label %>
                             </div>
                           </div>
                         </div>

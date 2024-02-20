@@ -205,7 +205,7 @@ defmodule Platform.Projects do
       :attributes,
       project.attributes
       |> Enum.map(fn attr ->
-        if attr.id == id do
+        if attr.id == id or to_string(attr.decorator_for) == to_string(id) do
           ProjectAttribute.changeset(attr) |> Map.put(:action, :delete)
         else
           attr
