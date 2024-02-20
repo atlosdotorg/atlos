@@ -50,7 +50,6 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
       :custom_attribute_changeset,
       Projects.change_project(socket.assigns.project, attrs)
       |> Map.put(:action, :validate)
-      |> dbg()
     )
     |> assign(
       :all_attributes,
@@ -191,8 +190,6 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
           Enum.reject(all_attribute_ids, fn id ->
             Enum.any?(decorator_attributes, &(&1.decorator_for == to_string(id)))
           end)
-
-        dbg(missing_decorator_ids)
 
         Ecto.Changeset.put_embed(
           changeset,
