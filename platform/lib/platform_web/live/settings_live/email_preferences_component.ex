@@ -60,8 +60,8 @@ defmodule PlatformWeb.SettingsLive.EmailPreferencesComponent do
                   Someone mentions
                   <span data-tag-target={@current_user.username} class="p-1 rounded">
                     @<%= @current_user.username %>
-                   </span>
-                   &nbsp;in a comment
+                  </span>
+                  &nbsp;in a comment
                 </span>
               <% end %>
               <label class="flex items-center cursor-disabled">
