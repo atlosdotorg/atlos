@@ -22,6 +22,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
 
     {:ok,
      socket
+     # Either nil, :new, :decorators, or a UUID
      |> assign(:actively_editing_id, nil)
      |> assign_new(:general_changeset, fn ->
        Projects.change_project(socket.assigns.project)
@@ -44,8 +45,20 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
     socket
     |> assign(
       :custom_attribute_changeset,
-      Projects.change_project(socket.assigns.project, attrs) |> Map.put(:action, :validate)
+      Projects.change_project(socket.assigns.project, attrs)
+      |> Map.put(:action, :validate)
+      |> dbg()
     )
+    |> assign(
+      :all_attributes,
+      Platform.Material.Attribute.active_attributes(project: socket.assigns.project)
+    )
+  end
+
+  defp get_core_attributes() do
+    # Helper function to get core attributes
+    Platform.Material.Attribute.active_attributes()
+    |> Enum.filter(&(&1.pane != :metadata && is_nil(&1.parent)))
   end
 
   def handle_event("close", _params, socket) do
@@ -155,6 +168,50 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
     {:noreply, socket}
   end
 
+  def handle_event("edit_decorators", _, socket) do
+    socket =
+      update(socket, :custom_attribute_changeset, fn changeset ->
+        all_existing_custom_attributes = Ecto.Changeset.get_field(changeset, :attributes, [])
+
+        non_decorator_attributes =
+          Enum.filter(all_existing_custom_attributes, &(&1.decorator_for == ""))
+
+        decorator_attributes =
+          Enum.filter(all_existing_custom_attributes, &(&1.decorator_for != ""))
+
+        core_attribute_ids = get_core_attributes() |> Enum.map(& &1.name)
+
+        # Add any missing decorators to the changeset
+        all_attribute_ids = Enum.map(non_decorator_attributes, & &1.id) ++ core_attribute_ids
+
+        missing_decorator_ids =
+          Enum.reject(all_attribute_ids, fn id ->
+            Enum.any?(decorator_attributes, &(&1.decorator_for == to_string(id)))
+          end)
+
+        dbg(missing_decorator_ids)
+
+        Ecto.Changeset.put_embed(
+          changeset,
+          :attributes,
+          all_existing_custom_attributes ++
+            Enum.map(missing_decorator_ids, fn id ->
+              %ProjectAttribute{
+                decorator_for: id,
+                enabled: false,
+                type: :select,
+                # Not used or shown anywhere; just a sane default
+                name: "#{id}/decorator",
+                id: Ecto.UUID.generate()
+              }
+            end)
+        )
+      end)
+      |> assign(:actively_editing_id, :decorators)
+
+    {:noreply, socket}
+  end
+
   def handle_event("delete_attr", %{"id" => id}, socket) do
     # Delete the custom attribute, save, and close the actively editing modal
     {:ok, project} =
@@ -191,16 +248,44 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
     do: type_mapping() |> Enum.map(fn {k, v} -> {v, k} end) |> Enum.into(%{})
 
   def edit_custom_project_attribute(assigns) do
+    # The attribute this is a decorator for
+    assigns =
+      assign_new(assigns, :decorator_for, fn -> nil end)
+      |> assign(:enabled, Ecto.Changeset.get_field(assigns.f_attr.source, :enabled))
+      |> assign_new(:id, fn -> "edit-#{Ecto.Changeset.get_field(assigns.f_attr.source, :id)}" end)
+
     ~H"""
-    <div class={"relative group grid grid-cols-1 gap-4 mt-8 " <> (if Ecto.Changeset.get_field(@f_attr.source, :delete), do: "hidden", else: "")}>
+    <div class={[
+      "relative group grid grid-cols-1 gap-4",
+      Ecto.Changeset.get_field(@f_attr.source, :delete) && "hidden"
+    ]} x-data={"{open: #{is_nil(@decorator_for)}}"} id={@id}>
       <%= hidden_input(@f_attr, :id) %>
-      <div>
-        <%= label(@f_attr, :name) %>
-        <%= text_input(@f_attr, :name) %>
+      <%= hidden_input(@f_attr, :decorator_for) %>
+
+      <%= if is_nil(@decorator_for) do %>
+        <%= hidden_input(@f_attr, :enabled) %>
+      <% else %>
+        <%= hidden_input(@f_attr, :name) %>
+      <% end %>
+
+      <div :if={is_nil(@decorator_for)}>
+        <%= label(@f_attr, :name, class: "!text-neutral-600 !font-normal") %>
+        <%= text_input(@f_attr, :name, class: "my-1") %>
         <%= error_tag(@f_attr, :name) %>
       </div>
-      <div class="ts-ignore">
-        <%= label(@f_attr, :type) %>
+      <div :if={not is_nil(@decorator_for)} class="flex justify-between items-center w-full gap-4 group" x-bind:class="{''}" x-on:click="open = !open; console.log(open)">
+        <span class={["text-sm font-medium text-gray-900 grow flex items-center gap-2", @enabled && "cursor-pointer"]}>
+          <%= @decorator_for.label %>
+          <Heroicons.plus mini class="h-5 w-5 text-gray-400" x-bind:class="{hidden: open}" :if={@enabled} />
+          <Heroicons.minus mini class="h-5 w-5 text-gray-400" x-bind:class="{hidden: !open}" :if={@enabled} />
+        </span>
+        <%= label(@f_attr, :enabled, class: "!flex items-center gap-2") do %>
+          <span class="text-xs text-neutral-500 !font-normal">Enable</span>
+          <%= checkbox(@f_attr, :enabled, "x-on:change": "open = true") %>
+        <% end %>
+      </div>
+      <div class={["ts-ignore", not @enabled && "hidden"]} x-show="open" x-transition>
+        <%= label(@f_attr, :type, class: "!text-neutral-600 !font-normal") %>
         <%= select(
           @f_attr,
           :type,
@@ -215,24 +300,24 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
           end),
           phx_debounce: 0,
           class:
-            "block shadow-sm w-full rounded border border-gray-300 py-2 pl-3 pr-10 text-base focus:border-urge-500 focus:outline-none focus:ring-urge-500 sm:text-sm"
+            "block shadow-sm w-full rounded border border-gray-300 my-1 py-2 pl-3 pr-10 text-base focus:border-urge-500 focus:outline-none focus:ring-urge-500 sm:text-sm"
         ) %>
         <p class="support">After creation, modifying an attribute's type is limited.</p>
         <%= error_tag(@f_attr, :type) %>
       </div>
-      <div>
-        <%= label(@f_attr, :description) %>
-        <%= text_input(@f_attr, :description) %>
+      <div class={[not @enabled && "hidden"]} x-show="open" x-transition>
+        <%= label(@f_attr, :description, class: "!text-neutral-600 !font-normal") %>
+        <%= text_input(@f_attr, :description, class: "my-1") %>
         <%= error_tag(@f_attr, :description) %>
         <p class="support">
           Optional. The description will be displayed when editing this attribute.
         </p>
       </div>
-      <%= if Ecto.Changeset.get_field(@f_attr.source, :type) in [:select, :multi_select] or Ecto.Changeset.get_field(@f_attr.source, :type) == nil do %>
-        <div>
-          <%= label(@f_attr, :options) %>
+      <%= if (Ecto.Changeset.get_field(@f_attr.source, :type) in [:select, :multi_select] or Ecto.Changeset.get_field(@f_attr.source, :type) == nil) do %>
+        <div class={[not @enabled && "hidden"]} x-show="open" x-transition>
+          <%= label(@f_attr, :options, class: "!text-neutral-600 !font-normal") %>
           <% id = "field-#{@f_attr.data.id}-options" %>
-          <div id={id} phx-update="ignore">
+          <div id={id} phx-update="ignore" class="my-1">
             <div id={"child-#{id}"} x-data>
               <%= textarea(@f_attr, :options_json,
                 class: "!hidden",
@@ -256,14 +341,14 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
         </div>
       <% end %>
       <%= if Ecto.Changeset.get_field(@f_attr.source, :type) == :multi_select and @f_attr.data.type == :select do %>
-        <div class="rounded-md bg-blue-50 p-4">
+        <div class={["rounded-md bg-blue-50 p-4", not @enabled && "hidden"]} x-show="open" x-transition>
           <div class="flex">
             <div class="flex-shrink-0">
               <Heroicons.information_circle mini class="h-5 w-5 text-blue-400" />
             </div>
             <div class="ml-3 flex-1 lg:flex lg:justify-between">
               <p class="text-sm text-blue-700">
-                Once you change this attribute to a multi-select, you will not be able to change it back to a single-select.
+                Once you change to a multi-select, you will not be able to change back to a single-select.
               </p>
             </div>
           </div>
@@ -542,6 +627,17 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                                     Permissions.can_edit_project_metadata?(@current_user, @project)
                                   }
                                   type="button"
+                                  phx-click="edit_decorators"
+                                  phx-target={@myself}
+                                  class="text-button text-sm"
+                                >
+                                  Decorators
+                                </button>
+                                <button
+                                  :if={
+                                    Permissions.can_edit_project_metadata?(@current_user, @project)
+                                  }
+                                  type="button"
                                   phx-click="add_attr"
                                   phx-target={@myself}
                                   class="text-button text-sm"
@@ -554,7 +650,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                           </thead>
                           <tbody class="divide-y divide-gray-200 bg-white">
                             <.inputs_for :let={f_attr} field={f[:attributes]}>
-                              <%= if f_attr.data.id do %>
+                              <%= if not is_nil(f_attr.data.id) and f_attr.data.decorator_for == "" do %>
                                 <tr x-data="{active: false}" class="group">
                                   <.attribute_table_row
                                     attr={ProjectAttribute.to_attribute(f_attr.data)}
@@ -571,7 +667,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                                   id={(@actively_editing_id || "nil") |> to_string()}
                                   js_on_close="document.cancelFormEvent($event)"
                                 >
-                                  <section class="mb-4">
+                                  <section class="mb-12">
                                     <h2 class="sec-head">Customize Attribute</h2>
                                   </section>
                                   <.edit_custom_project_attribute f_attr={f_attr} />
@@ -604,12 +700,18 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                                   </div>
                                 </.modal>
                               <% else %>
-                                <div class="hidden">
+                                <div
+                                  :if={
+                                    @actively_editing_id != :decorators ||
+                                      f_attr.data.decorator_for == ""
+                                  }
+                                  class="hidden"
+                                >
                                   <.edit_custom_project_attribute f_attr={f_attr} />
                                 </div>
                               <% end %>
                             </.inputs_for>
-                            <%= for attr <- Platform.Material.Attribute.active_attributes() |> Enum.filter(& &1.pane != :metadata && is_nil(&1.parent)) do %>
+                            <%= for attr <- get_core_attributes() do %>
                               <tr>
                                 <.attribute_table_row
                                   attr={attr}
@@ -620,6 +722,62 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                             <% end %>
                           </tbody>
                         </table>
+                        <%= if @actively_editing_id == :decorators do %>
+                          <.modal
+                            target={@myself}
+                            id="decorator_edit"
+                            js_on_close="document.cancelFormEvent($event)"
+                          >
+                            <section class="mb-4">
+                              <h2 class="sec-head">Manage Decorators</h2>
+                              <p class="sec-subhead">
+                                Decorators capture additional data for each attribute. For example, you can use decorators to associate confidence values with each attribute value.
+                              </p>
+                            </section>
+                            <div class="flex flex-col mt-12">
+                              <.inputs_for
+                                :let={f_attr}
+                                field={f[:attributes]}
+                                id="edit-decorator"
+                                skip_hidden={true}
+                              >
+                                <div
+                                  :if={Ecto.Changeset.get_field(f_attr.source, :decorator_for) != ""}
+                                  class="border-t -mx-6 px-6 py-4"
+                                >
+                                  <.edit_custom_project_attribute
+                                    f_attr={f_attr}
+                                    decorator_for={
+                                      Enum.find(
+                                        @all_attributes,
+                                        &(to_string(&1.name) ==
+                                            to_string(
+                                              Ecto.Changeset.get_field(f_attr.source, :decorator_for)
+                                            ))
+                                      )
+                                    }
+                                    allow_disable={true}
+                                    id={"edit-decorator-#{f_attr.data.decorator_for}"}
+                                  />
+                                </div>
+                              </.inputs_for>
+                            </div>
+                            <div class="flex justify-between items-center border-t -mx-6 px-6 pt-12">
+                              <div>
+                                <%= submit("Save", class: "button ~urge @high") %>
+                                <button
+                                  type="button"
+                                  phx-target={@myself}
+                                  phx-click="close_modal"
+                                  class="base-button"
+                                  x-on:click="document.cancelFormEvent"
+                                >
+                                  Cancel
+                                </button>
+                              </div>
+                            </div>
+                          </.modal>
+                        <% end %>
                       </div>
                     </div>
                   </div>
