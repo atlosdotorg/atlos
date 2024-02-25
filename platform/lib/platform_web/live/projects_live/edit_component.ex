@@ -816,7 +816,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                         </div>
                         <div class="p-4 sm:p-6 bg-white">
                           <% decorators = @all_attributes |> Enum.filter(& &1.is_decorator) %>
-                          <p class="text-sm text-neutral-600 mb-4">
+                          <p class="text-sm text-neutral-600">
                             <.decorator_description />
                             <span :if={Enum.empty?(decorators)}>
                               You have not enabled any decorators.
@@ -828,7 +828,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                           <div class="flex gap-2 flex-wrap">
                             <div
                               :for={attr <- decorators}
-                              class="px-2 py-1 text-left text-xs rounded-full border font-medium text-gray-700 bg-neutral-100"
+                              class="px-2 py-1 mt-4 text-left text-xs rounded-full border font-medium text-gray-700 bg-neutral-100"
                             >
                               <% parent =
                                 Enum.find(
