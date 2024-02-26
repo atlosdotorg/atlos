@@ -1,5 +1,5 @@
 ---
-title: Admin security features
+title: Admin security tools
 description: A guide to security features for admins on Atlos.
 weight: 5
 ---

@@ -16,6 +16,6 @@ If you don’t administer an instance of Atlos, these features are not relevant 
 {{< cards >}} 
 {{< card link="announcements/" title="Announcements" icon="speakerphone" >}} 
 {{< card link="user-management/" title="User management" icon="users" >}} 
-{{< card link="security-tools/" title="Security tools" icon="lock-closed" >}} 
+{{< card link="admin-security-tools/" title="Security tools" icon="lock-closed" >}} 
 {{< card link="invites/" title="Invites" icon="link" >}} 
 {{< /cards >}}
