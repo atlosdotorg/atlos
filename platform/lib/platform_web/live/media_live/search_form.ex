@@ -27,7 +27,7 @@ defmodule PlatformWeb.MediaLive.SearchForm do
       ["status", "geolocation", "date", "tags", "sensitive"]
       |> Enum.map(fn x ->
         at =
-          Attribute.get_attribute(String.to_existing_atom(x),
+          Attribute.get_attribute(x,
             projects:
               if(x == "tags",
                 do: Platform.Projects.list_projects_for_user(assigns.current_user),
@@ -202,9 +202,9 @@ defmodule PlatformWeb.MediaLive.SearchForm do
                 <div phx-update="ignore" id={"attr_select_#{@attr.name}_#{@id}"} class="phx-form">
                   <%= multiple_select(
                     @form,
-                    String.to_existing_atom("#{@attr_id}"),
+                    "#{@attr_id}",
                     Attribute.options(@attr) ++ if(not @attr.required, do: ["[Unset]"], else: []),
-                    selected: @form.source.changes[String.to_existing_atom("#{@attr_id}")] || [],
+                    selected: @form.source.changes["#{@attr_id}"] || [],
                     id: "attr_select_#{@attr.name}_input_#{@id}",
                     data_descriptions:
                       Jason.encode!(
@@ -278,14 +278,14 @@ defmodule PlatformWeb.MediaLive.SearchForm do
                 <div class="ts-ignore">
                   <%= select(
                     @form,
-                    String.to_existing_atom("#{@attr_id}-matchtype"),
+                    "#{@attr_id}-matchtype",
                     [Contains: :contains, Equals: :equals, "Does not Contain": :excludes],
                     class: "block input-base grow",
                     id: "#{@id}_search-form-#{@attr_id}_matchtype"
                   ) %>
                   <%= text_input(
                     @form,
-                    String.to_existing_atom("#{@attr_id}"),
+                    "#{@attr_id}",
                     class: "input-base grow mt-2",
                     "phx-debounce": "500",
                     id: "#{@id}_search-form-#{@attr_id}"
@@ -301,14 +301,22 @@ defmodule PlatformWeb.MediaLive.SearchForm do
     """
   end
 
+  defp get_change(cs, attr) do
+    Map.get(cs.changes, attr, nil)
+  end
+
+  defp get_change(cs, attr, default) do
+    Map.get(cs.changes, attr, default)
+  end
+
   defp is_active?(cs, attr) do
-    Ecto.Changeset.get_change(cs, attr.schema_field) != nil or
+    get_change(cs, attr.schema_field) != nil or
       (attr.type == :date and
-         (Ecto.Changeset.get_change(cs, :attr_date_min) != nil or
-            Ecto.Changeset.get_change(cs, :attr_date_max) != nil)) or
-      Ecto.Changeset.get_change(
+         (get_change(cs, :attr_date_min) != nil or
+            get_change(cs, :attr_date_max) != nil)) or
+      get_change(
         cs,
-        String.to_existing_atom(Material.MediaSearch.get_attrid(attr))
+        Material.MediaSearch.get_attrid(attr)
       ) != nil
   end
 
@@ -321,7 +329,7 @@ defmodule PlatformWeb.MediaLive.SearchForm do
           return source.toLowerCase().includes(query.toLowerCase());
         }
       }"
-      id={"search-form-component-#{Ecto.Changeset.get_field(@changeset, :display) |> to_string()}"}
+      id={"search-form-component-#{get_change(@changeset, :display) |> to_string()}"}
     >
       <button
         x-on:click="open = !open"
@@ -451,7 +459,7 @@ defmodule PlatformWeb.MediaLive.SearchForm do
                        |> Enum.map(fn p -> {p.code <> ": " <> p.name, p.id} end)
                        |> Enum.map(fn {name, id} -> {Utils.truncate(name, 20), id} end)),
                     id:
-                      "search-form-project-select-#{Ecto.Changeset.get_field(f.source, :project_id)}",
+                      "search-form-project-select-#{get_change(f.source, :project_id)}",
                     class:
                       "block bg-transparent w-full border-0 py-0 pl-0 pr-7 text-gray-900 placeholder-gray-500 focus:ring-0 sm:text-sm"
                   ) %>
@@ -517,7 +525,7 @@ defmodule PlatformWeb.MediaLive.SearchForm do
                       <span class="sr-only">Export Incidents</span>
                     <% end %>
                     <.link
-                      navigate={"/incidents?display=#{Ecto.Changeset.get_field(f.source, :display, "cards")}"}
+                      navigate={"/incidents?display=#{get_change(f.source, :display, "cards")}"}
                       class="rounded-full flex items-center align-center text-gray-600 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-urge-500"
                       role="menuitem"
                       data-tooltip="Reset Filters"
@@ -741,7 +749,7 @@ defmodule PlatformWeb.MediaLive.SearchForm do
                     class="relative text-left overflow-visible"
                     data-tooltip="Filter to my assignments"
                   >
-                    <%= label f, :only_assigned_id, class: "transition-all cursor-pointer flex h-8 border shadow-sm rounded-lg py-1 px-2 w-full justify-center items-center gap-x-1 text-sm text-gray-900 " <> (if Ecto.Changeset.get_field(@changeset, :only_assigned_id) == @current_user.id do
+                    <%= label f, :only_assigned_id, class: "transition-all cursor-pointer flex h-8 border shadow-sm rounded-lg py-1 px-2 w-full justify-center items-center gap-x-1 text-sm text-gray-900 " <> (if get_change(@changeset, :only_assigned_id) == @current_user.id do
                       "text-white bg-urge-500 border-urge-500"
                     else
                       "bg-white text-neutral-600"
@@ -757,7 +765,7 @@ defmodule PlatformWeb.MediaLive.SearchForm do
                     class="relative text-left overflow-visible"
                     data-tooltip="Filter to my subscriptions"
                   >
-                    <%= label f, :only_subscribed_id, class: "transition-all cursor-pointer flex h-8 border shadow-sm rounded-lg py-1 px-2 w-full justify-center items-center gap-x-1 text-sm text-gray-900 " <> (if Ecto.Changeset.get_field(@changeset, :only_subscribed_id) == @current_user.id do
+                    <%= label f, :only_subscribed_id, class: "transition-all cursor-pointer flex h-8 border shadow-sm rounded-lg py-1 px-2 w-full justify-center items-center gap-x-1 text-sm text-gray-900 " <> (if get_change(@changeset, :only_subscribed_id) == @current_user.id do
                       "text-white bg-urge-500 border-urge-500"
                     else
                       "bg-white text-neutral-600"
@@ -773,7 +781,7 @@ defmodule PlatformWeb.MediaLive.SearchForm do
                     class="relative text-left overflow-visible"
                     data-tooltip="Filter to unread notifications"
                   >
-                    <%= label f, :only_has_unread_notifications, class: "transition-all cursor-pointer flex h-8 border shadow-sm rounded-lg py-1 px-2 w-full justify-center items-center gap-x-1 text-sm text-gray-900 " <> (if Ecto.Changeset.get_field(@changeset, :only_has_unread_notifications) do
+                    <%= label f, :only_has_unread_notifications, class: "transition-all cursor-pointer flex h-8 border shadow-sm rounded-lg py-1 px-2 w-full justify-center items-center gap-x-1 text-sm text-gray-900 " <> (if get_change(@changeset, :only_has_unread_notifications) do
                       "text-white bg-urge-500 border-urge-500"
                     else
                       "bg-white text-neutral-600"

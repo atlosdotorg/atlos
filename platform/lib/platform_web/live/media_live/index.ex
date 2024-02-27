@@ -17,8 +17,8 @@ defmodule PlatformWeb.MediaLive.Index do
     changeset = Material.MediaSearch.changeset(params)
 
     display =
-      Ecto.Changeset.get_field(
-        changeset,
+      Map.get(
+        changeset.changes,
         :display,
         socket.assigns.current_user.active_incidents_tab
       )

@@ -1,6 +1,8 @@
 defmodule Platform.Material.MediaSearch do
   use Ecto.Schema
   import Ecto.Query
+  require Logger
+  alias Platform.Material.GenericSet
   alias Platform.Projects.ProjectAttribute
   alias Platform.Projects
   alias Ecto.UUID
@@ -37,6 +39,7 @@ defmodule Platform.Material.MediaSearch do
   }
 
   def changeset(params \\ %{}) do
+    Logger.debug("changest incoming params: #{inspect(params)}")
     data = %{}
 
     new_types =
@@ -57,42 +60,26 @@ defmodule Platform.Material.MediaSearch do
                 case attr.type do
                   :text ->
                     acc
-                    |> Map.put(String.to_atom(aid), :string)
-                    |> Map.put(String.to_atom("#{aid}-matchtype"), :string)
+                    |> Map.put(aid, :string)
+                    |> Map.put("#{aid}-matchtype", :string)
 
                   x when x == :multi_select or x == :select ->
-                    acc |> Map.put(String.to_atom(aid), {:array, :string})
+                    acc |> Map.put(aid, {:array, :string})
 
                   _ ->
-                    acc |> Map.put(String.to_atom(aid), :string)
+                    acc |> Map.put(aid, :string)
                 end
               end)
           end
       end
 
-    {data, new_types}
-    |> Ecto.Changeset.cast(params, Map.keys(new_types))
-    |> Ecto.Changeset.validate_change(:attr_geolocation, fn _, value ->
-      case parse_location(value) do
-        :error ->
-          [
-            attr_geolocation:
-              "Invalid location. Please enter a valid latitude and longitude, separated by a comma."
-          ]
-
-        _ ->
-          []
-      end
-    end)
-    |> Ecto.Changeset.validate_length(:query, max: 256)
-    |> Ecto.Changeset.validate_inclusion(:sort, [
-      "uploaded_desc",
-      "uploaded_asc",
-      "modified_desc",
-      "modified_asc",
-      "description_desc",
-      "description_asc"
-    ])
+      res = params |> Enum.map(fn {k, v} -> {k, Ecto.Type.cast(v, Map.get(new_types, k))} end) |> Map.new()
+      %GenericSet{
+        errors: [],
+        data: res,
+        valid?: true,
+        params: nil
+      }
   end
 
   defp parse_location(location_string) do
@@ -121,37 +108,37 @@ defmodule Platform.Material.MediaSearch do
     end
   end
 
-  defp apply_query_component(queryable, changeset, :query) do
-    case Map.get(changeset.changes, :query) do
+  defp apply_query_component(queryable, changeset, "query") do
+    case Map.get(changeset.changes, "query") do
       nil -> queryable
       query -> Media.text_search(query, queryable)
     end
   end
 
-  defp apply_query_component(queryable, changeset, :attr_status) do
-    case Map.get(changeset.changes, :attr_status) do
+  defp apply_query_component(queryable, changeset, "attr_status") do
+    case Map.get(changeset.changes, "attr_status") do
       nil -> queryable
       [] -> queryable
       query -> where(queryable, [m], m.attr_status in ^query)
     end
   end
 
-  defp apply_query_component(queryable, changeset, :attr_date_min) do
-    case Map.get(changeset.changes, :attr_date_min) do
+  defp apply_query_component(queryable, changeset, "attr_date_min") do
+    case Map.get(changeset.changes, "attr_date_min") do
       nil -> queryable
       query -> where(queryable, [m], m.attr_date >= ^query)
     end
   end
 
-  defp apply_query_component(queryable, changeset, :attr_date_max) do
-    case Map.get(changeset.changes, :attr_date_max) do
+  defp apply_query_component(queryable, changeset, "attr_date_max") do
+    case Map.get(changeset.changes, "attr_date_max") do
       nil -> queryable
       query -> where(queryable, [m], m.attr_date <= ^query)
     end
   end
 
-  defp apply_query_component(queryable, changeset, :attr_tags) do
-    case Map.get(changeset.changes, :attr_tags) do
+  defp apply_query_component(queryable, changeset, "attr_tags") do
+    case Map.get(changeset.changes, "attr_tags") do
       nil ->
         queryable
 
@@ -169,8 +156,8 @@ defmodule Platform.Material.MediaSearch do
     end
   end
 
-  defp apply_query_component(queryable, changeset, :attr_sensitive) do
-    case Map.get(changeset.changes, :attr_sensitive) do
+  defp apply_query_component(queryable, changeset, "attr_sensitive") do
+    case Map.get(changeset.changes, "attr_sensitive") do
       nil ->
         queryable
 
@@ -188,8 +175,8 @@ defmodule Platform.Material.MediaSearch do
     end
   end
 
-  defp apply_query_component(queryable, changeset, :attr_geolocation) do
-    case parse_location(Map.get(changeset.changes, :attr_geolocation)) do
+  defp apply_query_component(queryable, changeset, "attr_geolocation") do
+    case parse_location(Map.get(changeset.changes, "attr_geolocation")) do
       # Or, there must be some intersection between the two arrays
       %Geo.Point{coordinates: {lon, lat}} ->
         where(
@@ -200,7 +187,7 @@ defmodule Platform.Material.MediaSearch do
             m.attr_geolocation,
             ^lon,
             ^lat,
-            ^(Map.get(changeset.changes, :attr_geolocation_radius, 10) * (0.01 / 1.11))
+            ^(Map.get(changeset.changes, "attr_geolocation_radius", 10) * (0.01 / 1.11))
           )
         )
 
@@ -209,16 +196,16 @@ defmodule Platform.Material.MediaSearch do
     end
   end
 
-  defp apply_query_component(queryable, changeset, :project_id) do
-    case Map.get(changeset.changes, :project_id) do
+  defp apply_query_component(queryable, changeset, "project_id") do
+    case Map.get(changeset.changes, "project_id") do
       nil -> queryable
       "unset" -> where(queryable, [m], is_nil(m.project_id))
       value -> where(queryable, [m], m.project_id == ^value)
     end
   end
 
-  defp apply_query_component(queryable, changeset, :no_media_versions) do
-    case Map.get(changeset.changes, :no_media_versions, nil) do
+  defp apply_query_component(queryable, changeset, "no_media_versions") do
+    case Map.get(changeset.changes, "no_media_versions", nil) do
       nil ->
         queryable
 
@@ -244,8 +231,8 @@ defmodule Platform.Material.MediaSearch do
     end
   end
 
-  defp apply_query_component(queryable, changeset, :only_subscribed_id) do
-    case UUID.cast(Map.get(changeset.changes, :only_subscribed_id, "")) do
+  defp apply_query_component(queryable, changeset, "only_subscribed_id") do
+    case UUID.cast(Map.get(changeset.changes, "only_subscribed_id", "")) do
       :error ->
         queryable
 
@@ -256,8 +243,8 @@ defmodule Platform.Material.MediaSearch do
     end
   end
 
-  defp apply_query_component(queryable, changeset, :only_assigned_id) do
-    case UUID.cast(Map.get(changeset.changes, :only_assigned_id, "")) do
+  defp apply_query_component(queryable, changeset, "only_assigned_id") do
+    case UUID.cast(Map.get(changeset.changes, "only_assigned_id", "")) do
       :error ->
         queryable
 
@@ -268,8 +255,8 @@ defmodule Platform.Material.MediaSearch do
     end
   end
 
-  defp apply_query_component(queryable, changeset, :has_been_edited_by_id) do
-    case UUID.cast(Map.get(changeset.changes, :has_been_edited_by_id, "")) do
+  defp apply_query_component(queryable, changeset, "has_been_edited_by_id") do
+    case UUID.cast(Map.get(changeset.changes, "has_been_edited_by_id", "")) do
       :error ->
         queryable
 
@@ -291,7 +278,7 @@ defmodule Platform.Material.MediaSearch do
 
       case attr.type do
         :text ->
-          case Map.get(changeset.changes, String.to_existing_atom("#{arbitrary_key}-matchtype")) do
+          case Map.get(changeset.changes, "#{arbitrary_key}-matchtype") do
             nil ->
               queryable
 
@@ -444,7 +431,8 @@ defmodule Platform.Material.MediaSearch do
   @doc """
   Builds a composeable query given the search changeset. Returns a {queryable, pagination_opts} tuple.
   """
-  def search_query(queryable \\ Media, %Ecto.Changeset{} = cs, current_user \\ nil) do
+  def search_query(queryable \\ Media, %GenericSet{} = cs, current_user \\ nil) do
+    Logger.debug("search_query incoming changeset: #{inspect(cs)}")
     queryable =
       cs.changes
       |> Enum.reduce(queryable, fn {x, _}, acc ->
