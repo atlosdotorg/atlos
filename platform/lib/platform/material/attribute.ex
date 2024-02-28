@@ -1224,6 +1224,29 @@ defmodule Platform.Material.Attribute do
   end
 
   @doc """
+  Sometimes an attribute's label is not sufficient for disambiguating it outside
+  of a project's context. Specifically, decorator attributes may have the same
+  name as other decorator attributes within a project, but when merging data or
+  exporting data, we need to use a more specific, disambiguated name. This
+  function provides that name.
+  """
+  def standardized_label(%Attribute{} = attribute, opts \\ []) do
+    project = Keyword.get(opts, :project, nil)
+
+    if attribute.is_decorator == true do
+      if is_nil(project) do
+        raise "project is required for decorator attributes"
+      end
+
+      parent = get_attribute(attribute.parent, project: project)
+
+      "#{parent.label} - #{attribute.label}"
+    else
+      attribute.label
+    end
+  end
+
+  @doc """
   Checks whether the attribute allows user-defined options (i.e., custom new options).
   """
   def allow_user_defined_options(%Attribute{allow_user_defined_options: true}) do

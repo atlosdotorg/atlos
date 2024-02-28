@@ -23,10 +23,6 @@ defmodule PlatformWeb.ExportController do
       Attribute.attributes(project: media.project)
       |> Enum.filter(&(&1.schema_field == :project_attributes))
 
-    name_for_custom_attribute = fn attr ->
-      "#{attr.label}"
-    end
-
     field_list =
       (media
        |> Map.put(:latitude, lat)
@@ -44,7 +40,7 @@ defmodule PlatformWeb.ExportController do
        end)) ++
         (custom_attributes
          |> Enum.map(fn attr ->
-           {name_for_custom_attribute.(attr),
+           {Platform.Material.Attribute.standardized_label(attr, project: media.project),
             Material.get_attribute_value(media, attr, format_dates: true)}
          end)) ++
         (media.versions
@@ -52,7 +48,11 @@ defmodule PlatformWeb.ExportController do
          |> Enum.with_index(1)
          |> Enum.map(fn {item, idx} -> {"source_" <> to_string(idx), item.source_url} end))
 
-    custom_attribute_names = custom_attributes |> Enum.map(name_for_custom_attribute)
+    custom_attribute_names =
+      custom_attributes
+      |> Enum.map(fn x ->
+        Platform.Material.Attribute.standardized_label(x, project: media.project)
+      end)
 
     {field_list
      |> Enum.filter(fn {k, _v} ->
