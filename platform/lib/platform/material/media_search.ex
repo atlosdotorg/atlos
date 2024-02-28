@@ -16,30 +16,28 @@ defmodule Platform.Material.MediaSearch do
   #   - Sort by
   #   - Display (used by views)
   @types %{
-    query: :string,
-    sort: :string,
-    attr_status: {:array, :string},
-    attr_tags: {:array, :string},
-    attr_sensitive: {:array, :string},
-    attr_date_min: :date,
-    attr_date_max: :date,
-    attr_geolocation: :string,
-    attr_geolocation_radius: :integer,
-    project_id: :string,
-    no_media_versions: :boolean,
-    # User id
-    only_subscribed_id: :string,
-    # User id
-    only_assigned_id: :string,
-    # User id
-    has_been_edited_by_id: :string,
-    only_has_unread_notifications: :boolean,
-    display: :string,
-    deleted: :boolean
+    :query => :string,
+    :sort => :string,
+    "attr_status" => {:array, :string},
+    "attr_tags" => {:array, :string},
+    "attr_sensitive" => {:array, :string},
+    "attr_date_min" => :date,
+    "attr_date_max" => :date,
+    "attr_geolocation" => :string,
+    "attr_geolocation_radius" => :integer,
+    :project_id => :string,
+    :no_media_versions => :boolean,
+    :only_subscribed_id => :string,
+    :only_assigned_id => :string,
+    :has_been_edited_by_id => :string,
+    :only_has_unread_notifications  => :boolean,
+    :display => :string,
+    :deleted => :boolean
   }
 
+
   def changeset(params \\ %{}) do
-    Logger.debug("changest incoming params: #{inspect(params)}")
+    Logger.debug("changset incoming params: #{inspect(params)}")
     data = %{}
 
     new_types =
@@ -55,7 +53,9 @@ defmodule Platform.Material.MediaSearch do
             project ->
               Enum.reduce(project.attributes, @types, fn pattr, acc ->
                 attr = ProjectAttribute.to_attribute(pattr)
-                aid = get_attrid(attr)
+                aid = pattr.id
+                Logger.debug("Processing Attribute: #{inspect(attr)}")
+                Logger.debug("acc: #{inspect(acc)}")
 
                 case attr.type do
                   :text ->
@@ -72,10 +72,30 @@ defmodule Platform.Material.MediaSearch do
               end)
           end
       end
+      Logger.debug("Types: #{inspect(new_types)}")
 
-      res = params |> Enum.map(fn {k, v} -> {k, Ecto.Type.cast(v, Map.get(new_types, k))} end) |> Map.new()
+      res = params |> Enum.map(fn {k, v} ->
+        Logger.debug("Casting: #{inspect(k)} -> #{inspect(v)} : #{inspect(Map.get(new_types, k))}")
+        cst_key = cond do
+          Map.has_key?(new_types, k) -> k
+          Map.has_key?(new_types, String.to_existing_atom(k)) -> String.to_existing_atom(k)
+          true -> nil
+        end
+
+        if cst_key && v != "" do
+          case Ecto.Type.cast(Map.get(new_types, cst_key), v) do
+            {:ok, res} -> {cst_key, res}
+            _ -> {cst_key, nil}
+          end
+        else {k, nil}
+        end
+      end) |> Map.new()
+
+      Logger.debug("Casted: #{inspect(res)}")
+
       %GenericSet{
         errors: [],
+        changes: res,
         data: res,
         valid?: true,
         params: nil
@@ -108,14 +128,16 @@ defmodule Platform.Material.MediaSearch do
     end
   end
 
-  defp apply_query_component(queryable, changeset, "query") do
-    case Map.get(changeset.changes, "query") do
+  defp apply_query_component(queryable, changeset, :query) do
+    Logger.debug("Applying query component: #{inspect(changeset)}")
+    case Map.get(changeset.changes, :query) do
       nil -> queryable
       query -> Media.text_search(query, queryable)
     end
   end
 
   defp apply_query_component(queryable, changeset, "attr_status") do
+    Logger.debug("Applying query component: #{inspect(changeset)}")
     case Map.get(changeset.changes, "attr_status") do
       nil -> queryable
       [] -> queryable
@@ -124,6 +146,7 @@ defmodule Platform.Material.MediaSearch do
   end
 
   defp apply_query_component(queryable, changeset, "attr_date_min") do
+    Logger.debug("Applying query component: #{inspect(changeset)}")
     case Map.get(changeset.changes, "attr_date_min") do
       nil -> queryable
       query -> where(queryable, [m], m.attr_date >= ^query)
@@ -131,6 +154,7 @@ defmodule Platform.Material.MediaSearch do
   end
 
   defp apply_query_component(queryable, changeset, "attr_date_max") do
+    Logger.debug("Applying query component: #{inspect(changeset)}")
     case Map.get(changeset.changes, "attr_date_max") do
       nil -> queryable
       query -> where(queryable, [m], m.attr_date <= ^query)
@@ -138,6 +162,7 @@ defmodule Platform.Material.MediaSearch do
   end
 
   defp apply_query_component(queryable, changeset, "attr_tags") do
+    Logger.debug("Applying query component: #{inspect(changeset)}")
     case Map.get(changeset.changes, "attr_tags") do
       nil ->
         queryable
@@ -157,6 +182,7 @@ defmodule Platform.Material.MediaSearch do
   end
 
   defp apply_query_component(queryable, changeset, "attr_sensitive") do
+    Logger.debug("Applying query component: #{inspect(changeset)}")
     case Map.get(changeset.changes, "attr_sensitive") do
       nil ->
         queryable
@@ -176,6 +202,7 @@ defmodule Platform.Material.MediaSearch do
   end
 
   defp apply_query_component(queryable, changeset, "attr_geolocation") do
+    Logger.debug("Applying query component: #{inspect(changeset)}")
     case parse_location(Map.get(changeset.changes, "attr_geolocation")) do
       # Or, there must be some intersection between the two arrays
       %Geo.Point{coordinates: {lon, lat}} ->
@@ -196,16 +223,20 @@ defmodule Platform.Material.MediaSearch do
     end
   end
 
-  defp apply_query_component(queryable, changeset, "project_id") do
-    case Map.get(changeset.changes, "project_id") do
+  defp apply_query_component(queryable, changeset, :project_id) do
+    Logger.debug("Applying query component: #{inspect(changeset)}")
+    case Map.get(changeset.changes, :project_id) do
       nil -> queryable
       "unset" -> where(queryable, [m], is_nil(m.project_id))
-      value -> where(queryable, [m], m.project_id == ^value)
+      value ->
+        Logger.debug("Project ID: #{inspect(value)}")
+        where(queryable, [m], m.project_id == ^value)
     end
   end
 
-  defp apply_query_component(queryable, changeset, "no_media_versions") do
-    case Map.get(changeset.changes, "no_media_versions", nil) do
+  defp apply_query_component(queryable, changeset, :no_media_versions) do
+    Logger.debug("Applying query component: #{inspect(changeset)}")
+    case Map.get(changeset.changes, :no_media_versions, nil) do
       nil ->
         queryable
 
@@ -231,8 +262,9 @@ defmodule Platform.Material.MediaSearch do
     end
   end
 
-  defp apply_query_component(queryable, changeset, "only_subscribed_id") do
-    case UUID.cast(Map.get(changeset.changes, "only_subscribed_id", "")) do
+  defp apply_query_component(queryable, changeset, :only_subscribed_id) do
+    Logger.debug("Applying query component: #{inspect(changeset)}")
+    case UUID.cast(Map.get(changeset.changes, :only_subscribed_id, "")) do
       :error ->
         queryable
 
@@ -243,8 +275,9 @@ defmodule Platform.Material.MediaSearch do
     end
   end
 
-  defp apply_query_component(queryable, changeset, "only_assigned_id") do
-    case UUID.cast(Map.get(changeset.changes, "only_assigned_id", "")) do
+  defp apply_query_component(queryable, changeset, :only_assigned_id) do
+    Logger.debug("Applying query component: #{inspect(changeset)}")
+    case UUID.cast(Map.get(changeset.changes, :only_assigned_id, "")) do
       :error ->
         queryable
 
@@ -255,8 +288,9 @@ defmodule Platform.Material.MediaSearch do
     end
   end
 
-  defp apply_query_component(queryable, changeset, "has_been_edited_by_id") do
-    case UUID.cast(Map.get(changeset.changes, "has_been_edited_by_id", "")) do
+  defp apply_query_component(queryable, changeset, :has_been_edited_by_id) do
+    Logger.debug("Applying query component: #{inspect(changeset)}")
+    case UUID.cast(Map.get(changeset.changes, :has_been_edited_by_id, "")) do
       :error ->
         queryable
 
@@ -267,7 +301,12 @@ defmodule Platform.Material.MediaSearch do
     end
   end
 
+  defp apply_query_component(queryable, _changeset, arbitrary_key) when is_atom(arbitrary_key) do
+    queryable
+  end
+
   defp apply_query_component(queryable, changeset, arbitrary_key) do
+    Logger.debug("Applying query component: #{inspect(changeset)} : #{inspect(arbitrary_key)}")
     # Filters for project attributes
     with rel_changes when not is_nil(rel_changes) <- Map.get(changeset.changes, arbitrary_key),
          project_id <- Map.get(changeset.changes, :project_id),
@@ -374,6 +413,7 @@ defmodule Platform.Material.MediaSearch do
   # end
 
   defp apply_query_component(queryable, changeset, :only_has_unread_notifications, current_user) do
+    Logger.debug("Applying query component: #{inspect(changeset)}")
     case Map.get(changeset.changes, :only_has_unread_notifications, false) and
            not is_nil(current_user) do
       false ->

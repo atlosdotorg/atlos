@@ -218,7 +218,7 @@ defmodule PlatformWeb.MediaLive.SearchForm do
                   <div class="flex flex-col gap-2 items-center ts-ignore">
                     <%= text_input(
                       @form,
-                      :attr_geolocation,
+                      "attr_geolocation",
                       class: "input-base grow",
                       placeholder: "Latitude, Longitude",
                       "phx-debounce": "500",
@@ -227,7 +227,7 @@ defmodule PlatformWeb.MediaLive.SearchForm do
                     <span class="text-gray-600 text-sm">within</span>
                     <%= select(
                       @form,
-                      :attr_geolocation_radius,
+                      "attr_geolocation_radius",
                       [
                         {"1 km", 1},
                         {"5 km", 5},
@@ -248,7 +248,7 @@ defmodule PlatformWeb.MediaLive.SearchForm do
                     Input the location in the format: <code>latitude, longitude</code>
                   </p>
                   <p class="support text-critical-600">
-                    <%= error_tag(@form, :attr_geolocation) %>
+                    <%= error_tag(@form, "attr_geolocation") %>
                   </p>
                 </div>
               <% :date -> %>
@@ -256,7 +256,7 @@ defmodule PlatformWeb.MediaLive.SearchForm do
                   <div class="flex gap-2 items-center">
                     <%= date_input(
                       @form,
-                      :attr_date_min,
+                      "attr_date_min",
                       id: "#{@id}_search-form-date-min",
                       class: "input-base inline-flex items-center",
                       phx_debounce: 2000
@@ -264,7 +264,7 @@ defmodule PlatformWeb.MediaLive.SearchForm do
                     <span class="text-sm text-gray-600">until</span>
                     <%= date_input(
                       @form,
-                      :attr_date_max,
+                      "attr_date_max",
                       id: "#{@id}_search-form-date-max",
                       class: "input-base inline-flex items-center",
                       phx_debounce: 2000

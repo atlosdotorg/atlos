@@ -51,7 +51,7 @@ defmodule Platform.Material.GenericSet do
       end
     end
 
-    @impl.true
+    @impl true
     def input_value(%{action: parent_action} = source, form, field, opts) do
       if Keyword.has_key?(opts, :default) do
         raise ArgumentError,
@@ -63,7 +63,51 @@ defmodule Platform.Material.GenericSet do
       {append, opts} = Keyword.pop(opts, :append, [])
       {name, opts} = Keyword.pop(opts, :as)
       {id, opts} = Keyword.pop(opts, :id)
-      # TODO
+      {default, opts} = Keyword.pop(opts, :default, %{})
+
+      id = to_string(id || form.id <> "_#{field}")
+      name = to_string(name || form.name <> "[#{field}]")
+      params = Map.get(form.params, field)
+
+      cond do
+        is_map(default) ->
+          [
+            %Phoenix.HTML.Form{
+              source: source,
+              impl: __MODULE__,
+              id: id,
+              name: name,
+              data: default,
+              params: params || %{},
+              options: opts
+            }
+          ]
+
+        is_list(default) ->
+          entries =
+            if params do
+              params
+              |> Enum.sort_by(&elem(&1, 0))
+              |> Enum.map(&{nil, elem(&1, 1)})
+            else
+              Enum.map(prepend ++ default ++ append, &{&1, %{}})
+            end
+
+          for {{data, params}, index} <- Enum.with_index(entries) do
+            index_string = Integer.to_string(index)
+
+            %Phoenix.HTML.Form{
+              source: source,
+              impl: __MODULE__,
+              index: index,
+              id: id <> "_" <> index_string,
+              name: name <> "[" <> index_string <> "]",
+              data: data,
+              params: params,
+              options: opts
+            }
+        end
+      end
     end
 
     @impl true

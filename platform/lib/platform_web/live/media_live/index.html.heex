@@ -297,7 +297,7 @@
             end) %>
           <% nongeolocated_length = length(@media) - length(map_data) %>
           <div class="flex justify-around">
-            <%= if Ecto.Changeset.get_change(@changeset, :query) != nil and nongeolocated_length > 0 do %>
+            <%= if Map.get(@changeset.changes, :query) != nil and nongeolocated_length > 0 do %>
               <button
                 class="relative text-sm focus:outline shadow md:-mt-4 z-[10] bg-white py-2 px-4 rounded-full text-center mx-auto text-neutral-600"
                 type="button"
