@@ -1,5 +1,4 @@
 defmodule PlatformWeb.MediaLive.Index do
-  require Logger
   alias Platform.Material.Media
   use PlatformWeb, :live_view
   alias Platform.Material
@@ -22,12 +21,10 @@ defmodule PlatformWeb.MediaLive.Index do
         :display,
         socket.assigns.current_user.active_incidents_tab
       )
-    Logger.debug("checkpoint")
 
     if not Enum.member?(["map", "cards", "table"], display) do
       raise PlatformWeb.Errors.NotFound, "Display type not found"
     end
-    Logger.debug("checkpoint")
 
     active_project = Platform.Projects.get_project(params["project_id"])
 
@@ -38,7 +35,6 @@ defmodule PlatformWeb.MediaLive.Index do
       )
 
     membership_id = if is_nil(membership), do: nil, else: membership.id
-    Logger.debug("checkpoint")
 
     # Update the user's prefered incident display, if necessary
     Task.start(fn ->
@@ -49,19 +45,16 @@ defmodule PlatformWeb.MediaLive.Index do
         active_incidents_tab_params_time: NaiveDateTime.utc_now()
       })
     end)
-    Logger.debug("checkpoint")
 
     # Pull cursor information from params
     before_cursor = params["bc"]
     after_cursor = params["ac"]
     pagination_index = (params["pi"] || "0") |> String.to_integer()
-    Logger.debug("checkpoint")
 
     search_keywords = [
       limit: if(display == "map", do: 100_000, else: 51),
       hydrate: display != "map"
     ]
-    Logger.debug("checkpoint")
 
     search_keywords =
       if not is_nil(before_cursor) and not (String.length(before_cursor) == 0) do
@@ -69,7 +62,6 @@ defmodule PlatformWeb.MediaLive.Index do
       else
         search_keywords
       end
-    Logger.debug("checkpoint")
 
     search_keywords =
       if not is_nil(after_cursor) and not (String.length(after_cursor) == 0) do
@@ -77,7 +69,6 @@ defmodule PlatformWeb.MediaLive.Index do
       else
         search_keywords
       end
-    Logger.debug("checkpoint")
 
     results =
       search_media(
@@ -86,8 +77,6 @@ defmodule PlatformWeb.MediaLive.Index do
         # Ideally we would put these params in search_media, but since this is map-specific logic, it'll only be called here (it's not possible to "load more" on the map)
         search_keywords
       )
-
-    Logger.debug("checkpoint")
 
     socket
     |> assign(
@@ -133,9 +122,7 @@ defmodule PlatformWeb.MediaLive.Index do
   def handle_params(params, _uri, socket) do
     # Wrap and catch CastErrors, in which case we put a flash and redirect to /incidents
     try do
-      Logger.debug("checkpoint")
       res = {:noreply, handle_params_internal(params, socket)}
-      Logger.debug("checkpoint")
       res
     rescue
       error ->
