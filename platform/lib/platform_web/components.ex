@@ -1806,9 +1806,7 @@ defmodule PlatformWeb.Components do
     ~H"""
     <span>
       <span class="font-medium">
-        <%= if @attr.schema_field == :project_attributes,
-          do: String.downcase(@attr.label),
-          else: @attr.name |> to_string() %>
+        <%= Attribute.standardized_label(@attr, project: @project) %>
       </span>
       &mdash;
       <%= case @attr.type do %>

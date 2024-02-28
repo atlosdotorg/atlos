@@ -1242,7 +1242,7 @@ defmodule Platform.Material.Attribute do
 
       "#{parent.label} - #{attribute.label}"
     else
-      attribute.label
+      attribute.label |> to_string()
     end
   end
 

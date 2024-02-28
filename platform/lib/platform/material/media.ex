@@ -312,9 +312,10 @@ defmodule Platform.Material.Media do
       Enum.map(attrs, fn {k, v} ->
         attr =
           Enum.find(possible_attrs, fn a ->
-            # We allow the user to use the schema field, the attribute name, or the label
+            # We allow the user to use the schema field, the attribute name, or the standardized name
             to_string(a.schema_field) == k or to_string(a.schema_field) == "attr_" <> k or
-              String.downcase(a.label) == String.downcase(k)
+              String.downcase(Attribute.standardized_label(a, project: project)) ==
+                String.downcase(k)
           end)
 
         if is_nil(attr) do
