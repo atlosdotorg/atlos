@@ -9,7 +9,5 @@ defmodule Platform.Material.MediaSearchMap do
   def changeset(params \\ %{}) do
     data = %{}
     errors = []
-
   end
-
 end

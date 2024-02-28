@@ -458,8 +458,7 @@ defmodule PlatformWeb.MediaLive.SearchForm do
                       (Platform.Projects.list_projects_for_user(@current_user)
                        |> Enum.map(fn p -> {p.code <> ": " <> p.name, p.id} end)
                        |> Enum.map(fn {name, id} -> {Utils.truncate(name, 20), id} end)),
-                    id:
-                      "search-form-project-select-#{get_change(f.source, :project_id)}",
+                    id: "search-form-project-select-#{get_change(f.source, :project_id)}",
                     class:
                       "block bg-transparent w-full border-0 py-0 pl-0 pr-7 text-gray-900 placeholder-gray-500 focus:ring-0 sm:text-sm"
                   ) %>

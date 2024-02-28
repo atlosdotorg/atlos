@@ -4,6 +4,7 @@ defmodule Platform.Material.GenericSet do
   Implementation references https://github.com/phoenixframework/phoenix_ecto/blob/223bdb6aa38831817602a2a5a844f1b5494955df/lib/phoenix_ecto/html.ex#L4
   """
   alias __MODULE__
+
   defstruct changes: %{},
             errors: [],
             data: %{},
@@ -106,7 +107,7 @@ defmodule Platform.Material.GenericSet do
               params: params,
               options: opts
             }
-        end
+          end
       end
     end
 

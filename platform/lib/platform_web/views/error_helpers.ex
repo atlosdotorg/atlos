@@ -20,9 +20,10 @@ defmodule PlatformWeb.ErrorHelpers do
   def error_tag(form, field) when is_binary(field) do
     form_errors = form.errors || []
 
-    field_errors = form_errors
-    |> Enum.filter(fn {key, _value} -> key == field end)
-    |> Enum.map(fn {_key, value} -> value end)
+    field_errors =
+      form_errors
+      |> Enum.filter(fn {key, _value} -> key == field end)
+      |> Enum.map(fn {_key, value} -> value end)
 
     Enum.map(field_errors, fn error ->
       content_tag(:span, translate_error(error),

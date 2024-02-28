@@ -30,11 +30,10 @@ defmodule Platform.Material.MediaSearch do
     :only_subscribed_id => :string,
     :only_assigned_id => :string,
     :has_been_edited_by_id => :string,
-    :only_has_unread_notifications  => :boolean,
+    :only_has_unread_notifications => :boolean,
     :display => :string,
     :deleted => :boolean
   }
-
 
   def changeset(params \\ %{}) do
     data = %{}
@@ -53,6 +52,7 @@ defmodule Platform.Material.MediaSearch do
               Enum.reduce(project.attributes, @types, fn pattr, acc ->
                 attr = ProjectAttribute.to_attribute(pattr)
                 aid = pattr.id
+
                 case attr.type do
                   :text ->
                     acc
@@ -69,29 +69,34 @@ defmodule Platform.Material.MediaSearch do
           end
       end
 
-      res = params |> Enum.map(fn {k, v} ->
-        cst_key = cond do
-          Map.has_key?(new_types, k) -> k
-          Map.has_key?(new_types, String.to_existing_atom(k)) -> String.to_existing_atom(k)
-          true -> nil
-        end
+    res =
+      params
+      |> Enum.map(fn {k, v} ->
+        cst_key =
+          cond do
+            Map.has_key?(new_types, k) -> k
+            Map.has_key?(new_types, String.to_existing_atom(k)) -> String.to_existing_atom(k)
+            true -> nil
+          end
 
         if cst_key && v != "" do
           case Ecto.Type.cast(Map.get(new_types, cst_key), v) do
             {:ok, res} -> {cst_key, res}
             _ -> {cst_key, nil}
           end
-        else {k, nil}
+        else
+          {k, nil}
         end
-      end) |> Map.new()
+      end)
+      |> Map.new()
 
-      %GenericSet{
-        errors: [],
-        changes: res,
-        data: res,
-        valid?: true,
-        params: nil
-      }
+    %GenericSet{
+      errors: [],
+      changes: res,
+      data: res,
+      valid?: true,
+      params: nil
+    }
   end
 
   defp parse_location(location_string) do
@@ -210,8 +215,12 @@ defmodule Platform.Material.MediaSearch do
 
   defp apply_query_component(queryable, changeset, :project_id) do
     case Map.get(changeset.changes, :project_id) do
-      nil -> queryable
-      "unset" -> where(queryable, [m], is_nil(m.project_id))
+      nil ->
+        queryable
+
+      "unset" ->
+        where(queryable, [m], is_nil(m.project_id))
+
       value ->
         where(queryable, [m], m.project_id == ^value)
     end
