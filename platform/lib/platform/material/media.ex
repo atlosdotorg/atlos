@@ -441,6 +441,8 @@ defimpl Jason.Encoder, for: Platform.Material.Media do
   def insert_custom_attributes(map, %Platform.Material.Media{} = media) do
     project_attributes = if is_nil(media.project), do: [], else: media.project.attributes
 
+    project_attributes = Enum.filter(project_attributes, & &1.enabled)
+
     values =
       Enum.map(project_attributes, fn attr ->
         %{

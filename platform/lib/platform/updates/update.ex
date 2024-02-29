@@ -197,8 +197,11 @@ defimpl Jason.Encoder, for: Platform.Updates.Update do
             {:error, _} -> {:new_value, value}
           end
 
-        {key, %Ecto.Association.NotLoaded{}} -> {key, nil}
-        {key, value} -> {key, value}
+        {key, %Ecto.Association.NotLoaded{}} ->
+          {key, nil}
+
+        {key, value} ->
+          {key, value}
       end),
       opts
     )

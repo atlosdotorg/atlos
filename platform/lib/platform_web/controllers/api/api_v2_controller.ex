@@ -80,13 +80,20 @@ defmodule PlatformWeb.APIV2Controller do
   def incidents(conn, params) do
     project_id = conn.assigns.token.project_id
 
+    base_query =
+      from(m in Material.Media,
+        where: m.project_id == ^project_id
+      )
+
+    search_changeset = Material.MediaSearch.changeset(params)
+
+    {query, pagination_options} =
+      Material.MediaSearch.search_query(base_query, search_changeset)
+
     pagination_api(conn, params, fn opts ->
       Material.query_media_paginated(
-        from(m in Material.Media,
-          where: m.project_id == ^project_id,
-          order_by: [desc: m.inserted_at]
-        ),
-        opts
+        query,
+        Keyword.merge(pagination_options, opts)
       )
     end)
   end
@@ -133,7 +140,8 @@ defmodule PlatformWeb.APIV2Controller do
       end
 
     cond do
-      (not is_nil(media_slug) and is_nil(media)) or (not is_nil(media) and media.project_id != project_id) ->
+      (not is_nil(media_slug) and is_nil(media)) or
+          (not is_nil(media) and media.project_id != project_id) ->
         conn |> put_status(401) |> json(%{error: "media not found"})
 
       not Permissions.can_api_token_read_updates?(conn.assigns.token) ->

@@ -31,7 +31,7 @@ The Atlos API supports `GET` and `POST` endpoints. All `GET` endpoints return 30
 You can paginate using the `cursor` query parameter, whose value is provided by the `next` and `previous` keys in the response. Results are available under the `results` key.
 
 ### Get incidents
-`GET /api/v2/incidents` returns all incidents, with the most recently modified incidents listed first.
+`GET /api/v2/incidents` returns all incidents, with the most recently modified incidents listed first. You can optionally pass search parameters to filter the results using the same format as the in-platform incident search page's URL. For example, to only return incidents with the status "To Do" or "Cancelled", you would query `/api/v2/incidents?attr_status[]=To+Do&attr_status=Cancelled`.
 
 ### Get source material
 `GET /api/v2/source_material` returns all source material, with the most recently modified source material listed first.
