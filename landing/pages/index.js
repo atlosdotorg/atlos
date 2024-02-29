@@ -69,9 +69,9 @@ export default function Home() {
               <a href='https://brown.stanford.edu'>
                 <Image src="/brown.png" alt="The logo of the Brown Institute for Media Innovation at Stanford" height={141 / 3} width={520 / 3} />
               </a>
-              {/* <a href='https://bellingcat.com/'>
+              <a href='https://bellingcat.com/'>
                 <Image src="/bellingcat.svg" alt="The logo of Bellingcat" height={150 / 3} width={520 / 3} />
-              </a> */}
+              </a>
             </div>
           </section>
           <section className="lg:-mx-32">
