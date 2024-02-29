@@ -280,8 +280,8 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
           x-on:click={"if (#{@enabled}) { open = !open; console.log('toggling', open) }"}
         >
           <%= @decorator_for.label %>
-          <Heroicons.minus :if={@enabled} mini class="h-5 w-5 text-gray-400" x-show="open" />
-          <Heroicons.plus :if={@enabled} mini class="h-5 w-5 text-gray-400" x-show="!open" />
+          <Heroicons.minus :if={@enabled} mini class="h-5 w-5 text-urge-600" x-show="open" />
+          <Heroicons.plus :if={@enabled} mini class="h-5 w-5 text-urge-600" x-show="!open" />
         </span>
         <%= label(@f_attr, :enabled, class: "!flex items-center gap-2") do %>
           <span class="text-xs text-neutral-500 !font-normal">Enable</span>
