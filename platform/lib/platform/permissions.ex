@@ -5,6 +5,7 @@ defmodule Platform.Permissions do
 
   use Memoize
 
+  alias Platform.Updates
   alias Platform.Material
   alias Platform.Accounts
   alias Platform.Accounts.User
@@ -76,8 +77,12 @@ defmodule Platform.Permissions do
 
   def can_edit_project_api_tokens?(%User{} = user, %Project{} = project) do
     case Projects.get_project_membership_by_user_and_project(user, project) do
-      %Projects.ProjectMembership{role: :owner} -> true
-      _ -> false
+      %Projects.ProjectMembership{role: :owner} ->
+        not Platform.Billing.is_enabled?() or
+          (Platform.Billing.is_enabled?() and Platform.Billing.get_user_plan(user).allowed_api)
+
+      _ ->
+        false
     end
   end
 
@@ -95,6 +100,10 @@ defmodule Platform.Permissions do
     else
       _ -> false
     end
+  end
+
+  def can_api_token_read_updates?(%APIToken{} = token) do
+    Enum.member?(token.permissions, :read) and token.is_active
   end
 
   def can_api_token_post_comment?(%APIToken{} = token, %Media{} = media) do
@@ -211,19 +220,6 @@ defmodule Platform.Permissions do
     end
   end
 
-  defp filter_to_users_with_roles(media_list, %User{} = user, necessary_roles)
-       when is_list(media_list) and is_list(necessary_roles) do
-    user_memberships =
-      Projects.get_users_project_memberships(user)
-      |> Enum.into(%{}, fn membership -> {membership.project_id, membership} end)
-
-    media_list
-    |> Enum.filter(fn media ->
-      membership = user_memberships[media.project_id]
-      not is_nil(membership) and Enum.member?(necessary_roles, membership.role)
-    end)
-  end
-
   @doc """
   Equivalent to `can_view_media?`, but takes a list of media instead of a single
   media. Helpful for filtering lists of media and avoiding n+1 queries.
@@ -239,11 +235,20 @@ defmodule Platform.Permissions do
     media_list |> Enum.filter(&can_view_media?(user, &1, user_memberships[&1.project_id]))
   end
 
+  defmemo has_hit_edit_limit(%User{} = user), expires_in: 1000 do
+    if not Platform.Billing.is_enabled?() do
+      false
+    else
+      Platform.Billing.has_user_exceeded_edit_limit?(user)
+    end
+  end
+
   def can_edit_media?(%User{} = user, %Media{} = media) do
     # This includes uploading new media versions as well as editing attributes.
     membership = Projects.get_project_membership_by_user_and_project_id(user, media.project_id)
 
     with true <- _is_media_editable?(media),
+         false <- has_hit_edit_limit(user),
          true <- can_view_media?(user, media),
          true <- not is_nil(membership) or is_nil(media.project_id),
          false <- Enum.member?(user.restrictions || [], :muted),

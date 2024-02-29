@@ -16,7 +16,7 @@ alias Platform.Material
 
 {:ok, regular} =
   Accounts.register_user(%{
-    email: "user@localhost",
+    email: "user@localhost.com",
     invite_code: Accounts.get_valid_invite_code(),
     username: "user",
     password: "localhost123"
@@ -24,7 +24,7 @@ alias Platform.Material
 
 {:ok, muted} =
   Accounts.register_user(%{
-    email: "muted@localhost",
+    email: "muted@localhost.com",
     invite_code: Accounts.get_valid_invite_code(),
     username: "muted",
     password: "localhost123"
@@ -32,7 +32,7 @@ alias Platform.Material
 
 {:ok, suspended} =
   Accounts.register_user(%{
-    email: "suspended@localhost",
+    email: "suspended@localhost.com",
     username: "suspended",
     password: "localhost123",
     invite_code: Accounts.get_valid_invite_code()
@@ -41,7 +41,7 @@ alias Platform.Material
 {:ok, admin} =
   Accounts.register_user(
     %{
-      email: "admin@localhost",
+      email: "admin@localhost.com",
       username: "admin",
       password: "localhost123",
       roles: [:admin],

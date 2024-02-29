@@ -23,10 +23,6 @@ defmodule PlatformWeb.ExportController do
       Attribute.attributes(project: media.project)
       |> Enum.filter(&(&1.schema_field == :project_attributes))
 
-    name_for_custom_attribute = fn attr ->
-      "#{attr.label}"
-    end
-
     field_list =
       (media
        |> Map.put(:latitude, lat)
@@ -44,7 +40,7 @@ defmodule PlatformWeb.ExportController do
        end)) ++
         (custom_attributes
          |> Enum.map(fn attr ->
-           {name_for_custom_attribute.(attr),
+           {Platform.Material.Attribute.standardized_label(attr, project: media.project),
             Material.get_attribute_value(media, attr, format_dates: true)}
          end)) ++
         (media.versions
@@ -52,7 +48,11 @@ defmodule PlatformWeb.ExportController do
          |> Enum.with_index(1)
          |> Enum.map(fn {item, idx} -> {"source_" <> to_string(idx), item.source_url} end))
 
-    custom_attribute_names = custom_attributes |> Enum.map(name_for_custom_attribute)
+    custom_attribute_names =
+      custom_attributes
+      |> Enum.map(fn x ->
+        Platform.Material.Attribute.standardized_label(x, project: media.project)
+      end)
 
     {field_list
      |> Enum.filter(fn {k, _v} ->
@@ -151,6 +151,17 @@ defmodule PlatformWeb.ExportController do
     project_id = Map.get(params, "project_id")
     project = Projects.get_project!(project_id)
 
+    readme_content = """
+    This folder contains a comprehensive copy of the project "#{project.name}" and contains several different types of files and folders. This folder is organized as follows:
+
+    - project.json includes general information about the project, including its name, description, and code; its attributes, their descriptions, types, and values; and whether or not the project is archived.
+    - Each folder contains a single incident's data, which contains a metadata.json file, an updates.json file, and folders for each piece of source material.
+    - The incident-level metadata.json file contains information about the incident's source material, including each file's hashes.
+    - The incident-level updates.json file is a log of each update made to an incident, including who changed what data at what time.
+    - Each piece of source material has a folder which contains visual media and a metadata.json file.
+    - The source material-level metadata.json file contains information about the source material, including its hashes and source URL.
+    """
+
     {full_query, _} = MediaSearch.search_query(c)
     final_query = MediaSearch.filter_viewable(full_query, conn.assigns.current_user)
 
@@ -190,7 +201,10 @@ defmodule PlatformWeb.ExportController do
             ])
           ])
         end),
-        [Zstream.entry("#{root_folder_name}/project.json", [Jason.encode!(project)])]
+        [
+          Zstream.entry("#{root_folder_name}/project.json", [Jason.encode!(project)])
+        ],
+        [Zstream.entry("#{root_folder_name}/README.txt", [readme_content])]
       ])
       |> Zstream.zip()
 

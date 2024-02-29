@@ -11,6 +11,9 @@ defmodule Platform.Projects.ProjectAttribute do
     field(:description, :string, default: "")
     field(:type, Ecto.Enum, values: [:select, :text, :date, :multi_select])
     field(:options, {:array, :string}, default: [])
+    # empty string if not a decorator
+    field(:decorator_for, :string, default: "")
+    field(:enabled, :boolean, default: true)
 
     # JSON array of options
     field(:options_json, :string, virtual: true)
@@ -38,14 +41,21 @@ defmodule Platform.Projects.ProjectAttribute do
       |> then(&if &1 == "", do: Jason.encode!(attribute.options), else: &1)
 
     attribute
-    |> cast(attrs, [:name, :type, :options_json, :id, :description])
+    |> cast(attrs, [:name, :type, :options_json, :id, :description, :decorator_for, :enabled])
     |> cast(%{options_json: json_options}, [:options_json])
     |> cast(
       %{options: Jason.decode!(json_options)},
       [:options]
     )
-    |> validate_required([:name, :type])
-    |> validate_length(:name, min: 1, max: 40)
+    |> validate_required([:type])
+    |> then(fn changeset ->
+      if get_field(changeset, :enabled) == true do
+        validate_required(changeset, [:name], description: "Please provide a value.")
+      else
+        changeset
+      end
+    end)
+    |> validate_length(:name, min: 1, max: 240)
     |> validate_length(:description, min: 0, max: 240)
     |> validate_inclusion(:type, [:select, :text, :date, :multi_select])
     |> validate_change(:type, fn :type, type ->
@@ -91,12 +101,14 @@ defmodule Platform.Projects.ProjectAttribute do
     %Attribute{
       schema_field: :project_attributes,
       name: attribute.id,
-      label: attribute.name,
+      label: attribute.name || "Untitled",
       type: attribute.type,
       options: attribute.options,
       description: attribute.description,
-      pane: :attributes,
-      required: false
+      pane: if(attribute.decorator_for != "", do: :not_shown, else: :attributes),
+      required: false,
+      is_decorator: attribute.decorator_for != "",
+      parent: if(attribute.decorator_for != "", do: attribute.decorator_for, else: nil)
     }
   end
 

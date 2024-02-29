@@ -9,7 +9,9 @@ defmodule Platform.Mailer do
     email =
       new()
       |> to(recipient)
-      |> from({"Atlos Notifications", "noreply@mail.atlos.org"})
+      |> from(
+        {"Atlos Notifications", System.get_env("MAILER_FROM_ADDRESS", "noreply@mail.atlos.org")}
+      )
       |> subject(subject)
       |> text_body(body)
 

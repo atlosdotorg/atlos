@@ -22,12 +22,16 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
 
     {:ok,
      socket
+     # Either nil, :new, :decorators, or a UUID
      |> assign(:actively_editing_id, nil)
      |> assign_new(:general_changeset, fn ->
        Projects.change_project(socket.assigns.project)
      end)
      |> assign_new(:custom_attribute_changeset, fn ->
        Projects.change_project(socket.assigns.project)
+     end)
+     |> assign_new(:all_attributes, fn ->
+       Platform.Material.Attribute.active_attributes(project: socket.assigns.project)
      end)
      |> assign_new(:show_panes, fn -> [:general, :custom_attributes] end)}
   end
@@ -44,8 +48,19 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
     socket
     |> assign(
       :custom_attribute_changeset,
-      Projects.change_project(socket.assigns.project, attrs) |> Map.put(:action, :validate)
+      Projects.change_project(socket.assigns.project, attrs)
+      |> Map.put(:action, :validate)
     )
+    |> assign(
+      :all_attributes,
+      Platform.Material.Attribute.active_attributes(project: socket.assigns.project)
+    )
+  end
+
+  defp get_core_attributes() do
+    # Helper function to get core attributes
+    Platform.Material.Attribute.active_attributes()
+    |> Enum.filter(&(&1.pane != :metadata && is_nil(&1.parent)))
   end
 
   def handle_event("close", _params, socket) do
@@ -155,6 +170,46 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
     {:noreply, socket}
   end
 
+  def handle_event("edit_decorators", _, socket) do
+    socket =
+      update(socket, :custom_attribute_changeset, fn changeset ->
+        all_existing_custom_attributes = Ecto.Changeset.get_field(changeset, :attributes, [])
+        core_attribute_ids = get_core_attributes() |> Enum.map(& &1.name)
+
+        non_decorator_attributes =
+          Enum.filter(all_existing_custom_attributes, &(&1.decorator_for == ""))
+
+        decorator_attributes =
+          Enum.filter(all_existing_custom_attributes, &(&1.decorator_for != ""))
+
+        # Add any missing decorators to the changeset
+        all_attribute_ids = Enum.map(non_decorator_attributes, & &1.id) ++ core_attribute_ids
+
+        missing_decorator_ids =
+          Enum.reject(all_attribute_ids, fn id ->
+            Enum.any?(decorator_attributes, &(&1.decorator_for == to_string(id)))
+          end)
+
+        Ecto.Changeset.put_embed(
+          changeset,
+          :attributes,
+          all_existing_custom_attributes ++
+            Enum.map(missing_decorator_ids, fn id ->
+              %ProjectAttribute{
+                decorator_for: id,
+                enabled: false,
+                type: :select,
+                name: "",
+                id: Ecto.UUID.generate()
+              }
+            end)
+        )
+      end)
+      |> assign(:actively_editing_id, :decorators)
+
+    {:noreply, socket}
+  end
+
   def handle_event("delete_attr", %{"id" => id}, socket) do
     # Delete the custom attribute, save, and close the actively editing modal
     {:ok, project} =
@@ -191,48 +246,101 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
     do: type_mapping() |> Enum.map(fn {k, v} -> {v, k} end) |> Enum.into(%{})
 
   def edit_custom_project_attribute(assigns) do
+    # The attribute this is a decorator for
+    assigns =
+      assign_new(assigns, :decorator_for, fn -> nil end)
+      |> assign(:enabled, Ecto.Changeset.get_field(assigns.f_attr.source, :enabled))
+      |> assign_new(:id, fn -> "edit-#{Ecto.Changeset.get_field(assigns.f_attr.source, :id)}" end)
+
     ~H"""
-    <div class={"relative group grid grid-cols-1 gap-4 mt-8 " <> (if Ecto.Changeset.get_field(@f_attr.source, :delete), do: "hidden", else: "")}>
+    <div
+      class={[
+        "relative group grid grid-cols-1 gap-4",
+        Ecto.Changeset.get_field(@f_attr.source, :delete) && "hidden"
+      ]}
+      x-data={"{open: #{is_nil(@decorator_for) or (!@f_attr.data.enabled)}}"}
+      id={@id}
+    >
       <%= hidden_input(@f_attr, :id) %>
-      <div>
-        <%= label(@f_attr, :name) %>
-        <%= text_input(@f_attr, :name) %>
+      <%= hidden_input(@f_attr, :decorator_for) %>
+
+      <%= if is_nil(@decorator_for) do %>
+        <%= hidden_input(@f_attr, :enabled) %>
+      <% end %>
+
+      <div
+        :if={not is_nil(@decorator_for)}
+        class="flex justify-between items-center w-full gap-4 group"
+      >
+        <span
+          class={[
+            "text-sm font-medium text-gray-900 grow flex items-center gap-2",
+            @enabled && "cursor-pointer"
+          ]}
+          x-on:click={"if (#{@enabled}) { open = !open; console.log('toggling', open) }"}
+        >
+          <%= @decorator_for.label %>
+          <Heroicons.minus :if={@enabled} mini class="h-5 w-5 text-urge-600" x-show="open" />
+          <Heroicons.plus :if={@enabled} mini class="h-5 w-5 text-urge-600" x-show="!open" />
+        </span>
+        <%= label(@f_attr, :enabled, class: "!flex items-center gap-2") do %>
+          <span class="text-xs text-neutral-500 !font-normal">Enable</span>
+          <%= checkbox(@f_attr, :enabled,
+            "x-on:change": "if ($event.target.checked) { open = true; console.log('opening', open) }"
+          ) %>
+        <% end %>
+      </div>
+      <%= if not @enabled do %>
+        <%= hidden_input(@f_attr, :name) %>
+        <%= hidden_input(@f_attr, :type) %>
+        <%= hidden_input(@f_attr, :description) %>
+        <%= hidden_input(@f_attr, :options_json) %>
+      <% end %>
+      <div :if={@enabled} x-show="open" x-transition>
+        <%= label(@f_attr, :name, class: "!text-neutral-600 !font-normal") %>
+        <%= text_input(@f_attr, :name, class: "my-1") %>
         <%= error_tag(@f_attr, :name) %>
       </div>
-      <div class="ts-ignore">
-        <%= label(@f_attr, :type) %>
+      <div :if={@enabled} class={["ts-ignore"]} x-show="open" x-transition>
+        <%= label(@f_attr, :type, class: "!text-neutral-600 !font-normal") %>
         <%= select(
           @f_attr,
           :type,
           type_mapping()
-          |> Enum.filter(fn {_, v} -> v != :location and v != :date end)
+          |> Enum.filter(fn {_, v} ->
+            (v != :location and v != :date and v != :text) || is_nil(@decorator_for)
+          end)
           |> Enum.map(fn {k, v} ->
             [
               key: k,
               value: v,
-              disabled: not Enum.member?(ProjectAttribute.compatible_types(@f_attr.data.type), v)
+              disabled:
+                not Enum.member?(
+                  ProjectAttribute.compatible_types(Ecto.Changeset.get_field(@f_attr.source, :type)),
+                  v
+                )
             ]
           end),
           phx_debounce: 0,
           class:
-            "block shadow-sm w-full rounded border border-gray-300 py-2 pl-3 pr-10 text-base focus:border-urge-500 focus:outline-none focus:ring-urge-500 sm:text-sm"
+            "block shadow-sm w-full rounded border border-gray-300 my-1 py-2 pl-3 pr-10 text-base focus:border-urge-500 focus:outline-none focus:ring-urge-500 sm:text-sm"
         ) %>
         <p class="support">After creation, modifying an attribute's type is limited.</p>
         <%= error_tag(@f_attr, :type) %>
       </div>
-      <div>
-        <%= label(@f_attr, :description) %>
-        <%= text_input(@f_attr, :description) %>
+      <div :if={@enabled} x-show="open" x-transition>
+        <%= label(@f_attr, :description, class: "!text-neutral-600 !font-normal") %>
+        <%= text_input(@f_attr, :description, class: "my-1") %>
         <%= error_tag(@f_attr, :description) %>
         <p class="support">
           Optional. The description will be displayed when editing this attribute.
         </p>
       </div>
-      <%= if Ecto.Changeset.get_field(@f_attr.source, :type) in [:select, :multi_select] or Ecto.Changeset.get_field(@f_attr.source, :type) == nil do %>
-        <div>
-          <%= label(@f_attr, :options) %>
-          <% id = "field-#{@f_attr.data.id}-options" %>
-          <div id={id} phx-update="ignore">
+      <%= if (Ecto.Changeset.get_field(@f_attr.source, :type) in [:select, :multi_select] or Ecto.Changeset.get_field(@f_attr.source, :type) == nil) do %>
+        <div :if={@enabled} x-show="open" x-transition>
+          <%= label(@f_attr, :options, class: "!text-neutral-600 !font-normal") %>
+          <% id = "field-#{Ecto.Changeset.get_field(@f_attr.source, :id)}-options" %>
+          <div id={id} phx-update="ignore" class="my-1">
             <div id={"child-#{id}"} x-data>
               <%= textarea(@f_attr, :options_json,
                 class: "!hidden",
@@ -255,21 +363,29 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
           </p>
         </div>
       <% end %>
-      <%= if Ecto.Changeset.get_field(@f_attr.source, :type) == :multi_select and @f_attr.data.type == :select do %>
-        <div class="rounded-md bg-blue-50 p-4">
+      <%= if Ecto.Changeset.get_field(@f_attr.source, :type) == :multi_select and Ecto.Changeset.get_field(@f_attr.source, :type) == :select do %>
+        <div :if={@enabled} class={["rounded-md bg-blue-50 p-4"]} x-show="open" x-transition>
           <div class="flex">
             <div class="flex-shrink-0">
               <Heroicons.information_circle mini class="h-5 w-5 text-blue-400" />
             </div>
             <div class="ml-3 flex-1 lg:flex lg:justify-between">
               <p class="text-sm text-blue-700">
-                Once you change this attribute to a multi-select, you will not be able to change it back to a single-select.
+                Once you change to a multi-select, you will not be able to change back to a single-select.
               </p>
             </div>
           </div>
         </div>
       <% end %>
     </div>
+    """
+  end
+
+  def decorator_description(assigns) do
+    ~H"""
+    <span>
+      Decorators capture additional data for each attribute. For example, you can use decorators to associate confidence values with each attribute value.
+    </span>
     """
   end
 
@@ -441,8 +557,8 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                       disabled: not Permissions.can_edit_project_metadata?(@current_user, @project)
                     ) %>
                   </div>
-                  <%= if @project.id do %>
-                    <div>
+                  <%= if not is_nil(@project.id) do %>
+                    <div :if={Permissions.can_change_project_active_status?(@current_user, @project)}>
                       <%= if @project.active do %>
                         <button
                           phx-click="toggle_active"
@@ -513,7 +629,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                 <% end %>
                 <div class="flow-root">
                   <div class="-mx-4 overflow-x-auto sm:-mx-6 lg:-mx-8">
-                    <div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
+                    <div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8 flex flex-col gap-8">
                       <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg relative">
                         <table class="min-w-full divide-y divide-gray-300">
                           <thead class="bg-gray-50">
@@ -553,8 +669,8 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                             </tr>
                           </thead>
                           <tbody class="divide-y divide-gray-200 bg-white">
-                            <%= for f_attr <- inputs_for(f, :attributes) do %>
-                              <%= if f_attr.data.id do %>
+                            <.inputs_for :let={f_attr} field={f[:attributes]}>
+                              <%= if not is_nil(Ecto.Changeset.get_field(f_attr.source, :id)) and Ecto.Changeset.get_field(f_attr.source, :decorator_for) == "" do %>
                                 <tr x-data="{active: false}" class="group">
                                   <.attribute_table_row
                                     attr={ProjectAttribute.to_attribute(f_attr.data)}
@@ -565,13 +681,13 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                                   />
                                 </tr>
                               <% end %>
-                              <%= if (@actively_editing_id == f_attr.data.id) || (f_attr.data.id == nil and @actively_editing_id == :new) do %>
+                              <%= if (@actively_editing_id == Ecto.Changeset.get_field(f_attr.source, :id)) || (Ecto.Changeset.get_field(f_attr.source, :id) == nil and @actively_editing_id == :new) do %>
                                 <.modal
                                   target={@myself}
                                   id={(@actively_editing_id || "nil") |> to_string()}
                                   js_on_close="document.cancelFormEvent($event)"
                                 >
-                                  <section class="mb-4">
+                                  <section class="mb-12">
                                     <h2 class="sec-head">Customize Attribute</h2>
                                   </section>
                                   <.edit_custom_project_attribute f_attr={f_attr} />
@@ -588,13 +704,13 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                                         Cancel
                                       </button>
                                     </div>
-                                    <%= if f_attr.data.id do %>
+                                    <%= if Ecto.Changeset.get_field(f_attr.source, :id) do %>
                                       <button
                                         type="button"
                                         phx-target={@myself}
                                         phx-click="delete_attr"
-                                        phx-value-id={f_attr.data.id}
-                                        data-confirm={"Are you sure you want to delete the attribute \"#{f_attr.data.name}\"? This action cannot be undone. This will remove this attribute from all incidents in this project."}
+                                        phx-value-id={Ecto.Changeset.get_field(f_attr.source, :id)}
+                                        data-confirm={"Are you sure you want to delete the attribute \"#{Ecto.Changeset.get_field(f_attr.source, :name)}\"? This action cannot be undone. This will remove this attribute from all incidents in this project."}
                                         data-tooltip="Delete this attribute"
                                         class="button ~critical @high"
                                       >
@@ -604,12 +720,18 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                                   </div>
                                 </.modal>
                               <% else %>
-                                <div class="hidden">
+                                <div
+                                  :if={
+                                    @actively_editing_id != :decorators ||
+                                      Ecto.Changeset.get_field(f_attr.source, :decorator_for) == ""
+                                  }
+                                  class="hidden"
+                                >
                                   <.edit_custom_project_attribute f_attr={f_attr} />
                                 </div>
                               <% end %>
-                            <% end %>
-                            <%= for attr <- Platform.Material.Attribute.active_attributes() |> Enum.filter(& &1.pane != :metadata && is_nil(&1.parent)) do %>
+                            </.inputs_for>
+                            <%= for attr <- get_core_attributes() do %>
                               <tr>
                                 <.attribute_table_row
                                   attr={attr}
@@ -620,6 +742,103 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                             <% end %>
                           </tbody>
                         </table>
+                        <%= if @actively_editing_id == :decorators do %>
+                          <.modal
+                            target={@myself}
+                            id="decorator_edit"
+                            js_on_close="document.cancelFormEvent($event)"
+                          >
+                            <section class="mb-4">
+                              <h2 class="sec-head">Manage Decorators</h2>
+                              <p class="sec-subhead">
+                                <.decorator_description />
+                              </p>
+                            </section>
+                            <div class="flex flex-col mt-12">
+                              <.inputs_for
+                                :let={f_attr}
+                                field={f[:attributes]}
+                                id="edit-decorator"
+                                skip_hidden={true}
+                              >
+                                <div
+                                  :if={Ecto.Changeset.get_field(f_attr.source, :decorator_for) != ""}
+                                  class="border-t -mx-6 px-6 py-4"
+                                >
+                                  <.edit_custom_project_attribute
+                                    f_attr={f_attr}
+                                    decorator_for={
+                                      Enum.find(
+                                        @all_attributes,
+                                        &(to_string(&1.name) ==
+                                            to_string(
+                                              Ecto.Changeset.get_field(f_attr.source, :decorator_for)
+                                            ))
+                                      )
+                                    }
+                                    allow_disable={true}
+                                    id={"edit-decorator-#{Ecto.Changeset.get_field(f_attr.source, :decorator_for)}"}
+                                  />
+                                </div>
+                              </.inputs_for>
+                            </div>
+                            <div class="flex justify-between items-center border-t -mx-6 px-6 pt-12">
+                              <div>
+                                <%= submit("Save", class: "button ~urge @high") %>
+                                <button
+                                  type="button"
+                                  phx-target={@myself}
+                                  phx-click="close_modal"
+                                  class="base-button"
+                                  x-on:click="document.cancelFormEvent"
+                                >
+                                  Cancel
+                                </button>
+                              </div>
+                            </div>
+                          </.modal>
+                        <% end %>
+                      </div>
+                      <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg relative divide-y divide-gray-300">
+                        <div class="bg-gray-50 flex items-center justify-between px-4 sm:px-6">
+                          <p class="py-3.5 text-left text-sm font-semibold text-gray-900">
+                            Decorators
+                          </p>
+                          <button
+                            :if={Permissions.can_edit_project_metadata?(@current_user, @project)}
+                            type="button"
+                            phx-click="edit_decorators"
+                            phx-target={@myself}
+                            class="text-button text-sm"
+                          >
+                            Edit Decorators
+                          </button>
+                        </div>
+                        <div class="p-4 sm:p-6 bg-white">
+                          <% decorators = @all_attributes |> Enum.filter(& &1.is_decorator) %>
+                          <p class="text-sm text-neutral-600">
+                            <.decorator_description />
+                            <span :if={Enum.empty?(decorators)}>
+                              You have not enabled any decorators.
+                            </span>
+                            <span :if={not Enum.empty?(decorators)}>
+                              You have enabled the following decorators:
+                            </span>
+                          </p>
+                          <div class="flex gap-2 flex-wrap">
+                            <div
+                              :for={attr <- decorators}
+                              class="px-2 py-1 mt-4 text-left text-xs rounded-full border font-medium text-gray-700 bg-neutral-100"
+                            >
+                              <% parent =
+                                Enum.find(
+                                  @all_attributes,
+                                  &(to_string(&1.name) == to_string(attr.parent))
+                                ) %>
+                              <%= parent.label %>: <%= attr.label %>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>

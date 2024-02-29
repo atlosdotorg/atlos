@@ -1,3 +1,16 @@
+img[alt$="A No Access mode message."] {
+    width: 50%;
+} 
+
 img[alt$="The metadata pane."] {
     width: 75%;
 }
+
+img[alt$="The message shown to suspended users."] {
+    width: 50%;
+}
+
+img[alt$="A user's profile."] {
+    width: 75%;
+}
+

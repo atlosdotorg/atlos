@@ -6,6 +6,37 @@
           <div class="font-medium text-2xl">Hello, <%= @current_user.username %></div>
         </div>
         <div class="grow"></div>
+        <div
+          :if={
+            Platform.Billing.is_enabled?() and
+              Platform.Billing.get_user_plan(@current_user).is_free
+          }
+          class="hidden md:block"
+        >
+          <.link
+            navigate="/settings#billing"
+            class="font-medium text-urge-600 text-sm block p-2 flex gap-1 items-center transition text-neutral-600 hover:bg-neutral-100 rounded"
+          >
+            <Heroicons.arrow_up_circle mini class="h-5 w-5" />
+            <span>
+              Upgrade to Pro
+            </span>
+            <span
+              :if={
+                Platform.Billing.get_user_plan(@current_user).allowed_edits_per_30d_period !=
+                  :unlimited
+              }
+              class="font-weight-400"
+            >
+              <% allowed_edits_remaining =
+                Platform.Billing.get_user_plan(@current_user).allowed_edits_per_30d_period -
+                  @user_updates_last_30d %> (<%= allowed_edits_remaining %> edit<%= if allowed_edits_remaining !=
+                                                                                         1,
+                                                                                       do: "s",
+                                                                                       else: "" %> remaining this month)
+            </span>
+          </.link>
+        </div>
         <div class="hidden md:block">
           <.link
             navigate={"/profile/#{@current_user.username}/assignments"}
@@ -14,17 +45,6 @@
             <Heroicons.bookmark mini class="h-5 w-5 opacity-50" />
             <span>
               Assigned to Me
-            </span>
-          </.link>
-        </div>
-        <div class="hidden md:block">
-          <.link
-            navigate="/incidents"
-            class="font-medium text-sm block p-2 flex gap-1 items-center transition text-neutral-600 hover:bg-neutral-100 rounded hover:text-neutral-900 focus:text-neutral-900"
-          >
-            <Heroicons.magnifying_glass_circle mini class="h-5 w-5 opacity-50" />
-            <span>
-              Search Incidents
             </span>
           </.link>
         </div>
@@ -68,10 +88,17 @@
                 <Heroicons.cog_6_tooth mini class="h-5 w-5 text-neutral-500" /> Manage Account
               </.link>
               <.link
-                navigate="/subscriptions"
+                navigate={"/profile/#{@current_user.username}/subscriptions"}
                 class="text-gray-700 px-2 py-2 text-sm flex items-center gap-2 hover:bg-gray-100 w-full"
               >
                 <Heroicons.bell mini class="h-5 w-5 text-neutral-500" /> My Subscriptions
+              </.link>
+              <.link
+                :if={Platform.Billing.is_enabled?()}
+                navigate="/settings#billing"
+                class="text-gray-700 px-2 py-2 text-sm flex items-center gap-2 hover:bg-gray-100 w-full"
+              >
+                <Heroicons.currency_dollar mini class="h-5 w-5 text-neutral-500" /> Billing
               </.link>
               <%= link(
                 to: Routes.user_session_path(@socket, :delete),

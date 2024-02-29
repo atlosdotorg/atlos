@@ -18,7 +18,7 @@ defmodule PlatformWeb.Router do
       # `default-src 'none'` and removing cdn.jsdelivr.net); this is an opportunity for future improvement. To
       # quote Sobelow, just about any CSP is better than the default (no CSP at all!).
       "content-security-policy" =>
-        "object-src 'none'; script-src 'self' api.mapbox.com hcaptcha.com *.hcaptcha.com unpkg.com static.highlight.io 'unsafe-eval' blob:; base-uri 'none'; worker-src blob: 'self'; child-src blob: 'self' hcaptcha.com *.hcaptcha.com;"
+        "object-src 'none'; script-src 'self' api.mapbox.com js.stripe.com hcaptcha.com *.hcaptcha.com unpkg.com static.highlight.io 'unsafe-eval' blob:; base-uri 'none'; worker-src blob: 'self'; child-src blob: 'self' hcaptcha.com *.hcaptcha.com js.stripe.com;"
     })
 
     plug(:fetch_current_user)
@@ -90,6 +90,7 @@ defmodule PlatformWeb.Router do
 
       get("/source_material", APIV2Controller, :source_material)
       get("/incidents", APIV2Controller, :incidents)
+      get("/updates", APIV2Controller, :get_updates)
       post("/add_comment/:slug", APIV2Controller, :add_comment)
       post("/update/:slug/:attribute", APIV2Controller, :update)
     end
