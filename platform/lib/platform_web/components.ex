@@ -3353,6 +3353,7 @@ defmodule PlatformWeb.Components do
   end
 
   defp edit_attribute(%{attr: attr, form: form, media_slug: slug, project: _project} = assigns) do
+    dbg(attr)
     assigns =
       assigns
       |> assign(

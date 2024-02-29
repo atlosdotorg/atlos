@@ -4,6 +4,7 @@ defmodule Platform.Accounts.User do
   alias Platform.Material
   alias Platform.Invites
 
+  @derive {Jason.Encoder, only: [:username, :bio, :flair, :id]}
   @primary_key {:id, :binary_id, autogenerate: true}
   schema "users" do
     field(:deprecated_integer_id, :integer)

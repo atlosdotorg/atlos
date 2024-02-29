@@ -47,7 +47,7 @@ defmodule Platform.Utils do
       []
     else
       project_attributes =
-        media.project.attributes |> Enum.map(&Platform.Projects.ProjectAttribute.to_attribute(&1))
+        Platform.Projects.get_project_attributes(media.project)
 
       deprecated_attributes =
         Platform.Material.Attribute.attributes() |> Enum.filter(&(&1.deprecated == true))

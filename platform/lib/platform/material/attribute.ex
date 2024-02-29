@@ -56,10 +56,7 @@ defmodule Platform.Material.Attribute do
 
     project_attrs =
       if project do
-        Enum.map(
-          project.attributes |> Enum.filter(& &1.enabled),
-          &ProjectAttribute.to_attribute/1
-        )
+        Platform.Projects.get_project_attributes(project)
       else
         []
       end

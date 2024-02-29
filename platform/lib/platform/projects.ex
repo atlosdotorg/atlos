@@ -473,4 +473,10 @@ defmodule Platform.Projects do
         {:error, "Could not create onboarding project for user #{user.username}", err}
     end
   end
+
+  def get_project_attributes(%Project{} = project) do
+    project.attributes
+    |> Enum.filter(& &1.enabled)
+    |> Enum.map(&ProjectAttribute.to_attribute/1)
+  end
 end

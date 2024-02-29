@@ -132,7 +132,7 @@ defmodule Platform.Material.Media do
         else:
           Platform.Material.change_media_attributes(
             cs.data |> Map.put(:project, project) |> Map.put(:project_id, project.id),
-            project.attributes |> Enum.map(&Platform.Projects.ProjectAttribute.to_attribute(&1)),
+            Projects.get_project_attributes(project),
             attrs,
             changeset: cs,
             user: user,

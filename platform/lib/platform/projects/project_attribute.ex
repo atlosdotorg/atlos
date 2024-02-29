@@ -101,7 +101,7 @@ defmodule Platform.Projects.ProjectAttribute do
     %Attribute{
       schema_field: :project_attributes,
       name: attribute.id,
-      label: attribute.name,
+      label: attribute.name || "Untitled",
       type: attribute.type,
       options: attribute.options,
       description: attribute.description,
