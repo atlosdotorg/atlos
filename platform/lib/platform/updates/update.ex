@@ -9,7 +9,6 @@ defmodule Platform.Updates.Update do
   alias Platform.Material
   alias Platform.Permissions
 
-  @derive {Jason.Encoder, except: [:__meta__, :user, :media, :media_version]}
   @primary_key {:id, :binary_id, autogenerate: true}
   schema "updates" do
     field(:search_metadata, :string, default: "")
@@ -170,6 +169,38 @@ defmodule Platform.Updates.Update do
     |> validate_length(:explanation,
       max: 2500,
       message: "Updates cannot exceed 2500 characters."
+    )
+  end
+end
+
+defimpl Jason.Encoder, for: Platform.Updates.Update do
+  def encode(value, opts) do
+    Jason.Encode.map(
+      Map.take(value, [
+        :id,
+        :type,
+        :user,
+        :new_value,
+        :old_value,
+        :inserted_at,
+        :media_id,
+        :explanation,
+        :user_id,
+        :api_token_id,
+        :media_version_id,
+        :modified_attribute
+      ])
+      |> Enum.into(%{}, fn
+        {key, value} when key in [:old_value, :new_value] ->
+          case Jason.decode(value) do
+            {:ok, v} -> {:new_value, v}
+            {:error, _} -> {:new_value, value}
+          end
+
+        {key, %Ecto.Association.NotLoaded{}} -> {key, nil}
+        {key, value} -> {key, value}
+      end),
+      opts
     )
   end
 end

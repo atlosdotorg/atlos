@@ -1,4 +1,5 @@
 defmodule PlatformWeb.APIV2Test do
+  alias Platform.Updates
   use PlatformWeb.ConnCase
   import Platform.APIFixtures
   import Platform.MaterialFixtures
@@ -97,6 +98,51 @@ defmodule PlatformWeb.APIV2Test do
     media = media |> Enum.sort() |> Enum.dedup()
 
     assert length(media) == n
+    assert final_next == nil
+  end
+
+  test "GET /api/v2/updates with pagination" do
+    n = 101
+    project = project_fixture()
+
+    other_project = project_fixture()
+
+    Enum.map(0..(n - 1), fn _ ->
+      m = media_fixture(%{project_id: project.id})
+      {:ok, _} = Updates.post_bot_comment(m, "foo")
+    end)
+
+    Enum.map(0..(n - 1), fn _ ->
+      m = media_fixture(%{project_id: other_project.id})
+      {:ok, _} = Updates.post_bot_comment(m, "foo")
+    end)
+
+    token = api_token_fixture(%{project_id: project.id})
+
+    {updates, final_next} =
+      Enum.reduce(0..(ceil(n / 50) + 25), {[], :start}, fn _, {elems, next} ->
+        if is_nil(next) do
+          {elems, nil}
+        else
+          auth_conn =
+            build_conn()
+            |> put_req_header("authorization", "Bearer " <> token.value)
+            |> get(
+              if next != :start,
+                do: "/api/v2/updates?cursor=#{next}",
+                else: "/api/v2/updates"
+            )
+
+          %{"results" => results, "previous" => _prev, "next" => new_next} =
+            json_response(auth_conn, 200)
+
+          {elems ++ results, new_next}
+        end
+      end)
+
+    updates = updates |> Enum.sort() |> Enum.dedup()
+
+    assert length(updates) == n
     assert final_next == nil
   end
 
