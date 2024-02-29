@@ -560,19 +560,26 @@
                                     </span>
                                   <% not is_nil(version) -> %>
                                     <div class="text-sm flex items-center text-gray-900 px-4 whitespace-nowrap text-ellipsis overflow-hidden h-6 w-[12rem]">
-                                      <a
-                                        href={version.source_url}
-                                        target="_blank"
-                                        rel="nofollow"
+                                      <.link
+                                        href={"/incidents/#{media.slug}/detail/#{version.scoped_id}"}
                                         class="truncate"
-                                        data-confirm="This will open the source media in a new tab. Are you sure?"
                                       >
-                                        <.url_icon
-                                          url={version.source_url}
-                                          class="h-4 w-4 inline mb-px"
-                                        />
-                                        <%= version.source_url %>
-                                      </a>
+                                        <%= if not is_nil(version.source_url) do %>
+                                          <.url_icon
+                                            url={version.source_url}
+                                            class="h-4 w-4 inline mb-px"
+                                          />
+                                          <%= version.source_url %>
+                                        <% else %>
+                                          <span class="text-neutral-600">
+                                            <Heroicons.document mini class="h-4 w-4 opacity-50 inline mb-px" />
+                                            <%= Platform.Material.get_human_readable_media_version_name(
+                                              media,
+                                              version
+                                            ) %>
+                                          </span>
+                                        <% end %>
+                                      </.link>
                                     </div>
                                   <% true -> %>
                                     <span class="text-neutral-400 px-4">
