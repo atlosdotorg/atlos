@@ -36,8 +36,6 @@ defmodule Platform.Material.MediaSearch do
   }
 
   def changeset(params \\ %{}) do
-    data = %{}
-
     new_types =
       case Map.get(params, "project_id") do
         nil ->
@@ -75,7 +73,7 @@ defmodule Platform.Material.MediaSearch do
         cst_key =
           cond do
             Map.has_key?(new_types, k) -> k
-            Map.has_key?(new_types, String.to_existing_atom(k)) -> String.to_existing_atom(k)
+            Map.has_key?(new_types, conv_atom(k)) -> conv_atom(k)
             true -> nil
           end
 
@@ -97,6 +95,14 @@ defmodule Platform.Material.MediaSearch do
       valid?: true,
       params: nil
     }
+  end
+
+  defp conv_atom(atm_string) do
+    try do
+      String.to_existing_atom(atm_string)
+    rescue
+      ArgumentError -> nil
+    end
   end
 
   defp parse_location(location_string) do
