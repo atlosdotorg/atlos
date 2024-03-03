@@ -37,7 +37,9 @@ config :platform, PlatformWeb.Endpoint,
     ]
   ]
 
-config :logger, level: :debug
+config :logger, :console,
+  level: :debug,
+  metadata: [:request_id, :username, :file, :line]
 
 # ## SSL Support
 #
