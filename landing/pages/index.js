@@ -57,17 +57,20 @@ export default function Home() {
           </div>
         </div>
         <section className='relative flex flex-col space-y-6 top-0 mx-auto p-6 lg:max-w-2xl mt-32 lg:mt-44 z-[50]'>
-          <p className="text-3xl md:text-5xl text-white pt-2 text-center lg:-mx-48">
+          <p className="text-3xl md:text-5xl text-white font-medium pt-2 text-center lg:-mx-48">
             Atlos makes large-scale visual investigations faster, easier, and safer.
           </p>
           <section>
             <p className='text-xs text-white/50 text-center uppercase mt-16'>Supported by</p>
-            <div className="flex flex-wrap justify-center items-center gap-8 mt-4 opacity-[0.8]">
+            <div className="flex flex-wrap justify-center items-center gap-8 mt-4 opacity-[0.8] lg:-mx-16">
               <a href='https://www.microsoft.com/en-us/corporate-responsibility/democracy-forward'>
                 <Image src="/microsoft.svg" alt="The logo of Microsoft" height={141 / 3} width={520 / 3} />
               </a>
               <a href='https://brown.stanford.edu'>
                 <Image src="/brown.png" alt="The logo of the Brown Institute for Media Innovation at Stanford" height={141 / 3} width={520 / 3} />
+              </a>
+              <a href='https://www.info-res.org/'>
+                <Image src="/cir.png" alt="The logo of the Centre for Information Resilience" height={140 / 3} width={400 / 3} />
               </a>
               <a href='https://bellingcat.com/'>
                 <Image src="/bellingcat.svg" alt="The logo of Bellingcat" height={150 / 3} width={520 / 3} />
