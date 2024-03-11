@@ -209,7 +209,7 @@ defmodule PlatformWeb.MediaLive.SearchForm do
                     data_descriptions:
                       Jason.encode!(
                         (@attr.option_descriptions || %{})
-                        |> Map.put("[Unset]", "No #{String.downcase(@attr.label)} set")
+                        |> Map.put("[Unset]", "No #{String.downcase(@attr.label || "value")} set")
                       )
                   ) %>
                 </div>
