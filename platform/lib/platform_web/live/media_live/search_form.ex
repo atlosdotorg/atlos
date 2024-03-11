@@ -47,12 +47,13 @@ defmodule PlatformWeb.MediaLive.SearchForm do
       |> Enum.concat(
         if assigns.active_project,
           do:
-            assigns.active_project.attributes
+            Platform.Projects.get_project_attributes(assigns.active_project)
+            |> Enum.filter(& not &1.is_decorator)
             |> Enum.map(
               &%{
-                id: "#{&1.id}_filter",
-                attr: ProjectAttribute.to_attribute(&1),
-                label: &1.name
+                id: "#{&1.name}_filter",
+                attr: &1,
+                label: &1.label
               }
             ),
           else: []
@@ -104,7 +105,7 @@ defmodule PlatformWeb.MediaLive.SearchForm do
      )}
   end
 
-  def handle_event(event, _par, socket) do
+  def handle_event(_event, _par, socket) do
     {:noreply, socket}
   end
 
