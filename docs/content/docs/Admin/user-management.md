@@ -4,14 +4,11 @@ description: A guide to managing user permissions on Atlos.
 weight: 1
 ---
 
-![The admin panel of a user's profile page.](announcement.png)
-<p style="text-align: center; margin: 0px; color: grey; font-size:12px;"><i>The admin panel of a user's profile page.</i></p>
-
 Atlos offers admins several tools for managing users and their activity. 
 
 {{< callout type="warning" >}}
-**User management refers to admin-only features.**   
-If you do not administer an instance of Atlos, announcements are not relevant to your use of the platform.
+**This page explains admin-only features.**
+If you don’t administer an instance of Atlos, these features are not relevant to your use of the platform.
 {{< /callout >}}
 
 ## View all users on Atlos
@@ -19,15 +16,7 @@ To view all users on your instance of Atlos:
 1. Navigate to **Adminland**.
 2. Click on the **Users** tab.
 
-The **Users** list shows all users':
-- Usernames
-- Emails
-- System-level permissions
-- Bios
-- Join dates
-- MFA status (whether or not they have enabled multi-factor authentication)
-
-## System-level roles
+## Instance-level roles
 In addition to roles in projects, Atlos users have a role at the instance-level. These roles are distinct from users' roles in a project. For example, a user who is a viewer in a project but an admin on their instance of Atlos cannot edit incidents in that project but can access Adminland. 
 
 Atlos has three system-level roles:
@@ -35,7 +24,7 @@ Atlos has three system-level roles:
 - **trusted—**  When the `RESTRICT_PROJECT_CREATION` environment variable is enabled, only trusted users and admins can create projects. If `RESTRICT_PROJECT_CREATION` is disabled, **trusted** users do not have any additional access or control. 
 - **admin—** Admins have heightened access and control; they can take drastic action to lock users out of Atlos and view content in projects of which they're not members. Use extreme caution when making a user an admin.
 
-### Change a users' system-level role
+### Change a user's instance-level role
 To change a user's system-level role:
 1. Navigate to the user's profile.
 2. Click on the **Admin** pane of their profile.
@@ -51,7 +40,7 @@ To suspend a user:
 
 The suspended user will be logged out of their account the next time they interact with Atlos (i.e., click any button or refresh a page) and will be unable to log back in. They will see the following message:
 
-![The message Atlos shows to suspended users.](suspension.png)
+![The message shown to suspended users.](suspension.png)
 <p style="text-align: center; margin: 0px; color: grey; font-size:12px;"><i>The message Atlos shows to suspended users.</i></p>
 
 ### Mute users
@@ -60,7 +49,7 @@ Note that Atlos allows admins to prevent users from making any edits to any data
 ## User groups
 Atlos doesn't currently enable admins to group users by organization. However, admins can add flair to users, which can help distinguish users belonging to different organizations. For example, admins might assign staff investigators the `Staff` flair and volunteers the `Volunteer` flair. Flair is visible next to users' usernames.
 
-![An image showing a user's name, profile picture, and flair.](flair.png)
+![A user's profile.](flair.png)
 <p style="text-align: center; margin: 0px; color: grey; font-size:12px;"><i>Use flair to distinguish between different groups of users.</i></p>
 
 TODO: figure out why this is so big
@@ -71,10 +60,10 @@ To add flair to a user:
 2. Click on the **Admin** pane of their profile.
 3. Under **Flair**, add a short description (we recommend no more than two words) and click **Save**.
 
-## Edit a users' bio
+## Edit a user's bio
 Atlos permits admins to edit users' bios without their permission. We recommend using this tool only in an emergency in which a user is revealing sensitive information in their bio.
 
-To edit a users' bio:
+To edit a user's bio:
 1. Navigate to the user's profile.
 2. Click on the **Admin** pane of their profile.
 3. Under **Bio**, edit their bio to remove sensitive information and click **Save**.
@@ -85,16 +74,16 @@ Atlos is not a fully-fledged team management tool; we recommend keeping tabs on 
 To write or edit an admin note about a user:
 1. Navigate to the user's profile.
 2. Click on the **Admin** pane of their profile.
-3. Under **Admin Notes**, write or edit their Admin Notes and click **Save**.
+3. Under **Admin Notes**, write or edit their Admin Notes and click **Save**.    
 
 ## View a user's activity over time
-Atlos displays a simple graph of each user's activity over time to help admins understand their particiaption in investigations. 
+Atlos displays a simple graph of each user's activity over time to help admins understand users' participation in investigations. 
 
 To view a user's activity graph,
 1. Navigate to the user's profile.
 2. Click on the **Admin** pane of their profile. 
 
-The activity graph shows a user's activity day-to-day; hover over a block to view a user's activity on a specific day. Atlos counts each edit to an incident as one unit of activity. 
+The activity graph shows a user's activity day-to-day; hover over a block to view a user's activity on a specific day. Atlos counts each edit, comment, and creation of an incident as one unit of activity. 
 
 ![A user's activity graph.](activity.png)
 <p style="text-align: center; margin: 0px; color: grey; font-size:12px;"><i>Activity graphs show users' participation over time.</i></p>

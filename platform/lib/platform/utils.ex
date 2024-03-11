@@ -47,7 +47,7 @@ defmodule Platform.Utils do
       []
     else
       project_attributes =
-        media.project.attributes |> Enum.map(&Platform.Projects.ProjectAttribute.to_attribute(&1))
+        Platform.Projects.get_project_attributes(media.project)
 
       deprecated_attributes =
         Platform.Material.Attribute.attributes() |> Enum.filter(&(&1.deprecated == true))
@@ -154,6 +154,8 @@ defmodule Platform.Utils do
     end
   end
 
+  def render_markdown(nil), do: ""
+
   def render_markdown(markdown) do
     # Safe markdown rendering. No images or headers.
 
@@ -219,6 +221,10 @@ defmodule Platform.Utils do
     markdown = markdown |> HtmlSanitizeEx.Scrubber.scrub(Platform.Security.UgcSanitizer)
 
     markdown
+  end
+
+  def strip_html_tags(html) do
+    html |> HtmlSanitizeEx.Scrubber.scrub(HtmlSanitizeEx.Scrubber.StripTags)
   end
 
   @spec escape_markdown_string(String.t()) :: String.t()

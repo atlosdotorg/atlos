@@ -106,7 +106,7 @@ defmodule PlatformWeb.Components do
         </span>
 
         <div
-          class={"mt-24 mb-8 md:mt-0 relative inline-block opacity-0 scale-75 align-bottom bg-white rounded-lg text-left shadow-xl transform transition-all sm:align-middle sm:max-w-xl sm:w-full max-w-full min-w-0 " <> (if @wide, do: "lg:max-w-4xl xl:max-w-5xl", else: "") <> (if @no_pad, do: "", else: "px-4 pt-5 pb-4 sm:p-6")}
+          class={"mt-24 mb-16 md:mt-16 relative inline-block opacity-0 scale-75 align-bottom bg-white rounded-lg text-left shadow-xl transform transition-all sm:align-middle sm:max-w-xl sm:w-full max-w-full min-w-0 " <> (if @wide, do: "lg:max-w-4xl xl:max-w-5xl", else: "") <> (if @no_pad, do: "", else: "px-4 pt-5 pb-4 sm:p-6")}
           phx-mounted={
             JS.transition({"ease-out duration-75", "opacity-0 scale-75", "opacity-100 scale-100"},
               time: 75
@@ -1331,7 +1331,11 @@ defmodule PlatformWeb.Components do
     attr = Map.get(assigns, :attr)
 
     assigns =
-      assign(assigns, :children, Attribute.get_children(attr.name))
+      assign(
+        assigns,
+        :children,
+        Attribute.get_children(attr.name, project: assigns.media.project)
+      )
       |> assign_new(:truncate, fn -> true end)
       |> assign(:attr_value, Material.get_attribute_value(assigns.media, attr))
 
@@ -1348,12 +1352,13 @@ defmodule PlatformWeb.Components do
               value={@attr_value}
             />
             <%= for child <- @children do %>
-              <%= if not is_nil(Map.get(@media, child.schema_field)) do %>
+              <% value = Material.get_attribute_value(@media, child) %>
+              <%= if not is_nil(value) do %>
                 <.attr_entry
                   color={true}
                   compact={@truncate}
                   name={child.name}
-                  value={Material.get_attribute_value(@media, child)}
+                  value={value}
                   project={@media.project}
                   label={child.label}
                 />
@@ -1388,7 +1393,7 @@ defmodule PlatformWeb.Components do
   def attr_display_row(assigns) do
     attr = Map.get(assigns, :attr)
 
-    children = Attribute.get_children(attr.name)
+    children = Attribute.get_children(attr.name, project: assigns.media.project)
 
     assigns =
       assign(assigns, :children, children)
@@ -1443,11 +1448,12 @@ defmodule PlatformWeb.Components do
             />
           <% end %>
           <%= for child <- @children do %>
-            <%= if not is_nil(Map.get(@media, child.schema_field)) do %>
+            <% value = Material.get_attribute_value(@media, child) %>
+            <%= if not is_nil(value) do %>
               <.attr_entry
                 name={child.name}
                 color={false}
-                value={Map.get(@media, child.schema_field)}
+                value={value}
                 label={child.label}
                 project={@media.project}
               />
@@ -1543,7 +1549,6 @@ defmodule PlatformWeb.Components do
             </div>
           </div>
         <% :multi_select -> %>
-          <.attr_label label={@label} />
           <%= for item <- (if @compact, do: @value |> Enum.take(1), else: @value) do %>
             <div class={"chip #{@tone} flex items-center gap-1 inline-block self-start break-all xl:break-normal"}>
               <.attribute_icon
@@ -1552,6 +1557,7 @@ defmodule PlatformWeb.Components do
                 value={item}
                 class="h-4 w-4 shrink-0 opacity-50"
               />
+              <.attr_label label={@label} />
               <span><%= item %></span>
             </div>
             <%= if @compact and length(@value) > 1 do %>
@@ -1677,9 +1683,7 @@ defmodule PlatformWeb.Components do
     ~H"""
     <span>
       <span class="font-medium">
-        <%= if @attr.schema_field == :project_attributes,
-          do: String.downcase(@attr.label),
-          else: @attr.name |> to_string() %>
+        <%= Attribute.standardized_label(@attr, project: @project) %>
       </span>
       &mdash;
       <%= case @attr.type do %>
@@ -1894,7 +1898,7 @@ defmodule PlatformWeb.Components do
         assigns
         |> assign(:attr, attr)
         |> assign(:label, Map.get(assigns, :label, ""))
-        |> assign(:children, Attribute.get_children(name))
+        |> assign(:children, Attribute.get_children(name, project: project))
         |> assign(
           :old_val,
           # It's possible to encode changes to multiple schema fields in one update, but some legacy/existing updates
@@ -2925,6 +2929,8 @@ defmodule PlatformWeb.Components do
   end
 
   defp edit_attribute(%{attr: attr, form: form, media_slug: slug, project: _project} = assigns) do
+    dbg(attr)
+
     assigns =
       assigns
       |> assign(

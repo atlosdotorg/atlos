@@ -10,8 +10,8 @@ weight: 4
 Use announcements to send messages to all users of Atlos. Announcements appear on users' notifications pages.
 
 {{< callout type="warning" >}}
-**Announcements are an admin-only feature.**   
-If you do not administer an instance of Atlos, announcements are not relevant to your use of the platform.
+**This page explains admin-only features.**
+If you don’t administer an instance of Atlos, these features are not relevant to your use of the platform.
 {{< /callout >}}
 
 ## Send an announcement

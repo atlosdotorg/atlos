@@ -132,7 +132,7 @@ defmodule Platform.Material.Media do
         else:
           Platform.Material.change_media_attributes(
             cs.data |> Map.put(:project, project) |> Map.put(:project_id, project.id),
-            project.attributes |> Enum.map(&Platform.Projects.ProjectAttribute.to_attribute(&1)),
+            Projects.get_project_attributes(project),
             attrs,
             changeset: cs,
             user: user,
@@ -312,9 +312,10 @@ defmodule Platform.Material.Media do
       Enum.map(attrs, fn {k, v} ->
         attr =
           Enum.find(possible_attrs, fn a ->
-            # We allow the user to use the schema field, the attribute name, or the label
+            # We allow the user to use the schema field, the attribute name, or the standardized name
             to_string(a.schema_field) == k or to_string(a.schema_field) == "attr_" <> k or
-              String.downcase(a.label) == String.downcase(k)
+              String.downcase(Attribute.standardized_label(a, project: project)) ==
+                String.downcase(k)
           end)
 
         if is_nil(attr) do
@@ -439,6 +440,8 @@ defimpl Jason.Encoder, for: Platform.Material.Media do
 
   def insert_custom_attributes(map, %Platform.Material.Media{} = media) do
     project_attributes = if is_nil(media.project), do: [], else: media.project.attributes
+
+    project_attributes = Enum.filter(project_attributes, & &1.enabled)
 
     values =
       Enum.map(project_attributes, fn attr ->

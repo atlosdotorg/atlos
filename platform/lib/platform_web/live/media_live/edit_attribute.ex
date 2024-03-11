@@ -33,7 +33,7 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
       raise PlatformWeb.Errors.NotFound, "Attribute not found"
     end
 
-    attributes = [attr] ++ Attribute.get_children(attr.name)
+    attributes = [attr] ++ Attribute.get_children(attr.name, project: assigns.media.project)
 
     {:ok,
      socket

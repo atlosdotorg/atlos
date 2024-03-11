@@ -363,10 +363,7 @@ defmodule PlatformWeb.NewLive.NewComponent do
                         <hr />
                         <div id={"project-attributes-#{@project.id}"}>
                           <.edit_attributes
-                            attrs={
-                              @project.attributes
-                              |> Enum.map(&Platform.Projects.ProjectAttribute.to_attribute/1)
-                            }
+                            attrs={Platform.Projects.get_project_attributes(@project)}
                             form={@form}
                             media_slug={@project.id}
                             media={nil}

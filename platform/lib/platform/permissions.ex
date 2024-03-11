@@ -102,6 +102,10 @@ defmodule Platform.Permissions do
     end
   end
 
+  def can_api_token_read_updates?(%APIToken{} = token) do
+    Enum.member?(token.permissions, :read) and token.is_active
+  end
+
   def can_api_token_post_comment?(%APIToken{} = token, %Media{} = media) do
     Enum.member?(token.permissions, :comment) and token.is_active and
       token.project_id == media.project_id and _is_media_editable?(media)

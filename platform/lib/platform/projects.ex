@@ -205,7 +205,7 @@ defmodule Platform.Projects do
       :attributes,
       project.attributes
       |> Enum.map(fn attr ->
-        if attr.id == id do
+        if attr.id == id or to_string(attr.decorator_for) == to_string(id) do
           ProjectAttribute.changeset(attr) |> Map.put(:action, :delete)
         else
           attr
@@ -472,5 +472,11 @@ defmodule Platform.Projects do
       err ->
         {:error, "Could not create onboarding project for user #{user.username}", err}
     end
+  end
+
+  def get_project_attributes(%Project{} = project) do
+    project.attributes
+    |> Enum.filter(& &1.enabled)
+    |> Enum.map(&ProjectAttribute.to_attribute/1)
   end
 end

@@ -1,5 +1,5 @@
 # Update the VARIANT arg in docker-compose.yml to pick an Elixir version: 1.9, 1.10, 1.10.4
-ARG VARIANT="1.15.7"
+ARG VARIANT="1.16"
 FROM elixir:${VARIANT}
 
 # This Dockerfile adds a non-root user with sudo access. Update the “remoteUser” property in
@@ -15,7 +15,7 @@ ARG COMMON_SCRIPT_SOURCE="https://raw.githubusercontent.com/microsoft/vscode-dev
 ARG COMMON_SCRIPT_SHA="dev-mode"
 
 # Optional Settings for Phoenix
-ARG PHOENIX_VERSION="1.7.10"
+ARG PHOENIX_VERSION="1.7.11"
 
 # [Optional] Setup nodejs
 ARG NODE_SCRIPT_SOURCE="https://raw.githubusercontent.com/microsoft/vscode-dev-containers/main/script-library/node-debian.sh"
@@ -56,5 +56,4 @@ RUN su ${USERNAME} -c "mix local.hex --force \
 # Add Atlos-specific dependencies
 RUN apt-get update \
   && export DEBIAN_FRONTEND=noninteractive \
-  && apt-get -y install --no-install-recommends ffmpeg imagemagick curl python3 python3-dev python3-pip chromium
-RUN pip3 install poetry
+  && apt-get -y install --no-install-recommends ffmpeg imagemagick curl python3 python3-dev python3-pip python3-poetry chromium

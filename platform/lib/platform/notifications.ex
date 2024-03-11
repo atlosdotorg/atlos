@@ -4,6 +4,9 @@ defmodule Platform.Notifications do
   """
 
   import Ecto.Query, warn: false
+  alias PlatformWeb.Router
+  alias Platform.Accounts.UserNotifier
+  alias Platform.Permissions
   alias Platform.Repo
 
   alias Platform.Accounts.User
@@ -50,19 +53,65 @@ defmodule Platform.Notifications do
   Gets all the notifications for a user.
   """
   def get_notifications_by_user_paginated(%User{} = user, options \\ []) do
-    from(n in Notification,
-      where: n.user_id == ^user.id,
-      preload: [
-        update: [
-          :user,
-          :media_version,
-          :api_token,
-          media: [project: [memberships: [:user]]]
+    query =
+      from(n in Notification,
+        where: n.user_id == ^user.id,
+        left_join: u in assoc(n, :update),
+        preload: [
+          update: [
+            :user,
+            :media_version,
+            :api_token,
+            media: [project: [memberships: [:user]]]
+          ]
         ]
-      ],
-      order_by: [desc: :inserted_at]
-    )
-    |> Repo.paginate(options)
+      )
+
+    # Apply the filter option
+    query =
+      case Keyword.get(options, :filter, "all") do
+        "unread" ->
+          query |> where([n, _], n.read == false)
+
+        # tags: update explanation contains [[@user.username]]
+        "tags" ->
+          filter = "%[[@" <> user.username <> "]]%"
+
+          query
+          |> where([_, u], fragment("? ILIKE ?", u.explanation, ^filter))
+
+        _ ->
+          query
+      end
+
+    # Apply the sort option
+    query =
+      case Keyword.get(options, :sort, "newest") do
+        "oldest" -> query |> order_by(asc: :inserted_at)
+        _ -> query |> order_by(desc: :inserted_at)
+      end
+
+    # Apply the query option
+    query =
+      case Keyword.get(options, :query, "") do
+        "" ->
+          query
+
+        q ->
+          query
+          |> where(
+            [n, u],
+            fragment(
+              "? @@ websearch_to_tsquery('simple', ?) or ? @@ websearch_to_tsquery('simple', ?)",
+              n.searchable,
+              ^q,
+              u.searchable,
+              ^q
+            )
+          )
+      end
+
+    Repo.paginate(query, options)
   end
 
   @doc """
@@ -103,12 +152,38 @@ defmodule Platform.Notifications do
     recipients = recipients ++ Material.get_subscribers(Material.get_media!(update.media_id))
 
     # Add people who are tagged
+    media = Material.get_media!(update.media_id)
+
+    tagged_users =
+      Regex.scan(Platform.Utils.get_tag_regex(), update.explanation || "")
+      |> Enum.map(&List.last(&1))
+      |> Enum.map(&Accounts.get_user_by_username(&1))
+      |> Enum.reject(&is_nil/1)
+      # Ensure all tagged users are a member of the project and can view the media
+      |> Enum.filter(fn user ->
+        Permissions.can_view_media?(user, media)
+      end)
+
+    # Send email notifications to tagged users
+    if not is_nil(update.user_id) do
+      tagger = Accounts.get_user(update.user_id)
+
+      Task.start(fn ->
+        Enum.each(tagged_users, fn user ->
+          UserNotifier.deliver_tag_notification(
+            user,
+            tagger,
+            media,
+            Router.Helpers.media_show_url(PlatformWeb.Endpoint, :show, media.slug) <>
+              "#update-#{update.id}"
+          )
+        end)
+      end)
+    end
+
     recipients =
       recipients ++
-        (Regex.scan(Platform.Utils.get_tag_regex(), update.explanation || "")
-         |> Enum.map(&List.last(&1))
-         |> Enum.map(&Accounts.get_user_by_username(&1))
-         |> Enum.filter(&(!is_nil(&1))))
+        tagged_users
 
     # Add people who are newly assigned or newly removed
     recipients =
