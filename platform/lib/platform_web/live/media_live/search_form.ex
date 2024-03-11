@@ -4,7 +4,6 @@ defmodule PlatformWeb.MediaLive.SearchForm do
   alias Platform.Material.Attribute
   alias Platform.Material
   alias Platform.Utils
-  alias Platform.Projects.ProjectAttribute
 
   def mount(socket) do
     {:ok,
@@ -48,7 +47,7 @@ defmodule PlatformWeb.MediaLive.SearchForm do
         if assigns.active_project,
           do:
             Platform.Projects.get_project_attributes(assigns.active_project)
-            |> Enum.filter(& not &1.is_decorator)
+            |> Enum.filter(&(not &1.is_decorator))
             |> Enum.map(
               &%{
                 id: "#{&1.name}_filter",
@@ -321,7 +320,7 @@ defmodule PlatformWeb.MediaLive.SearchForm do
       ) != nil
   end
 
-  def render(%{changeset: c, query_params: _, socket: _, display: _} = assigns) do
+  def render(%{changeset: _, query_params: _, socket: _, display: _} = assigns) do
     ~H"""
     <div
       x-data="{

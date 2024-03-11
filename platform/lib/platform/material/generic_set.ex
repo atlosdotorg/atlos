@@ -52,8 +52,7 @@ defmodule Platform.Material.GenericSet do
       end
     end
 
-    @impl true
-    def input_value(%{action: parent_action} = source, form, field, opts) do
+    def input_value(%{action: _} = source, form, field, opts) do
       if Keyword.has_key?(opts, :default) do
         raise ArgumentError,
               ":default is not supported on inputs_for with changesets. " <>

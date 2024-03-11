@@ -1,5 +1,4 @@
 defmodule PlatformWeb.NotificationsLive.NotificationsList do
-  alias Phoenix.HTML.Form
   use PlatformWeb, :live_component
   alias Platform.Notifications
   alias Platform.Permissions

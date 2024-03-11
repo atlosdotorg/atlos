@@ -4,7 +4,6 @@ defmodule PlatformWeb.Components do
   require Logger
   import PlatformWeb.ErrorHelpers
 
-  alias Platform.Projects.ProjectAttribute
   alias Phoenix.LiveView.JS
   alias Platform.Accounts
   alias Platform.Material.Attribute

@@ -8,8 +8,6 @@ defmodule Platform.Material.Attribute do
   alias Platform.Material
   alias Platform.Permissions
 
-  alias Platform.Projects.ProjectAttribute
-
   use Memoize
 
   defstruct [
