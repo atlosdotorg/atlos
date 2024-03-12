@@ -126,6 +126,20 @@ defmodule Platform.Material.GenericSet do
       end
     end
 
+    @impl true
+    def input_validations(%{required: required, validations: validations} = changeset, _, field) do
+      [required: field in required] ++
+        for {key, validation} <- validations,
+            key == field,
+            attr <- validation_to_attrs(validation, field, changeset),
+            do: attr
+    end
+
+    @impl true
+    def to_form(_, form, _, _) do
+      form
+    end
+
     defp form_for_name(%{__struct__: module}) do
       module
       |> Module.split()
@@ -155,5 +169,28 @@ defmodule Platform.Material.GenericSet do
     defp form_for_errors(%{action: nil}), do: []
     defp form_for_errors(%{action: :ignore}), do: []
     defp form_for_errors(%{errors: errors}), do: errors
+
+    defp validation_to_attrs({:length, opts}, _field, _changeset) do
+      max =
+        if val = Keyword.get(opts, :max) do
+          [maxlength: val]
+        else
+          []
+        end
+
+      min =
+        if val = Keyword.get(opts, :min) do
+          [minlength: val]
+        else
+          []
+        end
+
+      max ++ min
+    end
+
+    defp validation_to_attrs(_validation, _field, _changeset) do
+      []
+    end
+
   end
 end

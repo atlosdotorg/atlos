@@ -21,6 +21,7 @@ defmodule Platform.Material.MediaSearch do
     "attr_status" => {:array, :string},
     "attr_tags" => {:array, :string},
     "attr_sensitive" => {:array, :string},
+    "attr_date" => :date,
     "attr_date_min" => :date,
     "attr_date_max" => :date,
     "attr_geolocation" => :string,

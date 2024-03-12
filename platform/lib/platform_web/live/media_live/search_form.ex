@@ -312,8 +312,8 @@ defmodule PlatformWeb.MediaLive.SearchForm do
   defp is_active?(cs, attr) do
     get_change(cs, attr.schema_field) != nil or
       (attr.type == :date and
-         (get_change(cs, :attr_date_min) != nil or
-            get_change(cs, :attr_date_max) != nil)) or
+         (get_change(cs, "attr_date_min") != nil or
+            get_change(cs, "attr_date_max") != nil)) or
       get_change(
         cs,
         Material.MediaSearch.get_attrid(attr)
