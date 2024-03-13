@@ -10,6 +10,16 @@ We're actively developing Atlos. The platform is a product of the investigative 
 Here's what we're working on next:
 
 {{% steps %}}
+### Media upload API endpoint
+We're adding a media upload endpoint so investigators can programmatically add source material to Atlos.\
+
+### Improvements for large teams
+We're addressing common pain points for large teams by:
+- Making the Adminland user list filterable,
+- Collapsing recent notifications from the same incident into a single notification,
+- Adding project-level analytics for managers and owners, and 
+- Better indicating when a user is no longer a member of a project.\
+  
 ### New customization options for attributes and metadata
 Atlos currently lets investigators customize and add new attributes. We're expanding data model configurability in two ways:
 - Investigators will be able to group and sort attributes, making it easier to organize information in investigations with a complex data model.
