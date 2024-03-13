@@ -10,16 +10,6 @@ We're actively developing Atlos. The platform is a product of the investigative 
 Here's what we're working on next:
 
 {{% steps %}}
-
-### Filter and search notifications 
-We're adding search and filtering to notifications to help investigators find incidents faster. 
-
-### Email notifications
-Investigators want to know when someone is awaiting their response in an investigation. We're adding email notifications so you can opt-in to alerts when you've been tagged in a comment. 
-
-### Attribute decorators 
-Investigators often want to indicate their confidence in a geolocation or identification. We're adding attribute "decorators" that will enable researchers to attach confidence values or other annotations to each attribute. 
-
 ### New customization options for attributes and metadata
 Atlos currently lets investigators customize and add new attributes. We're expanding data model configurability in two ways:
 - Investigators will be able to group and sort attributes, making it easier to organize information in investigations with a complex data model.
@@ -85,4 +75,13 @@ The new API enables investigators to integrate third-party archival and publishi
 
 ### Backup codes for MFA
 Atlso now generates single-use recovery codes so that investigators have a backup system to log in to Atlos in the case they lose access to their MFA device. 
+
+### Filter and search notifications 
+We added search and filtering to notifications to help investigators find incidents faster. 
+
+### Email notifications
+Investigators want to know when someone is awaiting their response in an investigation. We added email notifications so you can opt-in to alerts when you've been tagged in a comment. 
+
+### Attribute decorators 
+Investigators often want to indicate their confidence in a geolocation or identification. We've added attribute "decorators" that will enable researchers to attach confidence values or other annotations to each attribute. 
 {{% /steps %}}
