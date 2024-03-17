@@ -295,6 +295,24 @@ defmodule Platform.Permissions do
     end
   end
 
+  def can_set_restricted_attribute_values_within_project?(
+        %User{} = user,
+        %Project{} = project,
+        %Attribute{} = _attribute
+      ) do
+    # Distinct from can_set_restricted_attribute_values? because we also need to
+    # check when the media does not yet exist (e.g., when creating a new
+    # incident).
+
+    membership = Projects.get_project_membership_by_user_and_project_id(user, project.id)
+
+    with false <- is_nil(membership) do
+      membership.role == :owner or membership.role == :manager
+    else
+      _ -> false
+    end
+  end
+
   def can_comment_on_media?(%User{} = user, %Media{} = media) do
     if Accounts.is_auto_account(user) do
       true

@@ -3318,7 +3318,6 @@ defmodule PlatformWeb.Components do
       |> assign(:core_attributes, core_attributes)
       |> assign(:project_attributes, project_attributes)
       |> assign_new(:optional, fn -> false end)
-      |> assign_new(:project, fn -> nil end)
 
     ~H"""
     <section class="flex flex-col gap-8">
@@ -3358,10 +3357,9 @@ defmodule PlatformWeb.Components do
          %{
            attr: attr,
            current_user: user,
-           media: media,
            form: form,
            media_slug: slug,
-           project: _project
+           project: project
          } = assigns
        ) do
     assigns =
@@ -3376,7 +3374,7 @@ defmodule PlatformWeb.Components do
       |> assign(
         :privileged_values,
         # We don't show the lock icon if the user can set restricted values, hence the check
-        if(Permissions.can_set_restricted_attribute_values?(user, media, attr),
+        if(Permissions.can_set_restricted_attribute_values_within_project?(user, project, attr),
           do: Jason.encode!([]),
           else: Jason.encode!(attr.privileged_values || [])
         )

@@ -255,6 +255,7 @@ defmodule PlatformWeb.NewLive.NewComponent do
                         media={nil}
                         optional={false}
                         current_user={@current_user}
+                        project={@project}
                       />
                     </div>
 
@@ -266,6 +267,7 @@ defmodule PlatformWeb.NewLive.NewComponent do
                         media={nil}
                         optional={false}
                         current_user={@current_user}
+                        project={@project}
                       />
                     </div>
 
@@ -337,6 +339,7 @@ defmodule PlatformWeb.NewLive.NewComponent do
                           media={nil}
                           optional={true}
                           current_user={@current_user}
+                          project={@project}
                         />
                       </div>
 
@@ -348,6 +351,7 @@ defmodule PlatformWeb.NewLive.NewComponent do
                           media={nil}
                           optional={true}
                           current_user={@current_user}
+                          project={@project}
                         />
                       </div>
 
@@ -360,6 +364,7 @@ defmodule PlatformWeb.NewLive.NewComponent do
                             media={nil}
                             optional={true}
                             current_user={@current_user}
+                            project={@project}
                           />
                         </div>
                       <% end %>
@@ -374,6 +379,7 @@ defmodule PlatformWeb.NewLive.NewComponent do
                             media={nil}
                             optional={true}
                             current_user={@current_user}
+                            project={@project}
                           />
                         </div>
                       <% end %>
