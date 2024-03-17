@@ -3385,7 +3385,7 @@ defmodule PlatformWeb.Components do
               media={@media}
               current_user={@current_user}
               project={@project}
-              label_prefix={@label_prefix}
+              label_prefix={attr.label}
             />
           </div>
         </div>
