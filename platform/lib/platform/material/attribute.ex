@@ -38,7 +38,8 @@ defmodule Platform.Material.Attribute do
     :allow_user_defined_options,
     # allows the attribute to be embedded on another attribute's edit pane (i.e., combine attributes)
     :parent,
-    :is_decorator
+    :is_decorator,
+    :allow_decorators
   ]
 
   defp renamed_attributes() do
@@ -104,7 +105,8 @@ defmodule Platform.Material.Attribute do
         pane: :not_shown,
         required: true,
         name: :description,
-        description: "A short description of the incident."
+        description: "A short description of the incident.",
+        allow_decorators: false
       },
       %Attribute{
         schema_field: :attr_date,
