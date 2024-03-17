@@ -3388,7 +3388,10 @@ defmodule PlatformWeb.Components do
     <article x-data="{user_loc: null}" id={"editor-" <> (@attr.name |> to_string())}>
       <%= case @attr.type do %>
         <% :text -> %>
-          <%= label(@f, @schema_field, @label, class: "mb-1") %>
+          <%= label(@f, @schema_field, @label) %>
+          <p :if={not is_nil(@attr.description)} class="support text-neutral-500 mb-1">
+            <%= @attr.description %>
+          </p>
           <%= case @attr.input_type || :textarea do %>
             <% :textarea -> %>
               <%= textarea(@f, @schema_field, rows: 3, phx_debounce: "blur") %>
@@ -3398,6 +3401,9 @@ defmodule PlatformWeb.Components do
           <%= error_tag(@f, @schema_field) %>
         <% :select -> %>
           <%= label(@f, @schema_field, @label) %>
+          <p :if={not is_nil(@attr.description)} class="support text-neutral-500 mb-1">
+            <%= @attr.description %>
+          </p>
           <%= error_tag(@f, @schema_field) %>
           <div phx-update="ignore" id={"attr_select_#{@slug}_#{@attr.name}"}>
             <%= select(
@@ -3415,6 +3421,9 @@ defmodule PlatformWeb.Components do
           </div>
         <% :multi_select -> %>
           <%= label(@f, @schema_field, @label) %>
+          <p :if={not is_nil(@attr.description)} class="support text-neutral-500 mb-1">
+            <%= @attr.description %>
+          </p>
           <%= error_tag(@f, @schema_field) %>
           <div phx-update="ignore" id={"attr_multi_select_#{@slug}_#{@attr.name}"}>
             <%= multiple_select(
@@ -3432,6 +3441,9 @@ defmodule PlatformWeb.Components do
           </div>
         <% :multi_users -> %>
           <%= label(@f, @schema_field, @label) %>
+          <p :if={not is_nil(@attr.description)} class="support text-neutral-500 mb-1">
+            <%= @attr.description %>
+          </p>
           <%= error_tag(@f, @schema_field) %>
           <div phx-update="ignore" id={"attr_multi_users_#{@slug}_#{@attr.name}"}>
             <%= multiple_select(
@@ -3453,7 +3465,10 @@ defmodule PlatformWeb.Components do
         <% :location -> %>
           <div class="space-y-4">
             <div>
-              <%= label(@f, :location, @label <> " (latitude, longitude)", class: "mb-1") %>
+              <%= label(@f, :location, @label <> " (latitude, longitude)") %>
+              <p :if={not is_nil(@attr.description)} class="support text-neutral-500 mb-1">
+                <%= @attr.description %>
+              </p>
               <%= text_input(@f, :location,
                 placeholder: "Comma-separated coordinates (lat, lon).",
                 novalidate: true,
@@ -3467,7 +3482,10 @@ defmodule PlatformWeb.Components do
             </div>
           </div>
         <% :time -> %>
-          <%= label(@f, @schema_field, @label, class: "mb-1") %>
+          <%= label(@f, @schema_field, @label) %>
+          <p :if={not is_nil(@attr.description)} class="support text-neutral-500 mb-1">
+            <%= @attr.description %>
+          </p>
           <div class="flex items-center gap-2 ts-ignore sm:w-64 apply-a17t-fields">
             <%= time_input(@f, @schema_field,
               "x-ref": "time_input",
@@ -3489,7 +3507,10 @@ defmodule PlatformWeb.Components do
           </p>
           <%= error_tag(@f, @schema_field) %>
         <% :date -> %>
-          <%= label(@f, @schema_field, @label, class: "mb-1") %>
+          <%= label(@f, @schema_field, @label) %>
+          <p :if={not is_nil(@attr.description)} class="support text-neutral-500 mb-1">
+            <%= @attr.description %>
+          </p>
           <div class="flex items-center gap-2 ts-ignore apply-a17t-fields">
             <%= date_input(@f, @schema_field,
               "x-ref": "date_input",

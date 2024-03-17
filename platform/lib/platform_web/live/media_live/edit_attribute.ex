@@ -161,7 +161,6 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
           <div>
             <p class="support font-mono"><%= @media.slug %></p>
             <h3 class="sec-head mt-1"><%= hd(@attrs).label %></h3>
-            <p class="sec-subhead text-neutral-500"><%= hd(@attrs).description %></p>
           </div>
         </div>
         <hr class="h-4 sep" />
