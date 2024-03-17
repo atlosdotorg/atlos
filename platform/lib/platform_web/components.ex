@@ -3310,13 +3310,24 @@ defmodule PlatformWeb.Components do
   end
 
   def edit_attributes(assigns) do
-    core_attributes = assigns[:attrs] |> Enum.filter(&(&1.schema_field != :project_attributes))
-    project_attributes = assigns[:attrs] |> Enum.filter(&(&1.schema_field == :project_attributes))
+    attrs = assigns[:attrs]
+    core_attributes = attrs |> Enum.filter(&(&1.schema_field != :project_attributes))
+    project_attributes = attrs |> Enum.filter(&(&1.schema_field == :project_attributes))
+    decorators = Map.get(assigns, :include_decorators, [])
 
     assigns =
       assigns
+      |> assign_new(:label_prefix, fn -> nil end)
       |> assign(:core_attributes, core_attributes)
       |> assign(:project_attributes, project_attributes)
+      |> assign(
+        :child_attributes,
+        Enum.map(attrs, fn attr ->
+          {attr.name,
+           Enum.filter(decorators, fn d -> to_string(d.parent) == to_string(attr.name) end)}
+        end)
+        |> Enum.into(%{})
+      )
       |> assign_new(:optional, fn -> false end)
 
     ~H"""
@@ -3330,7 +3341,22 @@ defmodule PlatformWeb.Components do
           current_user={@current_user}
           optional={@optional}
           project={@project}
+          label_prefix={@label_prefix}
         />
+        <div
+          :if={not Enum.empty?(@child_attributes[attr.name])}
+          class="pl-4 border-l border-l-4 -mt-2"
+        >
+          <.edit_attributes
+            attrs={@child_attributes[attr.name]}
+            form={@form}
+            media_slug={@media_slug}
+            media={@media}
+            current_user={@current_user}
+            project={@project}
+            label_prefix={attr.label}
+          />
+        </div>
       <% end %>
 
       <.inputs_for :let={sub_f} field={@form[:project_attributes]}>
@@ -3346,10 +3372,35 @@ defmodule PlatformWeb.Components do
             media={@media}
             optional={@optional}
             project={@project}
+            label_prefix={@label_prefix}
           />
+          <div
+            :if={not Enum.empty?(@child_attributes[attr.name])}
+            class="pl-4 border-l border-l-4 mt-6"
+          >
+            <.edit_attributes
+              attrs={@child_attributes[attr.name]}
+              form={@form}
+              media_slug={@media_slug}
+              media={@media}
+              current_user={@current_user}
+              project={@project}
+              label_prefix={@label_prefix}
+            />
+          </div>
         </div>
       </.inputs_for>
     </section>
+    """
+  end
+
+  defp attr_form_label(assigns) do
+    ~H"""
+    <%= label(@f, @schema_field) do %>
+      <span class="text-neutral-500" :if={@label_prefix != "" and not is_nil(@label_prefix)}><%= @label_prefix %>: </span>
+      <span><%= @attr.label %></span>
+      <span class="text-neutral-500" :if={@label_suffix != "" and not is_nil(@label_suffix)}><%= @label_suffix %></span>
+    <% end %>
     """
   end
 
@@ -3366,8 +3417,10 @@ defmodule PlatformWeb.Components do
       assigns
       |> assign(
         :label,
-        attr.label <> if(Map.get(assigns, :optional, false), do: " (Optional)", else: "")
+        attr.label
       )
+      |> assign(:label_suffix, if(Map.get(assigns, :optional, false), do: " (optional)", else: ""))
+      |> assign_new(:label_prefix, fn -> "" end)
       # Shorthands
       |> assign(:slug, slug)
       |> assign(:f, form)
@@ -3388,7 +3441,7 @@ defmodule PlatformWeb.Components do
     <article x-data="{user_loc: null}" id={"editor-" <> (@attr.name |> to_string())}>
       <%= case @attr.type do %>
         <% :text -> %>
-          <%= label(@f, @schema_field, @label) %>
+          <.attr_form_label f={@f} attr={@attr} schema_field={@schema_field} label_prefix={@label_prefix} label_suffix={@label_suffix} />
           <p :if={not is_nil(@attr.description)} class="support text-neutral-500 mb-1">
             <%= @attr.description %>
           </p>
@@ -3400,7 +3453,7 @@ defmodule PlatformWeb.Components do
           <% end %>
           <%= error_tag(@f, @schema_field) %>
         <% :select -> %>
-          <%= label(@f, @schema_field, @label) %>
+        <.attr_form_label f={@f} attr={@attr} schema_field={@schema_field} label_prefix={@label_prefix} label_suffix={@label_suffix} />
           <p :if={not is_nil(@attr.description)} class="support text-neutral-500 mb-1">
             <%= @attr.description %>
           </p>
@@ -3420,7 +3473,7 @@ defmodule PlatformWeb.Components do
             ) %>
           </div>
         <% :multi_select -> %>
-          <%= label(@f, @schema_field, @label) %>
+        <.attr_form_label f={@f} attr={@attr} schema_field={@schema_field} label_prefix={@label_prefix} label_suffix={@label_suffix} />
           <p :if={not is_nil(@attr.description)} class="support text-neutral-500 mb-1">
             <%= @attr.description %>
           </p>
@@ -3440,7 +3493,7 @@ defmodule PlatformWeb.Components do
             ) %>
           </div>
         <% :multi_users -> %>
-          <%= label(@f, @schema_field, @label) %>
+        <.attr_form_label f={@f} attr={@attr} schema_field={@schema_field} label_prefix={@label_prefix} label_suffix={@label_suffix} />
           <p :if={not is_nil(@attr.description)} class="support text-neutral-500 mb-1">
             <%= @attr.description %>
           </p>
@@ -3465,7 +3518,7 @@ defmodule PlatformWeb.Components do
         <% :location -> %>
           <div class="space-y-4">
             <div>
-              <%= label(@f, :location, @label <> " (latitude, longitude)") %>
+            <.attr_form_label f={@f} attr={@attr} schema_field={@schema_field} label_prefix={@label_prefix} label_suffix={@label_suffix <> " (latitude, longitude)"} />
               <p :if={not is_nil(@attr.description)} class="support text-neutral-500 mb-1">
                 <%= @attr.description %>
               </p>
@@ -3482,7 +3535,7 @@ defmodule PlatformWeb.Components do
             </div>
           </div>
         <% :time -> %>
-          <%= label(@f, @schema_field, @label) %>
+        <.attr_form_label f={@f} attr={@attr} schema_field={@schema_field} label_prefix={@label_prefix} label_suffix={@label_suffix} />
           <p :if={not is_nil(@attr.description)} class="support text-neutral-500 mb-1">
             <%= @attr.description %>
           </p>
@@ -3493,7 +3546,7 @@ defmodule PlatformWeb.Components do
               phx_debounce: "blur"
             ) %>
           </div>
-          <p class="support mt-2">
+          <p class="support text-neutral-500 mt-2">
             Type or select a time; alternatively,
             <span
               x-on:click={
@@ -3507,7 +3560,7 @@ defmodule PlatformWeb.Components do
           </p>
           <%= error_tag(@f, @schema_field) %>
         <% :date -> %>
-          <%= label(@f, @schema_field, @label) %>
+        <.attr_form_label f={@f} attr={@attr} schema_field={@schema_field} label_prefix={@label_prefix} label_suffix={@label_suffix} />
           <p :if={not is_nil(@attr.description)} class="support text-neutral-500 mb-1">
             <%= @attr.description %>
           </p>
@@ -3525,7 +3578,7 @@ defmodule PlatformWeb.Components do
               <Heroicons.calendar_days class="h-4 w-4 text-urge-400" /> Today
             </button>
           </div>
-          <p class="support mt-2">
+          <p class="support text-neutral-500 mt-2">
             Type or select a date; alternatively,
             <span
               x-on:click="$refs.date_input.value = null; $refs.date_input.dispatchEvent(new Event('input', {bubbles: true}))"

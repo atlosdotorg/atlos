@@ -33,12 +33,14 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
       raise PlatformWeb.Errors.NotFound, "Attribute not found"
     end
 
-    attributes = [attr] ++ Attribute.get_children(attr.name, project: assigns.media.project)
+    attributes = [attr]
+    children = Attribute.get_children(attr.name, project: assigns.media.project)
 
     {:ok,
      socket
      |> assign(assigns)
      |> assign(:attrs, attributes)
+     |> assign(:children, children)
      |> assign(:current_plan, Platform.Billing.get_user_plan(assigns.current_user))
      |> assign(
        :total_updates_by_user_over_30d,
@@ -223,6 +225,7 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
           <div class="mx-6 space-y-6">
             <.edit_attributes
               attrs={@attrs}
+              include_decorators={@children}
               form={f}
               media_slug={@media.slug}
               current_user={@current_user}

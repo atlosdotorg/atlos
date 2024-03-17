@@ -46,7 +46,6 @@ defmodule PlatformWeb.NewLive.NewComponent do
       end)
 
     # If available, assign the project
-
     socket
     |> assign(
       :changeset,
@@ -63,6 +62,10 @@ defmodule PlatformWeb.NewLive.NewComponent do
     |> assign(
       :project,
       project
+    )
+    |> assign(
+      :project_attributes,
+      Platform.Projects.get_project_attributes(project)
     )
     |> assign(
       :media,
@@ -262,6 +265,7 @@ defmodule PlatformWeb.NewLive.NewComponent do
                     <div>
                       <.edit_attributes
                         attrs={[Attribute.get_attribute(:sensitive)]}
+                        include_decorators={@project_attributes}
                         form={@form}
                         media_slug="NEW"
                         media={nil}
@@ -334,6 +338,7 @@ defmodule PlatformWeb.NewLive.NewComponent do
                       <div>
                         <.edit_attributes
                           attrs={[Attribute.get_attribute(:date)]}
+                          include_decorators={@project_attributes}
                           form={@form}
                           media_slug="NEW"
                           media={nil}
@@ -346,6 +351,7 @@ defmodule PlatformWeb.NewLive.NewComponent do
                       <div>
                         <.edit_attributes
                           attrs={[Attribute.get_attribute(:geolocation)]}
+                          include_decorators={@project_attributes}
                           form={@form}
                           media_slug="NEW"
                           media={nil}
@@ -359,6 +365,7 @@ defmodule PlatformWeb.NewLive.NewComponent do
                         <div>
                           <.edit_attributes
                             attrs={[Attribute.get_attribute(:tags, project: @project)]}
+                            include_decorators={@project_attributes}
                             form={@form}
                             media_slug="NEW"
                             media={nil}
@@ -373,9 +380,10 @@ defmodule PlatformWeb.NewLive.NewComponent do
                         <hr />
                         <div id={"project-attributes-#{@project.id}"}>
                           <.edit_attributes
-                            attrs={Platform.Projects.get_project_attributes(@project)}
+                            attrs={@project_attributes |> Enum.filter(& &1.is_decorator != true)}
+                            include_decorators={@project_attributes}
                             form={@form}
-                            media_slug={@project.id}
+                            media_slug="NEW"
                             media={nil}
                             optional={true}
                             current_user={@current_user}
