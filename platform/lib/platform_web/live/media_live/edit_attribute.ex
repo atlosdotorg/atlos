@@ -226,6 +226,7 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
               attrs={@attrs}
               form={f}
               media_slug={@media.slug}
+              current_user={@current_user}
               media={@media}
               project={@media.project}
             />

@@ -3328,6 +3328,7 @@ defmodule PlatformWeb.Components do
           form={@form}
           media_slug={@media_slug}
           media={@media}
+          current_user={@current_user}
           optional={@optional}
           project={@project}
         />
@@ -3342,6 +3343,7 @@ defmodule PlatformWeb.Components do
             attr={attr}
             form={sub_f}
             media_slug={@media_slug}
+            current_user={@current_user}
             media={@media}
             optional={@optional}
             project={@project}
@@ -3352,9 +3354,16 @@ defmodule PlatformWeb.Components do
     """
   end
 
-  defp edit_attribute(%{attr: attr, form: form, media_slug: slug, project: _project} = assigns) do
-    dbg(attr)
-
+  defp edit_attribute(
+         %{
+           attr: attr,
+           current_user: user,
+           media: media,
+           form: form,
+           media_slug: slug,
+           project: _project
+         } = assigns
+       ) do
     assigns =
       assigns
       |> assign(
@@ -3364,6 +3373,14 @@ defmodule PlatformWeb.Components do
       # Shorthands
       |> assign(:slug, slug)
       |> assign(:f, form)
+      |> assign(
+        :privileged_values,
+        # We don't show the lock icon if the user can set restricted values, hence the check
+        if(Permissions.can_set_restricted_attribute_values?(user, media, attr),
+          do: Jason.encode!([]),
+          else: Jason.encode!(attr.privileged_values || [])
+        )
+      )
       |> assign(
         :schema_field,
         if(attr.schema_field == :project_attributes, do: :value, else: attr.schema_field)
@@ -3395,7 +3412,7 @@ defmodule PlatformWeb.Components do
                 ),
               id: "attr_select_#{@slug}_#{@attr.name}_input",
               data_descriptions: Jason.encode!(@attr.option_descriptions || %{}),
-              data_privileged: Jason.encode!(@attr.privileged_values || [])
+              data_privileged: @privileged_values
             ) %>
           </div>
         <% :multi_select -> %>
@@ -3411,7 +3428,7 @@ defmodule PlatformWeb.Components do
               ),
               id: "attr_multi_select_#{@slug}_#{@attr.name}_input",
               data_descriptions: Jason.encode!(@attr.option_descriptions || %{}),
-              data_privileged: Jason.encode!(@attr.privileged_values || []),
+              data_privileged: @privileged_values,
               data_allow_user_defined_options: Attribute.allow_user_defined_options(@attr)
             ) %>
           </div>
