@@ -307,32 +307,8 @@ defmodule PlatformWeb.NewLive.NewComponent do
                       x-on:click="open = !open"
                     >
                       Add additional information
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                        fill="currentColor"
-                        class="w-6 h-6"
-                        x-show="!open"
-                      >
-                        <path
-                          fill-rule="evenodd"
-                          d="M12 5.25a.75.75 0 01.75.75v5.25H18a.75.75 0 010 1.5h-5.25V18a.75.75 0 01-1.5 0v-5.25H6a.75.75 0 010-1.5h5.25V6a.75.75 0 01.75-.75z"
-                          clip-rule="evenodd"
-                        />
-                      </svg>
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                        fill="currentColor"
-                        class="w-6 h-6"
-                        x-show="open"
-                      >
-                        <path
-                          fill-rule="evenodd"
-                          d="M5.25 12a.75.75 0 01.75-.75h12a.75.75 0 010 1.5H6a.75.75 0 01-.75-.75z"
-                          clip-rule="evenodd"
-                        />
-                      </svg>
+                      <Heroicons.plus_circle mini class="w-8 h-8" x-show="!open" />
+                      <Heroicons.minus_circle mini class="w-8 h-8" x-show="open" />
                     </button>
                     <div class="space-y-6 mt-4" x-transition x-show="open">
                       <div>
@@ -380,7 +356,7 @@ defmodule PlatformWeb.NewLive.NewComponent do
                         <hr />
                         <div id={"project-attributes-#{@project.id}"}>
                           <.edit_attributes
-                            attrs={@project_attributes |> Enum.filter(& &1.is_decorator != true)}
+                            attrs={@project_attributes |> Enum.filter(&(&1.is_decorator != true))}
                             include_decorators={@project_attributes}
                             form={@form}
                             media_slug="NEW"
