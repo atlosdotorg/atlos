@@ -1660,7 +1660,7 @@ defmodule PlatformWeb.Components do
           <% end %>
         <% :select -> %>
           <div class="inline-block">
-            <div class={"chip #{@tone} flex items-center gap-1 inline-block self-start break-all xl:break-normal"}>
+            <div class={"chip #{@tone} flex items-center gap-1 inline-block self-start break-all"}>
               <.attribute_icon
                 name={@name}
                 type={:solid}
@@ -1673,7 +1673,7 @@ defmodule PlatformWeb.Components do
           </div>
         <% :multi_select -> %>
           <%= for item <- (if @compact, do: @value |> Enum.take(1), else: @value) do %>
-            <div class={"chip #{@tone} flex items-center gap-1 inline-block self-start break-all xl:break-normal"}>
+            <div class={"chip #{@tone} flex items-center gap-1 inline-block self-start break-all"}>
               <.attribute_icon
                 name={@name}
                 type={:solid}
@@ -1693,7 +1693,7 @@ defmodule PlatformWeb.Components do
           <div class="inline-block">
             <% {lon, lat} = @value.coordinates %>
             <a
-              class={"chip #{@tone} inline-block flex gap-1 items-center self-start break-all xl:break-normal"}
+              class={"chip #{@tone} inline-block flex gap-1 items-center self-start break-all"}
               target="_blank"
               href={"https://maps.google.com/maps?q=#{lat},#{lon}"}
             >
@@ -1709,7 +1709,7 @@ defmodule PlatformWeb.Components do
           </div>
         <% :time -> %>
           <div class="inline-block">
-            <div class={"chip #{@tone} flex items-center gap-1 inline-block self-start break-all xl:break-normal"}>
+            <div class={"chip #{@tone} flex items-center gap-1 inline-block self-start break-all"}>
               <.attribute_icon
                 name={@name}
                 type={:solid}
@@ -1722,7 +1722,7 @@ defmodule PlatformWeb.Components do
           </div>
         <% :date -> %>
           <div class="inline-block">
-            <div class={"chip #{@tone} flex items-center gap-1 inline-block self-start break-all xl:break-normal"}>
+            <div class={"chip #{@tone} flex items-center gap-1 inline-block self-start break-all"}>
               <.attribute_icon
                 name={@name}
                 type={:solid}
@@ -1736,7 +1736,7 @@ defmodule PlatformWeb.Components do
         <% :multi_users -> %>
           <.attr_label label={@label} />
           <%= for item <- (if @compact, do: @value |> Enum.take(1), else: @value) do %>
-            <div class={"chip #{@tone} flex items-center gap-1 inline-block self-start break-all xl:break-normal"}>
+            <div class={"chip #{@tone} flex items-center gap-1 inline-block self-start break-all"}>
               <.attribute_icon
                 name={@name}
                 type={:solid}
