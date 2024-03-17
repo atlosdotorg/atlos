@@ -3331,7 +3331,7 @@ defmodule PlatformWeb.Components do
       |> assign_new(:optional, fn -> false end)
 
     ~H"""
-    <section class="flex flex-col gap-8">
+    <section class="flex flex-col gap-6">
       <%= for attr <- @core_attributes do %>
         <.edit_attribute
           attr={attr}
@@ -3354,6 +3354,7 @@ defmodule PlatformWeb.Components do
             media={@media}
             current_user={@current_user}
             project={@project}
+            optional={true}
             label_prefix={attr.label}
           />
         </div>
@@ -3385,6 +3386,7 @@ defmodule PlatformWeb.Components do
               media={@media}
               current_user={@current_user}
               project={@project}
+              optional={true}
               label_prefix={attr.label}
             />
           </div>

@@ -49,7 +49,7 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
      |> assign_new(
        :changeset,
        fn ->
-         Material.change_media_attributes(assigns.media, attributes, %{},
+         Material.change_media_attributes(assigns.media, attributes ++ children, %{},
            user: assigns.current_user
          )
        end
@@ -112,7 +112,7 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
 
     case Material.update_media_attributes_audited(
            socket.assigns.media,
-           socket.assigns.attrs,
+           socket.assigns.attrs ++ socket.assigns.children,
            params,
            user: socket.assigns.current_user
          ) do
@@ -138,7 +138,7 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
       socket.assigns.media
       # When validating, don't require the change to exist (that will be validated on submit)
       |> Material.change_media_attributes(
-        socket.assigns.attrs,
+        socket.assigns.attrs ++ socket.assigns.children,
         params,
         user: socket.assigns.current_user
       )
