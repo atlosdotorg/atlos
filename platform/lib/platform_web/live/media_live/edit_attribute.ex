@@ -33,12 +33,14 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
       raise PlatformWeb.Errors.NotFound, "Attribute not found"
     end
 
-    attributes = [attr] ++ Attribute.get_children(attr.name)
+    attributes = [attr]
+    children = Attribute.get_children(attr.name, project: assigns.media.project)
 
     {:ok,
      socket
      |> assign(assigns)
      |> assign(:attrs, attributes)
+     |> assign(:children, children)
      |> assign(:current_plan, Platform.Billing.get_user_plan(assigns.current_user))
      |> assign(
        :total_updates_by_user_over_30d,
@@ -47,7 +49,7 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
      |> assign_new(
        :changeset,
        fn ->
-         Material.change_media_attributes(assigns.media, attributes, %{},
+         Material.change_media_attributes(assigns.media, attributes ++ children, %{},
            user: assigns.current_user
          )
        end
@@ -110,7 +112,7 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
 
     case Material.update_media_attributes_audited(
            socket.assigns.media,
-           socket.assigns.attrs,
+           socket.assigns.attrs ++ socket.assigns.children,
            params,
            user: socket.assigns.current_user
          ) do
@@ -136,7 +138,7 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
       socket.assigns.media
       # When validating, don't require the change to exist (that will be validated on submit)
       |> Material.change_media_attributes(
-        socket.assigns.attrs,
+        socket.assigns.attrs ++ socket.assigns.children,
         params,
         user: socket.assigns.current_user
       )
@@ -161,7 +163,6 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
           <div>
             <p class="support font-mono"><%= @media.slug %></p>
             <h3 class="sec-head mt-1"><%= hd(@attrs).label %></h3>
-            <p class="sec-subhead text-neutral-500"><%= hd(@attrs).description %></p>
           </div>
         </div>
         <hr class="h-4 sep" />
@@ -224,8 +225,10 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
           <div class="mx-6 space-y-6">
             <.edit_attributes
               attrs={@attrs}
+              include_decorators={@children}
               form={f}
               media_slug={@media.slug}
+              current_user={@current_user}
               media={@media}
               project={@media.project}
             />

@@ -523,7 +523,7 @@ defmodule PlatformWeb.ProjectsLive.BulkUploadLive do
                           <%= if not is_nil(value) and value != [] and value != "" and attr.schema_field != :attr_description do %>
                             <div class="overflow-hidden max-w-full">
                               <p class="text-gray-600 font-medium mb-1">
-                                <%= attr.label %>
+                                <%= Material.Attribute.standardized_label(attr, project: @project) %>
                               </p>
                               <div>
                                 <.attr_entry name={attr.name} value={value} project={@project} />

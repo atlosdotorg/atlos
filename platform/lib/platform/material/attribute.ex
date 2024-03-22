@@ -8,8 +8,6 @@ defmodule Platform.Material.Attribute do
   alias Platform.Material
   alias Platform.Permissions
 
-  alias Platform.Projects.ProjectAttribute
-
   use Memoize
 
   defstruct [
@@ -39,7 +37,9 @@ defmodule Platform.Material.Attribute do
     # allows users to define their own options in a multi-select
     :allow_user_defined_options,
     # allows the attribute to be embedded on another attribute's edit pane (i.e., combine attributes)
-    :parent
+    :parent,
+    :is_decorator,
+    :allow_decorators
   ]
 
   defp renamed_attributes() do
@@ -55,7 +55,7 @@ defmodule Platform.Material.Attribute do
 
     project_attrs =
       if project do
-        Enum.map(project.attributes, &ProjectAttribute.to_attribute/1)
+        Platform.Projects.get_project_attributes(project)
       else
         []
       end
@@ -105,7 +105,8 @@ defmodule Platform.Material.Attribute do
         pane: :not_shown,
         required: true,
         name: :description,
-        description: "A short description of the incident."
+        description: "A short description of the incident.",
+        allow_decorators: false
       },
       %Attribute{
         schema_field: :attr_date,
@@ -472,6 +473,16 @@ defmodule Platform.Material.Attribute do
       }
     ]
 
+    # Filter out decorators without a parent (e.g., the parent has been deleted)
+    project_attrs =
+      Enum.filter(
+        project_attrs,
+        &(&1.is_decorator != true or
+            Enum.any?(core_attrs ++ project_attrs ++ secondary_attrs, fn attr ->
+              to_string(attr.name) == to_string(&1.parent)
+            end))
+      )
+
     core_attrs ++ project_attrs ++ secondary_attrs
   end
 
@@ -623,7 +634,9 @@ defmodule Platform.Material.Attribute do
     |> update_from_virtual_data(attribute)
     |> verify_can_edit(attribute, media, user: user, api_token: api_token)
     |> then(fn c ->
-      if verify_change_exists, do: verify_change_exists(c, [attribute]), else: c
+      if verify_change_exists,
+        do: verify_change_exists(c, [attribute]),
+        else: c
     end)
   end
 
@@ -723,6 +736,7 @@ defmodule Platform.Material.Attribute do
             |> put_change(:id, attr.name)
             |> put_change(:project_id, media.project_id)
           )
+          |> Keyword.put(:verify_change_exists, false)
         )
       end
     end
@@ -1203,6 +1217,29 @@ defmodule Platform.Material.Attribute do
 
       _ ->
         "~neutral"
+    end
+  end
+
+  @doc """
+  Sometimes an attribute's label is not sufficient for disambiguating it outside
+  of a project's context. Specifically, decorator attributes may have the same
+  name as other decorator attributes within a project, but when merging data or
+  exporting data, we need to use a more specific, disambiguated name. This
+  function provides that name.
+  """
+  def standardized_label(%Attribute{} = attribute, opts \\ []) do
+    project = Keyword.get(opts, :project, nil)
+
+    if attribute.is_decorator == true do
+      if is_nil(project) do
+        raise "project is required for decorator attributes"
+      end
+
+      parent = get_attribute(attribute.parent, project: project)
+
+      "#{parent.label} - #{attribute.label}"
+    else
+      attribute.label |> to_string()
     end
   end
 

@@ -102,6 +102,10 @@ defmodule Platform.Permissions do
     end
   end
 
+  def can_api_token_read_updates?(%APIToken{} = token) do
+    Enum.member?(token.permissions, :read) and token.is_active
+  end
+
   def can_api_token_post_comment?(%APIToken{} = token, %Media{} = media) do
     Enum.member?(token.permissions, :comment) and token.is_active and
       token.project_id == media.project_id and _is_media_editable?(media)
@@ -285,6 +289,24 @@ defmodule Platform.Permissions do
 
     with false <- is_nil(membership),
          true <- can_edit_media?(user, media) do
+      membership.role == :owner or membership.role == :manager
+    else
+      _ -> false
+    end
+  end
+
+  def can_set_restricted_attribute_values_within_project?(
+        %User{} = user,
+        %Project{} = project,
+        %Attribute{} = _attribute
+      ) do
+    # Distinct from can_set_restricted_attribute_values? because we also need to
+    # check when the media does not yet exist (e.g., when creating a new
+    # incident).
+
+    membership = Projects.get_project_membership_by_user_and_project_id(user, project.id)
+
+    with false <- is_nil(membership) do
       membership.role == :owner or membership.role == :manager
     else
       _ -> false

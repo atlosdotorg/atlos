@@ -856,7 +856,12 @@ defmodule Platform.Material do
       new_proj_attributes = Attribute.active_attributes(project: destination)
 
       Enum.each(Attribute.set_for_media(source, project: source.project), fn attr ->
-        equivalent_attr = Enum.find(new_proj_attributes, &(&1.label == attr.label))
+        equivalent_attr =
+          Enum.find(
+            new_proj_attributes,
+            &(Attribute.standardized_label(&1, project: destination) ==
+                Attribute.standardized_label(attr, project: source.project))
+          )
 
         # Try to set the attribute; no worries if it fails (they might not have permission to edit it, or it may be an invalid option)
         if equivalent_attr do
@@ -1521,7 +1526,12 @@ defmodule Platform.Material do
       # So we do a string find-and-replace.
       new_update_json =
         Enum.reduce(into_project.attributes, old_update_json, fn attribute, json ->
-          old_attribute = Enum.find(media.project.attributes, &(&1.name == attribute.name))
+          old_attribute =
+            Enum.find(
+              media.project.attributes,
+              &(Attribute.standardized_label(&1.label, project: media.project) ==
+                  Attribute.standardized_label(attribute.label, project: into_project))
+            )
 
           if is_nil(old_attribute) do
             json

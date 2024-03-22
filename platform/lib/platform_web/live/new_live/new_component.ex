@@ -46,7 +46,6 @@ defmodule PlatformWeb.NewLive.NewComponent do
       end)
 
     # If available, assign the project
-
     socket
     |> assign(
       :changeset,
@@ -63,6 +62,10 @@ defmodule PlatformWeb.NewLive.NewComponent do
     |> assign(
       :project,
       project
+    )
+    |> assign(
+      :project_attributes,
+      Platform.Projects.get_project_attributes(project)
     )
     |> assign(
       :media,
@@ -254,16 +257,21 @@ defmodule PlatformWeb.NewLive.NewComponent do
                         media_slug="NEW"
                         media={nil}
                         optional={false}
+                        current_user={@current_user}
+                        project={@project}
                       />
                     </div>
 
                     <div>
                       <.edit_attributes
                         attrs={[Attribute.get_attribute(:sensitive)]}
+                        include_decorators={@project_attributes}
                         form={@form}
                         media_slug="NEW"
                         media={nil}
                         optional={false}
+                        current_user={@current_user}
+                        project={@project}
                       />
                     </div>
 
@@ -299,51 +307,33 @@ defmodule PlatformWeb.NewLive.NewComponent do
                       x-on:click="open = !open"
                     >
                       Add additional information
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                        fill="currentColor"
-                        class="w-6 h-6"
-                        x-show="!open"
-                      >
-                        <path
-                          fill-rule="evenodd"
-                          d="M12 5.25a.75.75 0 01.75.75v5.25H18a.75.75 0 010 1.5h-5.25V18a.75.75 0 01-1.5 0v-5.25H6a.75.75 0 010-1.5h5.25V6a.75.75 0 01.75-.75z"
-                          clip-rule="evenodd"
-                        />
-                      </svg>
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                        fill="currentColor"
-                        class="w-6 h-6"
-                        x-show="open"
-                      >
-                        <path
-                          fill-rule="evenodd"
-                          d="M5.25 12a.75.75 0 01.75-.75h12a.75.75 0 010 1.5H6a.75.75 0 01-.75-.75z"
-                          clip-rule="evenodd"
-                        />
-                      </svg>
+                      <Heroicons.plus_circle mini class="w-8 h-8" x-show="!open" />
+                      <Heroicons.minus_circle mini class="w-8 h-8" x-show="open" />
                     </button>
                     <div class="space-y-6 mt-4" x-transition x-show="open">
                       <div>
                         <.edit_attributes
                           attrs={[Attribute.get_attribute(:date)]}
+                          include_decorators={@project_attributes}
                           form={@form}
                           media_slug="NEW"
                           media={nil}
                           optional={true}
+                          current_user={@current_user}
+                          project={@project}
                         />
                       </div>
 
                       <div>
                         <.edit_attributes
                           attrs={[Attribute.get_attribute(:geolocation)]}
+                          include_decorators={@project_attributes}
                           form={@form}
                           media_slug="NEW"
                           media={nil}
                           optional={true}
+                          current_user={@current_user}
+                          project={@project}
                         />
                       </div>
 
@@ -351,10 +341,13 @@ defmodule PlatformWeb.NewLive.NewComponent do
                         <div>
                           <.edit_attributes
                             attrs={[Attribute.get_attribute(:tags, project: @project)]}
+                            include_decorators={@project_attributes}
                             form={@form}
                             media_slug="NEW"
                             media={nil}
                             optional={true}
+                            current_user={@current_user}
+                            project={@project}
                           />
                         </div>
                       <% end %>
@@ -363,14 +356,14 @@ defmodule PlatformWeb.NewLive.NewComponent do
                         <hr />
                         <div id={"project-attributes-#{@project.id}"}>
                           <.edit_attributes
-                            attrs={
-                              @project.attributes
-                              |> Enum.map(&Platform.Projects.ProjectAttribute.to_attribute/1)
-                            }
+                            attrs={@project_attributes |> Enum.filter(&(&1.is_decorator != true))}
+                            include_decorators={@project_attributes}
                             form={@form}
-                            media_slug={@project.id}
+                            media_slug="NEW"
                             media={nil}
                             optional={true}
+                            current_user={@current_user}
+                            project={@project}
                           />
                         </div>
                       <% end %>
