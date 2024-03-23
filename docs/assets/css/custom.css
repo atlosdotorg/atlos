@@ -1,3 +1,18 @@
+
+img[alt$="A profile with flair."] {
+    width: 50%;
+}
+
+img[alt$="A No Access mode message."] {
+    width: 50%;
+} 
+
 img[alt$="The metadata pane."] {
     width: 75%;
 }
+
+img[alt$="The message shown to suspended users."] {
+    width: 50%;
+}
+
+

@@ -33,7 +33,7 @@ defmodule PlatformWeb.SettingsLive.MFALive do
            query
            |> Map.put("otp_secret", socket.assigns.secret)
          ) do
-      {:ok, user} ->
+      {:ok, _} ->
         {:noreply,
          socket
          |> redirect(to: Routes.settings_backup_codes_path(socket, :backupcode, query))}

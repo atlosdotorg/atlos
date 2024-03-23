@@ -19,8 +19,10 @@ defmodule PlatformWeb.MountHelperLive do
     if is_nil(socket.assigns.current_user) do
       {:halt, redirect(socket, to: "/users/log_in")}
     else
-      # TODO: use routes
-      {:cont, socket |> assign(:current_user, socket.assigns.current_user)}
+      {:cont,
+       socket
+       |> assign(:current_user, socket.assigns.current_user)
+       |> assign(:current_plan, Platform.Billing.get_user_plan(socket.assigns.current_user))}
     end
   end
 

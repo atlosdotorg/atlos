@@ -30,17 +30,20 @@ The Atlos API supports `GET` and `POST` endpoints. All `GET` endpoints return 30
 
 You can paginate using the `cursor` query parameter, whose value is provided by the `next` and `previous` keys in the response. Results are available under the `results` key.
 
-### Search for all incidents
-`GET /api/v2/incidents` returns all incidents, with the most recently modified incidents listed first.
+### Get incidents
+`GET /api/v2/incidents` returns all incidents, with the most recently modified incidents listed first. You can optionally pass search parameters to filter the results using the same format as the in-platform incident search page's URL. For example, to only return incidents with the status "To Do" or "Cancelled", you would query `/api/v2/incidents?attr_status[]=To+Do&attr_status=Cancelled`.
 
-### Search for all source material
+### Get source material
 `GET /api/v2/source_material` returns all source material, with the most recently modified source material listed first.
+
+### Get updates and comments
+`GET /api/v2/updates` returns all updates (including comments), with the most recently modified updates listed first. Optionally pass a `slug` query parameter to filter by incident (e.g., `/api/v2/updates?slug=incident-slug`). The slug is the last part of the URL for the incident, and is also available in the ‘slug’ field of the incident object returned by other endpoints.
 
 ### Add a comment to an incident
 `POST /api/v2/add_comment/:slug` with string parameter `message` adds a comment to the incident with slug `:slug` (the slug is the last part of the URL for the incident, and is also available in the `slug` field of the incident object).
 
 ### Update an incident's attribute value
-`POST /api/v2/update/:slug/:attribute_name` with parameter `value` and optional string parameter `message` updates the value of `attribute_name` to `value` for the incident with slug `:slug` (the slug is the last part of the URL for the incident, and is also available in the ‘slug’ field of the incident object). 
+`POST /api/v2/update/:slug/:attribute_name` with parameter `value` and optional string parameter `message` updates the value of `attribute_name` to `value` for the incident with slug `:slug` (the slug is the last part of the URL for the incident, and is also available in the ‘slug’ field of the incident object returned by other endpoints). 
 
 If `message` is provided, it will be added as a comment to the incident (as part of the tracked change). 
 

@@ -882,19 +882,19 @@
                         </audio>
                       <% true -> %>
                         <!-- Show some kind of file preview -->
-                        <div class="flex flex-col sm:flex-row items-center m-4 gap-2 sm:gap-4">
+                        <div class="flex flex-col sm:flex-row items-center m-4 gap-2 sm:gap-4 max-w-full overflow-hidden">
                           <Heroicons.archive_box class="h-12 w-12 text-neutral-500" />
-                          <div class="grow">
-                            <p class="font-medium">
+                          <div class="grow max-w-full overflow-hidden">
+                            <p class="font-medium truncate max-w-full">
                               <%= artifact.file_location %>
                             </p>
-                            <p class="text-xs text-neutral-500">
+                            <p class="text-xs text-neutral-500 text-center md:text-left">
                               <%= artifact.type |> Atom.to_string() |> String.upcase() %>
                             </p>
                           </div>
                           <a
                             href={Material.media_version_artifact_location(artifact)}
-                            class="base-button"
+                            class="base-button shrink-0"
                             target="_blank"
                           >
                             <Heroicons.arrow_up_right mini class="h-4 w-4 mr-1" /> Open
@@ -934,7 +934,7 @@
                     </div>
                     <div>
                       <dt class="text-neutral-500">File Type</dt>
-                      <dd><%= artifact.mime_type %></dd>
+                      <dd class="truncate max-w-full"><%= artifact.mime_type %></dd>
                     </div>
                     <div class="lg:col-span-2">
                       <dt class="text-neutral-500">Hashes</dt>

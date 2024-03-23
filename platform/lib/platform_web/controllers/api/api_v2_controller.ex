@@ -2,6 +2,7 @@ defmodule PlatformWeb.APIV2Controller do
   alias Platform.Projects
   alias Platform.Material.Attribute
   alias Platform.Permissions
+  alias Platform.Updates
   use PlatformWeb, :controller
   import Ecto.Query
 
@@ -79,13 +80,20 @@ defmodule PlatformWeb.APIV2Controller do
   def incidents(conn, params) do
     project_id = conn.assigns.token.project_id
 
+    base_query =
+      from(m in Material.Media,
+        where: m.project_id == ^project_id
+      )
+
+    search_changeset = Material.MediaSearch.changeset(params)
+
+    {query, pagination_options} =
+      Material.MediaSearch.search_query(base_query, search_changeset)
+
     pagination_api(conn, params, fn opts ->
       Material.query_media_paginated(
-        from(m in Material.Media,
-          where: m.project_id == ^project_id,
-          order_by: [desc: m.inserted_at]
-        ),
-        opts
+        query,
+        Keyword.merge(pagination_options, opts)
       )
     end)
   end
@@ -116,6 +124,48 @@ defmodule PlatformWeb.APIV2Controller do
           {:error, changeset} ->
             json(conn |> put_status(401), %{error: render_changeset_errors(changeset)})
         end
+    end
+  end
+
+  def get_updates(conn, params) do
+    project_id = conn.assigns.token.project_id
+
+    media_slug = params["slug"]
+
+    media =
+      if media_slug do
+        Material.get_full_media_by_slug(media_slug)
+      else
+        nil
+      end
+
+    cond do
+      (not is_nil(media_slug) and is_nil(media)) or
+          (not is_nil(media) and media.project_id != project_id) ->
+        conn |> put_status(401) |> json(%{error: "media not found"})
+
+      not Permissions.can_api_token_read_updates?(conn.assigns.token) ->
+        conn |> put_status(401) |> json(%{error: "api token not authorized to read updates"})
+
+      true ->
+        pagination_api(conn, params, fn opts ->
+          Updates.query_updates_paginated(
+            from(u in Updates.Update,
+              join: m in assoc(u, :media),
+              where: m.project_id == ^project_id,
+              order_by: [desc: u.inserted_at],
+              preload: [:user, media: m]
+            )
+            |> then(fn q ->
+              if media do
+                where(q, [u], u.media_id == ^media.id)
+              else
+                q
+              end
+            end),
+            opts
+          )
+        end)
     end
   end
 

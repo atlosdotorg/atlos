@@ -11,15 +11,19 @@ Here's what we're working on next:
 
 {{% steps %}}
 
+### Filter and search notifications 
+We're adding search and filtering to notifications to help investigators find incidents faster. 
+
+### Email notifications
+Investigators want to know when someone is awaiting their response in an investigation. We're adding email notifications so you can opt-in to alerts when you've been tagged in a comment. 
+
+### Attribute decorators 
+Investigators often want to indicate their confidence in a geolocation or identification. We're adding attribute "decorators" that will enable researchers to attach confidence values or other annotations to each attribute. 
+
 ### New customization options for attributes and metadata
 Atlos currently lets investigators customize and add new attributes. We're expanding data model configurability in two ways:
 - Investigators will be able to group and sort attributes, making it easier to organize information in investigations with a complex data model.
 - Investigators will be able to customize the values and descriptions of metadata fields like status and sensitivity, because Atlos should be able to match each team's unique workflow and safety standards.\
-[Track our progress](https://github.com/atlosdotorg/atlos/milestone/15).
-
-### Backup codes for MFA
-We implore investigators to enable multi-factor authentication on their Atlos accounts. But if you lose access to your authenticator app, you'll
-be locked out of Atlos. We're adding single-use recovery codes so that investigators have a backup system to log in to Atlos. [Track our progress](https://github.com/atlosdotorg/atlos/milestone/10).
 
 ### Pricing plan 
 To support the costs of development, maintenance, and support, we're implementing a pricing plan in the next month. The model includes a generous [free tier](/overview/pricing/) and we're optimistic there's a plan for everyone. 
@@ -29,13 +33,12 @@ We're seeing increased interest in self-hosting Atlos and want to make it as eas
 - Create named releases for Atlos, so organizations know what they're getting when they deploy a new version of the platform.
 - Make our self-hosting documentation easier to navigate.
 - Add recommendations for database-level logging and security best practices.\
-[Track our progress](https://github.com/atlosdotorg/atlos/milestone/18).
 
 ### Simplified permissions schema
-Atlos has lots of moderation tools—investigators can hide, freeze, and delete incidents, minimize and remove source material, and archive projects. We plan to simplify this schema so it's more clear which investigators can do what, when. [Track our progress](https://github.com/atlosdotorg/atlos/milestone/14).
+Atlos has lots of moderation tools—investigators can hide, freeze, and delete incidents, minimize and remove source material, and archive projects. We plan to simplify this schema so it's more clear which investigators can do what, when.
 
 ### Decoupling source material from incidents
-People want a place to throw in source material before they’re ready to define their data model. Source material should be a first-class citizen on Atlos. More details to come. [Track our progress](https://github.com/atlosdotorg/atlos/milestone/19).
+People want a place to throw in source material before they’re ready to define their data model. Source material should be a first-class citizen on Atlos. More details to come. 
 
 ### Linking incidents to one another
 Incidents do not exist in isolation, and the ability to “network” incidents is a fairly common feature request. More details to come.
@@ -80,4 +83,6 @@ Creating a new incident should be fast and easy—all you have to do is click `c
 ### Project-scoped API
 The new API enables investigators to integrate third-party archival and publishing systems into Atlos.
 
+### Backup codes for MFA
+Atlso now generates single-use recovery codes so that investigators have a backup system to log in to Atlos in the case they lose access to their MFA device. 
 {{% /steps %}}

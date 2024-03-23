@@ -20,12 +20,12 @@ Once the Codespace opens up in your VS Code window, you'll be able to start the 
 
 You can log into an admin using the following credentials:
 
-- Email: `admin@localhost`
+- Email: `admin@localhost.com`
 - Password: `localhost123`
 
 And you can log into a regular user account using the following credentials:
 
-- Email: `user@localhost`
+- Email: `user@localhost.com`
 - Password: `localhost123`
 
 Other tasks you might want to perform from inside the `platform` subdirectory (i.e., this one):
@@ -78,6 +78,7 @@ On Azure, we use only three products directly: Azure Container Apps, Azure Datab
 The Atlos web application will read the following environment variables. Some are absolutely required in production, while others are optional.
 
 - `S3_BUCKET` — the primary S3 bucket to use for content
+- `MAILER_FROM_ADDRESS` — the email address to send mail from
 - `AWS_REGION` — the AWS region for S3
 - `AWS_MAILER_REGION` — the AWS region for mail
 - `AWS_ACCESS_KEY_ID` — the AWS access key id
@@ -99,6 +100,11 @@ The Atlos web application will read the following environment variables. Some ar
 - `ONBOARDING_PROJECT_ID` — the ID of the demo onboarding project template; if unset, the onboarding project will not be created (optional but recommended)
 - `COOKIE_SIGNING_SALT` — salt to use for cookie signing (must be at least 64 bytes)
 - `SECRET_KEY_BASE` — base secret key for Phoenix (must be at least 64 bytes)
+- `BILLING_ENABLED` — whether billing should be enabled (default `false`; does not make sense for self-hosted instances)
+- `STRIPE_CUSTOMER_PORTAL_URL` — Stripe customer portal URL (optional, required if `BILLING_ENABLED` is `true`)
+- `STRIPE_PRICING_TABLE_ID` — Stripe pricing table ID (optional, required if `BILLING_ENABLED` is `true`)
+- `STRIPE_PUBLISHABLE_KEY` — Stripe publishable key (optional, required if `BILLING_ENABLED` is `true`)
+- `STRIPE_SECRET_KEY` — Stripe secret key (optional, required if `BILLING_ENABLED` is `true`)
 
 ### A special note on the database
 
