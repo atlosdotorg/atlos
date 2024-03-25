@@ -11,19 +11,20 @@ Here's what we're working on next:
 
 {{% steps %}}
 
-### Filter and search notifications 
-We're adding search and filtering to notifications to help investigators find incidents faster. 
+### Media upload API endpoint
+We're adding a media upload endpoint so investigators can programmatically add source material to Atlos.
 
-### Email notifications
-Investigators want to know when someone is awaiting their response in an investigation. We're adding email notifications so you can opt-in to alerts when you've been tagged in a comment. 
-
-### Attribute decorators 
-Investigators often want to indicate their confidence in a geolocation or identification. We're adding attribute "decorators" that will enable researchers to attach confidence values or other annotations to each attribute. 
-
+### Improvements for large teams
+We're addressing common pain points for large teams by:
+- Making the Adminland user list filterable,
+- Collapsing recent notifications from the same incident into a single notification,
+- Adding project-level analytics for managers and owners, and 
+- Better indicating when a user is no longer a member of a project.
+  
 ### New customization options for attributes and metadata
 Atlos currently lets investigators customize and add new attributes. We're expanding data model configurability in two ways:
 - Investigators will be able to group and sort attributes, making it easier to organize information in investigations with a complex data model.
-- Investigators will be able to customize the values and descriptions of metadata fields like status and sensitivity, because Atlos should be able to match each team's unique workflow and safety standards.\
+- Investigators will be able to customize the values and descriptions of metadata fields like status and sensitivity, because Atlos should be able to match each team's unique workflow and safety standards.
 
 ### Pricing plan 
 To support the costs of development, maintenance, and support, we're implementing a pricing plan in the next month. The model includes a generous [free tier](/overview/pricing/) and we're optimistic there's a plan for everyone. 
@@ -32,7 +33,7 @@ To support the costs of development, maintenance, and support, we're implementin
 We're seeing increased interest in self-hosting Atlos and want to make it as easy—and safe—as possible to do so. We're planning to:
 - Create named releases for Atlos, so organizations know what they're getting when they deploy a new version of the platform.
 - Make our self-hosting documentation easier to navigate.
-- Add recommendations for database-level logging and security best practices.\
+- Add recommendations for database-level logging and security best practices.
 
 ### Simplified permissions schema
 Atlos has lots of moderation tools—investigators can hide, freeze, and delete incidents, minimize and remove source material, and archive projects. We plan to simplify this schema so it's more clear which investigators can do what, when.
@@ -85,4 +86,13 @@ The new API enables investigators to integrate third-party archival and publishi
 
 ### Backup codes for MFA
 Atlso now generates single-use recovery codes so that investigators have a backup system to log in to Atlos in the case they lose access to their MFA device. 
+
+### Filter and search notifications 
+We added search and filtering to notifications to help investigators find incidents faster. 
+
+### Email notifications
+Investigators want to know when someone is awaiting their response in an investigation. We added email notifications so you can opt-in to alerts when you've been tagged in a comment. 
+
+### Attribute decorators 
+Investigators often want to indicate their confidence in a geolocation or identification. We've added attribute "decorators" that will enable researchers to attach confidence values or other annotations to each attribute. 
 {{% /steps %}}
