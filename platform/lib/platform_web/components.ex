@@ -1660,7 +1660,7 @@ defmodule PlatformWeb.Components do
           <% end %>
         <% :select -> %>
           <div class="inline-block">
-            <div class={"chip #{@tone} flex items-center gap-1 inline-block self-start break-all xl:break-normal"}>
+            <div class={"chip #{@tone} flex items-center gap-1 inline-block self-start break-all"}>
               <.attribute_icon
                 name={@name}
                 type={:solid}
@@ -1673,7 +1673,7 @@ defmodule PlatformWeb.Components do
           </div>
         <% :multi_select -> %>
           <%= for item <- (if @compact, do: @value |> Enum.take(1), else: @value) do %>
-            <div class={"chip #{@tone} flex items-center gap-1 inline-block self-start break-all xl:break-normal"}>
+            <div class={"chip #{@tone} flex items-center gap-1 inline-block self-start break-all"}>
               <.attribute_icon
                 name={@name}
                 type={:solid}
@@ -1693,7 +1693,7 @@ defmodule PlatformWeb.Components do
           <div class="inline-block">
             <% {lon, lat} = @value.coordinates %>
             <a
-              class={"chip #{@tone} inline-block flex gap-1 items-center self-start break-all xl:break-normal"}
+              class={"chip #{@tone} inline-block flex gap-1 items-center self-start break-all"}
               target="_blank"
               href={"https://maps.google.com/maps?q=#{lat},#{lon}"}
             >
@@ -1709,7 +1709,7 @@ defmodule PlatformWeb.Components do
           </div>
         <% :time -> %>
           <div class="inline-block">
-            <div class={"chip #{@tone} flex items-center gap-1 inline-block self-start break-all xl:break-normal"}>
+            <div class={"chip #{@tone} flex items-center gap-1 inline-block self-start break-all"}>
               <.attribute_icon
                 name={@name}
                 type={:solid}
@@ -1722,7 +1722,7 @@ defmodule PlatformWeb.Components do
           </div>
         <% :date -> %>
           <div class="inline-block">
-            <div class={"chip #{@tone} flex items-center gap-1 inline-block self-start break-all xl:break-normal"}>
+            <div class={"chip #{@tone} flex items-center gap-1 inline-block self-start break-all"}>
               <.attribute_icon
                 name={@name}
                 type={:solid}
@@ -1736,7 +1736,7 @@ defmodule PlatformWeb.Components do
         <% :multi_users -> %>
           <.attr_label label={@label} />
           <%= for item <- (if @compact, do: @value |> Enum.take(1), else: @value) do %>
-            <div class={"chip #{@tone} flex items-center gap-1 inline-block self-start break-all xl:break-normal"}>
+            <div class={"chip #{@tone} flex items-center gap-1 inline-block self-start break-all"}>
               <.attribute_icon
                 name={@name}
                 type={:solid}
@@ -3310,27 +3310,54 @@ defmodule PlatformWeb.Components do
   end
 
   def edit_attributes(assigns) do
-    core_attributes = assigns[:attrs] |> Enum.filter(&(&1.schema_field != :project_attributes))
-    project_attributes = assigns[:attrs] |> Enum.filter(&(&1.schema_field == :project_attributes))
+    attrs = assigns[:attrs]
+    core_attributes = attrs |> Enum.filter(&(&1.schema_field != :project_attributes))
+    project_attributes = attrs |> Enum.filter(&(&1.schema_field == :project_attributes))
+    decorators = Map.get(assigns, :include_decorators, [])
 
     assigns =
       assigns
+      |> assign_new(:label_prefix, fn -> nil end)
       |> assign(:core_attributes, core_attributes)
       |> assign(:project_attributes, project_attributes)
+      |> assign(
+        :child_attributes,
+        Enum.map(attrs, fn attr ->
+          {attr.name,
+           Enum.filter(decorators, fn d -> to_string(d.parent) == to_string(attr.name) end)}
+        end)
+        |> Enum.into(%{})
+      )
       |> assign_new(:optional, fn -> false end)
-      |> assign_new(:project, fn -> nil end)
 
     ~H"""
-    <section class="flex flex-col gap-8">
+    <section class="flex flex-col gap-6">
       <%= for attr <- @core_attributes do %>
         <.edit_attribute
           attr={attr}
           form={@form}
           media_slug={@media_slug}
           media={@media}
+          current_user={@current_user}
           optional={@optional}
           project={@project}
+          label_prefix={@label_prefix}
         />
+        <div
+          :if={not Enum.empty?(@child_attributes[attr.name])}
+          class="pl-4 border-l border-l-4 -mt-2"
+        >
+          <.edit_attributes
+            attrs={@child_attributes[attr.name]}
+            form={@form}
+            media_slug={@media_slug}
+            media={@media}
+            current_user={@current_user}
+            project={@project}
+            optional={true}
+            label_prefix={attr.label}
+          />
+        </div>
       <% end %>
 
       <.inputs_for :let={sub_f} field={@form[:project_attributes]}>
@@ -3342,28 +3369,71 @@ defmodule PlatformWeb.Components do
             attr={attr}
             form={sub_f}
             media_slug={@media_slug}
+            current_user={@current_user}
             media={@media}
             optional={@optional}
             project={@project}
+            label_prefix={@label_prefix}
           />
+          <div
+            :if={not Enum.empty?(@child_attributes[attr.name])}
+            class="pl-4 border-l border-l-4 mt-6"
+          >
+            <.edit_attributes
+              attrs={@child_attributes[attr.name]}
+              form={@form}
+              media_slug={@media_slug}
+              media={@media}
+              current_user={@current_user}
+              project={@project}
+              optional={true}
+              label_prefix={attr.label}
+            />
+          </div>
         </div>
       </.inputs_for>
     </section>
     """
   end
 
-  defp edit_attribute(%{attr: attr, form: form, media_slug: slug, project: _project} = assigns) do
-    dbg(attr)
+  defp attr_form_label(assigns) do
+    ~H"""
+    <%= label(@f, @schema_field) do %>
+      <span class="text-neutral-500" :if={@label_prefix != "" and not is_nil(@label_prefix)}><%= @label_prefix %>: </span>
+      <span><%= @attr.label %></span>
+      <span class="text-neutral-500" :if={@label_suffix != "" and not is_nil(@label_suffix)}><%= @label_suffix %></span>
+    <% end %>
+    """
+  end
 
+  defp edit_attribute(
+         %{
+           attr: attr,
+           current_user: user,
+           form: form,
+           media_slug: slug,
+           project: project
+         } = assigns
+       ) do
     assigns =
       assigns
       |> assign(
         :label,
-        attr.label <> if(Map.get(assigns, :optional, false), do: " (Optional)", else: "")
+        attr.label
       )
+      |> assign(:label_suffix, if(Map.get(assigns, :optional, false), do: " (optional)", else: ""))
+      |> assign_new(:label_prefix, fn -> "" end)
       # Shorthands
       |> assign(:slug, slug)
       |> assign(:f, form)
+      |> assign(
+        :privileged_values,
+        # We don't show the lock icon if the user can set restricted values, hence the check
+        if(Permissions.can_set_restricted_attribute_values_within_project?(user, project, attr),
+          do: Jason.encode!([]),
+          else: Jason.encode!(attr.privileged_values || [])
+        )
+      )
       |> assign(
         :schema_field,
         if(attr.schema_field == :project_attributes, do: :value, else: attr.schema_field)
@@ -3373,7 +3443,10 @@ defmodule PlatformWeb.Components do
     <article x-data="{user_loc: null}" id={"editor-" <> (@attr.name |> to_string())}>
       <%= case @attr.type do %>
         <% :text -> %>
-          <%= label(@f, @schema_field, @label, class: "mb-1") %>
+          <.attr_form_label f={@f} attr={@attr} schema_field={@schema_field} label_prefix={@label_prefix} label_suffix={@label_suffix} />
+          <p :if={not is_nil(@attr.description)} class="support text-neutral-500 mb-1">
+            <%= @attr.description %>
+          </p>
           <%= case @attr.input_type || :textarea do %>
             <% :textarea -> %>
               <%= textarea(@f, @schema_field, rows: 3, phx_debounce: "blur") %>
@@ -3382,7 +3455,10 @@ defmodule PlatformWeb.Components do
           <% end %>
           <%= error_tag(@f, @schema_field) %>
         <% :select -> %>
-          <%= label(@f, @schema_field, @label) %>
+        <.attr_form_label f={@f} attr={@attr} schema_field={@schema_field} label_prefix={@label_prefix} label_suffix={@label_suffix} />
+          <p :if={not is_nil(@attr.description)} class="support text-neutral-500 mb-1">
+            <%= @attr.description %>
+          </p>
           <%= error_tag(@f, @schema_field) %>
           <div phx-update="ignore" id={"attr_select_#{@slug}_#{@attr.name}"}>
             <%= select(
@@ -3395,11 +3471,14 @@ defmodule PlatformWeb.Components do
                 ),
               id: "attr_select_#{@slug}_#{@attr.name}_input",
               data_descriptions: Jason.encode!(@attr.option_descriptions || %{}),
-              data_privileged: Jason.encode!(@attr.privileged_values || [])
+              data_privileged: @privileged_values
             ) %>
           </div>
         <% :multi_select -> %>
-          <%= label(@f, @schema_field, @label) %>
+        <.attr_form_label f={@f} attr={@attr} schema_field={@schema_field} label_prefix={@label_prefix} label_suffix={@label_suffix} />
+          <p :if={not is_nil(@attr.description)} class="support text-neutral-500 mb-1">
+            <%= @attr.description %>
+          </p>
           <%= error_tag(@f, @schema_field) %>
           <div phx-update="ignore" id={"attr_multi_select_#{@slug}_#{@attr.name}"}>
             <%= multiple_select(
@@ -3411,12 +3490,15 @@ defmodule PlatformWeb.Components do
               ),
               id: "attr_multi_select_#{@slug}_#{@attr.name}_input",
               data_descriptions: Jason.encode!(@attr.option_descriptions || %{}),
-              data_privileged: Jason.encode!(@attr.privileged_values || []),
+              data_privileged: @privileged_values,
               data_allow_user_defined_options: Attribute.allow_user_defined_options(@attr)
             ) %>
           </div>
         <% :multi_users -> %>
-          <%= label(@f, @schema_field, @label) %>
+        <.attr_form_label f={@f} attr={@attr} schema_field={@schema_field} label_prefix={@label_prefix} label_suffix={@label_suffix} />
+          <p :if={not is_nil(@attr.description)} class="support text-neutral-500 mb-1">
+            <%= @attr.description %>
+          </p>
           <%= error_tag(@f, @schema_field) %>
           <div phx-update="ignore" id={"attr_multi_users_#{@slug}_#{@attr.name}"}>
             <%= multiple_select(
@@ -3438,7 +3520,10 @@ defmodule PlatformWeb.Components do
         <% :location -> %>
           <div class="space-y-4">
             <div>
-              <%= label(@f, :location, @label <> " (latitude, longitude)", class: "mb-1") %>
+            <.attr_form_label f={@f} attr={@attr} schema_field={@schema_field} label_prefix={@label_prefix} label_suffix={@label_suffix <> " (latitude, longitude)"} />
+              <p :if={not is_nil(@attr.description)} class="support text-neutral-500 mb-1">
+                <%= @attr.description %>
+              </p>
               <%= text_input(@f, :location,
                 placeholder: "Comma-separated coordinates (lat, lon).",
                 novalidate: true,
@@ -3452,7 +3537,10 @@ defmodule PlatformWeb.Components do
             </div>
           </div>
         <% :time -> %>
-          <%= label(@f, @schema_field, @label, class: "mb-1") %>
+        <.attr_form_label f={@f} attr={@attr} schema_field={@schema_field} label_prefix={@label_prefix} label_suffix={@label_suffix} />
+          <p :if={not is_nil(@attr.description)} class="support text-neutral-500 mb-1">
+            <%= @attr.description %>
+          </p>
           <div class="flex items-center gap-2 ts-ignore sm:w-64 apply-a17t-fields">
             <%= time_input(@f, @schema_field,
               "x-ref": "time_input",
@@ -3460,7 +3548,7 @@ defmodule PlatformWeb.Components do
               phx_debounce: "blur"
             ) %>
           </div>
-          <p class="support mt-2">
+          <p class="support text-neutral-500 mt-2">
             Type or select a time; alternatively,
             <span
               x-on:click={
@@ -3474,7 +3562,10 @@ defmodule PlatformWeb.Components do
           </p>
           <%= error_tag(@f, @schema_field) %>
         <% :date -> %>
-          <%= label(@f, @schema_field, @label, class: "mb-1") %>
+        <.attr_form_label f={@f} attr={@attr} schema_field={@schema_field} label_prefix={@label_prefix} label_suffix={@label_suffix} />
+          <p :if={not is_nil(@attr.description)} class="support text-neutral-500 mb-1">
+            <%= @attr.description %>
+          </p>
           <div class="flex items-center gap-2 ts-ignore apply-a17t-fields">
             <%= date_input(@f, @schema_field,
               "x-ref": "date_input",
@@ -3489,7 +3580,7 @@ defmodule PlatformWeb.Components do
               <Heroicons.calendar_days class="h-4 w-4 text-urge-400" /> Today
             </button>
           </div>
-          <p class="support mt-2">
+          <p class="support text-neutral-500 mt-2">
             Type or select a date; alternatively,
             <span
               x-on:click="$refs.date_input.value = null; $refs.date_input.dispatchEvent(new Event('input', {bubbles: true}))"

@@ -56,6 +56,13 @@ defmodule Platform.Projects.ProjectAttribute do
       end
     end)
     |> validate_length(:name, min: 1, max: 240)
+    # Strip whitespace from the attribute name
+    |> then(fn changeset ->
+      case get_field(changeset, :name) do
+        nil -> changeset
+        name -> put_change(changeset, :name, String.trim(name))
+      end
+    end)
     |> validate_length(:description, min: 0, max: 240)
     |> validate_inclusion(:type, [:select, :text, :date, :multi_select])
     |> validate_change(:type, fn :type, type ->

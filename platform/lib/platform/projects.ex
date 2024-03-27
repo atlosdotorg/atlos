@@ -474,6 +474,10 @@ defmodule Platform.Projects do
     end
   end
 
+  @doc """
+  Returns the project attributes for a given project. Includes only the enabled
+  attributes, including decorator attributes.
+  """
   def get_project_attributes(%Project{} = project) do
     project.attributes
     |> Enum.filter(& &1.enabled)
