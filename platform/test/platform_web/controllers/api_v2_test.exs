@@ -399,5 +399,56 @@ defmodule PlatformWeb.APIV2Test do
       })
 
     assert json_response(conn, 401) == %{"error" => "incident not found or unauthorized"}
-    end
+  end
+
+  test "POST /source_material/metadata/:version_id/:namespace" do
+    project = project_fixture()
+    other_project = project_fixture()
+
+    underpermissioned_token =
+      api_token_fixture(%{project_id: project.id, permissions: [:read, :comment]})
+
+    token = api_token_fixture(%{project_id: project.id, permissions: [:read, :comment, :edit]})
+
+    other_token =
+      api_token_fixture(%{project_id: other_project.id, permissions: [:read, :comment, :edit]})
+
+    media = media_fixture(%{project_id: project.id})
+    media_fixture(%{project_id: other_project.id})
+
+    # Create a media version
+    auth_conn =
+      build_conn()
+      |> put_req_header("authorization", "Bearer " <> token.value)
+      |> post("/api/v2/source_material/new/#{media.slug}", %{
+        "url" => "https://atlos.org"
+      })
+
+    %{"success" => true, "result" => version} = json_response(auth_conn, 200)
+
+    version_id = version["id"]
+
+    noauth_conn = post(build_conn(), "/api/v2/source_material/metadata/#{version_id}/test", %{})
+    assert json_response(noauth_conn, 401) == %{"error" => "invalid token or token not found"}
+
+    metadata = %{
+      "foo" => "bar",
+      "abc" => [1,2,3]
+    }
+
+    # This one should work
+    auth_conn =
+      build_conn()
+      |> put_req_header("authorization", "Bearer " <> token.value)
+      |> post("/api/v2/source_material/metadata/#{version_id}/test", %{
+        "metadata" => metadata
+      })
+
+    %{"success" => true, "result" => version} = json_response(auth_conn, 200)
+    assert version["metadata"]["test"] == metadata
+  end
+
+  test "POST /source_material/upload/:version_id" do
+    # TODO
+  end
 end

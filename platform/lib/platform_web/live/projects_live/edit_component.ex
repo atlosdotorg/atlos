@@ -275,12 +275,10 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
         :if={not is_nil(@decorator_for)}
         class="flex justify-between items-center w-full gap-4 group"
       >
-        <span
-          class={[
-            "text-sm font-medium text-gray-900 grow flex items-center gap-2",
-            @enabled && "cursor-pointer"
-          ]}
-        >
+        <span class={[
+          "text-sm font-medium text-gray-900 grow flex items-center gap-2",
+          @enabled && "cursor-pointer"
+        ]}>
           <%= @decorator_for.label %>
         </span>
         <%= label(@f_attr, :enabled, class: "!flex items-center gap-2") do %>
@@ -828,7 +826,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                               You have enabled the following decorators:
                             </span>
                           </p>
-                          <div class="flex gap-2 flex-wrap mt-4" :if={not Enum.empty?(decorators)}>
+                          <div :if={not Enum.empty?(decorators)} class="flex gap-2 flex-wrap mt-4">
                             <div
                               :for={attr <- decorators}
                               class="px-2 py-1 text-left text-xs rounded-full border font-medium text-gray-700 bg-neutral-100"

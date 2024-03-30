@@ -603,7 +603,9 @@ defmodule Platform.Material do
       ** (Ecto.NoResultsError)
 
   """
-  def get_media_version!(id), do: Repo.get!(MediaVersion, id)
+  def get_media_version!(id), do: Repo.get!(MediaVersion |> preload(:media), id)
+
+  def get_media_version(id), do: Repo.get(MediaVersion |> preload(:media), id)
 
   def pubsub_topic_for_media(id) do
     "media_updates:#{id}"
@@ -745,10 +747,11 @@ defmodule Platform.Material do
                  else: {:ok, 0}
                ) do
           case user_or_token do
-            %User{} = user ->
+            %User{} ->
               Updates.subscribe_if_first_interaction(media, user_or_token)
 
-              _ -> nil
+            _ ->
+              nil
           end
 
           schedule_media_auto_metadata_update(media)

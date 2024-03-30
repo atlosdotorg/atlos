@@ -764,7 +764,7 @@ defmodule PlatformWeb.Components do
           <div class="relative flex items-start space-x-2">
             <%= if @left_indicator == :profile do %>
               <div class="relative">
-                <.link navigate={"/profile/#{@head.user.username}"}>
+                <.link :if={@head.user} navigate={"/profile/#{@head.user.username}"}>
                   <img
                     class={"h-10 w-10 rounded-full bg-gray-400 flex items-center justify-center shadow " <> @profile_ring_classes}
                     src={Accounts.get_profile_photo_path(@head.user)}
@@ -772,6 +772,17 @@ defmodule PlatformWeb.Components do
                     loading="lazy"
                   />
                 </.link>
+                <span
+                  :if={@head.api_token}
+                  class={"rounded-full bg-gray-300 flex items-center justify-center " <> @profile_ring_classes}
+                >
+                  <img
+                    class={"h-10 w-10 rounded-full bg-gray-400 flex items-center justify-center  " <> @profile_ring_classes}
+                    src="/images/bot_profile.png"
+                    alt="Bot account icon"
+                    loading="lazy"
+                  />
+                </span>
               </div>
             <% end %>
             <div class="min-w-0 flex-1 flex flex-col flex-grow group-hover:bg-gray-100 focus-within:bg-gray-100 rounded px-1 py-2 transition-all mt-1">
@@ -780,7 +791,14 @@ defmodule PlatformWeb.Components do
                   <%= if @show_media do %>
                     <.media_text media={@head.media} />
                   <% end %>
-                  <.user_text user={@head.user} />
+                  <span
+                    :if={@head.api_token}
+                    class="text-gray-900 font-medium inline-flex gap-1 flex-wrap"
+                    data-tooltip="This action was taken by a bot."
+                  >
+                    <%= @head.api_token.name %>
+                    <span class="font-normal text-xs badge ~urge self-center">Bot</span>
+                  </span>
                   <%= case @head.type do %>
                     <% :update_attribute -> %>
                       made <%= length(@update) %> updates to <% changed_attrs =
@@ -3399,9 +3417,13 @@ defmodule PlatformWeb.Components do
   defp attr_form_label(assigns) do
     ~H"""
     <%= label(@f, @schema_field) do %>
-      <span class="text-neutral-500" :if={@label_prefix != "" and not is_nil(@label_prefix)}><%= @label_prefix %>: </span>
+      <span :if={@label_prefix != "" and not is_nil(@label_prefix)} class="text-neutral-500">
+        <%= @label_prefix %>:
+      </span>
       <span><%= @attr.label %></span>
-      <span class="text-neutral-500" :if={@label_suffix != "" and not is_nil(@label_suffix)}><%= @label_suffix %></span>
+      <span :if={@label_suffix != "" and not is_nil(@label_suffix)} class="text-neutral-500">
+        <%= @label_suffix %>
+      </span>
     <% end %>
     """
   end
@@ -3421,7 +3443,10 @@ defmodule PlatformWeb.Components do
         :label,
         attr.label
       )
-      |> assign(:label_suffix, if(Map.get(assigns, :optional, false), do: " (optional)", else: ""))
+      |> assign(
+        :label_suffix,
+        if(Map.get(assigns, :optional, false), do: " (optional)", else: "")
+      )
       |> assign_new(:label_prefix, fn -> "" end)
       # Shorthands
       |> assign(:slug, slug)
@@ -3443,7 +3468,13 @@ defmodule PlatformWeb.Components do
     <article x-data="{user_loc: null}" id={"editor-" <> (@attr.name |> to_string())}>
       <%= case @attr.type do %>
         <% :text -> %>
-          <.attr_form_label f={@f} attr={@attr} schema_field={@schema_field} label_prefix={@label_prefix} label_suffix={@label_suffix} />
+          <.attr_form_label
+            f={@f}
+            attr={@attr}
+            schema_field={@schema_field}
+            label_prefix={@label_prefix}
+            label_suffix={@label_suffix}
+          />
           <p :if={not is_nil(@attr.description)} class="support text-neutral-500 mb-1">
             <%= @attr.description %>
           </p>
@@ -3455,7 +3486,13 @@ defmodule PlatformWeb.Components do
           <% end %>
           <%= error_tag(@f, @schema_field) %>
         <% :select -> %>
-        <.attr_form_label f={@f} attr={@attr} schema_field={@schema_field} label_prefix={@label_prefix} label_suffix={@label_suffix} />
+          <.attr_form_label
+            f={@f}
+            attr={@attr}
+            schema_field={@schema_field}
+            label_prefix={@label_prefix}
+            label_suffix={@label_suffix}
+          />
           <p :if={not is_nil(@attr.description)} class="support text-neutral-500 mb-1">
             <%= @attr.description %>
           </p>
@@ -3475,7 +3512,13 @@ defmodule PlatformWeb.Components do
             ) %>
           </div>
         <% :multi_select -> %>
-        <.attr_form_label f={@f} attr={@attr} schema_field={@schema_field} label_prefix={@label_prefix} label_suffix={@label_suffix} />
+          <.attr_form_label
+            f={@f}
+            attr={@attr}
+            schema_field={@schema_field}
+            label_prefix={@label_prefix}
+            label_suffix={@label_suffix}
+          />
           <p :if={not is_nil(@attr.description)} class="support text-neutral-500 mb-1">
             <%= @attr.description %>
           </p>
@@ -3495,7 +3538,13 @@ defmodule PlatformWeb.Components do
             ) %>
           </div>
         <% :multi_users -> %>
-        <.attr_form_label f={@f} attr={@attr} schema_field={@schema_field} label_prefix={@label_prefix} label_suffix={@label_suffix} />
+          <.attr_form_label
+            f={@f}
+            attr={@attr}
+            schema_field={@schema_field}
+            label_prefix={@label_prefix}
+            label_suffix={@label_suffix}
+          />
           <p :if={not is_nil(@attr.description)} class="support text-neutral-500 mb-1">
             <%= @attr.description %>
           </p>
@@ -3520,7 +3569,13 @@ defmodule PlatformWeb.Components do
         <% :location -> %>
           <div class="space-y-4">
             <div>
-            <.attr_form_label f={@f} attr={@attr} schema_field={@schema_field} label_prefix={@label_prefix} label_suffix={@label_suffix <> " (latitude, longitude)"} />
+              <.attr_form_label
+                f={@f}
+                attr={@attr}
+                schema_field={@schema_field}
+                label_prefix={@label_prefix}
+                label_suffix={@label_suffix <> " (latitude, longitude)"}
+              />
               <p :if={not is_nil(@attr.description)} class="support text-neutral-500 mb-1">
                 <%= @attr.description %>
               </p>
@@ -3537,7 +3592,13 @@ defmodule PlatformWeb.Components do
             </div>
           </div>
         <% :time -> %>
-        <.attr_form_label f={@f} attr={@attr} schema_field={@schema_field} label_prefix={@label_prefix} label_suffix={@label_suffix} />
+          <.attr_form_label
+            f={@f}
+            attr={@attr}
+            schema_field={@schema_field}
+            label_prefix={@label_prefix}
+            label_suffix={@label_suffix}
+          />
           <p :if={not is_nil(@attr.description)} class="support text-neutral-500 mb-1">
             <%= @attr.description %>
           </p>
@@ -3562,7 +3623,13 @@ defmodule PlatformWeb.Components do
           </p>
           <%= error_tag(@f, @schema_field) %>
         <% :date -> %>
-        <.attr_form_label f={@f} attr={@attr} schema_field={@schema_field} label_prefix={@label_prefix} label_suffix={@label_suffix} />
+          <.attr_form_label
+            f={@f}
+            attr={@attr}
+            schema_field={@schema_field}
+            label_prefix={@label_prefix}
+            label_suffix={@label_suffix}
+          />
           <p :if={not is_nil(@attr.description)} class="support text-neutral-500 mb-1">
             <%= @attr.description %>
           </p>

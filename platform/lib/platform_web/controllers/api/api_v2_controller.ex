@@ -3,6 +3,7 @@ defmodule PlatformWeb.APIV2Controller do
   alias Platform.Material.Attribute
   alias Platform.Permissions
   alias Platform.Updates
+  alias Platform.Auditor
   use PlatformWeb, :controller
   import Ecto.Query
 
@@ -89,16 +90,106 @@ defmodule PlatformWeb.APIV2Controller do
         json(conn |> put_status(401), %{error: "incident not found or unauthorized"})
 
       true ->
-        {:ok, version} = Material.create_media_version_audited(media, conn.assigns.token, %{
-          upload_type: (if should_archive, do: :direct, else: :user_provided),
-          status: :pending,
-          source_url: url,
-          media_id: media_id
-        })
+        {:ok, version} =
+          Material.create_media_version_audited(media, conn.assigns.token, %{
+            upload_type: if(should_archive, do: :direct, else: :user_provided),
+            status: :pending,
+            source_url: url,
+            media_id: media_id
+          })
 
         Platform.Material.archive_media_version(version)
 
         json(conn, %{success: true, result: version})
+    end
+  end
+
+  def set_media_version_metadata(conn, params) do
+    version_id = params["version_id"]
+    namespace = params["namespace"]
+    metadata = params["metadata"]
+
+    media_version = Material.get_media_version(version_id)
+
+    cond do
+      is_nil(media_version) or
+          not Permissions.can_api_token_edit_media?(conn.assigns.token, media_version.media) ->
+        json(conn |> put_status(401), %{error: "media version not found or unauthorized"})
+
+      true ->
+        {:ok, version} =
+          Platform.Repo.transaction(fn ->
+            new_metadata = Map.put(media_version.metadata || %{}, namespace, metadata)
+
+            {:ok, version} =
+              Material.update_media_version(media_version, %{"metadata" => new_metadata})
+
+            version
+          end)
+
+        json(conn, %{success: true, result: version})
+    end
+  end
+
+  def upload_media_version_file(conn, params) do
+    version_id = params["version_id"]
+    title = params["title"]
+    file = params["file"]
+
+    media_version = Material.get_media_version(version_id)
+
+    cond do
+      is_nil(media_version) or
+          not Permissions.can_api_token_edit_media?(conn.assigns.token, media_version.media) ->
+        json(conn |> put_status(401), %{error: "media version not found or unauthorized"})
+
+      true ->
+        # First, upload the artifact to the storage backend.
+        id = Ecto.UUID.generate()
+
+        # Give the file an appropriate file extension and rename the file such
+        # that it has the extension (important for file type detection later)
+        local_path = file["path"]
+        ext = Path.extname(file["filename"])
+        new_loc = "#{local_path}#{ext}"
+        File.rename!(local_path, new_loc)
+        {:ok, remote_path} = Platform.Uploads.MediaVersionArtifact.store({new_loc, %{id: id}})
+
+        # Then, create the artifact record in the database.
+        artifact = %{
+          "id" => id,
+          "file_location" => remote_path,
+          "file_hash_sha256" => Platform.Utils.hash_sha256(new_loc),
+          "file_size" => File.stat!(new_loc).size,
+          "mime_type" => MIME.from_path(new_loc),
+          "type" => "upload",
+          "uploading_token_id" => conn.assigns.token.id,
+          "title" => title
+        }
+
+        {:ok, new_version} =
+          Platform.Repo.transaction(fn ->
+            # Get an up to date copy of the media version to avoid race conditions
+            media_version = Material.get_media_version(version_id)
+
+            {:ok, new_version} =
+              Material.update_media_version(media_version, %{
+                "artifacts" => media_version.artifacts ++ [artifact]
+              })
+
+            new_version
+          end)
+
+        # Schedule the media version for additional processing
+        Material.archive_media_version(new_version)
+
+        Auditor.log(
+          :media_version_uploaded,
+          %{"params" => params, "version" => new_version, "new_media_version_id" => id},
+          conn
+        )
+
+        json(conn, %{success: true, result: new_version})
     end
   end
 
