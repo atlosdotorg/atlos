@@ -629,7 +629,7 @@
                       Uploaded File
                     <% end %>
                   </p>
-                  <%= if Platform.Material.get_media_version_title(version) != version.source_url do %>
+                  <%= if Platform.Material.get_media_version_title(version) != version.source_url and not is_nil(version.source_url) do %>
                     <p class="text-neutral-500 text-sm">
                       <%= version.source_url |> Platform.Utils.truncate(60) %>
                     </p>
@@ -780,19 +780,23 @@
                   String.starts_with?(artifact.mime_type, "video") or
                     String.starts_with?(artifact.mime_type, "image") %>
                 <h3 class="m-4 text-base font-medium text-neutral-900">
-                  <%= case artifact.type do %>
-                    <% :pdf -> %>
-                      PDF
-                    <% :media -> %>
-                      Source Media
-                    <% :upload -> %>
-                      File Upload
-                    <% :viewport -> %>
-                      Viewport Screenshot
-                    <% :fullpage -> %>
-                      Full Page Screenshot
-                    <% _ -> %>
-                      <%= artifact.type %>
+                  <%= if not is_nil(artifact.title) do %>
+                    <%= artifact.title %>
+                  <% else %>
+                    <%= case artifact.type do %>
+                      <% :pdf -> %>
+                        PDF
+                      <% :media -> %>
+                        Source Media
+                      <% :upload -> %>
+                        File Upload
+                      <% :viewport -> %>
+                        Viewport Screenshot
+                      <% :fullpage -> %>
+                        Full Page Screenshot
+                      <% _ -> %>
+                        <%= artifact.type %>
+                    <% end %>
                   <% end %>
                 </h3>
                 <div
@@ -935,6 +939,10 @@
                     <div>
                       <dt class="text-neutral-500">File Type</dt>
                       <dd class="truncate max-w-full"><%= artifact.mime_type %></dd>
+                    </div>
+                    <div :if={artifact.uploading_token}>
+                      <dt class="text-neutral-500">Uploaded By</dt>
+                      <dd class="truncate max-w-full"><%= artifact.uploading_token.name %></dd>
                     </div>
                     <div class="lg:col-span-2">
                       <dt class="text-neutral-500">Hashes</dt>

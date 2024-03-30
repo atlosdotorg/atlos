@@ -133,9 +133,6 @@ defmodule PlatformWeb.APIV2Controller do
 
   def upload_media_version_file(conn, params) do
     version_id = params["version_id"]
-    title = params["title"]
-    file = params["file"]
-
     media_version = Material.get_media_version(version_id)
 
     cond do
@@ -144,52 +141,61 @@ defmodule PlatformWeb.APIV2Controller do
         json(conn |> put_status(401), %{error: "media version not found or unauthorized"})
 
       true ->
-        # First, upload the artifact to the storage backend.
-        id = Ecto.UUID.generate()
+        title = params["title"]
 
-        # Give the file an appropriate file extension and rename the file such
-        # that it has the extension (important for file type detection later)
-        local_path = file["path"]
-        ext = Path.extname(file["filename"])
-        new_loc = "#{local_path}#{ext}"
-        File.rename!(local_path, new_loc)
-        {:ok, remote_path} = Platform.Uploads.MediaVersionArtifact.store({new_loc, %{id: id}})
+        case params["file"] do
+          %Plug.Upload{} = file ->
+            # First, upload the artifact to the storage backend.
+            id = Ecto.UUID.generate()
 
-        # Then, create the artifact record in the database.
-        artifact = %{
-          "id" => id,
-          "file_location" => remote_path,
-          "file_hash_sha256" => Platform.Utils.hash_sha256(new_loc),
-          "file_size" => File.stat!(new_loc).size,
-          "mime_type" => MIME.from_path(new_loc),
-          "type" => "upload",
-          "uploading_token_id" => conn.assigns.token.id,
-          "title" => title
-        }
+            # Give the file an appropriate file extension and rename the file such
+            # that it has the extension (important for file type detection later)
+            dbg(file)
+            local_path = file.path
+            ext = Path.extname(file.filename)
+            new_loc = "#{local_path}#{ext}"
+            File.rename!(local_path, new_loc)
+            {:ok, remote_path} = Platform.Uploads.MediaVersionArtifact.store({new_loc, %{id: id}})
 
-        {:ok, new_version} =
-          Platform.Repo.transaction(fn ->
-            # Get an up to date copy of the media version to avoid race conditions
-            media_version = Material.get_media_version(version_id)
+            # Then, create the artifact record in the database.
+            artifact = %Platform.Material.MediaVersion.MediaVersionArtifact{
+              id: id,
+              file_location: remote_path,
+              file_hash_sha256: Platform.Utils.hash_sha256(new_loc),
+              file_size: File.stat!(new_loc).size,
+              mime_type: MIME.from_path(new_loc),
+              type: :upload,
+              uploading_token_id: conn.assigns.token.id,
+              title: title
+            }
 
             {:ok, new_version} =
-              Material.update_media_version(media_version, %{
-                "artifacts" => media_version.artifacts ++ [artifact]
-              })
+              Platform.Repo.transaction(fn ->
+                # Get an up to date copy of the media version to avoid race conditions
+                media_version = Material.get_media_version(version_id)
 
-            new_version
-          end)
+                {:ok, new_version} =
+                  Material.add_artifact_to_media_version(media_version, artifact)
 
-        # Schedule the media version for additional processing
-        Material.archive_media_version(new_version)
+                new_version
+              end)
 
-        Auditor.log(
-          :media_version_uploaded,
-          %{"params" => params, "version" => new_version, "new_media_version_id" => id},
-          conn
-        )
+            dbg(new_version)
 
-        json(conn, %{success: true, result: new_version})
+            # Schedule the media version for additional processing
+            Material.rearchive_media_version(new_version)
+
+            Auditor.log(
+              :media_version_uploaded,
+              %{"params" => params, "version" => new_version, "new_media_version_id" => id},
+              conn
+            )
+
+            json(conn, %{success: true, result: new_version})
+
+          _ ->
+            json(conn |> put_status(401), %{error: "valid file not provided"})
+        end
     end
   end
 

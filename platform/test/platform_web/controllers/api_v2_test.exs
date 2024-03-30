@@ -405,13 +405,7 @@ defmodule PlatformWeb.APIV2Test do
     project = project_fixture()
     other_project = project_fixture()
 
-    underpermissioned_token =
-      api_token_fixture(%{project_id: project.id, permissions: [:read, :comment]})
-
     token = api_token_fixture(%{project_id: project.id, permissions: [:read, :comment, :edit]})
-
-    other_token =
-      api_token_fixture(%{project_id: other_project.id, permissions: [:read, :comment, :edit]})
 
     media = media_fixture(%{project_id: project.id})
     media_fixture(%{project_id: other_project.id})
@@ -449,6 +443,71 @@ defmodule PlatformWeb.APIV2Test do
   end
 
   test "POST /source_material/upload/:version_id" do
-    # TODO
+    # Make a temporary file to upload
+    Temp.track!()
+    {:ok, fd, file_path} = Temp.open "test-file"
+    IO.write(fd, "some content for the file")
+    File.close(fd)
+
+    # Create a Plug upload struct
+    upload = %Plug.Upload{
+      content_type: "text/plain",
+      filename: "test-file.txt",
+      path: file_path
+    }
+
+    project = project_fixture()
+    other_project = project_fixture()
+
+    underpermissioned_token =
+      api_token_fixture(%{project_id: project.id, permissions: [:read, :comment]})
+
+    token = api_token_fixture(%{project_id: project.id, permissions: [:read, :comment, :edit]})
+
+    other_token =
+      api_token_fixture(%{project_id: other_project.id, permissions: [:read, :comment, :edit]})
+
+    media = media_fixture(%{project_id: project.id})
+    media_fixture(%{project_id: other_project.id})
+
+    # Create a media version
+    auth_conn =
+      build_conn()
+      |> put_req_header("authorization", "Bearer " <> token.value)
+      |> post("/api/v2/source_material/new/#{media.slug}", %{
+        "url" => "https://atlos.org"
+      })
+
+    %{"success" => true, "result" => version} = json_response(auth_conn, 200)
+
+    version_id = version["id"]
+
+    # Quickly check that permission validation is working
+    noauth_conn = post(build_conn(), "/api/v2/source_material/upload/#{version_id}", %{})
+    assert json_response(noauth_conn, 401) == %{"error" => "invalid token or token not found"}
+
+    conn =
+      build_conn()
+      |> put_req_header("authorization", "Bearer " <> underpermissioned_token.value)
+      |> post("/api/v2/source_material/upload/#{version_id}", %{})
+    assert json_response(conn, 401) == %{"error" => "media version not found or unauthorized"}
+
+    conn =
+      build_conn()
+      |> put_req_header("authorization", "Bearer " <> other_token.value)
+      |> post("/api/v2/source_material/upload/#{version_id}", %{})
+    assert json_response(conn, 401) == %{"error" => "media version not found or unauthorized"}
+
+    # Upload the file to the media version
+    conn =
+      build_conn()
+      |> put_req_header("authorization", "Bearer " <> token.value)
+      |> post("/api/v2/source_material/upload/#{version_id}", %{
+        "title" => "Example API Upload",
+        "file" => upload
+      })
+    %{"success" => true, "result" => version} = json_response(conn, 200)
+
+    dbg(version)
   end
 end

@@ -158,7 +158,7 @@ defmodule Platform.Material do
   end
 
   defp preload_media_versions(query) do
-    query |> preload([:versions])
+    query |> preload(versions: [artifacts: [:uploading_token]])
   end
 
   defp preload_media_updates(query) do
@@ -949,6 +949,24 @@ defmodule Platform.Material do
   end
 
   @doc """
+  Adds an artifact to a media version.
+  """
+  def add_artifact_to_media_version(
+        %MediaVersion{} = media_version,
+        %MediaVersion.MediaVersionArtifact{} = artifact
+      ) do
+    res =
+      media_version
+      |> MediaVersion.changeset(%{})
+      |> Ecto.Changeset.put_embed(:artifacts, media_version.artifacts ++ [artifact])
+      |> Repo.update()
+
+    schedule_media_auto_metadata_update(media_version.media_id)
+
+    res
+  end
+
+  @doc """
   Schedules a given media version for rearchival.
   """
   def rearchive_media_version(%MediaVersion{} = media_version) do
@@ -1520,7 +1538,7 @@ defmodule Platform.Material do
   end
 
   def get_media_version_title(%MediaVersion{} = version) do
-    (Map.get(version.metadata || %{}, "page_info") || %{}) |> Map.get("title", version.source_url)
+    (Map.get(version.metadata || %{}, "page_info") || %{}) |> Map.get("title", version.source_url) || "Source Material"
   end
 
   def clone_media(%Media{} = media, %Project{} = into_project) do
