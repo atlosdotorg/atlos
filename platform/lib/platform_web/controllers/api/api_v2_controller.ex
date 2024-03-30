@@ -150,7 +150,6 @@ defmodule PlatformWeb.APIV2Controller do
 
             # Give the file an appropriate file extension and rename the file such
             # that it has the extension (important for file type detection later)
-            dbg(file)
             local_path = file.path
             ext = Path.extname(file.filename)
             new_loc = "#{local_path}#{ext}"
@@ -179,8 +178,6 @@ defmodule PlatformWeb.APIV2Controller do
 
                 new_version
               end)
-
-            dbg(new_version)
 
             # Schedule the media version for additional processing
             Material.rearchive_media_version(new_version)

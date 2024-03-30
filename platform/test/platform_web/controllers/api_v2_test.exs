@@ -507,7 +507,5 @@ defmodule PlatformWeb.APIV2Test do
         "file" => upload
       })
     %{"success" => true, "result" => version} = json_response(conn, 200)
-
-    dbg(version)
   end
 end
