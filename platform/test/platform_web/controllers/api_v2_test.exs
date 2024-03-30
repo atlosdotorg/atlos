@@ -506,6 +506,6 @@ defmodule PlatformWeb.APIV2Test do
         "title" => "Example API Upload",
         "file" => upload
       })
-    %{"success" => true, "result" => version} = json_response(conn, 200)
+    %{"success" => true, "result" => _} = json_response(conn, 200)
   end
 end

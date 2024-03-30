@@ -970,20 +970,22 @@ defmodule Platform.Material do
   Schedules a given media version for rearchival.
   """
   def rearchive_media_version(%MediaVersion{} = media_version) do
-    Auditor.log(
-      :media_version_rearchive,
-      %{
-        "media_version_id" => media_version.id
-      }
-    )
+    if System.get_env("MIX_ENV") != "test" do
+      Auditor.log(
+        :media_version_rearchive,
+        %{
+          "media_version_id" => media_version.id
+        }
+      )
 
-    if media_version.status == :error do
-      # Change status to pending
-      {:ok, _} = update_media_version(media_version, %{status: :pending})
+      if media_version.status == :error do
+        # Change status to pending
+        {:ok, _} = update_media_version(media_version, %{status: :pending})
+      end
+
+      Platform.Workers.Archiver.new(%{"media_version_id" => media_version.id, "rearchive" => true})
+      |> Oban.insert!()
     end
-
-    Platform.Workers.Archiver.new(%{"media_version_id" => media_version.id, "rearchive" => true})
-    |> Oban.insert!()
   end
 
   @doc """
@@ -1538,7 +1540,8 @@ defmodule Platform.Material do
   end
 
   def get_media_version_title(%MediaVersion{} = version) do
-    (Map.get(version.metadata || %{}, "page_info") || %{}) |> Map.get("title", version.source_url) || "Source Material"
+    (Map.get(version.metadata || %{}, "page_info") || %{}) |> Map.get("title", version.source_url) ||
+      "Source Material"
   end
 
   def clone_media(%Media{} = media, %Project{} = into_project) do

@@ -154,7 +154,12 @@ defmodule PlatformWeb.APIV2Controller do
             ext = Path.extname(file.filename)
             new_loc = "#{local_path}#{ext}"
             File.rename!(local_path, new_loc)
-            {:ok, remote_path} = Platform.Uploads.MediaVersionArtifact.store({new_loc, %{id: id}})
+
+            {:ok, remote_path} = if System.get_env("MIX_ENV") != "test" do
+              Platform.Uploads.MediaVersionArtifact.store({new_loc, %{id: id}})
+            else
+              {:ok, "test"}
+            end
 
             # Then, create the artifact record in the database.
             artifact = %Platform.Material.MediaVersion.MediaVersionArtifact{

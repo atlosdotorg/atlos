@@ -5,7 +5,6 @@ defmodule Platform.Permissions do
 
   use Memoize
 
-  alias Platform.Updates
   alias Platform.Material
   alias Platform.Accounts
   alias Platform.Accounts.User
