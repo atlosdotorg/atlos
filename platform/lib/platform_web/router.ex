@@ -89,6 +89,8 @@ defmodule PlatformWeb.Router do
       pipe_through([:require_project_scoped_token])
 
       get("/source_material", APIV2Controller, :source_material)
+      post("/source_material/new/:slug", APIV2Controller, :create_source_material)
+
       get("/incidents", APIV2Controller, :incidents)
       get("/updates", APIV2Controller, :get_updates)
       post("/add_comment/:slug", APIV2Controller, :add_comment)

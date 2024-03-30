@@ -264,6 +264,10 @@ defmodule Platform.Permissions do
     end
   end
 
+  def can_edit_media?(%APIToken{} = token, %Media{} = media) do
+    can_api_token_edit_media?(token, media)
+  end
+
   def can_edit_media?(%User{} = user, %Media{} = media, %Attribute{} = attribute) do
     # This includes uploading new media versions as well as editing attributes.
     membership = Projects.get_project_membership_by_user_and_project_id(user, media.project_id)

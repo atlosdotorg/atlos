@@ -77,6 +77,31 @@ defmodule PlatformWeb.APIV2Controller do
     end)
   end
 
+  def create_source_material(conn, params) do
+    media_id = params["slug"]
+    url = params["url"]
+    should_archive = params["archive"] == "true"
+
+    media = Material.get_full_media_by_slug(media_id)
+
+    cond do
+      is_nil(media) or not Permissions.can_api_token_edit_media?(conn.assigns.token, media) ->
+        json(conn |> put_status(401), %{error: "incident not found or unauthorized"})
+
+      true ->
+        {:ok, version} = Material.create_media_version_audited(media, conn.assigns.token, %{
+          upload_type: (if should_archive, do: :direct, else: :user_provided),
+          status: :pending,
+          source_url: url,
+          media_id: media_id
+        })
+
+        Platform.Material.archive_media_version(version)
+
+        json(conn, %{success: true, result: version})
+    end
+  end
+
   def incidents(conn, params) do
     project_id = conn.assigns.token.project_id
 

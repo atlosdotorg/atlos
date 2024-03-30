@@ -317,4 +317,87 @@ defmodule PlatformWeb.APIV2Test do
 
     assert json_response(conn, 401) == %{"error" => "incident not found"}
   end
+
+  test "POST /api/v2/source_material/new/:slug" do
+    project = project_fixture()
+    other_project = project_fixture()
+
+    underpermissioned_token =
+      api_token_fixture(%{project_id: project.id, permissions: [:read, :comment]})
+
+    token = api_token_fixture(%{project_id: project.id, permissions: [:read, :comment, :edit]})
+
+    other_token =
+      api_token_fixture(%{project_id: other_project.id, permissions: [:read, :comment, :edit]})
+
+    media = media_fixture(%{project_id: project.id})
+    media_fixture(%{project_id: other_project.id})
+
+    noauth_conn = post(build_conn(), "/api/v2/source_material/new/#{media.slug}", %{})
+    assert json_response(noauth_conn, 401) == %{"error" => "invalid token or token not found"}
+
+    # This one should work
+    auth_conn =
+      build_conn()
+      |> put_req_header("authorization", "Bearer " <> token.value)
+      |> post("/api/v2/source_material/new/#{media.slug}", %{
+        "url" => "https://atlos.org"
+      })
+
+    %{"success" => true, "result" => version} = json_response(auth_conn, 200)
+    assert version["source_url"] == "https://atlos.org"
+    assert version["upload_type"] == "user_provided"
+
+    # Now verify the version was created
+    new_material = Material.get_media!(media.id)
+    version = new_material.versions |> Enum.find(&(&1.id == version["id"]))
+    assert not is_nil(version)
+    assert version.scoped_id == 1
+
+    # Do it again, this time with archival
+    auth_conn =
+      build_conn()
+      |> put_req_header("authorization", "Bearer " <> token.value)
+      |> post("/api/v2/source_material/new/#{media.slug}", %{
+        "url" => "https://atlos.org",
+        "archive" => "true"
+      })
+
+    %{"success" => true, "result" => version} = json_response(auth_conn, 200)
+    assert version["source_url"] == "https://atlos.org"
+    assert version["upload_type"] == "direct"
+    assert version["scoped_id"] == 2
+    # This one should fail because the token doesn't have the right permissions
+    conn =
+      build_conn()
+      |> put_req_header("authorization", "Bearer " <> underpermissioned_token.value)
+      |> post("/api/v2/source_material/new/#{media.slug}", %{
+        "url" => "https://atlos.org",
+        "archive" => "true"
+      })
+
+    assert json_response(conn, 401) == %{"error" => "incident not found or unauthorized"}
+
+    # This one should fail because the media doesn't exist
+    conn =
+      build_conn()
+      |> put_req_header("authorization", "Bearer " <> token.value)
+      |> post("/api/v2/source_material/new/abcde", %{
+        "url" => "https://atlos.org",
+        "archive" => "true"
+      })
+
+    assert json_response(conn, 401) == %{"error" => "incident not found or unauthorized"}
+
+    # This one should fail because the media is in the wrong project
+    conn =
+      build_conn()
+      |> put_req_header("authorization", "Bearer " <> other_token.value)
+      |> post("/api/v2/source_material/new/#{media.slug}", %{
+        "url" => "https://atlos.org",
+        "archive" => "true"
+      })
+
+    assert json_response(conn, 401) == %{"error" => "incident not found or unauthorized"}
+    end
 end

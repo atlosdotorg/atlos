@@ -729,22 +729,28 @@ defmodule Platform.Material do
 
   def create_media_version_audited(
         %Media{} = media,
-        %User{} = user,
+        user_or_token,
         attrs \\ %{},
         opts \\ []
       ) do
-    if Permissions.can_edit_media?(user, media) do
+    if Permissions.can_edit_media?(user_or_token, media) do
       Repo.transaction(fn ->
         with {:ok, version} <- create_media_version(media, attrs),
              update_changeset <-
-               Updates.change_from_media_version_upload(media, user, version, attrs),
+               Updates.change_from_media_version_upload(media, user_or_token, version, attrs),
              {:ok, _} <-
                if(
                  Keyword.get(opts, :post_updates, true),
                  do: Updates.create_update_from_changeset(update_changeset),
                  else: {:ok, 0}
                ) do
-          Updates.subscribe_if_first_interaction(media, user)
+          case user_or_token do
+            %User{} = user ->
+              Updates.subscribe_if_first_interaction(media, user_or_token)
+
+              _ -> nil
+          end
+
           schedule_media_auto_metadata_update(media)
           version
         else
@@ -989,7 +995,8 @@ defmodule Platform.Material do
   end
 
   @doc """
-  Performs an archive of the given media version. Status must be pending.
+  Performs an archive of the given media version. Status must be pending. No-op
+  when running in a test.
 
   Options:
   - priority: 0-3, the priority (default 1)
@@ -999,13 +1006,15 @@ defmodule Platform.Material do
         %MediaVersion{status: :pending, id: id} = _version,
         opts \\ []
       ) do
-    %{
-      "media_version_id" => id,
-      "hide_version_on_failure" => Keyword.get(opts, :hide_version_on_failure, false),
-      "clone_from_media_version_id" => Keyword.get(opts, :clone_from, nil)
-    }
-    |> Platform.Workers.Archiver.new(priority: Keyword.get(opts, :priority, 1))
-    |> Oban.insert!()
+    if System.get_env("MIX_ENV") != "test" do
+      %{
+        "media_version_id" => id,
+        "hide_version_on_failure" => Keyword.get(opts, :hide_version_on_failure, false),
+        "clone_from_media_version_id" => Keyword.get(opts, :clone_from, nil)
+      }
+      |> Platform.Workers.Archiver.new(priority: Keyword.get(opts, :priority, 1))
+      |> Oban.insert!()
+    end
   end
 
   @doc """
