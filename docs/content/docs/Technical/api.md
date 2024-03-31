@@ -56,6 +56,18 @@ requests.get(
 )
 ```
 
+### Get a specific 
+`GET /api/v2/source_material/:id` returns the source material with the given ID.
+
+Example:
+
+```python
+requests.get(
+    f"{self.atlos_url}/api/v2/source_material/:id",
+    headers={"Authorization": f"Bearer {self.api_token}"}
+)
+```
+
 ### Create a new piece of source material
 `POST /api/v2/source_material/new/:slug` with parameters `url` (optional) and and `archive` (optional, set value to `true` if you want to enable Atlos archival of the source material) creates a new piece of source material for the incident with slug `:slug` (the slug is the last part of the URL for the incident, and is also available in the ‘slug’ field of the incident object returned by other endpoints).
 
@@ -133,7 +145,7 @@ If `message` is provided, it will be added as a comment to the incident (as part
 
 The value of `attribute_name` is available in the URL of the incident page when editing the incident. 
 
-Core attributes have string names (such as `description` and `status`) while custom attributes are identified by their UUID. 
+Core attributes have string names (such as `description` and `status`) while custom attributes are identified by their UUID.
 
 The `value` must be a string for text-based or single-select attributes, and a list of strings for multi-select attributes. 
 
