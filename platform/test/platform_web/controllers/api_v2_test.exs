@@ -508,4 +508,46 @@ defmodule PlatformWeb.APIV2Test do
       })
     %{"success" => true, "result" => _} = json_response(conn, 200)
   end
+
+  test "GET /source_material/:id" do
+    project = project_fixture()
+    other_project = project_fixture()
+
+    token = api_token_fixture(%{project_id: project.id, permissions: [:read, :comment, :edit]})
+
+    other_token =
+      api_token_fixture(%{project_id: other_project.id, permissions: [:read, :comment, :edit]})
+
+    media = media_fixture(%{project_id: project.id})
+    media_fixture(%{project_id: other_project.id})
+
+    # Create a media version
+    auth_conn =
+      build_conn()
+      |> put_req_header("authorization", "Bearer " <> token.value)
+      |> post("/api/v2/source_material/new/#{media.slug}", %{
+        "url" => "https://atlos.org"
+      })
+
+    %{"success" => true, "result" => version} = json_response(auth_conn, 200)
+
+    version_id = version["id"]
+
+    # Quickly check that permission validation is working
+    noauth_conn = get(build_conn(), "/api/v2/source_material/#{version_id}", %{})
+    assert json_response(noauth_conn, 401) == %{"error" => "invalid token or token not found"}
+
+    conn =
+      build_conn()
+      |> put_req_header("authorization", "Bearer " <> other_token.value)
+      |> get("/api/v2/source_material/#{version_id}", %{})
+    assert json_response(conn, 401) == %{"error" => "media version not found or unauthorized"}
+
+    # Upload the file to the media version
+    conn =
+      build_conn()
+      |> put_req_header("authorization", "Bearer " <> token.value)
+      |> get("/api/v2/source_material/#{version_id}")
+    %{"success" => true, "result" => ^version} = json_response(conn, 200)
+  end
 end

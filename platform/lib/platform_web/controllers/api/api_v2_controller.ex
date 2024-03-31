@@ -78,6 +78,19 @@ defmodule PlatformWeb.APIV2Controller do
     end)
   end
 
+  def media_version(conn, params) do
+    project_id = conn.assigns.token.project_id
+    media_version = Material.get_media_version(params["id"])
+
+    cond do
+      is_nil(media_version) or media_version.media.project_id != project_id ->
+        json(conn |> put_status(401), %{error: "media version not found or unauthorized"})
+
+      true ->
+        json(conn, %{success: true, result: media_version})
+    end
+  end
+
   def create_media_version(conn, params) do
     media_id = params["slug"]
     url = params["url"]
@@ -105,7 +118,7 @@ defmodule PlatformWeb.APIV2Controller do
   end
 
   def set_media_version_metadata(conn, params) do
-    version_id = params["version_id"]
+    version_id = params["id"]
     namespace = params["namespace"]
     metadata = params["metadata"]
 
@@ -132,7 +145,7 @@ defmodule PlatformWeb.APIV2Controller do
   end
 
   def upload_media_version_file(conn, params) do
-    version_id = params["version_id"]
+    version_id = params["id"]
     media_version = Material.get_media_version(version_id)
 
     cond do
