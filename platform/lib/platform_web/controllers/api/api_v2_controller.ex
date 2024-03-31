@@ -63,7 +63,7 @@ defmodule PlatformWeb.APIV2Controller do
     end
   end
 
-  def source_material(conn, params) do
+  def media_versions(conn, params) do
     project_id = conn.assigns.token.project_id
 
     pagination_api(conn, params, fn opts ->
@@ -78,7 +78,7 @@ defmodule PlatformWeb.APIV2Controller do
     end)
   end
 
-  def create_source_material(conn, params) do
+  def create_media_version(conn, params) do
     media_id = params["slug"]
     url = params["url"]
     should_archive = params["archive"] == "true"
