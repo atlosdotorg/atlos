@@ -5,7 +5,6 @@ defmodule Platform.Permissions do
 
   use Memoize
 
-  alias Platform.Updates
   alias Platform.Material
   alias Platform.Accounts
   alias Platform.Accounts.User
@@ -262,6 +261,10 @@ defmodule Platform.Permissions do
     else
       _ -> false
     end
+  end
+
+  def can_edit_media?(%APIToken{} = token, %Media{} = media) do
+    can_api_token_edit_media?(token, media)
   end
 
   def can_edit_media?(%User{} = user, %Media{} = media, %Attribute{} = attribute) do

@@ -88,7 +88,22 @@ defmodule PlatformWeb.Router do
     scope "/v2" do
       pipe_through([:require_project_scoped_token])
 
-      get("/source_material", APIV2Controller, :source_material)
+      get("/source_material", APIV2Controller, :media_versions)
+      get("/source_material/:id", APIV2Controller, :media_version)
+      post("/source_material/new/:slug", APIV2Controller, :create_media_version)
+
+      post(
+        "/source_material/metadata/:id/:namespace",
+        APIV2Controller,
+        :set_media_version_metadata
+      )
+
+      post(
+        "/source_material/upload/:id",
+        APIV2Controller,
+        :upload_media_version_file
+      )
+
       get("/incidents", APIV2Controller, :incidents)
       get("/updates", APIV2Controller, :get_updates)
       post("/add_comment/:slug", APIV2Controller, :add_comment)
