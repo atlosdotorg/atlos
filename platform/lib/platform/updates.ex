@@ -352,14 +352,14 @@ defmodule Platform.Updates do
   """
   def change_from_media_version_upload(
         %Media{} = media,
-        %User{} = user,
+        user_or_token,
         %MediaVersion{} = version,
         attrs
       ) do
     change_update(
       %Update{},
       media,
-      user,
+      user_or_token,
       %{
         "type" => :upload_version,
         "media_version_id" => version.id,

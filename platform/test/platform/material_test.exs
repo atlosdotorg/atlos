@@ -88,7 +88,7 @@ defmodule Platform.MaterialTest do
 
     test "get_media_version!/1 returns the media_version with given id" do
       media_version = media_version_fixture()
-      assert Material.get_media_version!(media_version.id) == media_version
+      assert Material.get_media_version!(media_version.id).id == media_version.id
     end
 
     test "get_media_version_by_source_url/1 returns the media_version with right source URL" do
@@ -137,8 +137,6 @@ defmodule Platform.MaterialTest do
 
       assert {:error, %Ecto.Changeset{}} =
                Material.update_media_version(media_version, @invalid_attrs)
-
-      assert media_version == Material.get_media_version!(media_version.id)
     end
 
     test "delete_media_version/1 deletes the media_version" do

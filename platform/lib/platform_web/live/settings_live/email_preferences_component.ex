@@ -1,7 +1,6 @@
 defmodule PlatformWeb.SettingsLive.EmailPreferencesComponent do
   use PlatformWeb, :live_component
   alias Platform.Accounts
-  alias Platform.Uploads.Avatar
   alias Platform.Auditor
 
   def update(%{current_user: current_user} = assigns, socket) do
