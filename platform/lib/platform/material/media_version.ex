@@ -18,6 +18,8 @@ defmodule Platform.Material.MediaVersion do
       field(:file_size, :integer)
       field(:mime_type, :string)
       field(:perceptual_hashes, :map, default: nil)
+      field(:title, :string, default: nil)
+      belongs_to(:uploading_token, Platform.API.APIToken, type: :binary_id)
 
       field(:type, Ecto.Enum,
         values: [:pdf, :media, :upload, :viewport, :fullpage, :wacz, :direct_file, :other],
@@ -92,7 +94,9 @@ defmodule Platform.Material.MediaVersion do
       :file_size,
       :mime_type,
       :perceptual_hashes,
-      :type
+      :type,
+      :uploading_token_id,
+      :title
     ])
     |> validate_required([
       :file_location,
@@ -115,7 +119,8 @@ defimpl Jason.Encoder, for: Platform.Material.MediaVersion do
         :status,
         :updated_at,
         :upload_type,
-        :visibility
+        :visibility,
+        :metadata
       ])
       |> Map.put(:incident_id, value.media_id)
       |> Enum.into(%{}, fn
@@ -137,7 +142,8 @@ defimpl Jason.Encoder, for: Platform.Material.MediaVersion.MediaVersionArtifact 
         :file_size,
         :mime_type,
         :perceptual_hashes,
-        :type
+        :type,
+        :title
       ])
       |> Enum.into(%{}, fn
         {key, %Ecto.Association.NotLoaded{}} -> {key, nil}

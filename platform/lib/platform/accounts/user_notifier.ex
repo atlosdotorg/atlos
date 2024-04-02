@@ -1,7 +1,6 @@
 defmodule Platform.Accounts.UserNotifier do
   alias Platform.Accounts.User
   alias Platform.Material.Media
-  alias Platform.Updates.Update
   alias Platform.Mailer
 
   @doc """
