@@ -32,6 +32,13 @@ defmodule PlatformWeb.AdminlandLive.UserListLive do
                     <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
                       Status
                     </th>
+                    <th
+                      :if={Platform.Billing.is_enabled?()}
+                      scope="col"
+                      class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
+                    >
+                      Plan
+                    </th>
                     <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
                       Bio
                     </th>
@@ -60,15 +67,15 @@ defmodule PlatformWeb.AdminlandLive.UserListLive do
                             />
                           </div>
                           <div class="ml-4">
-                            <%= live_patch(
-                              to: "/profile/#{user.username}",
-                              class: "text-button group outline-none"
-                            ) do %>
+                            <.link
+                              class="text-button group outline-none"
+                              patch={"/profile/#{user.username}"}
+                            >
                               <div class="outline-none font-medium text-gray-900 group-focus:text-urge-600">
                                 <.user_text user={user} />
                               </div>
                               <div class="outline-none text-gray-500"><%= user.email %></div>
-                            <% end %>
+                            </.link>
                           </div>
                         </div>
                       </td>
@@ -82,6 +89,18 @@ defmodule PlatformWeb.AdminlandLive.UserListLive do
                         <%= if length(user.restrictions || []) + length(user.roles || []) == 0 do %>
                           <span class="chip ~neutral mb-1">regular</span>
                         <% end %>
+                      </td>
+                      <td
+                        :if={Platform.Billing.is_enabled?()}
+                        class="max-w-md px-3 py-4 text-sm text-gray-500"
+                      >
+                        <% plan = Platform.Billing.get_user_plan(user) %>
+                        <p :if={plan.is_free} class="chip ~neutral whitespace-nowrap">
+                          No Plan
+                        </p>
+                        <p :if={not plan.is_free} class="chip ~positive whitespace-nowrap">
+                          <%= plan.name %>
+                        </p>
                       </td>
                       <td class="max-w-md px-3 py-4 text-sm text-gray-500">
                         <%= user.bio %>
@@ -97,11 +116,9 @@ defmodule PlatformWeb.AdminlandLive.UserListLive do
                         <% end %>
                       </td>
                       <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                        <%= live_patch(to: "/profile/#{user.username}",
-                          class: "text-button"
-                        ) do %>
+                        <.link patch={"/profile/#{user.username}"} class="text-button">
                           Details
-                        <% end %>
+                        </.link>
                       </td>
                     </tr>
                   <% end %>

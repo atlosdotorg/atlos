@@ -4,6 +4,7 @@ defmodule Platform.Accounts.User do
   alias Platform.Material
   alias Platform.Invites
 
+  @derive {Jason.Encoder, only: [:username, :bio, :flair, :id]}
   @primary_key {:id, :binary_id, autogenerate: true}
   schema "users" do
     field(:deprecated_integer_id, :integer)
@@ -24,12 +25,15 @@ defmodule Platform.Accounts.User do
     field(:has_mfa, :boolean, default: false)
     field(:otp_secret, :binary, redact: true)
     field(:current_otp_code, :string, virtual: true, redact: true)
+    field(:recovery_codes, {:array, :string}, redact: true, default: [])
+    field(:used_recovery_codes, {:array, :string}, redact: true, default: [])
 
     # Platform settings and preferences
     field(:active_incidents_tab, :string, default: "map")
     field(:active_incidents_tab_params, :map, default: %{})
     field(:active_incidents_tab_params_time, :naive_datetime)
     belongs_to(:active_project_membership, Platform.Projects.ProjectMembership, type: :binary_id)
+    field(:send_mention_notification_emails, :boolean, default: true)
 
     # Authentication, identity, and compliance
     field(:invite_code, :string, virtual: true)
@@ -37,6 +41,16 @@ defmodule Platform.Accounts.User do
     field(:password, :string, virtual: true, redact: true)
     field(:hashed_password, :string, redact: true)
     field(:confirmed_at, :naive_datetime)
+
+    # Billing
+    field(:billing_customer_id, :string)
+    # Customer object from Stripe
+    field(:billing_info, :map)
+    # In format returned by Stripe's API
+    field(:billing_subscriptions, :map)
+    field(:billing_flags, {:array, :string})
+    # When does this billing information become stale?
+    field(:billing_expires_at, :utc_datetime)
 
     many_to_many(:subscribed_media, Material.Media, join_through: "media_subscriptions")
     has_many(:memberships, Platform.Projects.ProjectMembership)
@@ -46,6 +60,17 @@ defmodule Platform.Accounts.User do
     field(:searchable, {:array, :map}, load_in_query: false)
 
     timestamps()
+  end
+
+  def billing_changeset(user, attrs) do
+    user
+    |> cast(attrs, [
+      :billing_customer_id,
+      :billing_info,
+      :billing_flags,
+      :billing_expires_at,
+      :billing_subscriptions
+    ])
   end
 
   @doc """
@@ -146,7 +171,7 @@ defmodule Platform.Accounts.User do
     end
   end
 
-  defp verify_otp_code(secret, code) do
+  def verify_otp_code(secret, code) do
     time = System.os_time(:second)
 
     NimbleTOTP.valid?(secret, code, time: time) or
@@ -195,22 +220,17 @@ defmodule Platform.Accounts.User do
   """
   def disable_mfa_changeset(user, attrs) do
     user
-    |> cast(attrs, [:current_otp_code, :password])
+    |> cast(attrs, [:password])
     |> put_change(:has_mfa, false)
     |> put_change(:otp_secret, nil)
-    |> validate_required([:has_mfa, :current_otp_code, :password])
+    |> put_change(:recovery_codes, [])
+    |> put_change(:used_recovery_codes, [])
+    |> validate_required([:has_mfa, :password])
     |> validate_change(:password, fn _, password ->
       if valid_password?(user, password) do
         []
       else
         [password: "This password is not correct."]
-      end
-    end)
-    |> validate_change(:current_otp_code, fn _, code ->
-      if verify_otp_code(user.otp_secret, code) do
-        []
-      else
-        [current_otp_code: "This code is not valid."]
       end
     end)
   end
@@ -231,6 +251,24 @@ defmodule Platform.Accounts.User do
     end)
   end
 
+  def update_recovery_codes_changeset(user, attrs) do
+    user
+    |> cast(attrs, [:recovery_codes, :used_recovery_codes])
+  end
+
+  def verify_recovery_code(user, attrs) do
+    code = attrs["current_otp_code"] |> Platform.Utils.parse_recovery_code()
+
+    if code != nil && code in user.recovery_codes do
+      {:ok,
+       change(user)
+       |> put_change(:recovery_codes, user.recovery_codes -- [code])
+       |> put_change(:used_recovery_codes, user.used_recovery_codes ++ [code])}
+    else
+      {:err, nil}
+    end
+  end
+
   @doc """
   A user changeset for changing user-modifiable profile attributes,
   like the profile photo and bio.
@@ -247,7 +285,7 @@ defmodule Platform.Accounts.User do
   """
   def admin_changeset(user, attrs) do
     user
-    |> cast(attrs, [:roles, :restrictions, :bio, :flair, :admin_notes])
+    |> cast(attrs, [:roles, :restrictions, :bio, :flair, :admin_notes, :billing_flags])
     |> validate_length(:bio, max: 240, message: "Bios may not exceed 240 characters.")
   end
 
@@ -284,7 +322,8 @@ defmodule Platform.Accounts.User do
       :active_incidents_tab,
       :active_project_membership_id,
       :active_incidents_tab_params_time,
-      :active_incidents_tab_params
+      :active_incidents_tab_params,
+      :send_mention_notification_emails
     ])
   end
 

@@ -76,12 +76,16 @@ defmodule Platform.Permissions do
 
   def can_edit_project_api_tokens?(%User{} = user, %Project{} = project) do
     case Projects.get_project_membership_by_user_and_project(user, project) do
-      %Projects.ProjectMembership{role: :owner} -> true
-      _ -> false
+      %Projects.ProjectMembership{role: :owner} ->
+        not Platform.Billing.is_enabled?() or
+          (Platform.Billing.is_enabled?() and Platform.Billing.get_user_plan(user).allowed_api)
+
+      _ ->
+        false
     end
   end
 
-  defmemo _is_media_editable?(%Media{project_id: nil} = media), expires_in: 5000 do
+  defmemo _is_media_editable?(%Media{project_id: nil}), expires_in: 5000 do
     true
   end
 
@@ -95,6 +99,10 @@ defmodule Platform.Permissions do
     else
       _ -> false
     end
+  end
+
+  def can_api_token_read_updates?(%APIToken{} = token) do
+    Enum.member?(token.permissions, :read) and token.is_active
   end
 
   def can_api_token_post_comment?(%APIToken{} = token, %Media{} = media) do
@@ -122,7 +130,7 @@ defmodule Platform.Permissions do
     end
   end
 
-  def can_add_media_to_project?(%User{} = user, %Project{active: false} = project) do
+  def can_add_media_to_project?(%User{}, %Project{active: false}) do
     false
   end
 
@@ -135,7 +143,7 @@ defmodule Platform.Permissions do
     end
   end
 
-  def can_bulk_upload_media_to_project?(%User{} = user, %Project{active: false} = project) do
+  def can_bulk_upload_media_to_project?(%User{}, %Project{active: false}) do
     false
   end
 
@@ -157,7 +165,7 @@ defmodule Platform.Permissions do
       end
   end
 
-  def can_view_media?(%User{} = user, %Media{project_id: nil} = media) do
+  def can_view_media?(%User{}, %Media{project_id: nil}) do
     true
   end
 
@@ -211,19 +219,6 @@ defmodule Platform.Permissions do
     end
   end
 
-  defp filter_to_users_with_roles(media_list, %User{} = user, necessary_roles)
-       when is_list(media_list) and is_list(necessary_roles) do
-    user_memberships =
-      Projects.get_users_project_memberships(user)
-      |> Enum.into(%{}, fn membership -> {membership.project_id, membership} end)
-
-    media_list
-    |> Enum.filter(fn media ->
-      membership = user_memberships[media.project_id]
-      not is_nil(membership) and Enum.member?(necessary_roles, membership.role)
-    end)
-  end
-
   @doc """
   Equivalent to `can_view_media?`, but takes a list of media instead of a single
   media. Helpful for filtering lists of media and avoiding n+1 queries.
@@ -239,11 +234,20 @@ defmodule Platform.Permissions do
     media_list |> Enum.filter(&can_view_media?(user, &1, user_memberships[&1.project_id]))
   end
 
+  defmemo has_hit_edit_limit(%User{} = user), expires_in: 1000 do
+    if not Platform.Billing.is_enabled?() do
+      false
+    else
+      Platform.Billing.has_user_exceeded_edit_limit?(user)
+    end
+  end
+
   def can_edit_media?(%User{} = user, %Media{} = media) do
     # This includes uploading new media versions as well as editing attributes.
     membership = Projects.get_project_membership_by_user_and_project_id(user, media.project_id)
 
     with true <- _is_media_editable?(media),
+         false <- has_hit_edit_limit(user),
          true <- can_view_media?(user, media),
          true <- not is_nil(membership) or is_nil(media.project_id),
          false <- Enum.member?(user.restrictions || [], :muted),
@@ -257,6 +261,10 @@ defmodule Platform.Permissions do
     else
       _ -> false
     end
+  end
+
+  def can_edit_media?(%APIToken{} = token, %Media{} = media) do
+    can_api_token_edit_media?(token, media)
   end
 
   def can_edit_media?(%User{} = user, %Media{} = media, %Attribute{} = attribute) do
@@ -284,6 +292,24 @@ defmodule Platform.Permissions do
 
     with false <- is_nil(membership),
          true <- can_edit_media?(user, media) do
+      membership.role == :owner or membership.role == :manager
+    else
+      _ -> false
+    end
+  end
+
+  def can_set_restricted_attribute_values_within_project?(
+        %User{} = user,
+        %Project{} = project,
+        %Attribute{} = _attribute
+      ) do
+    # Distinct from can_set_restricted_attribute_values? because we also need to
+    # check when the media does not yet exist (e.g., when creating a new
+    # incident).
+
+    membership = Projects.get_project_membership_by_user_and_project_id(user, project.id)
+
+    with false <- is_nil(membership) do
       membership.role == :owner or membership.role == :manager
     else
       _ -> false

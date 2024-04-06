@@ -175,7 +175,7 @@ defmodule Platform.Updates do
       # "through" model with a `user_id` column
       attr.type == :multi_users ->
         Ecto.Changeset.get_field(changeset, attr.schema_field)
-        |> Enum.map(&Map.get(&1, :user_id))
+        |> Enum.map(& &1.user_id)
 
       true ->
         Ecto.Changeset.get_field(changeset, attr.schema_field)
@@ -281,7 +281,15 @@ defmodule Platform.Updates do
       attrs
       |> Map.put("type", :comment)
     )
-    |> Ecto.Changeset.validate_required([:explanation], message: "A comment is required to post")
+    # Verify that _either_ files have been uploaded _or_ an explanation has been provided
+    |> then(fn cs ->
+      if (Ecto.Changeset.get_field(cs, :attachments) || []) == [] and
+           is_nil(Ecto.Changeset.get_field(cs, :explanation)) do
+        Ecto.Changeset.add_error(cs, :explanation, "A comment or file upload is required to post")
+      else
+        cs
+      end
+    end)
     |> Ecto.Changeset.validate_length(:explanation, min: 1, max: 10000)
   end
 
@@ -344,14 +352,14 @@ defmodule Platform.Updates do
   """
   def change_from_media_version_upload(
         %Media{} = media,
-        %User{} = user,
+        user_or_token,
         %MediaVersion{} = version,
         attrs
       ) do
     change_update(
       %Update{},
       media,
-      user,
+      user_or_token,
       %{
         "type" => :upload_version,
         "media_version_id" => version.id,
@@ -500,5 +508,22 @@ defmodule Platform.Updates do
       "explanation" => message
     })
     |> create_update_from_changeset()
+  end
+
+  @doc """
+  Gets the total number of updates by the given user over the past 30 days.
+  Returns an integer.
+  """
+  def get_total_updates_by_user_over_30d(%User{} = user) do
+    query =
+      from(u in Update,
+        where: u.user_id == ^user.id,
+        where: u.type != ^:comment,
+        where: u.inserted_at >= fragment("now() - interval '30 days'"),
+        select: count(u.id)
+      )
+
+    query
+    |> Repo.one()
   end
 end

@@ -47,7 +47,7 @@ defmodule Platform.Utils do
       []
     else
       project_attributes =
-        media.project.attributes |> Enum.map(&Platform.Projects.ProjectAttribute.to_attribute(&1))
+        Platform.Projects.get_project_attributes(media.project)
 
       deprecated_attributes =
         Platform.Material.Attribute.attributes() |> Enum.filter(&(&1.deprecated == true))
@@ -154,6 +154,8 @@ defmodule Platform.Utils do
     end
   end
 
+  def render_markdown(nil), do: ""
+
   def render_markdown(markdown) do
     # Safe markdown rendering. No images or headers.
 
@@ -221,6 +223,10 @@ defmodule Platform.Utils do
     markdown
   end
 
+  def strip_html_tags(html) do
+    html |> HtmlSanitizeEx.Scrubber.scrub(HtmlSanitizeEx.Scrubber.StripTags)
+  end
+
   @spec escape_markdown_string(String.t()) :: String.t()
   @doc """
   Escape the given string so that it can be used in a markdown document without
@@ -253,6 +259,32 @@ defmodule Platform.Utils do
     |> EQRCode.encode()
     |> EQRCode.svg(width: 264)
     |> Phoenix.HTML.raw()
+  end
+
+  def generate_recovery_codes(n \\ 10) do
+    Enum.map(1..n, fn _ ->
+      :crypto.strong_rand_bytes(4)
+      |> :binary.decode_unsigned()
+      |> rem(100_000_000)
+      |> Integer.to_string()
+      |> String.pad_leading(8, "0")
+    end)
+  end
+
+  def format_recovery_code(code) do
+    code
+    |> String.split("", trim: true)
+    |> Enum.chunk_every(4)
+    |> Enum.map(&Enum.join(&1))
+    |> Enum.join(" ")
+  end
+
+  def parse_recovery_code(code) do
+    if code == nil do
+      nil
+    else
+      String.replace(code, " ", "")
+    end
   end
 
   def get_instance_name() do

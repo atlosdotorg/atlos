@@ -23,13 +23,14 @@
         <%= if(
        Permissions.can_edit_media?(@current_user, @media, Attribute.get_attribute(:description))
       ) do %>
-          <%= live_patch(class: title_classes <> "hover:bg-neutral-200 focus:bg-neutral-200",
-              to: Routes.media_show_path(@socket, :edit, @media.slug, :description),
-              "data-tooltip": "Edit description",
-              replace: true
-            ) do %>
+          <.link
+            class={title_classes <> " hover:bg-neutral-200 focus:bg-neutral-200"}
+            patch={Routes.media_show_path(@socket, :edit, @media.slug, :description)}
+            data-tooltip="Edit description"
+            replace={true}
+          >
             <%= @media.attr_description %>
-          <% end %>
+          </.link>
         <% else %>
           <div class={title_classes}>
             <%= @media.attr_description %>
@@ -37,9 +38,11 @@
         <% end %>
         <div class="mt-1 flex flex-col sm:flex-row sm:flex-wrap sm:mt-0 sm:space-x-4 ml-1">
           <%= if @media.attr_status do %>
-            <%= live_patch(class: "chip @high inline-block mt-2 flex gap-1 " <> Attribute.attr_color(:status, @media.attr_status),
-                      to: Routes.media_show_path(@socket, :edit, @media.slug, :status), replace: true
-                    ) do %>
+            <.link
+              class={"chip @high inline-block mt-2 flex gap-1 " <> Attribute.attr_color(:status, @media.attr_status)}
+              patch={Routes.media_show_path(@socket, :edit, @media.slug, :status)}
+              replace={true}
+            >
               <.attribute_icon
                 name={:status}
                 value={@media.attr_status}
@@ -47,13 +50,15 @@
                 type={:solid}
               />
               <%= @media.attr_status %>
-            <% end %>
+            </.link>
           <% end %>
           <%= if Media.is_sensitive(@media) do %>
             <%= for item <- @media.attr_sensitive || [] do %>
-              <%= live_patch(class: "chip @high inline-block mt-2 flex gap-1 " <> Attribute.attr_color(:sensitive, @media.attr_sensitive),
-                    to: Routes.media_show_path(@socket, :edit, @media.slug, :sensitive), replace: true
-                    ) do %>
+              <.link
+                class={"chip @high inline-block mt-2 flex gap-1 " <> Attribute.attr_color(:sensitive, @media.attr_sensitive)}
+                patch={Routes.media_show_path(@socket, :edit, @media.slug, :sensitive)}
+                replace={true}
+              >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   class="h-4 w-4"
@@ -67,7 +72,7 @@
                   />
                 </svg>
                 <%= item %>
-              <% end %>
+              </.link>
             <% end %>
           <% end %>
           <%= for item <- @media.attr_restrictions || [] do %>
@@ -303,10 +308,12 @@
               <h3 class="sec-head">Source Material</h3>
               <%= if Permissions.can_edit_media?(@current_user, @media) do %>
                 <section class="text-sm overflow-visible">
-                  <%= live_patch("+ Add Material",
-                    class: "text-button inline-block",
-                    to: Routes.media_show_path(@socket, :upload, @media.slug)
-                  ) %>
+                  <.link
+                    class="text-button inline-block"
+                    patch={Routes.media_show_path(@socket, :upload, @media.slug)}
+                  >
+                    + Add Material
+                  </.link>
                 </section>
               <% end %>
             </div>
@@ -335,10 +342,12 @@
                   No media uploaded
                 </span>
                 <%= if Permissions.can_edit_media?(@current_user, @media) do %>
-                  <%= live_patch("+ Upload Media",
-                    class: "text-button text-sm",
-                    to: Routes.media_show_path(@socket, :upload, @media.slug)
-                  ) %>
+                  <.link
+                    class="text-button text-sm"
+                    patch={Routes.media_show_path(@socket, :upload, @media.slug)}
+                  >
+                    + Upload Media
+                  </.link>
                 <% end %>
               </div>
             <% else %>
@@ -443,11 +452,13 @@
                 />
               </svg>
               <span class="mt-2 block text-sm font-medium text-gray-700">Not yet geolocated</span>
-              <%= live_patch("+ Geolocation",
-                class: "text-button mt-1 text-sm inline-block",
-                to: Routes.media_show_path(@socket, :edit, @media.slug, :geolocation),
-                replace: true
-              ) %>
+              <.link
+                class="text-button mt-1 text-sm inline-block"
+                patch={Routes.media_show_path(@socket, :edit, @media.slug, :geolocation)}
+                replace={true}
+              >
+                + Geolocation
+              </.link>
             </div>
           <% end %>
         </.card>
@@ -497,11 +508,13 @@
             </div>
             <div class="sm:mr-8">
               <%= if Permissions.can_edit_media?(@current_user, @media, attr) do %>
-                <%= live_patch("Edit",
-                  class: "base-button",
-                  to: Routes.media_show_path(@socket, :edit, @media.slug, attr.name),
-                  replace: true
-                ) %>
+                <.link
+                  class="base-button"
+                  patch={Routes.media_show_path(@socket, :edit, @media.slug, attr.name)}
+                  replace={true}
+                >
+                  Edit
+                </.link>
               <% end %>
             </div>
           </div>
@@ -616,7 +629,7 @@
                       Uploaded File
                     <% end %>
                   </p>
-                  <%= if Platform.Material.get_media_version_title(version) != version.source_url do %>
+                  <%= if Platform.Material.get_media_version_title(version) != version.source_url and not is_nil(version.source_url) do %>
                     <p class="text-neutral-500 text-sm">
                       <%= version.source_url |> Platform.Utils.truncate(60) %>
                     </p>
@@ -767,19 +780,23 @@
                   String.starts_with?(artifact.mime_type, "video") or
                     String.starts_with?(artifact.mime_type, "image") %>
                 <h3 class="m-4 text-base font-medium text-neutral-900">
-                  <%= case artifact.type do %>
-                    <% :pdf -> %>
-                      PDF
-                    <% :media -> %>
-                      Source Media
-                    <% :upload -> %>
-                      File Upload
-                    <% :viewport -> %>
-                      Viewport Screenshot
-                    <% :fullpage -> %>
-                      Full Page Screenshot
-                    <% _ -> %>
-                      <%= artifact.type %>
+                  <%= if not is_nil(artifact.title) do %>
+                    <%= artifact.title %>
+                  <% else %>
+                    <%= case artifact.type do %>
+                      <% :pdf -> %>
+                        PDF
+                      <% :media -> %>
+                        Source Media
+                      <% :upload -> %>
+                        File Upload
+                      <% :viewport -> %>
+                        Viewport Screenshot
+                      <% :fullpage -> %>
+                        Full Page Screenshot
+                      <% _ -> %>
+                        <%= artifact.type %>
+                    <% end %>
                   <% end %>
                 </h3>
                 <div
@@ -869,19 +886,19 @@
                         </audio>
                       <% true -> %>
                         <!-- Show some kind of file preview -->
-                        <div class="flex flex-col sm:flex-row items-center m-4 gap-2 sm:gap-4">
+                        <div class="flex flex-col sm:flex-row items-center m-4 gap-2 sm:gap-4 max-w-full overflow-hidden">
                           <Heroicons.archive_box class="h-12 w-12 text-neutral-500" />
-                          <div class="grow">
-                            <p class="font-medium">
+                          <div class="grow max-w-full overflow-hidden">
+                            <p class="font-medium truncate max-w-full">
                               <%= artifact.file_location %>
                             </p>
-                            <p class="text-xs text-neutral-500">
+                            <p class="text-xs text-neutral-500 text-center md:text-left">
                               <%= artifact.type |> Atom.to_string() |> String.upcase() %>
                             </p>
                           </div>
                           <a
                             href={Material.media_version_artifact_location(artifact)}
-                            class="base-button"
+                            class="base-button shrink-0"
                             target="_blank"
                           >
                             <Heroicons.arrow_up_right mini class="h-4 w-4 mr-1" /> Open
@@ -921,7 +938,11 @@
                     </div>
                     <div>
                       <dt class="text-neutral-500">File Type</dt>
-                      <dd><%= artifact.mime_type %></dd>
+                      <dd class="truncate max-w-full"><%= artifact.mime_type %></dd>
+                    </div>
+                    <div :if={artifact.uploading_token}>
+                      <dt class="text-neutral-500">Uploaded By</dt>
+                      <dd class="truncate max-w-full"><%= artifact.uploading_token.name %></dd>
                     </div>
                     <div class="lg:col-span-2">
                       <dt class="text-neutral-500">Hashes</dt>

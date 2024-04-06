@@ -162,10 +162,12 @@
                   </p>
                 </div>
                 <div>
-                  <%= live_patch("Edit",
-                    class: "button ~urge @high",
-                    to: Routes.profiles_show_path(@socket, :admin_edit, @username)
-                  ) %>
+                  <.link
+                    class="button ~urge @high"
+                    patch={Routes.profiles_show_path(@socket, :admin_edit, @username)}
+                  >
+                    Edit
+                  </.link>
                 </div>
               </div>
             </:header>
@@ -198,6 +200,32 @@
                   <% else %>
                     None
                   <% end %>
+                </dd>
+              </div>
+              <div :if={Platform.Billing.is_enabled?()} class="sm:col-span-1">
+                <dt class="text-sm text-gray-500">Billing Flags</dt>
+                <dd class="mt-1 text-sm text-gray-900">
+                  <%= if length(@user.billing_flags || []) > 0 do %>
+                    <%= for r <- @user.billing_flags do %>
+                      <p class="chip ~neutral">
+                        <%= r %>
+                      </p>
+                    <% end %>
+                  <% else %>
+                    None
+                  <% end %>
+                </dd>
+              </div>
+              <div :if={Platform.Billing.is_enabled?()} class="sm:col-span-1">
+                <dt class="text-sm text-gray-500">Atlos Plan</dt>
+                <dd class="mt-1 text-sm text-gray-900">
+                  <% plan = Platform.Billing.get_user_plan(@user) %>
+                  <p :if={plan.is_free} class="chip ~neutral">
+                    No Plan
+                  </p>
+                  <p :if={not plan.is_free} class="chip ~positive">
+                    <%= plan.name %>
+                  </p>
                 </dd>
               </div>
               <div class="sm:col-span-1">

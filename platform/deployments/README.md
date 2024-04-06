@@ -18,7 +18,7 @@ Steps to using the Terraform configs:
 * Run `terraform init` to initialize the Terraform state.
 * Run `terraform plan -var-file=<your .tfvars file>` to see what changes will be made.
 * Run `terraform apply -var-file=<your .tfvars file>` to apply the changes.
-* Manually setup the custom domain for the Azure Container Apps environment. This is not yet automated, because it requires a manual DNS change.
+* Manually setup the custom domain for the Azure Container Apps environment. This is not yet automated, because it requires a manual DNS change. (We explicitly tell Terraform to ignore the custom domain, so that it doesn't try to create/modify/destroy it.)
 * Verify that deletion protection and object versioning are enabled on the S3 bucket.
 * Verify that the SES domain is verified and that the DKIM records are set up correctly.
 

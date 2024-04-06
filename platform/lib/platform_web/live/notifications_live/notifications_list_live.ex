@@ -15,6 +15,9 @@ defmodule PlatformWeb.NotificationsLive.NotificationsList do
       Notifications.get_notifications_by_user_paginated(
         socket.assigns.current_user,
         opts
+        |> Keyword.put(:sort, Map.get(socket.assigns.params, "sort", "newest"))
+        |> Keyword.put(:query, Map.get(socket.assigns.params, "query", ""))
+        |> Keyword.put(:filter, Map.get(socket.assigns.params, "filter", "all"))
       )
 
     # Filter out notifications that the user does not have permission to see and mark them as read
@@ -90,7 +93,7 @@ defmodule PlatformWeb.NotificationsLive.NotificationsList do
         <% else %>
           <ul class="flex flex-col overflow-hidden divide-y">
             <%= for notification <- @notifications do %>
-              <div class="block px-2 pb-4 pt-4 flex group relative hover:bg-urge-50 focus-within:bg-urge-50 bg-white">
+              <div class="block px-2 search-highlighting pb-4 pt-4 flex group relative hover:bg-urge-50 focus-within:bg-urge-50 bg-white">
                 <%= if not notification.read do %>
                   <div
                     phx-click="toggle_notification_read"
@@ -156,6 +159,7 @@ defmodule PlatformWeb.NotificationsLive.NotificationsList do
                 <div class="hidden shadow-urge-lg group-hover:flex group-focus-within:flex gap-1 absolute top-0 right-0 p-2 text-sm">
                   <button
                     class="text-button"
+                    type="button"
                     phx-click="toggle_notification_read"
                     phx-value-notification={notification.id}
                     phx-target={@myself}

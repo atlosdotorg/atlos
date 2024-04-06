@@ -35,3 +35,9 @@ config :phoenix, :plug_init_mode, :runtime
 
 # Prevent tasks from being run at test-time
 config :platform, Oban, testing: :inline
+
+# Disable billing
+System.put_env("BILLING_ENABLED", "false")
+
+# Set the "MIX_ENV" environment variable to "test"
+System.put_env("MIX_ENV", "test")
