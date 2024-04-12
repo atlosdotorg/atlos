@@ -5,22 +5,22 @@ description = ""
 authors = ["R. Miles McCain <github@sendmiles.email>"]
 
 [tool.poetry.dependencies]
-python = "^3.9"
+python = ">=3.9,<3.12"
 click = "^8.1.3"
 unicodecsv = "^0.14.1"
 python-dateutil = "^2.8.2"
 perception = "^0.6.8"
 loguru = "^0.7.0"
-auto-archiver = "^0.7.1"
-opencv-python = "^4.7.0.72"
-numpy = "^1.25.0"
-selenium = "^4.10.0"
+auto-archiver = "^0.10.1"
+opencv-python = "^4.9.0.80"
+numpy = "^1.26.4"
+selenium = "^4.19.0"
 webdriver-manager = "^4.0.1"
 # We do not actually depend on the following dependencies directly, but they are necessary for dependency resolution
-botocore = "^1.29.155"
+botocore = "^1.34.83"
 
 [tool.poetry.group.dev.dependencies]
-black = "^23.3.0"
+black = "^24.3.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

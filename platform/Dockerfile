@@ -12,9 +12,9 @@
 #   - https://pkgs.org/ - resource for finding needed packages
 #   - Ex: hexpm/elixir:1.13.4-erlang-24.3.3-debian-bullseye-20210902-slim
 #
-ARG ELIXIR_VERSION=1.16.1
-ARG OTP_VERSION=26.2.2
-ARG DEBIAN_VERSION=bookworm-20240130
+ARG ELIXIR_VERSION=1.16.2
+ARG OTP_VERSION=26.2.3
+ARG DEBIAN_VERSION=bookworm-20240311
 
 ARG BUILDER_IMAGE="hexpm/elixir:${ELIXIR_VERSION}-erlang-${OTP_VERSION}-debian-${DEBIAN_VERSION}"
 ARG RUNNER_IMAGE="debian:${DEBIAN_VERSION}"
@@ -22,7 +22,7 @@ ARG RUNNER_IMAGE="debian:${DEBIAN_VERSION}"
 FROM ${BUILDER_IMAGE} as builder
 
 # install build dependencies
-RUN apt-get update -y && apt-get install -y build-essential git curl gnupg erlang-src erlang-dev \
+RUN apt-get update -y && apt-get install -y build-essential apt-transport-https git curl gnupg erlang-src erlang-dev \
   && apt-get clean && rm -f /var/lib/apt/lists/*_*
 
 RUN curl -sL https://deb.nodesource.com/setup_18.x  | bash -
