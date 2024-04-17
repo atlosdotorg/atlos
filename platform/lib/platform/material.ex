@@ -1203,6 +1203,16 @@ defmodule Platform.Material do
           |> Map.get(v)
       end
 
+    # If the type is a multi select and the value is not a list, return a list.
+    # This is necessary when you change an attribute from type single select to
+    # type multiple select and there is already data.
+    value =
+      if attr.type == :multi_select && !is_list(value) && not is_nil(value) do
+        [value]
+      else
+        value
+      end
+
     if Keyword.get(opts, :format_dates, false) do
       case attr.type do
         :date ->

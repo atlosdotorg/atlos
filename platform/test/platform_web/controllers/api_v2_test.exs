@@ -427,7 +427,7 @@ defmodule PlatformWeb.APIV2Test do
 
     metadata = %{
       "foo" => "bar",
-      "abc" => [1,2,3]
+      "abc" => [1, 2, 3]
     }
 
     # This one should work
@@ -445,7 +445,7 @@ defmodule PlatformWeb.APIV2Test do
   test "POST /source_material/upload/:version_id" do
     # Make a temporary file to upload
     Temp.track!()
-    {:ok, fd, file_path} = Temp.open "test-file"
+    {:ok, fd, file_path} = Temp.open("test-file")
     IO.write(fd, "some content for the file")
     File.close(fd)
 
@@ -490,12 +490,14 @@ defmodule PlatformWeb.APIV2Test do
       build_conn()
       |> put_req_header("authorization", "Bearer " <> underpermissioned_token.value)
       |> post("/api/v2/source_material/upload/#{version_id}", %{})
+
     assert json_response(conn, 401) == %{"error" => "media version not found or unauthorized"}
 
     conn =
       build_conn()
       |> put_req_header("authorization", "Bearer " <> other_token.value)
       |> post("/api/v2/source_material/upload/#{version_id}", %{})
+
     assert json_response(conn, 401) == %{"error" => "media version not found or unauthorized"}
 
     # Upload the file to the media version
@@ -506,6 +508,7 @@ defmodule PlatformWeb.APIV2Test do
         "title" => "Example API Upload",
         "file" => upload
       })
+
     %{"success" => true, "result" => _} = json_response(conn, 200)
   end
 
@@ -541,6 +544,7 @@ defmodule PlatformWeb.APIV2Test do
       build_conn()
       |> put_req_header("authorization", "Bearer " <> other_token.value)
       |> get("/api/v2/source_material/#{version_id}", %{})
+
     assert json_response(conn, 401) == %{"error" => "media version not found or unauthorized"}
 
     # Upload the file to the media version
@@ -548,6 +552,7 @@ defmodule PlatformWeb.APIV2Test do
       build_conn()
       |> put_req_header("authorization", "Bearer " <> token.value)
       |> get("/api/v2/source_material/#{version_id}")
+
     %{"success" => true, "result" => ^version} = json_response(conn, 200)
   end
 end
