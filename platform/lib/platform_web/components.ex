@@ -4107,52 +4107,50 @@ defmodule PlatformWeb.Components do
   def pagination_controls(assigns) do
     ~H"""
     <nav class="flex items-center justify-center sm:justify-between w-full" aria-label="Pagination">
-      <%= if @pagination_metadata.total_count > 50 do %>
-        <div class="flex flex-1 gap-2 md:mr-8" phx-hook="ScrollToTop" id={@id}>
-          <%= if not is_nil(@pagination_metadata.before) do %>
-            <.link patch={@prev_link} class="text-button">
-              <Heroicons.arrow_left mini class="h-6 w-6" />
-              <span class="sr-only">Previous</span>
-            </.link>
-          <% else %>
-            <span class="cursor-not-allowed opacity-75 text-neutral-600">
-              <Heroicons.arrow_left mini class="h-6 w-6" />
-              <span class="sr-only">Previous</span>
-            </span>
-          <% end %>
-          <%= if not is_nil(@pagination_metadata.after) do %>
-            <.link patch={@next_link} class="text-button">
-              <Heroicons.arrow_right mini class="h-6 w-6" />
-              <span class="sr-only">Next</span>
-            </.link>
-          <% else %>
-            <span class="cursor-not-allowed opacity-75 text-neutral-600">
-              <Heroicons.arrow_right mini class="h-6 w-6" />
-              <span class="sr-only">Next</span>
-            </span>
-          <% end %>
-        </div>
-        <div class="hidden sm:block">
-          <p class="text-sm text-gray-700">
-            Showing results
-            <span class="font-medium">
-              <%= (@pagination_index * @pagination_metadata.limit + 1) |> Formatter.format_number() %>
-            </span>
-            to
-            <span class="font-medium">
-              <%= (@pagination_index * @pagination_metadata.limit +
-                     @currently_displayed_results)
-              |> Formatter.format_number() %>
-            </span>
-            of
-            <span class="font-medium">
-              <%= @pagination_metadata.total_count |> Formatter.format_number() %><%= if @pagination_metadata.total_count_cap_exceeded,
-                do: "+",
-                else: "" %>
-            </span>
-          </p>
-        </div>
-      <% end %>
+      <div class="flex flex-1 gap-2 md:mr-8" phx-hook="ScrollToTop" id={@id}>
+        <%= if not is_nil(@pagination_metadata.before) do %>
+          <.link patch={@prev_link} class="text-button">
+            <Heroicons.arrow_left mini class="h-6 w-6" />
+            <span class="sr-only">Previous</span>
+          </.link>
+        <% else %>
+          <span class="cursor-not-allowed opacity-75 text-neutral-600">
+            <Heroicons.arrow_left mini class="h-6 w-6" />
+            <span class="sr-only">Previous</span>
+          </span>
+        <% end %>
+        <%= if not is_nil(@pagination_metadata.after) do %>
+          <.link patch={@next_link} class="text-button">
+            <Heroicons.arrow_right mini class="h-6 w-6" />
+            <span class="sr-only">Next</span>
+          </.link>
+        <% else %>
+          <span class="cursor-not-allowed opacity-75 text-neutral-600">
+            <Heroicons.arrow_right mini class="h-6 w-6" />
+            <span class="sr-only">Next</span>
+          </span>
+        <% end %>
+      </div>
+      <div class="hidden sm:block">
+        <p class="text-sm text-gray-700">
+          Showing results
+          <span class="font-medium">
+            <%= (@pagination_index * @pagination_metadata.limit + 1) |> Formatter.format_number() %>
+          </span>
+          to
+          <span class="font-medium">
+            <%= (@pagination_index * @pagination_metadata.limit +
+                   @currently_displayed_results)
+            |> Formatter.format_number() %>
+          </span>
+          of
+          <span class="font-medium">
+            <%= @pagination_metadata.total_count |> Formatter.format_number() %><%= if @pagination_metadata.total_count_cap_exceeded,
+              do: "+",
+              else: "" %>
+          </span>
+        </p>
+      </div>
     </nav>
     """
   end
