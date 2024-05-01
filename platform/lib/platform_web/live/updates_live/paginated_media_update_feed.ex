@@ -85,7 +85,7 @@ defmodule PlatformWeb.UpdatesLive.PaginatedMediaUpdateFeed do
           <p class="mt-1 text-sm text-gray-500">Get started by working on an incident</p>
         </div>
       <% end %>
-      <%= for incident <- @media do %>
+      <%= for incident <- @media |> Enum.filter(& not Enum.empty?(&1.updates)) do %>
         <div class="w-full max-w-full group" x-data>
           <.media_line_preview media={incident} />
           <ul class="rounded-lg p-4 bg-white shadow mt-2">

@@ -219,6 +219,24 @@ defmodule Platform.Permissions do
     end
   end
 
+  def can_view_attribute?(%User{} = user, %Media{} = media, %Attribute{} = attribute) do
+    membership = Projects.get_project_membership_by_user_and_project_id(user, media.project_id)
+
+    can_view_attribute?(user, media, attribute, membership)
+  end
+
+  def can_view_attribute?(
+        %User{} = user,
+        %Media{} = media,
+        %Attribute{} = attribute,
+        %ProjectMembership{} = project_membership
+      ) do
+    # We don't want data-only viewers to see multi-users fields, because that
+    # would reveal members of the project.
+    can_view_media?(user, media, project_membership) and
+      (project_membership.role != :data_only_viewer or attribute.type != :multi_users)
+  end
+
   @doc """
   Equivalent to `can_view_media?`, but takes a list of media instead of a single
   media. Helpful for filtering lists of media and avoiding n+1 queries.
@@ -391,7 +409,7 @@ defmodule Platform.Permissions do
     with true <- can_view_media?(user, update.media, membership) do
       case update.hidden do
         true -> membership.role == :owner or membership.role == :manager
-        false -> true
+        false -> membership.role != :data_only_viewer
       end
     else
       _ -> false
