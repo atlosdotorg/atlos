@@ -354,14 +354,11 @@ defmodule PlatformWeb.Components do
 
           <.navlink
             to={
-              if String.starts_with?(@path, "/incidents"),
-                do: "/incidents",
-                else:
-                  Routes.live_path(
-                    @endpoint,
-                    PlatformWeb.MediaLive.Index,
-                    Accounts.active_incidents_params(@current_user)
-                  )
+              Routes.live_path(
+                @endpoint,
+                PlatformWeb.MediaLive.Index,
+                Accounts.active_incidents_params(@current_user)
+              )
             }
             label="Incidents"
             request_path={@path}
