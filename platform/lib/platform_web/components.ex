@@ -1281,7 +1281,11 @@ defmodule PlatformWeb.Components do
                     ),
                     do: "an",
                     else: "a" %>
-          <span class="text-neutral-800"><%= to_string(@invite.project_access_level) %></span>
+          <span class="text-neutral-800">
+            <%= to_string(@invite.project_access_level)
+            |> String.replace("_", " ")
+            |> String.capitalize() %>
+          </span>
         <% end %>
       </h2>
       <div :if={not is_nil(@inner_block)}>
@@ -1307,6 +1311,7 @@ defmodule PlatformWeb.Components do
           socket={@socket}
           current_user={@current_user}
           immutable={@immutable}
+          membership={@membership}
         />
       <% end %>
       <%= if length(@unset_attrs) > 0 do %>
@@ -1354,34 +1359,35 @@ defmodule PlatformWeb.Components do
 
     ~H"""
     <div class="inline">
-      <%= if not is_nil(@attr_value) and @attr_value != [] and @attr_value != "" do %>
-        <div class="inline-flex flex-wrap text-xs">
-          <div class="break-word max-w-full text-ellipsis">
+      <div class="inline-flex flex-wrap text-xs">
+        <div class="break-word max-w-full text-ellipsis">
+          <.attr_entry
+            color={true}
+            compact={@truncate}
+            name={@attr.name}
+            project={@media.project}
+            value={@attr_value}
+            membership={@membership}
+            current_user={@current_user}
+            media={@media}
+          />
+          <%= for child <- @children do %>
+            <% value = Material.get_attribute_value(@media, child) %>
             <.attr_entry
+              :if={not is_nil(value) and value != [] and value != ""}
               color={true}
               compact={@truncate}
-              name={@attr.name}
+              name={child.name}
+              value={value}
               project={@media.project}
-              value={@attr_value}
+              label={child.label}
+              membership={@membership}
+              current_user={@current_user}
+              media={@media}
             />
-            <%= for child <- @children do %>
-              <% value = Material.get_attribute_value(@media, child) %>
-              <%= if not is_nil(value) do %>
-                <.attr_entry
-                  color={true}
-                  compact={@truncate}
-                  name={child.name}
-                  value={value}
-                  project={@media.project}
-                  label={child.label}
-                />
-              <% end %>
-            <% end %>
-          </div>
+          <% end %>
         </div>
-      <% else %>
-        <span class="text-neutral-400">&mdash;</span>
-      <% end %>
+      </div>
     </div>
     """
   end
@@ -1568,6 +1574,7 @@ defmodule PlatformWeb.Components do
             @updates
             |> Enum.filter(&(&1.modified_attribute == to_string(@attr.name) || &1.type == :create))
             |> Enum.filter(&(!&1.hidden))
+            |> Enum.filter(&Permissions.can_view_update?(@current_user, &1))
             |> Enum.sort_by(& &1.inserted_at, {:desc, NaiveDateTime})
             |> Enum.map(& &1.user)
             |> Enum.reject(&is_nil/1)
@@ -1577,25 +1584,28 @@ defmodule PlatformWeb.Components do
       </dt>
       <dd class="mt-1 flex items-center text-sm text-gray-900 sm:mt-0 sm:col-span-2">
         <span class="flex-grow gap-1 flex flex-wrap">
-          <%= if not is_nil(Material.get_attribute_value(@media, @attr)) do %>
-            <.attr_entry
-              name={@attr.name}
-              color={false}
-              value={Material.get_attribute_value(@media, @attr)}
-              project={@media.project}
-            />
-          <% end %>
+          <.attr_entry
+            name={@attr.name}
+            color={false}
+            value={Material.get_attribute_value(@media, @attr)}
+            project={@media.project}
+            membership={@membership}
+            current_user={@current_user}
+            media={@media}
+          />
           <%= for child <- @children do %>
             <% value = Material.get_attribute_value(@media, child) %>
-            <%= if not is_nil(value) do %>
-              <.attr_entry
-                name={child.name}
-                color={false}
-                value={value}
-                label={child.label}
-                project={@media.project}
-              />
-            <% end %>
+            <.attr_entry
+              :if={not is_nil(value) and value != [] and value != ""}
+              name={child.name}
+              color={false}
+              value={value}
+              label={child.label}
+              project={@media.project}
+              membership={@membership}
+              current_user={@current_user}
+              media={@media}
+            />
           <% end %>
         </span>
         <span class="ml-4 flex-shrink-0">
@@ -1649,123 +1659,139 @@ defmodule PlatformWeb.Components do
       |> assign_new(:label, fn -> "" end)
       |> assign_new(:compact, fn -> false end)
       |> assign_new(:tone, fn -> tone end)
+      |> assign_new(:membership, fn -> nil end)
 
     ~H"""
     <span class={"inline-flex gap-1 max-w-full " <> (if @compact, do: "", else: "flex-wrap")}>
-      <%= case @attr.type do %>
-        <% :text -> %>
-          <%= if @compact do %>
-            <div class="inline-block prose prose-sm my-px word-breaks">
-              <.attr_label label={@label} />
-              <%= raw(
-                @value
-                |> String.replace("\n", "")
-                |> Utils.truncate(80)
-                |> Utils.render_markdown()
-              ) %>
-            </div>
-          <% else %>
-            <div class="inline-block prose prose-sm my-px word-breaks">
-              <.attr_label label={@label} />
-              <%= raw(
-                @value
-                |> Utils.render_markdown()
-              ) %>
-            </div>
-          <% end %>
-        <% :select -> %>
-          <div class="inline-block">
-            <div class={"chip #{@tone} flex items-center gap-1 inline-block self-start break-all"}>
-              <.attribute_icon
-                name={@name}
-                type={:solid}
-                value={@value}
-                class="h-4 w-4 shrink-0 opacity-50"
-              />
-              <.attr_label label={@label} />
-              <span><%= @value %></span>
-            </div>
-          </div>
-        <% :multi_select -> %>
-          <%= for item <- (if @compact, do: @value |> Enum.take(1), else: @value) do %>
-            <div class={"chip #{@tone} flex items-center gap-1 inline-block self-start break-all"}>
-              <.attribute_icon
-                name={@name}
-                type={:solid}
-                value={item}
-                class="h-4 w-4 shrink-0 opacity-50"
-              />
-              <.attr_label label={@label} />
-              <span><%= item %></span>
-            </div>
-            <%= if @compact and length(@value) > 1 do %>
-              <div class="text-xs mt-1 text-neutral-500">
-                + <%= length(@value) - 1 %>
+      <%= if @membership == :ignore or Permissions.can_view_attribute?(@current_user, @media, attr, @membership) do %>
+        <%= if not is_nil(@value) and @value != [] and @value != "" do %>
+          <%= case @attr.type do %>
+            <% :text -> %>
+              <%= if @compact do %>
+                <div class="inline-block prose prose-sm my-px word-breaks">
+                  <.attr_label label={@label} />
+                  <%= raw(
+                    @value
+                    |> String.replace("\n", "")
+                    |> Utils.truncate(80)
+                    |> Utils.render_markdown()
+                  ) %>
+                </div>
+              <% else %>
+                <div class="inline-block prose prose-sm my-px word-breaks">
+                  <.attr_label label={@label} />
+                  <%= raw(
+                    @value
+                    |> Utils.render_markdown()
+                  ) %>
+                </div>
+              <% end %>
+            <% :select -> %>
+              <div class="inline-block">
+                <div class={"chip #{@tone} flex items-center gap-1 inline-block self-start break-all"}>
+                  <.attribute_icon
+                    name={@name}
+                    type={:solid}
+                    value={@value}
+                    class="h-4 w-4 shrink-0 opacity-50"
+                  />
+                  <.attr_label label={@label} />
+                  <span><%= @value %></span>
+                </div>
               </div>
-            <% end %>
+            <% :multi_select -> %>
+              <%= for item <- (if @compact, do: @value |> Enum.take(1), else: @value) do %>
+                <div class={"chip #{@tone} flex items-center gap-1 inline-block self-start break-all"}>
+                  <.attribute_icon
+                    name={@name}
+                    type={:solid}
+                    value={item}
+                    class="h-4 w-4 shrink-0 opacity-50"
+                  />
+                  <.attr_label label={@label} />
+                  <span><%= item %></span>
+                </div>
+                <%= if @compact and length(@value) > 1 do %>
+                  <div class="text-xs mt-1 text-neutral-500">
+                    + <%= length(@value) - 1 %>
+                  </div>
+                <% end %>
+              <% end %>
+            <% :location -> %>
+              <div class="inline-block">
+                <% {lon, lat} = @value.coordinates %>
+                <a
+                  class={"chip #{@tone} inline-block flex gap-1 items-center self-start break-all"}
+                  target="_blank"
+                  href={"https://maps.google.com/maps?q=#{lat},#{lon}"}
+                >
+                  <.attribute_icon
+                    name={@name}
+                    type={:solid}
+                    value={@value}
+                    class="h-4 w-4 shrink-0 opacity-50"
+                  />
+                  <.attr_label label={@label} />
+                  <.location lat={lat} lon={lon} />
+                </a>
+              </div>
+            <% :time -> %>
+              <div class="inline-block">
+                <div class={"chip #{@tone} flex items-center gap-1 inline-block self-start break-all"}>
+                  <.attribute_icon
+                    name={@name}
+                    type={:solid}
+                    value={@value}
+                    class="h-4 w-4 shrink-0 opacity-50"
+                  />
+                  <.attr_label label={@label} />
+                  <%= @value %>
+                </div>
+              </div>
+            <% :date -> %>
+              <div class="inline-block">
+                <div class={"chip #{@tone} flex items-center gap-1 inline-block self-start break-all"}>
+                  <.attribute_icon
+                    name={@name}
+                    type={:solid}
+                    value={@value}
+                    class="h-4 w-4 shrink-0 opacity-50"
+                  />
+                  <.attr_label label={@label} />
+                  <%= Platform.Utils.format_date(@value) %>
+                </div>
+              </div>
+            <% :multi_users -> %>
+              <.attr_label label={@label} />
+              <%= for item <- (if @compact, do: @value |> Enum.take(1), else: @value) do %>
+                <div class={"chip #{@tone} flex items-center gap-1 inline-block self-start break-all"}>
+                  <.attribute_icon
+                    name={@name}
+                    type={:solid}
+                    value={item}
+                    class="h-4 w-4 shrink-0 opacity-50"
+                  />
+                  <.user_text user={item.user} icon={true} flair={false} />
+                </div>
+                <%= if @compact and length(@value) > 1 do %>
+                  <div class="text-xs mt-1 text-neutral-500">
+                    + <%= length(@value) - 1 %>
+                  </div>
+                <% end %>
+              <% end %>
           <% end %>
-        <% :location -> %>
-          <div class="inline-block">
-            <% {lon, lat} = @value.coordinates %>
-            <a
-              class={"chip #{@tone} inline-block flex gap-1 items-center self-start break-all"}
-              target="_blank"
-              href={"https://maps.google.com/maps?q=#{lat},#{lon}"}
-            >
-              <.attribute_icon
-                name={@name}
-                type={:solid}
-                value={@value}
-                class="h-4 w-4 shrink-0 opacity-50"
-              />
-              <.attr_label label={@label} />
-              <.location lat={lat} lon={lon} />
-            </a>
-          </div>
-        <% :time -> %>
-          <div class="inline-block">
-            <div class={"chip #{@tone} flex items-center gap-1 inline-block self-start break-all"}>
-              <.attribute_icon
-                name={@name}
-                type={:solid}
-                value={@value}
-                class="h-4 w-4 shrink-0 opacity-50"
-              />
-              <.attr_label label={@label} />
-              <%= @value %>
-            </div>
-          </div>
-        <% :date -> %>
-          <div class="inline-block">
-            <div class={"chip #{@tone} flex items-center gap-1 inline-block self-start break-all"}>
-              <.attribute_icon
-                name={@name}
-                type={:solid}
-                value={@value}
-                class="h-4 w-4 shrink-0 opacity-50"
-              />
-              <.attr_label label={@label} />
-              <%= Platform.Utils.format_date(@value) %>
-            </div>
-          </div>
-        <% :multi_users -> %>
+        <% else %>
+          <span class="text-neutral-400">&mdash;</span>
+        <% end %>
+      <% else %>
+        <div
+          class={"chip #{@tone} flex items-center gap-1 inline-block self-start break-all opacity-75 cursor-not-allowed"}
+          data-tooltip="You do not have permission to see this value."
+        >
+          <Heroicons.eye_slash mini class="h-4 w-4 shrink-0 opacity-50" />
           <.attr_label label={@label} />
-          <%= for item <- (if @compact, do: @value |> Enum.take(1), else: @value) do %>
-            <div class={"chip #{@tone} flex items-center gap-1 inline-block self-start break-all"}>
-              <.attribute_icon
-                name={@name}
-                type={:solid}
-                value={item}
-                class="h-4 w-4 shrink-0 opacity-50"
-              />
-              <.user_text user={item.user} icon={true} flair={false} />
-            </div>
-            <%= if @compact and length(@value) > 1 do %>
-              <div class="text-xs mt-1 text-neutral-500">
-                + <%= length(@value) - 1 %>
-              </div>
-            <% end %>
-          <% end %>
+          <span class="text-italic">Hidden</span>
+        </div>
       <% end %>
     </span>
     """
@@ -2644,7 +2670,16 @@ defmodule PlatformWeb.Components do
           </section>
           <section class="mb-2 h-4" />
           <section class="bottom-0 mb-2 pr-4 w-full absolute flex gap-2 justify-between items-center">
-            <.user_stack users={@media.attr_assignments |> Enum.map(& &1.user)} />
+            <.user_stack
+              :if={
+                Platform.Permissions.can_view_attribute?(
+                  @current_user,
+                  @media,
+                  Platform.Material.Attribute.get_attribute(:assignments, project: @media.project)
+                )
+              }
+              users={@media.attr_assignments |> Enum.map(& &1.user)}
+            />
             <p class="text-xs text-gray-500 flex items-center">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -4104,52 +4139,50 @@ defmodule PlatformWeb.Components do
   def pagination_controls(assigns) do
     ~H"""
     <nav class="flex items-center justify-center sm:justify-between w-full" aria-label="Pagination">
-      <%= if @pagination_metadata.total_count > 50 do %>
-        <div class="flex flex-1 gap-2 md:mr-8" phx-hook="ScrollToTop" id={@id}>
-          <%= if not is_nil(@pagination_metadata.before) do %>
-            <.link patch={@prev_link} class="text-button">
-              <Heroicons.arrow_left mini class="h-6 w-6" />
-              <span class="sr-only">Previous</span>
-            </.link>
-          <% else %>
-            <span class="cursor-not-allowed opacity-75 text-neutral-600">
-              <Heroicons.arrow_left mini class="h-6 w-6" />
-              <span class="sr-only">Previous</span>
-            </span>
-          <% end %>
-          <%= if not is_nil(@pagination_metadata.after) do %>
-            <.link patch={@next_link} class="text-button">
-              <Heroicons.arrow_right mini class="h-6 w-6" />
-              <span class="sr-only">Next</span>
-            </.link>
-          <% else %>
-            <span class="cursor-not-allowed opacity-75 text-neutral-600">
-              <Heroicons.arrow_right mini class="h-6 w-6" />
-              <span class="sr-only">Next</span>
-            </span>
-          <% end %>
-        </div>
-        <div class="hidden sm:block">
-          <p class="text-sm text-gray-700">
-            Showing results
-            <span class="font-medium">
-              <%= (@pagination_index * @pagination_metadata.limit + 1) |> Formatter.format_number() %>
-            </span>
-            to
-            <span class="font-medium">
-              <%= (@pagination_index * @pagination_metadata.limit +
-                     @currently_displayed_results)
-              |> Formatter.format_number() %>
-            </span>
-            of
-            <span class="font-medium">
-              <%= @pagination_metadata.total_count |> Formatter.format_number() %><%= if @pagination_metadata.total_count_cap_exceeded,
-                do: "+",
-                else: "" %>
-            </span>
-          </p>
-        </div>
-      <% end %>
+      <div class="flex flex-1 gap-2 md:mr-8" phx-hook="ScrollToTop" id={@id}>
+        <%= if not is_nil(@pagination_metadata.before) do %>
+          <.link patch={@prev_link} class="text-button">
+            <Heroicons.arrow_left mini class="h-6 w-6" />
+            <span class="sr-only">Previous</span>
+          </.link>
+        <% else %>
+          <span class="cursor-not-allowed opacity-75 text-neutral-600">
+            <Heroicons.arrow_left mini class="h-6 w-6" />
+            <span class="sr-only">Previous</span>
+          </span>
+        <% end %>
+        <%= if not is_nil(@pagination_metadata.after) do %>
+          <.link patch={@next_link} class="text-button">
+            <Heroicons.arrow_right mini class="h-6 w-6" />
+            <span class="sr-only">Next</span>
+          </.link>
+        <% else %>
+          <span class="cursor-not-allowed opacity-75 text-neutral-600">
+            <Heroicons.arrow_right mini class="h-6 w-6" />
+            <span class="sr-only">Next</span>
+          </span>
+        <% end %>
+      </div>
+      <div class="hidden sm:block">
+        <p class="text-sm text-gray-700">
+          Showing results
+          <span class="font-medium">
+            <%= (@pagination_index * @pagination_metadata.limit + 1) |> Formatter.format_number() %>
+          </span>
+          to
+          <span class="font-medium">
+            <%= (@pagination_index * @pagination_metadata.limit +
+                   @currently_displayed_results)
+            |> Formatter.format_number() %>
+          </span>
+          of
+          <span class="font-medium">
+            <%= @pagination_metadata.total_count |> Formatter.format_number() %><%= if @pagination_metadata.total_count_cap_exceeded,
+              do: "+",
+              else: "" %>
+          </span>
+        </p>
+      </div>
     </nav>
     """
   end

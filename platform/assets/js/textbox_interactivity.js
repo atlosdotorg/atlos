@@ -177,6 +177,7 @@ function initialize() {
         tagify.on("change", _event => {
             feedbackElem.value = input.value;
             feedbackElem.dispatchEvent(new Event("input", { bubbles: true }));
+            console.log(feedbackElem.value);
         })
     })
 

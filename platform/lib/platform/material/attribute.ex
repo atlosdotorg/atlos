@@ -99,7 +99,7 @@ defmodule Platform.Material.Attribute do
       %Attribute{
         schema_field: :attr_description,
         type: :text,
-        max_length: 240,
+        max_length: 2000,
         min_length: 8,
         label: "Description",
         pane: :not_shown,

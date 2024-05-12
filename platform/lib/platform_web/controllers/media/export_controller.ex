@@ -11,7 +11,7 @@ defmodule PlatformWeb.ExportController do
   alias Platform.Projects
   alias Platform.Utils
 
-  defp format_media(%Material.Media{} = media, fields) do
+  defp format_media(%Material.Media{} = media, fields, user) do
     {lon, lat} =
       if is_nil(media.attr_geolocation) do
         {nil, nil}
@@ -22,6 +22,7 @@ defmodule PlatformWeb.ExportController do
     custom_attributes =
       Attribute.attributes(project: media.project)
       |> Enum.filter(&(&1.schema_field == :project_attributes))
+      |> Enum.filter(&Permissions.can_view_attribute?(user, media, &1))
 
     field_list =
       (media
@@ -29,6 +30,10 @@ defmodule PlatformWeb.ExportController do
        |> Map.put(:longitude, lon)
        |> Map.put(:project, media.project.name)
        |> Map.to_list()
+       |> Enum.filter(fn {k, _v} ->
+         attr = Attribute.get_attribute(k, project: media.project)
+         Permissions.can_view_attribute?(user, media, attr)
+       end)
        |> Enum.map(fn {k, v} ->
          name = k |> to_string()
 
@@ -110,7 +115,9 @@ defmodule PlatformWeb.ExportController do
         field in [:geolocation]
       end)
 
-    formatted = Enum.map(results, &format_media(&1, fields_excluding_custom))
+    formatted =
+      Enum.map(results, &format_media(&1, fields_excluding_custom, conn.assigns.current_user))
+
     media = formatted |> Enum.map(fn {media, _} -> media end)
 
     custom_attribute_names =

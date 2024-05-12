@@ -454,6 +454,7 @@
                                   <.user_stack
                                     users={
                                       media.updates
+                                      |> Enum.filter(& Platform.Permissions.can_view_update?(@current_user, &1))
                                       |> Enum.take(1)
                                       |> Enum.map(& &1.user)
                                       |> Enum.reject(&is_nil/1)
@@ -543,6 +544,10 @@
                                     attr={attr}
                                     media={media}
                                     current_user={@current_user}
+                                    membership={
+                                      @current_user.memberships
+                                      |> Enum.find(&(&1.project_id == media.project_id))
+                                    }
                                   />
                                 </div>
                               </td>

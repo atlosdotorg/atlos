@@ -2,9 +2,11 @@ defmodule Platform.Projects.ProjectMembership do
   use Ecto.Schema
   import Ecto.Changeset
 
+  @possible_roles [:owner, :manager, :editor, :viewer, :data_only_viewer]
+
   @primary_key {:id, :binary_id, autogenerate: true}
   schema "project_memberships" do
-    field :role, Ecto.Enum, values: [:owner, :manager, :editor, :viewer]
+    field :role, Ecto.Enum, values: @possible_roles
     belongs_to(:user, Platform.Accounts.User, type: :binary_id)
     belongs_to(:project, Platform.Projects.Project, type: :binary_id)
 
@@ -20,7 +22,7 @@ defmodule Platform.Projects.ProjectMembership do
     project_membership
     |> cast(attrs, [:role, :username, :project_id])
     |> validate_required([:role])
-    |> validate_inclusion(:role, [:owner, :manager, :editor, :viewer])
+    |> validate_inclusion(:role, @possible_roles)
     |> validate_username()
     |> validate_required([:user_id, :project_id])
     |> unique_constraint([:user_id, :project_id],
