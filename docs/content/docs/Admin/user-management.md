@@ -47,7 +47,7 @@ The suspended user will be logged out of their account the next time they intera
 Note that Atlos allows admins to prevent users from making any edits to any data by muting them through a similar process; this tool is an artifact of previous iterations of the platform. Because incident creation and editing permissions occur on a per-project basis, we recommend using project roles to restrict users' actions. If a user cannot be sufficiently constrained by project roles, we recommend suspending them.
 
 ## User groups
-Atlos doesn't currently enable admins to group users by organization. However, admins can add flair, short labels displayed next to usernsames, to users profiles. Flair helps distinguish users belonging to different organizations. For example, admins might assign staff investigators the `Staff` flair and volunteers the `Volunteer` flair. Flair is visible by all users.
+Atlos doesn't currently enable admins to group users by organization. However, admins can add flair, short labels displayed next to usernsames, to users' profiles. Flair helps distinguish users belonging to different organizations. For example, admins might assign staff investigators the `Staff` flair and volunteers the `Volunteer` flair. Flair is visible by all users.
 
 ![A profile with flair.](flair.png)
 <p style="text-align: center; margin: 0px; color: grey; font-size:12px;"><i>Use flair to distinguish between different groups of users.</i></p>

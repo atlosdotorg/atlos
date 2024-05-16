@@ -12,6 +12,8 @@ defmodule Platform.Accounts do
 
   use Memoize
 
+  @user_preloaded_fields [:active_project_membership, :memberships]
+
   def get_valid_invite_code() do
     # Find invites created by the system (nil user)
     invites = Invites.get_invites_by_user(nil) |> Enum.filter(&Invites.is_invite_active/1)
@@ -344,7 +346,7 @@ defmodule Platform.Accounts do
   end
 
   defp preload_user(queryable) do
-    queryable |> preload([:active_project_membership])
+    queryable |> preload(^@user_preloaded_fields)
   end
 
   @doc """
@@ -421,7 +423,7 @@ defmodule Platform.Accounts do
   """
   def get_user_by_session_token(token) do
     {:ok, query} = UserToken.verify_session_token_query(token)
-    Repo.one(query) |> Repo.preload([:active_project_membership])
+    Repo.one(query) |> Repo.preload(@user_preloaded_fields)
   end
 
   @doc """

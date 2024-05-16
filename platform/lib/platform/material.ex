@@ -861,6 +861,11 @@ defmodule Platform.Material do
           post_updates: Keyword.get(opts, :post_updates, true)
         )
 
+      # Preload all the information we need to copy over; the changeset will
+      # break if we don't preload all the associations, even though there aren't
+      # any at this point.
+      new_media = get_media!(new_media.id)
+
       # Rip through all the old attributes, and try to copy them to the new media
       new_proj_attributes = Attribute.active_attributes(project: destination)
 
@@ -1196,6 +1201,16 @@ defmodule Platform.Material do
         v ->
           media
           |> Map.get(v)
+      end
+
+    # If the type is a multi select and the value is not a list, return a list.
+    # This is necessary when you change an attribute from type single select to
+    # type multiple select and there is already data.
+    value =
+      if attr.type == :multi_select && !is_list(value) && not is_nil(value) do
+        [value]
+      else
+        value
       end
 
     if Keyword.get(opts, :format_dates, false) do

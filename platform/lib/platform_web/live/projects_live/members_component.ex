@@ -7,12 +7,22 @@ defmodule PlatformWeb.ProjectsLive.MembersComponent do
   alias Platform.Permissions
 
   def update(assigns, socket) do
+    membership =
+      Platform.Projects.get_project_membership_by_user_id_and_project_id(
+        assigns.current_user.id,
+        assigns.project.id
+      )
+
     {:ok,
      socket
      |> assign(assigns)
      |> assign(
        :memberships,
        Projects.get_project_memberships(assigns.project)
+       |> Enum.filter(
+         &(membership.role != :data_only_viewer or
+             &1.user_id == assigns.current_user.id)
+       )
        |> Enum.sort_by(& &1.user.username)
      )
      |> assign(:changeset, nil)
@@ -296,6 +306,8 @@ defmodule PlatformWeb.ProjectsLive.MembersComponent do
                                       <span class="chip ~info">Editor</span>
                                     <% :viewer -> %>
                                       <span class="chip ~neutral">Viewer</span>
+                                    <% :data_only_viewer -> %>
+                                      <span class="chip ~warning" data-tooltip="This user cannot see comments or the usernames of project members.">Data-only Viewer</span>
                                   <% end %>
                                 </div>
                               </td>
@@ -372,13 +384,15 @@ defmodule PlatformWeb.ProjectsLive.MembersComponent do
                   @form,
                   :role,
                   [
+                    {"Data-only Viewer", "data_only_viewer"},
                     {"Viewer", "viewer"},
                     {"Editor", "editor"},
                     {"Manager", "manager"},
-                    {"Owner", "owner"}
+                    {"Owner", "owner"},
                   ],
                   "data-descriptions":
                     Jason.encode!(%{
+                      "data_only_viewer" => "Can view data but not comments or project members, and cannot edit or create",
                       "viewer" => "Can view and comment, but not edit or create",
                       "editor" => "Can view, comment, and edit, but not mark as complete",
                       "manager" =>

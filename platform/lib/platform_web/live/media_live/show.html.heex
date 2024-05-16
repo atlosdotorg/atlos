@@ -103,6 +103,7 @@
           subscribed_classes="base-button text-blue-600"
           not_subscribed_classes="base-button"
           show_icon={false}
+          :if={@membership.role != :data_only_viewer}
         />
         <%= if Permissions.can_delete_media?(@current_user, @media) do %>
           <div
@@ -238,6 +239,7 @@
               updates={@updates}
               socket={@socket}
               current_user={@current_user}
+              membership={@membership}
             />
           </div>
         </.card>
@@ -245,7 +247,7 @@
           <:header>
             <div class="flex justify-between items-center">
               <h3 class="sec-head">Feed</h3>
-              <%= if length(@updates) > 5 do %>
+              <%= if length(@updates) > 5 and @membership.role != :data_only_viewer do %>
                 <a class="text-button flex text-sm items-center" href="#feed-bottom">
                   Jump to Latest
                   <svg
@@ -264,21 +266,27 @@
               <% end %>
             </div>
           </:header>
-          <.live_component
-            module={PlatformWeb.UpdatesLive.UpdateFeed}
-            id="update-feed"
-            current_user={@current_user}
-            updates={@updates}
-          />
-          <hr class="sep h-2" id="feed-bottom" />
-          <!-- There should only ever be one comment box per page -->
-          <.live_component
-            module={PlatformWeb.MediaLive.CommentBox}
-            id="comment-box"
-            media={@media}
-            current_user={@current_user}
-            disabled={!Permissions.can_comment_on_media?(@current_user, @media)}
-          />
+          <%= if @membership.role != :data_only_viewer do %>
+            <.live_component
+              module={PlatformWeb.UpdatesLive.UpdateFeed}
+              id="update-feed"
+              current_user={@current_user}
+              updates={@updates}
+            />
+            <hr class="sep h-2" id="feed-bottom" />
+            <!-- There should only ever be one comment box per page -->
+            <.live_component
+              module={PlatformWeb.MediaLive.CommentBox}
+              id="comment-box"
+              media={@media}
+              current_user={@current_user}
+              disabled={!Permissions.can_comment_on_media?(@current_user, @media)}
+            />
+          <% else %>
+            <div class="text-gray-500 text-sm">
+              You are a data-only viewer, so you cannot view the feed or comment on this incident.
+            </div>
+          <% end %>
         </.card>
       </div>
       <div class="space-y-8">
@@ -299,6 +307,7 @@
               updates={@updates}
               socket={@socket}
               current_user={@current_user}
+              membership={@membership}
             />
           </div>
         </.card>
