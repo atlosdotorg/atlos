@@ -4,6 +4,8 @@ defmodule PlatformWeb.MediaLive.Index do
   alias Platform.Material
   alias Platform.Material.Attribute
 
+  require Logger
+
   def mount(_params, _session, socket) do
     {:ok,
      socket
@@ -15,8 +17,8 @@ defmodule PlatformWeb.MediaLive.Index do
     changeset = Material.MediaSearch.changeset(params)
 
     display =
-      Ecto.Changeset.get_field(
-        changeset,
+      Map.get(
+        changeset.changes,
         :display,
         socket.assigns.current_user.active_incidents_tab
       )
@@ -121,9 +123,12 @@ defmodule PlatformWeb.MediaLive.Index do
   def handle_params(params, _uri, socket) do
     # Wrap and catch CastErrors, in which case we put a flash and redirect to /incidents
     try do
-      {:noreply, handle_params_internal(params, socket)}
+      res = {:noreply, handle_params_internal(params, socket)}
+      res
     rescue
-      _error ->
+      error ->
+        Logger.error(error)
+
         {:noreply,
          socket
          |> put_flash(:error, "Your search had invalid parameters. Please try again.")

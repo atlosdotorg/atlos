@@ -214,6 +214,7 @@ function initializePopovers() {
         tippy(s, {
             allowHTML: true,
             content: s.getAttribute("data-tooltip"),
+            placement: s.getAttribute("data-tooltip-placement") || undefined,
             delay: [250, 0],
             appendTo: document.querySelector("#tooltips")
         });
@@ -267,6 +268,10 @@ function initializeSmartSelects() {
 
                     return '<div class="flex"><div><span>' + escape(name) + '</span><span class="text-gray-400">' + (requiresPrivilege ? lockIcon : '') + '&nbsp;' + escape(desc) + '</span></div></div>';
                 },
+                item: function(data, escape){
+                    let content = data.text == "[Unset]" ? "None (not set)": data.text;
+                    return '<div>' + escape(content) + "</div>"
+                }
             },
             onItemRemove(item) {
                 if (required.indexOf(item) >= 0) {

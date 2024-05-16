@@ -1,8 +1,13 @@
 defmodule Platform.Material.MediaSearch do
   use Ecto.Schema
   import Ecto.Query
+  require Logger
+  alias Platform.Material.GenericSet
+  alias Platform.Projects.ProjectAttribute
+  alias Platform.Projects
   alias Ecto.UUID
   alias Platform.Material.Media
+  alias Platform.Material.Attribute
 
   # Search components:
   #   - Query (string)
@@ -11,54 +16,94 @@ defmodule Platform.Material.MediaSearch do
   #   - Sort by
   #   - Display (used by views)
   @types %{
-    query: :string,
-    sort: :string,
-    attr_status: {:array, :string},
-    attr_tags: {:array, :string},
-    attr_sensitive: {:array, :string},
-    attr_date_min: :date,
-    attr_date_max: :date,
-    attr_geolocation: :string,
-    attr_geolocation_radius: :integer,
-    project_id: :string,
-    no_media_versions: :boolean,
-    # User id
-    only_subscribed_id: :string,
-    # User id
-    only_assigned_id: :string,
-    # User id
-    has_been_edited_by_id: :string,
-    only_has_unread_notifications: :boolean,
-    display: :string,
-    deleted: :boolean
+    :query => :string,
+    :sort => :string,
+    "attr_status" => {:array, :string},
+    "attr_tags" => {:array, :string},
+    "attr_sensitive" => {:array, :string},
+    "attr_date" => :date,
+    "attr_date_min" => :date,
+    "attr_date_max" => :date,
+    "attr_geolocation" => :string,
+    "attr_geolocation_radius" => :integer,
+    :project_id => :string,
+    :no_media_versions => :boolean,
+    :only_subscribed_id => :string,
+    :only_assigned_id => :string,
+    :has_been_edited_by_id => :string,
+    :only_has_unread_notifications => :boolean,
+    :display => :string,
+    :deleted => :boolean
   }
 
   def changeset(params \\ %{}) do
-    data = %{}
+    new_types =
+      case Map.get(params, "project_id") do
+        nil ->
+          @types
 
-    {data, @types}
-    |> Ecto.Changeset.cast(params, Map.keys(@types))
-    |> Ecto.Changeset.validate_change(:attr_geolocation, fn _, value ->
-      case parse_location(value) do
-        :error ->
-          [
-            attr_geolocation:
-              "Invalid location. Please enter a valid latitude and longitude, separated by a comma."
-          ]
+        pid ->
+          case Projects.get_project(pid) do
+            nil ->
+              @types
 
-        _ ->
-          []
+            project ->
+              Enum.reduce(project.attributes, @types, fn pattr, acc ->
+                attr = ProjectAttribute.to_attribute(pattr)
+                aid = pattr.id
+
+                case attr.type do
+                  :text ->
+                    acc
+                    |> Map.put(aid, :string)
+                    |> Map.put("#{aid}-matchtype", :string)
+
+                  x when x == :multi_select or x == :select ->
+                    acc |> Map.put(aid, {:array, :string})
+
+                  _ ->
+                    acc |> Map.put(aid, :string)
+                end
+              end)
+          end
       end
-    end)
-    |> Ecto.Changeset.validate_length(:query, max: 256)
-    |> Ecto.Changeset.validate_inclusion(:sort, [
-      "uploaded_desc",
-      "uploaded_asc",
-      "modified_desc",
-      "modified_asc",
-      "description_desc",
-      "description_asc"
-    ])
+
+    res =
+      params
+      |> Enum.map(fn {k, v} ->
+        cst_key =
+          cond do
+            Map.has_key?(new_types, k) -> k
+            Map.has_key?(new_types, conv_atom(k)) -> conv_atom(k)
+            true -> nil
+          end
+
+        if cst_key && v != "" do
+          case Ecto.Type.cast(Map.get(new_types, cst_key), v) do
+            {:ok, res} -> {cst_key, res}
+            _ -> {cst_key, nil}
+          end
+        else
+          {k, nil}
+        end
+      end)
+      |> Map.new()
+
+    %GenericSet{
+      errors: [],
+      changes: res,
+      data: res,
+      valid?: true,
+      params: nil
+    }
+  end
+
+  defp conv_atom(atm_string) do
+    try do
+      String.to_existing_atom(atm_string)
+    rescue
+      ArgumentError -> nil
+    end
   end
 
   defp parse_location(location_string) do
@@ -94,30 +139,30 @@ defmodule Platform.Material.MediaSearch do
     end
   end
 
-  defp apply_query_component(queryable, changeset, :attr_status) do
-    case Map.get(changeset.changes, :attr_status) do
+  defp apply_query_component(queryable, changeset, "attr_status") do
+    case Map.get(changeset.changes, "attr_status") do
       nil -> queryable
       [] -> queryable
       query -> where(queryable, [m], m.attr_status in ^query)
     end
   end
 
-  defp apply_query_component(queryable, changeset, :attr_date_min) do
-    case Map.get(changeset.changes, :attr_date_min) do
+  defp apply_query_component(queryable, changeset, "attr_date_min") do
+    case Map.get(changeset.changes, "attr_date_min") do
       nil -> queryable
       query -> where(queryable, [m], m.attr_date >= ^query)
     end
   end
 
-  defp apply_query_component(queryable, changeset, :attr_date_max) do
-    case Map.get(changeset.changes, :attr_date_max) do
+  defp apply_query_component(queryable, changeset, "attr_date_max") do
+    case Map.get(changeset.changes, "attr_date_max") do
       nil -> queryable
       query -> where(queryable, [m], m.attr_date <= ^query)
     end
   end
 
-  defp apply_query_component(queryable, changeset, :attr_tags) do
-    case Map.get(changeset.changes, :attr_tags) do
+  defp apply_query_component(queryable, changeset, "attr_tags") do
+    case Map.get(changeset.changes, "attr_tags") do
       nil ->
         queryable
 
@@ -135,8 +180,8 @@ defmodule Platform.Material.MediaSearch do
     end
   end
 
-  defp apply_query_component(queryable, changeset, :attr_sensitive) do
-    case Map.get(changeset.changes, :attr_sensitive) do
+  defp apply_query_component(queryable, changeset, "attr_sensitive") do
+    case Map.get(changeset.changes, "attr_sensitive") do
       nil ->
         queryable
 
@@ -154,8 +199,8 @@ defmodule Platform.Material.MediaSearch do
     end
   end
 
-  defp apply_query_component(queryable, changeset, :attr_geolocation) do
-    case parse_location(Map.get(changeset.changes, :attr_geolocation)) do
+  defp apply_query_component(queryable, changeset, "attr_geolocation") do
+    case parse_location(Map.get(changeset.changes, "attr_geolocation")) do
       # Or, there must be some intersection between the two arrays
       %Geo.Point{coordinates: {lon, lat}} ->
         where(
@@ -166,7 +211,7 @@ defmodule Platform.Material.MediaSearch do
             m.attr_geolocation,
             ^lon,
             ^lat,
-            ^(Map.get(changeset.changes, :attr_geolocation_radius, 10) * (0.01 / 1.11))
+            ^(Map.get(changeset.changes, "attr_geolocation_radius", 10) * (0.01 / 1.11))
           )
         )
 
@@ -177,9 +222,14 @@ defmodule Platform.Material.MediaSearch do
 
   defp apply_query_component(queryable, changeset, :project_id) do
     case Map.get(changeset.changes, :project_id) do
-      nil -> queryable
-      "unset" -> where(queryable, [m], is_nil(m.project_id))
-      value -> where(queryable, [m], m.project_id == ^value)
+      nil ->
+        queryable
+
+      "unset" ->
+        where(queryable, [m], is_nil(m.project_id))
+
+      value ->
+        where(queryable, [m], m.project_id == ^value)
     end
   end
 
@@ -246,6 +296,116 @@ defmodule Platform.Material.MediaSearch do
     end
   end
 
+  defp apply_query_component(queryable, _changeset, arbitrary_key) when is_atom(arbitrary_key) do
+    queryable
+  end
+
+  defp apply_query_component(queryable, changeset, arbitrary_key) do
+    # Filters for project attributes
+    with rel_changes when not is_nil(rel_changes) <- Map.get(changeset.changes, arbitrary_key),
+         project_id <- Map.get(changeset.changes, :project_id),
+         project when not is_nil(project) <- Projects.get_project(project_id),
+         attr when not is_nil(attr) <- Attribute.get_attribute(arbitrary_key, project: project),
+         :project_attributes <- attr.schema_field do
+      candidates = where(queryable, [m], m.project_id == ^project_id)
+
+      case attr.type do
+        :text ->
+          case Map.get(changeset.changes, "#{arbitrary_key}-matchtype") do
+            nil ->
+              queryable
+
+            match_type ->
+              case {rel_changes, match_type} do
+                {nil, _} ->
+                  queryable
+
+                {values, "contains"} ->
+                  where(
+                    candidates,
+                    [m],
+                    fragment(
+                      "EXISTS (SELECT 1 FROM jsonb_array_elements(?) as elem WHERE elem->>'id' = ? AND elem->>'value' ILIKE ?)",
+                      m.project_attributes,
+                      ^attr.name,
+                      ^"%#{values}%"
+                    )
+                  )
+
+                {values, "equals"} ->
+                  where(
+                    candidates,
+                    [m],
+                    fragment(
+                      "EXISTS (SELECT 1 FROM jsonb_array_elements(?) as elem WHERE elem->>'id' = ? AND elem->>'value' = ?)",
+                      m.project_attributes,
+                      ^attr.name,
+                      ^values
+                    )
+                  )
+
+                {values, "excludes"} ->
+                  where(
+                    candidates,
+                    [m],
+                    fragment(
+                      "NOT EXISTS (SELECT 1 FROM jsonb_array_elements(?) as elem WHERE elem->>'id' = ? AND elem->>'value' ILIKE ?)",
+                      m.project_attributes,
+                      ^attr.name,
+                      ^"%#{values}%"
+                    )
+                  )
+
+                # TODO
+                _ ->
+                  queryable
+              end
+          end
+
+        x when x == :multi_select or x == :select ->
+          case rel_changes do
+            nil ->
+              queryable
+
+            [] ->
+              queryable
+
+            values ->
+              where(
+                candidates,
+                [m],
+                fragment(
+                  "EXISTS (SELECT 1 FROM jsonb_array_elements(?) AS elem
+                  WHERE elem->>'id' =? AND
+                  (jsonb_typeof(elem->'value') = 'array' AND ARRAY(SELECT value FROM jsonb_array_elements_text(elem->'value')) && ?))",
+                  m.project_attributes,
+                  ^attr.name,
+                  ^values
+                ) or
+                  ("[Unset]" in ^values and
+                     fragment(
+                       "EXISTS (SELECT 1 FROM jsonb_array_elements(?) AS elem
+                  WHERE elem->>'id' =? AND (jsonb_typeof(elem->'value') = 'null' OR elem->'value' = '[]'))",
+                       m.project_attributes,
+                       ^attr.name
+                     ))
+              )
+          end
+
+        _ ->
+          queryable
+      end
+    else
+      _ ->
+        queryable
+    end
+  end
+
+  # defp apply_query_component(queryable, changeset, arbitrary_key) do
+  #   Logger.debug("it goes here, #{inspect(arbitrary_key)}")
+  #   queryable
+  # end
+
   defp apply_query_component(queryable, changeset, :only_has_unread_notifications, current_user) do
     case Map.get(changeset.changes, :only_has_unread_notifications, false) and
            not is_nil(current_user) do
@@ -304,20 +464,14 @@ defmodule Platform.Material.MediaSearch do
   @doc """
   Builds a composeable query given the search changeset. Returns a {queryable, pagination_opts} tuple.
   """
-  def search_query(queryable \\ Media, %Ecto.Changeset{} = cs, current_user \\ nil) do
+  def search_query(queryable \\ Media, %GenericSet{} = cs, current_user \\ nil) do
+    queryable =
+      cs.changes
+      |> Enum.reduce(queryable, fn {x, _}, acc ->
+        apply_query_component(acc, cs, x)
+      end)
+
     queryable
-    |> apply_query_component(cs, :query)
-    |> apply_query_component(cs, :attr_status)
-    |> apply_query_component(cs, :attr_tags)
-    |> apply_query_component(cs, :attr_sensitive)
-    |> apply_query_component(cs, :attr_date_min)
-    |> apply_query_component(cs, :attr_date_max)
-    |> apply_query_component(cs, :attr_geolocation)
-    |> apply_query_component(cs, :no_media_versions)
-    |> apply_query_component(cs, :project_id)
-    |> apply_query_component(cs, :only_subscribed_id)
-    |> apply_query_component(cs, :only_assigned_id)
-    |> apply_query_component(cs, :has_been_edited_by_id)
     |> apply_query_component(cs, :only_has_unread_notifications, current_user)
     |> apply_sort(cs)
     |> apply_deleted(cs)
@@ -328,5 +482,12 @@ defmodule Platform.Material.MediaSearch do
   """
   def filter_viewable(queryable \\ Media, %Platform.Accounts.User{} = user) do
     queryable |> Platform.Material.maybe_filter_accessible_to_user(for_user: user)
+  end
+
+  def get_attrid(attr) do
+    case attr.schema_field do
+      :project_attributes -> attr.name
+      sf -> Atom.to_string(sf)
+    end
   end
 end
