@@ -1,6 +1,8 @@
 defmodule PlatformWeb.Components do
   use Phoenix.Component
-  use Phoenix.HTML
+  import Phoenix.HTML
+  import Phoenix.HTML.Form
+  use PhoenixHTMLHelpers
   import PlatformWeb.ErrorHelpers
 
   alias Phoenix.LiveView.JS
