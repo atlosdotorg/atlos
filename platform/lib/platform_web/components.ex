@@ -1332,6 +1332,9 @@ defmodule PlatformWeb.Components do
           </dd>
         </div>
       <% end %>
+      <div :if={Enum.empty?(@set_attrs) and Enum.empty?(@unset_attrs)}>
+        <p class="text-sm text-gray-500 pt-5 pb-3">There are no attributes to display.</p>
+      </div>
     </dl>
     """
   end
