@@ -174,18 +174,10 @@ function initialize() {
             }
         });
 
-        let onChange = _ => {
-            setTimeout(() => {
-                feedbackElem.value = input.value;
-                feedbackElem.dispatchEvent(new Event("input", { bubbles: true }));
-            });
-        };
-
-        tagify.on("change", onChange);
-        input.parentElement.querySelectorAll("[contenteditable]").forEach(elem => {
-            elem.addEventListener("input", onChange);
-        });
-        console.log(input.parentElement);
+        tagify.on("change", _event => {
+            feedbackElem.value = input.value;
+            feedbackElem.dispatchEvent(new Event("input", { bubbles: true }));
+        })
     })
 
     document.querySelectorAll(".tagify__input").forEach(input => {
