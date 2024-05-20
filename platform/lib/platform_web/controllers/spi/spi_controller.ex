@@ -18,7 +18,7 @@ defmodule PlatformWeb.SPIController do
 
     get_project_users = fn project ->
       if is_nil(project) or
-           not Permissions.can_view_project?(conn.assigns.current_user, project) do
+           not Permissions.can_view_project_members?(conn.assigns.current_user, project) do
         raise PlatformWeb.Errors.NotFound, "Project not found"
       end
 

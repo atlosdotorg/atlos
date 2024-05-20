@@ -17,6 +17,16 @@ defmodule Platform.Permissions do
   alias Platform.Projects.ProjectMembership
   alias Platform.API.APIToken
 
+  def can_view_project_members?(%User{} = user, %Project{} = project) do
+    membership = Projects.get_project_membership_by_user_and_project(user, project)
+
+    can_view_project?(
+      user,
+      project,
+      membership
+    ) and membership.role != :data_only_viewer
+  end
+
   def can_view_project?(%User{} = user, %Project{} = project) do
     can_view_project?(
       user,
