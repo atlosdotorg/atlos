@@ -42,13 +42,20 @@ To change an existing member's role:
 6. Click **Save**.
 
 ## Roles & permissions
-There are four roles on Atlos. We’ve listed them below in order of increasing authority.
+There are five roles on Atlos. We’ve listed them below in order of increasing authority.
+
+### Data-only Viewer
+
+Data-only viewers are the most restrictive role on Atlos. Use this role to share data from a completed investigation with outside collaborators. Data-only viewers can view incidents, but they cannot see comments or incident changelogs ("updates"). They also cannot see any information that would reveal which users are associated with the project, such as the project's members or incidents' assignees.
+
+_Note that if information that would reveal which users are associated with the project is included in the incident's description or other attributes, data-only viewers will be able to see it._
 
 ### Viewer
-Viewer is the most restrictive role on Atlos. Use this role to share data from a completed investigation with outside collaborators. Viewers can:
+Use this role to share data from a completed investigation with outside collaborators. Viewers can:
 - View and comment on incidents
 - Export a CSV of project data
 - View a list of project members
+- View comments and incident changelogs ("updates")
 
 ### Editor
 Editors are standard contributors to projects. Editors can:

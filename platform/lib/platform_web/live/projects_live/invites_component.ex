@@ -297,6 +297,8 @@ defmodule PlatformWeb.ProjectsLive.InvitesComponent do
                                       <span class="chip ~info">Editor</span>
                                     <% :viewer -> %>
                                       <span class="chip ~neutral">Viewer</span>
+                                    <% :data_only_viewer -> %>
+                                      <span class="chip ~neutral">Data-only Viewer</span>
                                   <% end %>
                                 </div>
                               </td>
@@ -387,6 +389,7 @@ defmodule PlatformWeb.ProjectsLive.InvitesComponent do
                 @form,
                 :project_access_level,
                 [
+                  {"Data-only Viewer", "data_only_viewer"},
                   {"Viewer", "viewer"},
                   {"Editor", "editor"},
                   {"Manager", "manager"},
@@ -394,6 +397,8 @@ defmodule PlatformWeb.ProjectsLive.InvitesComponent do
                 ],
                 "data-descriptions":
                   Jason.encode!(%{
+                    "data_only_viewer" =>
+                      "Can view data but not comments or project members, and cannot edit or create",
                     "viewer" => "Can view and comment, but not edit or create",
                     "editor" => "Can view, comment, and edit, but not mark as complete",
                     "manager" =>

@@ -96,7 +96,7 @@ variable "instance_name" {
 variable "onboarding_project_id" {
   description = "Onboarding project ID"
   type        = string
-  default     = "deb6c474-34f1-47ab-a3b5-3928548178c3"
+  default     = "50fafd8b-96fe-449c-a729-de1e3c5e9bc1"
 }
 
 variable "host" {

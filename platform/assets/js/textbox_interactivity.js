@@ -38,7 +38,7 @@ function moveCaretEnd(elem) {
     selection.addRange(range);
 }
 
-function patchPaste(elem){
+function patchPaste(elem) {
     elem.addEventListener("paste", _ => {
         moveCaretEnd(elem);
     })
