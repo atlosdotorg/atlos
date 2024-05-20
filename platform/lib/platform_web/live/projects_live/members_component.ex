@@ -351,8 +351,13 @@ defmodule PlatformWeb.ProjectsLive.MembersComponent do
                         </tbody>
                       </table>
                     </div>
-                    <div :if={@membership.role == :data_only_viewer} class="rounded-lg border text-sm border-urge-400 bg-urge-100 p-4 text-urge-700 mt-4">
-                      <p>Because you're a data-only viewer, you cannot see this project's other members.</p>
+                    <div
+                      :if={@membership.role == :data_only_viewer}
+                      class="rounded-lg border text-sm border-urge-400 bg-urge-100 p-4 text-urge-700 mt-4"
+                    >
+                      <p>
+                        Because you're a data-only viewer, you cannot see this project's other members.
+                      </p>
                     </div>
                   </div>
                 </div>

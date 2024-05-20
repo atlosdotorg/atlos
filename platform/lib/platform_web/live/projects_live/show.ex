@@ -26,16 +26,16 @@ defmodule PlatformWeb.ProjectsLive.Show do
     {query, _} = MediaSearch.search_query(MediaSearch.changeset(%{"project_id" => id}))
     query = MediaSearch.filter_viewable(query, socket.assigns.current_user)
 
-    membership_id =
+    membership =
       Platform.Projects.get_project_membership_by_user_and_project(
         socket.assigns.current_user,
         project
-      ).id
+      )
 
     if socket.assigns.current_user.active_project_membership_id !=
-         membership_id do
+         membership.id do
       Platform.Accounts.update_user_preferences(socket.assigns.current_user, %{
-        active_project_membership_id: membership_id
+        active_project_membership_id: membership.id
       })
     end
 
@@ -44,6 +44,7 @@ defmodule PlatformWeb.ProjectsLive.Show do
      |> assign(:title, project.name)
      |> assign(:project, project)
      |> assign(:active_project, project)
+     |> assign(:membership, membership)
      |> assign(
        :media,
        if(socket.assigns.live_action == :map,
@@ -185,11 +186,32 @@ defmodule PlatformWeb.ProjectsLive.Show do
           <section class="flex flex-col-reverse h-full lg:flex-row gap-8 max-w-full md:divide-x">
             <div class="lg:w-2/3">
               <.live_component
+                :if={@membership.role != :data_only_viewer}
                 module={PlatformWeb.UpdatesLive.PaginatedMediaUpdateFeed}
                 current_user={@current_user}
                 restrict_to_project_id={@project.id}
                 id="project-updates-feed"
               />
+              <div :if={@membership.role == :data_only_viewer} class="text-center mt-8">
+                <Heroicons.chart_pie class="mx-auto h-12 w-12 text-gray-400" />
+                <h3 class="mt-2 text-sm font-medium text-gray-900">You're a data-only viewer.</h3>
+                <p class="mt-1 text-sm text-gray-500 max-w-prose mx-auto">
+                  This is where we typically show recent updates to the project, but because you're a data-only viewer, this information is not available.
+                </p>
+                <p class="mt-1 text-sm text-gray-500">
+                  <.link
+                    navigate={
+                      Routes.live_path(@socket, PlatformWeb.MediaLive.Index, %{
+                        project_id: @project.id,
+                        display: :cards
+                      })
+                    }
+                    class="button ~urge @high mt-4"
+                  >
+                    <span>View Project Data</span>
+                  </.link>
+                </p>
+              </div>
             </div>
             <div class="lg:w-1/3 w-full top-0 sticky min-h-0 md:pl-8">
               <div>
