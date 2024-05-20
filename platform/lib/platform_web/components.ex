@@ -790,6 +790,7 @@ defmodule PlatformWeb.Components do
                   <%= if @show_media do %>
                     <.media_text media={@head.media} />
                   <% end %>
+                  <.user_text :if={@head.user} user={@head.user} />
                   <span
                     :if={@head.api_token}
                     class="text-gray-900 font-medium inline-flex gap-1 flex-wrap"
@@ -1668,7 +1669,7 @@ defmodule PlatformWeb.Components do
 
     ~H"""
     <span class={"inline-flex gap-1 max-w-full " <> (if @compact, do: "", else: "flex-wrap")}>
-      <%= if @membership == :ignore or Permissions.can_view_attribute?(@current_user, @media, attr, @membership) do %>
+      <%= if @membership == :ignore or Permissions.can_view_attribute?(@current_user, @media, @attr, @membership) do %>
         <%= if not is_nil(@value) and @value != [] and @value != "" do %>
           <%= case @attr.type do %>
             <% :text -> %>
