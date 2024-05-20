@@ -167,7 +167,7 @@ defmodule PlatformWeb.ProjectsLive.BulkUploadLive do
         :attr_geolocation ->
           # We want a custom error message for geolocation; see https://github.com/atlosdotorg/atlos/issues/976
           {key,
-           "Unable to parse this location; please enter geolocation in separate \"latitude\" and \"longitude\" columns."}
+           ["Unable to parse this location; please enter geolocation in separate \"latitude\" and \"longitude\" columns."]}
 
         _ ->
           {key, value}
