@@ -17,6 +17,16 @@ defmodule Platform.Permissions do
   alias Platform.Projects.ProjectMembership
   alias Platform.API.APIToken
 
+  def can_view_project_members?(%User{} = user, %Project{} = project) do
+    membership = Projects.get_project_membership_by_user_and_project(user, project)
+
+    can_view_project?(
+      user,
+      project,
+      membership
+    ) and membership.role != :data_only_viewer
+  end
+
   def can_view_project?(%User{} = user, %Project{} = project) do
     can_view_project?(
       user,
@@ -455,9 +465,24 @@ defmodule Platform.Permissions do
   end
 
   def can_rearchive_media_version?(%User{} = user, %MediaVersion{} = version) do
-    # They can view it, and its status is :error
-    can_view_media_version?(user, version) and version.status == :error and
-      version.upload_type == :direct
+    # Its status is :error, and they're not a data-only viewer
+    version.status == :error and
+      version.upload_type == :direct and
+      (
+        media = _get_media_from_id(version.media_id)
+
+        with true <- can_view_media?(user, media),
+             true <- media.project.active,
+             membership when not is_nil(membership) <-
+               Projects.get_project_membership_by_user_and_project(user, media.project) do
+          case version.visibility == :removed do
+            true -> membership.role == :owner or membership.role == :manager
+            false -> membership.role != :data_only_viewer
+          end
+        else
+          _ -> false
+        end
+      )
   end
 
   def can_user_change_update_visibility?(%User{} = user, %Update{} = update) do

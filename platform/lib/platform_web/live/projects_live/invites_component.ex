@@ -397,7 +397,8 @@ defmodule PlatformWeb.ProjectsLive.InvitesComponent do
                 ],
                 "data-descriptions":
                   Jason.encode!(%{
-                    "data_only_viewer" => "Can view data but not comments or project members, and cannot edit or create",
+                    "data_only_viewer" =>
+                      "Can view data but not comments or project members, and cannot edit or create",
                     "viewer" => "Can view and comment, but not edit or create",
                     "editor" => "Can view, comment, and edit, but not mark as complete",
                     "manager" =>

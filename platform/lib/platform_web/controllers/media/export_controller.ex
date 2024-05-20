@@ -31,8 +31,10 @@ defmodule PlatformWeb.ExportController do
        |> Map.put(:project, media.project.name)
        |> Map.to_list()
        |> Enum.filter(fn {k, _v} ->
-         attr = Attribute.get_attribute(k, project: media.project)
-         Permissions.can_view_attribute?(user, media, attr)
+         attr = Attribute.get_attribute_by_schema_field(k, project: media.project)
+
+         (not is_nil(attr) and Permissions.can_view_attribute?(user, media, attr)) or
+           Enum.member?([:slug, :inserted_at, :updated_at, :latitude, :longitude], k)
        end)
        |> Enum.map(fn {k, v} ->
          name = k |> to_string()
@@ -59,9 +61,12 @@ defmodule PlatformWeb.ExportController do
         Platform.Material.Attribute.standardized_label(x, project: media.project)
       end)
 
+    allowed_field_names = Enum.map(fields ++ custom_attribute_names, &to_string/1)
+    dbg(allowed_field_names)
+
     {field_list
      |> Enum.filter(fn {k, _v} ->
-       Enum.member?(fields ++ custom_attribute_names, k)
+       Enum.member?(allowed_field_names, to_string(k))
      end)
      |> Map.new(fn {k, v} ->
        {format_field_name(k),
@@ -105,7 +110,7 @@ defmodule PlatformWeb.ExportController do
     file = File.open!(path, [:write, :utf8])
 
     fields_excluding_custom =
-      [:slug, :project, :inserted_at, :updated_at, :latitude, :longitude] ++
+      [:slug, :inserted_at, :updated_at, :latitude, :longitude] ++
         Attribute.attribute_names() ++
         Enum.map(1..max_num_versions, &("source_" <> to_string(&1)))
 
@@ -117,6 +122,8 @@ defmodule PlatformWeb.ExportController do
 
     formatted =
       Enum.map(results, &format_media(&1, fields_excluding_custom, conn.assigns.current_user))
+
+    dbg(formatted)
 
     media = formatted |> Enum.map(fn {media, _} -> media end)
 

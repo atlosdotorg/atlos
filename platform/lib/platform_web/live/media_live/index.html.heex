@@ -454,7 +454,9 @@
                                   <.user_stack
                                     users={
                                       media.updates
-                                      |> Enum.filter(& Platform.Permissions.can_view_update?(@current_user, &1))
+                                      |> Enum.filter(
+                                        &Platform.Permissions.can_view_update?(@current_user, &1)
+                                      )
                                       |> Enum.take(1)
                                       |> Enum.map(& &1.user)
                                       |> Enum.reject(&is_nil/1)

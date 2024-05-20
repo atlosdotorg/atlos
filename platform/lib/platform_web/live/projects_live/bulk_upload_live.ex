@@ -151,16 +151,28 @@ defmodule PlatformWeb.ProjectsLive.BulkUploadLive do
       end)
     end)
     |> Enum.map(fn {key, value} ->
-      if key == :project_attributes do
-        Enum.map(Enum.with_index(value), fn {errors, idx} ->
-          attr_idx =
-            Ecto.Changeset.get_field(changeset.changes[:project_attributes] |> Enum.at(idx), :id)
+      case key do
+        :project_attributes ->
+          Enum.map(Enum.with_index(value), fn {errors, idx} ->
+            attr_idx =
+              Ecto.Changeset.get_field(
+                changeset.changes[:project_attributes] |> Enum.at(idx),
+                :id
+              )
 
-          attr = Platform.Material.Attribute.get_attribute(attr_idx, project: project)
-          {attr.label, Map.values(errors)}
-        end)
-      else
-        {key, value}
+            attr = Platform.Material.Attribute.get_attribute(attr_idx, project: project)
+            {attr.label, Map.values(errors)}
+          end)
+
+        :attr_geolocation ->
+          # We want a custom error message for geolocation; see https://github.com/atlosdotorg/atlos/issues/976
+          {key,
+           [
+             "Unable to parse this location; please enter geolocation in separate \"latitude\" and \"longitude\" columns."
+           ]}
+
+        _ ->
+          {key, value}
       end
     end)
     |> List.flatten()
@@ -526,7 +538,14 @@ defmodule PlatformWeb.ProjectsLive.BulkUploadLive do
                                 <%= Material.Attribute.standardized_label(attr, project: @project) %>
                               </p>
                               <div>
-                                <.attr_entry name={attr.name} value={value} project={@project} current_user={@current_user} media={applied_media} membership={:ignore} />
+                                <.attr_entry
+                                  name={attr.name}
+                                  value={value}
+                                  project={@project}
+                                  current_user={@current_user}
+                                  media={applied_media}
+                                  membership={:ignore}
+                                />
                               </div>
                             </div>
                           <% end %>

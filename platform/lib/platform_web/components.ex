@@ -1,6 +1,8 @@
 defmodule PlatformWeb.Components do
   use Phoenix.Component
-  use Phoenix.HTML
+  import Phoenix.HTML
+  import Phoenix.HTML.Form
+  use PhoenixHTMLHelpers
   import PlatformWeb.ErrorHelpers
 
   alias Phoenix.LiveView.JS
@@ -788,6 +790,7 @@ defmodule PlatformWeb.Components do
                   <%= if @show_media do %>
                     <.media_text media={@head.media} />
                   <% end %>
+                  <.user_text :if={@head.user} user={@head.user} />
                   <span
                     :if={@head.api_token}
                     class="text-gray-900 font-medium inline-flex gap-1 flex-wrap"
@@ -1282,9 +1285,18 @@ defmodule PlatformWeb.Components do
                     do: "an",
                     else: "a" %>
           <span class="text-neutral-800">
-            <%= to_string(@invite.project_access_level)
-            |> String.replace("_", " ")
-            |> String.capitalize() %>
+            <%= case @invite.project_access_level do %>
+              <% :owner -> %>
+                Owner
+              <% :manager -> %>
+                Manager
+              <% :editor -> %>
+                Editor
+              <% :viewer -> %>
+                Viewer
+              <% :data_only_viewer -> %>
+                Data-only Viewer
+            <% end %>
           </span>
         <% end %>
       </h2>
@@ -1330,6 +1342,9 @@ defmodule PlatformWeb.Components do
           </dd>
         </div>
       <% end %>
+      <div :if={Enum.empty?(@set_attrs) and Enum.empty?(@unset_attrs)}>
+        <p class="text-sm text-gray-500 pt-5 pb-3">There are no attributes to display.</p>
+      </div>
     </dl>
     """
   end
@@ -1663,7 +1678,7 @@ defmodule PlatformWeb.Components do
 
     ~H"""
     <span class={"inline-flex gap-1 max-w-full " <> (if @compact, do: "", else: "flex-wrap")}>
-      <%= if @membership == :ignore or Permissions.can_view_attribute?(@current_user, @media, attr, @membership) do %>
+      <%= if @membership == :ignore or Permissions.can_view_attribute?(@current_user, @media, @attr, @membership) do %>
         <%= if not is_nil(@value) and @value != [] and @value != "" do %>
           <%= case @attr.type do %>
             <% :text -> %>
@@ -2099,12 +2114,12 @@ defmodule PlatformWeb.Components do
             <.list_diff old={[@old_val]} new={[@new_val]} label={@label} />
           <% :multi_users -> %>
             <% users =
-              Platform.Accounts.get_users_by_ids(@old_val ++ @new_val)
+              Platform.Accounts.get_users_by_ids((@old_val || []) ++ (@new_val || []))
               |> Enum.map(&{&1.id, &1})
               |> Enum.into(%{}) %>
             <.user_list_diff
-              old={@old_val |> Enum.map(&Map.get(users, &1))}
-              new={@new_val |> Enum.map(&Map.get(users, &1))}
+              old={(@old_val || []) |> Enum.map(&Map.get(users, &1))}
+              new={(@new_val || []) |> Enum.map(&Map.get(users, &1))}
               label={@label}
             />
           <% :date -> %>

@@ -69,7 +69,13 @@ defmodule PlatformWeb.MediaLive.Show do
 
       socket
       |> assign(:media, media)
-      |> assign(:membership, Projects.get_project_membership_by_user_id_and_project_id(socket.assigns.current_user.id, media.project_id))
+      |> assign(
+        :membership,
+        Projects.get_project_membership_by_user_id_and_project_id(
+          socket.assigns.current_user.id,
+          media.project_id
+        )
+      )
       |> assign(
         :media_versions,
         media.versions |> filter_viewable_versions(socket.assigns.current_user) |> sort_by_date()
