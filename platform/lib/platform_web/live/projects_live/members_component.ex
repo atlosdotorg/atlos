@@ -7,14 +7,25 @@ defmodule PlatformWeb.ProjectsLive.MembersComponent do
   alias Platform.Permissions
 
   def update(assigns, socket) do
+    membership =
+      Platform.Projects.get_project_membership_by_user_id_and_project_id(
+        assigns.current_user.id,
+        assigns.project.id
+      )
+
     {:ok,
      socket
      |> assign(assigns)
      |> assign(
        :memberships,
        Projects.get_project_memberships(assigns.project)
+       |> Enum.filter(
+         &(membership.role != :data_only_viewer or
+             &1.user_id == assigns.current_user.id)
+       )
        |> Enum.sort_by(& &1.user.username)
      )
+     |> assign(:membership, membership)
      |> assign(:changeset, nil)
      |> assign(:editing, nil)
      |> assign_can_remove_self()}
@@ -225,7 +236,7 @@ defmodule PlatformWeb.ProjectsLive.MembersComponent do
       <div class="mb-4 lg:w-[20rem] lg:mr-16">
         <p class="sec-head text-xl">Members</p>
         <p class="sec-subhead">
-          View and manage the users who have access to the project.
+          View and manage access to the project.
         </p>
       </div>
       <section class="flex flex-col mb-8 grow">
@@ -296,6 +307,13 @@ defmodule PlatformWeb.ProjectsLive.MembersComponent do
                                       <span class="chip ~info">Editor</span>
                                     <% :viewer -> %>
                                       <span class="chip ~neutral">Viewer</span>
+                                    <% :data_only_viewer -> %>
+                                      <span
+                                        class="chip ~warning"
+                                        data-tooltip="This user cannot see comments or the usernames of project members."
+                                      >
+                                        Data-only Viewer
+                                      </span>
                                   <% end %>
                                 </div>
                               </td>
@@ -330,9 +348,16 @@ defmodule PlatformWeb.ProjectsLive.MembersComponent do
                               </td>
                             </tr>
                           <% end %>
-                          <!-- More people... -->
                         </tbody>
                       </table>
+                    </div>
+                    <div
+                      :if={@membership.role == :data_only_viewer}
+                      class="rounded-lg border text-sm border-urge-400 bg-urge-100 p-4 text-urge-700 mt-4"
+                    >
+                      <p>
+                        Because you're a data-only viewer, you cannot see this project's other members.
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -372,6 +397,7 @@ defmodule PlatformWeb.ProjectsLive.MembersComponent do
                   @form,
                   :role,
                   [
+                    {"Data-only Viewer", "data_only_viewer"},
                     {"Viewer", "viewer"},
                     {"Editor", "editor"},
                     {"Manager", "manager"},
@@ -379,6 +405,8 @@ defmodule PlatformWeb.ProjectsLive.MembersComponent do
                   ],
                   "data-descriptions":
                     Jason.encode!(%{
+                      "data_only_viewer" =>
+                        "Can view data but not comments or project members, and cannot edit or create",
                       "viewer" => "Can view and comment, but not edit or create",
                       "editor" => "Can view, comment, and edit, but not mark as complete",
                       "manager" =>

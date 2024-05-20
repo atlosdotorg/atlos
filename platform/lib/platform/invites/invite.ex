@@ -22,7 +22,7 @@ defmodule Platform.Invites.Invite do
     belongs_to :project, Platform.Projects.Project, type: :binary_id
 
     field :project_access_level, Ecto.Enum,
-      values: [:owner, :manager, :editor, :viewer],
+      values: [:owner, :manager, :editor, :viewer, :data_only_viewer],
       default: :editor
 
     timestamps()

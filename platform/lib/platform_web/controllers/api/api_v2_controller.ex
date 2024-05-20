@@ -42,7 +42,8 @@ defmodule PlatformWeb.APIV2Controller do
       results =
         pagination_function.(
           sort: "modified_desc",
-          after: page
+          after: page,
+          limit: 100
         )
 
       json(conn, %{

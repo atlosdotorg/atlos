@@ -1569,31 +1569,46 @@ defmodule Platform.Material do
     # Now we just need to copy all the updates
     for update <- media.updates do
       old_update_json = Jason.encode!(update)
+      old_attrs = Attribute.active_attributes(project: media.project)
 
       # Here's a horrible hack. We need to change the IDs of attributes in the update JSON to match the IDs of the attributes in the new project.
-      # So we do a string find-and-replace.
-      new_update_json =
-        Enum.reduce(into_project.attributes, old_update_json, fn attribute, json ->
-          old_attribute =
-            Enum.find(
-              media.project.attributes,
-              &(Attribute.standardized_label(&1.label, project: media.project) ==
-                  Attribute.standardized_label(attribute.label, project: into_project))
-            )
+      # So we do a string find-and-replace on the old_value, new_value, and modified_attribute fields.
+      into_project_attributes = Attribute.active_attributes(project: into_project)
 
-          if is_nil(old_attribute) do
-            json
-          else
-            String.replace(json, "#{old_attribute.id}", "#{attribute.id}")
-          end
-        end)
+      update_attribute_ids = fn str ->
+        case str do
+          nil ->
+            nil
+
+          _ ->
+            Enum.reduce(into_project_attributes, str, fn attribute, json ->
+              old_attribute =
+                Enum.find(
+                  old_attrs,
+                  &(Attribute.standardized_label(&1, project: media.project) ==
+                      Attribute.standardized_label(attribute, project: into_project))
+                )
+
+              if is_nil(old_attribute) do
+                json
+              else
+                String.replace(json, "#{old_attribute.name}", "#{attribute.name}")
+              end
+            end)
+        end
+      end
 
       {:ok, _} =
         Platform.Updates.create_update_from_changeset(
           Platform.Updates.Update.raw_changeset(
             %Platform.Updates.Update{},
-            Jason.decode!(new_update_json)
-            |> Map.put("media_id", new_media.id),
+            update
+            |> Map.from_struct()
+            |> Map.put(:media_id, new_media.id)
+            # Re-encode the JSON fields (new_value and old_value)
+            |> Map.put(:new_value, update_attribute_ids.(update.new_value))
+            |> Map.put(:old_value, update_attribute_ids.(update.old_value))
+            |> Map.put(:modified_attribute, update_attribute_ids.(update.modified_attribute)),
             cast_sensitive_data: true
           )
         )

@@ -190,9 +190,11 @@ defmodule Platform.Notifications do
       recipients ++
         with "assignments" <- update.modified_attribute,
              attr <- Platform.Material.Attribute.get_attribute(:assignments),
-             {:ok, old_value_map} <- update.old_value |> Jason.decode(),
+             {:ok, old_value_map} when not is_nil(old_value_map) <-
+               update.old_value |> Jason.decode(),
              old_value <- Map.get(old_value_map, Platform.Updates.key_for_attribute(attr)),
-             {:ok, new_value_map} <- update.new_value |> Jason.decode(),
+             {:ok, new_value_map} when not is_nil(new_value_map) <-
+               update.new_value |> Jason.decode(),
              new_value <- Map.get(new_value_map, Platform.Updates.key_for_attribute(attr)) do
           added_members = MapSet.difference(MapSet.new(new_value), MapSet.new(old_value))
 

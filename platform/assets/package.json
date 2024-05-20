@@ -8,11 +8,11 @@
   "dependencies": {
     "@tailwindcss/forms": "^0.5.0",
     "@tailwindcss/typography": "^0.5.2",
-    "@yaireo/tagify": "^4.16.4",
+    "@yaireo/tagify": "==4.17.9",
     "a17t": "^0.10.1",
     "alpinejs": "^3.10.2",
     "mapbox-gl": "^3.0.0",
-    "maplibre-gl": "^3.6.2",
+    "maplibre-gl": "^4.3.2",
     "mark.js": "^8.11.1",
     "tippy.js": "^6.3.7",
     "tom-select": "^2.0.1",

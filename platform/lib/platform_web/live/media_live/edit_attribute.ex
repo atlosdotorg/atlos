@@ -4,6 +4,7 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
   alias Material.Attribute
   alias Platform.Auditor
   alias Platform.Uploads
+  alias Platform.Permissions
 
   # Note: the file upload logic is duplicated in `comment_box.ex`; if you change it, be sure to change `comment_box.ex` as well.
   def mount(socket) do
@@ -31,6 +32,11 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
 
     if is_nil(attr) do
       raise PlatformWeb.Errors.NotFound, "Attribute not found"
+    end
+
+    # Verify the user has permission to edit the attribute
+    if not Permissions.can_edit_media?(assigns.current_user, assigns.media, attr) do
+      raise PlatformWeb.Errors.Unauthorized, "You do not have permission to edit this attribute"
     end
 
     attributes = [attr]
