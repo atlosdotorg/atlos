@@ -25,6 +25,7 @@ defmodule PlatformWeb.ProjectsLive.MembersComponent do
        )
        |> Enum.sort_by(& &1.user.username)
      )
+     |> assign(:membership, membership)
      |> assign(:changeset, nil)
      |> assign(:editing, nil)
      |> assign_can_remove_self()}
@@ -235,7 +236,7 @@ defmodule PlatformWeb.ProjectsLive.MembersComponent do
       <div class="mb-4 lg:w-[20rem] lg:mr-16">
         <p class="sec-head text-xl">Members</p>
         <p class="sec-subhead">
-          View and manage the users who have access to the project.
+          View and manage access to the project.
         </p>
       </div>
       <section class="flex flex-col mb-8 grow">
@@ -347,9 +348,11 @@ defmodule PlatformWeb.ProjectsLive.MembersComponent do
                               </td>
                             </tr>
                           <% end %>
-                          <!-- More people... -->
                         </tbody>
                       </table>
+                    </div>
+                    <div :if={@membership.role == :data_only_viewer} class="rounded-lg border text-sm border-urge-400 bg-urge-100 p-4 text-urge-700 mt-4">
+                      <p>Because you're a data-only viewer, you cannot see this project's other members.</p>
                     </div>
                   </div>
                 </div>
