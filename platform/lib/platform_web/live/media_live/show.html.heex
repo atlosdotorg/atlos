@@ -96,6 +96,7 @@
       </div>
       <div class="mt-5 flex lg:mt-0 lg:ml-4">
         <.live_component
+          :if={@membership.role != :data_only_viewer}
           module={PlatformWeb.MediaLive.SubscribeButton}
           id="subscribe_button"
           current_user={@current_user}
@@ -103,7 +104,6 @@
           subscribed_classes="base-button text-blue-600"
           not_subscribed_classes="base-button"
           show_icon={false}
-          :if={@membership.role != :data_only_viewer}
         />
         <%= if Permissions.can_delete_media?(@current_user, @media) do %>
           <div

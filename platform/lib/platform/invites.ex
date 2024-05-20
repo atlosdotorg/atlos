@@ -242,7 +242,7 @@ defmodule Platform.Invites do
 
         {:ok, invite}
       else
-        if not is_nil(invite.owner) do
+        with %Accounts.User{} <- invite.owner do
           {:ok, _} =
             Notifications.send_message_notification_to_user(
               invite.owner,

@@ -91,7 +91,7 @@ defmodule Platform.Updates.Update do
           cs
         end
       end)
-      |> validate_required([:old_value, :new_value, :type, :media_id])
+      |> validate_required([:type, :media_id])
       # Ensure either user_id or api_token_id is set
       |> then(fn cs ->
         validate_change(cs, :user_id, fn :user_id, user_id ->

@@ -2104,12 +2104,12 @@ defmodule PlatformWeb.Components do
             <.list_diff old={[@old_val]} new={[@new_val]} label={@label} />
           <% :multi_users -> %>
             <% users =
-              Platform.Accounts.get_users_by_ids(@old_val ++ @new_val)
+              Platform.Accounts.get_users_by_ids((@old_val || []) ++ (@new_val || []))
               |> Enum.map(&{&1.id, &1})
               |> Enum.into(%{}) %>
             <.user_list_diff
-              old={@old_val |> Enum.map(&Map.get(users, &1))}
-              new={@new_val |> Enum.map(&Map.get(users, &1))}
+              old={(@old_val || []) |> Enum.map(&Map.get(users, &1))}
+              new={(@new_val || []) |> Enum.map(&Map.get(users, &1))}
               label={@label}
             />
           <% :date -> %>

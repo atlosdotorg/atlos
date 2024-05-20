@@ -526,7 +526,14 @@ defmodule PlatformWeb.ProjectsLive.BulkUploadLive do
                                 <%= Material.Attribute.standardized_label(attr, project: @project) %>
                               </p>
                               <div>
-                                <.attr_entry name={attr.name} value={value} project={@project} current_user={@current_user} media={applied_media} membership={:ignore} />
+                                <.attr_entry
+                                  name={attr.name}
+                                  value={value}
+                                  project={@project}
+                                  current_user={@current_user}
+                                  media={applied_media}
+                                  membership={:ignore}
+                                />
                               </div>
                             </div>
                           <% end %>

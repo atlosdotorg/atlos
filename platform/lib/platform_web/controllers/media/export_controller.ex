@@ -32,6 +32,7 @@ defmodule PlatformWeb.ExportController do
        |> Map.to_list()
        |> Enum.filter(fn {k, _v} ->
          attr = Attribute.get_attribute_by_schema_field(k, project: media.project)
+
          (not is_nil(attr) and Permissions.can_view_attribute?(user, media, attr)) or
            Enum.member?(fields, [:slug, :inserted_at, :updated_at, :latitude, :longitude])
        end)
