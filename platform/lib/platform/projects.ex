@@ -349,11 +349,17 @@ defmodule Platform.Projects do
 
   @doc """
   Get the users for a project.
+
+  Options:
+
+  * `:exclude_roles` - A list of roles to exclude from the results.
   """
-  def get_project_users(%Project{} = project) do
+  def get_project_users(%Project{} = project, opts \\ []) do
+    exclude_roles = Keyword.get(opts, :exclude_roles, [])
+
     Repo.all(
       from(pm in (ProjectMembership |> preload_project_memberships()),
-        where: pm.project_id == ^project.id
+        where: pm.project_id == ^project.id and pm.role not in ^exclude_roles
       )
     )
     |> Enum.map(fn pm -> pm.user end)
