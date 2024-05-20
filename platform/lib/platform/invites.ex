@@ -236,7 +236,7 @@ defmodule Platform.Invites do
           {:ok, _} =
             Notifications.send_message_notification_to_user(
               invite.owner,
-              "[@#{user.username}](/profile/#{user.username}) accepted your invite to join [#{Utils.escape_markdown_string(project.name)}](/projects/#{project.id}) as #{if Enum.member?([:editor, :owner], invite.project_access_level), do: "an", else: "a"} #{to_string(invite.project_access_level)}."
+              "[@#{user.username}](/profile/#{user.username}) accepted your invite to join [#{Utils.escape_markdown_string(project.name)}](/projects/#{project.id}) as #{if Enum.member?([:editor, :owner], invite.project_access_level), do: "an", else: "a"} #{case invite.project_access_level do :owner -> "owner"; :manager -> "manager"; :editor -> "editor"; :data_only_viewer -> "data-only viewer"; end}."
             )
         end
 
