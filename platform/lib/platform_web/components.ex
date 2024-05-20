@@ -1285,9 +1285,18 @@ defmodule PlatformWeb.Components do
                     do: "an",
                     else: "a" %>
           <span class="text-neutral-800">
-            <%= to_string(@invite.project_access_level)
-            |> String.replace("_", " ")
-            |> String.capitalize() %>
+            <%= case @invite.project_access_level do %>
+              <% :owner -> %>
+                Owner
+              <% :manager -> %>
+                Manager
+              <% :editor -> %>
+                Editor
+              <% :viewer -> %>
+                Viewer
+              <% :data_only_viewer -> %>
+                Data-only Viewer
+            <% end %>
           </span>
         <% end %>
       </h2>
