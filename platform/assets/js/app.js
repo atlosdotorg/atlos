@@ -17,6 +17,7 @@
 
 // Include phoenix_html to handle method=PUT/DELETE in forms and buttons.
 import "phoenix_html"
+import Sortable from 'sortablejs';
 import * as vega from "vega";
 import "vega-lite"
 import vegaEmbed from "vega-embed"
@@ -66,6 +67,22 @@ Hooks.ScrollToTop = {
     }
 }
 Hooks.InfiniteScroll = InfiniteScroll;
+Hooks.Sortable = {
+    mounted(){
+      let sorter = new Sortable(this.el, {
+        animation: 150,
+        delay: 100,
+        handle: ".handle",
+        dragClass: "drag-item",
+        ghostClass: "drag-ghost",
+        forceFallback: true,
+        onEnd: e => {
+          let params = {old: e.oldIndex, new: e.newIndex, ...e.item.dataset}
+          this.pushEventTo(this.el, "reposition", params)
+        }
+      })
+    }
+  }
 
 // Used by the pagination button to scroll back up to the top of the page.
 window.scrollToTop = () => {

@@ -29,8 +29,10 @@ module.exports = {
     require('@tailwindcss/forms'),
     require('@tailwindcss/typography'),
     require('a17t'),
-    plugin(function({ addVariant }) {
+    plugin(function ({ addVariant }) {
       addVariant('processing', '.processing &', 'processing')
-    })
+    }),
+    plugin(({ addVariant }) => addVariant("drag-item", [".drag-item&", ".drag-item &"])),
+    plugin(({ addVariant }) => addVariant("drag-ghost", [".drag-ghost&", ".drag-ghost &"])),
   ]
 };

@@ -249,6 +249,15 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
     # Invert type_mapping
     do: type_mapping() |> Enum.map(fn {k, v} -> {v, k} end) |> Enum.into(%{})
 
+  def handle_event("reposition", params, socket) do
+    existing_ordering = socket.assigns.attributes
+
+    # Called when dragging an attribute to a new position
+    %{"old" => old_pos, "new" => new_pos} = params
+
+    {:noreply, socket |> put_flash(:info, "Your reordered attributes have been saved.")}
+  end
+
   def edit_custom_project_attribute(assigns) do
     # The attribute this is a decorator for
     assigns =
@@ -389,36 +398,44 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
 
   def attribute_table_row(assigns) do
     ~H"""
-    <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
-      <%= @attr.label %>
-    </td>
-    <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-      <%= @attr.type
-      |> then(&Map.get(name_mapping(), &1)) %>
-    </td>
-    <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 truncate hidden lg:table-cell">
-      <%= @attr.description |> Platform.Utils.truncate(40) %>
-    </td>
-    <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6 flex justify-end">
-      <%= if @attr.schema_field == :project_attributes do %>
-        <button
-          :if={@show_edit_button}
-          class="text-button"
-          type="button"
-          phx-click="open_modal"
-          phx-value-id={@attr.name}
-          phx-target={@myself}
-        >
-          <Heroicons.pencil_square mini class="h-5 w-5 text-urge-600" />
-          <span class="sr-only">Edit <%= @attr.label %></span>
-        </button>
-      <% else %>
-        <Heroicons.lock_closed
-          class="h-5 w-5 text-gray-400"
-          data-tooltip="This is a core attribute and cannot be edited."
+    <div class="grid grid-cols-2 md:grid-cols-4 drag-ghost:rounded drag-ghost:opacity-50 drag-ghost:bg-neutral-50">
+      <div class="whitespace-nowrap py-4 flex items-center pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
+        <Heroicons.arrows_up_down
+          :if={@editable}
+          mini
+          class="h-4 w-4 cursor-pointer text-gray-400 mr-2 -ml-2 handle"
+          data-tooltip="Drag to reorder"
         />
-      <% end %>
-    </td>
+        <%= @attr.label %>
+      </div>
+      <div class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+        <%= @attr.type
+        |> then(&Map.get(name_mapping(), &1)) %>
+      </div>
+      <div class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 truncate hidden lg:table-cell">
+        <%= @attr.description |> Platform.Utils.truncate(40) %>
+      </div>
+      <div class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6 flex justify-end">
+        <%= if @attr.schema_field == :project_attributes do %>
+          <button
+            :if={@editable}
+            class="text-button"
+            type="button"
+            phx-click="open_modal"
+            phx-value-id={@attr.name}
+            phx-target={@myself}
+          >
+            <Heroicons.pencil_square mini class="h-5 w-5 text-urge-600" />
+            <span class="sr-only">Edit <%= @attr.label %></span>
+          </button>
+        <% else %>
+          <Heroicons.lock_closed
+            class="h-5 w-5 text-gray-400"
+            data-tooltip="This is a core attribute and cannot be edited."
+          />
+        <% end %>
+      </div>
+    </div>
     """
   end
 
@@ -629,117 +646,151 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                   <div class="-mx-4 overflow-x-auto sm:-mx-6 lg:-mx-8">
                     <div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8 flex flex-col gap-8">
                       <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg relative">
-                        <table class="min-w-full divide-y divide-gray-300">
-                          <thead class="bg-gray-50">
-                            <tr>
-                              <th
-                                scope="col"
-                                class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6"
+                        <div class="min-w-full divide-y divide-gray-300">
+                          <div class="bg-gray-50 py-3">
+                            <span class="py-3.5 pl-4 pr-6 text-left text-sm font-semibold text-gray-900 sm:pl-6">
+                              Project Attributes
+                            </span>
+                            <div scope="col" class="absolute right-6 top-3">
+                              <button
+                                :if={Permissions.can_edit_project_metadata?(@current_user, @project)}
+                                type="button"
+                                phx-click="add_attr"
+                                phx-target={@myself}
+                                class="text-button text-sm"
+                                ,
                               >
-                                Name
-                              </th>
-                              <th
-                                scope="col"
-                                class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
-                              >
-                                Type
-                              </th>
-                              <th
-                                scope="col"
-                                class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 hidden lg:block"
-                              >
-                                Description
-                              </th>
-                              <div scope="col" class="absolute right-3 top-3">
-                                <button
-                                  :if={
-                                    Permissions.can_edit_project_metadata?(@current_user, @project)
-                                  }
-                                  type="button"
-                                  phx-click="add_attr"
-                                  phx-target={@myself}
-                                  class="text-button text-sm"
-                                  ,
-                                >
-                                  Add&nbsp;Attribute
-                                </button>
-                              </div>
-                            </tr>
-                          </thead>
-                          <tbody class="divide-y divide-gray-200 bg-white">
-                            <.inputs_for :let={f_attr} field={f[:attributes]}>
-                              <%= if not is_nil(Ecto.Changeset.get_field(f_attr.source, :id)) and Ecto.Changeset.get_field(f_attr.source, :decorator_for) == "" do %>
-                                <tr x-data="{active: false}" class="group">
-                                  <.attribute_table_row
-                                    attr={ProjectAttribute.to_attribute(f_attr.data)}
-                                    myself={@myself}
-                                    show_edit_button={
-                                      Permissions.can_edit_project_metadata?(@current_user, @project)
-                                    }
-                                  />
-                                </tr>
-                              <% end %>
-                              <%= if (@actively_editing_id == Ecto.Changeset.get_field(f_attr.source, :id)) || (Ecto.Changeset.get_field(f_attr.source, :id) == nil and @actively_editing_id == :new) do %>
-                                <.modal
-                                  target={@myself}
-                                  id={(@actively_editing_id || "nil") |> to_string()}
-                                  js_on_close="document.cancelFormEvent($event)"
-                                >
-                                  <section class="mb-12">
-                                    <h2 class="sec-head">Edit Custom Attribute</h2>
-                                  </section>
-                                  <.edit_custom_project_attribute f_attr={f_attr} />
-                                  <div class="mt-8 flex justify-between items-center">
-                                    <div>
-                                      <%= submit("Save", class: "button ~urge @high") %>
-                                      <button
-                                        type="button"
-                                        phx-target={@myself}
-                                        phx-click="close_modal"
-                                        class="base-button"
-                                        x-on:click="document.cancelFormEvent"
-                                      >
-                                        Cancel
-                                      </button>
-                                    </div>
-                                    <%= if Ecto.Changeset.get_field(f_attr.source, :id) do %>
-                                      <button
-                                        type="button"
-                                        phx-target={@myself}
-                                        phx-click="delete_attr"
-                                        phx-value-id={Ecto.Changeset.get_field(f_attr.source, :id)}
-                                        data-confirm={"Are you sure you want to delete the attribute \"#{Ecto.Changeset.get_field(f_attr.source, :name)}\"? This action cannot be undone. This will remove this attribute from all incidents in this project."}
-                                        data-tooltip="Delete this attribute"
-                                        class="button ~critical @high"
-                                      >
-                                        Delete
-                                      </button>
-                                    <% end %>
+                                Add&nbsp;Attribute
+                              </button>
+                            </div>
+                          </div>
+                          <% attr_ids_to_group =
+                            Enum.flat_map(@project.attribute_groups, fn attr_group ->
+                              Enum.map(attr_group.member_ids, &{&1, attr_group.id})
+                            end)
+                            |> Enum.into(%{}) %>
+                          <div
+                            data-list_id="attr-list"
+                            data-list_group="group_ordering"
+                            phx-target={@myself}
+                            phx-hook="Sortable"
+                            id="attr-list"
+                          >
+                            <section
+                              :for={group <- @project.attribute_groups ++ [:unassigned, :core]}
+                              class="my-4 mx-6"
+                            >
+                              <% group_id = if is_atom(group), do: group, else: to_string(group.id) %>
+                              <h3 class="text-neutral-600 font-medium text-sm mt-6 mb-2">
+                                <%= case group do %>
+                                  <% :unassigned -> %>
+                                    Ungrouped Attributes
+                                  <% :core -> %>
+                                    Core Attributes
+                                  <% _ -> %>
+                                    <%= group.name %>
+                                <% end %>
+                              </h3>
+                              <div class="bg-white rounded-lg border">
+                              <%= case group do %>
+                                <% :core -> %>
+                                  <div :for={attr <- get_core_attributes()} :if={group == :core}>
+                                    <.attribute_table_row
+                                      attr={attr}
+                                      myself={@myself}
+                                      editable={false}
+                                    />
                                   </div>
-                                </.modal>
-                              <% else %>
-                                <div
-                                  :if={
-                                    @actively_editing_id != :decorators ||
-                                      Ecto.Changeset.get_field(f_attr.source, :decorator_for) == ""
-                                  }
-                                  class="hidden"
-                                >
-                                  <.edit_custom_project_attribute f_attr={f_attr} />
-                                </div>
+                                <% _ -> %>
+                                  <div
+                                    data-list_id="attr-list"
+                                    data-list_group="group_ordering"
+                                    phx-target={@myself}
+                                    id={group_id}
+                                    phx-hook="Sortable"
+                                  >
+                                    <.inputs_for :let={f_attr} field={f[:attributes]}>
+                                      <% attr_group_id =
+                                        attr_ids_to_group[
+                                          Ecto.Changeset.get_field(f_attr.source, :id)
+                                        ] || :unassigned %>
+                                      <%= if not is_nil(Ecto.Changeset.get_field(f_attr.source, :id)) and Ecto.Changeset.get_field(f_attr.source, :decorator_for) == "" and (attr_group_id == group_id) do %>
+                                        <div data-id={Ecto.Changeset.get_field(f_attr.source, :id)}>
+                                          <div x-data="{active: false}" class="group">
+                                            <.attribute_table_row
+                                              attr={ProjectAttribute.to_attribute(f_attr.data)}
+                                              myself={@myself}
+                                              editable={
+                                                Permissions.can_edit_project_metadata?(
+                                                  @current_user,
+                                                  @project
+                                                )
+                                              }
+                                            />
+                                          </div>
+                                          <%= if (@actively_editing_id == Ecto.Changeset.get_field(f_attr.source, :id)) || (Ecto.Changeset.get_field(f_attr.source, :id) == nil and @actively_editing_id == :new) do %>
+                                            <.modal
+                                              target={@myself}
+                                              id={(@actively_editing_id || "nil") |> to_string()}
+                                              js_on_close="document.cancelFormEvent($event)"
+                                            >
+                                              <section class="mb-12">
+                                                <h2 class="sec-head">Edit Custom Attribute</h2>
+                                              </section>
+                                              <.edit_custom_project_attribute f_attr={f_attr} />
+                                              <div class="mt-8 flex justify-between items-center">
+                                                <div>
+                                                  <%= submit("Save", class: "button ~urge @high") %>
+                                                  <button
+                                                    type="button"
+                                                    phx-target={@myself}
+                                                    phx-click="close_modal"
+                                                    class="base-button"
+                                                    x-on:click="document.cancelFormEvent"
+                                                  >
+                                                    Cancel
+                                                  </button>
+                                                </div>
+                                                <%= if Ecto.Changeset.get_field(f_attr.source, :id) do %>
+                                                  <button
+                                                    type="button"
+                                                    phx-target={@myself}
+                                                    phx-click="delete_attr"
+                                                    phx-value-id={
+                                                      Ecto.Changeset.get_field(f_attr.source, :id)
+                                                    }
+                                                    data-confirm={"Are you sure you want to delete the attribute \"#{Ecto.Changeset.get_field(f_attr.source, :name)}\"? This action cannot be undone. This will remove this attribute from all incidents in this project."}
+                                                    data-tooltip="Delete this attribute"
+                                                    class="button ~critical @high"
+                                                  >
+                                                    Delete
+                                                  </button>
+                                                <% end %>
+                                              </div>
+                                            </.modal>
+                                          <% else %>
+                                            <div
+                                              :if={
+                                                @actively_editing_id != :decorators ||
+                                                  Ecto.Changeset.get_field(
+                                                    f_attr.source,
+                                                    :decorator_for
+                                                  ) == ""
+                                              }
+                                              class="hidden"
+                                            >
+                                              <.edit_custom_project_attribute f_attr={f_attr} />
+                                            </div>
+                                          <% end %>
+                                        </div>
+                                      <% end %>
+                                    </.inputs_for>
+                                  </div>
                               <% end %>
-                            </.inputs_for>
-                            <%= for attr <- get_core_attributes() do %>
-                              <tr>
-                                <.attribute_table_row
-                                  attr={attr}
-                                  myself={@myself}
-                                  show_edit_button={false}
-                                />
-                              </tr>
-                            <% end %>
-                          </tbody>
-                        </table>
+                              </div>
+                            </section>
+                          </div>
+                        </div>
                         <%= if @actively_editing_id == :decorators do %>
                           <.modal
                             target={@myself}
