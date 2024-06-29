@@ -247,8 +247,30 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
      |> assign_custom_attribute_changeset()}
   end
 
-  def handle_event("open_modal", %{"id" => id}, socket) do
+  def handle_event("delete_group", %{"id" => id}, socket) do
+    # Delete the attribute group, save, and close the actively editing modal
+    {:ok, project} =
+      Projects.delete_project_attribute_group(
+        socket.assigns.project,
+        id,
+        socket.assigns.current_user
+      )
+
+    send(self(), {:project_saved, project})
+
+    {:noreply,
+     socket
+     |> assign(:project, project)
+     |> assign(:actively_editing_group_id, nil)
+     |> assign_custom_attribute_changeset()}
+  end
+
+  def handle_event("open_attr_edit_modal", %{"id" => id}, socket) do
     {:noreply, socket |> assign(:actively_editing_attribute_id, id)}
+  end
+
+  def handle_event("open_group_edit_modal", %{"id" => id}, socket) do
+    {:noreply, socket |> assign(:actively_editing_group_id, id)}
   end
 
   def handle_event("close_modal", _params, socket) do
@@ -273,8 +295,6 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
     do: type_mapping() |> Enum.map(fn {k, v} -> {v, k} end) |> Enum.into(%{})
 
   def handle_event("reposition", params, socket) do
-    dbg(params)
-
     # Ensure we have the latest project
     project = Platform.Projects.get_project!(socket.assigns.project.id)
 
@@ -288,7 +308,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
         groups =
           Enum.sort_by(project.attribute_groups, fn g ->
             case g do
-              %ProjectAttributeGroup{} -> Enum.find_index(ordering, & &1 == g.id) || 0
+              %ProjectAttributeGroup{} -> Enum.find_index(ordering, &(&1 == g.id)) || 0
               _ -> 0
             end
           end)
@@ -301,6 +321,8 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
             %{attribute_groups: groups},
             socket.assigns.current_user
           )
+
+        send(self(), {:project_saved, project})
 
         {:noreply, socket |> assign(project: project)}
 
@@ -328,6 +350,8 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
             %{attribute_groups: new_groups},
             socket.assigns.current_user
           )
+
+        send(self(), {:project_saved, project})
 
         {:noreply, socket |> assign(project: project)}
     end
@@ -526,7 +550,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
             :if={@editable}
             class="text-button"
             type="button"
-            phx-click="open_modal"
+            phx-click="open_attr_edit_modal"
             phx-value-id={@attr.name}
             phx-target={@myself}
           >
@@ -825,7 +849,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                               data-sortable-fixed={is_atom(group)}
                             >
                               <% group_id = if is_atom(group), do: group, else: to_string(group.id) %>
-                              <h3 class="text-neutral-600 font-medium text-sm mt-6 mb-2 flex items-center">
+                              <h3 class="text-neutral-600 font-medium text-sm mt-6 mb-1 flex items-center">
                                 <Heroicons.arrows_up_down
                                   :if={
                                     Permissions.can_edit_project_metadata?(
@@ -834,7 +858,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                                     ) and not is_atom(group)
                                   }
                                   mini
-                                  class="h-4 w-4 cursor-pointer text-gray-400 mr-2 -ml-2 handle"
+                                  class="h-4 w-4 cursor-pointer text-gray-400 mr-2 -ml-1 handle"
                                   data-tooltip="Drag to move this group"
                                 />
                                 <%= case group do %>
@@ -845,8 +869,35 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                                   <% _ -> %>
                                     <%= group.name %>
                                 <% end %>
+                                <span class="grow" />
+                                <button
+                                  :if={
+                                    Permissions.can_edit_project_metadata?(
+                                      @current_user,
+                                      @project
+                                    ) and not is_atom(group)
+                                  }
+                                  class="text-button mr-6 pr-px"
+                                  type="button"
+                                  phx-click="open_group_edit_modal"
+                                  phx-value-id={group.id}
+                                  phx-target={@myself}
+                                >
+                                  <Heroicons.pencil_square mini class="h-5 w-5 text-urge-600" />
+                                  <span class="sr-only">Edit <%= group.name %></span>
+                                </button>
                               </h3>
-                              <div class="bg-white rounded-lg border">
+                              <p class="text-xs text-neutral-500">
+                                <%= case group do %>
+                                  <% :unassigned -> %>
+                                    Ungrouped attributes are not associated with any group. To control the order of these attributes, drag them into a different group.
+                                  <% :core -> %>
+                                    Core attributes are required for all incidents. You can't modify core attributes.
+                                  <% _ -> %>
+                                    <%= group.description %>
+                                <% end %>
+                              </p>
+                              <div class="bg-white rounded-lg border mt-2">
                                 <%= case group do %>
                                   <% :core -> %>
                                     <div :for={attr <- get_core_attributes()} :if={group == :core}>

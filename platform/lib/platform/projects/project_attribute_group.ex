@@ -8,6 +8,7 @@ defmodule Platform.Projects.ProjectAttributeGroup do
   @primary_key {:id, :binary_id, autogenerate: true}
   embedded_schema do
     field(:name, :string)
+    field(:description, :string, default: "")
     # These can be a mix of binary IDs and string attributes, for core vs custom attributes
     field(:member_ids, {:array, :string}, default: [])
   end
@@ -17,8 +18,9 @@ defmodule Platform.Projects.ProjectAttributeGroup do
   """
   def changeset(%__MODULE__{} = attribute, attrs \\ %{}) do
     attribute
-    |> cast(attrs, [:name, :member_ids])
+    |> cast(attrs, [:name, :member_ids, :description])
     |> validate_length(:name, min: 1, max: 240)
+    |> validate_length(:description, max: 3000)
     |> validate_required(:name)
   end
 end
