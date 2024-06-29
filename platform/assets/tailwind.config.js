@@ -34,5 +34,7 @@ module.exports = {
     }),
     plugin(({ addVariant }) => addVariant("drag-item", [".drag-item&", ".drag-item &"])),
     plugin(({ addVariant }) => addVariant("drag-ghost", [".drag-ghost&", ".drag-ghost &"])),
+    // Useful for hiding placeholders when dragging; active when there is a sibling with `data-sortable-id` set
+    plugin(({ addVariant }) => addVariant("sibling-sortable", ["~ [data-sortable-id] ~ &", "~ [data-sortable-id] &"])),
   ]
 };

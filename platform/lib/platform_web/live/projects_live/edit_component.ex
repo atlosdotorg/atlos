@@ -273,12 +273,64 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
     do: type_mapping() |> Enum.map(fn {k, v} -> {v, k} end) |> Enum.into(%{})
 
   def handle_event("reposition", params, socket) do
-    existing_ordering = socket.assigns.attributes
+    dbg(params)
+
+    # Ensure we have the latest project
+    project = Platform.Projects.get_project!(socket.assigns.project.id)
 
     # Called when dragging an attribute to a new position
-    %{"old" => old_pos, "new" => new_pos} = params
+    %{"group" => group_id, "ordering" => ordering} = params
 
-    {:noreply, socket |> put_flash(:info, "Your reordered attributes have been saved.")}
+    case group_id do
+      "group_ordering" ->
+        IO.puts("reordering groups")
+        # Reorder groups
+        groups =
+          Enum.sort_by(project.attribute_groups, fn g ->
+            case g do
+              %ProjectAttributeGroup{} -> Enum.find_index(ordering, & &1 == g.id) || 0
+              _ -> 0
+            end
+          end)
+          |> Enum.map(fn g -> Map.from_struct(g) end)
+
+        # Update the project with the new groups
+        {:ok, project} =
+          Projects.update_project(
+            project,
+            %{attribute_groups: groups},
+            socket.assigns.current_user
+          )
+
+        {:noreply, socket |> assign(project: project)}
+
+      # For all the groups, if the group is the one we want to edit, update the ordering; if it's not, make sure that the none of the elements in the ordering are in that group
+      _ ->
+        new_groups =
+          Enum.map(socket.assigns.project.attribute_groups, fn g ->
+            g =
+              if g.id == group_id do
+                %{g | member_ids: ordering}
+              else
+                %{
+                  g
+                  | member_ids: Enum.reject(g.member_ids, fn id -> Enum.member?(ordering, id) end)
+                }
+              end
+
+            Map.from_struct(g)
+          end)
+
+        # Update the project with the new groups
+        {:ok, project} =
+          Projects.update_project(
+            socket.assigns.project,
+            %{attribute_groups: new_groups},
+            socket.assigns.current_user
+          )
+
+        {:noreply, socket |> assign(project: project)}
+    end
   end
 
   def edit_custom_project_attribute(assigns) do
@@ -413,7 +465,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
 
   def edit_attribute_group(assigns) do
     ~H"""
-    <%= inputs_for @f, :attribute_groups, [multipart: true], fn ef -> %>
+    <%= inputs_for @f, :attribute_groups, [multipart: true, id: "attr-group-form-#{@group_id}"], fn ef -> %>
       <%= if ef.data.id == @group_id or (is_nil(ef.data.id) and @group_id == :new) do %>
         <div
           class={[
@@ -457,7 +509,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
           :if={@editable}
           mini
           class="h-4 w-4 cursor-pointer text-gray-400 mr-2 -ml-2 handle"
-          data-tooltip="Drag to reorder"
+          data-tooltip="Drag to move this attribute"
         />
         <%= @attr.label %>
       </div>
@@ -758,18 +810,33 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                             end)
                             |> Enum.into(%{}) %>
                           <div
-                            data-list_id="attr-list"
+                            data-list_id="group_ordering"
                             data-list_group="group_ordering"
                             phx-target={@myself}
                             phx-hook="Sortable"
                             id="attr-list"
                           >
                             <section
-                              :for={group <- @project.attribute_groups ++ [:core, :unassigned]}
+                              :for={group <- [:core, :unassigned] ++ @project.attribute_groups}
                               class="my-4 mx-6"
+                              data-sortable-id={
+                                if is_atom(group), do: group, else: to_string(group.id)
+                              }
+                              data-sortable-fixed={is_atom(group)}
                             >
                               <% group_id = if is_atom(group), do: group, else: to_string(group.id) %>
-                              <h3 class="text-neutral-600 font-medium text-sm mt-6 mb-2">
+                              <h3 class="text-neutral-600 font-medium text-sm mt-6 mb-2 flex items-center">
+                                <Heroicons.arrows_up_down
+                                  :if={
+                                    Permissions.can_edit_project_metadata?(
+                                      @current_user,
+                                      @project
+                                    ) and not is_atom(group)
+                                  }
+                                  mini
+                                  class="h-4 w-4 cursor-pointer text-gray-400 mr-2 -ml-2 handle"
+                                  data-tooltip="Drag to move this group"
+                                />
                                 <%= case group do %>
                                   <% :unassigned -> %>
                                     Ungrouped Attributes
@@ -832,25 +899,29 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                                       </div>
                                     <% end %>
                                     <div
-                                      data-list_id="attr-list"
-                                      data-list_group="group_ordering"
+                                      data-list_id={group_id}
+                                      data-list_group="attribute_ordering"
                                       phx-target={@myself}
                                       id={group_id}
                                       phx-hook="Sortable"
+                                      data-sortable={to_string(not is_atom(group))}
                                     >
-                                      <div
-                                        :if={not is_atom(group) and Enum.empty?(group.member_ids)}
-                                        class="text-sm text-neutral-500 p-4"
-                                      >
+                                      <div class="text-sm text-neutral-500 p-4 sibling-sortable-hidden">
                                         There are no attributes in this group. Drag attributes into this group to add them.
                                       </div>
-                                      <.inputs_for :let={f_attr} field={f[:attributes]}>
+                                      <.inputs_for
+                                        :let={f_attr}
+                                        id={"attr-form-#{group_id}"}
+                                        field={f[:attributes]}
+                                      >
                                         <% attr_group_id =
                                           attr_ids_to_group[
                                             Ecto.Changeset.get_field(f_attr.source, :id)
                                           ] || :unassigned %>
                                         <%= if Ecto.Changeset.get_field(f_attr.source, :decorator_for) == "" and (attr_group_id == group_id) do %>
-                                          <div data-id={Ecto.Changeset.get_field(f_attr.source, :id)}>
+                                          <div data-sortable-id={
+                                            Ecto.Changeset.get_field(f_attr.source, :id)
+                                          }>
                                             <div x-data="{active: false}" class="group">
                                               <.attribute_table_row
                                                 attr={ProjectAttribute.to_attribute(f_attr.data)}
