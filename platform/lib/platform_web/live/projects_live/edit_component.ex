@@ -1,7 +1,7 @@
 defmodule PlatformWeb.ProjectsLive.EditComponent do
   use PlatformWeb, :live_component
 
-  alias Platform.Projects.ProjectAttribute
+  alias Platform.Projects.{ProjectAttribute, ProjectAttributeGroup}
   alias Platform.Auditor
   alias Platform.Projects
   alias Platform.Permissions
@@ -23,7 +23,8 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
     {:ok,
      socket
      # Either nil, :new, :decorators, or a UUID
-     |> assign(:actively_editing_id, nil)
+     |> assign(:actively_editing_attribute_id, nil)
+     |> assign(:actively_editing_group_id, nil)
      |> assign_new(:general_changeset, fn ->
        Projects.change_project(socket.assigns.project)
      end)
@@ -123,7 +124,9 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
              ) do
           {:ok, project} ->
             send(self(), {:project_saved, project})
-            {:noreply, socket |> assign(project: project) |> assign(:actively_editing_id, nil)}
+
+            {:noreply,
+             socket |> assign(project: project) |> assign(:actively_editing_attribute_id, nil)}
 
           {:error, changeset} ->
             {:noreply,
@@ -145,7 +148,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
         {:noreply,
          socket
          |> assign(project: project)
-         |> assign(:actively_editing_id, nil)
+         |> assign(:actively_editing_attribute_id, nil)
          |> assign_custom_attribute_changeset()}
 
       {:error, changeset} ->
@@ -165,7 +168,23 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
           existing ++ [%ProjectAttribute{}]
         )
       end)
-      |> assign(:actively_editing_id, :new)
+      |> assign(:actively_editing_attribute_id, :new)
+
+    {:noreply, socket}
+  end
+
+  def handle_event("add_attr_group", _, socket) do
+    socket =
+      update(socket, :custom_attribute_changeset, fn changeset ->
+        existing = Ecto.Changeset.get_field(changeset, :attribute_groups, [])
+
+        Ecto.Changeset.put_embed(
+          changeset,
+          :attribute_groups,
+          existing ++ [%ProjectAttributeGroup{}]
+        )
+      end)
+      |> assign(:actively_editing_group_id, :new)
 
     {:noreply, socket}
   end
@@ -209,7 +228,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
             end)
         )
       end)
-      |> assign(:actively_editing_id, :decorators)
+      |> assign(:actively_editing_attribute_id, :decorators)
 
     {:noreply, socket}
   end
@@ -224,16 +243,20 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
     {:noreply,
      socket
      |> assign(:project, project)
-     |> assign(:actively_editing_id, nil)
+     |> assign(:actively_editing_attribute_id, nil)
      |> assign_custom_attribute_changeset()}
   end
 
   def handle_event("open_modal", %{"id" => id}, socket) do
-    {:noreply, socket |> assign(:actively_editing_id, id)}
+    {:noreply, socket |> assign(:actively_editing_attribute_id, id)}
   end
 
   def handle_event("close_modal", _params, socket) do
-    {:noreply, socket |> assign(:actively_editing_id, nil) |> assign_custom_attribute_changeset()}
+    {:noreply,
+     socket
+     |> assign(:actively_editing_attribute_id, nil)
+     |> assign(:actively_editing_group_id, nil)
+     |> assign_custom_attribute_changeset()}
   end
 
   def type_mapping,
@@ -385,6 +408,36 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
         </div>
       <% end %>
     </div>
+    """
+  end
+
+  def edit_attribute_group(assigns) do
+    ~H"""
+    <%= inputs_for @f, :attribute_groups, [multipart: true], fn ef -> %>
+      <%= if ef.data.id == @group_id or (is_nil(ef.data.id) and @group_id == :new) do %>
+        <div
+          class={[
+            "relative group grid grid-cols-1 gap-4",
+            Ecto.Changeset.get_field(ef.source, :delete) && "hidden"
+          ]}
+          id={"group-editor-#{@group_id}"}
+        >
+          <div>
+            <%= label(ef, :name, class: "!text-neutral-600 !font-normal") %>
+            <%= text_input(ef, :name, class: "my-1") %>
+            <%= error_tag(ef, :name) %>
+          </div>
+          <div>
+            <%= label(ef, :description, class: "!text-neutral-600 !font-normal") %>
+            <%= text_input(ef, :description, class: "my-1") %>
+            <%= error_tag(ef, :description) %>
+            <p class="support">
+              Optional. The description will be displayed with this attribute group to provide additional context.
+            </p>
+          </div>
+        </div>
+      <% end %>
+    <% end %>
     """
   end
 
@@ -655,6 +708,16 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                               <button
                                 :if={Permissions.can_edit_project_metadata?(@current_user, @project)}
                                 type="button"
+                                phx-click="add_attr_group"
+                                phx-target={@myself}
+                                class="text-button text-sm"
+                                ,
+                              >
+                                Add&nbsp;Group
+                              </button>
+                              <button
+                                :if={Permissions.can_edit_project_metadata?(@current_user, @project)}
+                                type="button"
                                 phx-click="add_attr"
                                 phx-target={@myself}
                                 class="text-button text-sm"
@@ -664,6 +727,31 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                               </button>
                             </div>
                           </div>
+                          <.modal
+                            :if={@actively_editing_group_id == :new}
+                            target={@myself}
+                            id="new_group_editor"
+                            js_on_close="document.cancelFormEvent($event)"
+                          >
+                            <section class="mb-6">
+                              <h2 class="sec-head">Create Group</h2>
+                            </section>
+                            <.edit_attribute_group f={f} group_id={:new} />
+                            <div class="mt-8 flex justify-between items-center">
+                              <div>
+                                <%= submit("Save", class: "button ~urge @high") %>
+                                <button
+                                  type="button"
+                                  phx-target={@myself}
+                                  phx-click="close_modal"
+                                  class="base-button"
+                                  x-on:click="document.cancelFormEvent"
+                                >
+                                  Cancel
+                                </button>
+                              </div>
+                            </div>
+                          </.modal>
                           <% attr_ids_to_group =
                             Enum.flat_map(@project.attribute_groups, fn attr_group ->
                               Enum.map(attr_group.member_ids, &{&1, attr_group.id})
@@ -677,7 +765,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                             id="attr-list"
                           >
                             <section
-                              :for={group <- @project.attribute_groups ++ [:unassigned, :core]}
+                              :for={group <- @project.attribute_groups ++ [:core, :unassigned]}
                               class="my-4 mx-6"
                             >
                               <% group_id = if is_atom(group), do: group, else: to_string(group.id) %>
@@ -692,106 +780,156 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                                 <% end %>
                               </h3>
                               <div class="bg-white rounded-lg border">
-                              <%= case group do %>
-                                <% :core -> %>
-                                  <div :for={attr <- get_core_attributes()} :if={group == :core}>
-                                    <.attribute_table_row
-                                      attr={attr}
-                                      myself={@myself}
-                                      editable={false}
-                                    />
-                                  </div>
-                                <% _ -> %>
-                                  <div
-                                    data-list_id="attr-list"
-                                    data-list_group="group_ordering"
-                                    phx-target={@myself}
-                                    id={group_id}
-                                    phx-hook="Sortable"
-                                  >
-                                    <.inputs_for :let={f_attr} field={f[:attributes]}>
-                                      <% attr_group_id =
-                                        attr_ids_to_group[
-                                          Ecto.Changeset.get_field(f_attr.source, :id)
-                                        ] || :unassigned %>
-                                      <%= if not is_nil(Ecto.Changeset.get_field(f_attr.source, :id)) and Ecto.Changeset.get_field(f_attr.source, :decorator_for) == "" and (attr_group_id == group_id) do %>
-                                        <div data-id={Ecto.Changeset.get_field(f_attr.source, :id)}>
-                                          <div x-data="{active: false}" class="group">
-                                            <.attribute_table_row
-                                              attr={ProjectAttribute.to_attribute(f_attr.data)}
-                                              myself={@myself}
-                                              editable={
-                                                Permissions.can_edit_project_metadata?(
-                                                  @current_user,
-                                                  @project
-                                                )
-                                              }
-                                            />
+                                <%= case group do %>
+                                  <% :core -> %>
+                                    <div :for={attr <- get_core_attributes()} :if={group == :core}>
+                                      <.attribute_table_row
+                                        attr={attr}
+                                        myself={@myself}
+                                        editable={false}
+                                      />
+                                    </div>
+                                  <% _ -> %>
+                                    <%= if to_string(@actively_editing_group_id) == group_id do %>
+                                      <.modal
+                                        target={@myself}
+                                        id={@actively_editing_group_id |> to_string()}
+                                        js_on_close="document.cancelFormEvent($event)"
+                                      >
+                                        <section class="mb-6">
+                                          <h2 class="sec-head">Edit Group</h2>
+                                        </section>
+                                        <.edit_attribute_group f={f} group_id={group_id} />
+                                        <div class="mt-8 flex justify-between items-center">
+                                          <div>
+                                            <%= submit("Save", class: "button ~urge @high") %>
+                                            <button
+                                              type="button"
+                                              phx-target={@myself}
+                                              phx-click="close_modal"
+                                              class="base-button"
+                                              x-on:click="document.cancelFormEvent"
+                                            >
+                                              Cancel
+                                            </button>
                                           </div>
-                                          <%= if (@actively_editing_id == Ecto.Changeset.get_field(f_attr.source, :id)) || (Ecto.Changeset.get_field(f_attr.source, :id) == nil and @actively_editing_id == :new) do %>
-                                            <.modal
-                                              target={@myself}
-                                              id={(@actively_editing_id || "nil") |> to_string()}
-                                              js_on_close="document.cancelFormEvent($event)"
-                                            >
-                                              <section class="mb-12">
-                                                <h2 class="sec-head">Edit Custom Attribute</h2>
-                                              </section>
-                                              <.edit_custom_project_attribute f_attr={f_attr} />
-                                              <div class="mt-8 flex justify-between items-center">
-                                                <div>
-                                                  <%= submit("Save", class: "button ~urge @high") %>
-                                                  <button
-                                                    type="button"
-                                                    phx-target={@myself}
-                                                    phx-click="close_modal"
-                                                    class="base-button"
-                                                    x-on:click="document.cancelFormEvent"
-                                                  >
-                                                    Cancel
-                                                  </button>
-                                                </div>
-                                                <%= if Ecto.Changeset.get_field(f_attr.source, :id) do %>
-                                                  <button
-                                                    type="button"
-                                                    phx-target={@myself}
-                                                    phx-click="delete_attr"
-                                                    phx-value-id={
-                                                      Ecto.Changeset.get_field(f_attr.source, :id)
-                                                    }
-                                                    data-confirm={"Are you sure you want to delete the attribute \"#{Ecto.Changeset.get_field(f_attr.source, :name)}\"? This action cannot be undone. This will remove this attribute from all incidents in this project."}
-                                                    data-tooltip="Delete this attribute"
-                                                    class="button ~critical @high"
-                                                  >
-                                                    Delete
-                                                  </button>
-                                                <% end %>
-                                              </div>
-                                            </.modal>
-                                          <% else %>
-                                            <div
-                                              :if={
-                                                @actively_editing_id != :decorators ||
-                                                  Ecto.Changeset.get_field(
-                                                    f_attr.source,
-                                                    :decorator_for
-                                                  ) == ""
-                                              }
-                                              class="hidden"
-                                            >
-                                              <.edit_custom_project_attribute f_attr={f_attr} />
-                                            </div>
-                                          <% end %>
+                                          <button
+                                            type="button"
+                                            phx-target={@myself}
+                                            phx-click="delete_group"
+                                            phx-value-id={group_id}
+                                            data-confirm={"Are you sure you want to delete the group \"#{group.name}\"? This action cannot be undone. Attributes in this group will be moved to the unassigned group and will not be deleted."}
+                                            data-tooltip="Delete this group (without deleting its attributes)"
+                                            class="button ~critical @high"
+                                          >
+                                            Delete
+                                          </button>
                                         </div>
-                                      <% end %>
-                                    </.inputs_for>
-                                  </div>
-                              <% end %>
+                                      </.modal>
+                                    <% else %>
+                                      <div class="hidden">
+                                        <.edit_attribute_group f={f} group_id={group_id} />
+                                      </div>
+                                    <% end %>
+                                    <div
+                                      data-list_id="attr-list"
+                                      data-list_group="group_ordering"
+                                      phx-target={@myself}
+                                      id={group_id}
+                                      phx-hook="Sortable"
+                                    >
+                                      <div
+                                        :if={not is_atom(group) and Enum.empty?(group.member_ids)}
+                                        class="text-sm text-neutral-500 p-4"
+                                      >
+                                        There are no attributes in this group. Drag attributes into this group to add them.
+                                      </div>
+                                      <.inputs_for :let={f_attr} field={f[:attributes]}>
+                                        <% attr_group_id =
+                                          attr_ids_to_group[
+                                            Ecto.Changeset.get_field(f_attr.source, :id)
+                                          ] || :unassigned %>
+                                        <%= if Ecto.Changeset.get_field(f_attr.source, :decorator_for) == "" and (attr_group_id == group_id) do %>
+                                          <div data-id={Ecto.Changeset.get_field(f_attr.source, :id)}>
+                                            <div x-data="{active: false}" class="group">
+                                              <.attribute_table_row
+                                                attr={ProjectAttribute.to_attribute(f_attr.data)}
+                                                myself={@myself}
+                                                editable={
+                                                  Permissions.can_edit_project_metadata?(
+                                                    @current_user,
+                                                    @project
+                                                  )
+                                                }
+                                              />
+                                            </div>
+                                            <%= if @actively_editing_attribute_id == Ecto.Changeset.get_field(f_attr.source, :id) or (is_nil(Ecto.Changeset.get_field(f_attr.source, :id)) and @actively_editing_attribute_id == :new) do %>
+                                              <.modal
+                                                target={@myself}
+                                                id={
+                                                  (@actively_editing_attribute_id || "nil")
+                                                  |> to_string()
+                                                }
+                                                js_on_close="document.cancelFormEvent($event)"
+                                              >
+                                                <section class="mb-6">
+                                                  <h2 class="sec-head">Edit Custom Attribute</h2>
+                                                </section>
+                                                <.edit_custom_project_attribute f_attr={f_attr} />
+                                                <div class="mt-8 flex justify-between items-center">
+                                                  <div>
+                                                    <%= submit("Save", class: "button ~urge @high") %>
+                                                    <button
+                                                      type="button"
+                                                      phx-target={@myself}
+                                                      phx-click="close_modal"
+                                                      class="base-button"
+                                                      x-on:click="document.cancelFormEvent"
+                                                    >
+                                                      Cancel
+                                                    </button>
+                                                  </div>
+                                                  <%= if Ecto.Changeset.get_field(f_attr.source, :id) do %>
+                                                    <button
+                                                      type="button"
+                                                      phx-target={@myself}
+                                                      phx-click="delete_attr"
+                                                      phx-value-id={
+                                                        Ecto.Changeset.get_field(f_attr.source, :id)
+                                                      }
+                                                      data-confirm={"Are you sure you want to delete the attribute \"#{Ecto.Changeset.get_field(f_attr.source, :name)}\"? This action cannot be undone. This will remove this attribute from all incidents in this project."}
+                                                      data-tooltip="Delete this attribute"
+                                                      class="button ~critical @high"
+                                                    >
+                                                      Delete
+                                                    </button>
+                                                  <% end %>
+                                                </div>
+                                              </.modal>
+                                            <% else %>
+                                              <div
+                                                :if={
+                                                  @actively_editing_attribute_id != :decorators ||
+                                                    Ecto.Changeset.get_field(
+                                                      f_attr.source,
+                                                      :decorator_for
+                                                    ) == ""
+                                                }
+                                                class="hidden"
+                                              >
+                                                <.edit_custom_project_attribute f_attr={f_attr} />
+                                              </div>
+                                            <% end %>
+                                          </div>
+                                        <% end %>
+                                      </.inputs_for>
+                                    </div>
+                                <% end %>
                               </div>
                             </section>
                           </div>
                         </div>
-                        <%= if @actively_editing_id == :decorators do %>
+                        <%= if @actively_editing_attribute_id == :decorators do %>
                           <.modal
                             target={@myself}
                             id="decorator_edit"
