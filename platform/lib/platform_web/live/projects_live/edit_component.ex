@@ -572,7 +572,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
             <p class="flex gap-2 items-center mb-1">
               <%= checkbox(ef, :show_in_creation_form) %>
               <%= label(ef, :show_in_creation_form, class: "!text-neutral-600 !font-normal") do %>
-                Include this group in the incident creation page
+                Include this group in the incident creation window
               <% end %>
             </p>
             <p class="support">
