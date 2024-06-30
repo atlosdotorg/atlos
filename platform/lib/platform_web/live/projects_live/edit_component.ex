@@ -568,6 +568,18 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
               This color will help visually identify the attribute group.
             </p>
           </div>
+          <div class="mt-4">
+            <p class="flex gap-2 items-center mb-1">
+              <%= checkbox(ef, :show_in_creation_form) %>
+              <%= label(ef, :show_in_creation_form, class: "!text-neutral-600 !font-normal") do %>
+                Include this group in the incident creation page
+              <% end %>
+            </p>
+            <p class="support">
+              If enabled, the attributes in this group will be included in the incident creation flow. If disabled, the group's attributes can still be edited directly on the incident page.
+            </p>
+            <%= error_tag(ef, :show_in_creation_form) %>
+          </div>
         </div>
       <% end %>
     <% end %>
@@ -896,10 +908,13 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                           :for={group <- [:core, :unassigned] ++ @project.attribute_groups}
                           data-sortable-id={if is_atom(group), do: group, else: to_string(group.id)}
                           data-sortable-fixed={is_atom(group)}
-                          class="my-6"
+                          class="mb-6"
                         >
                           <% group_id = if is_atom(group), do: group, else: to_string(group.id) %>
-                          <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg relative" style={if not is_atom(group), do: "border-left: 4px solid #{group.color}"}>
+                          <div
+                            class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg relative"
+                            style={if not is_atom(group), do: "border-left: 4px solid #{group.color}"}
+                          >
                             <div class="min-w-full">
                               <div class="bg-gray-50 pt-3 flex items-center gap-2 px-4">
                                 <h3

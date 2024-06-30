@@ -493,6 +493,25 @@ defmodule Platform.Material.Attribute do
     attributes(opts) |> Enum.filter(&(&1.deprecated != true))
   end
 
+  def filter_attributes_to_group(attrs, group, project) do
+    if is_nil(project) do
+      raise ArgumentError, "group cannot be filtered without project"
+    end
+
+    case group do
+      %Platform.Projects.ProjectAttributeGroup{member_ids: ids} ->
+        Enum.filter(attrs, fn a -> Enum.member?(ids, a.name) end)
+
+      :core ->
+        Enum.filter(attrs, fn a -> is_atom(a.name) end)
+
+      :unassigned ->
+        Enum.filter(attrs, fn a ->
+          not is_atom(a.name) and Enum.all?(project.attribute_groups, fn g -> not Enum.member?(g.member_ids, a.name) end)
+        end)
+    end
+  end
+
   @doc """
   Get the names of the attributes that are available for the given media. Both nil and the empty list count as unset.
 
@@ -500,18 +519,30 @@ defmodule Platform.Material.Attribute do
   """
   def set_for_media(media, opts \\ []) do
     pane = Keyword.get(opts, :pane)
+    groups = Keyword.get(opts, :groups)
+    project = Keyword.get(opts, :project)
 
-    Enum.filter(attributes(opts), fn a ->
-      all_attrs = get_children(a.name) ++ [a]
+    attrs =
+      Enum.filter(attributes(opts), fn a ->
+        all_attrs = get_children(a.name) ++ [a]
 
-      Enum.any?(all_attrs, fn attr ->
-        val = Material.get_attribute_value(media, attr)
+        Enum.any?(all_attrs, fn attr ->
+          val = Material.get_attribute_value(media, attr)
 
-        val != nil && val != [] && val != %{"day" => "", "month" => "", "year" => ""} &&
-          (pane == nil || attr.pane == pane || (attr.parent == a.name && a.pane == pane)) &&
-          (attr.deprecated != true || Keyword.get(opts, :include_deprecated_attributes, false))
+          val != nil && val != [] && val != %{"day" => "", "month" => "", "year" => ""} &&
+            (pane == nil || attr.pane == pane || (attr.parent == a.name && a.pane == pane)) &&
+            (attr.deprecated != true || Keyword.get(opts, :include_deprecated_attributes, false))
+        end)
       end)
-    end)
+
+    # Now, if group and project are both set, we need to filter out the attributes that are not in the group.
+    if not is_nil(groups) do
+      Enum.flat_map(groups, fn group ->
+        filter_attributes_to_group(attrs, group, project)
+      end)
+    else
+      attrs
+    end
   end
 
   @doc """
@@ -522,13 +553,25 @@ defmodule Platform.Material.Attribute do
   def unset_for_media(media, opts \\ []) do
     pane = Keyword.get(opts, :pane)
     set = set_for_media(media, opts)
+    groups = Keyword.get(opts, :groups)
+    project = Keyword.get(opts, :project)
 
-    attributes(opts)
-    |> Enum.filter(
-      &(!Enum.member?(set, &1) &&
-          &1.deprecated != true &&
-          (pane == nil || &1.pane == pane))
-    )
+    attrs =
+      attributes(opts)
+      |> Enum.filter(
+        &(!Enum.member?(set, &1) &&
+            &1.deprecated != true &&
+            (pane == nil || &1.pane == pane))
+      )
+
+    # Now, if group and project are both set, we need to filter out the attributes that are not in the group.
+    if not is_nil(groups) do
+      Enum.flat_map(groups, fn group ->
+        filter_attributes_to_group(attrs, group, project)
+      end)
+    else
+      attrs
+    end
   end
 
   @doc """
