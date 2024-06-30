@@ -303,15 +303,18 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
 
     case group_id do
       "group_ordering" ->
-        IO.puts("reordering groups")
         # Reorder groups
         groups =
-          Enum.sort_by(project.attribute_groups, fn g ->
-            case g do
-              %ProjectAttributeGroup{} -> Enum.find_index(ordering, &(&1 == g.id)) || 0
-              _ -> 0
-            end
+          Enum.map(project.attribute_groups, fn g ->
+            idx =
+              case g do
+                %ProjectAttributeGroup{} -> Enum.find_index(ordering, &(&1 == g.id)) || 0
+                _ -> 0
+              end
+
+            %{g | ordering: idx}
           end)
+          |> Enum.sort_by(& &1.ordering)
           |> Enum.map(fn g -> Map.from_struct(g) end)
 
         # Update the project with the new groups
@@ -324,12 +327,12 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
 
         send(self(), {:project_saved, project})
 
-        {:noreply, socket |> assign(project: project)}
+        {:noreply, socket |> assign(project: project) |> assign_custom_attribute_changeset()}
 
       # For all the groups, if the group is the one we want to edit, update the ordering; if it's not, make sure that the none of the elements in the ordering are in that group
       _ ->
         new_groups =
-          Enum.map(socket.assigns.project.attribute_groups, fn g ->
+          Enum.map(project.attribute_groups, fn g ->
             g =
               if g.id == group_id do
                 %{g | member_ids: ordering}
@@ -343,17 +346,34 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
             Map.from_struct(g)
           end)
 
+        # Reorder the embedded attributes given their order in their respective
+        # groups. This is also what allows us to sort unassigned attributes.
+        new_attributes =
+          Enum.map(project.attributes, fn e ->
+            idx =
+              case Enum.find(new_groups, &Enum.member?(&1.member_ids, e.id)) do
+                # We can't find them in a group, so we check the given ordering
+                # (which allows reordering if the attribute is in the unassigned
+                # group)
+                nil -> Enum.find_index(ordering, &(&1 == e.id)) || -1
+                group -> Enum.find_index(group.member_ids, &(&1 == e.id)) || -1
+              end
+
+            Map.from_struct(%{e | ordering: idx})
+          end)
+          |> Enum.sort_by(& &1.ordering)
+
         # Update the project with the new groups
         {:ok, project} =
           Projects.update_project(
             socket.assigns.project,
-            %{attribute_groups: new_groups},
+            %{attribute_groups: new_groups, attributes: new_attributes},
             socket.assigns.current_user
           )
 
         send(self(), {:project_saved, project})
 
-        {:noreply, socket |> assign(project: project)}
+        {:noreply, socket |> assign(project: project) |> assign_custom_attribute_changeset()}
     end
   end
 
@@ -509,6 +529,43 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
             <%= error_tag(ef, :description) %>
             <p class="support">
               Optional. The description will be displayed with this attribute group to provide additional context.
+            </p>
+          </div>
+          <div>
+            <%= label(ef, :color, class: "!text-neutral-600 !font-normal") %>
+            <div id={"color-picker-#{@group_id}"} phx-update="ignore">
+              <div
+                class="flex gap-1 flex-wrap items-center"
+                x-data={"{active: '#{Ecto.Changeset.get_field(@f.source, :color)}'}"}
+              >
+                <%= for color <- ["#808080", "#fb923c", "#fbbf24", "#a3e635", "#4ade80", "#2dd4bf", "#22d3ee", "#60a5fa", "#818cf8", "#a78bfa", "#c084fc", "#e879f9", "#f472b6"] do %>
+                  <label class="!mt-0 cursor-pointer">
+                    <%= radio_button(ef, :color, color,
+                      "x-model": "active",
+                      class: "hidden"
+                    ) %>
+                    <svg
+                      viewBox="0 0 100 100"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill={color}
+                      class="h-7 w-7"
+                      x-show={"active !== '#{color}'"}
+                    >
+                      <circle cx="50" cy="50" r="40" />
+                    </svg>
+                    <Heroicons.check_circle
+                      mini
+                      class="h-7 w-7"
+                      style={"color: #{color}"}
+                      x-show={"active === '#{color}'"}
+                    />
+                  </label>
+                <% end %>
+              </div>
+            </div>
+            <%= error_tag(ef, :color) %>
+            <p class="support">
+              This color will help visually identify the attribute group.
             </p>
           </div>
         </div>
@@ -754,6 +811,30 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                   <p class="sec-subhead">
                     Define the data model for incidents in this project. You can add new attributes, or edit the existing ones.
                   </p>
+                  <div class="flex gap-2 mt-8">
+                    <button
+                      :if={Permissions.can_edit_project_metadata?(@current_user, @project)}
+                      type="button"
+                      phx-click="add_attr_group"
+                      phx-target={@myself}
+                      class="button ~urge @high"
+                      ,
+                    >
+                      <Heroicons.plus mini class="-ml-0.5 mr-2 text-urge-200 h-5 w-5" />
+                      Add&nbsp;Group
+                    </button>
+                    <button
+                      :if={Permissions.can_edit_project_metadata?(@current_user, @project)}
+                      type="button"
+                      phx-click="add_attr"
+                      phx-target={@myself}
+                      class="button ~urge @high"
+                      ,
+                    >
+                      <Heroicons.plus mini class="-ml-0.5 mr-2 text-urge-200 h-5 w-5" />
+                      Add&nbsp;Attribute
+                    </button>
+                  </div>
                 </div>
               <% end %>
               <fieldset class="flex flex-col mb-8 w-full">
@@ -773,102 +854,79 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                 <% end %>
                 <div class="flow-root">
                   <div class="-mx-4 overflow-x-auto sm:-mx-6 lg:-mx-8">
-                    <div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8 flex flex-col gap-8">
-                      <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg relative">
-                        <div class="min-w-full divide-y divide-gray-300">
-                          <div class="bg-gray-50 py-3">
-                            <span class="py-3.5 pl-4 pr-6 text-left text-sm font-semibold text-gray-900 sm:pl-6">
-                              Project Attributes
-                            </span>
-                            <div scope="col" class="absolute right-6 top-3">
-                              <button
-                                :if={Permissions.can_edit_project_metadata?(@current_user, @project)}
-                                type="button"
-                                phx-click="add_attr_group"
-                                phx-target={@myself}
-                                class="text-button text-sm"
-                                ,
-                              >
-                                Add&nbsp;Group
-                              </button>
-                              <button
-                                :if={Permissions.can_edit_project_metadata?(@current_user, @project)}
-                                type="button"
-                                phx-click="add_attr"
-                                phx-target={@myself}
-                                class="text-button text-sm"
-                                ,
-                              >
-                                Add&nbsp;Attribute
-                              </button>
-                            </div>
-                          </div>
-                          <.modal
-                            :if={@actively_editing_group_id == :new}
-                            target={@myself}
-                            id="new_group_editor"
-                            js_on_close="document.cancelFormEvent($event)"
-                          >
-                            <section class="mb-6">
-                              <h2 class="sec-head">Create Group</h2>
-                            </section>
-                            <.edit_attribute_group f={f} group_id={:new} />
-                            <div class="mt-8 flex justify-between items-center">
-                              <div>
-                                <%= submit("Save", class: "button ~urge @high") %>
-                                <button
-                                  type="button"
-                                  phx-target={@myself}
-                                  phx-click="close_modal"
-                                  class="base-button"
-                                  x-on:click="document.cancelFormEvent"
-                                >
-                                  Cancel
-                                </button>
-                              </div>
-                            </div>
-                          </.modal>
-                          <% attr_ids_to_group =
-                            Enum.flat_map(@project.attribute_groups, fn attr_group ->
-                              Enum.map(attr_group.member_ids, &{&1, attr_group.id})
-                            end)
-                            |> Enum.into(%{}) %>
-                          <div
-                            data-list_id="group_ordering"
-                            data-list_group="group_ordering"
+                    <.modal
+                      :if={@actively_editing_group_id == :new}
+                      target={@myself}
+                      id="new_group_editor"
+                      js_on_close="document.cancelFormEvent($event)"
+                    >
+                      <section class="mb-6">
+                        <h2 class="sec-head">Create Group</h2>
+                      </section>
+                      <.edit_attribute_group f={f} group_id={:new} />
+                      <div class="mt-8 flex justify-between items-center">
+                        <div>
+                          <%= submit("Save", class: "button ~urge @high") %>
+                          <button
+                            type="button"
                             phx-target={@myself}
-                            phx-hook="Sortable"
-                            id="attr-list"
+                            phx-click="close_modal"
+                            class="base-button"
+                            x-on:click="document.cancelFormEvent"
                           >
-                            <section
-                              :for={group <- [:core, :unassigned] ++ @project.attribute_groups}
-                              class="my-4 mx-6"
-                              data-sortable-id={
-                                if is_atom(group), do: group, else: to_string(group.id)
-                              }
-                              data-sortable-fixed={is_atom(group)}
-                            >
-                              <% group_id = if is_atom(group), do: group, else: to_string(group.id) %>
-                              <h3 class="text-neutral-600 font-medium text-sm mt-6 mb-1 flex items-center">
-                                <Heroicons.arrows_up_down
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    </.modal>
+                    <div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8 flex flex-col">
+                      <div
+                        data-list_id="group_ordering"
+                        data-list_group="group_ordering"
+                        phx-target={@myself}
+                        phx-hook="Sortable"
+                        id="attr-list"
+                      >
+                        <% attr_ids_to_group =
+                          Enum.flat_map(@project.attribute_groups, fn attr_group ->
+                            Enum.map(attr_group.member_ids, &{&1, attr_group.id})
+                          end)
+                          |> Enum.into(%{}) %>
+                        <section
+                          :for={group <- [:core, :unassigned] ++ @project.attribute_groups}
+                          data-sortable-id={if is_atom(group), do: group, else: to_string(group.id)}
+                          data-sortable-fixed={is_atom(group)}
+                          class="my-6"
+                        >
+                          <% group_id = if is_atom(group), do: group, else: to_string(group.id) %>
+                          <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg relative">
+                            <div class="min-w-full">
+                              <div class="bg-gray-50 pt-3 flex items-center gap-2 px-4">
+                                <h3
                                   :if={
                                     Permissions.can_edit_project_metadata?(
                                       @current_user,
                                       @project
                                     ) and not is_atom(group)
                                   }
-                                  mini
-                                  class="h-4 w-4 cursor-pointer text-gray-400 mr-2 -ml-1 handle"
-                                  data-tooltip="Drag to move this group"
-                                />
-                                <%= case group do %>
-                                  <% :unassigned -> %>
-                                    Ungrouped Attributes
-                                  <% :core -> %>
-                                    Core Attributes
-                                  <% _ -> %>
-                                    <%= group.name %>
-                                <% end %>
+                                  class="text-neutral-600 font-medium text-sm flex items-center"
+                                >
+                                  <Heroicons.arrows_up_down
+                                    mini
+                                    class="h-4 w-4 cursor-pointer text-gray-400 handle"
+                                    data-tooltip="Drag to move this group"
+                                  />
+                                </h3>
+                                <span class="pr-6 text-left text-sm font-medium text-gray-900">
+                                  <%= case group do %>
+                                    <% :unassigned -> %>
+                                      Ungrouped Attributes
+                                    <% :core -> %>
+                                      Core Attributes
+                                    <% _ -> %>
+                                      <%= group.name %>
+                                  <% end %>
+                                </span>
                                 <span class="grow" />
                                 <button
                                   :if={
@@ -877,27 +935,26 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                                       @project
                                     ) and not is_atom(group)
                                   }
-                                  class="text-button mr-6 pr-px"
+                                  class="text-button text-sm"
                                   type="button"
                                   phx-click="open_group_edit_modal"
                                   phx-value-id={group.id}
                                   phx-target={@myself}
                                 >
-                                  <Heroicons.pencil_square mini class="h-5 w-5 text-urge-600" />
-                                  <span class="sr-only">Edit <%= group.name %></span>
+                                  Edit Group
                                 </button>
-                              </h3>
-                              <p class="text-xs text-neutral-500">
+                              </div>
+                              <p class="text-xs text-neutral-500 mx-4 mt-2 mb-3">
                                 <%= case group do %>
                                   <% :unassigned -> %>
-                                    Ungrouped attributes are not associated with any group. To control the order of these attributes, drag them into a different group.
+                                    Ungrouped attributes are not associated with any group.
                                   <% :core -> %>
                                     Core attributes are required for all incidents. You can't modify core attributes.
                                   <% _ -> %>
                                     <%= group.description %>
                                 <% end %>
                               </p>
-                              <div class="bg-white rounded-lg border mt-2">
+                              <div class="bg-white border-t">
                                 <%= case group do %>
                                   <% :core -> %>
                                     <div :for={attr <- get_core_attributes()} :if={group == :core}>
@@ -955,7 +1012,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                                       phx-target={@myself}
                                       id={group_id}
                                       phx-hook="Sortable"
-                                      data-sortable={to_string(not is_atom(group))}
+                                      data-sortable={to_string(group != :core)}
                                     >
                                       <div class="text-sm text-neutral-500 p-4 sibling-sortable-hidden">
                                         There are no attributes in this group. Drag attributes into this group to add them.
@@ -1048,9 +1105,9 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                                     </div>
                                 <% end %>
                               </div>
-                            </section>
+                            </div>
                           </div>
-                        </div>
+                        </section>
                         <%= if @actively_editing_attribute_id == :decorators do %>
                           <.modal
                             target={@myself}
@@ -1113,7 +1170,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                       </div>
                       <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg relative divide-y divide-gray-300">
                         <div class="bg-gray-50 flex items-center justify-between px-4 sm:px-6">
-                          <p class="py-3.5 text-left text-sm font-semibold text-gray-900">
+                          <p class="py-3.5 text-left text-sm font-medium text-gray-900">
                             Decorators
                           </p>
                           <button
