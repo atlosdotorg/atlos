@@ -20,7 +20,7 @@ defmodule Platform.Projects.ProjectAttributeGroup do
   """
   def changeset(%__MODULE__{} = attribute, attrs \\ %{}) do
     attribute
-    |> cast(attrs, [:name, :show_in_creation_form, :member_ids, :description, :color])
+    |> cast(attrs, [:name, :show_in_creation_form, :member_ids, :description, :ordering, :color])
     # Validate that "color" matches a hex color code via regex
     |> validate_format(:color, ~r/^#[0-9a-fA-F]{6}$/)
     |> validate_length(:name, min: 1, max: 240)
