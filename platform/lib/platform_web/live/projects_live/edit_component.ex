@@ -576,7 +576,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
               <% end %>
             </p>
             <p class="support">
-              If enabled, the attributes in this group will be included in the incident creation flow. If disabled, the group's attributes can still be edited directly on the incident page.
+              If enabled, the attributes in this group are included in the incident creation window. If disabled, the group's attributes aren't shown in the incident creation window but can still be edited directly on the incident page.
             </p>
             <%= error_tag(ef, :show_in_creation_form) %>
           </div>
