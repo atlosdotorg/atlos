@@ -536,7 +536,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
             <div id={"color-picker-#{@group_id}"} phx-update="ignore">
               <div
                 class="flex gap-1 flex-wrap items-center"
-                x-data={"{active: '#{Ecto.Changeset.get_field(@f.source, :color)}'}"}
+                x-data={"{active: '#{Ecto.Changeset.get_field(ef.source, :color)}'}"}
               >
                 <%= for color <- ["#808080", "#fb923c", "#fbbf24", "#a3e635", "#4ade80", "#2dd4bf", "#22d3ee", "#60a5fa", "#818cf8", "#a78bfa", "#c084fc", "#e879f9", "#f472b6"] do %>
                   <label class="!mt-0 cursor-pointer">
@@ -899,7 +899,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                           class="my-6"
                         >
                           <% group_id = if is_atom(group), do: group, else: to_string(group.id) %>
-                          <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg relative">
+                          <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg relative" style={if not is_atom(group), do: "border-left: 4px solid #{group.color}"}>
                             <div class="min-w-full">
                               <div class="bg-gray-50 pt-3 flex items-center gap-2 px-4">
                                 <h3

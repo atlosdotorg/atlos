@@ -2,8 +2,6 @@ defmodule Platform.Projects.ProjectAttributeGroup do
   use Ecto.Schema
   import Ecto.Changeset
 
-  alias Platform.Material.Attribute
-
   @derive {Jason.Encoder, only: [:name]}
   @primary_key {:id, :binary_id, autogenerate: true}
   embedded_schema do
@@ -20,7 +18,7 @@ defmodule Platform.Projects.ProjectAttributeGroup do
   """
   def changeset(%__MODULE__{} = attribute, attrs \\ %{}) do
     attribute
-    |> cast(attrs, [:name, :member_ids, :description])
+    |> cast(attrs, [:name, :member_ids, :description, :color])
     |> validate_length(:name, min: 1, max: 240)
     |> validate_length(:description, max: 3000)
     |> validate_required(:name)
