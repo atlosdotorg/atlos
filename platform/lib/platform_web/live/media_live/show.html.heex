@@ -830,7 +830,7 @@
                       Clear
                     </button>
                   </div>
-                  <pre class="text-xs whitespace-pre-wrap"><%= Jason.encode!(version.metadata[namespace], pretty: true) |> String.trim(" \t\n") %></pre>
+                  <pre class="text-xs whitespace-pre-wrap max-w-full overflow-hidden"><%= Jason.encode!(version.metadata[namespace], pretty: true) |> String.trim(" \t\n") %></pre>
                 </section>
               </article>
             </details>
