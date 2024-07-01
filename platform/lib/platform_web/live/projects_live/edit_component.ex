@@ -443,7 +443,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
               key: k,
               value: v,
               disabled:
-                not Enum.member?(
+              not is_nil(Ecto.Changeset.get_field(@f_attr.source, :id)) and not Enum.member?(
                   ProjectAttribute.compatible_types(Ecto.Changeset.get_field(@f_attr.source, :type)),
                   v
                 )
