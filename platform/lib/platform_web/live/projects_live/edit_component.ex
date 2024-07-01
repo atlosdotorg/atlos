@@ -878,7 +878,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                       </section>
                       <.edit_attribute_group f={f} group_id={:new} />
                       <div class="mt-8 flex justify-between items-center">
-                        <div>
+                        <div class="flex items-center gap-2">
                           <%= submit("Save", class: "button ~urge @high") %>
                           <button
                             type="button"
