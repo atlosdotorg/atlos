@@ -1226,8 +1226,17 @@ defmodule Platform.Material.Attribute do
   defp verify_change_exists(changeset, attributes) do
     # Verify that at least one of the given attributes has changed. This is used
     # to ensure that users don't post updates that don't actually change anything.
-
-    if Enum.any?(attributes, &Map.has_key?(changeset.changes, &1.schema_field)) do
+    if Enum.any?(attributes, fn attribute ->
+      case Map.get(changeset.changes, attribute.schema_field) do
+        nil -> false
+        changes when attribute.schema_field == :project_attributes ->
+          # For project_attributes, check if any sub-changeset has actual changes
+          Enum.any?(changes, fn sub_changeset ->
+            map_size(sub_changeset.changes) > 0 and Map.has_key?(sub_changeset.changes, :value)
+          end)
+        _changes -> true
+      end
+    end) do
       changeset
     else
       changeset
