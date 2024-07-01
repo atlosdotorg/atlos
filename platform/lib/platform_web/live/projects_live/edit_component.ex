@@ -22,9 +22,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
 
     {:ok,
      socket
-     # Either nil, :new, :decorators, or a UUID
-     |> assign(:actively_editing_attribute_id, nil)
-     |> assign(:actively_editing_group_id, nil)
+     |> close_modal()
      |> assign_new(:general_changeset, fn ->
        Projects.change_project(socket.assigns.project)
      end)
@@ -35,6 +33,10 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
        Platform.Material.Attribute.active_attributes(project: socket.assigns.project)
      end)
      |> assign_new(:show_panes, fn -> [:general, :custom_attributes] end)}
+  end
+
+  defp close_modal(socket) do
+    socket |> assign(:actively_editing_attribute_id, nil) |> assign(:actively_editing_group_id, nil)
   end
 
   def assign_general_changeset(socket, attrs \\ %{}) do
@@ -126,7 +128,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
             send(self(), {:project_saved, project})
 
             {:noreply,
-             socket |> assign(project: project) |> assign(:actively_editing_attribute_id, nil)}
+             socket |> assign(project: project) |> close_modal()}
 
           {:error, changeset} ->
             {:noreply,
@@ -148,7 +150,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
         {:noreply,
          socket
          |> assign(project: project)
-         |> assign(:actively_editing_attribute_id, nil)
+         |> close_modal()
          |> assign_custom_attribute_changeset()}
 
       {:error, changeset} ->
@@ -243,7 +245,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
     {:noreply,
      socket
      |> assign(:project, project)
-     |> assign(:actively_editing_attribute_id, nil)
+     |> close_modal()
      |> assign_custom_attribute_changeset()}
   end
 
@@ -276,8 +278,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
   def handle_event("close_modal", _params, socket) do
     {:noreply,
      socket
-     |> assign(:actively_editing_attribute_id, nil)
-     |> assign(:actively_editing_group_id, nil)
+     |> close_modal()
      |> assign_custom_attribute_changeset()}
   end
 
