@@ -798,6 +798,25 @@
                 </button>
               <% end %>
             </div>
+            <details class="mt-4" :if={version.metadata not in [%{}, nil]}>
+              <summary class="text-neutral-500 text-xs cursor-pointer" data-tooltip="Source material metadata is structured information associated with this media by Atlos and other integrations.">View and manage metadata</summary>
+              <section class="py-4">
+                <p class="text-xs text-neutral-700">Source material metadata is an advanced feature, and most users don't need to use it. Some metadata is set automatically by Atlos (e.g., "auto_archive_successful" and "content_info") while others is set by integrations.</p>
+              </section>
+              <article class="flex flex-col rounded bg-neutral-100 w-full divide-y divide-dashed divide-neutral-300 py-1">
+                <section :for={namespace <- Map.keys(version.metadata)} class="py-2 px-4">
+                <div class="flex justify-between">
+                <p class="label text-xs text-neutral-500 font-mono">
+                  <%= namespace %>
+                </p>
+                <button :if={Permissions.can_edit_media?(@current_user, @media)} type="button" class="text-xs text-button" phx-click="clear_metadata_namespace" phx-value-version={version.id} phx-value-namespace={namespace} data-confirm="Are you sure you want to clear this metadata?">
+                  Clear
+                </button>
+                </div>
+                <pre class="text-xs whitespace-pre-wrap"><%= Jason.encode!(version.metadata[namespace], pretty: true) |> String.trim(" \t\n") %></pre>
+                </section>
+              </article>
+            </details>
             <p class="text-xs text-neutral-500 mt-8">
               Atlos provides best-effort archival. Archives may be incomplete or missing, and should not be relied on for legal evidence.
             </p>
