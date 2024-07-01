@@ -118,23 +118,31 @@ defmodule PlatformWeb.MediaLive.Index do
   def assign_attributes(socket, project) do
     attributes = Attribute.active_attributes(project: project) |> Enum.filter(&is_nil(&1.parent))
 
-    groups = case dbg(project) do
-      nil -> [:core]
-      _ -> project.attribute_groups
-    end
-
-    attributes_with_groups = Enum.map(attributes, fn a ->
-      member_of = Enum.find(groups, &not is_atom(&1) and Enum.member?(&1.member_ids, a.name))
-      group = cond do
-        not is_nil(member_of) -> member_of
-        is_atom(a.name) -> :core
-        true -> :unassigned
+    groups =
+      case dbg(project) do
+        nil -> [:core]
+        _ -> project.attribute_groups
       end
-      {a, group}
-    end)
+
+    attributes_with_groups =
+      Enum.map(attributes, fn a ->
+        member_of = Enum.find(groups, &(not is_atom(&1) and Enum.member?(&1.member_ids, a.name)))
+
+        group =
+          cond do
+            not is_nil(member_of) -> member_of
+            is_atom(a.name) -> :core
+            true -> :unassigned
+          end
+
+        {a, group}
+      end)
 
     # Sort by group ordering, then attribute ordering
-    attributes_with_groups = Enum.sort_by(attributes_with_groups, fn {_, g} -> {(if is_atom(dbg(g)), do: -1, else: g.ordering)} end)
+    attributes_with_groups =
+      Enum.sort_by(attributes_with_groups, fn {_, g} ->
+        {if(is_atom(dbg(g)), do: -1, else: g.ordering)}
+      end)
 
     socket
     |> assign(
@@ -150,7 +158,7 @@ defmodule PlatformWeb.MediaLive.Index do
   def handle_params(params, _uri, socket) do
     # Wrap and catch CastErrors, in which case we put a flash and redirect to /incidents
     # try do
-      {:noreply, handle_params_internal(params, socket)}
+    {:noreply, handle_params_internal(params, socket)}
     # rescue
     #   _error ->
     #     {:noreply,

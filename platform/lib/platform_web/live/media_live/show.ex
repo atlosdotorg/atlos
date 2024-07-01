@@ -99,10 +99,15 @@ defmodule PlatformWeb.MediaLive.Show do
      )}
   end
 
-  def handle_event("clear_metadata_namespace", %{"namespace" => namespace, "version" => version_id} = _params, socket) do
+  def handle_event(
+        "clear_metadata_namespace",
+        %{"namespace" => namespace, "version" => version_id} = _params,
+        socket
+      ) do
     version = Material.get_media_version!(version_id)
 
-    if version.media_id != socket.assigns.media.id or not Permissions.can_edit_media?(socket.assigns.current_user, socket.assigns.media) do
+    if version.media_id != socket.assigns.media.id or
+         not Permissions.can_edit_media?(socket.assigns.current_user, socket.assigns.media) do
       raise PlatformWeb.Errors.Unauthorized, "No permission"
     end
 
@@ -111,9 +116,9 @@ defmodule PlatformWeb.MediaLive.Show do
     {:ok, _} = Material.update_media_version(version, %{metadata: updated_metadata})
 
     {:noreply,
-    socket
-    |> assign_media_and_updates()
-    |> put_flash(:info, "Metadata cleared successfully.")}
+     socket
+     |> assign_media_and_updates()
+     |> put_flash(:info, "Metadata cleared successfully.")}
   end
 
   def handle_event(

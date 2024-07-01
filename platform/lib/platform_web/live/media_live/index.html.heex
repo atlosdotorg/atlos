@@ -379,7 +379,10 @@
                             <th
                               scope="col"
                               class="md:sticky z-[100] top-0 border-b border-t border-neutral-200 bg-neutral-100 bg-opacity-[95%] px-2 py-3 font-medium text-sm text-left"
-                              style={if not is_atom(group), do: "border-bottom: 2px solid #{group.color};"}
+                              style={
+                                if not is_atom(group),
+                                  do: "border-bottom: 2px solid #{group.color};"
+                              }
                               data-tooltip={if not is_atom(group), do: group.name, else: nil}
                             >
                               <%= attr.label %>

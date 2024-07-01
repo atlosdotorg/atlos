@@ -36,7 +36,9 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
   end
 
   defp close_modal(socket) do
-    socket |> assign(:actively_editing_attribute_id, nil) |> assign(:actively_editing_group_id, nil)
+    socket
+    |> assign(:actively_editing_attribute_id, nil)
+    |> assign(:actively_editing_group_id, nil)
   end
 
   def assign_general_changeset(socket, attrs \\ %{}) do
@@ -127,8 +129,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
           {:ok, project} ->
             send(self(), {:project_saved, project})
 
-            {:noreply,
-             socket |> assign(project: project) |> close_modal()}
+            {:noreply, socket |> assign(project: project) |> close_modal()}
 
           {:error, changeset} ->
             {:noreply,
@@ -517,7 +518,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
             "relative group grid grid-cols-1 gap-4",
             Ecto.Changeset.get_field(ef.source, :delete) && "hidden"
           ]}
-          id={"group-editor-#{@group_id}"}
+          id={"group-editor-#{@group_id}-#{@group_ordering}"}
         >
           <div>
             <%= label(ef, :name, class: "!text-neutral-600 !font-normal") %>
@@ -534,7 +535,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
           </div>
           <div>
             <%= label(ef, :color, class: "!text-neutral-600 !font-normal") %>
-            <div id={"color-picker-#{@group_id}"} phx-update="ignore">
+            <div id={"color-picker-#{@group_id}-#{@group_ordering}"} phx-update="ignore">
               <div
                 class="flex gap-1 flex-wrap items-center"
                 x-data={"{active: '#{Ecto.Changeset.get_field(ef.source, :color)}'}"}
@@ -876,7 +877,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                       <section class="mb-6">
                         <h2 class="sec-head">Create Group</h2>
                       </section>
-                      <.edit_attribute_group f={f} group_id={:new} />
+                      <.edit_attribute_group f={f} group_id={:new} group_ordering={-1} />
                       <div class="mt-8 flex justify-between items-center">
                         <div class="flex items-center gap-2">
                           <%= submit("Save", class: "button ~urge @high") %>
@@ -990,7 +991,11 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                                         <section class="mb-6">
                                           <h2 class="sec-head">Edit Group</h2>
                                         </section>
-                                        <.edit_attribute_group f={f} group_id={group_id} />
+                                        <.edit_attribute_group
+                                          f={f}
+                                          group_id={group_id}
+                                          group_ordering={group.ordering}
+                                        />
                                         <div class="mt-8 flex justify-between items-center">
                                           <div>
                                             <%= submit("Save", class: "button ~urge @high") %>
@@ -1019,7 +1024,13 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                                       </.modal>
                                     <% else %>
                                       <div class="hidden">
-                                        <.edit_attribute_group f={f} group_id={group_id} />
+                                        <.edit_attribute_group
+                                          f={f}
+                                          group_id={group_id}
+                                          group_ordering={
+                                            if is_atom(group), do: -1, else: group.ordering
+                                          }
+                                        />
                                       </div>
                                     <% end %>
                                     <div
