@@ -111,18 +111,23 @@ defmodule Platform.Workers.Archiver do
                 end)
                 |> Enum.filter(&(&1 != :skip))
 
-              # Update the media version
-              version_map = %{
-                status: :complete,
-                # Append the artifacts; some may already exist
-                artifacts: Enum.map(version.artifacts || [], &Map.from_struct(&1)) ++ artifacts,
-                metadata: %{
+              # Combine the old metadata and the new metadata (we don't want to override!)
+              # TODO: Move these into their own internal namespace
+              combined_metadata =
+                Map.merge(version.metadata || %{}, %{
                   auto_archive_successful: Map.get(metadata, "auto_archive_successful", false),
                   crawl_successful: Map.get(metadata, "crawl_successful", false),
                   page_info: Map.get(metadata, "page_info"),
                   content_info: Map.get(metadata, "content_info"),
                   is_likely_authwalled: Map.get(metadata, "is_likely_authwalled", false)
-                }
+                })
+
+              # Update the media version
+              version_map = %{
+                status: :complete,
+                # Append the artifacts; some may already exist
+                artifacts: Enum.map(version.artifacts || [], &Map.from_struct(&1)) ++ artifacts,
+                metadata: combined_metadata
               }
 
               {:ok, version} = Material.update_media_version(version, version_map)

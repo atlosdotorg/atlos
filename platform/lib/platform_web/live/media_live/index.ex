@@ -98,10 +98,7 @@ defmodule PlatformWeb.MediaLive.Index do
       :user_projects,
       Platform.Projects.list_projects_for_user(socket.assigns.current_user)
     )
-    |> assign(
-      :attributes,
-      Attribute.active_attributes(project: active_project) |> Enum.filter(&is_nil(&1.parent))
-    )
+    |> assign_attributes(active_project)
     |> then(fn s ->
       if display == "table",
         do:
@@ -118,17 +115,57 @@ defmodule PlatformWeb.MediaLive.Index do
     end)
   end
 
+  def assign_attributes(socket, project) do
+    attributes = Attribute.active_attributes(project: project) |> Enum.filter(&is_nil(&1.parent))
+
+    groups =
+      case dbg(project) do
+        nil -> [:core]
+        _ -> project.attribute_groups
+      end
+
+    attributes_with_groups =
+      Enum.map(attributes, fn a ->
+        member_of = Enum.find(groups, &(not is_atom(&1) and Enum.member?(&1.member_ids, a.name)))
+
+        group =
+          cond do
+            not is_nil(member_of) -> member_of
+            is_atom(a.name) -> :core
+            true -> :unassigned
+          end
+
+        {a, group}
+      end)
+
+    # Sort by group ordering, then attribute ordering
+    attributes_with_groups =
+      Enum.sort_by(attributes_with_groups, fn {_, g} ->
+        {if(is_atom(dbg(g)), do: -1, else: g.ordering)}
+      end)
+
+    socket
+    |> assign(
+      :attributes,
+      attributes
+    )
+    |> assign(
+      :attributes_with_groups,
+      attributes_with_groups
+    )
+  end
+
   def handle_params(params, _uri, socket) do
     # Wrap and catch CastErrors, in which case we put a flash and redirect to /incidents
-    try do
-      {:noreply, handle_params_internal(params, socket)}
-    rescue
-      _error ->
-        {:noreply,
-         socket
-         |> put_flash(:error, "Your search had invalid parameters. Please try again.")
-         |> push_patch(to: "/incidents", replace: true)}
-    end
+    # try do
+    {:noreply, handle_params_internal(params, socket)}
+    # rescue
+    #   _error ->
+    #     {:noreply,
+    #      socket
+    #      |> put_flash(:error, "Your search had invalid parameters. Please try again.")
+    #      |> push_patch(to: "/incidents", replace: true)}
+    # end
   end
 
   defp assign_media(socket, media) do
