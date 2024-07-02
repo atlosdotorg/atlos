@@ -17,6 +17,7 @@
 
 // Include phoenix_html to handle method=PUT/DELETE in forms and buttons.
 import "phoenix_html"
+import Sortable from 'sortablejs';
 import * as vega from "vega";
 import "vega-lite"
 import vegaEmbed from "vega-embed"
@@ -66,6 +67,34 @@ Hooks.ScrollToTop = {
     }
 }
 Hooks.InfiniteScroll = InfiniteScroll;
+Hooks.Sortable = {
+    mounted() {
+        // To use the sorter, create an element with `data-list_id` and
+        // `data-list_group`; then add a `data-sortable-id` to each of the things
+        // that you want to be draggable.
+        let sorter = new Sortable(this.el, {
+            animation: 150,
+            delay: 100,
+            handle: ".handle",
+            sort: this.el.getAttribute("data-sortable") !== "false",
+            dragClass: "drag-item",
+            ghostClass: "drag-ghost",
+            group: this.el.getAttribute("data-list_group"),
+            forceFallback: true,
+            onEnd: e => {
+                // Determine the new ordering of all elements in the group
+                let groupId = e.item.parentElement.dataset["list_id"];
+                let newOrderingElements = e.item.parentElement.querySelectorAll(":scope > [data-sortable-id]")
+                let newOrdering = Array.from(newOrderingElements).map((elem) => elem.dataset.sortableId);
+                let params = { old: e.oldIndex, new: e.newIndex, id: e.item.dataset["sortableId"], ordering: newOrdering, group: groupId }
+                this.pushEventTo(this.el, "reposition", params)
+            },
+            onMove(e) {
+                return !e.related.hasAttribute("data-sortable-fixed")
+            }
+        })
+    }
+}
 
 // Used by the pagination button to scroll back up to the top of the page.
 window.scrollToTop = () => {

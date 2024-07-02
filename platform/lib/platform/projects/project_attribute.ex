@@ -14,6 +14,7 @@ defmodule Platform.Projects.ProjectAttribute do
     # empty string if not a decorator
     field(:decorator_for, :string, default: "")
     field(:enabled, :boolean, default: true)
+    field(:ordering, :integer, default: 0)
 
     # JSON array of options
     field(:options_json, :string, virtual: true)
@@ -41,7 +42,16 @@ defmodule Platform.Projects.ProjectAttribute do
       |> then(&if &1 == "", do: Jason.encode!(attribute.options), else: &1)
 
     attribute
-    |> cast(attrs, [:name, :type, :options_json, :id, :description, :decorator_for, :enabled])
+    |> cast(attrs, [
+      :name,
+      :ordering,
+      :type,
+      :options_json,
+      :id,
+      :description,
+      :decorator_for,
+      :enabled
+    ])
     |> cast(%{options_json: json_options}, [:options_json])
     |> cast(
       %{options: Jason.decode!(json_options)},

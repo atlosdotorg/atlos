@@ -1328,7 +1328,7 @@ defmodule PlatformWeb.Components do
       <% end %>
       <%= if length(@unset_attrs) > 0 do %>
         <div class="py-2 sm:grid sm:grid-cols-3 sm:gap-4 -mb-2">
-          <dt class="text-sm font-medium text-gray-500 mt-1">Add Attributes</dt>
+          <dt class="text-sm text-gray-500 mt-1">Add Attributes</dt>
           <dd class="mt-1 flex flex-wrap gap-2 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
             <%= for attr <- @unset_attrs do %>
               <.link
@@ -1561,7 +1561,7 @@ defmodule PlatformWeb.Components do
 
     ~H"""
     <div class="py-2 sm:grid sm:grid-cols-3 sm:gap-2">
-      <dt class="text-sm font-medium text-gray-500 mt-1 flex justify-between items-center flex-wrap">
+      <dt class="text-sm text-gray-500 mt-1 flex justify-between items-center flex-wrap">
         <span class="flex items-center gap-1">
           <%= @attr.label %>
           <%= if Platform.Material.Attribute.requires_privileges_to_edit(@attr) do %>
