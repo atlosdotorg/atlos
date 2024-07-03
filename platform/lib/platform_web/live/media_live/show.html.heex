@@ -800,7 +800,13 @@
                 </button>
               <% end %>
             </div>
-            <details :if={version.metadata not in [%{}, nil] and not is_nil(System.get_env("SHOW_MEDIA_VERSION_METADATA"))} class="mt-4">
+            <details
+              :if={
+                version.metadata not in [%{}, nil] and
+                  not is_nil(System.get_env("SHOW_MEDIA_VERSION_METADATA"))
+              }
+              class="mt-4"
+            >
               <summary
                 class="text-neutral-500 text-xs cursor-pointer"
                 data-tooltip="Source material metadata is structured information associated with this media by Atlos and other integrations."
