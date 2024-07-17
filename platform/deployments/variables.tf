@@ -150,3 +150,21 @@ variable "backup_skip_databases" {
   type        = string
   default     = "postgres,azure_sys,azure_maintenance"
 }
+
+variable "restrict_project_creation" {
+  description = "Restrict project creation"
+  type        = string
+  default     = "false"
+}
+
+variable "autotag_user_incidents" {
+  description = "Autotag user incidents"
+  type        = string
+  default     = "[]"
+}
+
+variable "attribute_options" {
+  description = "Attribute options"
+  type        = string
+  default     = "{}"
+}

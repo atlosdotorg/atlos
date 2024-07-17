@@ -197,6 +197,21 @@ resource "azurerm_container_app" "platform" {
       }
 
       env {
+        name  = "RESTRICT_PROJECT_CREATION"
+        value = var.restrict_project_creation
+      }
+
+      env {
+        name  = "AUTOTAG_USER_INCIDENTS"
+        value = var.autotag_user_incidents
+      }
+
+      env {
+        name  = "ATTRIBUTE_OPTIONS"
+        value = var.attribute_options
+      }
+
+      env {
         name  = "PHX_HOST"
         value = var.host
       }

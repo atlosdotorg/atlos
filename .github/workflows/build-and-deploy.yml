@@ -97,4 +97,21 @@ jobs:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
       - name: Deploy New Revision
         run: az containerapp revision copy --name ${{ secrets.AZURE_CONTAINER_APP_NAME }} --resource-group ${{ secrets.AZURE_CONTAINER_APP_RESOURCE_GROUP }} --image "ghcr.io/atlosdotorg/atlos@${{ needs.build.outputs.image_digest }}"
-
+  deploy-gap:
+    # Only runs if the build job was successful
+    needs: build
+    # Only runs if the branch is `deployments/gap`
+    if: github.ref == 'refs/heads/deployments/gap'
+    runs-on: ubuntu-latest
+    concurrency:
+      group: deploy:${{ github.ref }}
+    environment:
+      name: "GAP (Azure)" # TODO: Figure out the right environment from the branch name
+      url: "gap.atlos.org"
+    steps:
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+      - name: Deploy New Revision
+        run: az containerapp revision copy --name ${{ secrets.AZURE_CONTAINER_APP_NAME }} --resource-group ${{ secrets.AZURE_CONTAINER_APP_RESOURCE_GROUP }} --image "ghcr.io/atlosdotorg/atlos@${{ needs.build.outputs.image_digest }}"
