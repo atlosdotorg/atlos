@@ -17,6 +17,10 @@ defmodule Platform.Material.MediaVersion do
       field(:mime_type, :string)
       field(:perceptual_hashes, :map, default: nil)
       field(:title, :string, default: nil)
+
+      # No removed for artifacts (yet); in the interface, hidden is "minimized", but we call it hidden here for consistency with `MediaVersion`s.
+      field(:visibility, Ecto.Enum, values: [:visible, :hidden], default: :visible)
+
       belongs_to(:uploading_token, Platform.API.APIToken, type: :binary_id)
 
       field(:type, Ecto.Enum,
@@ -90,6 +94,7 @@ defmodule Platform.Material.MediaVersion do
       :perceptual_hashes,
       :type,
       :uploading_token_id,
+      :visibility,
       :title
     ])
     |> validate_required([

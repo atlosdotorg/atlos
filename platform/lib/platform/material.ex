@@ -1055,6 +1055,31 @@ defmodule Platform.Material do
     res
   end
 
+  defp parse_s3_url(url) do
+    case Regex.run(~r{https://(.+)\.s3\..*\.amazonaws\.com/(.*)}, url) do
+      [_, bucket, key] ->
+        {:ok, %{bucket: bucket, key: URI.decode(key)}}
+
+      _ ->
+        {:error, "Invalid S3 URL format"}
+    end
+  end
+
+  def get_media_version_artifact_s3_url(%MediaVersion.MediaVersionArtifact{} = artifact) do
+    # First, generate an unsigned URL; then turn it into an s3:// URL
+
+    Uploads.MediaVersionArtifact.url({artifact.file_location, artifact}, :original, signed: false)
+    |> parse_s3_url()
+    |> case do
+      {:ok, %{bucket: bucket, key: key}} ->
+        "s3://#{bucket}/#{key}"
+
+      {:error, _} ->
+        nil
+    end
+    |> dbg()
+  end
+
   @doc """
   Schedules a given media version for rearchival.
   """

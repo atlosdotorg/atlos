@@ -1014,6 +1014,46 @@
                         <span x-text="grayscale ? 'Show Color' : 'Hide Color'">Show Color</span>
                       </button>
                     <% end %>
+                    <div class="relative" x-data="{ open: false }">
+                      <button
+                        @click="open = !open"
+                        @click.away="open = false"
+                        class="text-xs flex items-center h-full rounded-full transition hover:bg-neutral-200 p-2"
+                        aria-label="Show link options"
+                      >
+                        <Heroicons.link mini class="opacity-75 h-4 w-4" />
+                        <span class="sr-only">Links</span>
+                      </button>
+                      <div
+                        x-show="open"
+                        class="absolute z-10 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5"
+                      >
+                        <div
+                          class="py-1"
+                          role="menu"
+                          aria-orientation="vertical"
+                          aria-labelledby="options-menu"
+                        >
+                          <button
+                            @click={"window.setClipboard('s3://' + '#{Material.get_media_version_artifact_s3_url(artifact)}')"}
+                            class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 w-full text-left"
+                            role="menuitem"
+                          >
+                            <Heroicons.cloud mini class="mr-2 h-4 w-4 text-gray-400" />
+                            Copy S3 URL
+                          </button>
+                          <button
+                            @click={"window.setClipboard('#{Material.media_version_artifact_location(artifact)}')"}
+                            class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 w-full text-left"
+                            role="menuitem"
+                            type="button"
+                          >
+                            <Heroicons.clock mini class="mr-2 h-4 w-4 text-gray-400" />
+                            Copy Temporary URL
+                          </button>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                   <!-- Show the metadata -->
                   <dl class="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 truncate uppercase font-mono text-sm">
