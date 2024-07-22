@@ -894,15 +894,24 @@
                   id={"artifact-#{artifact.id}-#{artifact.visibility}"}
                 >
                   <!-- Placeholder for minimized artifact -->
-                  <button type="button" x-show="minimized && !expanded" class="cursor-pointer block w-full" @click="expanded = true">
+                  <button
+                    type="button"
+                    x-show="minimized && !expanded"
+                    class="cursor-pointer block w-full"
+                    @click="expanded = true"
+                  >
                     <div class="flex items-center justify-between p-4 bg-neutral-100 rounded-lg border">
-                      <span class="text-sm text-neutral-600">This artifact has been minimized (click to view).</span>
+                      <span class="text-sm text-neutral-600">
+                        This artifact has been minimized (click to view).
+                      </span>
                       <Heroicons.chevron_down mini class="h-4 w-4 text-neutral-500" />
                     </div>
                   </button>
-
                   <!-- Show the media itself -->
-                  <section x-show="!minimized || expanded" class="max-h-[28rem] mx-auto border rounded-lg overflow-hidden bg-neutral-100 relative highlight-block">
+                  <section
+                    x-show="!minimized || expanded"
+                    class="max-h-[28rem] mx-auto border rounded-lg overflow-hidden bg-neutral-100 relative highlight-block"
+                  >
                     <%= if is_media do %>
                       <div
                         class="w-full z-[2] h-full absolute bg-neutral-50 rounded-lg flex items-center justify-around top-0"
@@ -1029,14 +1038,18 @@
                       phx-click="set_media_version_artifact_visibility"
                       phx-value-artifact_id={artifact.id}
                       phx-value-version_id={version.id}
-                      phx-value-visibility={if artifact.visibility == :hidden, do: "visible", else: "hidden"}
+                      phx-value-visibility={
+                        if artifact.visibility == :hidden, do: "visible", else: "hidden"
+                      }
                       class="base-button bg-neutral-50 text-xs"
                       x-on:click="minimized = !minimized; expanded = false;"
-                      data-tooltip={if artifact.visibility == :hidden do
-                        "Unminimize this artifact. This can be undone at any time."
-                      else
-                        "Minimize this artifact. This can be undone at any time and the artifact is not deleted."
-                      end}
+                      data-tooltip={
+                        if artifact.visibility == :hidden do
+                          "Unminimize this artifact. This can be undone at any time."
+                        else
+                          "Minimize this artifact. This can be undone at any time and the artifact is not deleted."
+                        end
+                      }
                     >
                       <Heroicons.eye mini class="opacity-75 h-4 w-4 mr-1" />
                       <%= if artifact.visibility == :hidden, do: "Unminimize", else: "Minimize" %>
@@ -1083,7 +1096,10 @@
                     </div>
                   </div>
                   <!-- Show the metadata -->
-                  <dl x-show="!minimized || expanded" class="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 truncate uppercase font-mono text-sm">
+                  <dl
+                    x-show="!minimized || expanded"
+                    class="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 truncate uppercase font-mono text-sm"
+                  >
                     <div>
                       <dt class="text-neutral-500">File Size</dt>
                       <dd>

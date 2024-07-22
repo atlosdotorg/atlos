@@ -164,7 +164,8 @@ defmodule PlatformWeb.MediaLive.Show do
 
   def handle_event(
         "set_media_version_artifact_visibility",
-        %{"artifact_id" => artifact_id, "version_id" => version_id, "visibility" => value} = _params,
+        %{"artifact_id" => artifact_id, "version_id" => version_id, "visibility" => value} =
+          _params,
         socket
       ) do
     version = Material.get_media_version!(version_id)
@@ -190,8 +191,7 @@ defmodule PlatformWeb.MediaLive.Show do
        |> assign_media_and_updates()
        |> put_flash(:info, "Artifact visibility changed successfully.")}
     else
-      {:noreply,
-       socket |> put_flash(:error, "You cannot change this artifact's visibility.")}
+      {:noreply, socket |> put_flash(:error, "You cannot change this artifact's visibility.")}
     end
   end
 
