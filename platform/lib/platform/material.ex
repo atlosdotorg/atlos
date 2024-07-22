@@ -1038,6 +1038,47 @@ defmodule Platform.Material do
   end
 
   @doc """
+  Updates the visibility of a specific artifact within a media version.
+
+  This function takes a `MediaVersion`, an `artifact_id`, and a `visibility` value.
+  It updates the visibility of the specified artifact and returns the updated
+  `MediaVersion`.
+
+  ## Parameters
+
+    - media_version: A `MediaVersion` struct containing the artifacts to update.
+    - artifact_id: The ID of the specific artifact to update.
+    - visibility: The new visibility value for the artifact (as a string).
+
+  ## Returns
+
+    Returns the result of calling `Material.update_media_version/2` with the
+    updated artifacts.
+
+  ## Examples
+
+      iex> update_media_version_artifact_visiblity(media_version, 1, "hidden")
+      {:ok, %MediaVersion{}}
+
+  """
+  def update_media_version_artifact_visiblity(%MediaVersion{} = version, artifact_id, visibility) do
+    updated_artifacts =
+      Enum.map(version.artifacts, fn artifact ->
+        if artifact.id == artifact_id do
+          %{artifact | visibility: String.to_existing_atom(visibility)}
+        else
+          artifact
+        end
+      end)
+      |> Enum.map(fn
+        %{} = artifact -> Map.from_struct(artifact)
+        artifact -> artifact
+      end)
+
+    update_media_version(version, %{artifacts: updated_artifacts})
+  end
+
+  @doc """
   Adds an artifact to a media version.
   """
   def add_artifact_to_media_version(

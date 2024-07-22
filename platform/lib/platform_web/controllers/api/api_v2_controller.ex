@@ -150,6 +150,36 @@ defmodule PlatformWeb.APIV2Controller do
     end
   end
 
+  def update_artifact_visibility(conn, params) do
+    version_id = params["version_id"]
+    artifact_id = params["artifact_id"]
+    visibility = params["visibility"]
+
+    media_version = Material.get_media_version(version_id)
+
+    cond do
+      is_nil(media_version) or
+          not Permissions.can_api_token_edit_media_version?(conn.assigns.token, media_version) ->
+        json(conn |> put_status(401), %{error: "media version not found or unauthorized"})
+
+      not Enum.any?(media_version.artifacts, fn a -> a.id == artifact_id end) ->
+        json(conn |> put_status(401), %{error: "artifact not found in media version"})
+
+      true ->
+        case Material.update_media_version_artifact_visiblity(
+               media_version,
+               artifact_id,
+               visibility
+             ) do
+          {:ok, updated_version} ->
+            json(conn, %{success: true, result: updated_version})
+
+          {:error, changeset} ->
+            json(conn |> put_status(400), %{error: render_changeset_errors(changeset)})
+        end
+    end
+  end
+
   def upload_media_version_file(conn, params) do
     version_id = params["id"]
     media_version = Material.get_media_version(version_id)

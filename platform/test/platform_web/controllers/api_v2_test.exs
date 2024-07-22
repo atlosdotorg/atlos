@@ -554,4 +554,95 @@ defmodule PlatformWeb.APIV2Test do
 
     %{"success" => true, "result" => ^version} = json_response(conn, 200)
   end
+
+  test "POST /api/v2/source_material/artifact/:version_id/:artifact_id/visibility" do
+    project = project_fixture()
+    token = api_token_fixture(%{project_id: project.id, permissions: [:read, :comment, :edit]})
+    media = media_fixture(%{project_id: project.id})
+
+    # Create a media version
+    auth_conn =
+      build_conn()
+      |> put_req_header("authorization", "Bearer " <> token.value)
+      |> post("/api/v2/source_material/new/#{media.slug}", %{
+        "url" => "https://example.com"
+      })
+
+    %{"success" => true, "result" => version} = json_response(auth_conn, 200)
+    version_id = version["id"]
+
+    version = Material.get_media_version!(version_id)
+
+    # Add an artifact to the version
+    {:ok, updated_version} =
+      Material.add_artifact_to_media_version(
+        version,
+        %Material.MediaVersion.MediaVersionArtifact{
+          file_hash_sha256: "123",
+          file_size: 123,
+          mime_type: "text/plain",
+          perceptual_hashes: %{},
+          title: "Example Artifact",
+          type: :media,
+          visibility: :visible,
+          file_location: "abc/def",
+          id: Ecto.UUID.generate()
+        }
+      )
+
+    artifact_id = List.first(updated_version.artifacts).id
+
+    # Test unauthorized access
+    noauth_conn =
+      post(
+        build_conn(),
+        "/api/v2/source_material/artifact/#{version_id}/#{artifact_id}/visibility",
+        %{}
+      )
+
+    assert json_response(noauth_conn, 401) == %{"error" => "invalid token or token not found"}
+
+    # Test updating visibility
+    auth_conn =
+      build_conn()
+      |> put_req_header("authorization", "Bearer " <> token.value)
+      |> post("/api/v2/source_material/artifact/#{version_id}/#{artifact_id}/visibility", %{
+        "visibility" => "hidden"
+      })
+
+    assert %{"success" => true, "result" => result} = json_response(auth_conn, 200)
+    assert List.first(result["artifacts"])["visibility"] == "hidden"
+
+    # Test with non-existent version_id
+    auth_conn =
+      build_conn()
+      |> put_req_header("authorization", "Bearer " <> token.value)
+      |> post("/api/v2/source_material/artifact/#{Ecto.UUID.generate()}/#{artifact_id}/visibility", %{
+        "visibility" => "visible"
+      })
+
+    assert json_response(auth_conn, 401) == %{
+             "error" => "media version not found or unauthorized"
+           }
+
+    # Test with non-existent artifact_id
+    auth_conn =
+      build_conn()
+      |> put_req_header("authorization", "Bearer " <> token.value)
+      |> post("/api/v2/source_material/artifact/#{version_id}/nonexistent/visibility", %{
+        "visibility" => "visible"
+      })
+
+    assert %{"error" => _} = json_response(auth_conn, 401)
+
+    # Test with invalid visibility value
+    auth_conn =
+      build_conn()
+      |> put_req_header("authorization", "Bearer " <> token.value)
+      |> post("/api/v2/source_material/artifact/#{version_id}/#{artifact_id}/visibility", %{
+        "visibility" => "invalid"
+      })
+
+    assert %{"error" => _} = json_response(auth_conn, 400)
+  end
 end

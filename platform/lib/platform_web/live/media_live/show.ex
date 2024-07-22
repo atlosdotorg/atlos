@@ -171,20 +171,7 @@ defmodule PlatformWeb.MediaLive.Show do
     version = Material.get_media_version!(version_id)
 
     if Permissions.can_edit_media_version?(socket.assigns.current_user, version) do
-      updated_artifacts =
-        Enum.map(version.artifacts, fn artifact ->
-          if artifact.id == artifact_id do
-            %{artifact | visibility: String.to_existing_atom(value)}
-          else
-            artifact
-          end
-        end)
-        |> Enum.map(fn
-          %{} = artifact -> Map.from_struct(artifact)
-          artifact -> artifact
-        end)
-
-      {:ok, _} = Material.update_media_version(version, %{artifacts: updated_artifacts})
+      {:ok, _} = Material.update_media_version_artifact_visiblity(version, artifact_id, value)
 
       {:noreply,
        socket
