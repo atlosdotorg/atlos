@@ -163,6 +163,39 @@ defmodule PlatformWeb.MediaLive.Show do
   end
 
   def handle_event(
+        "set_media_version_artifact_visibility",
+        %{"artifact_id" => artifact_id, "version_id" => version_id, "visibility" => value} = _params,
+        socket
+      ) do
+    version = Material.get_media_version!(version_id)
+
+    if Permissions.can_edit_media_version?(socket.assigns.current_user, version) do
+      updated_artifacts =
+        Enum.map(version.artifacts, fn artifact ->
+          if artifact.id == artifact_id do
+            %{artifact | visibility: String.to_existing_atom(value)}
+          else
+            artifact
+          end
+        end)
+        |> Enum.map(fn
+          %{} = artifact -> Map.from_struct(artifact)
+          artifact -> artifact
+        end)
+
+      {:ok, _} = Material.update_media_version(version, %{artifacts: updated_artifacts})
+
+      {:noreply,
+       socket
+       |> assign_media_and_updates()
+       |> put_flash(:info, "Artifact visibility changed successfully.")}
+    else
+      {:noreply,
+       socket |> put_flash(:error, "You cannot change this artifact's visibility.")}
+    end
+  end
+
+  def handle_event(
         "toggle_deleted",
         _params,
         socket

@@ -854,12 +854,13 @@
               </div>
             <% end %>
             <%= for artifact <- version.artifacts |> Enum.sort_by(fn artifact ->
-              case artifact.type do
-                :upload -> 0
-                :media -> 1
-                :viewport -> 2
-                :fullpage -> 3
-                :pdf -> 4
+              case {artifact.visibility, artifact.type} do
+                {:hidden, _} -> 9 # Last
+                {_, :upload} -> 0
+                {_, :media} -> 1
+                {_, :viewport} -> 2
+                {_, :fullpage} -> 3
+                {_, :pdf} -> 4
                 _ -> 4
               end
             end) do %>
@@ -889,10 +890,19 @@
                 </h3>
                 <div
                   class="m-4"
-                  x-data={"{grayscale: #{is_media}, hidden: #{Media.is_graphic(@media)}}"}
+                  x-data={"{grayscale: #{is_media}, hidden: #{Media.is_graphic(@media)}, minimized: #{artifact.visibility == :hidden}, expanded: false}"}
+                  id={"artifact-#{artifact.id}-#{artifact.visibility}"}
                 >
+                  <!-- Placeholder for minimized artifact -->
+                  <button type="button" x-show="minimized && !expanded" class="cursor-pointer block w-full" @click="expanded = true">
+                    <div class="flex items-center justify-between p-4 bg-neutral-100 rounded-lg border">
+                      <span class="text-sm text-neutral-600">This artifact has been minimized (click to view).</span>
+                      <Heroicons.chevron_down mini class="h-4 w-4 text-neutral-500" />
+                    </div>
+                  </button>
+
                   <!-- Show the media itself -->
-                  <section class="max-h-[28rem] mx-auto border rounded-lg overflow-hidden bg-neutral-100 relative highlight-block">
+                  <section x-show="!minimized || expanded" class="max-h-[28rem] mx-auto border rounded-lg overflow-hidden bg-neutral-100 relative highlight-block">
                     <%= if is_media do %>
                       <div
                         class="w-full z-[2] h-full absolute bg-neutral-50 rounded-lg flex items-center justify-around top-0"
@@ -995,7 +1005,7 @@
                     <% end %>
                   </section>
                   <!-- Actions -->
-                  <div class="flex flex-grap gap-4 mt-4">
+                  <div x-show="!minimized || expanded" class="flex flex-grap gap-4 mt-4">
                     <a
                       href={Material.media_version_artifact_location(artifact)}
                       target="_blank"
@@ -1014,6 +1024,23 @@
                         <span x-text="grayscale ? 'Show Color' : 'Hide Color'">Show Color</span>
                       </button>
                     <% end %>
+                    <button
+                      type="button"
+                      phx-click="set_media_version_artifact_visibility"
+                      phx-value-artifact_id={artifact.id}
+                      phx-value-version_id={version.id}
+                      phx-value-visibility={if artifact.visibility == :hidden, do: "visible", else: "hidden"}
+                      class="base-button bg-neutral-50 text-xs"
+                      x-on:click="minimized = !minimized; expanded = false;"
+                      data-tooltip={if artifact.visibility == :hidden do
+                        "Unminimize this artifact. This can be undone at any time."
+                      else
+                        "Minimize this artifact. This can be undone at any time and the artifact is not deleted."
+                      end}
+                    >
+                      <Heroicons.eye mini class="opacity-75 h-4 w-4 mr-1" />
+                      <%= if artifact.visibility == :hidden, do: "Unminimize", else: "Minimize" %>
+                    </button>
                     <div class="relative" x-data="{ open: false }">
                       <button
                         @click="open = !open"
@@ -1056,7 +1083,7 @@
                     </div>
                   </div>
                   <!-- Show the metadata -->
-                  <dl class="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 truncate uppercase font-mono text-sm">
+                  <dl x-show="!minimized || expanded" class="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 truncate uppercase font-mono text-sm">
                     <div>
                       <dt class="text-neutral-500">File Size</dt>
                       <dd>

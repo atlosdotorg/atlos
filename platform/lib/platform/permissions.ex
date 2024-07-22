@@ -498,6 +498,18 @@ defmodule Platform.Permissions do
     end
   end
 
+  def can_edit_media_version?(%User{} = user, %MediaVersion{} = version) do
+    with true <- _is_media_version_editable?(version),
+         true <- can_view_media_version?(user, version),
+         membership when not is_nil(membership) <-
+           Projects.get_project_membership_by_user_and_project_id(user, version.project_id),
+         false <- Enum.member?(user.restrictions || [], :muted) do
+      membership.role == :owner or membership.role == :manager or membership.role == :editor
+    else
+      _ -> false
+    end
+  end
+
   def can_change_media_version_visibility?(%User{} = user, %MediaVersion{} = version) do
     with true <- can_view_media_version?(user, version),
          membership when not is_nil(membership) <-

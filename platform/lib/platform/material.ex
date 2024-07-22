@@ -1508,7 +1508,7 @@ defmodule Platform.Material do
         artifact =
           Enum.find(
             val.artifacts,
-            &(&1.type == :media)
+            &(&1.type == :media and &1.visibility == :visible)
           )
 
         if artifact do
