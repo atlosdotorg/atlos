@@ -19,7 +19,9 @@ defmodule Platform.Updates.Update do
       values: [
         :update_attribute,
         :create,
+        # Deprecated
         :upload_version,
+        :associate_version,
         :comment,
         :delete,
         :undelete,

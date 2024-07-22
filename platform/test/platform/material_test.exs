@@ -106,17 +106,18 @@ defmodule Platform.MaterialTest do
         type: :image
       }
 
-      media = media_fixture()
+      project = project_fixture()
 
       assert {:ok, %MediaVersion{} = media_version} =
-               Material.create_media_version(media, valid_attrs)
+               Material.create_media_version(project, valid_attrs)
 
       assert media_version.source_url == "some source_url"
+      assert media_version.project_id == project.id
     end
 
     test "create_media_version/1 with invalid data returns error changeset" do
       assert {:error, %Ecto.Changeset{}} =
-               Material.create_media_version(media_fixture(), @invalid_attrs)
+               Material.create_media_version(project_fixture(), @invalid_attrs)
     end
 
     test "update_media_version/2 with valid data updates the media_version" do

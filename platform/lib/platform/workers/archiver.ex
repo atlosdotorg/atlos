@@ -31,10 +31,10 @@ defmodule Platform.Workers.Archiver do
     Logger.info("Archiving media version #{id}...")
     version = Material.get_media_version!(id)
 
-    %MediaVersion{status: status, media_id: media_id} = version
+    %MediaVersion{status: status} = version
 
     if status == :pending or is_rearchive_request do
-      Logger.info("Archiving media version #{id}... (got media #{media_id})")
+      Logger.info("Archiving media version #{id}...")
 
       hide_version_on_failure = Map.get(args, "hide_version_on_failure", false)
 
@@ -223,7 +223,6 @@ defmodule Platform.Workers.Archiver do
 
           # Track event
           Auditor.log(:archive_success, %{
-            media_id: media_id,
             source_url: version.source_url,
             media_version: version
           })
@@ -273,7 +272,9 @@ defmodule Platform.Workers.Archiver do
         end
 
       # Push update to viewers
-      Material.broadcast_media_updated(media_id)
+      Enum.each(version.media, fn media ->
+        Platform.Material.broadcast_media_updated(media.id)
+      end)
 
       # Cleanup any known tempfiles
       Temp.cleanup()

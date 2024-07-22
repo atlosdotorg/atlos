@@ -16,6 +16,7 @@ defmodule Platform.Material do
   alias Platform.Material.Media
   alias Platform.Material.Attribute
   alias Platform.Material.MediaVersion
+  alias Platform.Material.MediaVersion.MediaVersionMedia
   alias Platform.Material.MediaSubscription
   alias Platform.Utils
   alias Platform.Updates
@@ -158,7 +159,15 @@ defmodule Platform.Material do
   end
 
   defp preload_media_versions(query) do
-    query |> preload(versions: [artifacts: [:uploading_token]])
+    query
+    |> preload(
+      versions: [
+        artifacts: [:uploading_token],
+        media_associations: [:media],
+        media: [],
+        project: []
+      ]
+    )
   end
 
   defp preload_media_updates(query) do
@@ -167,8 +176,8 @@ defmodule Platform.Material do
     |> preload(
       updates: [
         :user,
-        :media_version,
         :api_token,
+        media_version: [:media, :media_associations],
         media: [:project]
       ]
     )
@@ -363,14 +372,20 @@ defmodule Platform.Material do
           {:ok, _} = subscribe_user(media, user)
 
           # Upload media, if provided
+          project = Projects.get_project!(media.project_id)
+
           for url <- Ecto.Changeset.get_field(changeset, :urls_parsed) do
             {:ok, version} =
-              create_media_version_audited(media, user, %{
-                upload_type: :direct,
-                status: :pending,
-                source_url: url,
+              create_media_version_audited(
+                user,
+                project,
+                %{
+                  upload_type: :direct,
+                  status: :pending,
+                  source_url: url
+                },
                 media_id: media.id
-              })
+              )
 
             archive_media_version(version)
           end
@@ -478,12 +493,15 @@ defmodule Platform.Material do
       # Attempt to archive all media versions
       for source <- sources do
         {:ok, version} =
-          create_media_version(media, %{
-            upload_type: :direct,
-            status: :pending,
-            source_url: source,
+          create_media_version(
+            project,
+            %{
+              upload_type: :direct,
+              status: :pending,
+              source_url: source
+            },
             media_id: media.id
-          })
+          )
 
         archive_media_version(version, priority: 3, hide_version_on_failure: false)
       end
@@ -628,7 +646,7 @@ defmodule Platform.Material do
   """
   def count_media_versions_for_media_id(media_id) do
     Repo.one(
-      from(v in MediaVersion,
+      from(v in MediaVersionMedia,
         where: v.media_id == ^media_id,
         select: count("*")
       )
@@ -668,8 +686,6 @@ defmodule Platform.Material do
         end
       end)
     )
-    |> Enum.sort_by(& &1.media.id)
-    |> Enum.dedup_by(& &1.media.id)
   end
 
   def get_media_versions_by_media(%Media{} = media) do
@@ -682,7 +698,7 @@ defmodule Platform.Material do
 
   def get_media_by_source_url(source_url, opts \\ []) do
     get_media_versions_by_source_url(source_url, opts)
-    |> Enum.map(& &1.media)
+    |> Enum.flat_map(& &1.media)
     |> Enum.sort()
     |> Enum.dedup()
   end
@@ -715,46 +731,112 @@ defmodule Platform.Material do
     Repo.update_all(from(m in Media, where: m.id == ^media.id), set: [auto_metadata: metadata])
   end
 
-  def create_media_version(%Media{} = media, attrs \\ %{}) do
+  def change_media_version_media(%MediaVersionMedia{} = mvm, attrs \\ %{}) do
+    MediaVersionMedia.changeset(mvm, attrs)
+  end
+
+  def link_media_version_to_media(%MediaVersion{} = media_version, %Media{} = media) do
+    Repo.transaction(fn ->
+      change_media_version_media(%MediaVersionMedia{}, %{
+        media_id: media.id,
+        media_version_id: media_version.id,
+        scoped_id: count_media_versions_for_media_id(media.id) + 1
+      })
+      |> Repo.insert()
+    end)
+  end
+
+  @doc """
+  Create a media version with the given attributes.
+
+  Options:
+  - `media_id`: if provided, the media ID to associate with the media version.
+  """
+  def create_media_version(%Project{} = project, attrs \\ %{}, opts \\ []) do
+    media_id = Keyword.get(opts, :media_id, nil)
+
     result =
       %MediaVersion{}
       |> MediaVersion.changeset(
         attrs
-        |> Map.put("media_id", media.id)
-        |> Map.put("scoped_id", count_media_versions_for_media_id(media.id) + 1)
+        |> Map.put("project_id", project.id)
         |> Utils.make_keys_strings()
       )
+      |> then(fn cs ->
+        case media_id do
+          nil ->
+            cs
+
+          _ ->
+            # Verify the media is part of the same project
+            media = get_media!(media_id)
+
+            if media.project_id != project.id do
+              raise ArgumentError, "Media ID does not belong to the project."
+            end
+
+            Ecto.Changeset.put_assoc(
+              cs,
+              :media_associations,
+              [
+                %MediaVersionMedia{
+                  media_id: media_id,
+                  scoped_id: count_media_versions_for_media_id(media_id) + 1
+                }
+              ]
+            )
+        end
+      end)
       |> Repo.insert()
+      |> then(fn x ->
+        case x do
+          {:ok, version} -> {:ok, version |> Repo.preload(media: [:project])}
+          any -> any
+        end
+      end)
 
     result
   end
 
   def create_media_version_audited(
-        %Media{} = media,
         user_or_token,
+        %Project{} = project,
         attrs \\ %{},
         opts \\ []
       ) do
-    if Permissions.can_edit_media?(user_or_token, media) do
+    if Permissions.can_add_media_versions_to_project?(user_or_token, project) do
       Repo.transaction(fn ->
-        with {:ok, version} <- create_media_version(media, attrs),
-             update_changeset <-
-               Updates.change_from_media_version_upload(media, user_or_token, version, attrs),
-             {:ok, _} <-
-               if(
-                 Keyword.get(opts, :post_updates, true),
-                 do: Updates.create_update_from_changeset(update_changeset),
-                 else: {:ok, 0}
-               ) do
-          case user_or_token do
-            %User{} ->
-              Updates.subscribe_if_first_interaction(media, user_or_token)
+        with {:ok, version} <- create_media_version(project, attrs, opts) do
+          if not Enum.empty?(version.media) do
+            for media <- version.media do
+              with update_changeset <-
+                     Updates.change_from_media_version_association(
+                       media,
+                       user_or_token,
+                       version,
+                       attrs
+                     ),
+                   {:ok, _} <-
+                     if(
+                       Keyword.get(opts, :post_updates, true),
+                       do: Updates.create_update_from_changeset(update_changeset),
+                       else: {:ok, 0}
+                     ) do
+                {:ok, version}
+              end
 
-            _ ->
-              nil
+              case user_or_token do
+                %User{} ->
+                  Updates.subscribe_if_first_interaction(media, user_or_token)
+
+                _ ->
+                  nil
+              end
+
+              schedule_media_auto_metadata_update(media)
+            end
           end
 
-          schedule_media_auto_metadata_update(media)
           version
         else
           _ -> {:error, change_media_version(%MediaVersion{}, attrs)}
@@ -768,36 +850,38 @@ defmodule Platform.Material do
     end
   end
 
-  def change_media_project(%Media{} = media, attrs \\ %{}, user \\ nil) do
-    Media.project_changeset(media, attrs, user)
-  end
-
-  def update_media_project(%Media{} = media, attrs \\ %{}, user \\ nil) do
-    change_media_project(media, attrs, user)
-    |> Repo.update()
-  end
-
   @doc """
   Duplicate (and re-process) the given media version to the new media.
   """
-  def copy_media_version_to_new_media_audited(
+  def link_media_version_to_media_audited(
         %MediaVersion{} = media_version,
         %Media{} = destination,
         %User{} = user,
-        opts
+        attrs \\ %{},
+        opts \\ []
       ) do
-    {:ok, new_version} =
-      create_media_version_audited(
-        destination,
-        user,
-        Map.from_struct(
-          media_version
-          |> Map.put(:artifacts, Enum.map(media_version.artifacts || [], &Map.from_struct/1))
-        ),
-        post_updates: Keyword.get(opts, :post_updates, true)
-      )
+    {:ok, updated_version} =
+      Repo.transaction(fn ->
+        {:ok, _} = link_media_version_to_media(media_version, destination)
 
-    {:ok, new_version}
+        post_updates = Keyword.get(opts, :post_updates, true)
+
+        if post_updates do
+          {:ok, _} =
+            Updates.create_update_from_changeset(
+              Updates.change_from_media_version_association(
+                destination,
+                user,
+                media_version,
+                attrs
+              )
+            )
+        end
+
+        {:ok, Material.get_media_version!(media_version.id)}
+      end)
+
+    {:ok, updated_version}
   end
 
   @doc """
@@ -817,7 +901,7 @@ defmodule Platform.Material do
             get_media_versions_by_media(source) |> Enum.filter(&(&1.visibility == :visible)) do
         if is_nil(version.source_url) or not Enum.member?(destination_urls, version.source_url) do
           {:ok, _} =
-            copy_media_version_to_new_media_audited(version, destination, user,
+            link_media_version_to_media_audited(version, destination, user, %{},
               post_updates: Keyword.get(opts, :post_updates, true)
             )
         end
@@ -948,7 +1032,7 @@ defmodule Platform.Material do
       |> MediaVersion.changeset(attrs)
       |> Repo.update()
 
-    schedule_media_auto_metadata_update(media_version.media_id)
+    Enum.each(media_version.media, &schedule_media_auto_metadata_update(&1.id))
 
     res
   end
@@ -966,7 +1050,7 @@ defmodule Platform.Material do
       |> Ecto.Changeset.put_embed(:artifacts, media_version.artifacts ++ [artifact])
       |> Repo.update()
 
-    schedule_media_auto_metadata_update(media_version.media_id)
+    Enum.each(media_version.media, &schedule_media_auto_metadata_update(&1.id))
 
     res
   end
@@ -1460,8 +1544,7 @@ defmodule Platform.Material do
   def submit_for_external_archival(%MediaVersion{source_url: ""} = _version), do: :ok
 
   def submit_for_external_archival(%MediaVersion{source_url: url} = version) do
-    media = Platform.Material.get_media!(version.media_id)
-    project = Platform.Projects.get_project!(media.project_id)
+    project = Platform.Projects.get_project!(version.project_id)
 
     if project.should_sync_with_internet_archive do
       Task.start(fn ->
@@ -1493,7 +1576,10 @@ defmodule Platform.Material do
   Get the human-readable name of the media version (e.g., ABCDEF/1). The media must match the version.
   """
   def get_human_readable_media_version_name(%Media{} = media, %MediaVersion{} = version) do
-    "#{Media.slug_to_display(media)}/#{version.scoped_id}"
+    # Find the association that connects the media version and the media
+    media_association = Enum.find(version.media_associations, &(&1.media_id == media.id))
+
+    "#{Media.slug_to_display(media)}/#{media_association.scoped_id}"
   end
 
   @doc """

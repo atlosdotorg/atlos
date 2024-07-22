@@ -4,6 +4,7 @@ defmodule Platform.Updates do
   """
 
   import Ecto.Query, warn: false
+  alias Platform.Material.MediaVersion.MediaVersionMedia
   alias Platform.Material.Attribute
   alias Platform.Repo
 
@@ -42,8 +43,8 @@ defmodule Platform.Updates do
     queryable
     |> preload([
       :user,
-      :media_version,
       :api_token,
+      media_version: [:media, :media_associations],
       media: [:project]
     ])
   end
@@ -348,9 +349,26 @@ defmodule Platform.Updates do
   end
 
   @doc """
+  Helper API function that takes a MediaVersionMedia (association between a
+  media version and a media) and uses it to create an Update changeset.
+  """
+  def change_from_media_version_media_creation(%MediaVersionMedia{} = mvm, user_or_token, attrs) do
+    change_update(
+      %Update{},
+      mvm.media,
+      user_or_token,
+      %{
+        "type" => :media_version_associated,
+        "media_version_id" => mvm.media_version_id,
+        "explanation" => Map.get(attrs, "explanation")
+      }
+    )
+  end
+
+  @doc """
   Helper API function that takes attribute change information and uses it to create an Update changeset.
   """
-  def change_from_media_version_upload(
+  def change_from_media_version_association(
         %Media{} = media,
         user_or_token,
         %MediaVersion{} = version,
@@ -360,11 +378,11 @@ defmodule Platform.Updates do
       %Update{},
       media,
       user_or_token,
-      %{
-        "type" => :upload_version,
-        "media_version_id" => version.id,
-        "explanation" => Map.get(attrs, "explanation")
-      }
+      Map.merge(attrs, %{
+        "type" => :associate_version,
+        "media_version_id" => version.id
+      })
+      |> Utils.make_keys_strings()
     )
   end
 

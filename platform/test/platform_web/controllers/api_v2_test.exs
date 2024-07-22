@@ -178,7 +178,7 @@ defmodule PlatformWeb.APIV2Test do
                Jason.decode!(
                  Jason.encode!(
                    Material.list_media_versions()
-                   |> Enum.filter(&(&1.media.project_id == project.id))
+                   |> Enum.filter(&(&1.project_id == project.id))
                  )
                ),
              "previous" => nil,
@@ -352,7 +352,6 @@ defmodule PlatformWeb.APIV2Test do
     new_material = Material.get_media!(media.id)
     version = new_material.versions |> Enum.find(&(&1.id == version["id"]))
     assert not is_nil(version)
-    assert version.scoped_id == 1
 
     # Do it again, this time with archival
     auth_conn =
@@ -366,7 +365,7 @@ defmodule PlatformWeb.APIV2Test do
     %{"success" => true, "result" => version} = json_response(auth_conn, 200)
     assert version["source_url"] == "https://atlos.org"
     assert version["upload_type"] == "direct"
-    assert version["scoped_id"] == 2
+
     # This one should fail because the token doesn't have the right permissions
     conn =
       build_conn()

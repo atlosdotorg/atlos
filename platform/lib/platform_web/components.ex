@@ -940,7 +940,23 @@ defmodule PlatformWeb.Components do
                       uploaded
                       <.link
                         patch={
-                            "/incidents/#{@update.media.slug}/detail/#{@update.media_version.scoped_id}"
+                            "/incidents/#{@update.media.slug}/detail/#{@update.media_version.id}"
+                          }
+                        class="text-button text-gray-800"
+                      >
+                        <span>
+                          <%= Material.get_human_readable_media_version_name(
+                            @update.media,
+                            @update.media_version
+                          ) %>
+                        </span>
+                        &nearr;
+                      </.link>
+                    <% :associate_version -> %>
+                      added
+                      <.link
+                        patch={
+                            "/incidents/#{@update.media.slug}/detail/#{@update.media_version.id}"
                           }
                         class="text-button text-gray-800"
                       >
@@ -2930,7 +2946,7 @@ defmodule PlatformWeb.Components do
       |> assign(:show_controls, Map.get(assigns, :show_controls, true))
       |> assign(:media_id, "version-#{version.id}-media")
       |> assign(:human_name, Material.get_human_readable_media_version_name(media, version))
-      |> assign(:detail_url, "/incidents/#{media.slug}/detail/#{version.scoped_id}")
+      |> assign(:detail_url, "/incidents/#{media.slug}/detail/#{version.id}")
 
     ~H"""
     <section

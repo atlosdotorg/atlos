@@ -111,6 +111,17 @@ defmodule Platform.Permissions do
     end
   end
 
+  defmemo _is_media_version_editable?(%MediaVersion{} = version), expires_in: 5000 do
+    # Security mode must be normal, the media can't be deleted, and its project must be active.
+
+    with :normal <- Platform.Security.get_security_mode_state(),
+         true <- Projects.get_project(version.project_id).active do
+      true
+    else
+      _ -> false
+    end
+  end
+
   def can_api_token_read_updates?(%APIToken{} = token) do
     Enum.member?(token.permissions, :read) and token.is_active
   end
@@ -123,6 +134,11 @@ defmodule Platform.Permissions do
   def can_api_token_edit_media?(%APIToken{} = token, %Media{} = media) do
     Enum.member?(token.permissions, :edit) and token.is_active and
       token.project_id == media.project_id and _is_media_editable?(media)
+  end
+
+  def can_api_token_edit_media_version?(%APIToken{} = token, %MediaVersion{} = media_version) do
+    Enum.member?(token.permissions, :edit) and token.is_active and
+      token.project_id == media_version.project_id and _is_media_version_editable?(media_version)
   end
 
   def can_api_token_update_attribute?(
@@ -151,6 +167,24 @@ defmodule Platform.Permissions do
       %Projects.ProjectMembership{role: :editor} -> true
       _ -> false
     end
+  end
+
+  def can_add_media_versions_to_project?(_, %Project{active: false}) do
+    false
+  end
+
+  def can_add_media_versions_to_project?(%User{} = user, %Project{} = project) do
+    case Projects.get_project_membership_by_user_and_project(user, project) do
+      %Projects.ProjectMembership{role: :owner} -> true
+      %Projects.ProjectMembership{role: :manager} -> true
+      %Projects.ProjectMembership{role: :editor} -> true
+      _ -> false
+    end
+  end
+
+  def can_add_media_versions_to_project?(%Platform.API.APIToken{} = token, %Project{} = project) do
+    Enum.member?(token.permissions, :edit) and token.is_active and
+      token.project_id == project.id
   end
 
   def can_bulk_upload_media_to_project?(%User{}, %Project{active: false}) do
@@ -270,6 +304,10 @@ defmodule Platform.Permissions do
     end
   end
 
+  def can_edit_media?(%APIToken{} = token, %Media{} = media) do
+    can_api_token_edit_media?(token, media)
+  end
+
   def can_edit_media?(%User{} = user, %Media{} = media) do
     # This includes uploading new media versions as well as editing attributes.
     membership = Projects.get_project_membership_by_user_and_project_id(user, media.project_id)
@@ -291,10 +329,6 @@ defmodule Platform.Permissions do
     end
   end
 
-  def can_edit_media?(%APIToken{} = token, %Media{} = media) do
-    can_api_token_edit_media?(token, media)
-  end
-
   def can_edit_media?(%User{} = user, %Media{} = media, %Attribute{} = attribute) do
     # This includes uploading new media versions as well as editing attributes.
     membership = Projects.get_project_membership_by_user_and_project_id(user, media.project_id)
@@ -306,6 +340,19 @@ defmodule Platform.Permissions do
       else
         true
       end
+    else
+      _ -> false
+    end
+  end
+
+  def can_associate_media_version_with_media?(
+        %User{} = user,
+        %MediaVersion{} = version,
+        %Media{} = media
+      ) do
+    with true <- can_edit_media?(user, media),
+         true <- can_view_media_version?(user, version) do
+      true
     else
       _ -> false
     end
@@ -438,11 +485,10 @@ defmodule Platform.Permissions do
   end
 
   def can_view_media_version?(%User{} = user, %MediaVersion{} = version) do
-    media = _get_media_from_id(version.media_id)
-
-    with true <- can_view_media?(user, media),
+    with true <-
+           Enum.empty?(version.media) or Enum.any?(version.media, &can_view_media?(user, &1)),
          membership when not is_nil(membership) <-
-           Projects.get_project_membership_by_user_and_project(user, media.project) do
+           Projects.get_project_membership_by_user_and_project(user, version.project) do
       case version.visibility == :removed do
         true -> membership.role == :owner or membership.role == :manager
         false -> true
@@ -453,11 +499,9 @@ defmodule Platform.Permissions do
   end
 
   def can_change_media_version_visibility?(%User{} = user, %MediaVersion{} = version) do
-    media = _get_media_from_id(version.media_id)
-
-    with true <- can_view_media?(user, media),
+    with true <- can_view_media_version?(user, version),
          membership when not is_nil(membership) <-
-           Projects.get_project_membership_by_user_and_project(user, media.project) do
+           Projects.get_project_membership_by_user_and_project(user, version.project) do
       membership.role == :owner or membership.role == :manager
     else
       _ -> false
@@ -468,21 +512,17 @@ defmodule Platform.Permissions do
     # Its status is :error, and they're not a data-only viewer
     version.status == :error and
       version.upload_type == :direct and
-      (
-        media = _get_media_from_id(version.media_id)
-
-        with true <- can_view_media?(user, media),
-             true <- media.project.active,
-             membership when not is_nil(membership) <-
-               Projects.get_project_membership_by_user_and_project(user, media.project) do
-          case version.visibility == :removed do
-            true -> membership.role == :owner or membership.role == :manager
-            false -> membership.role != :data_only_viewer
-          end
-        else
-          _ -> false
+      with true <- can_view_media_version?(user, version),
+           true <- version.project.active,
+           membership when not is_nil(membership) <-
+             Projects.get_project_membership_by_user_and_project(user, version.project) do
+        case version.visibility == :removed do
+          true -> membership.role == :owner or membership.role == :manager
+          false -> membership.role != :data_only_viewer
         end
-      )
+      else
+        _ -> false
+      end
   end
 
   def can_user_change_update_visibility?(%User{} = user, %Update{} = update) do

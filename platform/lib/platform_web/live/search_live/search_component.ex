@@ -277,7 +277,7 @@ defmodule PlatformWeb.SearchLive.SearchComponent do
                         <ul class="-mx-4 mt-2 text-sm text-neutral-700">
                           <%= for {item, idx} <- @results.media_versions do %>
                             <.link
-                              navigate={"/incidents/#{item.media.slug}/detail/#{item.scoped_id}"}
+                              navigate={"/incidents/#{item.media.slug}/detail/#{item.id}"}
                               class="cursor-pointer"
                               id={"result-#{idx}-#{item.id}"}
                             >
@@ -295,7 +295,14 @@ defmodule PlatformWeb.SearchLive.SearchComponent do
                                     class="font-mono font-medium text-neutral-500 pr-2 whitespace-nowrap"
                                     data-tooltip={"#{item.media.attr_description} (#{item.media.attr_status})"}
                                   >
-                                    <%= Platform.Material.Media.slug_to_display(item.media) %>/<%= item.scoped_id %>
+                                    <%= item.id %> <%= if not Enum.empty?(item.media),
+                                      do:
+                                        "( " ++
+                                          Enum.join(
+                                            item.media
+                                            |> Enum.map(&Platform.Material.slug_to_display(&1)),
+                                            ", "
+                                          ) ++ ")" %>
                                   </div>
                                   <div class="max-w-full flex-grow-1">
                                     <p class="leading-snug font-medium">

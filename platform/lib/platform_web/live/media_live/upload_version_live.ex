@@ -35,7 +35,7 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
   end
 
   defp assign_version(socket) do
-    socket |> assign_new(:version, fn -> %Material.MediaVersion{media: socket.assigns.media} end)
+    socket |> assign_new(:version, fn -> %Material.MediaVersion{} end)
   end
 
   defp assign_changeset(socket) do
@@ -55,7 +55,7 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
 
   defp set_fixed_params(params, socket) do
     params
-    |> Map.put("media_id", socket.assigns.media.id)
+    |> Map.put("project_id", socket.assigns.media.project_id)
     |> Map.put("status", "pending")
     |> Map.put("upload_type", "user_provided")
   end
@@ -134,8 +134,8 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
           # Update the media version
           {:ok, version} =
             Material.create_media_version_audited(
-              socket.assigns.media,
               socket.assigns.current_user,
+              socket.assigns.media.project,
               Map.merge(params, %{
                 "artifacts" => [
                   %{
@@ -147,7 +147,8 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
                     "type" => "upload"
                   }
                 ]
-              })
+              }),
+              media_id: socket.assigns.media.id
             )
 
           Material.archive_media_version(version)
@@ -401,7 +402,7 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
                   disabled={false}
                   name={:explanation}
                   placeholder="Optionally provide more context on this media."
-                  id="comment-box-parent-input"
+                  id="comment-box-parent-input-upload-version-live"
                   rows={1}
                   class="block w-full !border-0 resize-none focus:ring-0 sm:text-sm shadow-none"
                 />

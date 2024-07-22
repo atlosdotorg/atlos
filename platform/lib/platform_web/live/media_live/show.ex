@@ -31,7 +31,7 @@ defmodule PlatformWeb.MediaLive.Show do
        |> assign(:slug, slug)
        |> assign(:attribute, Map.get(params, "attribute"))
        # For /detail
-       |> assign(:scoped_id, Map.get(params, "scoped_id"))
+       |> assign(:media_version_id, Map.get(params, "media_version_id"))
        # Will also assign title
        |> assign_media_and_updates()}
     end

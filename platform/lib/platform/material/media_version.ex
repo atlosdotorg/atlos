@@ -5,8 +5,6 @@ defmodule Platform.Material.MediaVersion do
 
   @primary_key {:id, :binary_id, autogenerate: true}
   schema "media_versions" do
-    field(:scoped_id, :integer)
-
     field(:upload_type, Ecto.Enum, values: [:user_provided, :direct], default: :user_provided)
     field(:source_url, :string)
     field(:metadata, :map, default: %{})
@@ -32,20 +30,18 @@ defmodule Platform.Material.MediaVersion do
     field(:status, Ecto.Enum, values: [:pending, :complete, :error], default: :complete)
     field(:visibility, Ecto.Enum, default: :visible, values: [:visible, :hidden, :removed])
 
-    # "Legacy" attributes (when media versions were just single files)
-    field(:file_location, :string)
-    field(:file_size, :integer)
-    field(:mime_type, :string)
-    field(:client_name, :string)
-    field(:duration_seconds, :integer)
-
     # Virtual field for when creating new media versions (used by Updates)
     field(:explanation, :string, virtual: true)
 
     # Computed tsvector field "searchable"; we tell Ecto it's an array of maps so we can use it in queries
     field(:searchable, {:array, :map}, load_in_query: false)
 
-    belongs_to(:media, Media, type: :binary_id)
+    has_many(:media_associations, Platform.Material.MediaVersion.MediaVersionMedia,
+      foreign_key: :media_version_id
+    )
+
+    has_many(:media, through: [:media_associations, :media])
+    belongs_to(:project, Platform.Projects.Project, type: :binary_id)
 
     timestamps()
   end
@@ -57,9 +53,8 @@ defmodule Platform.Material.MediaVersion do
       :upload_type,
       :status,
       :source_url,
-      :media_id,
       :visibility,
-      :scoped_id,
+      :project_id,
       :metadata,
       :explanation
     ])
@@ -67,7 +62,7 @@ defmodule Platform.Material.MediaVersion do
     |> validate_required([
       :status,
       :upload_type,
-      :media_id
+      :project_id
     ])
     |> validate_length(:explanation,
       max: 2500,
@@ -81,7 +76,6 @@ defmodule Platform.Material.MediaVersion do
         changeset
       end
     end)
-    |> unique_constraint([:media_id, :scoped_id], name: "media_versions_scoped_id_index")
   end
 
   @doc false
@@ -108,6 +102,39 @@ defmodule Platform.Material.MediaVersion do
   end
 end
 
+defmodule Platform.Material.MediaVersion.MediaVersionMedia do
+  @moduledoc """
+  Through-model for facilitating the many-to-many relationship between media and
+  media versions.
+  """
+
+  use Ecto.Schema
+  import Ecto.Changeset
+  alias Platform.Material.Media
+  alias Platform.Material.MediaVersion
+
+  @primary_key {:id, :binary_id, autogenerate: true}
+  schema "media_version_media" do
+    belongs_to(:media, Media, type: :binary_id)
+    belongs_to(:media_version, MediaVersion, type: :binary_id)
+
+    field(:scoped_id, :integer)
+    timestamps()
+  end
+
+  def changeset(media_version_media, attrs) do
+    media_version_media
+    |> cast(attrs, [:media_version_id, :media_id, :scoped_id])
+    |> validate_required([:media_version_id, :media_id, :scoped_id])
+    |> unique_constraint([:media_id, :scoped_id],
+      name: "media_version_media_media_id_scoped_id_index"
+    )
+    |> unique_constraint([:media_id, :scoped_id],
+      name: "media_version_media_media_id_media_version_id_index"
+    )
+  end
+end
+
 defimpl Jason.Encoder, for: Platform.Material.MediaVersion do
   def encode(value, opts) do
     Jason.Encode.map(
@@ -122,7 +149,7 @@ defimpl Jason.Encoder, for: Platform.Material.MediaVersion do
         :visibility,
         :metadata
       ])
-      |> Map.put(:incident_id, value.media_id)
+      |> Map.put(:incident_ids, Enum.map(value.media, & &1.id))
       |> Enum.into(%{}, fn
         {key, %Ecto.Association.NotLoaded{}} -> {key, nil}
         {key, value} -> {key, value}

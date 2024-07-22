@@ -645,7 +645,7 @@
       </.modal>
     <% end %>
     <%= if @live_action == :media_version_detail do %>
-      <% version = Enum.find(@media_versions, &(to_string(&1.scoped_id) == @scoped_id)) %>
+      <% version = Enum.find(@media_versions, &(to_string(&1.id) == @media_version_id)) %>
       <.modal :if={not is_nil(version)} target={} close_confirmation="" wide={true} no_pad={true}>
         <div class="flex flex-col sm:flex-row sm:max-h-[85vh] h-full rounded-lg sm:overflow-hidden">
           <section class="sm:max-w-[20rem] sm:min-w-[15rem] flex flex-col self-stretch p-8 overflow-y-auto">

@@ -6,6 +6,7 @@ defmodule Platform.MaterialTest do
   alias Platform.Accounts
 
   import Platform.MaterialFixtures
+  import Platform.ProjectsFixtures
   import Platform.AccountsFixtures
 
   describe "media" do
@@ -111,14 +112,42 @@ defmodule Platform.MaterialTest do
         client_name: "upload.png"
       }
 
+      project = project_fixture()
       media = media_fixture()
 
       assert {:ok, %MediaVersion{} = media_version} =
-               Material.create_media_version(media, valid_attrs)
+               Material.create_media_version(project, valid_attrs)
 
       assert media_version.file_location == "some file_location"
       assert media_version.file_size == 42
       assert media_version.source_url == "some source_url"
+    end
+
+    test "create_media_version/1 with valid data and media creates a media_version that is associated with the given media" do
+      valid_attrs = %{
+        file_location: "some file_location",
+        file_size: 42,
+        source_url: "some source_url",
+        type: :image,
+        duration_seconds: 30,
+        mime_type: "image/png",
+        client_name: "upload.png"
+      }
+
+      media = media_fixture()
+
+      assert {:ok, %MediaVersion{} = media_version} =
+               Material.create_media_version(media.project, valid_attrs, media_id: media.id)
+
+      assert media_version.file_location == "some file_location"
+      assert media_version.file_size == 42
+      assert media_version.source_url == "some source_url"
+      assert media_version.project_id == media.project_id
+
+      assert Enum.member?(
+               Material.get_media_versions_by_media(media) |> Enum.map(& &1.id),
+               media_version.id
+             )
     end
 
     test "create_media_version/1 with invalid data returns error changeset" do
