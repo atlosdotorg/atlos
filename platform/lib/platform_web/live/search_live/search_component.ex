@@ -277,7 +277,7 @@ defmodule PlatformWeb.SearchLive.SearchComponent do
                         <ul class="-mx-4 mt-2 text-sm text-neutral-700">
                           <%= for {item, idx} <- @results.media_versions do %>
                             <.link
-                              navigate={"/incidents/#{item.media.slug}/detail/#{item.id}"}
+                              navigate={"/incidents/#{hd(item.media).slug}/detail/#{item.id}"}
                               class="cursor-pointer"
                               id={"result-#{idx}-#{item.id}"}
                             >
@@ -293,16 +293,16 @@ defmodule PlatformWeb.SearchLive.SearchComponent do
                                 <article class="flex flex-wrap md:flex-nowrap w-full gap-1 justify-leading text-sm max-w-full overflow-hidden">
                                   <div
                                     class="font-mono font-medium text-neutral-500 pr-2 whitespace-nowrap"
-                                    data-tooltip={"#{item.media.attr_description} (#{item.media.attr_status})"}
+                                    data-tooltip={"#{hd(item.media).attr_description} (#{hd(item.media).attr_status})"}
                                   >
-                                    <%= item.id %> <%= if not Enum.empty?(item.media),
+                                    <%= if not Enum.empty?(item.media),
                                       do:
-                                        "( " ++
-                                          Enum.join(
-                                            item.media
-                                            |> Enum.map(&Platform.Material.slug_to_display(&1)),
-                                            ", "
-                                          ) ++ ")" %>
+                                        Enum.join(
+                                          item.media
+                                          |> Enum.map(&Platform.Material.Media.slug_to_display(&1)),
+                                          ", "
+                                        ),
+                                      else: "—" %>
                                   </div>
                                   <div class="max-w-full flex-grow-1">
                                     <p class="leading-snug font-medium">

@@ -488,7 +488,7 @@ defmodule Platform.Permissions do
     with true <-
            Enum.empty?(version.media) or Enum.any?(version.media, &can_view_media?(user, &1)),
          membership when not is_nil(membership) <-
-           Projects.get_project_membership_by_user_and_project(user, version.project) do
+           Projects.get_project_membership_by_user_and_project_id(user, version.project_id) do
       case version.visibility == :removed do
         true -> membership.role == :owner or membership.role == :manager
         false -> true

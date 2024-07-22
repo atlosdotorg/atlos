@@ -6,10 +6,11 @@ defmodule PlatformWeb.Plugs.RemoteIp do
   end
 
   def call(conn, _opts) do
-    remote_ip = case :inet_parse.ntoa(conn.remote_ip) do
-      {:error, _} -> "localhost"
-      ip -> to_string(ip)
-    end
+    remote_ip =
+      case :inet_parse.ntoa(conn.remote_ip) do
+        {:error, _} -> "localhost"
+        ip -> to_string(ip)
+      end
 
     Logger.metadata(remote_ip: remote_ip)
 
