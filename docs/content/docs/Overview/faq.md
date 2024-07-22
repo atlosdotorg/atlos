@@ -17,9 +17,7 @@ It depends. We take safety incredibly seriously; Atlos also underwent an indepen
 
 ## What infrastructure does Atlos use? 
 ### Hosting
-Right now, we deploy Atlos in two places: on the lovely Fly.io (who sponsor us—thank you!) and on Microsoft Azure (who also sponsor us—thank you!).
-
-We are in the middle of a transition of our infrastructure from Fly.io to Azure. While the Fly.io platform is great, right now we need a more robust and battle-tested environment to run our application (and especially our database), and we ran into enough issues with Fly.io that we decided to make the leap to Azure.
+Right now, we deploy Atlos on Microsoft Azure (who also sponsor us—thank you!).
 
 ### Media storage
 We store media in an Amazon S3 bucket. 
