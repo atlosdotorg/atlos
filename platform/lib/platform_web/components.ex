@@ -286,6 +286,7 @@ defmodule PlatformWeb.Components do
   def nav(assigns) do
     name = Utils.get_instance_name()
     version = Utils.get_instance_version()
+    revision = Utils.get_instance_revision()
     runtime = Utils.get_runtime_information()
 
     assigns =
@@ -303,7 +304,7 @@ defmodule PlatformWeb.Components do
           <.link
             navigate="/"
             class="flex gap-2 md:gap-0 md:flex-col items-center text-white"
-            title={"Atlos version #{@version} (runtime: #{@runtime})"}
+            title={"Atlos version #{@version} (version: #{@revision}, runtime: #{@runtime})"}
           >
             <span class="text-xl py-px px-1 rounded-sm bg-white text-neutral-700 uppercase font-extrabold font-mono">
               Atlos

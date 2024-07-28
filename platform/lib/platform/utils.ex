@@ -292,6 +292,10 @@ defmodule Platform.Utils do
   end
 
   def get_instance_version() do
+    System.get_env("APP_VERSION", "unknown")
+  end
+
+  def get_instance_revision() do
     System.get_env("APP_REVISION", "unknown")
   end
 

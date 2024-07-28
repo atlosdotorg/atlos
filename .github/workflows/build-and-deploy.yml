@@ -49,6 +49,15 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
 
+      - name: Set version
+        id: set_version
+        run: |
+          if [[ "${{ github.ref_type }}" == "tag" ]]; then
+            echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+          else
+            echo "VERSION=unnamed_release" >> $GITHUB_OUTPUT
+          fi
+
       - name: Build and push container image to registry
         uses: docker/build-push-action@v3
         id: docker-build
@@ -60,7 +69,10 @@ jobs:
           file: ./platform/Dockerfile
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          build-args: APP_REVISION=${{ github.sha }}
+          build-args: |
+            APP_REVISION=${{ github.sha }}
+            APP_VERSION=${{ steps.set_version.outputs.VERSION }}
+
   deploy-staging:
     # Only runs if the build job was successful
     needs: build
