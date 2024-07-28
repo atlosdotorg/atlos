@@ -290,7 +290,7 @@ defmodule PlatformWeb.Components do
     runtime = Utils.get_runtime_information()
 
     assigns =
-      assigns |> assign(:name, name) |> assign(:version, version) |> assign(:runtime, runtime)
+      assigns |> assign(:name, name) |> assign(:version, version) |> assign(:revision, revision) |> assign(:runtime, runtime)
 
     ~H"""
     <div class="md:w-28 h-20"></div>
@@ -304,7 +304,7 @@ defmodule PlatformWeb.Components do
           <.link
             navigate="/"
             class="flex gap-2 md:gap-0 md:flex-col items-center text-white"
-            title={"Atlos version #{@version} (version: #{@revision}, runtime: #{@runtime})"}
+            title={"Atlos version #{@version} \n (revision: #{@revision}, runtime: #{@runtime})"}
           >
             <span class="text-xl py-px px-1 rounded-sm bg-white text-neutral-700 uppercase font-extrabold font-mono">
               Atlos
