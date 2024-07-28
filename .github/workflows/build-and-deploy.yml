@@ -52,11 +52,9 @@ jobs:
       - name: Set version
         id: set_version
         run: |
-          if [[ "${{ github.ref_type }}" == "tag" ]]; then
-            echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
-          else
-            echo "VERSION=unnamed_release" >> $GITHUB_OUTPUT
-          fi
+          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "version unknown")
+          echo "VERSION=${LATEST_TAG}" >> $GITHUB_OUTPUT  
+  
 
       - name: Build and push container image to registry
         uses: docker/build-push-action@v3
