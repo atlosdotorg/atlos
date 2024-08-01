@@ -4,7 +4,7 @@ description: Integrate Atlos with third-party services.
 type: docs
 sidebar:
   open: true
-weight: 1 
+weight: 1
 ---
 
 
@@ -44,7 +44,7 @@ Atlos' API uses several terms that users of Atlos might be unfamiliar with:
 {{< /filetree/container >}}
 
 ## Authentication
-API tokens are sensitive—they allow read and write access to your project. By default, every API token will have access to a `READ` endpoint. 
+API tokens are sensitive—they allow read and write access to your project. By default, every API token will have access to a `READ` endpoint.
 
 To authenticate against the API, include an `Authorization` header and set its value to `Bearer <your token>`. In python, that looks like this:
 ```python
@@ -59,11 +59,11 @@ requests.get(
 Paginate using the `cursor` query parameter, whose value is provided by the `next` and `previous` keys in the response. Results are available under the `results` key.
 
 ## API Endpoints
-The Atlos API supports `GET` and `POST` endpoints. All `GET` endpoints return 30 results at a time. 
+The Atlos API supports `GET` and `POST` endpoints. All `GET` endpoints return 30 results at a time.
 
 ### Get all incidents in a project
 `GET /api/v2/incidents` returns all incidents in a project.
-- **Sort—** Most recently modified incidents are listed first. 
+- **Sort—** Most recently modified incidents are listed first.
 - **Filter—** You can optionally pass search parameters to filter results using the same format as the in-platform incident search page's URL. For example, to return only incidents with the status "To Do" or "Cancelled", query `/api/v2/incidents?attr_status[]=To+Do&attr_status=Cancelled`.
 
 ```python
@@ -98,8 +98,8 @@ requests.get(
 
 ### Create a new piece of source material
 `POST /api/v2/source_material/new/:slug` creates a new piece of source material in the already-existing incident with slug `:slug`. This endpoint has two optional parameters:
-- `url`, a URL for Atlos to archive (optional). 
-- `archive`, a boolean value indicating whether Atlos should archive the URL in `url` (optional). 
+- `url`, a URL for Atlos to archive (optional).
+- `archive`, a boolean value indicating whether Atlos should archive the URL in `url` (optional).
 
 Note that if you opt not to archive a link, you will create an empty piece of source material to which you can add artifacts later.
 
@@ -142,9 +142,26 @@ requests.post(
 )
 ```
 
+### Update artifact visibility
+`POST /api/v2/source_material/artifact/:version_id/:artifact_id/visibility` updates the visibility of an artifact within a piece of source material. This endpoint has one required parameter:
+- `visibility`, a string that should be either "visible" or "hidden". Note that "hidden" corresponds to "minimized" in the Atlos interface.
+
+Minimizing artifacts does not delete them; it simply lowers their prominence in the Atlos interface. All artifacts are still accessible via the API.
+
+The `:version_id` is the ID of the piece of source material, and `:artifact_id` is the ID of the specific artifact within that source material.
+
+```python
+requests.post(
+    f"https://platform.atlos.org/api/v2/source_material/artifact/{version_id}/{artifact_id}/visibility",
+    headers={"Authorization": f"Bearer {api_token}"},
+    json={"visibility": "private"},
+)
+```
+
+
 ### Get updates and comments
-`GET /api/v2/updates` returns all updates (including comments) in a project. 
-- **Sort—** Most recent updates are listed first. 
+`GET /api/v2/updates` returns all updates (including comments) in a project.
+- **Sort—** Most recent updates are listed first.
 - **Filter—** To see updates for a specific incident, append the `slug` query parameter to the endpoint (e.g., `/api/v2/updates?slug=incident-slug`). The slug is the last part of the URL for the incident, and is also available in the ‘slug’ field of the incident object returned by other endpoints.
 
 ```python
@@ -170,13 +187,13 @@ requests.post(
 ### Update an incident's attribute value
 `POST /api/v2/update/:slug/:attribute_name` updates the attribute `:attribute_name` in the incident with slug `:slug`. It has two parameters:
 - `value`, the new value of the attribute (required). For text or single-select attributes, `value` should be a string. For multi-select attributes, `value` should be a list of strings.
-- `message`, a string to be displayed as an explanation for the update (optional). If `message` is provided, it will be added as a comment to the incident (as part of the tracked change). 
+- `message`, a string to be displayed as an explanation for the update (optional). If `message` is provided, it will be added as a comment to the incident (as part of the tracked change).
 
 The `:attribute_name` may not be the name of the attribute displayed in the interface:
 - Core attributes have string names (such as `description` and `status`).
-- Custom attributes are identified by a long ID. 
-  
-To find the name of an attribute, open the attribute editing window and copy the last part of the URL. For example, in the URL `https://platform.atlos.org/incidents/EPIHRZ/update/c37c2619-3377-4b97-989b-f3481c7f1948`, the attribute's ID is `c37c2619-3377-4b97-989b-f3481c7f1948`. 
+- Custom attributes are identified by a long ID.
+
+To find the name of an attribute, open the attribute editing window and copy the last part of the URL. For example, in the URL `https://platform.atlos.org/incidents/EPIHRZ/update/c37c2619-3377-4b97-989b-f3481c7f1948`, the attribute's ID is `c37c2619-3377-4b97-989b-f3481c7f1948`.
 
 ```python
 requests.post(

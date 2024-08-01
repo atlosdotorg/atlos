@@ -104,6 +104,12 @@ defmodule PlatformWeb.Router do
         :upload_media_version_file
       )
 
+      post(
+        "/source_material/artifact/:version_id/:artifact_id/visibility",
+        APIV2Controller,
+        :update_artifact_visibility
+      )
+
       get("/incidents", APIV2Controller, :incidents)
       get("/updates", APIV2Controller, :get_updates)
       post("/add_comment/:slug", APIV2Controller, :add_comment)
@@ -204,7 +210,7 @@ defmodule PlatformWeb.Router do
       live("/incidents/:slug/upload/merge", MediaLive.Show, :merge)
       live("/incidents/:slug/upload/copy", MediaLive.Show, :copy)
       live("/incidents/:slug/auto_metadata", MediaLive.Show, :auto_metadata)
-      live("/incidents/:slug/detail/:scoped_id", MediaLive.Show, :media_version_detail)
+      live("/incidents/:slug/detail/:media_version_id", MediaLive.Show, :media_version_detail)
 
       live("/projects", ProjectsLive.Index, :index)
       live("/projects/new", ProjectsLive.Index, :new)

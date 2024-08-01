@@ -22,7 +22,9 @@ config :platform, Platform.Repo,
 config :platform, PlatformWeb.Endpoint,
   http: [ip: {127, 0, 0, 1}, port: 4002],
   secret_key_base: "wCtlJDRdK1Mavb6QCIjxx0yX2qSVW1R6PctHeLgQjBKqQT6rW3UbaoRjl2Vzkt1C",
-  server: false
+  server: false,
+  debug_errors: true,
+  check_origin: false
 
 # In test we don't send emails.
 config :platform, Platform.Mailer, adapter: Swoosh.Adapters.Test

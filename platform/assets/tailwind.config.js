@@ -6,6 +6,10 @@ module.exports = {
     './js/**/*.js',
     '../lib/**/*.*ex'
   ],
+  safelist: [
+    // Explicitly list a17t color classes
+    { pattern: /^~(neutral|positive|urge|warning|info|critical)/ }
+  ],
   theme: {
     extend: {
       colors: {
@@ -26,15 +30,14 @@ module.exports = {
   },
   variants: {},
   plugins: [
+    require('a17t'),
     require('@tailwindcss/forms'),
     require('@tailwindcss/typography'),
-    require('a17t'),
     plugin(function ({ addVariant }) {
       addVariant('processing', '.processing &', 'processing')
     }),
     plugin(({ addVariant }) => addVariant("drag-item", [".drag-item&", ".drag-item &"])),
     plugin(({ addVariant }) => addVariant("drag-ghost", [".drag-ghost&", ".drag-ghost &"])),
-    // Useful for hiding placeholders when dragging; active when there is a sibling with `data-sortable-id` set
     plugin(({ addVariant }) => addVariant("sibling-sortable", ["~ [data-sortable-id] ~ &", "~ [data-sortable-id] &"])),
   ]
 };

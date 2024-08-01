@@ -35,8 +35,7 @@ defmodule Platform.GlobalSearch do
           fragment("? @@ websearch_to_tsquery('simple', ?)", mv.searchable, ^query) or
             ilike(mv.source_url, ^"%#{query_only_alphaneumeric}%") or
             fragment("LOWER(?) = ?", mv.source_url, ^query_lower_raw),
-        join: m in assoc(mv, :media),
-        join: p in assoc(m, :project),
+        join: p in assoc(mv, :project),
         join: pm in assoc(p, :memberships),
         on: pm.user_id == ^user.id,
         where: not is_nil(pm),
