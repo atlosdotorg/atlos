@@ -31,7 +31,7 @@ defmodule PlatformWeb.MediaLive.Show do
        |> assign(:slug, slug)
        |> assign(:attribute, Map.get(params, "attribute"))
        # For /detail
-       |> assign(:scoped_id, Map.get(params, "scoped_id"))
+       |> assign(:media_version_id, Map.get(params, "media_version_id"))
        # Will also assign title
        |> assign_media_and_updates()}
     end
@@ -100,6 +100,28 @@ defmodule PlatformWeb.MediaLive.Show do
   end
 
   def handle_event(
+        "clear_metadata_namespace",
+        %{"namespace" => namespace, "version" => version_id} = _params,
+        socket
+      ) do
+    version = Material.get_media_version!(version_id)
+
+    if version.media_id != socket.assigns.media.id or
+         not Permissions.can_edit_media?(socket.assigns.current_user, socket.assigns.media) do
+      raise PlatformWeb.Errors.Unauthorized, "No permission"
+    end
+
+    updated_metadata = Map.drop(version.metadata || %{}, [namespace])
+
+    {:ok, _} = Material.update_media_version(version, %{metadata: updated_metadata})
+
+    {:noreply,
+     socket
+     |> assign_media_and_updates()
+     |> put_flash(:info, "Metadata cleared successfully.")}
+  end
+
+  def handle_event(
         "set_media_visibility",
         %{"version" => version, "state" => value} = _params,
         socket
@@ -137,6 +159,26 @@ defmodule PlatformWeb.MediaLive.Show do
        socket
        |> assign_media_and_updates()
        |> put_flash(:info, "Media visibility changed successfully.")}
+    end
+  end
+
+  def handle_event(
+        "set_media_version_artifact_visibility",
+        %{"artifact_id" => artifact_id, "version_id" => version_id, "visibility" => value} =
+          _params,
+        socket
+      ) do
+    version = Material.get_media_version!(version_id)
+
+    if Permissions.can_edit_media_version?(socket.assigns.current_user, version) do
+      {:ok, _} = Material.update_media_version_artifact_visiblity(version, artifact_id, value)
+
+      {:noreply,
+       socket
+       |> assign_media_and_updates()
+       |> put_flash(:info, "Artifact visibility changed successfully.")}
+    else
+      {:noreply, socket |> put_flash(:error, "You cannot change this artifact's visibility.")}
     end
   end
 

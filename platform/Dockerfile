@@ -12,9 +12,9 @@
 #   - https://pkgs.org/ - resource for finding needed packages
 #   - Ex: hexpm/elixir:1.13.4-erlang-24.3.3-debian-bullseye-20210902-slim
 #
-ARG ELIXIR_VERSION=1.16.2
-ARG OTP_VERSION=26.2.5
-ARG DEBIAN_VERSION=bookworm-20240513
+ARG ELIXIR_VERSION=1.17.2
+ARG OTP_VERSION=27.0.1
+ARG DEBIAN_VERSION=bookworm-20240701
 
 ARG BUILDER_IMAGE="hexpm/elixir:${ELIXIR_VERSION}-erlang-${OTP_VERSION}-debian-${DEBIAN_VERSION}"
 ARG RUNNER_IMAGE="debian:${DEBIAN_VERSION}"
@@ -72,8 +72,8 @@ RUN mix release
 FROM docker:20
 FROM ${RUNNER_IMAGE}
 
-ARG APP_REVISION="unset"
-ENV APP_REVISION=${APP_REVISION}
+ARG APP_VERSION="unset"
+ENV APP_VERSION=${APP_VERSION}
 
 RUN apt-get update -y && apt-get install -y libstdc++6 openssl libncurses5 locales \
   && apt-get clean && rm -f /var/lib/apt/lists/*_*
@@ -110,8 +110,9 @@ RUN cd /app/utils && PYTHON_KEYRING_BACKEND=keyring.backends.null.Keyring poetry
 # Only copy the final release from the build stage
 COPY --from=builder --chown=atlos:root /app/_build/${MIX_ENV}/rel/platform ./
 
-RUN echo $APP_REVISION > APP_REVISION
-RUN echo APP_REVISION=${APP_REVISION}
+# Set the version number/commit hash from GitHub
+RUN echo $APP_VERSION > APP_VERSION
+RUN echo APP_VERSION=${APP_VERSION}
 
 # Expose a high port number for inbound connections to avoid permissions issues
 EXPOSE 4000
