@@ -67,7 +67,7 @@ resource "azurerm_container_app" "platform" {
 
     container {
       name  = "platform"
-      image = "ghcr.io/atlosdotorg/atlos:main"
+      image = "ghcr.io/atlosdotorg/atlos:v1.2.1"
 
       cpu    = 1.0
       memory = "2Gi"
