@@ -85,7 +85,11 @@ defmodule Platform.Material.Media do
     field(:searchable, {:array, :map}, load_in_query: false)
 
     # Associations
-    has_many(:versions, Platform.Material.MediaVersion)
+    has_many(:version_associations, Platform.Material.MediaVersion.MediaVersionMedia,
+      foreign_key: :media_id
+    )
+
+    has_many(:versions, through: [:version_associations, :media_version])
     has_many(:notifications, Platform.Notifications.Notification)
     has_many(:updates, Platform.Updates.Update)
     has_many(:subscriptions, MediaSubscription)

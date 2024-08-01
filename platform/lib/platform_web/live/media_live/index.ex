@@ -119,7 +119,7 @@ defmodule PlatformWeb.MediaLive.Index do
     attributes = Attribute.active_attributes(project: project) |> Enum.filter(&is_nil(&1.parent))
 
     groups =
-      case dbg(project) do
+      case project do
         nil -> [:core]
         _ -> project.attribute_groups
       end
@@ -141,7 +141,7 @@ defmodule PlatformWeb.MediaLive.Index do
     # Sort by group ordering, then attribute ordering
     attributes_with_groups =
       Enum.sort_by(attributes_with_groups, fn {_, g} ->
-        {if(is_atom(dbg(g)), do: -1, else: g.ordering)}
+        {if(is_atom(g), do: -1, else: g.ordering)}
       end)
 
     socket

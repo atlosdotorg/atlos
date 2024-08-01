@@ -108,24 +108,6 @@ if config_env() == :prod do
 
   # Configure libcluster clustering
   cond do
-    not is_nil(System.get_env("FLY_APP_NAME")) ->
-      # We're running on fly.io
-      app_name = System.get_env("FLY_APP_NAME")
-
-      config :libcluster,
-        # Always have debug logging
-        debug: true,
-        topologies: [
-          fly6pn: [
-            strategy: Cluster.Strategy.DNSPoll,
-            config: [
-              polling_interval: 5_000,
-              query: "#{app_name}.internal",
-              node_basename: app_name
-            ]
-          ]
-        ]
-
     System.get_env("SINGLE_NODE", "false") != "true" ->
       config :libcluster,
         # Always have debug logging

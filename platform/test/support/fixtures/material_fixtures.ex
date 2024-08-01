@@ -45,10 +45,10 @@ defmodule Platform.MaterialFixtures do
   @doc """
   Generate a media_version.
   """
-  def media_version_fixture(attrs \\ %{}) do
+  def media_version_fixture(attrs \\ %{}, opts \\ []) do
     {:ok, media_version} =
-      media_fixture()
-      |> Platform.Material.create_media_version(
+      Platform.Material.create_media_version(
+        project_fixture(),
         attrs
         |> Enum.into(%{
           file_location: "some file_location",
@@ -59,7 +59,8 @@ defmodule Platform.MaterialFixtures do
           duration_seconds: 30,
           mime_type: "image/png",
           client_name: "upload.png"
-        })
+        }),
+        opts
       )
 
     media_version

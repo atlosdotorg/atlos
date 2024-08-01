@@ -62,7 +62,6 @@ defmodule PlatformWeb.ExportController do
       end)
 
     allowed_field_names = Enum.map(fields ++ custom_attribute_names, &to_string/1)
-    dbg(allowed_field_names)
 
     {field_list
      |> Enum.filter(fn {k, _v} ->
@@ -122,8 +121,6 @@ defmodule PlatformWeb.ExportController do
 
     formatted =
       Enum.map(results, &format_media(&1, fields_excluding_custom, conn.assigns.current_user))
-
-    dbg(formatted)
 
     media = formatted |> Enum.map(fn {media, _} -> media end)
 
@@ -189,14 +186,14 @@ defmodule PlatformWeb.ExportController do
           media.versions
           |> Stream.filter(&Permissions.can_view_media_version?(conn.assigns.current_user, &1))
           |> Stream.flat_map(fn version ->
-            Logger.debug("Checking version #{media_slug}/#{version.scoped_id}")
-            folder_name = "#{root_folder_name}/#{media_slug}/#{media_slug}-#{version.scoped_id}"
+            Logger.debug("Checking version #{media_slug}/#{version.id}")
+            folder_name = "#{root_folder_name}/#{media_slug}/#{media_slug}-#{version.id}"
 
             version.artifacts
             |> Stream.map(fn artifact ->
               location = Material.media_version_artifact_location(artifact)
               f_extension = artifact.file_location |> String.split(".") |> List.last("data")
-              fname = "#{artifact.type}_#{media_slug}-#{version.scoped_id}.#{f_extension}"
+              fname = "#{artifact.type}_#{media_slug}-#{version.id}-#{artifact.id}.#{f_extension}"
               Logger.debug("Artifact #{fname}: #{location}")
               Zstream.entry("#{folder_name}/#{fname}", HTTPDownload.stream!(location))
             end)

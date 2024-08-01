@@ -47,7 +47,7 @@ Atlos is intentionally simple. Our infrastructure consists of only a few parts:
 * Some kind of way to send emails (e.g., Amazon SES)
 * A few miscellaneous (and optional!) APIs that we can hook into (Slack for audit logging, hCaptcha for captchas, the Internet Archive's Save Page Now API)
 
-There is no Redis server (Elixir obviates that); there is no background processing job worker (Elixir obviates that); there is no Kubernetes (Azure Container Apps/Fly.io obviate that).
+There is no Redis server (Elixir obviates that); there is no background processing job worker (Elixir obviates that); there is no Kubernetes (Azure Container Apps obviates that).
 
 Here's a high-level architecture diagram that illustrates how the pieces connect together:
 
@@ -67,9 +67,7 @@ If you're familiar with Atlos, you know that archival is a big part of what we d
 
 ### Where is this deployed?
 
-Right now, we deploy Atlos in two places: on the lovely Fly.io (who sponsor us — thank you!) and on Microsoft Azure (who also sponsor us — thank you!).
-
-We are in the middle of a transition of our infrastructure from Fly.io to Azure. While the Fly.io platform is great, right now we need a more robust and battle-tested environment to run our application (and especially our database), and we ran into enough issues with Fly.io that we decided to make the leap to Azure.
+Right now, we deploy Atlos on Microsoft Azure (who sponsor us — thank you!).
 
 On Azure, we use only three products directly: Azure Container Apps, Azure Database for PostgreSQL, and Azure Container Registry. The Atlos web app runs inside Azure Container Apps; you can see the full CI deploy script inside [/.github/workflows/deploy-staging-azure.yml](/.github/workflows/deploy-staging-azure.yml). Atlos is entirely containerized, and our containers are stored inside Azure Container Registry. As you might expect, we use Azure Database for PostgreSQL for our database. (It helpfully gives us robust backups, point-in-time restores, etc.)
 
