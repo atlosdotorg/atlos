@@ -67,7 +67,7 @@ resource "azurerm_container_app" "platform" {
 
     container {
       name  = "platform"
-      image = "ghcr.io/atlosdotorg/atlos:main"
+      image = "ghcr.io/atlosdotorg/atlos:v1.2.1"
 
       cpu    = 1.0
       memory = "2Gi"
@@ -194,6 +194,21 @@ resource "azurerm_container_app" "platform" {
       env {
         name  = "AWS_REGION"
         value = var.platform_aws_region
+      }
+
+      env {
+        name  = "RESTRICT_PROJECT_CREATION"
+        value = var.restrict_project_creation
+      }
+
+      env {
+        name  = "AUTOTAG_USER_INCIDENTS"
+        value = var.autotag_user_incidents
+      }
+
+      env {
+        name  = "ATTRIBUTE_OPTIONS"
+        value = var.attribute_options
       }
 
       env {

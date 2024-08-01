@@ -303,7 +303,7 @@ defmodule PlatformWeb.Components do
           <.link
             navigate="/"
             class="flex gap-2 md:gap-0 md:flex-col items-center text-white"
-            title={"Atlos version #{@version} (runtime: #{@runtime})"}
+            title={"Atlos version: #{@version} \nRuntime: #{@runtime}"}
           >
             <span class="text-xl py-px px-1 rounded-sm bg-white text-neutral-700 uppercase font-extrabold font-mono">
               Atlos
@@ -940,7 +940,23 @@ defmodule PlatformWeb.Components do
                       uploaded
                       <.link
                         patch={
-                            "/incidents/#{@update.media.slug}/detail/#{@update.media_version.scoped_id}"
+                            "/incidents/#{@update.media.slug}/detail/#{@update.media_version.id}"
+                          }
+                        class="text-button text-gray-800"
+                      >
+                        <span>
+                          <%= Material.get_human_readable_media_version_name(
+                            @update.media,
+                            @update.media_version
+                          ) %>
+                        </span>
+                        &nearr;
+                      </.link>
+                    <% :associate_version -> %>
+                      added
+                      <.link
+                        patch={
+                            "/incidents/#{@update.media.slug}/detail/#{@update.media_version.id}"
                           }
                         class="text-button text-gray-800"
                       >
@@ -1328,7 +1344,7 @@ defmodule PlatformWeb.Components do
       <% end %>
       <%= if length(@unset_attrs) > 0 do %>
         <div class="py-2 sm:grid sm:grid-cols-3 sm:gap-4 -mb-2">
-          <dt class="text-sm font-medium text-gray-500 mt-1">Add Attributes</dt>
+          <dt class="text-sm text-gray-500 mt-1">Add Attributes</dt>
           <dd class="mt-1 flex flex-wrap gap-2 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
             <%= for attr <- @unset_attrs do %>
               <.link
@@ -1561,7 +1577,7 @@ defmodule PlatformWeb.Components do
 
     ~H"""
     <div class="py-2 sm:grid sm:grid-cols-3 sm:gap-2">
-      <dt class="text-sm font-medium text-gray-500 mt-1 flex justify-between items-center flex-wrap">
+      <dt class="text-sm text-gray-500 mt-1 flex justify-between items-center flex-wrap">
         <span class="flex items-center gap-1">
           <%= @attr.label %>
           <%= if Platform.Material.Attribute.requires_privileges_to_edit(@attr) do %>
@@ -2930,7 +2946,7 @@ defmodule PlatformWeb.Components do
       |> assign(:show_controls, Map.get(assigns, :show_controls, true))
       |> assign(:media_id, "version-#{version.id}-media")
       |> assign(:human_name, Material.get_human_readable_media_version_name(media, version))
-      |> assign(:detail_url, "/incidents/#{media.slug}/detail/#{version.scoped_id}")
+      |> assign(:detail_url, "/incidents/#{media.slug}/detail/#{version.id}")
 
     ~H"""
     <section

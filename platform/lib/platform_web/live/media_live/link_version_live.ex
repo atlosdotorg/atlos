@@ -14,7 +14,7 @@ defmodule PlatformWeb.MediaLive.LinkVersionLive do
   end
 
   defp assign_version(socket) do
-    socket |> assign(:version, %Material.MediaVersion{media: socket.assigns.media})
+    socket |> assign(:version, %Material.MediaVersion{})
   end
 
   defp assign_changeset(socket) do
@@ -39,7 +39,7 @@ defmodule PlatformWeb.MediaLive.LinkVersionLive do
 
   defp set_fixed_params(params, socket) do
     params
-    |> Map.put("media_id", socket.assigns.media.id)
+    |> Map.put("project_id", socket.assigns.media.project_id)
     |> Map.put("status", "pending")
     |> Map.put("upload_type", "direct")
   end
@@ -69,9 +69,10 @@ defmodule PlatformWeb.MediaLive.LinkVersionLive do
 
     if changeset.valid? do
       case Material.create_media_version_audited(
-             socket.assigns.media,
              socket.assigns.current_user,
-             params
+             socket.assigns.media.project,
+             params,
+             media_id: socket.assigns.media.id
            ) do
         {:ok, version} ->
           Auditor.log(
@@ -91,7 +92,7 @@ defmodule PlatformWeb.MediaLive.LinkVersionLive do
           {:noreply, assign(socket, :changeset, changeset)}
       end
     else
-      {:noreply, assign(socket, :changeset, changeset)}
+      {:noreply, assign(socket, :changeset, dbg(changeset))}
     end
   end
 
@@ -132,7 +133,7 @@ defmodule PlatformWeb.MediaLive.LinkVersionLive do
                 disabled={false}
                 name={:explanation}
                 placeholder="Optionally provide more context on this media."
-                id="comment-box-parent-input"
+                id="comment-box-parent-input-link-version-live"
                 rows={1}
                 class="block w-full !border-0 resize-none focus:ring-0 sm:text-sm shadow-none"
               />
