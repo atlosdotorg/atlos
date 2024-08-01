@@ -57,9 +57,8 @@ jobs:
       - name: Set version
         id: set_version
         run: |
-          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "unknown")
-          echo "VERSION=${LATEST_TAG}" >> $GITHUB_OUTPUT  
-  
+          GITHUB_VERSION=$(git describe --exact-match --tags 2>/dev/null || echo ${GITHUB_SHA})
+          echo "VERSION=${GITHUB_VERSION}" >> $GITHUB_OUTPUT
 
       - name: Build and push container image to registry
         uses: docker/build-push-action@v3
@@ -73,7 +72,6 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           build-args: |
-            APP_REVISION=${{ github.sha }}
             APP_VERSION=${{ steps.set_version.outputs.VERSION }}
 
   deploy-staging:

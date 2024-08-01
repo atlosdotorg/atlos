@@ -72,9 +72,6 @@ RUN mix release
 FROM docker:20
 FROM ${RUNNER_IMAGE}
 
-ARG APP_REVISION="unset"
-ENV APP_REVISION=${APP_REVISION}
-
 ARG APP_VERSION="unset"
 ENV APP_VERSION=${APP_VERSION}
 
@@ -113,11 +110,7 @@ RUN cd /app/utils && PYTHON_KEYRING_BACKEND=keyring.backends.null.Keyring poetry
 # Only copy the final release from the build stage
 COPY --from=builder --chown=atlos:root /app/_build/${MIX_ENV}/rel/platform ./
 
-# Set the commit hash from GitHub
-RUN echo $APP_REVISION > APP_REVISION
-RUN echo APP_REVISION=${APP_REVISION}
-
-# Set the version number from GitHub
+# Set the version number/commit hash from GitHub
 RUN echo $APP_VERSION > APP_VERSION
 RUN echo APP_VERSION=${APP_VERSION}
 

@@ -295,10 +295,6 @@ defmodule Platform.Utils do
     System.get_env("APP_VERSION", "unknown")
   end
 
-  def get_instance_revision() do
-    System.get_env("APP_REVISION", "unknown")
-  end
-
   def get_runtime_information() do
     System.get_env("CONTAINER_APP_REPLICA_NAME", "replica info unknown")
   end
