@@ -24,14 +24,7 @@ import hashlib
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options as ChromeOptions
 from selenium.webdriver.chrome.service import Service as ChromiumService
-from webdriver_manager.chrome import ChromeDriverManager
-from webdriver_manager.core.os_manager import ChromeType
 from selenium.webdriver.common.print_page_options import PrintOptions
-from webdriver_manager.core.utils import read_version_from_cmd
-from webdriver_manager.core.os_manager import PATTERN
-
-# Make sure we install the right version of the Chrome driver
-chromedriver_version = read_version_from_cmd("chromium --version", PATTERN["chromium"])
 
 # From https://github.com/bellingcat/auto-archiver/blob/dockerize/src/auto_archiver/utils/url.py#L3
 is_telegram_private = re.compile(r"https:\/\/t\.me(\/c)\/(.+)\/(\d+)")
@@ -104,15 +97,13 @@ def archive_page_using_selenium(url: str) -> dict:
         options.add_argument("--no-sandbox")
         options.add_argument("--disable-dev-shm-usage")
         options.add_argument("--headless=new")
-        driver = webdriver.Chrome(
-            service=ChromiumService(
-                # If you update this version, be sure to also update the version in all Dockerfiles
-                ChromeDriverManager(
-                    chrome_type=ChromeType.CHROMIUM, driver_version=chromedriver_version
-                ).install()
-            ),
-            options=options,
-        )
+        options.binary_location = '/usr/bin/chromium'
+        
+        # Set up the Service object with the path to chromedriver
+        service = ChromiumService('/usr/bin/chromedriver')
+
+        # Initialize the Chrome WebDriver
+        driver = webdriver.Chrome(service=service, options=options)
         driver.set_window_size(1600, 1200)
 
         # Load the page
