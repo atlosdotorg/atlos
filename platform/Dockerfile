@@ -99,7 +99,7 @@ COPY utils utils
 ENV UTILS_DIR="/app/utils"
 
 # Install packages needed for runtime environment
-RUN apt-get update -y && apt-get install -y ffmpeg imagemagick curl python3-full dbus python3-pip python3-poetry chromium chromium-chromedriver tmpreaper ca-certificates postgresql-client jq \
+RUN apt-get update -y && apt-get install -y ffmpeg imagemagick curl python3-full dbus python3-pip python3-poetry chromium chromium-driver tmpreaper ca-certificates postgresql-client jq \
   && apt-get clean && rm -f /var/lib/apt/lists/*_*
 
 USER atlos
