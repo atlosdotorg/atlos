@@ -31,7 +31,7 @@ defmodule Platform.Workers.Archiver do
 
     Logger.info("Archiving media version #{id}...")
     version = Material.get_media_version!(id)
-    project = Projects.get_project!(version.project_id)
+    project = Projects.get_project!(version.media.project_id)
 
     %MediaVersion{status: status, media_id: media_id} = version
 
@@ -297,6 +297,15 @@ defmodule Platform.Workers.Archiver do
       Logger.info(
         "Media version #{id} is not pending and this is not a rearchive request, or archival is disabled for this project. Skipping."
       )
+
+      # Mark as not needing archival
+      if version.status == :pending do
+        version_map = %{
+          status: :complete,
+        }
+
+        {:ok, _} = Material.update_media_version(version, version_map)
+      end
 
       {:ok, version}
     end
