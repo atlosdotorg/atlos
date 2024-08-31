@@ -20,6 +20,7 @@ defmodule PlatformWeb.UpdatesLive.UpdateFeed do
       old_update.media_id == new_update.media_id and
       NaiveDateTime.diff(new_update.inserted_at, old_update.inserted_at) < 15 * 60 and
       is_nil(old_update.explanation) and is_nil(new_update.explanation) and
+      old_update.attachments == [] and new_update.attachments == [] and
       ((old_update.type == :update_attribute and new_update.type == :update_attribute) or
          (old_update.type == :upload_version and new_update.type == :upload_version))
   end
