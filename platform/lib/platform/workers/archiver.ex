@@ -3,6 +3,7 @@ defmodule Platform.Workers.Archiver do
   alias Platform.Material.MediaVersion
   alias Platform.Auditor
   alias Platform.Uploads
+  alias Platform.Projects
 
   require Logger
 
@@ -30,10 +31,11 @@ defmodule Platform.Workers.Archiver do
 
     Logger.info("Archiving media version #{id}...")
     version = Material.get_media_version!(id)
+    project = Projects.get_project!(version.project_id)
 
     %MediaVersion{status: status, media_id: media_id} = version
 
-    if status == :pending or is_rearchive_request do
+    if (status == :pending or is_rearchive_request) and not (version.upload_type == :direct and not project.source_material_archival_enabled) do
       Logger.info("Archiving media version #{id}... (got media #{media_id})")
 
       hide_version_on_failure = Map.get(args, "hide_version_on_failure", false)
@@ -293,7 +295,7 @@ defmodule Platform.Workers.Archiver do
       result
     else
       Logger.info(
-        "Media version #{id} is not pending, and this is not a rearchive request. Skipping."
+        "Media version #{id} is not pending and this is not a rearchive request, or archival is disabled for this project. Skipping."
       )
 
       {:ok, version}

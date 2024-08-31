@@ -773,6 +773,20 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                   </p>
                   <%= error_tag(f, :should_sync_with_internet_archive) %>
                 </div>
+                <div class="mt-4">
+                  <p class="flex gap-2 items-center mb-1">
+                    <%= checkbox(f, :source_material_archival_enabled,
+                      disabled: not Permissions.can_edit_project_metadata?(@current_user, @project)
+                    ) %>
+                    <%= label(f, :source_material_archival_enabled) do %>
+                      Use built-in source material archival
+                    <% end %>
+                  </p>
+                  <p class="support">
+                    If enabled, Atlos will automatically archive source material links added to this project. Disable if you'd like to use a custom archival solution.
+                  </p>
+                  <%= error_tag(f, :source_material_archival_enabled) %>
+                </div>
               </details>
               <div class="mt-8">
                 <div class="flex justify-between gap-4 flex-wrap">
