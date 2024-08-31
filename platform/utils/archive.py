@@ -95,8 +95,8 @@ def archive_page_using_selenium(url: str) -> dict:
         # to remove sensitive variables), but this is — to an extent — an acceptable risk
         # (given the complexity tradeoff).
         options.add_argument("--no-sandbox")
-        options.add_argument("--disable-dev-shm-usage")
-        options.add_argument("--headless=new")
+        options.add_argument("--disable-gpu")
+        options.add_argument("--headless")
         options.binary_location = '/usr/bin/chromium'
         
         # Set up the Service object with the path to chromedriver
