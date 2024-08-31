@@ -96,6 +96,7 @@ def archive_page_using_selenium(url: str) -> dict:
         # (given the complexity tradeoff).
         options.add_argument("--no-sandbox")
         options.add_argument("--disable-gpu")
+        options.add_argument("--disable-dev-shm-usage")
         options.add_argument("--headless")
         options.binary_location = '/usr/bin/chromium'
         
