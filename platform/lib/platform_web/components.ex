@@ -3072,7 +3072,7 @@ defmodule PlatformWeb.Components do
                   <.url_icon url={@version.source_url} class="mx-auto h-10 w-10 shadow-sm" />
                   <h3 class="mt-2 break-all font-medium text-gray-900 text-sm">External Media</h3>
                   <p class="mt-1 text-gray-500 text-sm">
-                    Unable to archive this media automatically.
+                    This source material is currently empty.
                   </p>
                   <span class="button mt-1 original py-1 px-2 text-xs">
                     <svg
