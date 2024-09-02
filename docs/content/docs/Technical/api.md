@@ -172,7 +172,7 @@ requests.post(
 - `value`, the new value of the attribute (required). For text or single-select attributes, `value` should be a string. For multi-select attributes, `value` should be a list of strings.
 - `message`, a string to be displayed as an explanation for the update (optional). If `message` is provided, it will be added as a comment to the incident (as part of the tracked change). 
 
-You can find the `:attribute_identifier` in the **Access** pane of your project. Attribute's names in the Atlos interface are different from their API identifiers: 
+You can find the `:attribute_identifier` in the **Access** pane of your project. Attributes' names in the Atlos interface are different from their API identifiers: 
 - Core attributes have string names (such as `description` and `status`).
 - Custom attributes are identified by a long ID. 
   
