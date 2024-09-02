@@ -5,10 +5,8 @@ defmodule PlatformWeb.ProjectLive.APIDoc do
   alias Platform.Material.Attribute
 
   def update(%{project: project} = assigns, socket) do
-    IO.inspect(project.name)
     attributes = Platform.Material.Attribute.active_attributes(project: project)
     attribute_labels = Map.new(attributes, &{&1.name, &1.label})
-
     grouped_attributes = group_attributes(attributes, project)
 
     {:ok,
