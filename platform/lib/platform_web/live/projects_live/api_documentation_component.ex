@@ -13,8 +13,7 @@ defmodule PlatformWeb.ProjectLive.APIDoc do
      socket
      |> assign(assigns)
      |> assign(:grouped_attributes, grouped_attributes)
-     |> assign(:attribute_labels, attribute_labels)
-     |> assign(:project, project)}
+     |> assign(:attribute_labels, attribute_labels)}
   end
 
   def render(assigns) do
@@ -62,31 +61,26 @@ defmodule PlatformWeb.ProjectLive.APIDoc do
                               class={"px-6 flex flex-col #{if group != :core_and_unassigned, do: "pb-1 pt-5"}"}
                               style={
                                 if group != :core_and_unassigned,
-                                  do: "border-left: 4px solid #{get_group_color(group)};"
+                                  do:
+                                    "border-left: 4px solid #{if group == :metadata, do: "#000000", else: group.color};"
                               }
                             >
                               <%= if group != :core_and_unassigned do %>
                                 <div class="border-b border-dashed pb-3 border-gray-200 flex">
                                   <p class="font-medium text-sm flex-1">
-                                    <span style={"color: #{get_group_color(group)}; filter: brightness(65%);"}>
-                                      <%= cond do %>
-                                        <% group == :metadata -> %>
-                                          Metadata
-                                        <% group == :project -> %>
-                                          Project
-                                        <% true -> %>
-                                          <%= group.name %>
+                                    <span style={"color: #{if group == :metadata, do: "#000000", else: group.color}; filter: brightness(65%);"}>
+                                      <%= if group == :metadata do %>
+                                        Metadata
+                                      <% else %>
+                                        <%= group.name %>
                                       <% end %>
                                     </span>
                                   </p>
                                   <p class="text-sm text-gray-500 flex-1">
-                                    <%= cond do %>
-                                      <% group == :metadata -> %>
-                                        Use the API to access or update incident metadata in the same way as other attributes.
-                                      <% group == :project -> %>
-                                        Use this identifier to refer to this project in the API.
-                                      <% true -> %>
-                                        <%= group.description %>
+                                    <%= if  group == :metadata do %>
+                                      Use the API to access or update incident metadata in the same way as other attributes.
+                                    <% else %>
+                                      <%= group.description %>
                                     <% end %>
                                   </p>
                                 </div>
@@ -96,9 +90,12 @@ defmodule PlatformWeb.ProjectLive.APIDoc do
                                   <div class="py-1.5">
                                     <div class="flex justify-between items-center">
                                       <div class="text-sm flex-1 font-base text-gray-900">
-                                        <%= if attribute == @project,
-                                          do: attribute.name,
-                                          else: attribute.label %>
+                                        <%= if attribute.parent do %>
+                                          <span class="text-gray-500">
+                                            <%= @attribute_labels[attribute.parent] %>:
+                                          </span>
+                                        <% end %>
+                                        <%= attribute.label %>
                                       </div>
                                       <div class="px-3 flex-1 text-sm text-gray-500 font-mono">
                                         <div x-data="{pulse: false}">
@@ -109,9 +106,7 @@ defmodule PlatformWeb.ProjectLive.APIDoc do
                                             type="button"
                                             x-on:click={"window.setClipboard(#{Jason.encode!(attribute.name)}); pulse = true; setTimeout(() => pulse = false, 500)"}
                                           >
-                                            <%= if attribute == @project,
-                                              do: attribute.id,
-                                              else: attribute.name %>
+                                            <%= attribute.name %>
                                           </button>
                                         </div>
                                       </div>
@@ -163,22 +158,6 @@ defmodule PlatformWeb.ProjectLive.APIDoc do
       grouped ++
       [
         {:metadata, metadata_attributes}
-      ] ++
-      [
-        {:project, [project]}
       ]
-  end
-
-  defp get_group_color(group) do
-    cond do
-      group == :metadata ->
-        "#f87171"
-
-      group == :project ->
-        "#000000"
-
-      true ->
-        group.color
-    end
   end
 end
