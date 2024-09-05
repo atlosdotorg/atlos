@@ -1495,6 +1495,8 @@ defmodule PlatformWeb.Components do
                       @form,
                       :attr_geolocation_radius,
                       [
+                        {"0.1 km", 0.1},
+                        {"0.5 km", 0.5},
                         {"1 km", 1},
                         {"5 km", 5},
                         {"10 km", 10},

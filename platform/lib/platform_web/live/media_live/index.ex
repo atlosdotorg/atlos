@@ -141,7 +141,7 @@ defmodule PlatformWeb.MediaLive.Index do
     # Sort by group ordering, then attribute ordering
     attributes_with_groups =
       Enum.sort_by(attributes_with_groups, fn {_, g} ->
-        {if(is_atom(dbg(g)), do: -1, else: g.ordering)}
+        {if(is_atom(g), do: -1, else: g.ordering)}
       end)
 
     socket
