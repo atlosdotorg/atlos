@@ -42,6 +42,24 @@ Atlos’ archival system will attempt to archive the following artifacts:
 Note that Atlos’ automatic archival system is best-effort; Atlos will not always archive every piece of media on a webpage. It is also subject to the whims of social media platforms’ changing software and policies. We think Atlos’ automatic archival tool is a convenient system for quickly preserving sources during a journalistic investigation, but it’s not suitable for forensic or legal evidentiary purposes.
 {{< /callout >}}
 
+### Disable automatic archival
+In rare cases—for example, if your investigation has a third-party archival setup—you may want to disable Atlos' automatic archival. To do so:
+1. Navigate to the **Projects** page.
+2. Select the relevant project.
+3. Click on the **Manage** page.
+4. Under **General**, expand **Advanced Options**.
+5. Disable automatic Atlos archival.
+6. Click **Save**.
+
+### Enable Internet Archive archival
+The Internet Archive is a third-party, public archive of the web. In some, less sensitive investigations, you may want to send any link added to your project to the Internet Archive for redundant archival. This archive will be visible to anyone on the internet, so do not enable this feature if your investigation is especially sensitive. To enable Internet Archive archival:
+1. Navigate to the **Projects** page.
+2. Select the relevant project.
+3. Click on the **Manage** page.
+4. Under **General**, expand **Advanced Options**.
+5. Click **Share with the Internet Archive**
+6. Click **Save**.
+
 ## Deduplication
 Deduplication, or the process of finding and eliminating duplicates, can be extremely time-consuming. To accelerate the process, Atlos deduplicates source material in two phases:
 - **Link-level deduplication—** When an investigator pastes a link into the automatic archival system or the manual upload option, Atlos will immediately notify the investigator if they’ve added a link that is already in another incident in their project.
