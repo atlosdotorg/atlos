@@ -2437,7 +2437,9 @@ defmodule PlatformWeb.Components do
                       "Recently Modified": :modified_desc,
                       "Least Recently Modified": :modified_asc,
                       "Description (A-Z)": :description_asc,
-                      "Description (Z-A)": :description_desc
+                      "Description (Z-A)": :description_desc,
+                      "Incident Date (Newest first)": :date_desc,
+                      "Incident Date (Oldest first)": :date_asc
                     ],
                     class:
                       "block bg-transparent w-full border-0 py-0 pl-0 pr-7 text-gray-900 placeholder-gray-500 focus:ring-0 sm:text-sm"
