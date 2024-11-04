@@ -30,7 +30,8 @@ defmodule Platform.Material.MediaSearch do
     has_been_edited_by_id: :string,
     only_has_unread_notifications: :boolean,
     display: :string,
-    deleted: :boolean
+    deleted: :boolean,
+    page: :integer
   }
 
   def changeset(params \\ %{}) do

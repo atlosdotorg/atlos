@@ -48,7 +48,13 @@ defmodule PlatformWeb.MediaLive.Index do
     # Pull cursor information from params. We used to use cursor-based pagination
     # but people didn't like it, so we're using page-based pagination now. Miles hasn't
     # removed the cursor code, so you can still use it if you want to.
-    page = (params["page"] || "1") |> String.to_integer() |> max(1)
+    page =
+      Ecto.Changeset.get_field(
+        changeset,
+        :page,
+        1
+      )
+      |> max(1)
 
     search_keywords = [
       limit: if(display == "map", do: 100_000, else: 51),

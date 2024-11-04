@@ -4170,7 +4170,7 @@ defmodule PlatformWeb.Components do
           </span>
         <% end %>
 
-        <%= if @base_link != "" and (@pagination_metadata.total_count > @pagination_metadata.limit) do %>
+        <%= if @base_link != "" and (@pagination_metadata.total_count > @pagination_metadata.limit or @pagination_index > 1) do %>
           <div x-data="{pageJumperOpened: false}" class="relative">
             <button
               type="button"
@@ -4209,7 +4209,6 @@ defmodule PlatformWeb.Components do
                     phx-debounce="blur"
                     class="block w-full rounded-md border-gray-300 shadow-sm bg-white focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
                     placeholder="Jump to page..."
-                    @keydown.enter="$el.form.requestSubmit()"
                   />
                 </div>
               </div>
@@ -4245,14 +4244,20 @@ defmodule PlatformWeb.Components do
           </span>
           to
           <span class="font-medium">
-            <%= ((@pagination_index - 1) * @pagination_metadata.limit + @currently_displayed_results)
-            |> min(@currently_displayed_results)
+            <%= ((@pagination_index - 1) * @pagination_metadata.limit +
+                   max(1, @currently_displayed_results))
             |> Formatter.format_number() %>
           </span>
-          of <span class="font-medium">
-            <%= ((@pagination_index - 1) * @pagination_metadata.limit + @pagination_metadata.total_count) |> Formatter.format_number() %><%= if @pagination_metadata.total_count_cap_exceeded,
-              do: "+",
-              else: "" %></span>)
+          <%= if @currently_displayed_results != 0 do %>
+            of
+            <span class="font-medium">
+              <%= ((@pagination_index - 1) * @pagination_metadata.limit +
+                     @pagination_metadata.total_count)
+              |> Formatter.format_number() %><%= if @pagination_metadata.total_count_cap_exceeded,
+                do: "+",
+                else: "" %>
+            </span>
+          <% end %>)
         </p>
       </div>
     </nav>
