@@ -84,6 +84,7 @@ defmodule Platform.Material do
     |> maybe_filter_accessible_to_user(opts)
     |> load_media_color()
     |> order_by(desc: :inserted_at)
+    |> offset(^Keyword.get(opts, :offset, 0))
   end
 
   @doc """

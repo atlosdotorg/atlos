@@ -45,29 +45,16 @@ defmodule PlatformWeb.MediaLive.Index do
       })
     end)
 
-    # Pull cursor information from params
-    before_cursor = params["bc"]
-    after_cursor = params["ac"]
-    pagination_index = (params["pi"] || "0") |> String.to_integer()
+    # Pull cursor information from params. We used to use cursor-based pagination
+    # but people didn't like it, so we're using page-based pagination now. Miles hasn't
+    # removed the cursor code, so you can still use it if you want to.
+    page = (params["page"] || "1") |> String.to_integer() |> max(1)
 
     search_keywords = [
       limit: if(display == "map", do: 100_000, else: 51),
+      offset: (page - 1) * 51,
       hydrate: display != "map"
     ]
-
-    search_keywords =
-      if not is_nil(before_cursor) and not (String.length(before_cursor) == 0) do
-        Keyword.put(search_keywords, :before, before_cursor)
-      else
-        search_keywords
-      end
-
-    search_keywords =
-      if not is_nil(after_cursor) and not (String.length(after_cursor) == 0) do
-        Keyword.put(search_keywords, :after, after_cursor)
-      else
-        search_keywords
-      end
 
     results =
       search_media(
@@ -85,12 +72,10 @@ defmodule PlatformWeb.MediaLive.Index do
     |> assign(:display, display)
     |> assign(:full_width, display == "table")
     |> assign(:query_params, params)
-    |> assign(:before_cursor, before_cursor)
-    |> assign(:after_cursor, after_cursor)
     |> assign(:active_project, active_project)
     |> assign(:results, results)
     |> assign(:root_pid, self())
-    |> assign(:pagination_index, pagination_index)
+    |> assign(:page, page)
     |> assign(:editing, nil)
     |> assign_media(results.entries)
     |> assign(:bulk_background_task, nil)
@@ -156,16 +141,7 @@ defmodule PlatformWeb.MediaLive.Index do
   end
 
   def handle_params(params, _uri, socket) do
-    # Wrap and catch CastErrors, in which case we put a flash and redirect to /incidents
-    # try do
     {:noreply, handle_params_internal(params, socket)}
-    # rescue
-    #   _error ->
-    #     {:noreply,
-    #      socket
-    #      |> put_flash(:error, "Your search had invalid parameters. Please try again.")
-    #      |> push_patch(to: "/incidents", replace: true)}
-    # end
   end
 
   defp assign_media(socket, media) do
@@ -384,9 +360,7 @@ defmodule PlatformWeb.MediaLive.Index do
     # Also reset the pagination index, since we're doing a new search
     merged_params =
       params
-      |> Map.delete("bc")
-      |> Map.delete("ac")
-      |> Map.delete("pi")
+      |> Map.delete("page")
 
     {:noreply,
      socket

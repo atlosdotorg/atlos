@@ -4149,6 +4149,7 @@ defmodule PlatformWeb.Components do
   attr(:id, :string)
   attr(:next_link, :string)
   attr(:prev_link, :string)
+  attr(:base_link, :string, default: "")
   attr(:pagination_metadata, :map)
   attr(:pagination_index, :integer)
   attr(:currently_displayed_results, :integer)
@@ -4168,6 +4169,59 @@ defmodule PlatformWeb.Components do
             <span class="sr-only">Previous</span>
           </span>
         <% end %>
+
+        <%= if @base_link != "" and (not is_nil(@pagination_metadata.before) and not is_nil(@pagination_metadata.after)) do %>
+          <div x-data="{pageJumperOpened: false}" class="relative">
+            <button
+              type="button"
+              class="text-button relative"
+              @click="pageJumperOpened = true; $nextTick(() => $refs.input.focus())"
+              data-tooltip="Jump to a page"
+            >
+              <Heroicons.arrows_up_down mini class="h-6 w-6" />
+              <span class="sr-only">Jump to a page</span>
+            </button>
+
+            <div
+              x-cloak
+              x-show="pageJumperOpened"
+              x-transition:enter="transition ease-out duration-200"
+              x-transition:enter-start="opacity-0 scale-95"
+              x-transition:enter-end="opacity-100 scale-100"
+              x-transition:leave="transition ease-in duration-150"
+              x-transition:leave-start="opacity-100 scale-100"
+              x-transition:leave-end="opacity-0 scale-95"
+              @click.away="pageJumperOpened = false"
+              class="absolute left-0 z-10 mt-2 w-48"
+              style="transform-origin: top left"
+            >
+              <div
+                x-on:keydown.enter={"const page = $refs.input.value;
+                  const url = '#{@base_link}'.replace('PAGE_PLACEHOLDER', page);
+                  window.location.href = url;"}
+                x-on:keydown.escape="pageJumperOpened = false;"
+              >
+                <div class="flex items-center gap-2">
+                  <input
+                    type="number"
+                    min="1"
+                    x-ref="input"
+                    phx-debounce="blur"
+                    class="block w-full rounded-md border-gray-300 shadow-sm bg-white focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+                    placeholder="Jump to page..."
+                    @keydown.enter="$el.form.requestSubmit()"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        <% else %>
+          <span class="cursor-not-allowed opacity-75 text-neutral-600">
+            <Heroicons.arrows_up_down mini class="h-6 w-6" />
+            <span class="sr-only">Jump to a page (disabled)</span>
+          </span>
+        <% end %>
+
         <%= if not is_nil(@pagination_metadata.after) do %>
           <.link patch={@next_link} class="text-button">
             <Heroicons.arrow_right mini class="h-6 w-6" />
@@ -4180,24 +4234,25 @@ defmodule PlatformWeb.Components do
           </span>
         <% end %>
       </div>
+
       <div class="hidden sm:block">
         <p class="text-sm text-gray-700">
-          Showing results
+          Page <span class="font-medium"><%= @pagination_index %></span>
+          (results
           <span class="font-medium">
-            <%= (@pagination_index * @pagination_metadata.limit + 1) |> Formatter.format_number() %>
+            <%= ((@pagination_index - 1) * @pagination_metadata.limit + 1)
+            |> Formatter.format_number() %>
           </span>
           to
           <span class="font-medium">
-            <%= (@pagination_index * @pagination_metadata.limit +
-                   @currently_displayed_results)
+            <%= (@pagination_index * @pagination_metadata.limit)
+            |> min(@currently_displayed_results)
             |> Formatter.format_number() %>
           </span>
-          of
-          <span class="font-medium">
+          of <span class="font-medium">
             <%= @pagination_metadata.total_count |> Formatter.format_number() %><%= if @pagination_metadata.total_count_cap_exceeded,
               do: "+",
-              else: "" %>
-          </span>
+              else: "" %></span>)
         </p>
       </div>
     </nav>
