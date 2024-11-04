@@ -4158,7 +4158,7 @@ defmodule PlatformWeb.Components do
     ~H"""
     <nav class="flex items-center justify-center sm:justify-between w-full" aria-label="Pagination">
       <div class="flex flex-1 gap-2 md:mr-8" phx-hook="ScrollToTop" id={@id}>
-        <%= if not is_nil(@pagination_metadata.before) do %>
+        <%= if @page > 1 do %>
           <.link patch={@prev_link} class="text-button">
             <Heroicons.arrow_left mini class="h-6 w-6" />
             <span class="sr-only">Previous</span>
@@ -4170,7 +4170,7 @@ defmodule PlatformWeb.Components do
           </span>
         <% end %>
 
-        <%= if @base_link != "" and (not is_nil(@pagination_metadata.before) and not is_nil(@pagination_metadata.after)) do %>
+        <%= if @base_link != "" and (@pagination_metadata.total_count > @pagination_metadata.limit) do %>
           <div x-data="{pageJumperOpened: false}" class="relative">
             <button
               type="button"
@@ -4222,7 +4222,7 @@ defmodule PlatformWeb.Components do
           </span>
         <% end %>
 
-        <%= if not is_nil(@pagination_metadata.after) do %>
+        <%= if @currently_displayed_results == @pagination_metadata.limit do %>
           <.link patch={@next_link} class="text-button">
             <Heroicons.arrow_right mini class="h-6 w-6" />
             <span class="sr-only">Next</span>
@@ -4245,7 +4245,7 @@ defmodule PlatformWeb.Components do
           </span>
           to
           <span class="font-medium">
-            <%= (@pagination_index * @pagination_metadata.limit)
+            <%= ((@pagination_index - 1) * @pagination_metadata.limit + @currently_displayed_results)
             |> min(@currently_displayed_results)
             |> Formatter.format_number() %>
           </span>
