@@ -35,7 +35,8 @@ defmodule Platform.Workers.Archiver do
 
     %MediaVersion{status: status, media_id: media_id} = version
 
-    if (status == :pending or is_rearchive_request) and not (version.upload_type == :direct and not project.source_material_archival_enabled) do
+    if (status == :pending or is_rearchive_request) and
+         not (version.upload_type == :direct and not project.source_material_archival_enabled) do
       Logger.info("Archiving media version #{id}... (got media #{media_id})")
 
       hide_version_on_failure = Map.get(args, "hide_version_on_failure", false)
@@ -301,7 +302,7 @@ defmodule Platform.Workers.Archiver do
       # Mark as not needing archival
       if version.status == :pending do
         version_map = %{
-          status: :complete,
+          status: :complete
         }
 
         {:ok, _} = Material.update_media_version(version, version_map)

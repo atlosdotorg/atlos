@@ -334,7 +334,10 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
 
         send(self(), {:project_saved, project})
 
-        {:noreply, socket |> assign(project: project) |> assign_custom_attribute_changeset(%{}, update_nonce: true)}
+        {:noreply,
+         socket
+         |> assign(project: project)
+         |> assign_custom_attribute_changeset(%{}, update_nonce: true)}
 
       # For all the groups, if the group is the one we want to edit, update the ordering; if it's not, make sure that the none of the elements in the ordering are in that group
       _ ->
@@ -380,7 +383,10 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
 
         send(self(), {:project_saved, project})
 
-        {:noreply, socket |> assign(project: project) |> assign_custom_attribute_changeset(%{}, update_nonce: true)}
+        {:noreply,
+         socket
+         |> assign(project: project)
+         |> assign_custom_attribute_changeset(%{}, update_nonce: true)}
     end
   end
 
@@ -389,7 +395,9 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
     assigns =
       assign_new(assigns, :decorator_for, fn -> nil end)
       |> assign(:enabled, Ecto.Changeset.get_field(assigns.f_attr.source, :enabled))
-      |> assign_new(:id, fn -> "edit-#{Ecto.Changeset.get_field(assigns.f_attr.source, :id)}-#{assigns.nonce}" end)
+      |> assign_new(:id, fn ->
+        "edit-#{Ecto.Changeset.get_field(assigns.f_attr.source, :id)}-#{assigns.nonce}"
+      end)
 
     ~H"""
     <div
@@ -901,7 +909,12 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                       <section class="mb-6">
                         <h2 class="sec-head">Create Group</h2>
                       </section>
-                      <.edit_attribute_group f={f} group_id={:new} nonce={@custom_attribute_changeset_nonce} group_ordering={-1} />
+                      <.edit_attribute_group
+                        f={f}
+                        group_id={:new}
+                        nonce={@custom_attribute_changeset_nonce}
+                        group_ordering={-1}
+                      />
                       <div class="mt-8 flex justify-between items-center">
                         <div class="flex items-center gap-2">
                           <%= submit("Save", class: "button ~urge @high") %>
@@ -1109,7 +1122,10 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                                                 <section class="mb-6">
                                                   <h2 class="sec-head">Edit Custom Attribute</h2>
                                                 </section>
-                                                <.edit_custom_project_attribute f_attr={f_attr} nonce={@custom_attribute_changeset_nonce} />
+                                                <.edit_custom_project_attribute
+                                                  f_attr={f_attr}
+                                                  nonce={@custom_attribute_changeset_nonce}
+                                                />
                                                 <div class="mt-8 flex justify-between items-center">
                                                   <div>
                                                     <%= submit("Save", class: "button ~urge @high") %>
@@ -1151,7 +1167,10 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                                                 }
                                                 class="hidden"
                                               >
-                                                <.edit_custom_project_attribute f_attr={f_attr} nonce={@custom_attribute_changeset_nonce} />
+                                                <.edit_custom_project_attribute
+                                                  f_attr={f_attr}
+                                                  nonce={@custom_attribute_changeset_nonce}
+                                                />
                                               </div>
                                             <% end %>
                                           </div>

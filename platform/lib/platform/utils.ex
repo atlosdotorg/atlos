@@ -299,7 +299,7 @@ defmodule Platform.Utils do
     System.get_env("CONTAINER_APP_REPLICA_NAME", "replica info unknown")
   end
 
-  def text_search(search_terms, queryable) do
+  def text_search(search_terms, queryable, opts \\ []) do
     # First, detect if they have entered a slug with a project code into the query. If so, we add a version of the slug without the project code to the query.
     # This is to make it possible to search for "ATL-123" and get results for "123".
     # This is a bit hacky, but it works.
@@ -308,11 +308,23 @@ defmodule Platform.Utils do
     wrapped =
       if String.starts_with?(search_terms, "\""), do: search_terms, else: "\"#{search_terms}\""
 
-    queryable
-    |> where(
-      [q],
-      fragment("? @@ websearch_to_tsquery('simple', ?)", q.searchable, ^search_terms) or
-        fragment("? @@ websearch_to_tsquery('simple', ?)", q.searchable, ^wrapped)
-    )
+    search_literal = Keyword.get(opts, :search_literal, false)
+
+    if search_literal do
+      queryable
+      |> where(
+        [q],
+        fragment("? @@ websearch_to_tsquery('simple', ?)", q.searchable, ^search_terms) or
+          fragment("? @@ websearch_to_tsquery('simple', ?)", q.searchable, ^wrapped) or
+          ilike(q.searchable_text, ^"%#{search_terms}%")
+      )
+    else
+      queryable
+      |> where(
+        [q],
+        fragment("? @@ websearch_to_tsquery('simple', ?)", q.searchable, ^search_terms) or
+          fragment("? @@ websearch_to_tsquery('simple', ?)", q.searchable, ^wrapped)
+      )
+    end
   end
 end

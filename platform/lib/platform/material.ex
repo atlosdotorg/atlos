@@ -1568,7 +1568,6 @@ defmodule Platform.Material do
 
     # Now we just need to copy all the updates
     for update <- media.updates do
-      old_update_json = Jason.encode!(update)
       old_attrs = Attribute.active_attributes(project: media.project)
 
       # Here's a horrible hack. We need to change the IDs of attributes in the update JSON to match the IDs of the attributes in the new project.

@@ -30,7 +30,14 @@ defmodule Platform.Projects.Project do
   @doc false
   def changeset(project, attrs) do
     project
-    |> cast(attrs, [:name, :code, :color, :description, :source_material_archival_enabled, :should_sync_with_internet_archive])
+    |> cast(attrs, [
+      :name,
+      :code,
+      :color,
+      :description,
+      :source_material_archival_enabled,
+      :should_sync_with_internet_archive
+    ])
     |> cast_embed(:attributes, required: false, sort_param: :position)
     |> cast_embed(:attribute_groups, required: false, sort_param: :position)
     |> validate_required([:name, :code, :color])
