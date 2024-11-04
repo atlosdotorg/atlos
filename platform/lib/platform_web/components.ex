@@ -4158,7 +4158,7 @@ defmodule PlatformWeb.Components do
     ~H"""
     <nav class="flex items-center justify-center sm:justify-between w-full" aria-label="Pagination">
       <div class="flex flex-1 gap-2 md:mr-8" phx-hook="ScrollToTop" id={@id}>
-        <%= if @page > 1 do %>
+        <%= if @pagination_index > 1 do %>
           <.link patch={@prev_link} class="text-button">
             <Heroicons.arrow_left mini class="h-6 w-6" />
             <span class="sr-only">Previous</span>
