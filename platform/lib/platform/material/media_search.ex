@@ -58,7 +58,9 @@ defmodule Platform.Material.MediaSearch do
       "modified_desc",
       "modified_asc",
       "description_desc",
-      "description_asc"
+      "description_asc",
+      "date_desc",
+      "date_asc"
     ])
   end
 
@@ -287,6 +289,12 @@ defmodule Platform.Material.MediaSearch do
 
           "description_asc" ->
             {queryable |> Ecto.Query.prepend_order_by([i], asc: i.attr_description), []}
+
+          "date_desc" ->
+            {queryable |> Ecto.Query.prepend_order_by([i], desc: i.attr_date), []}
+
+          "date_asc" ->
+            {queryable |> Ecto.Query.prepend_order_by([i], asc: i.attr_date), []}
         end
     end
   end
