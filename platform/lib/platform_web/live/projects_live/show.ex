@@ -369,6 +369,11 @@ defmodule PlatformWeb.ProjectsLive.Show do
               </div>
             </div>
           <% end %>
+          <.live_component
+            module={PlatformWeb.ProjectLive.APIDoc}
+            id="api-documentation_component"
+            project={@project}
+          />
         <% end %>
         <%= if @live_action == :deleted and Permissions.can_view_project_deleted_media?(@current_user, @project) do %>
           <.live_component
