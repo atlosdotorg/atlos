@@ -21,6 +21,7 @@
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
 	// This can be used to network with other containers or with the host. 
 	"forwardPorts": [
+		1313,
 		4000,
 		4001,
 		5432
@@ -33,6 +34,12 @@
 		"ghcr.io/devcontainers/features/docker-in-docker:2": {},
 		"ghcr.io/devcontainers/features/azure-cli:1": {},
 		"ghcr.io/devcontainers/features/terraform:1": {},
-		"ghcr.io/devcontainers/features/github-cli:1": {}
+		"ghcr.io/devcontainers/features/github-cli:1": {},
+		"ghcr.io/devcontainers/features/hugo:1": {
+			"version": "0.121.2"
+		},
+		"ghcr.io/devcontainers/features/go:1": {
+			"version": "1.19.4"
+		}
 	}
 }
