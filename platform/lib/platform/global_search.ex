@@ -21,18 +21,20 @@ defmodule Platform.GlobalSearch do
   defmemo perform_search(query, %User{} = user) when is_binary(query), expires_in: 10000 do
     query_lower_raw = String.trim(query) |> String.downcase()
 
-    query =
+    query_cleaned =
       String.trim(query)
       |> String.downcase()
 
     query_only_alphaneumeric = String.replace(query, ~r/[^a-zA-Z0-9\s\-]/, "")
-    query = query |> String.replace(~r/\s+/, " OR ") |> String.replace(~r/[^a-zA-Z0-9\s\-]/, "")
+
+    query_websearch =
+      query_cleaned |> String.replace(~r/\s+/, " OR ") |> String.replace(~r/[^a-zA-Z0-9\s\-]/, "")
 
     media_version_query =
       from(
         mv in MediaVersion,
         where:
-          fragment("? @@ websearch_to_tsquery('simple', ?)", mv.searchable, ^query) or
+          fragment("? @@ websearch_to_tsquery('simple', ?)", mv.searchable, ^query_websearch) or
             ilike(mv.source_url, ^"%#{query_only_alphaneumeric}%") or
             fragment("LOWER(?) = ?", mv.source_url, ^query_lower_raw),
         join: m in assoc(mv, :media),
@@ -48,7 +50,11 @@ defmodule Platform.GlobalSearch do
                 fragment("LOWER(?) = ?", mv.source_url, ^query_lower_raw)
             ),
           desc:
-            fragment("ts_rank_cd(?, websearch_to_tsquery('simple', ?))", mv.searchable, ^query),
+            fragment(
+              "ts_rank_cd(?, websearch_to_tsquery('simple', ?))",
+              mv.searchable,
+              ^query_websearch
+            ),
           desc: mv.inserted_at
         ],
         limit: 3,
@@ -59,7 +65,11 @@ defmodule Platform.GlobalSearch do
             ilike(mv.source_url, ^"%#{query_only_alphaneumeric}%") or
               fragment("LOWER(?) = ?", mv.source_url, ^query_lower_raw),
           cd_rank:
-            fragment("ts_rank_cd(?, websearch_to_tsquery('simple', ?))", mv.searchable, ^query)
+            fragment(
+              "ts_rank_cd(?, websearch_to_tsquery('simple', ?))",
+              mv.searchable,
+              ^query_websearch
+            )
         }
       )
 
@@ -67,8 +77,9 @@ defmodule Platform.GlobalSearch do
       from(
         m in Media,
         where:
-          fragment("? @@ websearch_to_tsquery('simple', ?)", m.searchable, ^query) or
+          fragment("? @@ websearch_to_tsquery('simple', ?)", m.searchable, ^query_websearch) or
             ilike(m.attr_description, ^"%#{query_only_alphaneumeric}%") or
+            ilike(m.searchable_text, ^"%#{query_cleaned}%") or
             ilike(m.slug, ^"%#{query_only_alphaneumeric}%"),
         join: p in assoc(m, :project),
         join: pm in assoc(p, :memberships),
@@ -82,7 +93,11 @@ defmodule Platform.GlobalSearch do
                 ilike(m.slug, ^"%#{query_only_alphaneumeric}%")
             ),
           desc:
-            fragment("ts_rank_cd(?, websearch_to_tsquery('simple', ?))", m.searchable, ^query),
+            fragment(
+              "ts_rank_cd(?, websearch_to_tsquery('simple', ?))",
+              m.searchable,
+              ^query_websearch
+            ),
           desc: m.inserted_at
         ],
         limit: 3,
@@ -93,7 +108,11 @@ defmodule Platform.GlobalSearch do
             ilike(m.attr_description, ^"%#{query_only_alphaneumeric}%") or
               ilike(m.slug, ^"%#{query_only_alphaneumeric}%"),
           cd_rank:
-            fragment("ts_rank_cd(?, websearch_to_tsquery('simple', ?))", m.searchable, ^query)
+            fragment(
+              "ts_rank_cd(?, websearch_to_tsquery('simple', ?))",
+              m.searchable,
+              ^query_websearch
+            )
         }
       )
 
@@ -102,7 +121,7 @@ defmodule Platform.GlobalSearch do
         u in User,
         where:
           u.username != "atlos" and
-            (fragment("? @@ websearch_to_tsquery('simple', ?)", u.searchable, ^query) or
+            (fragment("? @@ websearch_to_tsquery('simple', ?)", u.searchable, ^query_websearch) or
                ilike(u.username, ^"%#{query_only_alphaneumeric}%")),
         order_by: [
           asc:
@@ -111,7 +130,11 @@ defmodule Platform.GlobalSearch do
               ilike(u.username, ^"%#{query_only_alphaneumeric}%")
             ),
           desc:
-            fragment("ts_rank_cd(?, websearch_to_tsquery('simple', ?))", u.searchable, ^query),
+            fragment(
+              "ts_rank_cd(?, websearch_to_tsquery('simple', ?))",
+              u.searchable,
+              ^query_websearch
+            ),
           desc: u.inserted_at
         ],
         limit: 3,
@@ -119,7 +142,11 @@ defmodule Platform.GlobalSearch do
           item: u,
           exact_match: ilike(u.username, ^"%#{query_only_alphaneumeric}%"),
           cd_rank:
-            fragment("ts_rank_cd(?, websearch_to_tsquery('simple', ?))", u.searchable, ^query)
+            fragment(
+              "ts_rank_cd(?, websearch_to_tsquery('simple', ?))",
+              u.searchable,
+              ^query_websearch
+            )
         }
       )
 
@@ -127,7 +154,7 @@ defmodule Platform.GlobalSearch do
       from(
         p in Project,
         where:
-          fragment("? @@ websearch_to_tsquery('simple', ?)", p.searchable, ^query) or
+          fragment("? @@ websearch_to_tsquery('simple', ?)", p.searchable, ^query_websearch) or
             ilike(p.name, ^"%#{query_only_alphaneumeric}%"),
         join: pm in assoc(p, :memberships),
         on: pm.user_id == ^user.id,
@@ -139,7 +166,11 @@ defmodule Platform.GlobalSearch do
               ilike(p.name, ^"%#{query_only_alphaneumeric}%")
             ),
           desc:
-            fragment("ts_rank_cd(?, websearch_to_tsquery('simple', ?))", p.searchable, ^query),
+            fragment(
+              "ts_rank_cd(?, websearch_to_tsquery('simple', ?))",
+              p.searchable,
+              ^query_websearch
+            ),
           desc: p.inserted_at
         ],
         limit: 3,
@@ -147,7 +178,11 @@ defmodule Platform.GlobalSearch do
           item: p,
           exact_match: ilike(p.name, ^"%#{query_only_alphaneumeric}%"),
           cd_rank:
-            fragment("ts_rank_cd(?, websearch_to_tsquery('simple', ?))", p.searchable, ^query)
+            fragment(
+              "ts_rank_cd(?, websearch_to_tsquery('simple', ?))",
+              p.searchable,
+              ^query_websearch
+            )
         }
       )
 
@@ -155,7 +190,7 @@ defmodule Platform.GlobalSearch do
       from(
         u in Update,
         where:
-          fragment("? @@ websearch_to_tsquery('simple', ?)", u.searchable, ^query) or
+          fragment("? @@ websearch_to_tsquery('simple', ?)", u.searchable, ^query_websearch) or
             ilike(u.explanation, ^"%#{query_only_alphaneumeric}%") or
             ilike(u.explanation, ^"%#{query_lower_raw}%"),
         join: m in assoc(u, :media),
@@ -171,7 +206,11 @@ defmodule Platform.GlobalSearch do
                 ilike(u.explanation, ^"%#{query_lower_raw}%")
             ),
           desc:
-            fragment("ts_rank_cd(?, websearch_to_tsquery('simple', ?))", u.searchable, ^query),
+            fragment(
+              "ts_rank_cd(?, websearch_to_tsquery('simple', ?))",
+              u.searchable,
+              ^query_websearch
+            ),
           desc: u.inserted_at
         ],
         limit: 3,
@@ -181,7 +220,11 @@ defmodule Platform.GlobalSearch do
             ilike(u.explanation, ^"%#{query_only_alphaneumeric}%") or
               ilike(u.explanation, ^"%#{query_lower_raw}%"),
           cd_rank:
-            fragment("ts_rank_cd(?, websearch_to_tsquery('simple', ?))", u.searchable, ^query)
+            fragment(
+              "ts_rank_cd(?, websearch_to_tsquery('simple', ?))",
+              u.searchable,
+              ^query_websearch
+            )
         }
       )
       |> Platform.Updates.preload_fields()
@@ -198,7 +241,7 @@ defmodule Platform.GlobalSearch do
           |> Enum.filter(fn item -> Permissions.can_view_media?(user, item.item) end)
         end),
         Task.async(fn ->
-          if String.length(query) < 3 do
+          if String.length(query_websearch) < 3 do
             []
           else
             Repo.all(users_query)
