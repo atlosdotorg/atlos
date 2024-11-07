@@ -110,7 +110,7 @@ defmodule PlatformWeb.MediaLive.Index do
     attributes = Attribute.active_attributes(project: project) |> Enum.filter(&is_nil(&1.parent))
 
     groups =
-      case dbg(project) do
+      case project do
         nil -> [:core]
         _ -> project.attribute_groups
       end
