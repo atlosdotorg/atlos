@@ -14,6 +14,7 @@ import subprocess
 import sys
 from time import sleep
 from typing import Optional
+import psutil
 from loguru import logger
 import unicodecsv as csv
 from perception import hashers
@@ -24,14 +25,7 @@ import hashlib
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options as ChromeOptions
 from selenium.webdriver.chrome.service import Service as ChromiumService
-from webdriver_manager.chrome import ChromeDriverManager
-from webdriver_manager.core.os_manager import ChromeType
 from selenium.webdriver.common.print_page_options import PrintOptions
-from webdriver_manager.core.utils import read_version_from_cmd
-from webdriver_manager.core.os_manager import PATTERN
-
-# Make sure we install the right version of the Chrome driver
-chromedriver_version = read_version_from_cmd("chromium --version", PATTERN["chromium"])
 
 # From https://github.com/bellingcat/auto-archiver/blob/dockerize/src/auto_archiver/utils/url.py#L3
 is_telegram_private = re.compile(r"https:\/\/t\.me(\/c)\/(.+)\/(\d+)")
@@ -102,17 +96,16 @@ def archive_page_using_selenium(url: str) -> dict:
         # to remove sensitive variables), but this is — to an extent — an acceptable risk
         # (given the complexity tradeoff).
         options.add_argument("--no-sandbox")
+        options.add_argument("--disable-gpu")
         options.add_argument("--disable-dev-shm-usage")
-        options.add_argument("--headless=new")
-        driver = webdriver.Chrome(
-            service=ChromiumService(
-                # If you update this version, be sure to also update the version in all Dockerfiles
-                ChromeDriverManager(
-                    chrome_type=ChromeType.CHROMIUM, driver_version=chromedriver_version
-                ).install()
-            ),
-            options=options,
-        )
+        options.add_argument("--headless")
+        options.binary_location = '/usr/bin/chromium'
+        
+        # Set up the Service object with the path to chromedriver
+        service = ChromiumService('/usr/bin/chromedriver')
+
+        # Initialize the Chrome WebDriver
+        driver = webdriver.Chrome(service=service, options=options)
         driver.set_window_size(1600, 1200)
 
         # Load the page
@@ -174,6 +167,8 @@ def archive_page_using_selenium(url: str) -> dict:
     except Exception as e:
         logger.exception(f"Failed to archive page: {e}")
         return dict(success=False)
+    finally:
+        driver.quit()
 
 
 def archive_using_auto_archiver(
@@ -202,7 +197,7 @@ def archive_using_auto_archiver(
                 f"--cli_feeder.urls={url}",
             ],
             timeout=60 * 60,
-            capture_output=True,
+            capture_output=False,
         )  # NOTE: URL is UNTRUSTED. Do NOT put it in a shell command.
     except subprocess.TimeoutExpired:
         logger.warning("Auto archive timed out")
@@ -224,6 +219,22 @@ def archive_using_auto_archiver(
     files = [os.path.join("auto_archiver", p) for p in os.listdir("auto_archiver")]
 
     return dict(success=True, metadata=objects, files=files)
+
+def terminate_chrome_processes():
+    terminated_processes = []
+    for proc in psutil.process_iter(['name']):
+        try:
+            # Check if the process name contains any of the target names
+            if any(name in proc.name().lower() for name in ['chromium', 'chrome', 'chrome_crashpad']):
+                proc.terminate()
+                terminated_processes.append(proc.name())
+        except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+            pass
+    
+    # Wait for the processes to actually terminate
+    psutil.wait_procs([proc for proc in psutil.process_iter() if proc.name() in terminated_processes], timeout=3)
+    
+    return terminated_processes
 
 
 def generate_perceptual_hashes(path: str) -> dict:
@@ -266,8 +277,6 @@ def analyze_artifact(
 def run(url, file, out, auto_archiver_config):
     """Archive the given URL."""
 
-    did_finish = False
-
     if out is None:
         out = os.path.join(os.getcwd(), "out")
         logger.info(f"Output directory not specified, using {out}")
@@ -281,120 +290,116 @@ def run(url, file, out, auto_archiver_config):
     if not os.path.exists(out):
         os.mkdir(out)
 
-    with tempfile.TemporaryDirectory() as t:
-        os.chdir(t)
+    try:
+        with tempfile.TemporaryDirectory() as t:
+            os.chdir(t)
 
-        artifacts = []
-        selenium_archive = {}
-        auto_archiver_archive = {}
+            artifacts = []
+            selenium_archive = {}
+            auto_archiver_archive = {}
 
-        # try:
-        # First, archive the file, if given
-        if file is not None:
-            logger.info("Archiving the file...")
-            if os.path.join(out, os.path.basename(file)) != file:
-                shutil.copyfile(
-                    file,
-                    os.path.join(out, os.path.basename(file)),
-                )
-            artifacts.append(
-                analyze_artifact(file, perceptually_hash=True, kind="file")
-            )
-
-        # Then, archive the URL, if given
-        if url is not None:
-            # Archive the file directly, if possible/needed
-            logger.info("Archiving the data directly...")
-            direct_archive = maybe_download_file(url)
-            if direct_archive is None:
-                logger.info("No direct archive available/necessary for this URL")
-            else:
-                logger.info(
-                    "Direct archive available/necessary for this URL (is not HTML)"
-                )
-
-            # Archive the page using Selenium
-            logger.info("Archiving the page using Selenium...")
-            selenium_archive = archive_page_using_selenium(url)
-
-            # Archive the page using the Bellingcat auto-archiver
-            logger.info("Archiving the page using the Bellingcat auto-archiver...")
-            auto_archiver_archive = archive_using_auto_archiver(
-                url, config=auto_archiver_config
-            )
-
-            # Merge all the artifacts into a nice output folder
-            logger.info("Finalizing screenshots and page pdf...")
-
-            if selenium_archive["success"]:
-                for screenshot in selenium_archive["screenshots"]:
+            # try:
+            # First, archive the file, if given
+            if file is not None:
+                logger.info("Archiving the file...")
+                if os.path.join(out, os.path.basename(file)) != file:
                     shutil.copyfile(
-                        screenshot["file"],
-                        os.path.join(out, os.path.basename(screenshot["file"])),
+                        file,
+                        os.path.join(out, os.path.basename(file)),
+                    )
+                artifacts.append(
+                    analyze_artifact(file, perceptually_hash=True, kind="file")
+                )
+
+            # Then, archive the URL, if given
+            if url is not None:
+                # Archive the file directly, if possible/needed
+                logger.info("Archiving the data directly...")
+                direct_archive = maybe_download_file(url)
+                if direct_archive is None:
+                    logger.info("No direct archive available/necessary for this URL")
+                else:
+                    logger.info(
+                        "Direct archive available/necessary for this URL (is not HTML)"
+                    )
+
+                # Archive the page using Selenium
+                logger.info("Archiving the page using Selenium...")
+                selenium_archive = archive_page_using_selenium(url)
+
+                # Archive the page using the Bellingcat auto-archiver
+                logger.info("Archiving the page using the Bellingcat auto-archiver...")
+                auto_archiver_archive = archive_using_auto_archiver(
+                    url, config=auto_archiver_config
+                )
+
+                # Merge all the artifacts into a nice output folder
+                logger.info("Finalizing screenshots and page pdf...")
+
+                if selenium_archive["success"]:
+                    for screenshot in selenium_archive["screenshots"]:
+                        shutil.copyfile(
+                            screenshot["file"],
+                            os.path.join(out, os.path.basename(screenshot["file"])),
+                        )
+                        artifacts.append(
+                            analyze_artifact(
+                                screenshot["file"],
+                                perceptually_hash=False,
+                                kind=screenshot["kind"],
+                            )
+                        )
+
+                    shutil.copyfile(
+                        selenium_archive["pdf"],
+                        os.path.join(out, "page.pdf"),
                     )
                     artifacts.append(
                         analyze_artifact(
-                            screenshot["file"],
-                            perceptually_hash=False,
-                            kind=screenshot["kind"],
+                            selenium_archive["pdf"], perceptually_hash=False, kind="pdf"
                         )
                     )
 
-                shutil.copyfile(
-                    selenium_archive["pdf"],
-                    os.path.join(out, "page.pdf"),
-                )
-                artifacts.append(
-                    analyze_artifact(
-                        selenium_archive["pdf"], perceptually_hash=False, kind="pdf"
-                    )
-                )
+                logger.info("Finalizing auto archiver files...")
 
-            logger.info("Finalizing auto archiver files...")
+                if auto_archiver_archive["success"]:
+                    for file in auto_archiver_archive["files"]:
+                        path = os.path.basename(file)
+                        shutil.copyfile(
+                            file,
+                            os.path.join(out, path),
+                        )
+                        artifacts.append(analyze_artifact(file, kind="media"))
 
-            if auto_archiver_archive["success"]:
-                for file in auto_archiver_archive["files"]:
-                    path = os.path.basename(file)
+                logger.info("Finalizing direct archive (if applicable)...")
+
+                if direct_archive is not None:
+                    path = os.path.basename(direct_archive)
                     shutil.copyfile(
-                        file,
+                        direct_archive,
                         os.path.join(out, path),
                     )
-                    artifacts.append(analyze_artifact(file, kind="media"))
+                    artifacts.append(analyze_artifact(direct_archive, kind="direct_file"))
 
-            logger.info("Finalizing direct archive (if applicable)...")
-
-            if direct_archive is not None:
-                path = os.path.basename(direct_archive)
-                shutil.copyfile(
-                    direct_archive,
-                    os.path.join(out, path),
+            # Write the metadata
+            with open(os.path.join(out, "metadata.json"), "w") as outfile:
+                json.dump(
+                    dict(
+                        page_info=selenium_archive.get("data"),
+                        artifacts=artifacts,
+                        content_info=auto_archiver_archive.get("metadata"),
+                        crawl_successful=selenium_archive.get("success"),
+                        auto_archive_successful=auto_archiver_archive.get("success"),
+                        is_likely_authwalled=is_likely_authwalled(url)
+                        if url is not None
+                        else False,
+                    ),
+                    outfile,
                 )
-                artifacts.append(analyze_artifact(direct_archive, kind="direct_file"))
 
-        # Write the metadata
-        with open(os.path.join(out, "metadata.json"), "w") as outfile:
-            json.dump(
-                dict(
-                    page_info=selenium_archive.get("data"),
-                    artifacts=artifacts,
-                    content_info=auto_archiver_archive.get("metadata"),
-                    crawl_successful=selenium_archive.get("success"),
-                    auto_archive_successful=auto_archiver_archive.get("success"),
-                    is_likely_authwalled=is_likely_authwalled(url)
-                    if url is not None
-                    else False,
-                ),
-                outfile,
-            )
-
-        did_finish = True
-        logger.success("Processing complete")
-        # except Exception as e:
-        #     logger.error(str(e.with_traceback(None)))
-        # finally:
-        #     if not did_finish:
-        #         logger.error("Processing failed")
-        #         sys.exit(1)
+            logger.success("Processing complete")
+    finally:
+        terminate_chrome_processes()        
 
 
 if __name__ == "__main__":
