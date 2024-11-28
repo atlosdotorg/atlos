@@ -81,8 +81,10 @@ defmodule Platform.Material.Media do
     # Metadata
     timestamps()
 
-    # Computed tsvector field "searchable"; we tell Ecto it's an array of maps so we can use it in queries
+    # Computed tsvector fields "searchable" and "searchable_text"; we tell Ecto it's an array of maps so we can use it in queries
+    # tsvector'ized version of searchable_text
     field(:searchable, {:array, :map}, load_in_query: false)
+    field(:searchable_text, :string, load_in_query: false)
 
     # Associations
     has_many(:versions, Platform.Material.MediaVersion)
@@ -413,7 +415,7 @@ defmodule Platform.Material.Media do
   Perform a text search on the given queryable. Will also query associated media versions.
   """
   def text_search(search_terms, queryable \\ Media) do
-    Utils.text_search(search_terms, queryable)
+    Utils.text_search(search_terms, queryable, search_literal: true)
   end
 
   def slug_to_display(media) do
