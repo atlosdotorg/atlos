@@ -55,18 +55,22 @@
       @socket,
       PlatformWeb.MediaLive.Index,
       @query_params
-      |> Map.put(:ac, @results.metadata.after)
-      |> Map.put(:bc, nil)
-      |> Map.put(:pi, @pagination_index + 1)
+      |> Map.put(:page, @page + 1)
     ) %>
   <% prev_link =
     Routes.live_path(
       @socket,
       PlatformWeb.MediaLive.Index,
       @query_params
-      |> Map.put(:bc, @results.metadata.before)
-      |> Map.put(:ac, nil)
-      |> Map.put(:pi, @pagination_index - 1)
+      |> Map.put(:page, @page - 1)
+    ) %>
+  <% base_link =
+    Routes.live_path(
+      @socket,
+      PlatformWeb.MediaLive.Index,
+      @query_params
+      # Allows for easy replacement
+      |> Map.put(:page, "PAGE_PLACEHOLDER")
     ) %>
   <div class="relative z-[1000] 2xl:max-w-[1210px] mx-auto h-[9rem]">
     <div
@@ -263,8 +267,9 @@
               <.pagination_controls
                 next_link={next_link}
                 prev_link={prev_link}
+                base_link={base_link}
                 pagination_metadata={@results.metadata}
-                pagination_index={@pagination_index}
+                pagination_index={@page}
                 currently_displayed_results={length(@media)}
                 id="pagination-table"
               />
@@ -621,8 +626,9 @@
         <.pagination_controls
           next_link={next_link}
           prev_link={prev_link}
+          base_link={base_link}
           pagination_metadata={@results.metadata}
-          pagination_index={@pagination_index}
+          pagination_index={@page}
           currently_displayed_results={length(@media)}
           id="pagination-bottom"
         />
