@@ -61,3 +61,36 @@ To customize a project’s data model:
 **Removing attributes during an investigation risks data integrity.**   
 If you remove an attribute from your project's data model, that attribute—and its values—will be removed from all incidents in the project.
 {{< /callout >}}
+
+## Attribute groups
+In investigations with many attributes, we recommend creating attribute groups to keep your data model easily understandable for your team.
+
+Attribute groups have several components: 
+- **Name**—Use a group's name to describe the group. A location-related attributes might fit into a "Location" group.
+- **Description**—A longer text field that provides more context on the group's purpose.
+- **Color**—Use a group's color to visually distinguish it from other attribute groups.
+
+### Create an attribute group
+To create an attribute group:
+1. Navigate to the **Projects** page. 
+2. Select the relevant project. 
+3. Click on the **Manage** page and scroll down to the **Attributes** pane. 
+4. Click **Add Group**.
+5. Add a name, description, and color for the group.
+6. Click **Save**.
+
+### Add an attribute to an attribute group
+To add an existing attribute to a group:
+1. Navigate to the **Projects** page. 
+2. Select the relevant project. 
+3. Click on the **Manage** page and scroll down to the **Attributes** pane. 
+4. Drag the attribute from its current location to its new attribute group.
+
+### Exclude attribute groups from incident creation
+In investigations with many attributes, you may want to exclude some attribute groups from the new incident form so that investigators can more quickly create incidents. To exclude attribute groups from the form:
+1. Navigate to the **Projects** page. 
+2. Select the relevant project. 
+3. Click on the **Manage** page and scroll down to the **Attributes** pane.
+4. On the relevant attribute group, click **Edit Group**.
+5. Uncheck the **Include this group in the incident creation window** box. 
+6. Click **Save**.
