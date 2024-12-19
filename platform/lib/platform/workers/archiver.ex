@@ -3,6 +3,7 @@ defmodule Platform.Workers.Archiver do
   alias Platform.Material.MediaVersion
   alias Platform.Auditor
   alias Platform.Uploads
+  alias Platform.Projects
 
   require Logger
 
@@ -30,10 +31,12 @@ defmodule Platform.Workers.Archiver do
 
     Logger.info("Archiving media version #{id}...")
     version = Material.get_media_version!(id)
+    project = Projects.get_project!(version.media.project_id)
 
     %MediaVersion{status: status, media_id: media_id} = version
 
-    if status == :pending or is_rearchive_request do
+    if (status == :pending or is_rearchive_request) and
+         not (version.upload_type == :direct and not project.source_material_archival_enabled) do
       Logger.info("Archiving media version #{id}... (got media #{media_id})")
 
       hide_version_on_failure = Map.get(args, "hide_version_on_failure", false)
@@ -111,21 +114,33 @@ defmodule Platform.Workers.Archiver do
                 end)
                 |> Enum.filter(&(&1 != :skip))
 
-              # Update the media version
-              version_map = %{
-                status: :complete,
-                # Append the artifacts; some may already exist
-                artifacts: Enum.map(version.artifacts || [], &Map.from_struct(&1)) ++ artifacts,
-                metadata: %{
-                  auto_archive_successful: Map.get(metadata, "auto_archive_successful", false),
-                  crawl_successful: Map.get(metadata, "crawl_successful", false),
-                  page_info: Map.get(metadata, "page_info"),
-                  content_info: Map.get(metadata, "content_info"),
-                  is_likely_authwalled: Map.get(metadata, "is_likely_authwalled", false)
-                }
-              }
+              {:ok, version} =
+                Platform.Repo.transaction(fn ->
+                  # Combine the old metadata and the new metadata (we don't want to override!)
+                  # TODO: Move these into their own internal namespace
+                  combined_metadata =
+                    Map.merge(version.metadata || %{}, %{
+                      auto_archive_successful:
+                        Map.get(metadata, "auto_archive_successful", false),
+                      crawl_successful: Map.get(metadata, "crawl_successful", false),
+                      page_info: Map.get(metadata, "page_info"),
+                      content_info: Map.get(metadata, "content_info"),
+                      is_likely_authwalled: Map.get(metadata, "is_likely_authwalled", false)
+                    })
 
-              {:ok, version} = Material.update_media_version(version, version_map)
+                  # Update the media version
+                  version_map = %{
+                    status: :complete,
+                    # Append the artifacts; some may already exist
+                    artifacts:
+                      Enum.map(version.artifacts || [], &Map.from_struct(&1)) ++ artifacts,
+                    metadata: combined_metadata
+                  }
+
+                  {:ok, version} = Material.update_media_version(version, version_map)
+
+                  version
+                end)
 
               version
 
@@ -186,12 +201,25 @@ defmodule Platform.Workers.Archiver do
                   }
                 end)
 
-              version_map = %{
-                status: :complete,
-                artifacts: new_artifacts
-              }
+              # Now jump into a transaction, get a refreshed copy of the metadata, and merge it with the new artifacts
+              {:ok, version} =
+                Platform.Repo.transaction(fn ->
+                  version = Material.get_media_version!(id)
 
-              {:ok, version} = Material.update_media_version(version, version_map)
+                  # Combine the old metadata and the new metadata (we don't want to override!)
+                  new_artifacts =
+                    (new_artifacts ++ Enum.map(version.artifacts, &Map.from_struct(&1)))
+                    |> Enum.uniq_by(& &1.id)
+
+                  version_map = %{
+                    status: :complete,
+                    artifacts: new_artifacts
+                  }
+
+                  {:ok, version} = Material.update_media_version(version, version_map)
+
+                  version
+                end)
 
               version
           end
@@ -268,8 +296,17 @@ defmodule Platform.Workers.Archiver do
       result
     else
       Logger.info(
-        "Media version #{id} is not pending, and this is not a rearchive request. Skipping."
+        "Media version #{id} is not pending and this is not a rearchive request, or archival is disabled for this project. Skipping."
       )
+
+      # Mark as not needing archival
+      if version.status == :pending do
+        version_map = %{
+          status: :complete
+        }
+
+        {:ok, _} = Material.update_media_version(version, version_map)
+      end
 
       {:ok, version}
     end

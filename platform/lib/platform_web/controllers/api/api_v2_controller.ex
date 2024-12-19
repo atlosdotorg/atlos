@@ -199,9 +199,6 @@ defmodule PlatformWeb.APIV2Controller do
                 new_version
               end)
 
-            # Schedule the media version for additional processing
-            Material.rearchive_media_version(new_version)
-
             Auditor.log(
               :media_version_uploaded,
               %{"params" => params, "version" => new_version, "new_media_version_id" => id},

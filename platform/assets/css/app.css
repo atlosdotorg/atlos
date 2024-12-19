@@ -298,6 +298,16 @@
   }
 }
 
+/* Hide if there's a preceding sibling with data-sortable-id */
+[data-sortable-id] ~ .sibling-sortable-hidden {
+  display: none;
+}
+
+/* Hide if there's a following sibling with data-sortable-id */
+.sibling-sortable-hidden:has(~ [data-sortable-id]) {
+  display: none;
+}
+
 /**
   Important CSS for our custom full-page map styling.,
 */
