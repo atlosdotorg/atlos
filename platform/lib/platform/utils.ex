@@ -91,7 +91,13 @@ defmodule Platform.Utils do
         |> Calendar.strftime("%d %B %Y")
 
       str when is_binary(str) ->
-        str |> Date.from_iso8601() |> elem(1) |> Calendar.strftime("%d %B %Y")
+        case str |> Date.from_iso8601() |> elem(1) do
+          :invalid_format ->
+            str
+
+          date ->
+            Calendar.strftime(date, "%d %B %Y")
+        end
 
       _ ->
         value
