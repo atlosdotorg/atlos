@@ -555,4 +555,112 @@ defmodule PlatformWeb.APIV2Test do
 
     %{"success" => true, "result" => ^version} = json_response(conn, 200)
   end
+
+  test "POST /incidents/new" do
+    project = project_fixture()
+
+    underpermissioned_token =
+      api_token_fixture(%{project_id: project.id, permissions: [:read, :comment]})
+
+    token = api_token_fixture(%{project_id: project.id, permissions: [:read, :comment, :edit]})
+
+    # Create a piece of media
+    auth_conn =
+      build_conn()
+      |> put_req_header("authorization", "Bearer " <> token.value)
+      |> post("/api/v2/incidents/new", %{
+        "sensitive" => ["Not Sensitive"],
+        "description" => "Test incident description"
+      })
+
+    %{"success" => true, "result" => media} = json_response(auth_conn, 200)
+    assert media["attr_sensitive"] == ["Not Sensitive"]
+    assert media["attr_description"] == "Test incident description"
+
+    # Quickly check that permission validation is working
+    noauth_conn = post(build_conn(), "/api/v2/incidents/new", %{})
+    assert json_response(noauth_conn, 401) == %{"error" => "invalid token or token not found"}
+
+    # Check that underpermissioned tokens can't create incidents
+    conn =
+      build_conn()
+      |> put_req_header("authorization", "Bearer " <> underpermissioned_token.value)
+      |> post("/api/v2/incidents/new", %{})
+
+    assert json_response(conn, 401) == %{"error" => "unauthorized"}
+
+    # Check that validation for required attributes is working pt. 1
+    conn =
+      build_conn()
+      |> put_req_header("authorization", "Bearer " <> token.value)
+      |> post("/api/v2/incidents/new", %{
+        "sensitive" => ["Not Sensitive"]
+      })
+
+    assert json_response(conn, 401) == %{"error" => %{"attr_description" => "can't be blank"}}
+
+    # Check that validation for required attributes is working pt. 2
+    conn =
+      build_conn()
+      |> put_req_header("authorization", "Bearer " <> token.value)
+      |> post("/api/v2/incidents/new", %{
+        "description" => "Test incident name"
+      })
+
+    assert json_response(conn, 401) == %{"error" => %{"attr_sensitive" => "can't be blank"}}
+
+    # Check that validation for required attributes is working pt. 3
+    conn =
+      build_conn()
+      |> put_req_header("authorization", "Bearer " <> token.value)
+      |> post("/api/v2/incidents/new", %{})
+
+    assert json_response(conn, 401) == %{
+             "error" => %{
+               "attr_description" => "can't be blank",
+               "attr_sensitive" => "can't be blank"
+             }
+           }
+
+    # Ensure length validation of required attributes is passed in API response
+    conn =
+      build_conn()
+      |> put_req_header("authorization", "Bearer " <> token.value)
+      |> post("/api/v2/incidents/new", %{
+        "description" => "Short",
+        "sensitive" => ["Not Sensitive"]
+      })
+
+    assert json_response(conn, 401) == %{
+             "error" => %{"attr_description" => "should be at least 8 character(s)"}
+           }
+
+    # Ensure type validation of required attributes is passed in API response
+    conn =
+      build_conn()
+      |> put_req_header("authorization", "Bearer " <> token.value)
+      |> post("/api/v2/incidents/new", %{
+        "description" => "Test incident description",
+        "sensitive" => "Not Sensitive"
+      })
+
+    assert json_response(conn, 401) == %{
+             "error" => %{"attr_sensitive" => "must be an array of strings"}
+           }
+
+    # Ensure type validation of optional attributes is passed in API response
+    conn =
+      build_conn()
+      |> put_req_header("authorization", "Bearer " <> token.value)
+      |> post("/api/v2/incidents/new", %{
+        "description" => "Test incident description",
+        "sensitive" => ["Not Sensitive"],
+        "more_info" => ["This More Info section is invalid because", "It's in an array"]
+      })
+
+    assert json_response(conn, 401) == %{"error" => %{"attr_more_info" => "is invalid"}}
+
+    # TODO check URL validation fails loudly
+    # TODO ensure arbitrary optional attribute values are stored correctly
+     end
 end

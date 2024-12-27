@@ -308,11 +308,24 @@ defmodule Platform.Updates do
   @doc """
   Helper API function that takes attribute change information and uses it to create an Update changeset. Requires 'explanation' to be in attrs.
   """
+  def change_from_media_creation(media, user_or_token)
+
   def change_from_media_creation(%Media{} = media, %User{} = user) do
     change_update(
       %Update{},
       media,
       user,
+      %{
+        "type" => :create
+      }
+    )
+  end
+
+  def change_from_media_creation(%Media{} = media, %APIToken{} = api_token) do
+    change_update(
+      %Update{},
+      media,
+      api_token,
       %{
         "type" => :create
       }

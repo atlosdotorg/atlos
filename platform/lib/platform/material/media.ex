@@ -6,6 +6,8 @@ defmodule Platform.Material.Media do
   alias Platform.Material.MediaSubscription
   alias Platform.Projects
   alias Platform.Permissions
+  alias Platform.Accounts.User
+  alias Platform.API.APIToken
   alias __MODULE__
 
   @primary_key {:id, :binary_id, autogenerate: true}
@@ -95,7 +97,19 @@ defmodule Platform.Material.Media do
   end
 
   @doc false
-  def changeset(media, attrs, user \\ nil) do
+  def changeset(media, attrs, user_or_token \\ nil) do
+    {user, api_token, actor} =
+      case user_or_token do
+        %User{} ->
+          {user_or_token, nil, user_or_token}
+
+        %APIToken{} ->
+          {nil, user_or_token, user_or_token}
+
+        _ ->
+          {nil, nil, nil}
+      end
+
     media
     |> cast(attrs, [
       :attr_description,
@@ -105,24 +119,30 @@ defmodule Platform.Material.Media do
       :deleted,
       :project_id,
       :urls,
-      :location
+      :location,
+      :attr_more_info,
+      :attr_restrictions,
+      :attr_tags
     ])
     |> validate_required([:project_id], message: "Please select a project")
     |> populate_geolocation()
     # These are special attributes, since we define it at creation time. Eventually, it'd be nice to unify this logic with the attribute-specific editing logic.
     |> Attribute.validate_attribute(Attribute.get_attribute(:description), media,
       user: user,
+      api_token: api_token,
       required: true
     )
     |> Attribute.validate_attribute(Attribute.get_attribute(:sensitive), media,
       user: user,
+      api_token: api_token,
       required: true
     )
     |> Attribute.validate_attribute(Attribute.get_attribute(:date), media,
       user: user,
+      api_token: api_token,
       required: false
     )
-    |> validate_project(user, media)
+    |> validate_project(media, user: user, api_token: api_token)
     |> parse_and_validate_validate_json_array(:urls, :urls_parsed)
     |> validate_url_list(:urls_parsed)
     |> then(fn cs ->
@@ -138,6 +158,7 @@ defmodule Platform.Material.Media do
             attrs,
             changeset: cs,
             user: user,
+            api_token: api_token,
             verify_change_exists: false
           )
     end)
@@ -151,13 +172,21 @@ defmodule Platform.Material.Media do
 
       # We manually insert the project ID because the media hasn't been inserted yet,
       # so we can't get it from the media itself. Still, we want to check the user's permissions.
-      if !is_nil(user) &&
-           Permissions.can_edit_media?(user, %{media | project_id: project_id}, attr) do
+      if !is_nil(actor) &&
+           (case actor do
+              %User{} ->
+                Permissions.can_edit_media?(actor, %{media | project_id: project_id}, attr)
+              %APIToken{} ->
+                Permissions.can_edit_media?(actor, %{media | project_id: project_id})
+            end) do
         cs
         # TODO: This is a good refactoring opportunity with the logic above
         |> cast(attrs, [:attr_tags])
-        |> Attribute.validate_attribute(Attribute.get_attribute(:tags), media,
+        |> Attribute.validate_attribute(
+          Attribute.get_attribute(:tags),
+          media,
           user: user,
+          api_token: api_token,
           required: false
         )
       else
@@ -209,43 +238,61 @@ defmodule Platform.Material.Media do
     changeset
   end
 
-  def validate_project(changeset, user \\ nil, media \\ nil) do
+  def validate_project(changeset, media \\ [], opts) do
+    user = Keyword.get(opts, :user)
+    api_token = Keyword.get(opts, :api_token)
+
     project_id = Ecto.Changeset.get_change(changeset, :project_id, :no_change)
     original_project_id = changeset.data.project_id
 
-    case project_id do
-      :no_change ->
+    cond do
+      !is_nil(user) ->
+        case project_id do
+          :no_change ->
+            changeset
+
+          new_project_id ->
+            new_project = Projects.get_project(new_project_id)
+            original_project = Projects.get_project(original_project_id)
+
+            cond do
+              !is_nil(media) && !is_nil(user) && !Permissions.can_edit_media?(user, media) ->
+                changeset
+                |> add_error(:project_id, "You cannot edit this incidents's project.")
+
+              !is_nil(project_id) && is_nil(new_project) ->
+                changeset
+                |> add_error(:project_id, "Project does not exist")
+
+              !is_nil(user) && !is_nil(new_project) &&
+                  !Permissions.can_add_media_to_project?(user, new_project) ->
+                changeset
+                |> add_error(:project_id, "You cannot add incidents to this project.")
+
+              !is_nil(user) && !is_nil(original_project) ->
+                changeset
+                |> add_error(:project_id, "You cannot remove media from projects!")
+
+              is_nil(new_project) ->
+                changeset
+                |> add_error(:project_id, "You must select a project.")
+
+              true ->
+                changeset
+            end
+        end
+
+      !is_nil(api_token) ->
+        # case project_id do
+        #   :no_change ->
         changeset
 
-      new_project_id ->
-        new_project = Projects.get_project(new_project_id)
-        original_project = Projects.get_project(original_project_id)
-
-        cond do
-          !is_nil(media) && !is_nil(user) && !Permissions.can_edit_media?(user, media) ->
-            changeset
-            |> add_error(:project_id, "You cannot edit this incidents's project.")
-
-          !is_nil(project_id) && is_nil(new_project) ->
-            changeset
-            |> add_error(:project_id, "Project does not exist")
-
-          !is_nil(user) && !is_nil(new_project) &&
-              !Permissions.can_add_media_to_project?(user, new_project) ->
-            changeset
-            |> add_error(:project_id, "You cannot add incidents to this project.")
-
-          !is_nil(user) && !is_nil(original_project) ->
-            changeset
-            |> add_error(:project_id, "You cannot remove media from projects!")
-
-          is_nil(new_project) ->
-            changeset
-            |> add_error(:project_id, "You must select a project.")
-
-          true ->
-            changeset
-        end
+      # new_project_id ->
+      #   changeset
+      #    |> add_error(:project_id, "You cannot edit incidents' projects via the API.")
+      # end
+      true ->
+        changeset
     end
   end
 

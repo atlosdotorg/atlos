@@ -120,6 +120,10 @@ defmodule Platform.Permissions do
       token.project_id == media.project_id and _is_media_editable?(media)
   end
 
+  def can_api_token_create_media?(%APIToken{} = token) do
+    Enum.member?(token.permissions, :edit) and token.is_active
+  end
+
   def can_api_token_edit_media?(%APIToken{} = token, %Media{} = media) do
     Enum.member?(token.permissions, :edit) and token.is_active and
       token.project_id == media.project_id and _is_media_editable?(media)

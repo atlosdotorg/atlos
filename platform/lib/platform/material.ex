@@ -23,6 +23,7 @@ defmodule Platform.Material do
   alias Platform.Uploads
   alias Platform.Accounts
   alias Platform.Permissions
+  alias Platform.API.APIToken
 
   defp hydrate_media_query(query, opts \\ []) do
     query
@@ -315,7 +316,9 @@ defmodule Platform.Material do
     |> Repo.insert()
   end
 
-  def create_media_audited(%User{} = user, attrs \\ %{}, opts \\ []) do
+  def create_media_audited(user_or_token, attrs \\ %{}, opts \\ [])
+
+  def create_media_audited(%User{} = user, attrs, opts) do
     changeset =
       %Media{}
       |> Media.changeset(attrs, user)
@@ -368,6 +371,50 @@ defmodule Platform.Material do
           for url <- Ecto.Changeset.get_field(changeset, :urls_parsed) do
             {:ok, version} =
               create_media_version_audited(media, user, %{
+                upload_type: :direct,
+                status: :pending,
+                source_url: url,
+                media_id: media.id
+              })
+
+            archive_media_version(version)
+          end
+
+          # Schedule metadata generation
+          schedule_media_auto_metadata_update(media)
+
+          media
+        end)
+    end
+  end
+
+  def create_media_audited(%APIToken{} = api_token, attrs, opts) do
+    changeset =
+      %Media{}
+      |> Media.changeset(attrs, api_token)
+
+    cond do
+      !changeset.valid? ->
+        {:error, changeset}
+
+      true ->
+        Repo.transaction(fn ->
+          changeset = change_media(%Media{}, attrs, api_token)
+
+          {:ok, media} =
+            changeset
+            |> Repo.insert()
+
+          if Keyword.get(opts, :post_updates, true) do
+            {:ok, _} =
+              Updates.change_from_media_creation(media, api_token)
+              |> Updates.create_update_from_changeset()
+          end
+
+          # Upload media, if provided
+          for url <- Ecto.Changeset.get_field(changeset, :urls_parsed) do
+            {:ok, version} =
+              create_media_version_audited(media, api_token, %{
                 upload_type: :direct,
                 status: :pending,
                 source_url: url,
@@ -561,8 +608,8 @@ defmodule Platform.Material do
       %Ecto.Changeset{data: %Media{}}
 
   """
-  def change_media(%Media{} = media, attrs \\ %{}, user \\ nil) do
-    Media.changeset(media, attrs, user)
+  def change_media(%Media{} = media, attrs \\ %{}, user_or_token \\ nil) do
+    Media.changeset(media, attrs, user_or_token)
   end
 
   @doc """
