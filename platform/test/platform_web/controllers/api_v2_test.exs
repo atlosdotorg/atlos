@@ -570,12 +570,14 @@ defmodule PlatformWeb.APIV2Test do
       |> put_req_header("authorization", "Bearer " <> token.value)
       |> post("/api/v2/incidents/new", %{
         "sensitive" => ["Not Sensitive"],
-        "description" => "Test incident description"
+        "description" => "Test incident description",
+        "more_info" => "More info about this incident"
       })
 
     %{"success" => true, "result" => media} = json_response(auth_conn, 200)
     assert media["attr_sensitive"] == ["Not Sensitive"]
     assert media["attr_description"] == "Test incident description"
+    assert media["attr_more_info"] ==  "More info about this incident"
 
     # Quickly check that permission validation is working
     noauth_conn = post(build_conn(), "/api/v2/incidents/new", %{})
@@ -660,7 +662,6 @@ defmodule PlatformWeb.APIV2Test do
 
     assert json_response(conn, 401) == %{"error" => %{"attr_more_info" => "is invalid"}}
 
-    # TODO check URL validation fails loudly
-    # TODO ensure arbitrary optional attribute values are stored correctly
+    # Ensure arbitrary optional attribute values are stored correctly
      end
 end
