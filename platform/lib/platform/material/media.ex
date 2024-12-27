@@ -142,7 +142,7 @@ defmodule Platform.Material.Media do
       api_token: api_token,
       required: false
     )
-    |> validate_project(media, user: user, api_token: api_token)
+    |> validate_project(media, user: user)
     |> parse_and_validate_validate_json_array(:urls, :urls_parsed)
     |> validate_url_list(:urls_parsed)
     |> then(fn cs ->
@@ -240,7 +240,6 @@ defmodule Platform.Material.Media do
 
   def validate_project(changeset, media \\ [], opts) do
     user = Keyword.get(opts, :user)
-    api_token = Keyword.get(opts, :api_token)
 
     project_id = Ecto.Changeset.get_change(changeset, :project_id, :no_change)
     original_project_id = changeset.data.project_id
@@ -281,16 +280,6 @@ defmodule Platform.Material.Media do
                 changeset
             end
         end
-
-      !is_nil(api_token) ->
-        # case project_id do
-        #   :no_change ->
-        changeset
-
-      # new_project_id ->
-      #   changeset
-      #    |> add_error(:project_id, "You cannot edit incidents' projects via the API.")
-      # end
       true ->
         changeset
     end
