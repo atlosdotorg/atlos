@@ -203,7 +203,7 @@ It also has many optional parameters:
 - `status`, the incident's status. By default, the incident will be created as "To Do". If you include this field, you can set the incident to one of: `"To Do"`, `"In Progress"`, `"Ready for Review"`, `"Help Needed"`, `"Completed"`, or "`Canceled"`. 
 - `urls`, which should contain a list of urls to be archived as distinct pieces of source material. For more granular control over source material metadata, we recommend using the field in conjunction with the source material creation endpoint and the source material metadata update endpoint. 
 
-Note that it is not currently possible to set an incident's Restrictions, Assignees, or deleted status from this endpoint.
+Note that it is not currently possible to set an incident's Assignees or deleted status from this endpoint.
 
 Attributes' names in the Atlos interface are different from their API identifiers: 
 - Core attributes have string names (such as `description` and `status`).
