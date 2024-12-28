@@ -215,7 +215,7 @@ You can find attributes' API identifiers in the **Access** pane of your project.
 
 ```python
 requests.post(
-    f"https://platform.atlos.org/api/v2/incidents_new",
+    f"https://platform.atlos.org/api/v2/incidents/new",
     headers={"Authorization": f"Bearer {self.api_token}"},
     json={"description": "Test incident created via the API", 
             "sensitive": ["Not Sensitive"]
@@ -223,7 +223,7 @@ requests.post(
 )
 
 requests.post(
-    f"https://platform.atlos.org/api/v2/incidents_new",
+    f"https://platform.atlos.org/api/v2/incidents/new",
     headers={"Authorization": f"Bearer {self.api_token}"},
     json={"description": "Test incident created via the API",
             "sensitive": ["Not Sensitive"],
