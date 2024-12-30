@@ -238,6 +238,9 @@ defmodule Platform.Material.Media do
     changeset
   end
 
+  @doc """
+  Validates changes to a piece of media's project.
+  """
   def validate_project(changeset, media \\ [], opts) do
     user = Keyword.get(opts, :user)
 
