@@ -142,7 +142,7 @@ defmodule Platform.Material.Media do
       api_token: api_token,
       required: false
     )
-    |> validate_project(media, user: user)
+    |> validate_project(media, user_or_token)
     |> parse_and_validate_validate_json_array(:urls, :urls_parsed)
     |> validate_url_list(:urls_parsed)
     |> then(fn cs ->
@@ -241,14 +241,12 @@ defmodule Platform.Material.Media do
   @doc """
   Validates changes to a piece of media's project.
   """
-  def validate_project(changeset, media \\ [], opts) do
-    user = Keyword.get(opts, :user)
-
+  def validate_project(changeset, media \\ [], user_or_token \\ :nil) do
     project_id = Ecto.Changeset.get_change(changeset, :project_id, :no_change)
     original_project_id = changeset.data.project_id
 
     cond do
-      !is_nil(user) ->
+      !is_nil(user_or_token) ->
         case project_id do
           :no_change ->
             changeset
@@ -258,7 +256,7 @@ defmodule Platform.Material.Media do
             original_project = Projects.get_project(original_project_id)
 
             cond do
-              !is_nil(media) && !is_nil(user) && !Permissions.can_edit_media?(user, media) ->
+              !is_nil(media) && !is_nil(user_or_token) && !Permissions.can_edit_media?(user_or_token, media) ->
                 changeset
                 |> add_error(:project_id, "You cannot edit this incidents's project.")
 
@@ -266,12 +264,12 @@ defmodule Platform.Material.Media do
                 changeset
                 |> add_error(:project_id, "Project does not exist")
 
-              !is_nil(user) && !is_nil(new_project) &&
-                  !Permissions.can_add_media_to_project?(user, new_project) ->
+              !is_nil(user_or_token) && !is_nil(new_project) &&
+                  !Permissions.can_add_media_to_project?(user_or_token, new_project) ->
                 changeset
                 |> add_error(:project_id, "You cannot add incidents to this project.")
 
-              !is_nil(user) && !is_nil(original_project) ->
+              !is_nil(user_or_token) && !is_nil(original_project) ->
                 changeset
                 |> add_error(:project_id, "You cannot remove media from projects!")
 
@@ -283,7 +281,7 @@ defmodule Platform.Material.Media do
                 changeset
             end
         end
-      true ->
+        true ->
         changeset
     end
   end
@@ -315,7 +313,7 @@ defmodule Platform.Material.Media do
   def project_changeset(media, attrs, user \\ nil) do
     media
     |> cast(attrs, [:project_id])
-    |> validate_project(user, media)
+    |> validate_project(media, user)
   end
 
   @doc """

@@ -126,7 +126,10 @@ defmodule Platform.Permissions do
 
   def can_api_token_edit_media?(%APIToken{} = token, %Media{} = media) do
     Enum.member?(token.permissions, :edit) and token.is_active and
-      token.project_id == media.project_id and _is_media_editable?(media)
+    _is_media_editable?(media) and
+
+    # If media is being created and doesn't yet have a project, the token should able to give the media a project
+    (token.project_id == media.project_id or is_nil(media.project_id))
   end
 
   def can_api_token_update_attribute?(
@@ -155,6 +158,10 @@ defmodule Platform.Permissions do
       %Projects.ProjectMembership{role: :editor} -> true
       _ -> false
     end
+  end
+
+  def can_add_media_to_project?(%APIToken{} = token, %Project{} = project) do
+    Enum.member?(token.permissions, :edit) and token.is_active and project.active
   end
 
   def can_bulk_upload_media_to_project?(%User{}, %Project{active: false}) do

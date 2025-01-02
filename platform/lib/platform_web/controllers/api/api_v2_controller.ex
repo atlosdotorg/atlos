@@ -405,7 +405,6 @@ defmodule PlatformWeb.APIV2Controller do
     end
   end
 
-  # TODO this def isn't the best way to format elixir:
   defp render_changeset_errors(changeset) do
     Enum.map(changeset.errors, fn
       {field, {"is invalid", [type: {:array, type}, validation: :cast]}} ->
