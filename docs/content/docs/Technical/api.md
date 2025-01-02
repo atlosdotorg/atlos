@@ -203,7 +203,7 @@ It also has many optional parameters:
 - `status`, the incident's status. By default, the incident will be created as `"To Do"`. If you include this field, you can set the incident to one of: `"To Do"`, `"In Progress"`, `"Ready for Review"`, `"Help Needed"`, `"Completed"`, or "`Canceled"`. 
 - `restrictions`, an array of the incident's restrictions. If you include this field, you can set the incident to one or both of `["Hidden", "Frozen"]`.
 - `tags`, an array of the incident's tags. If you include a value not yet present in the project, that tag will be created and applied to the incident.
-- `urls`, which should contain a list of urls to be archived as distinct pieces of source material. Unlike the other fields listed here, validation of URLs fails silently: if an invalid URL is included in this array, Atlos will create the incident without the relevant piece of source material. For more granular control over source material metadata, we recommend using the [source material creation endpoint](#create-a-new-piece-of-source-material) and the [source material metadata update endpoint](#set-source-material-metadata). 
+- `urls`, which should contain a list of URLs to be archived as distinct pieces of source material. URLs must begin with "https://" or "http://". For more granular control over source material metadata, we recommend using the [source material creation endpoint](#create-a-new-piece-of-source-material) and the [source material metadata update endpoint](#set-source-material-metadata). 
 
 Note that it is not currently possible to set an incident's Assignees or deleted status from this endpoint.
 

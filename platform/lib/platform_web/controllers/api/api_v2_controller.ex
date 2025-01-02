@@ -124,8 +124,9 @@ defmodule PlatformWeb.APIV2Controller do
           |> Map.put("project_id", project_id)
 
         # We expect a JSON array of URLs in the incident creation flow
-        if not is_nil(params["urls"]) do
-          media_params |> Map.put("urls", Jason.encode!(params["urls"]))
+        media_params = case params["urls"] do
+          nil -> media_params
+          urls -> Map.put(media_params, "urls", Jason.encode!(urls))
         end
 
         case Material.create_media_audited(conn.assigns.token, media_params) do
