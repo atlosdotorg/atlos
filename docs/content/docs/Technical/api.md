@@ -203,16 +203,15 @@ It also has many optional parameters:
 - `status`, the incident's status. By default, the incident will be created as `"To Do"`. If you include this field, you can set the incident to one of: `"To Do"`, `"In Progress"`, `"Ready for Review"`, `"Help Needed"`, `"Completed"`, or "`Canceled"`. 
 - `restrictions`, an array of the incident's restrictions. If you include this field, you can set the incident to one or both of `["Hidden", "Frozen"]`.
 - `tags`, an array of the incident's tags. If you include a value not yet present in the project, that tag will be created and applied to the incident.
-- `assignments`, an array of the users assigned to the incident. Use users' IDs (not their usernames) in the API.
 - `urls`, which should contain a list of URLs to be archived as distinct pieces of source material. URLs must begin with "https://" or "http://". For more granular control over source material metadata, we recommend using the [source material creation endpoint](#create-a-new-piece-of-source-material) and the [source material metadata update endpoint](#set-source-material-metadata). 
 
-Note that it is not currently possible to set an incident's deleted status from this endpoint.
+Note that it is not currently possible to set an incident's deleted status or its Assignments from this endpoint.
 
-Attributes' and users' names in the Atlos interface are different from their API identifiers: 
+Attributes' names in the Atlos interface are different from their API identifiers: 
 - Core attributes have string names (such as `description` and `status`).
-- Custom attributes and users are identified by a long ID. 
+- Custom attributes are identified by a long ID. 
 
-You can find attributes' and users' API identifiers in the **Access** pane of your project. 
+You can find attributes' API identifiers in the **Access** pane of your project. 
 
 ```python
 requests.post(
