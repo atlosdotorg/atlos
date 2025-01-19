@@ -163,15 +163,13 @@ defmodule Platform.Utils do
   def render_markdown(nil), do: ""
 
   def render_markdown(markdown) do
-    # Safe markdown rendering. No images or headers.
-
-    # Preprocessing: replace single linebreaks with double linebreaks _except_ when the newline is followed by a list item or a digit (i.e. a numbered list)
+    # Preprocessing: replace single linebreaks with double linebreaks _except_ when the newline is followed by a list item or a digit
     markdown = Regex.replace(~r/([^\n])(\n)(?![0-9]|\*)/, markdown, "\\1\\2\\2")
 
-    # First, strip images and turn them into links. Primitive.
+    # Strip images and turn them into links
     markdown = Regex.replace(~r"!*\[", markdown, "[")
 
-    # Second, link ATL identifiers.
+    # Link ATL identifiers
     markdown = Regex.replace(@identifier_regex, markdown, " [\\1](/incidents/\\1)")
 
     markdown =
@@ -181,10 +179,10 @@ defmodule Platform.Utils do
         " [\\1](/incidents/\\2/detail/\\3)"
       )
 
-    # Third, turn @'s into links.
+    # Turn @'s into links
     markdown = Regex.replace(@tag_regex, markdown, " [@\\3](/profile/\\3)")
 
-    # Setup to open external links in a new tab + add nofollow/noopener, and truncate long links.
+    # Setup to open external links in new tab + add nofollow/noopener, and truncate long links
     add_target = fn node ->
       if is_nil(Earmark.AstTools.find_att_in_node(node, "href", "")) do
         node
@@ -216,14 +214,40 @@ defmodule Platform.Utils do
          else: node
     end
 
+    # Convert headers and code blocks to plain text while preserving markers
+    flatten_special_blocks = fn node ->
+      case node do
+        {"h" <> level, _atts, content, _meta} ->
+          hashes = String.duplicate("#", String.to_integer(level))
+          {:replace, {"p", [], [hashes <> " " | content], %{}}}
+
+        {"pre", _atts, [{"code", _code_atts, content, _code_meta}], _meta} ->
+          {:replace, {"p", [], ["```\n" | content] ++ ["\n```"], %{}}}
+
+        _ ->
+          node
+      end
+    end
+
     options = [
-      registered_processors: [{"a", add_target}, {"a", detect_tags}, {"a", truncate_long_links}]
+      registered_processors: [
+        {"a", add_target},
+        {"a", detect_tags},
+        {"a", truncate_long_links},
+        {"h1", flatten_special_blocks},
+        {"h2", flatten_special_blocks},
+        {"h3", flatten_special_blocks},
+        {"h4", flatten_special_blocks},
+        {"h5", flatten_special_blocks},
+        {"h6", flatten_special_blocks},
+        {"pre", flatten_special_blocks}
+      ]
     ]
 
     # Strip all tags and render markdown
     markdown = markdown |> Earmark.as_html!(options)
 
-    # Perform another round of cleaning (images will be stripped here too)
+    # Perform another round of cleaning
     markdown = markdown |> HtmlSanitizeEx.Scrubber.scrub(Platform.Security.UgcSanitizer)
 
     markdown
