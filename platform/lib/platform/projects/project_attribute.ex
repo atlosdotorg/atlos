@@ -14,6 +14,7 @@ defmodule Platform.Projects.ProjectAttribute do
     # empty string if not a decorator
     field(:decorator_for, :string, default: "")
     field(:enabled, :boolean, default: true)
+    field(:ordering, :integer, default: 0)
 
     # JSON array of options
     field(:options_json, :string, virtual: true)
@@ -21,7 +22,7 @@ defmodule Platform.Projects.ProjectAttribute do
 
   def compatible_types(current_type) do
     case current_type do
-      :select -> [:select]
+      :select -> [:select, :multi_select]
       :multi_select -> [:multi_select]
       :text -> [:text]
       :date -> [:date]
@@ -41,7 +42,16 @@ defmodule Platform.Projects.ProjectAttribute do
       |> then(&if &1 == "", do: Jason.encode!(attribute.options), else: &1)
 
     attribute
-    |> cast(attrs, [:name, :type, :options_json, :id, :description, :decorator_for, :enabled])
+    |> cast(attrs, [
+      :name,
+      :ordering,
+      :type,
+      :options_json,
+      :id,
+      :description,
+      :decorator_for,
+      :enabled
+    ])
     |> cast(%{options_json: json_options}, [:options_json])
     |> cast(
       %{options: Jason.decode!(json_options)},
@@ -78,8 +88,8 @@ defmodule Platform.Projects.ProjectAttribute do
         |> validate_required([:options])
         |> validate_length(:options,
           min: 1,
-          max: 256,
-          message: "You must provide between 1 and 256 options."
+          max: 512,
+          message: "You must provide between 1 and 512 options."
         )
         |> validate_change(:options, fn :options, options ->
           if Enum.any?(options, fn option -> String.length(option) > 50 end) do

@@ -515,10 +515,11 @@ defmodule PlatformWeb.ProjectsLive.BulkUploadLive do
                       Found <%= length(@changesets) %> incidents.
                     </strong>
                     If everything below looks right, click "Publish" to publish these incidents to Atlos. Note that media will be archived on a best-effort basis.
+                    <span :if={Enum.count(valid) > 50}>We have truncated the list to the first 50 incidents.</span>
                   </p>
                 </aside>
                 <div class="grid gap-4 grid-cols-1 mt-4">
-                  <%= for {changeset, idx} <- valid do %>
+                  <%= for {changeset, idx} <- Enum.slice(valid, 0..50) do %>
                     <div class="rounded-lg border">
                       <p class="sec-head text-md p-4 border-b text-sm">
                         <span class="text-gray-500">Row <%= idx %>:</span> <%= Ecto.Changeset.get_field(
@@ -528,8 +529,7 @@ defmodule PlatformWeb.ProjectsLive.BulkUploadLive do
                       </p>
                       <div class="grid gap-4 grid-cols-1 lg:grid-cols-3 text-sm p-4">
                         <% applied_media =
-                          Ecto.Changeset.apply_changes(changeset)
-                          |> Platform.Repo.preload([attr_assignments: [:user]], force: true) %>
+                          Ecto.Changeset.apply_changes(changeset) %>
                         <%= for attr <- Material.Attribute.active_attributes(project: @project) do %>
                           <% value = Material.get_attribute_value(applied_media, attr) %>
                           <%= if not is_nil(value) and value != [] and value != "" and attr.schema_field != :attr_description do %>
