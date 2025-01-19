@@ -26,13 +26,11 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
      |> assign_new(:general_changeset, fn ->
        Projects.change_project(socket.assigns.project)
      end)
-     |> assign_new(:custom_attribute_changeset, fn ->
-       Projects.change_project(socket.assigns.project)
-     end)
      |> assign_new(:all_attributes, fn ->
        Platform.Material.Attribute.active_attributes(project: socket.assigns.project)
      end)
-     |> assign_new(:show_panes, fn -> [:general, :custom_attributes] end)}
+     |> assign_new(:show_panes, fn -> [:general, :custom_attributes] end)
+     |> assign_custom_attribute_changeset()}
   end
 
   defp close_modal(socket) do
@@ -49,7 +47,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
     )
   end
 
-  def assign_custom_attribute_changeset(socket, attrs \\ %{}) do
+  def assign_custom_attribute_changeset(socket, attrs \\ %{}, opts \\ []) do
     socket
     |> assign(
       :custom_attribute_changeset,
@@ -60,6 +58,13 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
       :all_attributes,
       Platform.Material.Attribute.active_attributes(project: socket.assigns.project)
     )
+    |> then(fn socket ->
+      if Keyword.get(opts, :update_nonce, false) do
+        assign(socket, :custom_attribute_changeset_nonce, Ecto.UUID.generate())
+      else
+        assign_new(socket, :custom_attribute_changeset_nonce, fn -> Ecto.UUID.generate() end)
+      end
+    end)
   end
 
   defp get_core_attributes() do
@@ -99,12 +104,12 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
   end
 
   def handle_event("validate_general", %{"project" => project_params}, socket) do
-    {:noreply, socket |> assign_general_changeset(project_params) |> Map.put(:action, :validate)}
+    {:noreply, socket |> assign_general_changeset(project_params)}
   end
 
   def handle_event("validate_custom_attributes", %{"project" => project_params}, socket) do
     {:noreply,
-     socket |> assign_custom_attribute_changeset(project_params) |> Map.put(:action, :validate)}
+     socket |> assign_custom_attribute_changeset(project_params)}
   end
 
   def handle_event("save_general", %{"project" => project_params}, socket) do
@@ -152,7 +157,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
          socket
          |> assign(project: project)
          |> close_modal()
-         |> assign_custom_attribute_changeset()}
+         |> assign_custom_attribute_changeset(%{}, update_nonce: true)}
 
       {:error, changeset} ->
         {:noreply,
@@ -247,7 +252,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
      socket
      |> assign(:project, project)
      |> close_modal()
-     |> assign_custom_attribute_changeset()}
+     |> assign_custom_attribute_changeset(%{}, update_nonce: true)}
   end
 
   def handle_event("delete_group", %{"id" => id}, socket) do
@@ -265,7 +270,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
      socket
      |> assign(:project, project)
      |> assign(:actively_editing_group_id, nil)
-     |> assign_custom_attribute_changeset()}
+     |> assign_custom_attribute_changeset(%{}, update_nonce: true)}
   end
 
   def handle_event("open_attr_edit_modal", %{"id" => id}, socket) do
@@ -280,7 +285,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
     {:noreply,
      socket
      |> close_modal()
-     |> assign_custom_attribute_changeset()}
+     |> assign_custom_attribute_changeset(%{}, update_nonce: true)}
   end
 
   def type_mapping,
@@ -329,7 +334,10 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
 
         send(self(), {:project_saved, project})
 
-        {:noreply, socket |> assign(project: project) |> assign_custom_attribute_changeset()}
+        {:noreply,
+         socket
+         |> assign(project: project)
+         |> assign_custom_attribute_changeset(%{}, update_nonce: true)}
 
       # For all the groups, if the group is the one we want to edit, update the ordering; if it's not, make sure that the none of the elements in the ordering are in that group
       _ ->
@@ -368,14 +376,17 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
         # Update the project with the new groups
         {:ok, project} =
           Projects.update_project(
-            socket.assigns.project,
+            project,
             %{attribute_groups: new_groups, attributes: new_attributes},
             socket.assigns.current_user
           )
 
         send(self(), {:project_saved, project})
 
-        {:noreply, socket |> assign(project: project) |> assign_custom_attribute_changeset()}
+        {:noreply,
+         socket
+         |> assign(project: project)
+         |> assign_custom_attribute_changeset(%{}, update_nonce: true)}
     end
   end
 
@@ -384,7 +395,9 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
     assigns =
       assign_new(assigns, :decorator_for, fn -> nil end)
       |> assign(:enabled, Ecto.Changeset.get_field(assigns.f_attr.source, :enabled))
-      |> assign_new(:id, fn -> "edit-#{Ecto.Changeset.get_field(assigns.f_attr.source, :id)}" end)
+      |> assign_new(:id, fn ->
+        "edit-#{Ecto.Changeset.get_field(assigns.f_attr.source, :id)}-#{assigns.nonce}"
+      end)
 
     ~H"""
     <div
@@ -470,7 +483,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
       <%= if (Ecto.Changeset.get_field(@f_attr.source, :type) in [:select, :multi_select] or Ecto.Changeset.get_field(@f_attr.source, :type) == nil) do %>
         <div :if={@enabled} x-transition>
           <%= label(@f_attr, :options, class: "!text-neutral-600 !font-normal") %>
-          <% id = "field-#{Ecto.Changeset.get_field(@f_attr.source, :id)}-options" %>
+          <% id = "field-#{Ecto.Changeset.get_field(@f_attr.source, :id)}-options-#{@nonce}" %>
           <div id={id} phx-update="ignore" class="my-1">
             <div id={"child-#{id}"} x-data>
               <%= textarea(@f_attr, :options_json,
@@ -514,7 +527,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
 
   def edit_attribute_group(assigns) do
     ~H"""
-    <%= inputs_for @f, :attribute_groups, [multipart: true, id: "attr-group-form-#{@group_id}"], fn ef -> %>
+    <%= inputs_for @f, :attribute_groups, [multipart: true, id: "attr-group-form-#{@group_id}-#{@nonce}"], fn ef -> %>
       <%= if ef.data.id == @group_id or (is_nil(ef.data.id) and @group_id == :new) do %>
         <div
           class={[
@@ -538,7 +551,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
           </div>
           <div>
             <%= label(ef, :color, class: "!text-neutral-600 !font-normal") %>
-            <div id={"color-picker-#{@group_id}-#{@group_ordering}"} phx-update="ignore">
+            <div id={"color-picker-#{@group_id}-#{@group_ordering}-#{@nonce}"} phx-update="ignore">
               <div
                 class="flex gap-1 flex-wrap items-center"
                 x-data={"{active: '#{Ecto.Changeset.get_field(ef.source, :color)}'}"}
@@ -601,15 +614,17 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
 
   def attribute_table_row(assigns) do
     ~H"""
-    <div class="grid grid-cols-2 md:grid-cols-4 drag-ghost:rounded drag-ghost:opacity-50 drag-ghost:bg-neutral-50">
-      <div class="whitespace-nowrap py-4 flex items-center pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
+    <div class="grid grid-cols-2 md:grid-cols-4 drag-ghost:rounded drag-ghost:opacity-50 drag-ghost:bg-neutral-50 items-center">
+      <div class="overflow-0 py-4 flex items-center pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
         <Heroicons.arrows_up_down
           :if={@editable}
           mini
-          class="h-4 w-4 cursor-pointer text-gray-400 mr-2 -ml-2 handle"
+          class="h-4 w-4 cursor-pointer text-gray-400 mr-2 -ml-2 handle shrink-0"
           data-tooltip="Drag to move this attribute"
         />
-        <%= @attr.label %>
+        <div>
+          <%= @attr.label %>
+        </div>
       </div>
       <div class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
         <%= @attr.type
@@ -766,6 +781,20 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                   </p>
                   <%= error_tag(f, :should_sync_with_internet_archive) %>
                 </div>
+                <div class="mt-4">
+                  <p class="flex gap-2 items-center mb-1">
+                    <%= checkbox(f, :source_material_archival_enabled,
+                      disabled: not Permissions.can_edit_project_metadata?(@current_user, @project)
+                    ) %>
+                    <%= label(f, :source_material_archival_enabled) do %>
+                      Use built-in source material archival
+                    <% end %>
+                  </p>
+                  <p class="support">
+                    If enabled, Atlos will automatically archive source material links added to this project. Disable if you'd like to use a custom archival solution.
+                  </p>
+                  <%= error_tag(f, :source_material_archival_enabled) %>
+                </div>
               </details>
               <div class="mt-8">
                 <div class="flex justify-between gap-4 flex-wrap">
@@ -815,7 +844,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
           <.form
             :let={f}
             for={@custom_attribute_changeset}
-            id="attribute-form"
+            id={"attribute-form-#{@custom_attribute_changeset_nonce}"}
             phx-target={@myself}
             phx-submit="save_custom_attributes"
             phx-change="validate_custom_attributes"
@@ -874,13 +903,18 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                     <.modal
                       :if={@actively_editing_group_id == :new}
                       target={@myself}
-                      id="new_group_editor"
+                      id={"new_group_editor-#{@custom_attribute_changeset_nonce}"}
                       js_on_close="document.cancelFormEvent($event)"
                     >
                       <section class="mb-6">
                         <h2 class="sec-head">Create Group</h2>
                       </section>
-                      <.edit_attribute_group f={f} group_id={:new} group_ordering={-1} />
+                      <.edit_attribute_group
+                        f={f}
+                        group_id={:new}
+                        nonce={@custom_attribute_changeset_nonce}
+                        group_ordering={-1}
+                      />
                       <div class="mt-8 flex justify-between items-center">
                         <div class="flex items-center gap-2">
                           <%= submit("Save", class: "button ~urge @high") %>
@@ -982,13 +1016,14 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                                         attr={attr}
                                         myself={@myself}
                                         editable={false}
+                                        nonce={@custom_attribute_changeset_nonce}
                                       />
                                     </div>
                                   <% _ -> %>
                                     <%= if to_string(@actively_editing_group_id) == group_id do %>
                                       <.modal
                                         target={@myself}
-                                        id={@actively_editing_group_id |> to_string()}
+                                        id={"#{@actively_editing_group_id |> to_string()}-#{@custom_attribute_changeset_nonce}"}
                                         js_on_close="document.cancelFormEvent($event)"
                                       >
                                         <section class="mb-6">
@@ -998,6 +1033,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                                           f={f}
                                           group_id={group_id}
                                           group_ordering={group.ordering}
+                                          nonce={@custom_attribute_changeset_nonce}
                                         />
                                         <div class="mt-8 flex justify-between items-center">
                                           <div>
@@ -1030,6 +1066,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                                         <.edit_attribute_group
                                           f={f}
                                           group_id={group_id}
+                                          nonce={@custom_attribute_changeset_nonce}
                                           group_ordering={
                                             if is_atom(group), do: -1, else: group.ordering
                                           }
@@ -1040,7 +1077,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                                       data-list_id={group_id}
                                       data-list_group="attribute_ordering"
                                       phx-target={@myself}
-                                      id={group_id}
+                                      id={"attr-ordering-#{group_id}-#{@custom_attribute_changeset_nonce}"}
                                       phx-hook="Sortable"
                                       data-sortable={to_string(group != :core)}
                                     >
@@ -1049,7 +1086,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                                       </div>
                                       <.inputs_for
                                         :let={f_attr}
-                                        id={"attr-form-#{group_id}"}
+                                        id={"attr-form-#{group_id}-#{@custom_attribute_changeset_nonce}"}
                                         field={f[:attributes]}
                                       >
                                         <% attr_group_id =
@@ -1064,6 +1101,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                                               <.attribute_table_row
                                                 attr={ProjectAttribute.to_attribute(f_attr.data)}
                                                 myself={@myself}
+                                                nonce={@custom_attribute_changeset_nonce}
                                                 editable={
                                                   Permissions.can_edit_project_metadata?(
                                                     @current_user,
@@ -1084,7 +1122,10 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                                                 <section class="mb-6">
                                                   <h2 class="sec-head">Edit Custom Attribute</h2>
                                                 </section>
-                                                <.edit_custom_project_attribute f_attr={f_attr} />
+                                                <.edit_custom_project_attribute
+                                                  f_attr={f_attr}
+                                                  nonce={@custom_attribute_changeset_nonce}
+                                                />
                                                 <div class="mt-8 flex justify-between items-center">
                                                   <div>
                                                     <%= submit("Save", class: "button ~urge @high") %>
@@ -1126,7 +1167,10 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                                                 }
                                                 class="hidden"
                                               >
-                                                <.edit_custom_project_attribute f_attr={f_attr} />
+                                                <.edit_custom_project_attribute
+                                                  f_attr={f_attr}
+                                                  nonce={@custom_attribute_changeset_nonce}
+                                                />
                                               </div>
                                             <% end %>
                                           </div>
@@ -1176,7 +1220,8 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                                     f_attr={f_attr}
                                     decorator_for={parent}
                                     allow_disable={true}
-                                    id={"edit-decorator-#{Ecto.Changeset.get_field(f_attr.source, :decorator_for)}"}
+                                    id={"edit-decorator-#{Ecto.Changeset.get_field(f_attr.source, :decorator_for)}-#{@custom_attribute_changeset_nonce}"}
+                                    nonce={@custom_attribute_changeset_nonce}
                                   />
                                 </div>
                               </.inputs_for>

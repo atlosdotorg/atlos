@@ -62,7 +62,6 @@ defmodule PlatformWeb.ExportController do
       end)
 
     allowed_field_names = Enum.map(fields ++ custom_attribute_names, &to_string/1)
-    dbg(allowed_field_names)
 
     {field_list
      |> Enum.filter(fn {k, _v} ->
@@ -122,8 +121,6 @@ defmodule PlatformWeb.ExportController do
 
     formatted =
       Enum.map(results, &format_media(&1, fields_excluding_custom, conn.assigns.current_user))
-
-    dbg(formatted)
 
     media = formatted |> Enum.map(fn {media, _} -> media end)
 

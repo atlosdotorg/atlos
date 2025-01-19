@@ -12,9 +12,9 @@
 #   - https://pkgs.org/ - resource for finding needed packages
 #   - Ex: hexpm/elixir:1.13.4-erlang-24.3.3-debian-bullseye-20210902-slim
 #
-ARG ELIXIR_VERSION=1.16.2
-ARG OTP_VERSION=26.2.5
-ARG DEBIAN_VERSION=bookworm-20240513
+ARG ELIXIR_VERSION=1.17.2
+ARG OTP_VERSION=27.0.1
+ARG DEBIAN_VERSION=bookworm-20240812
 
 ARG BUILDER_IMAGE="hexpm/elixir:${ELIXIR_VERSION}-erlang-${OTP_VERSION}-debian-${DEBIAN_VERSION}"
 ARG RUNNER_IMAGE="debian:${DEBIAN_VERSION}"
@@ -99,7 +99,7 @@ COPY utils utils
 ENV UTILS_DIR="/app/utils"
 
 # Install packages needed for runtime environment
-RUN apt-get update -y && apt-get install -y ffmpeg imagemagick curl python3-full dbus python3-pip python3-poetry chromium tmpreaper ca-certificates postgresql-client jq \
+RUN apt-get update -y && apt-get install -y ffmpeg imagemagick curl python3-full dbus python3-pip python3-poetry chromium chromium-driver tmpreaper ca-certificates postgresql-client jq \
   && apt-get clean && rm -f /var/lib/apt/lists/*_*
 
 USER atlos
