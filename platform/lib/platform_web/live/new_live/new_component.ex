@@ -113,7 +113,7 @@ defmodule PlatformWeb.NewLive.NewComponent do
              Material.change_media(
                socket.assigns.media,
                media_params,
-               socket.assigns.current_user
+               user: socket.assigns.current_user
              )
            )
            |> push_redirect(to: "/incidents/#{media.slug}")}

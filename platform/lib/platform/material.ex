@@ -23,6 +23,7 @@ defmodule Platform.Material do
   alias Platform.Uploads
   alias Platform.Accounts
   alias Platform.Permissions
+  alias Platform.API.APIToken
 
   defp hydrate_media_query(query, opts \\ []) do
     query
@@ -315,10 +316,10 @@ defmodule Platform.Material do
     |> Repo.insert()
   end
 
-  def create_media_audited(%User{} = user, attrs \\ %{}, opts \\ []) do
+  def create_media_audited(user_or_token, attrs \\ %{}, opts \\ []) when is_struct(user_or_token, User) or is_struct(user_or_token, APIToken) do
     changeset =
       %Media{}
-      |> Media.changeset(attrs, user)
+      |> Media.changeset(attrs, user_or_token)
 
     cond do
       !changeset.valid? ->
@@ -326,7 +327,7 @@ defmodule Platform.Material do
 
       true ->
         Repo.transaction(fn ->
-          changeset = change_media(%Media{}, attrs, user)
+          changeset = change_media(%Media{}, attrs, user_or_token)
 
           {:ok, media} =
             changeset
@@ -334,40 +335,42 @@ defmodule Platform.Material do
 
           if Keyword.get(opts, :post_updates, true) do
             {:ok, _} =
-              Updates.change_from_media_creation(media, user)
+              Updates.change_from_media_creation(media, user_or_token)
               |> Updates.create_update_from_changeset()
           end
 
-          # Automatically tag new incidents created by regular users, if desirable
-          user_project_membership =
-            Projects.get_project_membership_by_user_and_project_id(user, media.project_id)
+          if is_struct(user_or_token, User) do
+            # Automatically tag new incidents created by regular users, if desirable
+            user_project_membership =
+              Projects.get_project_membership_by_user_and_project_id(user_or_token, media.project_id)
 
-          {:ok, media} =
-            with false <- Enum.member?([:owner, :manager], user_project_membership.role),
-                 new_tags_json <- System.get_env("AUTOTAG_USER_INCIDENTS"),
-                 false <- is_nil(new_tags_json) or String.trim(new_tags_json) == "",
-                 {:ok, new_tags} <- Jason.decode(new_tags_json),
-                 false <- Enum.empty?(new_tags) do
-              {:ok, new_media} =
-                update_media_attribute_audited(
-                  media,
-                  Attribute.get_attribute(:tags),
-                  Accounts.get_auto_account(),
-                  %{"attr_tags" => (media.attr_tags || []) ++ new_tags}
-                )
+            {:ok, media} =
+              with false <- Enum.member?([:owner, :manager], user_project_membership.role),
+                  new_tags_json <- System.get_env("AUTOTAG_USER_INCIDENTS"),
+                  false <- is_nil(new_tags_json) or String.trim(new_tags_json) == "",
+                  {:ok, new_tags} <- Jason.decode(new_tags_json),
+                  false <- Enum.empty?(new_tags) do
+                {:ok, new_media} =
+                  update_media_attribute_audited(
+                    media,
+                    Attribute.get_attribute(:tags),
+                    Accounts.get_auto_account(),
+                    %{"attr_tags" => (media.attr_tags || []) ++ new_tags}
+                  )
 
-              {:ok, new_media}
-            else
-              _ -> {:ok, media}
+                {:ok, new_media}
+              else
+                _ -> {:ok, media}
+              end
+
+            # Subscribe the creator
+            {:ok, _} = subscribe_user(media, user_or_token)
             end
-
-          # Subscribe the creator
-          {:ok, _} = subscribe_user(media, user)
 
           # Upload media, if provided
           for url <- Ecto.Changeset.get_field(changeset, :urls_parsed) do
             {:ok, version} =
-              create_media_version_audited(media, user, %{
+              create_media_version_audited(media, user_or_token, %{
                 upload_type: :direct,
                 status: :pending,
                 source_url: url,
@@ -561,8 +564,8 @@ defmodule Platform.Material do
       %Ecto.Changeset{data: %Media{}}
 
   """
-  def change_media(%Media{} = media, attrs \\ %{}, user \\ nil) do
-    Media.changeset(media, attrs, user)
+  def change_media(%Media{} = media, attrs \\ %{}, user_or_token \\ nil) do
+    Media.changeset(media, attrs, user_or_token)
   end
 
   @doc """
