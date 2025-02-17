@@ -379,7 +379,7 @@ defmodule PlatformWeb.MediaLive.Index do
         socket
       ) do
     media = Enum.find(socket.assigns.media, &(&1.id == media_id))
-    attr = Attribute.get_attribute(attr_name, project: media.project)
+    attr = if not is_nil(media), do: Attribute.get_attribute(attr_name, project: media.project)
 
     if not is_nil(media) and
          Platform.Permissions.can_edit_media?(
