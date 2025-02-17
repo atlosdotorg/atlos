@@ -3743,7 +3743,7 @@ defmodule PlatformWeb.Components do
     """
   end
 
-  defp user_name_display(%{user: %Accounts.User{} = _} = assigns) do
+  defp user_name_display(%{user: nil} = assigns) do
     assigns =
       assign_new(assigns, :icon, fn -> false end)
       |> assign_new(:flair, fn -> true end)
@@ -3753,26 +3753,42 @@ defmodule PlatformWeb.Components do
     <span>
       <.link
         class={"font-medium inline-flex gap-2 flex-wrap items-center #{@class}"}
-        navigate={if is_nil(@user), do: "#", else: "/profile/#{@user.username}"}
+        navigate="#"
+      >
+        <span class={if @icon, do: "ml-7", else: ""}>
+          [System]
+        </span>
+      </.link>
+    </span>
+    """
+  end
+
+  defp user_name_display(%{user: %Accounts.User{} = user} = assigns) do
+    assigns =
+      assign_new(assigns, :icon, fn -> false end)
+      |> assign_new(:flair, fn -> true end)
+      |> assign_new(:class, fn -> "text-gray-900 hover:text-urge-600" end)
+
+    ~H"""
+    <span>
+      <.link
+        class={"font-medium inline-flex gap-2 flex-wrap items-center #{@class}"}
+        navigate={"/profile/#{user.username}"}
       >
         <%= if @icon do %>
           <img
             class="absolute z-30 min-w-5 inline-block h-5 w-5 rounded-full"
-            src={Accounts.get_profile_photo_path(@user)}
-            alt={"Profile photo for #{@user.username}"}
+            src={Accounts.get_profile_photo_path(user)}
+            alt={"Profile photo for #{user.username}"}
           />
         <% end %>
         <span class={if @icon, do: "ml-7", else: ""}>
-          <%= if is_nil(@user) do %>
-            [System]
-          <% else %>
-            <%= @user.username %>
-            <%= if Accounts.is_admin(@user) and @flair do %>
-              <span class="font-normal text-xs badge ~critical self-center">Admin</span>
-            <% end %>
-            <%= if String.length(@user.flair) > 0 and @flair do %>
-              <span class="font-normal text-xs badge ~urge self-center"><%= @user.flair %></span>
-            <% end %>
+          <%= user.username %>
+          <%= if Accounts.is_admin(user) and @flair do %>
+            <span class="font-normal text-xs badge ~critical self-center">Admin</span>
+          <% end %>
+          <%= if String.length(user.flair) > 0 and @flair do %>
+            <span class="font-normal text-xs badge ~urge self-center"><%= user.flair %></span>
           <% end %>
         </span>
       </.link>
