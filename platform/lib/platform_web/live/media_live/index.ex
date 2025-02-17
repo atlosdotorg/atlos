@@ -379,13 +379,12 @@ defmodule PlatformWeb.MediaLive.Index do
         socket
       ) do
     media = Enum.find(socket.assigns.media, &(&1.id == media_id))
-    attr = if not is_nil(media), do: Attribute.get_attribute(attr_name, project: media.project)
 
     if not is_nil(media) and
          Platform.Permissions.can_edit_media?(
            socket.assigns.current_user,
            media,
-           attr
+           Attribute.get_attribute(attr_name, project: media.project)
          ) do
       {:noreply,
        socket
@@ -398,7 +397,7 @@ defmodule PlatformWeb.MediaLive.Index do
        socket
        |> put_flash(
          :error,
-         "You cannot edit this data (#{attr.label}) on #{Media.slug_to_display(media)}."
+         "You cannot edit this data on #{Media.slug_to_display(media)}."
        )}
     end
   end
