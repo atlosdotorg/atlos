@@ -10,11 +10,13 @@ defmodule Platform.Projects.Project do
     field(:description, :string, default: "")
     field(:color, :string, default: "#fb923c")
     field(:active, :boolean, default: true)
+    field(:source_material_archival_enabled, :boolean, default: true)
 
     # Integrations
     field(:should_sync_with_internet_archive, :boolean, default: false)
 
     embeds_many(:attributes, Platform.Projects.ProjectAttribute, on_replace: :delete)
+    embeds_many(:attribute_groups, Platform.Projects.ProjectAttributeGroup, on_replace: :delete)
 
     has_many(:media, Platform.Material.Media)
     has_many(:memberships, Platform.Projects.ProjectMembership)
@@ -28,8 +30,16 @@ defmodule Platform.Projects.Project do
   @doc false
   def changeset(project, attrs) do
     project
-    |> cast(attrs, [:name, :code, :color, :description, :should_sync_with_internet_archive])
-    |> cast_embed(:attributes, required: false)
+    |> cast(attrs, [
+      :name,
+      :code,
+      :color,
+      :description,
+      :source_material_archival_enabled,
+      :should_sync_with_internet_archive
+    ])
+    |> cast_embed(:attributes, required: false, sort_param: :position)
+    |> cast_embed(:attribute_groups, required: false, sort_param: :position)
     |> validate_required([:name, :code, :color])
     |> then(fn changeset ->
       changeset

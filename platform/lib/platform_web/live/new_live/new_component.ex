@@ -353,19 +353,44 @@ defmodule PlatformWeb.NewLive.NewComponent do
                       <% end %>
 
                       <%= if not is_nil(@project) and not Enum.empty?(@project.attributes) do %>
-                        <hr />
-                        <div id={"project-attributes-#{@project.id}"}>
-                          <.edit_attributes
-                            attrs={@project_attributes |> Enum.filter(&(&1.is_decorator != true))}
-                            include_decorators={@project_attributes}
-                            form={@form}
-                            media_slug="NEW"
-                            media={nil}
-                            optional={true}
-                            current_user={@current_user}
-                            project={@project}
-                          />
-                        </div>
+                        <section
+                          :for={group <- [:unassigned] ++ @project.attribute_groups}
+                          :if={is_atom(group) or group.show_in_creation_form}
+                          class="-my-6 -ml-4 pl-4"
+                          style={if group != :unassigned, do: "border-left: 4px solid #{group.color}"}
+                        >
+                          <div :if={group != :unassigned} class="flex flex-col mb-4">
+                            <h3
+                              class="font-medium"
+                              style={"color: #{group.color}; filter: brightness(65%)"}
+                            >
+                              <%= group.name %>
+                            </h3>
+                            <p class="text-xs text-neutral-400">
+                              <%= group.description %>
+                            </p>
+                          </div>
+                          <% group_id = if group == :unassigned, do: "unassigned", else: group.id %>
+                          <div id={"project-attributes-#{@project.id}-#{group_id}"}>
+                            <.edit_attributes
+                              attrs={
+                                @project_attributes
+                                |> Enum.filter(&(&1.is_decorator != true))
+                                |> Platform.Material.Attribute.filter_attributes_to_group(
+                                  group,
+                                  @project
+                                )
+                              }
+                              include_decorators={@project_attributes}
+                              form={@form}
+                              media_slug="NEW"
+                              media={nil}
+                              optional={true}
+                              current_user={@current_user}
+                              project={@project}
+                            />
+                          </div>
+                        </section>
                       <% end %>
                     </div>
                   </div>

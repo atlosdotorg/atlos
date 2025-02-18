@@ -146,7 +146,7 @@ defmodule PlatformWeb.ProjectsLive.APITokensComponent do
             Use API tokens to connect your project to external services. You can create multiple tokens with different permissions.
           </p>
         </div>
-        <section class="flex flex-col mb-8 grow">
+        <section class="flex-1 flex flex-col mb-8 grow">
           <div class="flow-root">
             <div>
               <div class="inline-block min-w-full">

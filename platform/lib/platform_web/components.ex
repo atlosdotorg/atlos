@@ -1328,7 +1328,7 @@ defmodule PlatformWeb.Components do
       <% end %>
       <%= if length(@unset_attrs) > 0 do %>
         <div class="py-2 sm:grid sm:grid-cols-3 sm:gap-4 -mb-2">
-          <dt class="text-sm font-medium text-gray-500 mt-1">Add Attributes</dt>
+          <dt class="text-sm text-gray-500 mt-1">Add Attributes</dt>
           <dd class="mt-1 flex flex-wrap gap-2 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
             <%= for attr <- @unset_attrs do %>
               <.link
@@ -1495,6 +1495,8 @@ defmodule PlatformWeb.Components do
                       @form,
                       :attr_geolocation_radius,
                       [
+                        {"0.1 km", 0.1},
+                        {"0.5 km", 0.5},
                         {"1 km", 1},
                         {"5 km", 5},
                         {"10 km", 10},
@@ -1561,7 +1563,7 @@ defmodule PlatformWeb.Components do
 
     ~H"""
     <div class="py-2 sm:grid sm:grid-cols-3 sm:gap-2">
-      <dt class="text-sm font-medium text-gray-500 mt-1 flex justify-between items-center flex-wrap">
+      <dt class="text-sm text-gray-500 mt-1 flex justify-between items-center flex-wrap">
         <span class="flex items-center gap-1">
           <%= @attr.label %>
           <%= if Platform.Material.Attribute.requires_privileges_to_edit(@attr) do %>
@@ -2435,7 +2437,9 @@ defmodule PlatformWeb.Components do
                       "Recently Modified": :modified_desc,
                       "Least Recently Modified": :modified_asc,
                       "Description (A-Z)": :description_asc,
-                      "Description (Z-A)": :description_desc
+                      "Description (Z-A)": :description_desc,
+                      "Incident Date (Newest first)": :date_desc,
+                      "Incident Date (Oldest first)": :date_asc
                     ],
                     class:
                       "block bg-transparent w-full border-0 py-0 pl-0 pr-7 text-gray-900 placeholder-gray-500 focus:ring-0 sm:text-sm"
@@ -3072,7 +3076,7 @@ defmodule PlatformWeb.Components do
                   <.url_icon url={@version.source_url} class="mx-auto h-10 w-10 shadow-sm" />
                   <h3 class="mt-2 break-all font-medium text-gray-900 text-sm">External Media</h3>
                   <p class="mt-1 text-gray-500 text-sm">
-                    Unable to archive this media automatically.
+                    This source material is currently empty.
                   </p>
                   <span class="button mt-1 original py-1 px-2 text-xs">
                     <svg
@@ -3739,7 +3743,7 @@ defmodule PlatformWeb.Components do
     """
   end
 
-  defp user_name_display(%{user: %Accounts.User{} = _} = assigns) do
+  defp user_name_display(%{user: nil} = assigns) do
     assigns =
       assign_new(assigns, :icon, fn -> false end)
       |> assign_new(:flair, fn -> true end)
@@ -3749,26 +3753,42 @@ defmodule PlatformWeb.Components do
     <span>
       <.link
         class={"font-medium inline-flex gap-2 flex-wrap items-center #{@class}"}
-        navigate={if is_nil(@user), do: "#", else: "/profile/#{@user.username}"}
+        navigate="#"
+      >
+        <span class={if @icon, do: "ml-7", else: ""}>
+          [System]
+        </span>
+      </.link>
+    </span>
+    """
+  end
+
+  defp user_name_display(%{user: %Accounts.User{} = user} = assigns) do
+    assigns =
+      assign_new(assigns, :icon, fn -> false end)
+      |> assign_new(:flair, fn -> true end)
+      |> assign_new(:class, fn -> "text-gray-900 hover:text-urge-600" end)
+
+    ~H"""
+    <span>
+      <.link
+        class={"font-medium inline-flex gap-2 flex-wrap items-center #{@class}"}
+        navigate={"/profile/#{user.username}"}
       >
         <%= if @icon do %>
           <img
             class="absolute z-30 min-w-5 inline-block h-5 w-5 rounded-full"
-            src={Accounts.get_profile_photo_path(@user)}
-            alt={"Profile photo for #{@user.username}"}
+            src={Accounts.get_profile_photo_path(user)}
+            alt={"Profile photo for #{user.username}"}
           />
         <% end %>
         <span class={if @icon, do: "ml-7", else: ""}>
-          <%= if is_nil(@user) do %>
-            [System]
-          <% else %>
-            <%= @user.username %>
-            <%= if Accounts.is_admin(@user) and @flair do %>
-              <span class="font-normal text-xs badge ~critical self-center">Admin</span>
-            <% end %>
-            <%= if String.length(@user.flair) > 0 and @flair do %>
-              <span class="font-normal text-xs badge ~urge self-center"><%= @user.flair %></span>
-            <% end %>
+          <%= user.username %>
+          <%= if Accounts.is_admin(user) and @flair do %>
+            <span class="font-normal text-xs badge ~critical self-center">Admin</span>
+          <% end %>
+          <%= if String.length(user.flair) > 0 and @flair do %>
+            <span class="font-normal text-xs badge ~urge self-center"><%= user.flair %></span>
           <% end %>
         </span>
       </.link>
@@ -4147,6 +4167,7 @@ defmodule PlatformWeb.Components do
   attr(:id, :string)
   attr(:next_link, :string)
   attr(:prev_link, :string)
+  attr(:base_link, :string, default: "")
   attr(:pagination_metadata, :map)
   attr(:pagination_index, :integer)
   attr(:currently_displayed_results, :integer)
@@ -4155,7 +4176,7 @@ defmodule PlatformWeb.Components do
     ~H"""
     <nav class="flex items-center justify-center sm:justify-between w-full" aria-label="Pagination">
       <div class="flex flex-1 gap-2 md:mr-8" phx-hook="ScrollToTop" id={@id}>
-        <%= if not is_nil(@pagination_metadata.before) do %>
+        <%= if @pagination_index > 1 do %>
           <.link patch={@prev_link} class="text-button">
             <Heroicons.arrow_left mini class="h-6 w-6" />
             <span class="sr-only">Previous</span>
@@ -4166,7 +4187,59 @@ defmodule PlatformWeb.Components do
             <span class="sr-only">Previous</span>
           </span>
         <% end %>
-        <%= if not is_nil(@pagination_metadata.after) do %>
+
+        <%= if @base_link != "" and (@pagination_metadata.total_count > @pagination_metadata.limit or @pagination_index > 1) do %>
+          <div x-data="{pageJumperOpened: false}" class="relative">
+            <button
+              type="button"
+              class="text-button relative"
+              @click="pageJumperOpened = true; $nextTick(() => $refs.input.focus())"
+              data-tooltip="Jump to a page"
+            >
+              <Heroicons.arrows_up_down mini class="h-6 w-6" />
+              <span class="sr-only">Jump to a page</span>
+            </button>
+
+            <div
+              x-cloak
+              x-show="pageJumperOpened"
+              x-transition:enter="transition ease-out duration-200"
+              x-transition:enter-start="opacity-0 scale-95"
+              x-transition:enter-end="opacity-100 scale-100"
+              x-transition:leave="transition ease-in duration-150"
+              x-transition:leave-start="opacity-100 scale-100"
+              x-transition:leave-end="opacity-0 scale-95"
+              @click.away="pageJumperOpened = false"
+              class="absolute left-0 z-10 mt-2 w-48"
+              style="transform-origin: top left"
+            >
+              <div
+                x-on:keydown.enter={"const page = $refs.input.value;
+                  const url = '#{@base_link}'.replace('PAGE_PLACEHOLDER', page);
+                  window.location.href = url;"}
+                x-on:keydown.escape="pageJumperOpened = false;"
+              >
+                <div class="flex items-center gap-2">
+                  <input
+                    type="number"
+                    min="1"
+                    x-ref="input"
+                    phx-debounce="blur"
+                    class="block w-full rounded-md border-gray-300 shadow-sm bg-white focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+                    placeholder="Jump to page..."
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        <% else %>
+          <span class="cursor-not-allowed opacity-75 text-neutral-600">
+            <Heroicons.arrows_up_down mini class="h-6 w-6" />
+            <span class="sr-only">Jump to a page (disabled)</span>
+          </span>
+        <% end %>
+
+        <%= if @currently_displayed_results == @pagination_metadata.limit do %>
           <.link patch={@next_link} class="text-button">
             <Heroicons.arrow_right mini class="h-6 w-6" />
             <span class="sr-only">Next</span>
@@ -4178,24 +4251,31 @@ defmodule PlatformWeb.Components do
           </span>
         <% end %>
       </div>
+
       <div class="hidden sm:block">
         <p class="text-sm text-gray-700">
-          Showing results
+          Page <span class="font-medium"><%= @pagination_index %></span>
+          (results
           <span class="font-medium">
-            <%= (@pagination_index * @pagination_metadata.limit + 1) |> Formatter.format_number() %>
+            <%= ((@pagination_index - 1) * @pagination_metadata.limit + 1)
+            |> Formatter.format_number() %>
           </span>
           to
           <span class="font-medium">
-            <%= (@pagination_index * @pagination_metadata.limit +
-                   @currently_displayed_results)
+            <%= ((@pagination_index - 1) * @pagination_metadata.limit +
+                   max(1, @currently_displayed_results))
             |> Formatter.format_number() %>
           </span>
-          of
-          <span class="font-medium">
-            <%= @pagination_metadata.total_count |> Formatter.format_number() %><%= if @pagination_metadata.total_count_cap_exceeded,
-              do: "+",
-              else: "" %>
-          </span>
+          <%= if @currently_displayed_results != 0 do %>
+            of
+            <span class="font-medium">
+              <%= ((@pagination_index - 1) * @pagination_metadata.limit +
+                     @pagination_metadata.total_count)
+              |> Formatter.format_number() %><%= if @pagination_metadata.total_count_cap_exceeded,
+                do: "+",
+                else: "" %>
+            </span>
+          <% end %>)
         </p>
       </div>
     </nav>
