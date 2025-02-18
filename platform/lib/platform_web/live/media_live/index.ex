@@ -45,29 +45,22 @@ defmodule PlatformWeb.MediaLive.Index do
       })
     end)
 
-    # Pull cursor information from params
-    before_cursor = params["bc"]
-    after_cursor = params["ac"]
-    pagination_index = (params["pi"] || "0") |> String.to_integer()
+    # Pull cursor information from params. We used to use cursor-based pagination
+    # but people didn't like it, so we're using page-based pagination now. Miles hasn't
+    # removed the cursor code, so you can still use it if you want to.
+    page =
+      Ecto.Changeset.get_field(
+        changeset,
+        :page,
+        1
+      )
+      |> max(1)
 
     search_keywords = [
       limit: if(display == "map", do: 100_000, else: 51),
+      offset: (page - 1) * 51,
       hydrate: display != "map"
     ]
-
-    search_keywords =
-      if not is_nil(before_cursor) and not (String.length(before_cursor) == 0) do
-        Keyword.put(search_keywords, :before, before_cursor)
-      else
-        search_keywords
-      end
-
-    search_keywords =
-      if not is_nil(after_cursor) and not (String.length(after_cursor) == 0) do
-        Keyword.put(search_keywords, :after, after_cursor)
-      else
-        search_keywords
-      end
 
     results =
       search_media(
@@ -85,12 +78,10 @@ defmodule PlatformWeb.MediaLive.Index do
     |> assign(:display, display)
     |> assign(:full_width, display == "table")
     |> assign(:query_params, params)
-    |> assign(:before_cursor, before_cursor)
-    |> assign(:after_cursor, after_cursor)
     |> assign(:active_project, active_project)
     |> assign(:results, results)
     |> assign(:root_pid, self())
-    |> assign(:pagination_index, pagination_index)
+    |> assign(:page, page)
     |> assign(:editing, nil)
     |> assign_media(results.entries)
     |> assign(:bulk_background_task, nil)
@@ -119,7 +110,7 @@ defmodule PlatformWeb.MediaLive.Index do
     attributes = Attribute.active_attributes(project: project) |> Enum.filter(&is_nil(&1.parent))
 
     groups =
-      case dbg(project) do
+      case project do
         nil -> [:core]
         _ -> project.attribute_groups
       end
@@ -141,7 +132,7 @@ defmodule PlatformWeb.MediaLive.Index do
     # Sort by group ordering, then attribute ordering
     attributes_with_groups =
       Enum.sort_by(attributes_with_groups, fn {_, g} ->
-        {if(is_atom(dbg(g)), do: -1, else: g.ordering)}
+        {if(is_atom(g), do: -1, else: g.ordering)}
       end)
 
     socket
@@ -156,16 +147,7 @@ defmodule PlatformWeb.MediaLive.Index do
   end
 
   def handle_params(params, _uri, socket) do
-    # Wrap and catch CastErrors, in which case we put a flash and redirect to /incidents
-    # try do
     {:noreply, handle_params_internal(params, socket)}
-    # rescue
-    #   _error ->
-    #     {:noreply,
-    #      socket
-    #      |> put_flash(:error, "Your search had invalid parameters. Please try again.")
-    #      |> push_patch(to: "/incidents", replace: true)}
-    # end
   end
 
   defp assign_media(socket, media) do
@@ -384,9 +366,7 @@ defmodule PlatformWeb.MediaLive.Index do
     # Also reset the pagination index, since we're doing a new search
     merged_params =
       params
-      |> Map.delete("bc")
-      |> Map.delete("ac")
-      |> Map.delete("pi")
+      |> Map.delete("page")
 
     {:noreply,
      socket
@@ -399,13 +379,12 @@ defmodule PlatformWeb.MediaLive.Index do
         socket
       ) do
     media = Enum.find(socket.assigns.media, &(&1.id == media_id))
-    attr = Attribute.get_attribute(attr_name, project: media.project)
 
     if not is_nil(media) and
          Platform.Permissions.can_edit_media?(
            socket.assigns.current_user,
            media,
-           attr
+           Attribute.get_attribute(attr_name, project: media.project)
          ) do
       {:noreply,
        socket
@@ -418,7 +397,7 @@ defmodule PlatformWeb.MediaLive.Index do
        socket
        |> put_flash(
          :error,
-         "You cannot edit this data (#{attr.label}) on #{Media.slug_to_display(media)}."
+         "You cannot edit this data on #{Media.slug_to_display(media)}."
        )}
     end
   end

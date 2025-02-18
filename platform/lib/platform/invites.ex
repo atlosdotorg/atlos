@@ -240,6 +240,7 @@ defmodule Platform.Invites do
                 :owner -> "Owner"
                 :manager -> "Manager"
                 :editor -> "Editor"
+                :viewer -> "Viewer"
                 :data_only_viewer -> "Data-only Viewer"
               end}."
             )

@@ -22,7 +22,7 @@ defmodule Platform.Projects.ProjectAttribute do
 
   def compatible_types(current_type) do
     case current_type do
-      :select -> [:select]
+      :select -> [:select, :multi_select]
       :multi_select -> [:multi_select]
       :text -> [:text]
       :date -> [:date]
@@ -88,8 +88,8 @@ defmodule Platform.Projects.ProjectAttribute do
         |> validate_required([:options])
         |> validate_length(:options,
           min: 1,
-          max: 256,
-          message: "You must provide between 1 and 256 options."
+          max: 512,
+          message: "You must provide between 1 and 512 options."
         )
         |> validate_change(:options, fn :options, options ->
           if Enum.any?(options, fn option -> String.length(option) > 50 end) do

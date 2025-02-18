@@ -1230,7 +1230,7 @@ defmodule Platform.Material.Attribute do
     if Enum.any?(attributes, fn attribute ->
          case Map.get(changeset.changes, attribute.schema_field) do
            nil ->
-             false
+             Map.get(changeset.data, attribute.schema_field) != nil
 
            changes when attribute.schema_field == :project_attributes ->
              # For project_attributes, check if any sub-changeset has actual changes
