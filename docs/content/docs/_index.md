@@ -1,5 +1,5 @@
 ---
-title: Docs
+title: Atlos Docs
 description: A guide to getting just about anything done on Atlos, the collaborative workspace for visual verification.
 cascade: 
     type: docs
