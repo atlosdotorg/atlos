@@ -91,7 +91,13 @@ defmodule Platform.Utils do
         |> Calendar.strftime("%d %B %Y")
 
       str when is_binary(str) ->
-        str |> Date.from_iso8601() |> elem(1) |> Calendar.strftime("%d %B %Y")
+        case str |> Date.from_iso8601() |> elem(1) do
+          :invalid_format ->
+            str
+
+          date ->
+            Calendar.strftime(date, "%d %B %Y")
+        end
 
       _ ->
         value
@@ -157,15 +163,13 @@ defmodule Platform.Utils do
   def render_markdown(nil), do: ""
 
   def render_markdown(markdown) do
-    # Safe markdown rendering. No images or headers.
-
-    # Preprocessing: replace single linebreaks with double linebreaks _except_ when the newline is followed by a list item or a digit (i.e. a numbered list)
+    # Preprocessing: replace single linebreaks with double linebreaks _except_ when the newline is followed by a list item or a digit
     markdown = Regex.replace(~r/([^\n])(\n)(?![0-9]|\*)/, markdown, "\\1\\2\\2")
 
-    # First, strip images and turn them into links. Primitive.
+    # Strip images and turn them into links
     markdown = Regex.replace(~r"!*\[", markdown, "[")
 
-    # Second, link ATL identifiers.
+    # Link ATL identifiers
     markdown = Regex.replace(@identifier_regex, markdown, " [\\1](/incidents/\\1)")
 
     markdown =
@@ -175,10 +179,10 @@ defmodule Platform.Utils do
         " [\\1](/incidents/\\2/detail/\\3)"
       )
 
-    # Third, turn @'s into links.
+    # Turn @'s into links
     markdown = Regex.replace(@tag_regex, markdown, " [@\\3](/profile/\\3)")
 
-    # Setup to open external links in a new tab + add nofollow/noopener, and truncate long links.
+    # Setup to open external links in new tab + add nofollow/noopener, and truncate long links
     add_target = fn node ->
       if is_nil(Earmark.AstTools.find_att_in_node(node, "href", "")) do
         node
@@ -210,14 +214,40 @@ defmodule Platform.Utils do
          else: node
     end
 
+    # Convert headers and code blocks to plain text while preserving markers
+    flatten_special_blocks = fn node ->
+      case node do
+        {"h" <> level, _atts, content, _meta} ->
+          hashes = String.duplicate("#", String.to_integer(level))
+          {:replace, {"p", [], [hashes <> " " | content], %{}}}
+
+        {"pre", _atts, [{"code", _code_atts, content, _code_meta}], _meta} ->
+          {:replace, {"p", [], ["```\n" | content] ++ ["\n```"], %{}}}
+
+        _ ->
+          node
+      end
+    end
+
     options = [
-      registered_processors: [{"a", add_target}, {"a", detect_tags}, {"a", truncate_long_links}]
+      registered_processors: [
+        {"a", add_target},
+        {"a", detect_tags},
+        {"a", truncate_long_links},
+        {"h1", flatten_special_blocks},
+        {"h2", flatten_special_blocks},
+        {"h3", flatten_special_blocks},
+        {"h4", flatten_special_blocks},
+        {"h5", flatten_special_blocks},
+        {"h6", flatten_special_blocks},
+        {"pre", flatten_special_blocks}
+      ]
     ]
 
     # Strip all tags and render markdown
     markdown = markdown |> Earmark.as_html!(options)
 
-    # Perform another round of cleaning (images will be stripped here too)
+    # Perform another round of cleaning
     markdown = markdown |> HtmlSanitizeEx.Scrubber.scrub(Platform.Security.UgcSanitizer)
 
     markdown
@@ -299,7 +329,7 @@ defmodule Platform.Utils do
     System.get_env("CONTAINER_APP_REPLICA_NAME", "replica info unknown")
   end
 
-  def text_search(search_terms, queryable) do
+  def text_search(search_terms, queryable, opts \\ []) do
     # First, detect if they have entered a slug with a project code into the query. If so, we add a version of the slug without the project code to the query.
     # This is to make it possible to search for "ATL-123" and get results for "123".
     # This is a bit hacky, but it works.
@@ -308,11 +338,23 @@ defmodule Platform.Utils do
     wrapped =
       if String.starts_with?(search_terms, "\""), do: search_terms, else: "\"#{search_terms}\""
 
-    queryable
-    |> where(
-      [q],
-      fragment("? @@ websearch_to_tsquery('simple', ?)", q.searchable, ^search_terms) or
-        fragment("? @@ websearch_to_tsquery('simple', ?)", q.searchable, ^wrapped)
-    )
+    search_literal = Keyword.get(opts, :search_literal, false)
+
+    if search_literal do
+      queryable
+      |> where(
+        [q],
+        fragment("? @@ websearch_to_tsquery('simple', ?)", q.searchable, ^search_terms) or
+          fragment("? @@ websearch_to_tsquery('simple', ?)", q.searchable, ^wrapped) or
+          ilike(q.searchable_text, ^"%#{search_terms}%")
+      )
+    else
+      queryable
+      |> where(
+        [q],
+        fragment("? @@ websearch_to_tsquery('simple', ?)", q.searchable, ^search_terms) or
+          fragment("? @@ websearch_to_tsquery('simple', ?)", q.searchable, ^wrapped)
+      )
+    end
   end
 end

@@ -84,6 +84,7 @@ defmodule Platform.Material do
     |> maybe_filter_accessible_to_user(opts)
     |> load_media_color()
     |> order_by(desc: :inserted_at)
+    |> offset(^Keyword.get(opts, :offset, 0))
   end
 
   @doc """
@@ -344,8 +345,9 @@ defmodule Platform.Material do
           {:ok, media} =
             with false <- Enum.member?([:owner, :manager], user_project_membership.role),
                  new_tags_json <- System.get_env("AUTOTAG_USER_INCIDENTS"),
-                 false <- is_nil(new_tags_json),
-                 {:ok, new_tags} <- Jason.decode(new_tags_json) do
+                 false <- is_nil(new_tags_json) or String.trim(new_tags_json) == "",
+                 {:ok, new_tags} <- Jason.decode(new_tags_json),
+                 false <- Enum.empty?(new_tags) do
               {:ok, new_media} =
                 update_media_attribute_audited(
                   media,
@@ -1568,7 +1570,6 @@ defmodule Platform.Material do
 
     # Now we just need to copy all the updates
     for update <- media.updates do
-      old_update_json = Jason.encode!(update)
       old_attrs = Attribute.active_attributes(project: media.project)
 
       # Here's a horrible hack. We need to change the IDs of attributes in the update JSON to match the IDs of the attributes in the new project.
