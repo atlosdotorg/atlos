@@ -138,12 +138,12 @@
         </.dropdown>
       </div>
       <div class="p-4 hover:bg-neutral-50 transition">
-        <.dropdown label="Copy to project">
+        <.dropdown label="Copy to Project">
           <div class="p-4 ts-ignore flex flex-col gap-4" x-data="{project_id: null}">
             <select x-model="project_id" class="w-full input-base" id="project_id-select">
               <option value="">Select a project...</option>
               <% base_project_id = if Enum.empty?(@media), do: nil, else: hd(@media).project_id %>
-              <%= for project <- Platform.Projects.list_editable_projects_for_user(@current_user) |> Enum.reject(& &1.id == base_project_id) do %>
+              <%= for project <- Platform.Projects.list_editable_projects_for_user(@current_user) do %>
                 <option value={project.id}>
                   <%= project.code %>: <%= project.name |> Platform.Utils.truncate() %>
                 </option>
@@ -155,7 +155,7 @@
               phx-click="bulk_copy_to_project"
               x-bind:phx-value-project-id="project_id"
               x-bind:phx-value-selection="selectedValuesJSON()"
-              x-bind:data-confirm="`Are you sure you want to copy the ${selectedCountToDisplay()} selected incidents into another project?`"
+              x-bind:data-confirm="`Are you sure you want to copy the ${selectedCountToDisplay()} selected incidents into ${project.name}?`"
               x-on:confirmed="open = false"
               phx-disable-with="Working..."
             >
