@@ -191,3 +191,47 @@ requests.post(
     json={"value": ["Civilian-military interaction", "Protest"], "message": "This is a comment."},
 )
 ```
+
+
+### Create an incident
+`POST /api/v2/incidents/new` creates a new incident. It has two required parameters:
+- `description`, the incident's description. `description` should be a string of at least 8 characters.
+- `sensitive`, a string array of the incident's sensitivity. That should be either `["Not Sensitive"]`, or any combination of the values `["Graphic Violence", "Deceptive or Misleading", "Personal Information Visible"]`.
+
+It also has many optional parameters:
+- Any attribute, both core and custom. See below for more information on accessing attributes' API identifiers.
+- `status`, the incident's status. By default, the incident will be created as `"To Do"`. If you include this field, you can set the incident to one of: `"To Do"`, `"In Progress"`, `"Ready for Review"`, `"Help Needed"`, `"Completed"`, or "`Canceled"`. 
+- `restrictions`, an array of the incident's restrictions. If you include this field, you can set the incident to one or both of `["Hidden", "Frozen"]`.
+- `tags`, an array of the incident's tags. If you include a value not yet present in the project, that tag will be created and applied to the incident.
+- `urls`, which should contain a list of URLs to be archived as distinct pieces of source material. URLs must begin with "https://" or "http://". For more granular control over source material metadata, we recommend using the [source material creation endpoint](#create-a-new-piece-of-source-material) and the [source material metadata update endpoint](#set-source-material-metadata). 
+
+Note that it is not currently possible to set an incident's deleted status or its Assignments from this endpoint.
+
+Attributes' names in the Atlos interface are different from their API identifiers: 
+- Core attributes have string names (such as `description` and `status`).
+- Custom attributes are identified by a long ID. 
+
+You can find attributes' API identifiers in the **Access** pane of your project. 
+
+```python
+requests.post(
+    f"https://platform.atlos.org/api/v2/incidents/new",
+    headers={"Authorization": f"Bearer {self.api_token}"},
+    json={"description": "Test incident created via the API", 
+            "sensitive": ["Not Sensitive"]
+    }
+)
+
+requests.post(
+    f"https://platform.atlos.org/api/v2/incidents/new",
+    headers={"Authorization": f"Bearer {self.api_token}"},
+    json={"description": "Test incident created via the API",
+            "sensitive": ["Not Sensitive"],
+            "more_info": "This incident was created via the Atlos API",
+            "status": "In Progress",
+            "urls": ["https://docs.atlos.org"],
+            # This ID is the identifer for the project's multi-select 'Impact' attribute
+            "cf7a3ed7-2c26-428a-b56c-2cc3f98d7a2c": ["Residential"]
+    }
+)
+```

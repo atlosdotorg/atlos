@@ -91,6 +91,7 @@ defmodule PlatformWeb.Router do
       get("/source_material", APIV2Controller, :media_versions)
       get("/source_material/:id", APIV2Controller, :media_version)
       post("/source_material/new/:slug", APIV2Controller, :create_media_version)
+      post("/incidents/new", APIV2Controller, :create_media)
 
       post(
         "/source_material/metadata/:id/:namespace",

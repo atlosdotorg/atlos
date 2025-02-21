@@ -92,6 +92,62 @@ defmodule PlatformWeb.APIV2Controller do
     end
   end
 
+  def create_media(conn, params) do
+    project_id = conn.assigns.token.project_id
+    project = Projects.get_project!(project_id)
+
+    cond do
+      not Permissions.can_api_token_create_media?(conn.assigns.token) ->
+        json(conn |> put_status(401), %{error: "unauthorized"})
+
+      true ->
+        # Generate attribute parameters for all attributes in the input
+        media_params =
+          params
+          |> Enum.reduce(%{}, fn {key, value}, acc ->
+            case Attribute.get_attribute(key, project: project) do
+              nil ->
+                acc
+
+              attr ->
+                # Merge the generated attribute change params
+                Map.merge(
+                  acc,
+                  Material.generate_attribute_change_params(
+                    attr,
+                    value,
+                    project
+                  )
+                )
+            end
+          end)
+          |> Map.put("project_id", project_id)
+
+        # We expect a JSON array of URLs in the incident creation flow
+        media_params = case params["urls"] do
+          nil -> media_params
+          urls -> Map.put(media_params, "urls", Jason.encode!(urls))
+        end
+
+        case Material.create_media_audited(conn.assigns.token, media_params) do
+          {:ok, media} ->
+            media_with_project =
+              Platform.Repo.preload(media, [:project, :versions])
+
+            Auditor.log(
+              :media_created,
+              Map.merge(media_params, %{media_slug: media_with_project.slug}),
+              conn
+            )
+
+            json(conn, %{success: true, result: media_with_project})
+
+          {:error, changeset} ->
+            json(conn |> put_status(401), %{error: render_changeset_errors(changeset)})
+        end
+    end
+  end
+
   def create_media_version(conn, params) do
     media_id = params["slug"]
     url = params["url"]
@@ -351,19 +407,22 @@ defmodule PlatformWeb.APIV2Controller do
   end
 
   defp render_changeset_errors(changeset) do
-    Enum.map(changeset.errors, fn {field, detail} ->
-      {field, render_detail(detail)}
+    Enum.map(changeset.errors, fn
+      {field, {"is invalid", [type: {:array, type}, validation: :cast]}} ->
+        {field, "must be an array of #{type}s"}
+
+      {field, {message, values}} ->
+        {field, render_detail(message, values)}
+
+      {field, message} ->
+        {field, message}
     end)
-    |> Enum.into(%{})
+    |> Map.new()
   end
 
-  defp render_detail({message, values}) do
+  defp render_detail(message, values) do
     Enum.reduce(values, message, fn {k, v}, acc ->
       String.replace(acc, "%{#{k}}", to_string(v))
     end)
-  end
-
-  defp render_detail(message) do
-    message
   end
 end

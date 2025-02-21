@@ -390,7 +390,7 @@ defmodule PlatformWeb.ProjectsLive.APITokensComponent do
                           "read" =>
                             "Can read incidents and comments, including hidden and restricted incidents",
                           "comment" => "Can add comments to incidents",
-                          "edit" => "Can edit incidents' attributes and metadata"
+                          "edit" => "Can create incidents and edit incidents' attributes and metadata"
                         }),
                       "data-required": Jason.encode!(["read"])
                     ) %>
