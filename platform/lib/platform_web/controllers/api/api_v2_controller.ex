@@ -96,7 +96,7 @@ defmodule PlatformWeb.APIV2Controller do
     project_id = conn.assigns.token.project_id
     project = Projects.get_project!(project_id)
 
-    other_params = ["urls", "location"]
+    other_params = ["urls"]
 
     is_unknown_attr = fn {key, _} ->
       not Enum.member?(other_params, key) and
@@ -143,9 +143,9 @@ defmodule PlatformWeb.APIV2Controller do
             urls -> Map.put(media_params, "urls", Jason.encode!(urls))
           end
 
-        # Populate the location field if it is provided
+        # Populate the geolocation field into the location if it is provided
         media_params =
-          case params["location"] do
+          case params["geolocation"] do
             nil -> media_params
             location -> Map.put(media_params, "location", location)
           end
@@ -451,11 +451,16 @@ defmodule PlatformWeb.APIV2Controller do
               {field, render_changeset_errors(cs)}
 
             [%Ecto.Changeset{} | _] ->
-              {field,
-               Enum.filter(value, &(not &1.valid?))
-               |> Enum.map(fn cs ->
-                 render_changeset_errors(cs) |> Map.put("source", Map.get(cs, :changes))
-               end)}
+              result =
+                Enum.filter(value, &(not &1.valid?))
+                |> Enum.map(fn cs ->
+                  render_changeset_errors(cs) |> Map.put("source", Map.get(cs, :changes))
+                end)
+
+              case result do
+                [] -> nil
+                _ -> {field, result}
+              end
 
             _ ->
               nil

@@ -211,7 +211,7 @@ Attributes' names in the Atlos interface are different from their API identifier
 - Core attributes have string names (such as `description` and `status`).
 - Custom attributes are identified by a long ID. 
 
-You can find attributes' API identifiers in the **Access** pane of your project. 
+You can find attributes' API identifiers in the **Access** pane of your project. To set the `geolocation` field, pass a string in the format `latitude,longitude` (e.g., `"40.7128,-74.0060"`).
 
 ```python
 requests.post(
