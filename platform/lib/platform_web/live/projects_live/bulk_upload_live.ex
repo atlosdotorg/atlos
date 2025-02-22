@@ -515,7 +515,9 @@ defmodule PlatformWeb.ProjectsLive.BulkUploadLive do
                       Found <%= length(@changesets) %> incidents.
                     </strong>
                     If everything below looks right, click "Publish" to publish these incidents to Atlos. Note that media will be archived on a best-effort basis.
-                    <span :if={Enum.count(valid) > 50}>We have truncated the list to the first 50 incidents.</span>
+                    <span :if={Enum.count(valid) > 50}>
+                      We have truncated the list to the first 50 incidents.
+                    </span>
                   </p>
                 </aside>
                 <div class="grid gap-4 grid-cols-1 mt-4">

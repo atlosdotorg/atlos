@@ -36,14 +36,17 @@ params:
     
     displayLogo: true
     logo: 
-      path: Logo.png
-      dark: Logodark.png
+      path: favicon.svg
+      dark: favicon-dark.svg
       link: /
-      width: 60
+      width: 40
 
   footer:
     displayCopyright: true
     displayPoweredBy: false
     width: normal
+
+  meta:
+    favicon: false
 
   

@@ -14,7 +14,6 @@ defmodule PlatformWeb.MediaLive.CopyMediaLive do
        |> assign(
          :project_options,
          Projects.list_editable_projects_for_user(assigns.current_user)
-         |> Enum.filter(fn project -> project.id != assigns.source.project_id end)
        )
        |> assign_new(:changeset, fn -> changeset(%{}, assigns.source) end)}
     else
@@ -47,11 +46,7 @@ defmodule PlatformWeb.MediaLive.CopyMediaLive do
               [{field, "This project doesn't seem to exist."}]
 
             project ->
-              if project.id == source.project_id do
-                [{field, "You cannot copy an incident into its own project."}]
-              else
-                []
-              end
+              []
           end
       end
     end)
