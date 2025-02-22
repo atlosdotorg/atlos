@@ -99,7 +99,8 @@ defmodule PlatformWeb.APIV2Controller do
     other_params = ["urls", "location"]
 
     is_unknown_attr = fn {key, _} ->
-      not Enum.member?(other_params, key) and is_nil(Attribute.get_attribute(key, project: project))
+      not Enum.member?(other_params, key) and
+        is_nil(Attribute.get_attribute(key, project: project))
     end
 
     cond do
@@ -109,9 +110,13 @@ defmodule PlatformWeb.APIV2Controller do
       # Ensure that all of the attributes in the input are valid, and note in the
       # error message which are invalid
       Enum.any?(params, is_unknown_attr) ->
-        invalid_attributes = Enum.filter(params, is_unknown_attr) |> Enum.map(fn {key, _} -> key end)
+        invalid_attributes =
+          Enum.filter(params, is_unknown_attr) |> Enum.map(fn {key, _} -> key end)
+
         # Provide the keys of the invalid/unknown attributes in the error message
-        json(conn |> put_status(401), %{error: "unknown attributes: #{inspect(invalid_attributes)}"})
+        json(conn |> put_status(401), %{
+          error: "unknown attributes: #{inspect(invalid_attributes)}"
+        })
 
       true ->
         # Generate attribute parameters for all attributes in the input
@@ -132,16 +137,18 @@ defmodule PlatformWeb.APIV2Controller do
           |> Map.put("project_id", project_id)
 
         # We expect a JSON array of URLs in the incident creation flow
-        media_params = case params["urls"] do
-          nil -> media_params
-          urls -> Map.put(media_params, "urls", Jason.encode!(urls))
-        end
+        media_params =
+          case params["urls"] do
+            nil -> media_params
+            urls -> Map.put(media_params, "urls", Jason.encode!(urls))
+          end
 
         # Populate the location field if it is provided
-        media_params = case params["location"] do
-          nil -> media_params
-          location -> Map.put(media_params, "location", location)
-        end
+        media_params =
+          case params["location"] do
+            nil -> media_params
+            location -> Map.put(media_params, "location", location)
+          end
 
         case Material.create_media_audited(conn.assigns.token, media_params) do
           {:ok, media} ->
@@ -421,35 +428,43 @@ defmodule PlatformWeb.APIV2Controller do
   end
 
   defp render_changeset_errors(changeset) do
-    top_level_errors = Enum.map(changeset.errors, fn
-      {field, {"is invalid", [type: {:array, type}, validation: :cast]}} ->
-        {field, "must be an array of #{type}s"}
+    top_level_errors =
+      Enum.map(changeset.errors, fn
+        {field, {"is invalid", [type: {:array, type}, validation: :cast]}} ->
+          {field, "must be an array of #{type}s"}
 
-      {field, {message, values}} ->
-        {field, render_detail(message, values)}
+        {field, {message, values}} ->
+          {field, render_detail(message, values)}
 
-      {field, message} ->
-        {field, message}
-    end)
+        {field, message} ->
+          {field, message}
+      end)
 
     # Recursively look through the changeset to find other nested changesets,
     # and render their errors as well. The values might also be lists of
     # changesets, so we need to handle that case as well.
-    nested_errors = Enum.map(changeset.changes, fn
-      {field, value} ->
-        case value do
-          %Ecto.Changeset{} = cs ->
-            {field, render_changeset_errors(cs)}
+    nested_errors =
+      Enum.map(changeset.changes, fn
+        {field, value} ->
+          case value do
+            %Ecto.Changeset{} = cs ->
+              {field, render_changeset_errors(cs)}
 
-          [%Ecto.Changeset{} | _] ->
-            {field, Enum.filter(value, & not &1.valid?) |> Enum.map(fn cs -> render_changeset_errors(cs) |> Map.put("source", Map.get(cs, :changes)) end)}
+            [%Ecto.Changeset{} | _] ->
+              {field,
+               Enum.filter(value, &(not &1.valid?))
+               |> Enum.map(fn cs ->
+                 render_changeset_errors(cs) |> Map.put("source", Map.get(cs, :changes))
+               end)}
 
-          _ ->
-            nil
-        end
-    end)
+            _ ->
+              nil
+          end
+      end)
 
-    all_errors = Enum.concat(top_level_errors || [], nested_errors || []) |> Enum.filter(fn v -> not is_nil(v) end)
+    all_errors =
+      Enum.concat(top_level_errors || [], nested_errors || [])
+      |> Enum.filter(fn v -> not is_nil(v) end)
 
     Enum.into(all_errors, %{})
   end

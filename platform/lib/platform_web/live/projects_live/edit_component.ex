@@ -108,8 +108,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
   end
 
   def handle_event("validate_custom_attributes", %{"project" => project_params}, socket) do
-    {:noreply,
-     socket |> assign_custom_attribute_changeset(project_params)}
+    {:noreply, socket |> assign_custom_attribute_changeset(project_params)}
   end
 
   def handle_event("save_general", %{"project" => project_params}, socket) do

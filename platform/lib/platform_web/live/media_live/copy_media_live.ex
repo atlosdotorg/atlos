@@ -46,7 +46,7 @@ defmodule PlatformWeb.MediaLive.CopyMediaLive do
               [{field, "This project doesn't seem to exist."}]
 
             project ->
-                []
+              []
           end
       end
     end)

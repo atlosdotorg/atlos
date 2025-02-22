@@ -176,6 +176,7 @@ defmodule Platform.Material.Media do
            (case actor do
               %User{} ->
                 Permissions.can_edit_media?(actor, %{media | project_id: project_id}, attr)
+
               %APIToken{} ->
                 Permissions.can_edit_media?(actor, %{media | project_id: project_id})
             end) do
@@ -241,7 +242,7 @@ defmodule Platform.Material.Media do
   @doc """
   Validates changes to a piece of media's project.
   """
-  def validate_project(changeset, media \\ [], user_or_token \\ :nil) do
+  def validate_project(changeset, media \\ [], user_or_token \\ nil) do
     project_id = Ecto.Changeset.get_change(changeset, :project_id, :no_change)
     original_project_id = changeset.data.project_id
 
@@ -256,7 +257,8 @@ defmodule Platform.Material.Media do
             original_project = Projects.get_project(original_project_id)
 
             cond do
-              !is_nil(media) && !is_nil(user_or_token) && !Permissions.can_edit_media?(user_or_token, media) ->
+              !is_nil(media) && !is_nil(user_or_token) &&
+                  !Permissions.can_edit_media?(user_or_token, media) ->
                 changeset
                 |> add_error(:project_id, "You cannot edit this incidents's project.")
 
@@ -281,7 +283,8 @@ defmodule Platform.Material.Media do
                 changeset
             end
         end
-        true ->
+
+      true ->
         changeset
     end
   end

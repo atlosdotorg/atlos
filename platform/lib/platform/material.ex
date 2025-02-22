@@ -316,7 +316,8 @@ defmodule Platform.Material do
     |> Repo.insert()
   end
 
-  def create_media_audited(user_or_token, attrs \\ %{}, opts \\ []) when is_struct(user_or_token, User) or is_struct(user_or_token, APIToken) do
+  def create_media_audited(user_or_token, attrs \\ %{}, opts \\ [])
+      when is_struct(user_or_token, User) or is_struct(user_or_token, APIToken) do
     changeset =
       %Media{}
       |> Media.changeset(attrs, user_or_token)
@@ -342,14 +343,17 @@ defmodule Platform.Material do
           if is_struct(user_or_token, User) do
             # Automatically tag new incidents created by regular users, if desirable
             user_project_membership =
-              Projects.get_project_membership_by_user_and_project_id(user_or_token, media.project_id)
+              Projects.get_project_membership_by_user_and_project_id(
+                user_or_token,
+                media.project_id
+              )
 
             {:ok, media} =
               with false <- Enum.member?([:owner, :manager], user_project_membership.role),
-                  new_tags_json <- System.get_env("AUTOTAG_USER_INCIDENTS"),
-                  false <- is_nil(new_tags_json) or String.trim(new_tags_json) == "",
-                  {:ok, new_tags} <- Jason.decode(new_tags_json),
-                  false <- Enum.empty?(new_tags) do
+                   new_tags_json <- System.get_env("AUTOTAG_USER_INCIDENTS"),
+                   false <- is_nil(new_tags_json) or String.trim(new_tags_json) == "",
+                   {:ok, new_tags} <- Jason.decode(new_tags_json),
+                   false <- Enum.empty?(new_tags) do
                 {:ok, new_media} =
                   update_media_attribute_audited(
                     media,
@@ -365,7 +369,7 @@ defmodule Platform.Material do
 
             # Subscribe the creator
             {:ok, _} = subscribe_user(media, user_or_token)
-            end
+          end
 
           # Upload media, if provided
           for url <- Ecto.Changeset.get_field(changeset, :urls_parsed) do
