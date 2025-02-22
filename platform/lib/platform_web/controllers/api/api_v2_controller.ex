@@ -96,7 +96,7 @@ defmodule PlatformWeb.APIV2Controller do
     project_id = conn.assigns.token.project_id
     project = Projects.get_project!(project_id)
 
-    other_params = ["urls"]
+    other_params = ["urls", "location"]
 
     is_unknown_attr = fn {key, _} ->
       not Enum.member?(other_params, key) and is_nil(Attribute.get_attribute(key, project: project))
@@ -130,12 +130,17 @@ defmodule PlatformWeb.APIV2Controller do
             )
           end)
           |> Map.put("project_id", project_id)
-          |> dbg()
 
         # We expect a JSON array of URLs in the incident creation flow
         media_params = case params["urls"] do
           nil -> media_params
           urls -> Map.put(media_params, "urls", Jason.encode!(urls))
+        end
+
+        # Populate the location field if it is provided
+        media_params = case params["location"] do
+          nil -> media_params
+          location -> Map.put(media_params, "location", location)
         end
 
         case Material.create_media_audited(conn.assigns.token, media_params) do
@@ -152,7 +157,6 @@ defmodule PlatformWeb.APIV2Controller do
             json(conn, %{success: true, result: media_with_project})
 
           {:error, changeset} ->
-            dbg(changeset)
             json(conn |> put_status(401), %{error: render_changeset_errors(changeset)})
         end
     end
