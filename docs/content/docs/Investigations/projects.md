@@ -28,12 +28,12 @@ To edit your existing project's data, navigate to its Manage pane. Project owner
 
 Read [here](/incidents/attributes/#how-to-customize-attributes) for more information on customizing a project's attributes. 
 
-## Copy an incident to a second project 
-To copy an incident to a second project:
+## Duplicate or copy an incident to another project 
+To duplicate an incident or to copy an incident to a second project:
 1. Navigate to the incident to be copied.
 2. Click the three vertical dots on the top-right corner of the incident page.
-3. Click the **Copy to Another Project** button.
-4. Select the project you want the incident to be copied to.
+3. Click the **Copy to Project** button.
+4. Select the project you want the incident to be copied to. Select the incident's own project to duplicate it.
 5. Click **Copy**.
 
 ## Copy many incidents to a project
@@ -42,4 +42,4 @@ To copy many incidents in bulk:
 2. Hover over the profile photo to the left of an incident you'd like to copy.
 3. Click the checkbox.
 4. Repeat steps 2-3 for each incident.
-5. Click **Copy to project**.
+5. Click **Copy**.

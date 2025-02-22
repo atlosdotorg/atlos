@@ -3751,10 +3751,7 @@ defmodule PlatformWeb.Components do
 
     ~H"""
     <span>
-      <.link
-        class={"font-medium inline-flex gap-2 flex-wrap items-center #{@class}"}
-        navigate="#"
-      >
+      <.link class={"font-medium inline-flex gap-2 flex-wrap items-center #{@class}"} navigate="#">
         <span class={if @icon, do: "ml-7", else: ""}>
           [System]
         </span>
