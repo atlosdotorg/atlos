@@ -96,32 +96,41 @@ defmodule PlatformWeb.APIV2Controller do
     project_id = conn.assigns.token.project_id
     project = Projects.get_project!(project_id)
 
+    other_params = ["urls"]
+
+    is_unknown_attr = fn {key, _} ->
+      not Enum.member?(other_params, key) and is_nil(Attribute.get_attribute(key, project: project))
+    end
+
     cond do
       not Permissions.can_api_token_create_media?(conn.assigns.token) ->
         json(conn |> put_status(401), %{error: "unauthorized"})
+
+      # Ensure that all of the attributes in the input are valid, and note in the
+      # error message which are invalid
+      Enum.any?(params, is_unknown_attr) ->
+        invalid_attributes = Enum.filter(params, is_unknown_attr) |> Enum.map(fn {key, _} -> key end)
+        # Provide the keys of the invalid/unknown attributes in the error message
+        json(conn |> put_status(401), %{error: "unknown attributes: #{inspect(invalid_attributes)}"})
 
       true ->
         # Generate attribute parameters for all attributes in the input
         media_params =
           params
+          |> Enum.reject(is_unknown_attr)
+          |> Enum.reject(fn {key, _} -> Enum.member?(other_params, key) end)
           |> Enum.reduce(%{}, fn {key, value}, acc ->
-            case Attribute.get_attribute(key, project: project) do
-              nil ->
-                acc
-
-              attr ->
-                # Merge the generated attribute change params
-                Map.merge(
-                  acc,
-                  Material.generate_attribute_change_params(
-                    attr,
-                    value,
-                    project
-                  )
-                )
-            end
+            # Merge the generated attribute change params. If `project_attributes` is already in
+            # the accumulator, merge the new attribute change params with the existing ones.
+            Material.generate_attribute_change_params(
+              Attribute.get_attribute(key, project: project),
+              value,
+              project,
+              acc
+            )
           end)
           |> Map.put("project_id", project_id)
+          |> dbg()
 
         # We expect a JSON array of URLs in the incident creation flow
         media_params = case params["urls"] do
@@ -143,6 +152,7 @@ defmodule PlatformWeb.APIV2Controller do
             json(conn, %{success: true, result: media_with_project})
 
           {:error, changeset} ->
+            dbg(changeset)
             json(conn |> put_status(401), %{error: render_changeset_errors(changeset)})
         end
     end
@@ -407,7 +417,7 @@ defmodule PlatformWeb.APIV2Controller do
   end
 
   defp render_changeset_errors(changeset) do
-    Enum.map(changeset.errors, fn
+    top_level_errors = Enum.map(changeset.errors, fn
       {field, {"is invalid", [type: {:array, type}, validation: :cast]}} ->
         {field, "must be an array of #{type}s"}
 
@@ -417,7 +427,27 @@ defmodule PlatformWeb.APIV2Controller do
       {field, message} ->
         {field, message}
     end)
-    |> Map.new()
+
+    # Recursively look through the changeset to find other nested changesets,
+    # and render their errors as well. The values might also be lists of
+    # changesets, so we need to handle that case as well.
+    nested_errors = Enum.map(changeset.changes, fn
+      {field, value} ->
+        case value do
+          %Ecto.Changeset{} = cs ->
+            {field, render_changeset_errors(cs)}
+
+          [%Ecto.Changeset{} | _] ->
+            {field, Enum.filter(value, & not &1.valid?) |> Enum.map(fn cs -> render_changeset_errors(cs) |> Map.put("source", Map.get(cs, :changes)) end)}
+
+          _ ->
+            nil
+        end
+    end)
+
+    all_errors = Enum.concat(top_level_errors || [], nested_errors || []) |> Enum.filter(fn v -> not is_nil(v) end)
+
+    Enum.into(all_errors, %{})
   end
 
   defp render_detail(message, values) do
