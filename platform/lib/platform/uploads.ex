@@ -122,3 +122,27 @@ defmodule Platform.Uploads.UpdateAttachment do
     [content_type: MIME.from_path(file.file_name)]
   end
 end
+
+defmodule Platform.Uploads.ExportFile do
+  use Waffle.Definition
+
+  # Define versions
+  @versions [:original]
+
+  # Define storage directory based on user ID and export type
+  def storage_dir(_version, {_file, scope}) do
+    "exports/#{scope.user_id}/#{scope.export_type}"
+  end
+
+  # Generate unique filename with date
+  def filename(_version, {_file, scope}) do
+    date_str = Date.utc_today() |> Date.to_string()
+    random_suffix = :crypto.strong_rand_bytes(4) |> Base.encode16(case: :lower)
+    "#{scope.prefix}-#{date_str}-#{scope.suffix}"
+  end
+
+  # Set appropriate content type headers
+  def s3_object_headers(_version, {_file, scope}) do
+    [content_type: scope.content_type]
+  end
+end

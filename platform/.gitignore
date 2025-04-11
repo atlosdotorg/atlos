@@ -1,6 +1,7 @@
 # Used locally by Waffle for uploads when testing
 artifacts
 avatars
+exports
 
 # Terraform
 .terraform/

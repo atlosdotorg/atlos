@@ -10,6 +10,7 @@ defmodule PlatformWeb.ExportController do
   alias Platform.Permissions
   alias Platform.Projects
   alias Platform.Utils
+  alias Platform.Uploads.ExportFile
 
   defp format_media(%Material.Media{} = media, fields, user) do
     {lon, lat} =
@@ -139,9 +140,25 @@ defmodule PlatformWeb.ExportController do
 
     Platform.Auditor.log(:bulk_export, params, conn)
 
-    # The filename should be atlos-export-YYYY-MM-DD.csv
-    user_visible_filename = "atlos-export-#{Date.utc_today()}.csv"
-    send_download(conn, {:file, path}, filename: user_visible_filename)
+    # Upload file to S3 using the idiomatic Waffle approach
+    scope = %{
+      user_id: conn.assigns.current_user.id,
+      export_type: "csv",
+      prefix: "atlos-export",
+      content_type: "text/csv",
+      suffix: :crypto.strong_rand_bytes(4) |> Base.encode16(case: :lower)
+    }
+
+
+
+    # Get a signed URL valid for 6 hours
+    {:ok, filename} = ExportFile.store({path, scope})
+    url = ExportFile.url({filename, scope}, signed: true, expires_in: 6 * 60 * 60)
+
+    # Clean up temp file
+    File.rm(path)
+    redirect(conn, external: url)
+    
   end
 
   def create_project_full_export(conn, %{"project_id" => project_id}) do

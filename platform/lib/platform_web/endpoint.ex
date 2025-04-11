@@ -35,6 +35,11 @@ defmodule PlatformWeb.Endpoint do
   )
 
   plug(Plug.Static,
+    at: "/exports",
+    from: "exports"
+  )
+
+  plug(Plug.Static,
     at: "/avatars",
     from: "avatars"
   )
