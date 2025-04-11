@@ -137,7 +137,6 @@ defmodule Platform.Uploads.ExportFile do
   # Generate unique filename with date
   def filename(_version, {_file, scope}) do
     date_str = Date.utc_today() |> Date.to_string()
-    random_suffix = :crypto.strong_rand_bytes(4) |> Base.encode16(case: :lower)
     "#{scope.prefix}-#{date_str}-#{scope.suffix}"
   end
 

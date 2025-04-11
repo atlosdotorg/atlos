@@ -406,6 +406,16 @@ defmodule PlatformWeb.MediaLive.Index do
     {:noreply, socket |> assign(:bulk_background_task, nil)}
   end
 
+  def handle_event("export_csv", %{"params" => encoded_params}, socket) do
+    params = Jason.decode!(encoded_params)
+
+    PlatformWeb.ExportController.schedule_csv_export(socket.assigns.current_user, params)
+
+    {:noreply,
+     socket
+     |> put_flash(:info, "Your export is being prepared. You'll get a notification and an email when it's ready.")}
+  end
+
   def handle_info(
         {:end_attribute_edit, updated_media},
         socket

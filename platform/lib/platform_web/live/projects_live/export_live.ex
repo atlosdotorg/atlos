@@ -1,6 +1,21 @@
 defmodule PlatformWeb.ProjectsLive.ExportComponent do
   use PlatformWeb, :live_component
 
+
+  def handle_event("export_csv", %{"project-id" => project_id}, socket) do
+    PlatformWeb.ExportController.schedule_csv_export(
+      socket.assigns.current_user,
+      %{"project_id" => project_id}
+    )
+
+    socket =
+      socket
+      |> put_flash(:info, "Your export is being prepared. You'll get a notification and an email when it's ready.")
+
+    {:noreply, socket}
+  end
+
+
   def render(assigns) do
     ~H"""
     <section class="flex flex-col lg:flex-row my-8">
@@ -57,14 +72,17 @@ defmodule PlatformWeb.ProjectsLive.ExportComponent do
                 <p class="sec-subhead">Export metadata about all incidents in this project.</p>
               </div>
               <div>
-                <%= button type: "button", to: Routes.export_path(@socket, :create_csv_export, %{"project_id" => @project.id}),
-              class: "button ~urge @high",
-              role: "menuitem",
-              method: :post
-            do %>
+              <button
+                  type="button"
+                  phx-click="export_csv"
+                  phx-value-project-id={@project.id}
+                  phx-target={@myself}
+                  class="button ~urge @high"
+                  role="menuitem"
+              >
                   <Heroicons.table_cells mini class="-ml-0.5 mr-2 h-5 w-5 opacity-75" />
                   Spreadsheet (CSV)
-                <% end %>
+              </button>
               </div>
             </div>
 

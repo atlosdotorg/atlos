@@ -1,6 +1,7 @@
-defmodule PlatformWeb.ExportController do
-  require Logger
-  use PlatformWeb, :controller
+defmodule Platform.Workers.ExportWorker do
+  use Oban.Worker,
+  queue: :export,
+  priority: 3
 
   alias Platform.Material
   alias Material.Attribute
@@ -11,10 +12,32 @@ defmodule PlatformWeb.ExportController do
   alias Platform.Projects
   alias Platform.Utils
   alias Platform.Uploads.ExportFile
+  alias Platform.Mailer
+  alias Platform.Notifications
+  alias Platform.Accounts
 
-  defp format_media(%Material.Media{} = media, fields, user) do
-    {lon, lat} =
-      if is_nil(media.attr_geolocation) do
+  require Logger
+
+  @impl Oban.Worker
+  def perform(%Oban.Job{args: %{"user_id" => user_id, "params" => params}}) do
+    user = Platform.Accounts.get_user(user_id)
+
+    try do
+      signed_url = generate_csv_export_file(user, params)
+      Notifications.send_message_notification_to_user(user, "Your export is ready: #{signed_url}")
+      Mailer.construct_and_send(user.email, "Your Atlos export is ready", "#{signed_url}")
+      :ok
+
+    rescue
+      exception ->
+        Notifications.send_message_notification_to_user(user, "Your export failed. Please try again.")
+        {:error, exception}
+    end
+  end
+
+    defp format_media(%Material.Media{} = media, fields, user) do
+      {lon, lat} =
+        if is_nil(media.attr_geolocation) do
         {nil, nil}
       else
         media.attr_geolocation.coordinates
@@ -171,145 +194,57 @@ end
     |> to_string()
   end
 
-  def schedule_csv_export(user, params \\ nil) do
-    %{
-      "user_id" => user.id,
-      "params" => params
-    }
-    |> Platform.Workers.ExportWorker.new()
-    |> Oban.insert!()
-
-    :ok
-  end
-
-  def create_project_full_export(conn, %{"project_id" => project_id}) do
-    project = Projects.get_project!(project_id)
-
-    if Permissions.can_export_full?(conn.assigns.current_user, project) do
-      create_full_export(conn, %{"project_id" => project.id})
-    else
-      raise PlatformWeb.Errors.Unauthorized,
-            "Only project managers and owners can export full data"
-    end
-  end
-
-  defp create_full_export(conn, params) do
+  defp generate_csv_export_file(user, params) do
     c = MediaSearch.changeset(params)
-    root_folder_name = "atlos-export-#{Date.utc_today()}"
-
-    project_id = Map.get(params, "project_id")
-    project = Projects.get_project!(project_id)
-
-    readme_content = """
-    This folder contains a comprehensive copy of the project "#{project.name}" and contains several different types of files and folders. This folder is organized as follows:
-
-    - project.json includes general information about the project, including its name, description, and code; its attributes, their descriptions, types, and values; and whether or not the project is archived.
-    - Each folder contains a single incident's data, which contains a metadata.json file, an updates.json file, and folders for each piece of source material.
-    - The incident-level metadata.json file contains information about the incident's source material, including each file's hashes.
-    - The incident-level updates.json file is a log of each update made to an incident, including who changed what data at what time.
-    - Each piece of source material has a folder which contains visual media and a metadata.json file.
-    - The source material-level metadata.json file contains information about the source material, including its hashes and source URL.
-    """
-
     {full_query, _} = MediaSearch.search_query(c)
-    final_query = MediaSearch.filter_viewable(full_query, conn.assigns.current_user)
+    IO.inspect(full_query)
+    final_query = MediaSearch.filter_viewable(full_query, user)
 
-    results =
-      Stream.concat([
-        Material.query_media(final_query, for_user: conn.assigns.current_user)
-        |> Stream.flat_map(fn media ->
-          media_slug = Media.slug_to_display(media)
-          Logger.debug("Checking media #{media_slug}")
+    # Prepare field headers
+    fields_excluding_custom = [:slug, :inserted_at, :updated_at, :latitude, :longitude] ++ Attribute.attribute_names()
+    {max_num_versions, custom_attribute_names} = get_max_versions_and_custom_attributes(final_query, user, fields_excluding_custom)
 
-          media.versions
-          |> Stream.filter(&Permissions.can_view_media_version?(conn.assigns.current_user, &1))
-          |> Stream.flat_map(fn version ->
-            Logger.debug("Checking version #{media_slug}/#{version.scoped_id}")
-            folder_name = "#{root_folder_name}/#{media_slug}/#{media_slug}-#{version.scoped_id}"
+    fields_excluding_custom =
+      fields_excluding_custom ++
+        (if max_num_versions > 0 do
+          Enum.map(1..max_num_versions, &("source_" <> to_string(&1)))
+        else
+          []
+        end)
+      |> Enum.reject(&(&1 in [:geolocation]))
 
-            version.artifacts
-            |> Stream.map(fn artifact ->
-              location = Material.media_version_artifact_location(artifact)
-              f_extension = artifact.file_location |> String.split(".") |> List.last("data")
-              fname = "#{artifact.type}_#{media_slug}-#{version.scoped_id}.#{f_extension}"
-              Logger.debug("Artifact #{fname}: #{location}")
-              Zstream.entry("#{folder_name}/#{fname}", HTTPDownload.stream!(location))
-            end)
-            |> Stream.concat([
-              Zstream.entry("#{folder_name}/metadata.json", [Jason.encode!(version)])
-            ])
-          end)
-          |> Stream.concat([
-            Zstream.entry("#{root_folder_name}/#{media_slug}/metadata.json", [
-              Jason.encode!(media)
-            ]),
-            Zstream.entry("#{root_folder_name}/#{media_slug}/updates.json", [
-              media.updates
-              |> Permissions.filter_to_viewable_updates(conn.assigns.current_user)
-              |> Jason.encode!()
-            ])
-          ])
-        end),
-        [
-          Zstream.entry("#{root_folder_name}/project.json", [Jason.encode!(project)])
-        ],
-        [Zstream.entry("#{root_folder_name}/README.txt", [readme_content])]
-      ])
-      |> Zstream.zip()
+    all_headers = (fields_excluding_custom ++ custom_attribute_names) |> Enum.map(&format_field_name/1)
+    IO.inspect("We got hereeeeeeeeee")
+    # Track and open temp file
+    Temp.track!()
+    path = Temp.path!(suffix: "atlos-export.csv")
+    {:ok, file} = File.open(path, [:write, :utf8])
 
-    Logger.debug("Sending file: #{inspect(results)}")
+    # Write CSV headers
+    header_row = CSV.encode([all_headers], escape_formulas: true) |> Enum.join("")
+    IO.write(file, header_row)
 
-    conn =
-      conn
-      |> put_resp_content_type("application/zip")
-      |> put_resp_header(
-        "content-disposition",
-        "attachment; filename=\"#{root_folder_name}.zip\""
-      )
-      |> send_chunked(:ok)
+    # Paginate and write rows
+    chunk_size = 50
+    stream_to_file(file, final_query, all_headers, user, max_num_versions, 1, chunk_size, custom_attribute_names)
 
-    # Not sure what chunk size to choose
-    results
-    |> Stream.chunk_every(256)
-    |> Stream.map(fn chn ->
-      Logger.debug("Sending chunk of size #{Enum.count(chn)}")
-      conn |> chunk(chn)
-    end)
-    |> Stream.run()
+    File.close(file)
 
-    conn
-  end
+    Platform.Auditor.log(:bulk_export, params)
 
-  def create_backup_codes_export(conn, %{"token" => tok}) do
-    with {:ok, %{:uid => uid}} <-
-           Phoenix.Token.verify(PlatformWeb.Endpoint, "backup_codes_export", tok, max_age: 3600),
-         true <- uid == conn.assigns.current_user.id do
-      user = conn.assigns.current_user
+    # Upload file to S3
+    scope = %{
+      user_id: user.id,
+      export_type: "csv",
+      prefix: "atlos-export",
+      content_type: "text/csv",
+      suffix: :crypto.strong_rand_bytes(4) |> Base.encode16(case: :lower)
+    }
 
-      codes =
-        user.recovery_codes
-        |> Enum.map(&Utils.format_recovery_code(&1))
+    {:ok, filename} = ExportFile.store({path, scope})
+    url = ExportFile.url({filename, scope}, signed: true, expires_in: 24 * 60 * 60)
 
-      path = Temp.path!(suffix: "atlos-backup-codes.txt")
-      file = File.open!(path, [:write, :utf8])
-
-      file
-      |> IO.write("""
-      Atlos Backup Codes
-
-      #{1..length(codes) |> Enum.zip(codes) |> Enum.map(fn {idx, code} -> "#{idx}. #{code}" end) |> Enum.join("\n")}
-
-      (#{user.email})
-
-      - You can only use each code once.
-      - Generate more at Account > Manage Account > Multi-factor auth
-      - Generated at #{DateTime.utc_now()}
-      """)
-
-      :ok = File.close(file)
-      send_download(conn, {:file, path}, filename: "atlos-backup-codes.txt")
-    else
-      _ -> raise PlatformWeb.Errors.Unauthorized, "Token Invalid or Not Found"
-    end
+    File.rm(path)
+    url
   end
 end
