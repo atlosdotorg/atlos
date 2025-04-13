@@ -2454,18 +2454,18 @@ defmodule PlatformWeb.Components do
               >
                 <div class="text-left z-10">
                   <div class="h-full flex gap-1">
-                  <button
-                  type="button"
-                  phx-click="export_csv"
-                  phx-value-params={Jason.encode!(@query_params)}
-                  class="rounded-full flex items-center align-center text-gray-600 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-urge-500"
-                  role="menuitem"
-                  x-cloak
-                  data-tooltip="Export Incidents"
-                >
-                  <Heroicons.arrow_down_tray mini class="h-5 w-5" />
-                  <span class="sr-only">Export Incidents</span>
-                </button>
+                    <button
+                      type="button"
+                      phx-click="export_csv"
+                      phx-value-params={Jason.encode!(@query_params)}
+                      class="rounded-full flex items-center align-center text-gray-600 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-urge-500"
+                      role="menuitem"
+                      x-cloak
+                      data-tooltip="Export Incidents"
+                    >
+                      <Heroicons.arrow_down_tray mini class="h-5 w-5" />
+                      <span class="sr-only">Export Incidents</span>
+                    </button>
                     <.link
                       navigate={"/incidents?display=#{Ecto.Changeset.get_field(f.source, :display, "cards")}"}
                       class="rounded-full flex items-center align-center text-gray-600 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-urge-500"

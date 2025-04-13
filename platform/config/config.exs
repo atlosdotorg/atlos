@@ -95,4 +95,4 @@ config :platform, Oban,
      ]}
   ],
   # We only want one instance of ffmpeg running on the server at a time...
-  queues: [media_archival: 1, auto_metadata: 1, custodian: 1, duplicate_detection: 3]
+  queues: [export: 1, media_archival: 1, auto_metadata: 1, custodian: 1, duplicate_detection: 3]

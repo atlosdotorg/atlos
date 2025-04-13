@@ -144,4 +144,30 @@ defmodule Platform.Uploads.ExportFile do
   def s3_object_headers(_version, {_file, scope}) do
     [content_type: scope.content_type]
   end
+
+  defmodule Platform.Uploads.ExportFile do
+    use Waffle.Definition
+
+    # Only store original file
+    @versions [:original]
+
+    # Set the storage dir based on user ID and export type
+    def storage_dir(_version, {_file, scope}) do
+      user_id = scope.user_id
+      export_type = scope.export_type
+      prefix = scope.prefix
+      "exports/#{user_id}/#{export_type}/#{prefix}"
+    end
+
+    # Set the filename using a prefix and random suffix
+    def filename(_version, {_file, scope}) do
+      date_str = Date.utc_today() |> Date.to_string()
+      "#{scope.prefix}-#{date_str}-#{scope.suffix}"
+    end
+
+    # Set content type for download
+    def s3_object_headers(_version, {_file, scope}) do
+      [content_type: scope.content_type]
+    end
+  end
 end

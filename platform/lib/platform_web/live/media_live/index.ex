@@ -413,7 +413,10 @@ defmodule PlatformWeb.MediaLive.Index do
 
     {:noreply,
      socket
-     |> put_flash(:info, "Your export is being prepared. You'll get a notification and an email when it's ready.")}
+     |> put_flash(
+       :info,
+       "Your export is being prepared. It should be ready in under 10 minutes. You'll get a notification and an email when it's ready."
+     )}
   end
 
   def handle_info(

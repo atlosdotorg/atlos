@@ -1,20 +1,43 @@
 defmodule PlatformWeb.ProjectsLive.ExportComponent do
   use PlatformWeb, :live_component
-
+  alias Platform.Projects
+  alias Platform.Permissions
 
   def handle_event("export_csv", %{"project-id" => project_id}, socket) do
+    params = %{project_id: project_id}
+
     PlatformWeb.ExportController.schedule_csv_export(
       socket.assigns.current_user,
-      %{"project_id" => project_id}
+      %{"params" => params}
     )
 
-    socket =
-      socket
-      |> put_flash(:info, "Your export is being prepared. You'll get a notification and an email when it's ready.")
-
-    {:noreply, socket}
+    {:noreply,
+     socket
+     |> put_flash(
+       :info,
+       "Your export is being prepared. It should be ready in under 10 minutes. You'll get a notification and an email when it's ready."
+     )}
   end
 
+  def handle_event("export_full_project", %{"project-id" => project_id}, socket) do
+    project = Projects.get_project!(project_id)
+
+    if Permissions.can_export_full?(socket.assigns.current_user, project) do
+      params = %{project_id: project_id}
+      PlatformWeb.ExportController.schedule_full_export(socket.assigns.current_user, params)
+
+      {:noreply,
+       socket
+       |> put_flash(
+         :info,
+         "Your project export is being prepared. It should be ready in under 10 minutes. You'll get a notification and an email when it's ready."
+       )}
+    else
+      {:noreply,
+       socket
+       |> put_flash(:error, "Only project managers and owners can export full data.")}
+    end
+  end
 
   def render(assigns) do
     ~H"""
@@ -72,17 +95,17 @@ defmodule PlatformWeb.ProjectsLive.ExportComponent do
                 <p class="sec-subhead">Export metadata about all incidents in this project.</p>
               </div>
               <div>
-              <button
+                <button
                   type="button"
                   phx-click="export_csv"
                   phx-value-project-id={@project.id}
                   phx-target={@myself}
                   class="button ~urge @high"
                   role="menuitem"
-              >
+                >
                   <Heroicons.table_cells mini class="-ml-0.5 mr-2 h-5 w-5 opacity-75" />
                   Spreadsheet (CSV)
-              </button>
+                </button>
               </div>
             </div>
 
@@ -98,14 +121,17 @@ defmodule PlatformWeb.ProjectsLive.ExportComponent do
                 </p>
               </div>
               <div>
-                <%= button type: "button", to: Routes.export_path(@socket, :create_project_full_export, %{"project_id" => @project.id}),
-                  class: "button ~urge @high",
-                  role: "menuitem",
-                  method: :post
-                do %>
+                <button
+                  type="button"
+                  phx-click="export_full_project"
+                  phx-value-project-id={@project.id}
+                  phx-target={@myself}
+                  class="button ~urge @high"
+                  role="menuitem"
+                >
                   <Heroicons.folder_arrow_down mini class="-ml-0.5 mr-2 h-5 w-5 opacity-75" />
-                  All Data & Media (ZIP)
-                <% end %>
+                  All Data and Media (ZIP)
+                </button>
               </div>
             </div>
           </div>

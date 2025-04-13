@@ -12,169 +12,11 @@ defmodule PlatformWeb.ExportController do
   alias Platform.Utils
   alias Platform.Uploads.ExportFile
 
-  defp format_media(%Material.Media{} = media, fields, user) do
-    {lon, lat} =
-      if is_nil(media.attr_geolocation) do
-        {nil, nil}
-      else
-        media.attr_geolocation.coordinates
-      end
-
-    custom_attributes =
-      Attribute.attributes(project: media.project)
-      |> Enum.filter(&(&1.schema_field == :project_attributes))
-      |> Enum.filter(&Permissions.can_view_attribute?(user, media, &1))
-
-    field_list =
-      (media
-       |> Map.put(:latitude, lat)
-       |> Map.put(:longitude, lon)
-       |> Map.put(:project, media.project.name)
-       |> Map.to_list()
-       |> Enum.filter(fn {k, _v} ->
-         attr = Attribute.get_attribute_by_schema_field(k, project: media.project)
-
-         (not is_nil(attr) and Permissions.can_view_attribute?(user, media, attr)) or
-           Enum.member?([:slug, :inserted_at, :updated_at, :latitude, :longitude], k)
-       end)
-       |> Enum.map(fn {k, v} ->
-         name = k |> to_string()
-
-         if String.starts_with?(name, "attr_") do
-           {String.slice(name, 5..String.length(name)) |> String.to_existing_atom(), v}
-         else
-           {k, v}
-         end
-       end)) ++
-        (custom_attributes
-         |> Enum.map(fn attr ->
-           {Platform.Material.Attribute.standardized_label(attr, project: media.project),
-            Material.get_attribute_value(media, attr, format_dates: true)}
-         end)) ++
-        (media.versions
-         |> Enum.filter(&(&1.visibility == :visible))
-         |> Enum.with_index(1)
-         |> Enum.map(fn {item, idx} -> {"source_" <> to_string(idx), item.source_url} end))
-
-    custom_attribute_names =
-      custom_attributes
-      |> Enum.map(fn x ->
-        Platform.Material.Attribute.standardized_label(x, project: media.project)
-      end)
-
-    allowed_field_names = Enum.map(fields ++ custom_attribute_names, &to_string/1)
-
-    {field_list
-     |> Enum.filter(fn {k, _v} ->
-       Enum.member?(allowed_field_names, to_string(k))
-     end)
-     |> Map.new(fn {k, v} ->
-       {format_field_name(k),
-        case v do
-          # Match lists of structs that contain a user field and format them
-          # into comma-separated usernames (this is used, e.g., for assignees)
-          [%{user: %Platform.Accounts.User{}} | _] ->
-            v |> Enum.map(fn %{user: user} -> user.username end) |> Enum.join(", ")
-
-          [_ | _] ->
-            Enum.join(v, ", ")
-
-          _ ->
-            v
-        end}
-     end), custom_attribute_names |> Enum.map(&format_field_name/1)}
-  end
-
-  defp stream_to_file(file, query, fields, current_user, max_versions, page, page_size, custom_fields) do
-  media_chunk =
-    Material.query_media_paginated(query,
-      for_user: current_user,
-      limit: page_size,
-      offset: (page - 1) * page_size
-    ).entries
-    |> Enum.map(fn media ->
-      {row_data, _} = format_media(media, fields, current_user)
-
-      row_with_all_fields =
-        Enum.reduce(fields, %{}, fn field, acc ->
-          case Map.fetch(row_data, format_field_name(field)) do
-            {:ok, value} -> Map.put(acc, format_field_name(field), value)
-            :error -> Map.put(acc, format_field_name(field), "")
-          end
-        end)
-
-      fields
-      |> Enum.map(&Map.get(row_with_all_fields, format_field_name(&1), ""))
-    end)
-
-  if Enum.empty?(media_chunk) do
-    :ok
-  else
-    media_chunk
-    |> CSV.encode(escape_formulas: true)
-    |> Enum.each(&IO.write(file, &1))
-
-    # Recurse to next page
-    stream_to_file(file, query, fields, current_user, max_versions, page + 1, page_size, custom_fields)
-  end
-end
-
-  defp get_max_versions_and_custom_attributes(query, current_user, fields_excluding_custom) do
-    page_size = 50
-
-    # Create a function that processes pages and accumulates both max versions and custom attributes
-    process_pages = fn fetch_data, process_pages_fn, page_number, {current_max, current_names} ->
-      {version_counts, custom_attribute_names} = fetch_data.(page_number)
-
-      if Enum.empty?(version_counts) do
-        # No more media to process
-        {current_max, current_names}
-      else
-        # Update max count and custom attributes, then continue to next page
-        new_max = Enum.max([current_max | version_counts])
-        new_names = Enum.uniq(current_names ++ custom_attribute_names)
-        process_pages_fn.(fetch_data, process_pages_fn, page_number + 1, {new_max, new_names})
-      end
-    end
-
-    # Get both version counts and custom attribute names in a single pass
-    fetch_data = fn page_number ->
-      paginated_results = Material.query_media_paginated(query,
-        for_user: current_user,
-        limit: page_size,
-        offset: (page_number - 1) * page_size
-      ).entries
-
-      # Get version counts
-      version_counts = paginated_results
-      |> Enum.map(fn media ->
-        length(media.versions |> Enum.filter(&(&1.visibility == :visible)))
-      end)
-
-      # Get custom attribute names
-      formatted = Enum.map(paginated_results, &format_media(&1, fields_excluding_custom, current_user))
-      custom_attribute_names = formatted
-      |> Enum.map(fn {_, fields} -> fields end)
-      |> List.flatten()
-      |> Enum.uniq()
-
-      {version_counts, custom_attribute_names}
-    end
-
-    # Process all pages, starting with initial values
-    {max_count, unique_custom_attributes} = process_pages.(fetch_data, process_pages, 1, {0, []})
-
-    {max_count, unique_custom_attributes}
-  end
-  defp format_field_name(name) do
-    name
-    |> to_string()
-  end
-
   def schedule_csv_export(user, params \\ nil) do
     %{
       "user_id" => user.id,
-      "params" => params
+      "params" => params,
+      "type" => "csv"
     }
     |> Platform.Workers.ExportWorker.new()
     |> Oban.insert!()
@@ -182,102 +24,16 @@ end
     :ok
   end
 
-  def create_project_full_export(conn, %{"project_id" => project_id}) do
-    project = Projects.get_project!(project_id)
+  def schedule_full_export(user, params \\ nil) do
+    %{
+      "user_id" => user.id,
+      "params" => params,
+      "type" => "full"
+    }
+    |> Platform.Workers.ExportWorker.new()
+    |> Oban.insert!()
 
-    if Permissions.can_export_full?(conn.assigns.current_user, project) do
-      create_full_export(conn, %{"project_id" => project.id})
-    else
-      raise PlatformWeb.Errors.Unauthorized,
-            "Only project managers and owners can export full data"
-    end
-  end
-
-  defp create_full_export(conn, params) do
-    c = MediaSearch.changeset(params)
-    root_folder_name = "atlos-export-#{Date.utc_today()}"
-
-    project_id = Map.get(params, "project_id")
-    project = Projects.get_project!(project_id)
-
-    readme_content = """
-    This folder contains a comprehensive copy of the project "#{project.name}" and contains several different types of files and folders. This folder is organized as follows:
-
-    - project.json includes general information about the project, including its name, description, and code; its attributes, their descriptions, types, and values; and whether or not the project is archived.
-    - Each folder contains a single incident's data, which contains a metadata.json file, an updates.json file, and folders for each piece of source material.
-    - The incident-level metadata.json file contains information about the incident's source material, including each file's hashes.
-    - The incident-level updates.json file is a log of each update made to an incident, including who changed what data at what time.
-    - Each piece of source material has a folder which contains visual media and a metadata.json file.
-    - The source material-level metadata.json file contains information about the source material, including its hashes and source URL.
-    """
-
-    {full_query, _} = MediaSearch.search_query(c)
-    final_query = MediaSearch.filter_viewable(full_query, conn.assigns.current_user)
-
-    results =
-      Stream.concat([
-        Material.query_media(final_query, for_user: conn.assigns.current_user)
-        |> Stream.flat_map(fn media ->
-          media_slug = Media.slug_to_display(media)
-          Logger.debug("Checking media #{media_slug}")
-
-          media.versions
-          |> Stream.filter(&Permissions.can_view_media_version?(conn.assigns.current_user, &1))
-          |> Stream.flat_map(fn version ->
-            Logger.debug("Checking version #{media_slug}/#{version.scoped_id}")
-            folder_name = "#{root_folder_name}/#{media_slug}/#{media_slug}-#{version.scoped_id}"
-
-            version.artifacts
-            |> Stream.map(fn artifact ->
-              location = Material.media_version_artifact_location(artifact)
-              f_extension = artifact.file_location |> String.split(".") |> List.last("data")
-              fname = "#{artifact.type}_#{media_slug}-#{version.scoped_id}.#{f_extension}"
-              Logger.debug("Artifact #{fname}: #{location}")
-              Zstream.entry("#{folder_name}/#{fname}", HTTPDownload.stream!(location))
-            end)
-            |> Stream.concat([
-              Zstream.entry("#{folder_name}/metadata.json", [Jason.encode!(version)])
-            ])
-          end)
-          |> Stream.concat([
-            Zstream.entry("#{root_folder_name}/#{media_slug}/metadata.json", [
-              Jason.encode!(media)
-            ]),
-            Zstream.entry("#{root_folder_name}/#{media_slug}/updates.json", [
-              media.updates
-              |> Permissions.filter_to_viewable_updates(conn.assigns.current_user)
-              |> Jason.encode!()
-            ])
-          ])
-        end),
-        [
-          Zstream.entry("#{root_folder_name}/project.json", [Jason.encode!(project)])
-        ],
-        [Zstream.entry("#{root_folder_name}/README.txt", [readme_content])]
-      ])
-      |> Zstream.zip()
-
-    Logger.debug("Sending file: #{inspect(results)}")
-
-    conn =
-      conn
-      |> put_resp_content_type("application/zip")
-      |> put_resp_header(
-        "content-disposition",
-        "attachment; filename=\"#{root_folder_name}.zip\""
-      )
-      |> send_chunked(:ok)
-
-    # Not sure what chunk size to choose
-    results
-    |> Stream.chunk_every(256)
-    |> Stream.map(fn chn ->
-      Logger.debug("Sending chunk of size #{Enum.count(chn)}")
-      conn |> chunk(chn)
-    end)
-    |> Stream.run()
-
-    conn
+    :ok
   end
 
   def create_backup_codes_export(conn, %{"token" => tok}) do
