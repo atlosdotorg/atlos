@@ -20,7 +20,7 @@ defmodule Platform.MixProject do
   def application do
     [
       mod: {Platform.Application, []},
-      extra_applications: [:logger, :runtime_tools, :ssl]
+      extra_applications: [:recon, :logger, :runtime_tools, :ssl]
     ]
   end
 
@@ -52,6 +52,7 @@ defmodule Platform.MixProject do
       {:telemetry_poller, "~> 1.0"},
       {:gettext, "~> 0.20"},
       {:jason, "~> 1.4"},
+      {:recon, "~> 2.5"},
       {:plug_cowboy, "~> 2.5"},
       {:ffmpex, "~> 0.10.0"},
       {:temp, "~> 0.4"},
