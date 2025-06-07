@@ -292,7 +292,7 @@ defmodule Platform.Material.Media do
   def validate_url_list(changeset, field) do
     valid? = fn url ->
       uri = URI.parse(url)
-      uri.scheme != nil && uri.host =~ "."
+      uri.scheme != nil && uri.host != nil && uri.host =~ "."
     end
 
     validate_change(changeset, field, fn field, value ->
