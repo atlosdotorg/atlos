@@ -8,6 +8,7 @@ defmodule Platform.Updates.Update do
   alias Platform.Accounts
   alias Platform.Material
   alias Platform.Permissions
+  alias Platform.Uploads
 
   @primary_key {:id, :binary_id, autogenerate: true}
   schema "updates" do
@@ -185,6 +186,7 @@ defimpl Jason.Encoder, for: Platform.Updates.Update do
         :inserted_at,
         :media_id,
         :explanation,
+        :attachments,
         :user_id,
         :api_token_id,
         :media_version_id,
@@ -202,7 +204,17 @@ defimpl Jason.Encoder, for: Platform.Updates.Update do
 
         {key, value} ->
           {key, value}
-      end),
+      end)
+      |> Map.put(
+        :attachment_urls,
+        value.attachments
+        |> Enum.map(
+          &Platform.Uploads.UpdateAttachment.url({&1, value.media}, :original,
+            signed: true,
+            expires_in: 60 * 60 * 6
+          )
+        )
+      ),
       opts
     )
   end
