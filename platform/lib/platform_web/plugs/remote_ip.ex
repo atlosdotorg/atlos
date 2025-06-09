@@ -9,7 +9,14 @@ defmodule PlatformWeb.Plugs.RemoteIp do
     remote_ip =
       case get_req_header(conn, "fly-client-ip") do
         [val] -> val
-        _ -> to_string(:inet_parse.ntoa(conn.remote_ip))
+        _ -> case conn.remote_ip do
+          x when is_binary(x) ->
+            # If it's already a string, use it directly
+            x
+          x when is_tuple(x) ->
+            # Convert tuple to string representation
+            :inet.ntoa(x) |> to_string()
+        end
       end
 
     Logger.metadata(remote_ip: remote_ip)
