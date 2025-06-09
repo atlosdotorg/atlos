@@ -18,16 +18,19 @@ from datetime import datetime
 from typing import Dict, List, Optional, Any
 from urllib.parse import urlparse
 import mimetypes
+import trio
 from dotenv import load_dotenv
 
+SCRIPT_VERSION = '1.0'
+
 class AtlosExporter:
-    def __init__(self, api_key: str, base_url: str = "https://staging.atlos.org"):
+    def __init__(self, api_key: str, base_url: str = "https://platform.atlos.org"):
         self.api_key = api_key
         self.base_url = base_url.rstrip('/')
         self.session = requests.Session()
         self.session.headers.update({
             'Authorization': f'Bearer {api_key}',
-            'User-Agent': 'Atlos-Export-Script/1.0'
+            'User-Agent': f'Atlos-Export-Script/{SCRIPT_VERSION}'
         })
         
     def _make_request(self, endpoint: str, params: Optional[Dict] = None) -> Dict:
@@ -103,7 +106,7 @@ class AtlosExporter:
         export_info = {
             'export_timestamp': datetime.now().isoformat(),
             'base_url': self.base_url,
-            'script_version': '1.0'
+            'script_version': SCRIPT_VERSION
         }
         
         # Fetch all data
@@ -119,43 +122,22 @@ class AtlosExporter:
         # Create data structures
         print("\n=== Organizing Data ===")
         
-        # Group source material by incident
+        # Group source material (media versions) by incident (media)
         source_by_incident = {}
         for sm in source_material:
-            incident_id = sm.get('incident_id')
-            if incident_id:
-                if incident_id not in source_by_incident:
-                    source_by_incident[incident_id] = []
-                source_by_incident[incident_id].append(sm)
+            media_id = sm.get('incident_id')
+            if media_id not in source_by_incident:
+                source_by_incident[media_id] = []    
+            source_by_incident[media_id].append(sm)
                 
-        # Group updates by incident (using both incident_id and media_id)
-        # Comments with attachments use media_id which can point to either source material or incident
-        media_to_incident = {}
-        
-        # Map source material IDs to incident IDs
-        for sm in source_material:
-            media_id = sm.get('id')
-            incident_id = sm.get('incident_id')
-            if media_id and incident_id:
-                media_to_incident[media_id] = incident_id
-        
-        # Map incident IDs to themselves (for direct references)
-        for incident in incidents:
-            incident_id = incident['id']
-            media_to_incident[incident_id] = incident_id
-        
+        # Group updates (comments) by incident (media)  
+        # media_id in updates directly refers to the incident ID
         updates_by_incident = {}
         for update in all_updates:
-            incident_id = update.get('incident_id')
-            
-            # If no direct incident_id, try to map via media_id
-            if not incident_id and update.get('media_id'):
-                incident_id = media_to_incident[update['media_id']]
-            
-            if incident_id:
-                if incident_id not in updates_by_incident:
-                    updates_by_incident[incident_id] = []
-                updates_by_incident[incident_id].append(update)
+            media_id = update.get('media_id')  # This is the incident ID
+            if media_id not in updates_by_incident:
+                updates_by_incident[media_id] = []
+            updates_by_incident[media_id].append(update)
         
         # Create main export structure
         export_data = {
@@ -180,7 +162,7 @@ class AtlosExporter:
         
         print("\n=== Processing Incidents ===")
         
-        for incident in incidents:
+        def process_incident(incident):
             incident_slug = incident['slug']
             incident_id = incident['id']
             
@@ -190,18 +172,18 @@ class AtlosExporter:
             incident_dir = incidents_dir / incident_slug
             incident_dir.mkdir(exist_ok=True)
             
-            # Get related data
-            incident_source_material = source_by_incident.get(incident_id, [])
-            incident_updates = updates_by_incident.get(incident_id, [])
+            # Get related data  
+            incident_source_material = source_by_incident.get(incident_id)  # media versions for this media (incident)
+            incident_comments = updates_by_incident.get(incident_id)  # comments for this media (incident)
             
             # Create comprehensive incident data
             incident_data = {
                 'incident': incident,
-                'source_material': incident_source_material,
-                'updates': incident_updates,
+                'source_material': incident_source_material,  # media versions
+                'comments': incident_comments,  # updates = comments
                 'summary': {
                     'source_material_count': len(incident_source_material),
-                    'updates_count': len(incident_updates),
+                    'comments_count': len(incident_comments),
                     'artifacts_count': sum(len(sm.get('artifacts', [])) for sm in incident_source_material)
                 }
             }
@@ -219,12 +201,24 @@ class AtlosExporter:
                 self._download_artifacts(incident_source_material, artifacts_dir)
                 
             # Download comment attachments
-            if incident_updates:
-                comments_with_attachments = [u for u in incident_updates if u.get('attachment_urls')]
+            if incident_comments:
+                comments_with_attachments = [c for c in incident_comments if c.get('attachment_urls')]
                 if comments_with_attachments:
                     attachments_dir = incident_dir / 'comment_attachments'
                     self._download_comment_attachments(comments_with_attachments, attachments_dir)
+        
+        async def process_incidents():
+            async with trio.open_nursery() as nursery:
+                limiter = trio.CapacityLimiter(20)  # max 20 incidents at a time
+                async def process_incident_async_wrapper(incident):
+                    async with limiter:
+                        await trio.to_thread.run_sync(process_incident, incident)
                 
+                for incident in incidents:
+                    nursery.start_soon(process_incident_async_wrapper, incident)
+        
+        trio.run(process_incidents)
+
         # Create overall project summary
         self._create_project_summary(output_dir / 'README.md', export_data)
         
@@ -277,7 +271,7 @@ class AtlosExporter:
                 metadata = {
                     'artifact_info': artifact,
                     'local_filename': filename,
-                    'source_material_id': sm_id,
+                    'media_version_id': sm_id,  # This is source material (media version)
                     'original_url': file_url
                 }
                     
@@ -322,7 +316,7 @@ class AtlosExporter:
                 
                 # Save attachment metadata
                 metadata = {
-                    'update_info': {
+                    'comment_info': {  # update = comment
                         'id': update['id'],
                         'type': update['type'],
                         'user': user,
@@ -340,8 +334,8 @@ class AtlosExporter:
     def _create_incident_summary(self, filepath: Path, incident_data: Dict):
         """Create human-readable incident summary"""
         incident = incident_data['incident']
-        source_material = incident_data['source_material']
-        updates = incident_data['updates']
+        source_material = incident_data['source_material']  # media versions
+        comments = incident_data['comments']  # updates = comments
         
         with open(filepath, 'w') as f:
             f.write(f"# Incident {incident['slug']}\n\n")
@@ -382,10 +376,10 @@ class AtlosExporter:
                             f.write(f"- {artifact_type}: {title} ({file_size} bytes, {mime_type})\n")
                         f.write("\n")
             
-            # Updates and Comments
-            if updates:
-                f.write(f"## Updates and Comments ({len(updates)} items)\n\n")
-                for update in updates:
+            # Comments (Updates)
+            if comments:
+                f.write(f"## Comments and Updates ({len(comments)} items)\n\n")
+                for update in comments:  # keeping 'update' variable name for consistency
                     timestamp = update['inserted_at']
                     user = update['user']['username'] if update['user'] else 'System'
                     update_type = update['type']
@@ -449,8 +443,8 @@ def main():
     parser = argparse.ArgumentParser(description='Export Atlos project data')
     parser.add_argument('--output', '-o', default='./export', 
                        help='Output directory (default: ./export)')
-    parser.add_argument('--base-url', default='https://staging.atlos.org',
-                       help='Atlos instance URL (default: staging.atlos.org)')
+    parser.add_argument('--base-url', default='https://gap.atlos.org',
+                       help='Atlos instance URL (default: gap.atlos.org)')
     
     args = parser.parse_args()
     
