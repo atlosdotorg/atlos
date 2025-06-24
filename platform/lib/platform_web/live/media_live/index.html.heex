@@ -285,6 +285,9 @@
         <% "map" -> %>
           <% map_data_only_geolocated =
             @map_data
+            |> Enum.filter(fn item ->
+              not is_nil(item.geolocation) and not is_nil(item.geolocation.coordinates)
+            end)
             |> Enum.map(fn item ->
               {lon, lat} = item.geolocation.coordinates
 
