@@ -283,11 +283,13 @@
     <%= if (not Enum.empty?(@media)) or @display == "map" do %>
       <%= case @display do %>
         <% "map" -> %>
-          <% map_data =
-            @media
-            |> Enum.filter(&(not is_nil(&1.attr_geolocation)))
+          <% map_data_only_geolocated =
+            @map_data
+            |> Enum.filter(fn item ->
+              not is_nil(item.geolocation) and not is_nil(item.geolocation.coordinates)
+            end)
             |> Enum.map(fn item ->
-              {lon, lat} = item.attr_geolocation.coordinates
+              {lon, lat} = item.geolocation.coordinates
 
               %{
                 id: item.id,
@@ -295,11 +297,11 @@
                 # Stringify to avoid floating point issues
                 lat: "#{lat}",
                 lon: "#{lon}",
-                type: Material.get_media_organization_type(item),
+                type: item.status,
                 color: item.display_color || "#60a5fa"
               }
             end) %>
-          <% nongeolocated_length = length(@media) - length(map_data) %>
+          <% nongeolocated_length = length(@map_data) - length(map_data_only_geolocated) %>
           <div class="flex justify-around">
             <%= if Ecto.Changeset.get_change(@changeset, :query) != nil and nongeolocated_length > 0 do %>
               <button
@@ -319,7 +321,7 @@
               </div>
             <% end %>
           </div>
-          <.map_events map_data={map_data} />
+          <.map_events map_data={map_data_only_geolocated} />
         <% "cards" -> %>
           <div class="top-scroll-anchor"></div>
           <div class="grid gap-4 grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 search-highlighting">
