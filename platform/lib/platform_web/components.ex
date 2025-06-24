@@ -1906,6 +1906,11 @@ defmodule PlatformWeb.Components do
   def text_diff(%{old: old, new: new} = assigns) do
     old_words = String.split(old || "") |> Enum.map(&String.trim(&1))
     new_words = String.split(new || "") |> Enum.map(&String.trim(&1))
+
+    # If the text is longer than 1000 characters, we truncate it to avoid performance issues
+    old_words = if length(old_words) > 1000, do: Enum.take(old_words, 1000), else: old_words
+    new_words = if length(new_words) > 1000, do: Enum.take(new_words, 1000), else: new_words
+
     diff = List.myers_difference(old_words, new_words)
 
     assigns = assign(assigns, :diff, diff)
