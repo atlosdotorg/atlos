@@ -78,8 +78,6 @@ defmodule PlatformWeb.MediaLive.Index do
         nil
       end
 
-    dbg(map_data)
-
     socket
     |> assign(
       :changeset,
