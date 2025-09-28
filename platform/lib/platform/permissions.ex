@@ -364,7 +364,7 @@ defmodule Platform.Permissions do
            true <- can_view_media?(user, media),
            false <- is_nil(membership),
            true <-
-             is_nil(media.attr_restrictions) or
+             (is_nil(media.attr_restrictions) or Enum.empty?(media.attr_restrictions)) or
                (not is_nil(media.project) and
                   (Enum.member?(media.attr_restrictions, "Hidden") or
                      Enum.member?(media.attr_restrictions, "Frozen")) and
