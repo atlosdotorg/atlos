@@ -19,6 +19,31 @@ defmodule PlatformWeb.ProfilesLive.Show do
      |> assign_user()}
   end
 
+  def handle_event("disable_mfa", _params, socket) do
+    if not Accounts.is_admin(socket.assigns.current_user) do
+      raise PlatformWeb.Errors.Unauthorized, "No permission"
+    end
+
+    case Accounts.admin_disable_user_mfa(socket.assigns.user) do
+      {:ok, _user} ->
+        Platform.Auditor.log(
+          :mfa_disabled_by_admin,
+          %{affected_user: socket.assigns.user.username},
+          socket
+        )
+
+        {:noreply,
+         socket
+         |> put_flash(:info, "MFA has been disabled for this user.")
+         |> assign_user()}
+
+      {:error, _changeset} ->
+        {:noreply,
+         socket
+         |> put_flash(:error, "Failed to disable MFA for this user.")}
+    end
+  end
+
   defp assign_user(socket) do
     with %Accounts.User{} = user <- Accounts.get_user_by_username(socket.assigns.username),
          false <-

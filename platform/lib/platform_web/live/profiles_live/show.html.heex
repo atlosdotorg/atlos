@@ -252,6 +252,25 @@
                   <% end %>
                 </dd>
               </div>
+              <div class="sm:col-span-1">
+                <dt class="text-sm font-medium text-gray-500">Multi-Factor Authentication</dt>
+                <dd class="mt-1 text-sm text-gray-900">
+                  <%= if @user.has_mfa do %>
+                    <div class="flex items-center gap-2">
+                      <p class="chip ~positive">Enabled</p>
+                      <button
+                        phx-click="disable_mfa"
+                        data-confirm="Are you sure you want to disable MFA for this user? This will remove their authenticator app setup and recovery codes."
+                        class="button ~critical @low text-xs"
+                      >
+                        Disable MFA
+                      </button>
+                    </div>
+                  <% else %>
+                    <p class="chip ~neutral">Disabled</p>
+                  <% end %>
+                </dd>
+              </div>
             </dl>
             <div id="activity-indicator" class="w-full" data-vega={@activity_indicator_chart}>
             </div>
