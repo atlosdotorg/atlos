@@ -252,6 +252,16 @@
                   <% end %>
                 </dd>
               </div>
+              <div class="sm:col-span-1">
+                <dt class="text-sm font-medium text-gray-500">Multi-Factor Authentication</dt>
+                <dd class="mt-1 text-sm text-gray-900">
+                  <%= if @user.has_mfa do %>
+                    <p class="chip ~positive">Enabled</p>
+                  <% else %>
+                    <p class="chip ~neutral">Disabled</p>
+                  <% end %>
+                </dd>
+              </div>
             </dl>
             <div id="activity-indicator" class="w-full" data-vega={@activity_indicator_chart}>
             </div>

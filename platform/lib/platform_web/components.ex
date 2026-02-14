@@ -1006,31 +1006,80 @@ defmodule PlatformWeb.Components do
                   <% end %>
 
                   <%= if not Enum.empty?(@update.attachments) do %>
-                    <div class="p-2 grid grid-cols-2 md:grid-cols-3 gap-2">
-                      <%= for {attachment, idx} <- @update.attachments |> Enum.with_index() do %>
-                        <% url =
-                          Uploads.UpdateAttachment.url({attachment, @update.media}, :original,
-                            signed: true,
-                            expires_in: 60 * 60 * 6
-                          ) %>
-                        <div class="rounded overflow-hidden max-h-64 cursor highlight-block">
-                          <%= cond do %>
-                            <% String.ends_with?(attachment, ".jpg") || String.ends_with?(attachment, ".jpeg") || String.ends_with?(attachment, ".png") -> %>
-                              <a href={url} target="_blank">
-                                <img src={url} loading="lazy" />
-                              </a>
-                            <% String.ends_with?(attachment, ".mp4") -> %>
-                              <video controls preload="auto" muted>
-                                <source src={url} />
-                              </video>
-                            <% true -> %>
-                              <a href={url} target="_blank">
-                                <.document_preview
-                                  file_name={"Attachment #" <> to_string(idx + 1)}
-                                  description="PDF Document"
-                                />
-                              </a>
-                          <% end %>
+                    <div class="relative" x-data={"#{"{hidden: #{Media.is_graphic(@update.media)}}"}"}>
+                      <%= if Media.is_graphic(@update.media) do %>
+                        <div
+                          class="w-full z-[2] h-full absolute bg-neutral-50 rounded-lg flex items-center justify-around top-0"
+                          x-show="hidden"
+                        >
+                          <div class="text-center w-48 py-4">
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              class="mx-auto h-8 w-8 text-critical-600"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                              stroke-width="2"
+                            >
+                              <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
+                              />
+                            </svg>
+                            <h3 class="mt-2 font-medium text-gray-900 text-sm">
+                              Potentially Graphic
+                            </h3>
+                            <p class="mt-1 text-gray-500 text-sm">
+                              This media may be graphic. Please proceed with caution.
+                            </p>
+                            <button
+                              type="button"
+                              x-on:click="hidden = false"
+                              class="button mt-1 original py-1 px-2 text-xs"
+                            >
+                              Show
+                            </button>
+                          </div>
+                        </div>
+                      <% end %>
+                      <div class="p-2 grid grid-cols-2 md:grid-cols-3 gap-2">
+                        <%= for {attachment, idx} <- @update.attachments |> Enum.with_index() do %>
+                          <% url =
+                            Uploads.UpdateAttachment.url({attachment, @update.media}, :original,
+                              signed: true,
+                              expires_in: 60 * 60 * 6
+                            ) %>
+                          <div class="rounded overflow-hidden max-h-64 cursor highlight-block">
+                            <%= cond do %>
+                              <% String.ends_with?(attachment, ".jpg") || String.ends_with?(attachment, ".jpeg") || String.ends_with?(attachment, ".png") -> %>
+                                <a href={url} target="_blank">
+                                  <img src={url} loading="lazy" />
+                                </a>
+                              <% String.ends_with?(attachment, ".mp4") -> %>
+                                <video controls preload="auto" muted>
+                                  <source src={url} />
+                                </video>
+                              <% true -> %>
+                                <a href={url} target="_blank">
+                                  <.document_preview
+                                    file_name={"Attachment #" <> to_string(idx + 1)}
+                                    description="PDF Document"
+                                  />
+                                </a>
+                            <% end %>
+                          </div>
+                        <% end %>
+                      </div>
+                      <%= if Media.is_graphic(@update.media) do %>
+                        <div class="px-2 pb-2 flex justify-end" x-show="!hidden" x-cloak>
+                          <button
+                            type="button"
+                            x-on:click="hidden = true"
+                            class="button original py-1 px-2 text-xs"
+                          >
+                            Hide
+                          </button>
                         </div>
                       <% end %>
                     </div>
