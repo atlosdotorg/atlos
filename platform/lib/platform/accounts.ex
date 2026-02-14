@@ -297,6 +297,14 @@ defmodule Platform.Accounts do
   end
 
   @doc """
+  Disables MFA for a user by admin without requiring password verification.
+  """
+  def admin_disable_user_mfa(user) do
+    User.admin_disable_mfa_changeset(user)
+    |> Repo.update()
+  end
+
+  @doc """
   Emulates that the email will change without actually changing
   it in the database.
 
