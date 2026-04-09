@@ -85,9 +85,9 @@ defmodule PlatformWeb.NotificationsLive.NotificationsList do
               />
             </svg>
 
-            <h3 class="mt-2 text-sm font-medium text-gray-900">No notifications</h3>
+            <h3 class="mt-2 text-sm font-medium text-gray-900"><%= gettext("No notifications") %></h3>
             <p class="mt-1 text-sm text-gray-500">
-              Notifications will appear here when you're tagged or someone updates an incident you're subscribed to.
+              <%= gettext("Notifications will appear here when you're tagged or someone updates an incident you're subscribed to.") %>
             </p>
           </div>
         <% else %>
@@ -100,7 +100,7 @@ defmodule PlatformWeb.NotificationsLive.NotificationsList do
                     phx-value-notification={notification.id}
                     phx-target={@myself}
                     tab-index="0"
-                    data-tooltip="Mark as read"
+                    data-tooltip={gettext("Mark as read")}
                     class="mr-2 mt-3 cursor-pointer text-urge-600"
                   >
                     <svg
@@ -112,7 +112,7 @@ defmodule PlatformWeb.NotificationsLive.NotificationsList do
                       <circle cx="50" cy="50" r="50" />
                     </svg>
                     <span class="sr-only">
-                      Unread notification
+                      <%= gettext("Unread notification") %>
                     </span>
                   </div>
                 <% else %>
@@ -170,7 +170,7 @@ defmodule PlatformWeb.NotificationsLive.NotificationsList do
                         viewBox="0 0 20 20"
                         fill="currentColor"
                         class="w-5 h-5"
-                        data-tooltip="Mark as unread"
+                        data-tooltip={gettext("Mark as unread")}
                       >
                         <path
                           fill-rule="evenodd"
@@ -184,7 +184,7 @@ defmodule PlatformWeb.NotificationsLive.NotificationsList do
                         viewBox="0 0 20 20"
                         fill="currentColor"
                         class="w-5 h-5"
-                        data-tooltip="Mark as read"
+                        data-tooltip={gettext("Mark as read")}
                       >
                         <path
                           fill-rule="evenodd"
@@ -206,10 +206,10 @@ defmodule PlatformWeb.NotificationsLive.NotificationsList do
             type="button"
             class="text-button"
             phx-click="load_more"
-            phx-disable-with="Loading..."
+            phx-disable-with={gettext("Loading...")}
             phx-target={@myself}
           >
-            Load More
+            <%= gettext("Load More") %>
           </button>
         <% end %>
         <%= if Notifications.has_unread_notifications(@current_user) do %>
@@ -217,10 +217,10 @@ defmodule PlatformWeb.NotificationsLive.NotificationsList do
             type="button"
             class="text-button"
             phx-click="mark_all_read"
-            phx-disable-with="Processing..."
+            phx-disable-with={gettext("Processing...")}
             phx-target={@myself}
           >
-            Mark All Read
+            <%= gettext("Mark All Read") %>
           </button>
         <% end %>
       </div>

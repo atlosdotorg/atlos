@@ -22,7 +22,7 @@ defmodule PlatformWeb do
       use Phoenix.Controller, namespace: PlatformWeb
 
       import Plug.Conn
-      import PlatformWeb.Gettext
+      use Gettext, backend: PlatformWeb.Gettext
       alias PlatformWeb.Router.Helpers, as: Routes
     end
   end
@@ -84,7 +84,7 @@ defmodule PlatformWeb do
   def channel do
     quote do
       use Phoenix.Channel
-      import PlatformWeb.Gettext
+      use Gettext, backend: PlatformWeb.Gettext
     end
   end
 
@@ -114,7 +114,7 @@ defmodule PlatformWeb do
       import Platform.FeatureFlags
 
       import PlatformWeb.ErrorHelpers
-      import PlatformWeb.Gettext
+      use Gettext, backend: PlatformWeb.Gettext
       alias PlatformWeb.Router.Helpers, as: Routes
     end
   end

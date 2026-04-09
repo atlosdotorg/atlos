@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html
-  lang="en"
+  lang={Map.get(assigns, :locale, "en")}
   class={
     if assigns[:_no_background] == true, do: "scroll-smooth", else: "scroll-smooth bg-gray-50"
   }
@@ -12,7 +12,7 @@
     <link rel="icon" type="image/svg" href={Routes.static_path(@conn, "/images/icon.svg")} />
     <%= csrf_meta_tag() %>
     <.live_title suffix="| Atlos">
-      <%= assigns[:title] || "Collaborative OSINT" %>
+      <%= assigns[:title] || gettext("Collaborative OSINT") %>
     </.live_title>
     <link phx-track-static rel="stylesheet" href={Routes.static_path(@conn, "/assets/app.css")} />
     <link

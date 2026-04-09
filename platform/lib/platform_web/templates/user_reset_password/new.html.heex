@@ -17,9 +17,9 @@
     </div>
 
     <div class="flex gap-4 items-center text-neutral-500">
-      <%= submit("Send instructions", class: "button ~urge @high") %>
-      <%= link("Register", to: Routes.user_registration_path(@conn, :new)) %>
-      <%= link("Log in", to: Routes.user_session_path(@conn, :new)) %>
+      <%= submit(gettext("Send instructions"), class: "button ~urge @high") %>
+      <%= link(gettext("Register"), to: Routes.user_registration_path(@conn, :new)) %>
+      <%= link(gettext("Log in"), to: Routes.user_session_path(@conn, :new)) %>
     </div>
   </.form>
 </div>

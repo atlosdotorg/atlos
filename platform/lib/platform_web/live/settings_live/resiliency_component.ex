@@ -19,7 +19,7 @@ defmodule PlatformWeb.SettingsLive.ResiliencyComponent do
         />
       </svg>
       <span class="mt-2 block text-sm font-medium text-gray-900">
-        These features are coming soon.
+        <%= gettext("These features are coming soon.") %>
       </span>
     </article>
     """

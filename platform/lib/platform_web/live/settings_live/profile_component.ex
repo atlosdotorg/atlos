@@ -107,8 +107,8 @@ defmodule PlatformWeb.SettingsLive.ProfileComponent do
     changeset.changes != %{}
   end
 
-  defp friendly_error(:too_large), do: "This file is too large; the maximum size is 1 megabyte."
-  defp friendly_error(:not_accepted), do: "Please upload a .PNG, .JPG, or .JPEG file."
+  defp friendly_error(:too_large), do: gettext("This file is too large; the maximum size is 1 megabyte.")
+  defp friendly_error(:not_accepted), do: gettext("Please upload a .PNG, .JPG, or .JPEG file.")
 
   def render(assigns) do
     ~H"""
@@ -124,12 +124,12 @@ defmodule PlatformWeb.SettingsLive.ProfileComponent do
       >
         <div class="space-y-6">
           <div>
-            <label>Username</label>
+            <label><%= gettext("Username") %></label>
             <input type="text" class="my-1" disabled value={@current_user.username} />
-            <p class="support">If you would like to change your username, please contact us.</p>
+            <p class="support"><%= gettext("If you would like to change your username, please contact us.") %></p>
           </div>
           <div>
-            <%= label(f, :profile_photo_file, "Profile Photo") %>
+            <%= label(f, :profile_photo_file, gettext("Profile Photo")) %>
             <div class="mt-1 flex items-center" phx-drop-target={@uploads.profile_photo_file.ref}>
               <div class="h-12 w-12 rounded-full overflow-hidden">
                 <% photo =
@@ -147,7 +147,7 @@ defmodule PlatformWeb.SettingsLive.ProfileComponent do
                       x-on:click="document.querySelector('input[name=\'profile_photo_file\']').click()"
                       x-data
                     >
-                      Change
+                      <%= gettext("Change") %>
                     </button>
                     <.live_file_input upload={@uploads.profile_photo_file} class="sr-only" />
                   </label>
@@ -161,7 +161,7 @@ defmodule PlatformWeb.SettingsLive.ProfileComponent do
                       phx-click="remove_pfp"
                       phx-target={@myself}
                     >
-                      Remove
+                      <%= gettext("Remove") %>
                     </button>
                   </label>
                 <% end %>
@@ -189,13 +189,13 @@ defmodule PlatformWeb.SettingsLive.ProfileComponent do
           </div>
 
           <div class="flex flex-col items-center md:flex-row md:justify-between gap-2">
-            <%= submit("Save",
-              phx_disable_with: "Saving...",
+            <%= submit(gettext("Save"),
+              phx_disable_with: gettext("Saving..."),
               class: "button ~urge @high",
               disabled: !has_changes(@changeset)
             ) %>
             <.link navigate={"/profile/#{@current_user.username}"} class="text-button text-sm">
-              View my profile and activity &rarr;
+              <%= gettext("View my profile and activity") %> &rarr;
             </.link>
           </div>
         </div>

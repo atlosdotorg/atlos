@@ -15,12 +15,12 @@ defmodule PlatformWeb.ProjectsLive.Show do
     project = Projects.get_project!(id)
 
     if !Permissions.can_view_project?(socket.assigns.current_user, project) do
-      raise NotFound, "Not found"
+      raise NotFound, gettext("Not found")
     end
 
     if socket.assigns.live_action == :manage and
          !Permissions.can_edit_project_metadata?(socket.assigns.current_user, project) do
-      raise NotFound, "Not found"
+      raise NotFound, gettext("Not found")
     end
 
     {query, _} = MediaSearch.search_query(MediaSearch.changeset(%{"project_id" => id}))
@@ -62,7 +62,7 @@ defmodule PlatformWeb.ProjectsLive.Show do
   end
 
   def handle_info({:project_saved, project}, socket) do
-    {:noreply, socket |> put_flash(:info, "Changes saved.") |> assign(:project, project)}
+    {:noreply, socket |> put_flash(:info, gettext("Changes saved.")) |> assign(:project, project)}
   end
 
   def render(assigns) do
@@ -74,7 +74,7 @@ defmodule PlatformWeb.ProjectsLive.Show do
           <div class="pt-4 w-full flex flex-col md:flex-row md:justify-between gap-4">
             <div>
               <p class="text-neutral-500 text-sm font-base flex items-center gap-2">
-                Project
+                <%= gettext("Project") %>
               </p>
               <h1 class="text-3xl font-semibold heading">
                 <div class="inline-flex items-center">
@@ -106,7 +106,7 @@ defmodule PlatformWeb.ProjectsLive.Show do
                 class="base-button"
               >
                 <Heroicons.rectangle_stack mini class="-ml-0.5 mr-2 h-5 w-5 text-neutral-400" />
-                <span>Incidents</span>
+                <span><%= gettext("Incidents") %></span>
               </.link>
               <%= if Permissions.can_add_media_to_project?(@current_user, @project) do %>
                 <button
@@ -114,7 +114,7 @@ defmodule PlatformWeb.ProjectsLive.Show do
                   x-on:click="window.openNewIncidentDialog"
                   class="button ~urge @high"
                 >
-                  <Heroicons.plus mini class="-ml-0.5 mr-2 text-urge-200 h-5 w-5" /> New Incident
+                  <Heroicons.plus mini class="-ml-0.5 mr-2 text-urge-200 h-5 w-5" /> <%= gettext("New Incident") %>
                 </button>
               <% end %>
             </div>
@@ -130,7 +130,7 @@ defmodule PlatformWeb.ProjectsLive.Show do
               class={if @live_action == :overview, do: active_classes, else: inactive_classes}
             >
               <Heroicons.chart_bar mini class="opacity-75 -ml-0.5 mr-2 h-5 w-5" />
-              <span>Overview</span>
+              <span><%= gettext("Overview") %></span>
             </.link>
 
             <.link
@@ -138,7 +138,7 @@ defmodule PlatformWeb.ProjectsLive.Show do
               class={if @live_action == :map, do: active_classes, else: inactive_classes}
             >
               <Heroicons.map mini class="opacity-75 -ml-0.5 mr-2 h-5 w-5" />
-              <span>Map</span>
+              <span><%= gettext("Map") %></span>
             </.link>
 
             <.link
@@ -146,7 +146,7 @@ defmodule PlatformWeb.ProjectsLive.Show do
               class={if @live_action == :queue, do: active_classes, else: inactive_classes}
             >
               <Heroicons.queue_list mini class="opacity-75 -ml-0.5 mr-2 h-5 w-5" />
-              <span>Queue</span>
+              <span><%= gettext("Queue") %></span>
             </.link>
 
             <%= if Permissions.can_edit_project_metadata?(assigns.current_user, assigns.project) or Permissions.can_change_project_active_status?(assigns.current_user, assigns.project) do %>
@@ -155,7 +155,7 @@ defmodule PlatformWeb.ProjectsLive.Show do
                 class={if @live_action == :edit, do: active_classes, else: inactive_classes}
               >
                 <Heroicons.cog_6_tooth mini class="opacity-75 -ml-0.5 mr-2 h-5 w-5" />
-                <span>Manage</span>
+                <span><%= gettext("Manage") %></span>
               </.link>
             <% end %>
 
@@ -165,7 +165,7 @@ defmodule PlatformWeb.ProjectsLive.Show do
                 class={if @live_action == :access, do: active_classes, else: inactive_classes}
               >
                 <Heroicons.user_circle mini class="opacity-75 -ml-0.5 mr-2 h-5 w-5" />
-                <span>Access</span>
+                <span><%= gettext("Access") %></span>
               </.link>
             <% end %>
 
@@ -175,7 +175,7 @@ defmodule PlatformWeb.ProjectsLive.Show do
                 class={if @live_action == :deleted, do: active_classes, else: inactive_classes}
               >
                 <Heroicons.trash mini class="opacity-75 -ml-0.5 mr-2 h-5 w-5" />
-                <span>Deleted</span>
+                <span><%= gettext("Deleted") %></span>
               </.link>
             <% end %>
           </nav>
@@ -194,9 +194,9 @@ defmodule PlatformWeb.ProjectsLive.Show do
               />
               <div :if={@membership.role == :data_only_viewer} class="text-center mt-8">
                 <Heroicons.chart_pie class="mx-auto h-12 w-12 text-gray-400" />
-                <h3 class="mt-2 text-sm font-medium text-gray-900">You're a data-only viewer.</h3>
+                <h3 class="mt-2 text-sm font-medium text-gray-900"><%= gettext("You're a data-only viewer.") %></h3>
                 <p class="mt-1 text-sm text-gray-500 max-w-prose mx-auto">
-                  This is where we typically show recent updates to the project, but because you're a data-only viewer, this information is not available.
+                  <%= gettext("This is where we typically show recent updates to the project, but because you're a data-only viewer, this information is not available.") %>
                 </p>
                 <p class="mt-1 text-sm text-gray-500">
                   <.link
@@ -208,7 +208,7 @@ defmodule PlatformWeb.ProjectsLive.Show do
                     }
                     class="button ~urge @high mt-4"
                   >
-                    <span>View Project Data</span>
+                    <span><%= gettext("View Project Data") %></span>
                   </.link>
                 </p>
               </div>
@@ -219,8 +219,8 @@ defmodule PlatformWeb.ProjectsLive.Show do
                   <%= if Enum.empty?(@status_statistics) do %>
                     <div class="text-center mt-8">
                       <Heroicons.chart_pie class="mx-auto h-12 w-12 text-gray-400" />
-                      <h3 class="mt-2 text-sm font-medium text-gray-900">No data to display</h3>
-                      <p class="mt-1 text-sm text-gray-500">Get started by creating an incident</p>
+                      <h3 class="mt-2 text-sm font-medium text-gray-900"><%= gettext("No data to display") %></h3>
+                      <p class="mt-1 text-sm text-gray-500"><%= gettext("Get started by creating an incident") %></p>
                     </div>
                   <% else %>
                     <%= for {status, count} <- @status_statistics |> Enum.sort_by(fn {status, _count} -> Enum.find_index(["To Do", "In Progress", "Help Needed", "Ready for Review", "Completed", "Cancelled"], fn x -> x == status end) || -1 end) do %>
@@ -240,7 +240,7 @@ defmodule PlatformWeb.ProjectsLive.Show do
                             <.attribute_icon name={:status} value={status} />
                           </div>
                           <p class="ml-16 truncate text-sm font-medium text-gray-500">
-                            <%= status %>
+                            <%= Gettext.gettext(PlatformWeb.Gettext, status) %>
                           </p>
                         </dt>
                         <dd class="ml-16 flex items-baseline">
@@ -251,7 +251,7 @@ defmodule PlatformWeb.ProjectsLive.Show do
                       </.link>
                     <% end %>
                     <.link href={"/projects/#{@project.id}/queue"} class="text-button p-2">
-                      View in queue &rarr;
+                      <%= gettext("View in queue") %> &rarr;
                     </.link>
                   <% end %>
                 </dl>
@@ -340,28 +340,28 @@ defmodule PlatformWeb.ProjectsLive.Show do
             <div>
               <div class="flex flex-col lg:flex-row gap-4 pt-8 w-full">
                 <div class="mb-4 lg:w-[20rem] lg:mr-16">
-                  <p class="sec-head text-xl">API Tokens</p>
+                  <p class="sec-head text-xl"><%= gettext("API Tokens") %></p>
                   <p class="sec-subhead">
-                    Connect with external tools and manage your project's data via an API.
+                    <%= gettext("Connect with external tools and manage your project's data via an API.") %>
                   </p>
                 </div>
                 <section class="flex flex-col mb-8 grow">
                   <div class="text-center w-full bg-white border rounded-lg shadow py-8 px-8">
                     <Heroicons.code_bracket class="mx-auto h-8 w-8 text-gray-400" />
-                    <h3 class="mt-2 text-sm font-medium text-gray-900">Upgrade to use the API</h3>
+                    <h3 class="mt-2 text-sm font-medium text-gray-900"><%= gettext("Upgrade to use the API") %></h3>
                     <p class="mt-1 text-sm text-gray-500 max-w-prose mx-auto">
-                      The
+                      <%= gettext("The") %>
                       <a
                         class="text-urge-600 font-medium"
                         href="https://docs.atlos.org/technical/api/"
                       >
-                        Atlos API
+                        <%= gettext("Atlos API") %>
                       </a>
-                      is a powerful way to connect your investigations on Atlos to other tools.
+                      <%= gettext("is a powerful way to connect your investigations on Atlos to other tools.") %>
                     </p>
                     <div class="mt-6">
                       <.link class="button ~urge @high" href="/settings#billing">
-                        Upgrade my account
+                        <%= gettext("Upgrade my account") %>
                       </.link>
                     </div>
                   </div>

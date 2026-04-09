@@ -4,9 +4,9 @@
     <%= email_input(f, :email, required: true) %>
 
     <div class="md:flex mt-4 gap-2 items-center text-neutral-600">
-      <%= submit("Send instructions", class: "button ~urge @high") %>
-      <%= link("Register", to: Routes.user_registration_path(@conn, :new)) %>
-      <%= link("Log in", to: Routes.user_session_path(@conn, :new)) %>
+      <%= submit(gettext("Send instructions"), class: "button ~urge @high") %>
+      <%= link(gettext("Register"), to: Routes.user_registration_path(@conn, :new)) %>
+      <%= link(gettext("Log in"), to: Routes.user_session_path(@conn, :new)) %>
     </div>
   </.form>
 </div>

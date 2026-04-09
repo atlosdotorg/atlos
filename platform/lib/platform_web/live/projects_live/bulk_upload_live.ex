@@ -11,7 +11,7 @@ defmodule PlatformWeb.ProjectsLive.BulkUploadLive do
         socket
       ) do
     unless Permissions.can_bulk_upload_media_to_project?(current_user, project) do
-      raise "No permission"
+      raise gettext("No permission")
     end
 
     Temp.track!()
@@ -19,7 +19,7 @@ defmodule PlatformWeb.ProjectsLive.BulkUploadLive do
     {:ok,
      socket
      |> assign(:project, project)
-     |> assign(:stage, "Upload incidents")
+     |> assign(:stage, "upload_incidents")
      |> assign(:current_user, current_user)
      |> assign(:processing, false)
      |> assign(:media_processing_error, false)
@@ -37,10 +37,10 @@ defmodule PlatformWeb.ProjectsLive.BulkUploadLive do
   end
 
   defp friendly_error(:too_large),
-    do: "This file is too large; the maximum size is 250 megabytes."
+    do: gettext("This file is too large; the maximum size is 250 megabytes.")
 
   defp friendly_error(:not_accepted),
-    do: "The file type you are uploading is not supported. We only support CSV uploads."
+    do: gettext("The file type you are uploading is not supported. We only support CSV uploads.")
 
   defp handle_progress(:bulk_upload, entry, socket) do
     if entry.done? do
@@ -100,7 +100,7 @@ defmodule PlatformWeb.ProjectsLive.BulkUploadLive do
         end)
 
       socket
-      |> assign(:stage, "Confirm information")
+      |> assign(:stage, "confirm_information")
       |> assign(:upload_path, path)
       |> assign(:changesets, changesets)
       |> assign(:import_items, rows |> Enum.map(fn {:ok, item} -> item end))
@@ -125,7 +125,7 @@ defmodule PlatformWeb.ProjectsLive.BulkUploadLive do
              socket.assigns.current_user,
              socket.assigns.project
            ) do
-      raise "No permission"
+      raise gettext("No permission")
     end
 
     Task.start(fn ->
@@ -141,7 +141,7 @@ defmodule PlatformWeb.ProjectsLive.BulkUploadLive do
       end)
     end)
 
-    {:noreply, socket |> assign(:stage, "Next steps")}
+    {:noreply, socket |> assign(:stage, "next_steps")}
   end
 
   defp extract_errors(changeset, project) do
@@ -168,7 +168,7 @@ defmodule PlatformWeb.ProjectsLive.BulkUploadLive do
           # We want a custom error message for geolocation; see https://github.com/atlosdotorg/atlos/issues/976
           {key,
            [
-             "Unable to parse this location; please enter geolocation in separate \"latitude\" and \"longitude\" columns."
+             gettext("Unable to parse this location; please enter geolocation in separate \"latitude\" and \"longitude\" columns.")
            ]}
 
         _ ->
@@ -213,7 +213,7 @@ defmodule PlatformWeb.ProjectsLive.BulkUploadLive do
             class="text-sm label ~neutral"
             type="button"
           >
-            Cancel Upload
+            <%= gettext("Cancel Upload") %>
           </button>
           """
         end
@@ -222,8 +222,8 @@ defmodule PlatformWeb.ProjectsLive.BulkUploadLive do
     ~H"""
     <section class="flex flex-col lg:flex-row mt-8 mb-32">
       <div class="mb-4 lg:w-[20rem] lg:min-w-[20rem] lg:mr-20">
-        <p class="sec-head text-xl">Bulk Import</p>
-        <p class="sec-subhead">Upload many incidents from a CSV file.</p>
+        <p class="sec-head text-xl"><%= gettext("Bulk Import") %></p>
+        <p class="sec-subhead"><%= gettext("Upload many incidents from a CSV file.") %></p>
       </div>
       <div class="grow">
         <div class="rounded-md bg-blue-50 p-4 border-blue-600 border mb-8">
@@ -233,16 +233,16 @@ defmodule PlatformWeb.ProjectsLive.BulkUploadLive do
             </div>
             <div class="ml-3 flex-1 lg:flex flex-col text-sm text-blue-700 lg:justify-between prose prose-sm">
               <p>
-                Atlos requires a very specific format for bulk uploads.
+                <%= gettext("Atlos requires a very specific format for bulk uploads.") %>
               </p>
               <details class="-mt-2">
                 <summary class="cursor-pointer font-medium">
-                  Learn about the required file format
+                  <%= gettext("Learn about the required file format") %>
                 </summary>
                 <p>
-                  Atlos can perform bulk imports from CSV files into this project with the following columns:
+                  <%= gettext("Atlos can perform bulk imports from CSV files into this project with the following columns:") %>
                 </p>
-                <p class="font-medium">Required</p>
+                <p class="font-medium"><%= gettext("Required") %></p>
                 <ul>
                   <%= for attr <- Material.Attribute.active_attributes(project: @project) |> Enum.filter(& &1.required) do %>
                     <li>
@@ -250,7 +250,7 @@ defmodule PlatformWeb.ProjectsLive.BulkUploadLive do
                     </li>
                   <% end %>
                 </ul>
-                <p class="font-medium">Optional</p>
+                <p class="font-medium"><%= gettext("Optional") %></p>
                 <ul>
                   <%= for attr <- Material.Attribute.active_attributes(project: @project) |> Enum.reject(& &1.required) do %>
                     <li>
@@ -258,29 +258,33 @@ defmodule PlatformWeb.ProjectsLive.BulkUploadLive do
                     </li>
                   <% end %>
                   <li>
-                    <span class="font-medium">sources</span>
-                    &mdash; include sources as URLs in columns named <span class="badge ~urge">source_1</span>, <span class="badge ~urge">source_2</span>, <span class="badge ~urge">source_3</span>, etc.
+                    <span class="font-medium"><%= gettext("sources") %></span>
+                    &mdash; <%= gettext("include sources as URLs in columns named %{source_1}, %{source_2}, %{source_3}, etc.", source_1: "<span class=\"badge ~urge\">source_1</span>", source_2: "<span class=\"badge ~urge\">source_2</span>", source_3: "<span class=\"badge ~urge\">source_3</span>") |> raw() %>
                   </li>
                 </ul>
-                <p>Note that this format perfectly matches Atlos' bulk exports.</p>
+                <p><%= gettext("Note that this format perfectly matches Atlos' bulk exports.") %></p>
               </details>
             </div>
           </div>
         </div>
         <.card class="grow border">
           <.stepper
-            options={["Upload incidents", "Confirm information", "Next steps"]}
+            options={[
+              {"upload_incidents", gettext("Upload incidents")},
+              {"confirm_information", gettext("Confirm information")},
+              {"next_steps", gettext("Next steps")}
+            ]}
             active={@stage}
           />
           <hr class="sep" />
           <%= case @stage do %>
-            <% "Upload incidents" -> %>
+            <% "upload_incidents" -> %>
               <form phx-change="validate" phx-submit="save" phx-target={@myself} id="upload-form">
                 <%= if length(@decoding_errors) > 0 do %>
                   <aside class="aside ~critical mb-8">
                     <p>
-                      <strong>We encountered errors while processing your upload.</strong>
-                      Please correct the errors below and re-upload your CSV.
+                      <strong><%= gettext("We encountered errors while processing your upload.") %></strong>
+                      <%= gettext("Please correct the errors below and re-upload your CSV.") %>
                     </p>
                     <ol class="list-decimal mt-4 ml-8">
                       <%= for error <- @decoding_errors do %>
@@ -319,9 +323,9 @@ defmodule PlatformWeb.ProjectsLive.BulkUploadLive do
                         </svg>
                         <div class="w-full text-sm text-gray-600">
                           <div class="w-42 mt-2 text-center">
-                            <p class="font-medium text-neutral-800 mb-1">Processing your upload...</p>
+                            <p class="font-medium text-neutral-800 mb-1"><%= gettext("Processing your upload...") %></p>
                             <p>
-                              This might take a moment. Please keep the window open.
+                              <%= gettext("This might take a moment. Please keep the window open.") %>
                             </p>
                           </div>
                         </div>
@@ -348,7 +352,7 @@ defmodule PlatformWeb.ProjectsLive.BulkUploadLive do
                           <div class="w-full text-sm text-gray-600">
                             <%= for entry <- @uploads.bulk_upload.entries do %>
                               <div class="w-42 mt-4 text-center">
-                                <p>Uploaded <%= Utils.truncate(entry.client_name) %>.</p>
+                                <p><%= gettext("Uploaded %{filename}.", filename: Utils.truncate(entry.client_name)) %></p>
                               </div>
                             <% end %>
                           </div>
@@ -373,7 +377,7 @@ defmodule PlatformWeb.ProjectsLive.BulkUploadLive do
                             />
                           </svg>
                           <div class="w-full text-sm text-gray-600">
-                            <p>Something went wrong while processing your upload.</p>
+                            <p><%= gettext("Something went wrong while processing your upload.") %></p>
                             <%= for entry <- @uploads.bulk_upload.entries do %>
                               <%= for err <- upload_errors(@uploads.bulk_upload, entry) do %>
                                 <p class="my-2"><%= friendly_error(err) %></p>
@@ -383,7 +387,7 @@ defmodule PlatformWeb.ProjectsLive.BulkUploadLive do
                               for={@uploads.bulk_upload.ref}
                               class="relative cursor-pointer bg-white rounded-md font-medium !text-urge-600 hover:text-urge-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-urge-500"
                             >
-                              <span>Upload another file</span>
+                              <span><%= gettext("Upload another file") %></span>
                             </label>
                           </div>
                         </div>
@@ -408,7 +412,7 @@ defmodule PlatformWeb.ProjectsLive.BulkUploadLive do
                             <%= for entry <- @uploads.bulk_upload.entries do %>
                               <%= if entry.progress < 100 and entry.progress > 0 do %>
                                 <div class="w-42 mt-4 text-center">
-                                  <p>Uploading <%= Utils.truncate(entry.client_name) %></p>
+                                  <p><%= gettext("Uploading %{filename}", filename: Utils.truncate(entry.client_name)) %></p>
                                   <progress
                                     value={entry.progress}
                                     max="100"
@@ -446,17 +450,17 @@ defmodule PlatformWeb.ProjectsLive.BulkUploadLive do
                               for={@uploads.bulk_upload.ref}
                               class="relative cursor-pointer bg-white rounded-md font-medium !text-urge-600 hover:text-urge-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-urge-500"
                             >
-                              <span>Upload a file</span>
+                              <span><%= gettext("Upload a file") %></span>
                             </label>
-                            <p class="pl-1 text-center">or drag and drop</p>
+                            <p class="pl-1 text-center"><%= gettext("or drag and drop") %></p>
                           </div>
-                          <p class="text-xs text-gray-500">CSV up to 250MB</p>
+                          <p class="text-xs text-gray-500"><%= gettext("CSV up to 250MB") %></p>
                         </div>
                     <% end %>
                   <% end %>
                 </div>
               </form>
-            <% "Confirm information" -> %>
+            <% "confirm_information" -> %>
               <% invalid = Enum.filter(@changesets, fn {x, _idx} -> not x.valid? end) %>
               <%= if length(invalid) > 0 do %>
                 <div class="rounded-md bg-critical-50 p-4 border-critical-600 border mb-8">
@@ -466,14 +470,14 @@ defmodule PlatformWeb.ProjectsLive.BulkUploadLive do
                     </div>
                     <div class="ml-3 flex-1 lg:flex flex-col text-sm text-critical-700 lg:justify-between prose prose-sm max-w-full">
                       <p>
-                        There were errors processing your upload. Please review the errors and try again.
+                        <%= gettext("There were errors processing your upload. Please review the errors and try again.") %>
                       </p>
                       <div>
                         <div class="flex flex-col divide-y">
                           <%= for {changeset, idx} <- invalid do %>
                             <article class="py-2 border-t border-t-critical-300 flex flex-col lg:flex-row">
                               <strong class="font-semibold text-critical-600 lg:w-1/6 mt-2">
-                                Row <%= idx %>
+                                <%= gettext("Row %{idx}", idx: idx) %>
                               </strong>
                               <div class="-mt-2">
                                 <%= for {key, errors} <- extract_errors(changeset, @project) |> Map.to_list() do %>
@@ -505,18 +509,18 @@ defmodule PlatformWeb.ProjectsLive.BulkUploadLive do
                   class="button ~urge mt-4 @high"
                   )
                 >
-                  New Upload
+                  <%= gettext("New Upload") %>
                 </button>
               <% else %>
                 <% valid = Enum.filter(@changesets, fn {x, _idx} -> x.valid? end) %>
                 <aside class="bg-positive-100 rounded-lg border border-positive-600 text-positive-700 text-sm p-4 -mt-4">
                   <p>
                     <strong class="font-medium text-positive-800">
-                      Found <%= length(@changesets) %> incidents.
+                      <%= ngettext("Found %{count} incident.", "Found %{count} incidents.", length(@changesets)) %>
                     </strong>
-                    If everything below looks right, click "Publish" to publish these incidents to Atlos. Note that media will be archived on a best-effort basis.
+                    <%= gettext("If everything below looks right, click \"Publish\" to publish these incidents to Atlos. Note that media will be archived on a best-effort basis.") %>
                     <span :if={Enum.count(valid) > 50}>
-                      We have truncated the list to the first 50 incidents.
+                      <%= gettext("We have truncated the list to the first 50 incidents.") %>
                     </span>
                   </p>
                 </aside>
@@ -524,7 +528,7 @@ defmodule PlatformWeb.ProjectsLive.BulkUploadLive do
                   <%= for {changeset, idx} <- Enum.slice(valid, 0..50) do %>
                     <div class="rounded-lg border">
                       <p class="sec-head text-md p-4 border-b text-sm">
-                        <span class="text-gray-500">Row <%= idx %>:</span> <%= Ecto.Changeset.get_field(
+                        <span class="text-gray-500"><%= gettext("Row %{idx}:", idx: idx) %></span> <%= Ecto.Changeset.get_field(
                           changeset,
                           :attr_description
                         ) %>
@@ -563,7 +567,7 @@ defmodule PlatformWeb.ProjectsLive.BulkUploadLive do
                   class="base-button mt-4"
                   )
                 >
-                  Back
+                  <%= gettext("Back") %>
                 </button>
                 <button
                   type="button"
@@ -571,14 +575,14 @@ defmodule PlatformWeb.ProjectsLive.BulkUploadLive do
                   phx-target={@myself}
                   phx-click="publish"
                 >
-                  Publish to Atlos
+                  <%= gettext("Publish to Atlos") %>
                 </button>
               <% end %>
-            <% "Next steps" -> %>
+            <% "next_steps" -> %>
               <aside class="bg-positive-100 rounded-lg border border-positive-600 text-positive-700 text-sm p-4 -mt-4">
                 <p>
-                  <strong class="font-medium text-positive-800">Your import has begun!</strong>
-                  It will continue in the background. You can safely close this tab.
+                  <strong class="font-medium text-positive-800"><%= gettext("Your import has begun!") %></strong>
+                  <%= gettext("It will continue in the background. You can safely close this tab.") %>
                 </p>
               </aside>
               <button
@@ -588,7 +592,7 @@ defmodule PlatformWeb.ProjectsLive.BulkUploadLive do
                 class="button ~urge @high mt-4"
                 )
               >
-                New Import
+                <%= gettext("New Import") %>
               </button>
           <% end %>
         </.card>

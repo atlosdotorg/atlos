@@ -32,9 +32,9 @@ defmodule PlatformWeb.AdminlandLive.APITokenLive do
         socket.assigns.parent_socket
       )
 
-      {:noreply, socket |> put_flash(:info, "API token deleted successfully.") |> assign_tokens()}
+      {:noreply, socket |> put_flash(:info, gettext("API token deleted successfully.")) |> assign_tokens()}
     else
-      _ -> {:noreply, socket |> put_flash(:info, "Unable to delete API token.")}
+      _ -> {:noreply, socket |> put_flash(:info, gettext("Unable to delete API token."))}
     end
   end
 
@@ -53,21 +53,21 @@ defmodule PlatformWeb.AdminlandLive.APITokenLive do
                         scope="col"
                         class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6"
                       >
-                        Description
+                        <%= gettext("Description") %>
                       </th>
                       <th
                         scope="col"
                         class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
                       >
-                        Created
+                        <%= gettext("Created") %>
                       </th>
                       <th scope="col" class="py-3.5 pl-3 pr-4 sm:pr-6">
-                        <span class="sr-only">More Actions</span>
+                        <span class="sr-only"><%= gettext("More Actions") %></span>
                         <.link
                           class="button ~urge @high float-right"
                           patch={Routes.adminland_index_path(@socket, :api_new)}
                         >
-                          New Token
+                          <%= gettext("New Token") %>
                         </.link>
                       </th>
                     </tr>
@@ -76,10 +76,10 @@ defmodule PlatformWeb.AdminlandLive.APITokenLive do
                     <%= for token <- @tokens do %>
                       <tr>
                         <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm sm:pl-6">
-                          <%= token.name %> (<%= token.description || "no description" %>)
-                          <span :if={token.is_legacy} class="chip ~warning">Legacy</span>
+                          <%= token.name %> (<%= token.description || gettext("no description") %>)
+                          <span :if={token.is_legacy} class="chip ~warning"><%= gettext("Legacy") %></span>
                           <span :if={!is_nil(token.project_id)} class="chip ~positive">
-                            Project Based
+                            <%= gettext("Project Based") %>
                           </span>
                         </td>
                         <td class="max-w-md px-3 py-4 text-sm text-gray-500">
@@ -91,10 +91,10 @@ defmodule PlatformWeb.AdminlandLive.APITokenLive do
                             phx-click="delete_token"
                             phx-value-token={token.id}
                             phx-target={@myself}
-                            data-confirm="Are you sure you want to delete this API token?"
+                            data-confirm={gettext("Are you sure you want to delete this API token?")}
                             class="font-medium text-critical-500 hover:text-critical-700 float-right text-sm"
                           >
-                            Delete
+                            <%= gettext("Delete") %>
                           </button>
                         </td>
                       </tr>
@@ -119,14 +119,14 @@ defmodule PlatformWeb.AdminlandLive.APITokenLive do
                     d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"
                   />
                 </svg>
-                <h3 class="mt-2 text-sm font-medium text-gray-900">No API tokens</h3>
-                <p class="mt-1 text-sm text-gray-500">Get started by creating a new API token.</p>
+                <h3 class="mt-2 text-sm font-medium text-gray-900"><%= gettext("No API tokens") %></h3>
+                <p class="mt-1 text-sm text-gray-500"><%= gettext("Get started by creating a new API token.") %></p>
                 <div class="mt-6">
                   <.link
                     class="button ~urge @high"
                     patch={Routes.adminland_index_path(@socket, :api_new)}
                   >
-                    New Token
+                    <%= gettext("New Token") %>
                   </.link>
                 </div>
               </div>
@@ -134,35 +134,36 @@ defmodule PlatformWeb.AdminlandLive.APITokenLive do
             <div class="bg-urge-50 border border-urge-400 mx-auto aside ~urge prose text-sm mt-8 w-full">
               <p>
                 <strong class="text-blue-800">
-                  The Atlos API is a deprecated read-only API for administrators.
+                  <%= gettext("The Atlos API is a deprecated read-only API for administrators.") %>
                 </strong>
-                You can learn more about the API authentication scheme and endpoints below. Note that this API is deprecated and will be removed in a future release. Please use project-specific API tokens instead.
+                <%= gettext("You can learn more about the API authentication scheme and endpoints below. Note that this API is deprecated and will be removed in a future release. Please use project-specific API tokens instead.") %>
               </p>
               <details class="-mt-2">
-                <summary class="cursor-pointer font-medium">How to use the API</summary>
-                <p>The Atlos API supports the following endpoints:</p>
+                <summary class="cursor-pointer font-medium"><%= gettext("How to use the API") %></summary>
+                <p><%= gettext("The Atlos API supports the following endpoints:") %></p>
                 <ul>
                   <li>
                     <code>/api/v1/media</code>
-                    &mdash; returns all incidents, with the most recently modified incidents listed first (internally, incidents are called media &mdash; that is, collections of individual pieces of media)
+                    &mdash; <%= gettext("returns all incidents, with the most recently modified incidents listed first (internally, incidents are called media — that is, collections of individual pieces of media)") %>
                   </li>
                   <li>
                     <code>/api/v1/media_versions</code>
-                    &mdash; returns all media versions, with the most recently modified media versions listed first
+                    &mdash; <%= gettext("returns all media versions, with the most recently modified media versions listed first") %>
                   </li>
                 </ul>
                 <p>
-                  All endpoints return 30 results at a time. You can paginate using the
-                  <code>cursor</code>
-                  query parameter, whose value is provided by the <code>next</code>
-                  and <code>previous</code>
-                  keys in the response. Results are available under the <code>results</code>
-                  key.
+                  <%= gettext("All endpoints return 30 results at a time. You can paginate using the %{cursor_code} query parameter, whose value is provided by the %{next_code} and %{previous_code} keys in the response. Results are available under the %{results_code} key.",
+                    cursor_code: safe_to_string(~H|<code>cursor</code>|),
+                    next_code: safe_to_string(~H|<code>next</code>|),
+                    previous_code: safe_to_string(~H|<code>previous</code>|),
+                    results_code: safe_to_string(~H|<code>results</code>|)
+                  ) |> raw() %>
                 </p>
                 <p>
-                  To authenticate against the API, include a <code>Authorization</code>
-                  header and set its value to <code>Bearer &lt;your token&gt;</code>
-                  (without the brackets).
+                  <%= gettext("To authenticate against the API, include a %{auth_header_code} header and set its value to %{bearer_code} (without the brackets).",
+                    auth_header_code: safe_to_string(~H|<code>Authorization</code>|),
+                    bearer_code: safe_to_string(~H|<code>Bearer &lt;your token&gt;</code>|)
+                  ) |> raw() %>
                 </p>
               </details>
             </div>
@@ -170,13 +171,13 @@ defmodule PlatformWeb.AdminlandLive.APITokenLive do
         </div>
       </div>
       <%= if @show_creation_modal do %>
-        <.modal target={@myself} close_confirmation={}>
+        <.modal target={@myself}>
           <div class="mb-8">
             <p class="sec-head">
-              New API Token
+              <%= gettext("New API Token") %>
             </p>
             <p class="sec-subhead">
-              Note that you will only be able to see the secret value once.
+              <%= gettext("Note that you will only be able to see the secret value once.") %>
             </p>
           </div>
           <.live_component

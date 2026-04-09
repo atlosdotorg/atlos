@@ -20,12 +20,12 @@ defmodule PlatformWeb.ProjectLive.APIDoc do
     ~H"""
     <div class="flex flex-col lg:flex-row gap-4 pt-8 w-full">
       <div class="mb-4 lg:w-[20rem] lg:mr-16">
-        <p class="sec-head text-xl">API Details</p>
+        <p class="sec-head text-xl"><%= gettext("API Details") %></p>
         <p class="sec-subhead">
-          The Atlos API uses API-specific identifers, rather than interface names, to refer to attributes, metadata, and even the project itself. Learn more in our
+          <%= gettext("The Atlos API uses API-specific identifers, rather than interface names, to refer to attributes, metadata, and even the project itself. Learn more in our") %>
           <u>
             <a class="text-blue-800" href="https://docs.atlos.org/technical/api/">
-              API documentation.
+              <%= gettext("API documentation.") %>
             </a>
           </u>
         </p>
@@ -44,13 +44,13 @@ defmodule PlatformWeb.ProjectLive.APIDoc do
                             scope="col"
                             class="py-4 text-left text-sm font-semibold text-gray-900 flex-1"
                           >
-                            Interface Name
+                            <%= gettext("Interface Name") %>
                           </div>
                           <div
                             scope="col"
                             class="px-3 py-4 text-left text-sm font-semibold text-gray-900 flex-1"
                           >
-                            API Identifier
+                            <%= gettext("API Identifier") %>
                           </div>
                         </div>
                       </div>
@@ -70,7 +70,7 @@ defmodule PlatformWeb.ProjectLive.APIDoc do
                                   <p class="font-medium text-sm flex-1">
                                     <span style={"color: #{if group == :metadata, do: "#000000", else: group.color}; filter: brightness(65%);"}>
                                       <%= if group == :metadata do %>
-                                        Metadata
+                                        <%= gettext("Metadata") %>
                                       <% else %>
                                         <%= group.name %>
                                       <% end %>
@@ -78,7 +78,7 @@ defmodule PlatformWeb.ProjectLive.APIDoc do
                                   </p>
                                   <p class="text-sm text-gray-500 flex-1">
                                     <%= if  group == :metadata do %>
-                                      Use the API to access or update incident metadata in the same way as other attributes.
+                                      <%= gettext("Use the API to access or update incident metadata in the same way as other attributes.") %>
                                     <% else %>
                                       <%= group.description %>
                                     <% end %>
@@ -102,7 +102,7 @@ defmodule PlatformWeb.ProjectLive.APIDoc do
                                           <button
                                             class="chip netural font-mono chip ~neutral inline-block flex gap-1 items-center self-start break-all hover:bg-neutral-200 transition-all"
                                             x-bind:class="pulse ? 'animate-ping' : ''"
-                                            data-tooltip="Copy information to your clipboard"
+                                            data-tooltip={gettext("Copy information to your clipboard")}
                                             type="button"
                                             x-on:click={"window.setClipboard(#{Jason.encode!(attribute.name)}); pulse = true; setTimeout(() => pulse = false, 500)"}
                                           >

@@ -88,30 +88,30 @@ defmodule PlatformWeb.AdminlandLive.ActivityFeedLive do
       <div class="flex flex-col gap-16">
         <.card>
           <:header>
-            <p class="sec-head">Statistics</p>
-            <p class="sec-subhead">Usage over the past two weeks.</p>
+            <p class="sec-head"><%= gettext("Statistics") %></p>
+            <p class="sec-subhead"><%= gettext("Usage over the past two weeks.") %></p>
           </:header>
           <dl class="mx-auto grid grid-cols-1 gap-px bg-gray-900/5 sm:grid-cols-2 lg:grid-cols-4 -m-5">
             <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2 bg-white px-4 py-10 sm:px-6 xl:px-8">
-              <dt class="text-sm font-medium leading-6 text-gray-500">Active Projects</dt>
+              <dt class="text-sm font-medium leading-6 text-gray-500"><%= gettext("Active Projects") %></dt>
               <dd class="w-full flex-none text-3xl font-medium leading-10 tracking-tight text-gray-900">
                 <%= Formatter.format_number(@active_projects_count) %>
               </dd>
             </div>
             <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2 bg-white px-4 py-10 sm:px-6 xl:px-8">
-              <dt class="text-sm font-medium leading-6 text-gray-500">Active Users</dt>
+              <dt class="text-sm font-medium leading-6 text-gray-500"><%= gettext("Active Users") %></dt>
               <dd class="w-full flex-none text-3xl font-medium leading-10 tracking-tight text-gray-900">
                 <%= Formatter.format_number(@active_users_count) %>
               </dd>
             </div>
             <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2 bg-white px-4 py-10 sm:px-6 xl:px-8">
-              <dt class="text-sm font-medium leading-6 text-gray-500">Active Incidents</dt>
+              <dt class="text-sm font-medium leading-6 text-gray-500"><%= gettext("Active Incidents") %></dt>
               <dd class="w-full flex-none text-3xl font-medium leading-10 tracking-tight text-gray-900">
                 <%= Formatter.format_number(@active_incidents_count) %>
               </dd>
             </div>
             <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2 bg-white px-4 py-10 sm:px-6 xl:px-8">
-              <dt class="text-sm font-medium leading-6 text-gray-500">Recent Updates</dt>
+              <dt class="text-sm font-medium leading-6 text-gray-500"><%= gettext("Recent Updates") %></dt>
               <dd class="w-full flex-none text-3xl font-medium leading-10 tracking-tight text-gray-900">
                 <%= Formatter.format_number(@recent_updates_count) %>
               </dd>
@@ -120,8 +120,8 @@ defmodule PlatformWeb.AdminlandLive.ActivityFeedLive do
         </.card>
         <.card>
           <:header>
-            <p class="sec-head">Projects</p>
-            <p class="sec-subhead">Projects with activity in the last two weeks.</p>
+            <p class="sec-head"><%= gettext("Projects") %></p>
+            <p class="sec-subhead"><%= gettext("Projects with activity in the last two weeks.") %></p>
           </:header>
           <div class="grid grid-cols-1 gap-8 md:grid-cols-2">
             <%= for project <- @projects do %>
@@ -137,8 +137,8 @@ defmodule PlatformWeb.AdminlandLive.ActivityFeedLive do
           <:header>
             <div class="flex flex-col md:flex-row gap-4 md:gap-8 justify-between">
               <div>
-                <p class="sec-head">Activity Feed</p>
-                <p class="sec-subhead">This is the latest activity on Atlos.</p>
+                <p class="sec-head"><%= gettext("Activity Feed") %></p>
+                <p class="sec-subhead"><%= gettext("This is the latest activity on Atlos.") %></p>
               </div>
               <div class="flex-grow max-w-md">
                 <.form
@@ -150,9 +150,9 @@ defmodule PlatformWeb.AdminlandLive.ActivityFeedLive do
                   phx-target={@myself}
                 >
                   <div class="border border-gray-300 bg-white rounded-md px-3 py-2 shadow-sm focus-within:ring-1 focus-within:ring-urge-600 focus-within:border-urge-600">
-                    <%= label(f, :query, "Search", class: "block text-xs font-medium text-gray-900") %>
+                    <%= label(f, :query, gettext("Search"), class: "block text-xs font-medium text-gray-900") %>
                     <%= text_input(f, :query,
-                      placeholder: "Enter a query...",
+                      placeholder: gettext("Enter a query..."),
                       phx_debounce: "500",
                       class:
                         "block w-full border-0 p-0 text-gray-900 placeholder-gray-500 focus:ring-0 sm:text-sm"
@@ -180,9 +180,9 @@ defmodule PlatformWeb.AdminlandLive.ActivityFeedLive do
                 class="text-button"
                 phx-click="load_more"
                 phx-target={@myself}
-                phx-disable-with="Loading..."
+                phx-disable-with={gettext("Loading...")}
               >
-                Load More
+                <%= gettext("Load More") %>
               </button>
             <% end %>
           </div>

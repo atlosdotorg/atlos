@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang={Map.get(assigns, :locale, "en")}>
   <head>
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/svg" href={Routes.static_path(@conn, "/images/icon.svg")} />
     <.live_title suffix="| Atlos">
-      <%= assigns[:title] || "Collaborative OSINT" %>
+      <%= assigns[:title] || gettext("Collaborative OSINT") %>
     </.live_title>
     <link phx-track-static rel="stylesheet" href={Routes.static_path(@conn, "/assets/app.css")} />
     <link
@@ -61,7 +61,7 @@
                     </div>
                     <div class="mt-4">
                       <p class="text-center font-medium text-sm uppercase font-mono text-gray-500">
-                        HTTP ERROR <%= @status %>
+                        <%= gettext("HTTP ERROR") %> <%= @status %>
                       </p>
                     </div>
                   </div>
@@ -71,13 +71,13 @@
                     href="mailto:contact@atlos.org"
                     class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-urge-500 sm:mt-0 sm:w-auto sm:text-sm"
                   >
-                    Contact Us
+                    <%= gettext("Contact Us") %>
                   </a>
                   <a
                     href="/"
                     class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-urge-500 sm:mt-0 sm:w-auto sm:text-sm"
                   >
-                    Return Home
+                    <%= gettext("Return Home") %>
                   </a>
                 </div>
               </div>

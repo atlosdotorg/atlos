@@ -10,18 +10,18 @@ defmodule PlatformWeb.MediaLive.Queue do
 
     {:noreply,
      socket
-     |> assign(:title, "Queue")
+     |> assign(:title, gettext("Queue"))
      |> assign(:tab, which)
      |> assign(:query, query_for_which(which))}
   end
 
   def which_to_title(which) do
     case which do
-      "overview" -> "Overview"
-      "todo" -> "To Do"
-      "in_progress" -> "In Progress"
-      "help_needed" -> "Help Needed"
-      "review" -> "Ready for Review"
+      "overview" -> gettext("Overview")
+      "todo" -> gettext("To Do")
+      "in_progress" -> gettext("In Progress")
+      "help_needed" -> gettext("Help Needed")
+      "review" -> gettext("Ready for Review")
     end
   end
 
@@ -42,15 +42,15 @@ defmodule PlatformWeb.MediaLive.Queue do
       <%= if @tab != "overview" do %>
         <div class="mb-8">
           <h1 class={"text-3xl font-medium heading mb-2 " <> Platform.Material.Attribute.attr_color(:status, which_to_title(@tab))}>
-            <.link class="text-gray-400" navigate="/queue">Queue /</.link>
+            <.link class="text-gray-400" navigate="/queue"><%= gettext("Queue") %> /</.link>
             <%= which_to_title(@tab) %>
           </h1>
-          <.link class="text-button" navigate="/queue/overview">&larr; Back to overview</.link>
+          <.link class="text-button" navigate="/queue/overview">&larr; <%= gettext("Back to overview") %></.link>
         </div>
       <% else %>
         <div class="mb-8">
           <h1 class="text-3xl font-medium heading">
-            Queue
+            <%= gettext("Queue") %>
           </h1>
         </div>
       <% end %>

@@ -31,12 +31,12 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
     attr = Attribute.get_attribute(assigns.name, project: assigns.media.project)
 
     if is_nil(attr) do
-      raise PlatformWeb.Errors.NotFound, "Attribute not found"
+      raise PlatformWeb.Errors.NotFound, gettext("Attribute not found")
     end
 
     # Verify the user has permission to edit the attribute
     if not Permissions.can_edit_media?(assigns.current_user, assigns.media, attr) do
-      raise PlatformWeb.Errors.Unauthorized, "You do not have permission to edit this attribute"
+      raise PlatformWeb.Errors.Unauthorized, gettext("You do not have permission to edit this attribute")
     end
 
     attributes = [attr]
@@ -129,7 +129,7 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
           socket
         )
 
-        {:noreply, socket |> put_flash(:info, "Your update has been saved.") |> close(media)}
+        {:noreply, socket |> put_flash(:info, gettext("Your update has been saved.")) |> close(media)}
 
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign(socket, :changeset, changeset |> Map.put(:action, :validate))}
@@ -158,7 +158,7 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
   end
 
   def render(assigns) do
-    confirm_prompt = "This will discard your changes without saving. Are you sure?"
+    confirm_prompt = gettext("This will discard your changes without saving. Are you sure?")
 
     assigns = assign(assigns, :confirm_prompt, confirm_prompt)
 
@@ -180,8 +180,8 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
               </div>
               <div class="ml-3 flex-1 md:flex md:justify-between">
                 <p class="text-sm text-blue-700">
-                  <span class="font-medium">This is a volunteer-created incident.</span>
-                  It may require additional review during the verification process.
+                  <span class="font-medium"><%= gettext("This is a volunteer-created incident.") %></span>
+                  <%= gettext("It may require additional review during the verification process.") %>
                 </p>
               </div>
             </div>
@@ -196,14 +196,10 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
               <div class="ml-3 flex-1 md:flex md:justify-between">
                 <p class="text-sm text-blue-700">
                   <span class="font-medium">
-                    You are limited to <%= @current_plan.allowed_edits_per_30d_period %> edits every 30 days.
+                    <%= gettext("You are limited to %{count} edits every 30 days.", count: @current_plan.allowed_edits_per_30d_period) %>
                   </span>
-                  To make unlimited edits, please <.link href="/settings#billing">upgrade your plan</.link>. You have made <%= @total_updates_by_user_over_30d %> edit<%= if @total_updates_by_user_over_30d ==
-                                                                                                                                                                               1,
-                                                                                                                                                                             do:
-                                                                                                                                                                               "",
-                                                                                                                                                                             else:
-                                                                                                                                                                               "s" %> in the last 30 days.
+                  <%= gettext("To make unlimited edits, please") %> <.link href="/settings#billing"><%= gettext("upgrade your plan") %></.link>.
+                  <%= ngettext("You have made %{count} edit in the last 30 days.", "You have made %{count} edits in the last 30 days.", @total_updates_by_user_over_30d, count: @total_updates_by_user_over_30d) %>
                 </p>
               </div>
             </div>
@@ -248,14 +244,8 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
                   </div>
                   <div class="ml-3 -mt-px prose prose-sm">
                     <p>
-                      <strong>Some information about this incident is missing.</strong>
-                      You can still make this change, but note that the following <%= if length(
-                                                                                           unset_attrs
-                                                                                         ) == 1,
-                                                                                         do:
-                                                                                           "field is",
-                                                                                         else:
-                                                                                           "fields are" %> not set: <i><%= Enum.join(Enum.map(unset_attrs, &(&1.label)), ", ") %></i>.
+                      <strong><%= gettext("Some information about this incident is missing.") %></strong>
+                      <%= ngettext("You can still make this change, but note that the following field is not set: %{fields}.", "You can still make this change, but note that the following fields are not set: %{fields}.", length(unset_attrs), fields: Enum.join(Enum.map(unset_attrs, &(&1.label)), ", ")) |> raw() %>
                     </p>
                   </div>
                 </div>
@@ -263,13 +253,13 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
             <% end %>
           </div>
           <div class="px-6 py-6 border-t mt-6 bg-neutral-50 rounded-b-lg">
-            <%= label(f, :explanation, "Briefly Explain Your Change") %>
+            <%= label(f, :explanation, gettext("Briefly Explain Your Change")) %>
             <div class="border border-gray-300 rounded shadow-sm overflow-hidden focus-within:border-urge-500 focus-within:ring-1 min-h-[5rem] focus-within:ring-urge-500 transition mt !bg-white relative mb-4 mt-1">
               <.interactive_textarea
                 form={f}
                 disabled={false}
                 name={:explanation}
-                placeholder="Recommended for all non-trivial changes."
+                placeholder={gettext("Recommended for all non-trivial changes.")}
                 id="comment-box-parent-input"
                 rows={1}
                 class="!border-0 resize-none focus:ring-0 sm:text-sm shadow-none"
@@ -285,12 +275,12 @@ defmodule PlatformWeb.MediaLive.EditAttribute do
             </div>
             <%= error_tag(f, :explanation) %>
             <div class="flex md:justify-between mt-6">
-              <%= submit("Post update →",
-                phx_disable_with: "Saving...",
+              <%= submit(gettext("Post update →"),
+                phx_disable_with: gettext("Saving..."),
                 class: "button ~urge @high transition-all mr-2"
               ) %>
               <button x-on:click="closeModal()" type="button" class="base-button">
-                Cancel
+                <%= gettext("Cancel") %>
               </button>
             </div>
           </div>

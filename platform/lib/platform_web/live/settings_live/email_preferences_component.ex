@@ -51,31 +51,31 @@ defmodule PlatformWeb.SettingsLive.EmailPreferencesComponent do
       >
         <div class="space-y-6">
           <div>
-            <p class="text-sm font-medium text-neutral-500 mb-4">Send me an email when...</p>
+            <p class="text-sm font-medium text-neutral-500 mb-4"><%= gettext("Send me an email when...") %></p>
             <div class="mt-1 flex flex-col">
               <%= label(f, :send_mention_notification_emails, class: "flex items-center") do %>
                 <%= checkbox(f, :send_mention_notification_emails, class: "mr-2") %>
                 <span class="!font-medium text-neutral-800 text-sm mt-px">
-                  Someone mentions
+                  <%= gettext("Someone mentions") %>
                   <span data-tag-target={@current_user.username} class="p-1 rounded">
                     @<%= @current_user.username %>
                   </span>
-                  &nbsp;in a comment
+                  &nbsp;<%= gettext("in a comment") %>
                 </span>
               <% end %>
               <label class="flex items-center cursor-disabled">
                 <input type="checkbox" name="on_login" class="mr-2 opacity-50" disabled checked />
                 <span class="!font-medium text-neutral-800 text-sm mt-px">
-                  Someone logs into my account
-                  <span class="text-neutral-500">(required for all accounts)</span>
+                  <%= gettext("Someone logs into my account") %>
+                  <span class="text-neutral-500">(<%= gettext("required for all accounts") %>)</span>
                 </span>
               </label>
             </div>
           </div>
 
           <div class="flex flex-col items-center md:flex-row md:justify-between gap-2">
-            <%= submit("Save",
-              phx_disable_with: "Saving...",
+            <%= submit(gettext("Save"),
+              phx_disable_with: gettext("Saving..."),
               class: "button ~urge @high",
               disabled: @changeset.changes == %{}
             ) %>

@@ -1,6 +1,7 @@
 defmodule PlatformWeb.MediaLive.Card do
   use Phoenix.LiveView,
     layout: {PlatformWeb.LayoutView, :live_iframe}
+  use Gettext, backend: PlatformWeb.Gettext
 
   import PlatformWeb.Components
   alias Platform.Material
@@ -13,7 +14,7 @@ defmodule PlatformWeb.MediaLive.Card do
     {:noreply,
      socket
      |> assign(:slug, slug)
-     |> assign(:title, "Incident #{slug}")
+     |> assign(:title, gettext("Incident %{slug}", slug: slug))
      |> assign(:iframe_mode, true)
      |> assign(:connect_websocket, false)
      |> assign(:_no_background, true)

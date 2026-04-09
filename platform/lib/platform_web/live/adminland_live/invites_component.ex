@@ -67,10 +67,10 @@ defmodule PlatformWeb.AdminlandLive.InvitesLive do
               class="base-button text-neutral-500"
             >
               +&nbsp;<span class="text-neutral-800"><%= if single_use == "true" do %>
-                Single use&nbsp;
+                <%= gettext("Single use") %>&nbsp;
               <% else %>
-                Multi use&nbsp;
-              <% end %></span> invite expiring&nbsp;<span class="text-neutral-800"><.rel_time time={
+                <%= gettext("Multi use") %>&nbsp;
+              <% end %></span> <%= gettext("invite expiring") %>&nbsp;<span class="text-neutral-800"><.rel_time time={
                   expiry
                 } /></span>
             </button>
@@ -93,8 +93,8 @@ defmodule PlatformWeb.AdminlandLive.InvitesLive do
               d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"
             />
           </svg>
-          <h3 class="mt-2 text-sm font-medium text-gray-900">No invite codes</h3>
-          <p class="mt-1 text-sm text-gray-500">Get started by creating an invite code</p>
+          <h3 class="mt-2 text-sm font-medium text-gray-900"><%= gettext("No invite codes") %></h3>
+          <p class="mt-1 text-sm text-gray-500"><%= gettext("Get started by creating an invite code") %></p>
         </div>
       <% else %>
         <div class="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8 grow">
@@ -107,32 +107,32 @@ defmodule PlatformWeb.AdminlandLive.InvitesLive do
                       scope="col"
                       class="pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6 py-4"
                     >
-                      Link
+                      <%= gettext("Link") %>
                     </th>
                     <th scope="col" class="pr-3 text-left text-sm font-semibold text-gray-900 py-4">
-                      Expires
+                      <%= gettext("Expires") %>
                     </th>
                     <th scope="col" class="pr-3 text-left text-sm font-semibold text-gray-900 py-4">
-                      Single Use
+                      <%= gettext("Single Use") %>
                     </th>
                     <th scope="col" class="pr-3 text-left text-sm font-semibold text-gray-900 py-4">
-                      Creator
+                      <%= gettext("Creator") %>
                     </th>
                     <th scope="col" class="pr-3 text-left text-sm font-semibold text-gray-900 py-4">
-                      Project
+                      <%= gettext("Project") %>
                     </th>
                     <th scope="col" class="pr-3 text-left text-sm font-semibold text-gray-900 py-4">
-                      Users
+                      <%= gettext("Users") %>
                     </th>
                     <th
                       scope="col"
                       class="pr-3 text-left text-sm font-semibold text-gray-900 py-4"
-                      data-tooltip="Users who use this invite will be added to the project with this role."
+                      data-tooltip={gettext("Users who use this invite will be added to the project with this role.")}
                     >
-                      Role
+                      <%= gettext("Role") %>
                     </th>
                     <th scope="col" class="relative pl-3 pr-4 sm:pr-2 text-right lg:whitespace-nowrap">
-                      <span class="sr-only">Manage</span>
+                      <span class="sr-only"><%= gettext("Manage") %></span>
                     </th>
                   </tr>
                 </thead>
@@ -151,7 +151,7 @@ defmodule PlatformWeb.AdminlandLive.InvitesLive do
                         >
                           <Heroicons.link mini class="h-5 w-5 text-urge-400" />
                           <span class="truncate">
-                            Copy Link
+                            <%= gettext("Copy Link") %>
                           </span>
                         </button>
                       </td>
@@ -160,14 +160,14 @@ defmodule PlatformWeb.AdminlandLive.InvitesLive do
                       </td>
                       <td class="pr-3 text-sm text-gray-600">
                         <%= if invite.single_use do %>
-                          Yes
+                          <%= gettext("Yes") %>
                         <% else %>
-                          No
+                          <%= gettext("No") %>
                         <% end %>
                       </td>
                       <td class="pr-3 text-sm text-gray-600 -ml-2">
                         <%= if is_nil(invite.owner) do %>
-                          Unknown
+                          <%= gettext("Unknown") %>
                         <% else %>
                           <.user_text user={invite.owner} icon={true} profile_photo_class="h-6 w-6" />
                         <% end %>
@@ -181,20 +181,20 @@ defmodule PlatformWeb.AdminlandLive.InvitesLive do
                           users={invite.uses |> Enum.map(& &1.user)}
                         />
                         <span :if={Enum.empty?(invite.uses)} class="text-gray-500">
-                          No one
+                          <%= gettext("No one") %>
                         </span>
                       </td>
                       <td class="pr-3 text-sm text-gray-500">
                         <div>
                           <%= case invite.project_access_level do %>
                             <% :owner -> %>
-                              <span class="chip ~critical @high">Owner</span>
+                              <span class="chip ~critical @high"><%= gettext("Owner") %></span>
                             <% :manager -> %>
-                              <span class="chip ~critical">Manager</span>
+                              <span class="chip ~critical"><%= gettext("Manager") %></span>
                             <% :editor -> %>
-                              <span class="chip ~info">Editor</span>
+                              <span class="chip ~info"><%= gettext("Editor") %></span>
                             <% :viewer -> %>
-                              <span class="chip ~neutral">Viewer</span>
+                              <span class="chip ~neutral"><%= gettext("Viewer") %></span>
                             <% _ -> %>
                               N/A
                           <% end %>
@@ -207,12 +207,12 @@ defmodule PlatformWeb.AdminlandLive.InvitesLive do
                             class="text-button text-neutral-600 mr-2"
                             phx-click="deactivate_invite"
                             phx-value-id={invite.id}
-                            data-confirm="Are you sure that you want deactivate this invite code?"
-                            data-tooltip="Deactivate this invite code"
+                            data-confirm={gettext("Are you sure that you want deactivate this invite code?")}
+                            data-tooltip={gettext("Deactivate this invite code")}
                           >
                             <Heroicons.minus_circle mini class="h-5 w-5" />
                             <span class="sr-only">
-                              Deactivate this invite
+                              <%= gettext("Deactivate this invite") %>
                             </span>
                           </button>
                         <% end %>

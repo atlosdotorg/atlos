@@ -4,7 +4,7 @@ defmodule PlatformWeb.NotificationsLive do
   def mount(_params, _session, socket) do
     {:ok,
      socket
-     |> assign(:title, "Notifications")}
+     |> assign(:title, gettext("Notifications"))}
   end
 
   def handle_params(unsigned_params, _uri, socket) do

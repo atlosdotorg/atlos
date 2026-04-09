@@ -94,11 +94,11 @@
             type="billing"
           >
             <span>
-              <span class="font-medium">You've hit your monthly edit limit.</span>
-              Please upgrade your plan to continue editing data on Atlos.
+              <span class="font-medium"><%= gettext("You've hit your monthly edit limit.") %></span>
+              <%= gettext("Please upgrade your plan to continue editing data on Atlos.") %>
             </span>
             <.link to="/settings#billing" class="text-urge-500 font-medium block mt-4">
-              Upgrade my account &rarr;
+              <%= gettext("Upgrade my account") %> &rarr;
             </.link>
           </.notification>
         </div>

@@ -17,7 +17,7 @@ defmodule PlatformWeb.MediaLive.CopyMediaLive do
        )
        |> assign_new(:changeset, fn -> changeset(%{}, assigns.source) end)}
     else
-      raise PlatformWeb.Errors.Unauthorized, "No permission"
+      raise PlatformWeb.Errors.Unauthorized, gettext("No permission")
     end
   end
 
@@ -43,7 +43,7 @@ defmodule PlatformWeb.MediaLive.CopyMediaLive do
         slug ->
           case Projects.get_project(slug) do
             nil ->
-              [{field, "This project doesn't seem to exist."}]
+              [{field, gettext("This project doesn't seem to exist.")}]
 
             project ->
               []
@@ -115,7 +115,7 @@ defmodule PlatformWeb.MediaLive.CopyMediaLive do
               <%= label(
                 f,
                 :destination_project_id,
-                "Copy to Project"
+                gettext("Copy to Project")
               ) %>
               <div phx-update="ignore" id={"project_select_#{@source.slug}"}>
                 <%= select(
@@ -134,8 +134,8 @@ defmodule PlatformWeb.MediaLive.CopyMediaLive do
             </div>
           </div>
           <%= submit(
-            "Copy",
-            phx_disable_with: "Copying...",
+            gettext("Copy"),
+            phx_disable_with: gettext("Copying..."),
             class: "button ~urge @high"
           ) %>
         </div>

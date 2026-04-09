@@ -83,7 +83,7 @@ defmodule PlatformWeb.MediaLive.Show do
       |> assign(:active_project, media.project)
       |> assign(:updates, media.updates |> Enum.sort_by(& &1.inserted_at, {:asc, NaiveDateTime}))
       |> subscribe_to_media(media)
-      |> assign(:title, "#{media.slug}: #{media.attr_description |> Platform.Utils.truncate()}")
+      |> assign(:title, gettext("%{slug}: %{description}", slug: media.slug, description: (media.attr_description |> Platform.Utils.truncate())))
     else
       _ ->
         raise PlatformWeb.Errors.NotFound, "Media not found"
@@ -118,7 +118,7 @@ defmodule PlatformWeb.MediaLive.Show do
     {:noreply,
      socket
      |> assign_media_and_updates()
-     |> put_flash(:info, "Metadata cleared successfully.")}
+     |> put_flash(:info, gettext("Metadata cleared successfully."))}
   end
 
   def handle_event(
@@ -134,7 +134,7 @@ defmodule PlatformWeb.MediaLive.Show do
         ) && version.visibility == :removed) or
          !Permissions.can_edit_media?(socket.assigns.current_user, socket.assigns.media) do
       {:noreply,
-       socket |> put_flash(:error, "You cannot change this media version's visibility.")}
+       socket |> put_flash(:error, gettext("You cannot change this media version's visibility."))}
     else
       {:ok, _} =
         case value do
@@ -151,14 +151,14 @@ defmodule PlatformWeb.MediaLive.Show do
                ) do
               Material.update_media_version(version, %{visibility: value})
             else
-              raise PlatformWeb.Errors.Unauthorized, "No permission"
+              raise PlatformWeb.Errors.Unauthorized, gettext("No permission")
             end
         end
 
       {:noreply,
        socket
        |> assign_media_and_updates()
-       |> put_flash(:info, "Media visibility changed successfully.")}
+       |> put_flash(:info, gettext("Media visibility changed successfully."))}
     end
   end
 
@@ -180,11 +180,11 @@ defmodule PlatformWeb.MediaLive.Show do
       {:noreply,
        socket
        |> assign_media_and_updates()
-       |> put_flash(:info, if(media.deleted, do: "Incident deleted.", else: "Incident restored."))
+       |> put_flash(:info, if(media.deleted, do: gettext("Incident deleted."), else: gettext("Incident restored.")))
        |> assign(:media, media)}
     else
       {:noreply,
-       socket |> put_flash(:error, "You cannot change this incident's deletion status.")}
+       socket |> put_flash(:error, gettext("You cannot change this incident's deletion status."))}
     end
   end
 
@@ -204,9 +204,9 @@ defmodule PlatformWeb.MediaLive.Show do
       {:noreply,
        socket
        |> assign_media_and_updates()
-       |> put_flash(:info, "Atlos will rearchive the source material.")}
+       |> put_flash(:info, gettext("Atlos will rearchive the source material."))}
     else
-      {:noreply, socket |> put_flash(:error, "You cannot rearchive this source material.")}
+      {:noreply, socket |> put_flash(:error, gettext("You cannot rearchive this source material."))}
     end
   end
 
@@ -220,7 +220,7 @@ defmodule PlatformWeb.MediaLive.Show do
            put_flash(
              x,
              :info,
-             "Atlos will archive and process the media in the background. Check back in a few minutes."
+             gettext("Atlos will archive and process the media in the background. Check back in a few minutes.")
            )
      end)
      |> push_patch(
@@ -239,7 +239,7 @@ defmodule PlatformWeb.MediaLive.Show do
            put_flash(
              x,
              :info,
-             "Project changed successfully."
+             gettext("Project changed successfully.")
            )
      end)
      |> push_patch(
@@ -253,7 +253,7 @@ defmodule PlatformWeb.MediaLive.Show do
      socket
      |> put_flash(
        :info,
-       "Merge initiated! The media will continue to merge in the background."
+       gettext("Merge initiated! The media will continue to merge in the background.")
      )
      |> push_patch(
        to: Routes.media_show_path(socket, :show, socket.assigns.media.slug),
@@ -266,7 +266,7 @@ defmodule PlatformWeb.MediaLive.Show do
      socket
      |> put_flash(
        :info,
-       "Copy complete. The new incident is [#{new_media.slug}](/incidents/#{new_media.slug})."
+       gettext("Copy complete. The new incident is [%{slug}](/incidents/%{slug}).", slug: new_media.slug)
      )
      |> push_patch(
        to: Routes.media_show_path(socket, :show, socket.assigns.media.slug),
@@ -277,7 +277,7 @@ defmodule PlatformWeb.MediaLive.Show do
   def handle_info({:version_creation_failed, _changeset}, socket) do
     {:noreply,
      socket
-     |> put_flash(:error, "Unable to process the given media. Please try again.")
+     |> put_flash(:error, gettext("Unable to process the given media. Please try again."))
      |> push_patch(
        to: Routes.media_show_path(socket, :show, socket.assigns.media.slug),
        replace: true

@@ -34,15 +34,15 @@ defmodule PlatformWeb.ProfilesLive.Show do
         |> Vl.mark(:bar)
         |> Vl.encode_field(:x, "date",
           type: :temporal,
-          title: "Time"
+          title: gettext("Time")
         )
         |> Vl.encode_field(:y, "count",
           type: :quantitative,
-          title: "Activity"
+          title: gettext("Activity")
         )
         |> Vl.encode(:tooltip, [
-          [field: "date", type: :temporal, title: "Date"],
-          [field: "count", type: :quantitative, title: "Activity"]
+          [field: "date", type: :temporal, title: gettext("Date")],
+          [field: "count", type: :quantitative, title: gettext("Activity")]
         ])
         |> Vl.to_spec()
         |> Jason.encode!()
@@ -77,7 +77,7 @@ defmodule PlatformWeb.ProfilesLive.Show do
     else
       _ ->
         socket
-        |> put_flash(:error, "This user does not exist or is not available.")
+        |> put_flash(:error, gettext("This user does not exist or is not available."))
         |> redirect(to: "/")
     end
   end

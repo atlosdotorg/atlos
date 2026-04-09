@@ -57,8 +57,8 @@ defmodule PlatformWeb.MediaLive.PaginatedMediaList do
                   media={media}
                   current_user={@current_user}
                   id={"subscription-button-#{media.slug}"}
-                  subscribed_label="Unsubscribe"
-                  not_subscribed_label="Resubscribe"
+                  subscribed_label={gettext("Unsubscribe")}
+                  not_subscribed_label={gettext("Resubscribe")}
                   show_icon={false}
                   js_on_subscribe="faded = false"
                   js_on_unsubscribe="faded = true"
@@ -80,9 +80,9 @@ defmodule PlatformWeb.MediaLive.PaginatedMediaList do
             class="text-button"
             phx-click="load_more"
             phx-target={@myself}
-            phx-disable-with="Loading..."
+            phx-disable-with={gettext("Loading...")}
           >
-            Load More
+            <%= gettext("Load More") %>
           </button>
         <% end %>
       </div>

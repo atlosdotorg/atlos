@@ -3,7 +3,7 @@
     <%= if @changeset.action do %>
       <div class="aside ~critical mb-4">
         <p>
-          Unable to register your account. Check for errors below, and ensure you completed the captcha.
+          <%= gettext("Unable to register your account. Check for errors below, and ensure you completed the captcha.") %>
         </p>
       </div>
     <% end %>
@@ -21,7 +21,7 @@
     <%= error_tag(f, :password) %>
 
     <%= if is_nil(@invite) do %>
-      <%= label(f, :invite_code, "Invite Code") %>
+      <%= label(f, :invite_code, gettext("Invite Code")) %>
       <%= text_input(f, :invite_code, required: true) %>
     <% else %>
       <%= hidden_input(f, :invite_code, required: true) %>
@@ -32,12 +32,12 @@
       <%= checkbox(f, :terms_agree, required: true) %>
       <%= label(f, :terms_agree) do %>
         <span>
-          I agree to Atlos' <% terms_link =
+          <%= gettext("I agree to Atlos'") %> <% terms_link =
             "https://docs.atlos.org/legal/terms/" %>
-          <a href={terms_link} class="underline">Terms</a>
-          and
+          <a href={terms_link} class="underline"><%= gettext("Terms") %></a>
+          <%= gettext("and") %>
           <a href="https://docs.atlos.org/legal/privacy-policy/" class="underline">
-            Privacy Policy
+            <%= gettext("Privacy Policy") %>
           </a>
         </span>
       <% end %>
@@ -50,8 +50,8 @@
     </div>
 
     <div class="mt-8 flex gap-4 items-center text-neutral-500">
-      <%= submit("Register", class: "button ~urge @high") %>
-      <%= link("Sign in to existing account", to: Routes.user_session_path(@conn, :new)) %>
+      <%= submit(gettext("Register"), class: "button ~urge @high") %>
+      <%= link(gettext("Sign in to existing account"), to: Routes.user_session_path(@conn, :new)) %>
     </div>
   </.form>
 </section>

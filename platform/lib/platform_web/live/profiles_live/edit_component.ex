@@ -11,7 +11,7 @@ defmodule PlatformWeb.ProfilesLive.EditComponent do
        |> assign_user()
        |> assign_changeset()}
     else
-      raise PlatformWeb.Errors.Unauthorized, "No permission"
+      raise PlatformWeb.Errors.Unauthorized, gettext("No permission")
     end
   end
 
@@ -48,7 +48,7 @@ defmodule PlatformWeb.ProfilesLive.EditComponent do
     # Just to be sure, we check authorization again. It would be nice if this were
     # done more centrally.
     if not Accounts.is_admin(socket.assigns.current_user) do
-      raise PlatformWeb.Errors.Unauthorized, "No permission"
+      raise PlatformWeb.Errors.Unauthorized, gettext("No permission")
     end
 
     case Accounts.update_user_admin(
@@ -62,7 +62,7 @@ defmodule PlatformWeb.ProfilesLive.EditComponent do
           socket
         )
 
-        {:noreply, socket |> put_flash(:info, "The access changes have been saved.") |> close()}
+        {:noreply, socket |> put_flash(:info, gettext("The access changes have been saved.")) |> close()}
 
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign(socket, :changeset, changeset)}
@@ -80,7 +80,7 @@ defmodule PlatformWeb.ProfilesLive.EditComponent do
 
   def handle_event("disable_mfa", _params, socket) do
     if not Accounts.is_admin(socket.assigns.current_user) do
-      raise PlatformWeb.Errors.Unauthorized, "No permission"
+      raise PlatformWeb.Errors.Unauthorized, gettext("No permission")
     end
 
     case Accounts.admin_disable_user_mfa(socket.assigns.user) do
@@ -93,27 +93,27 @@ defmodule PlatformWeb.ProfilesLive.EditComponent do
 
         {:noreply,
          socket
-         |> put_flash(:info, "MFA has been disabled for this user.")
+         |> put_flash(:info, gettext("MFA has been disabled for this user."))
          |> assign_user()}
 
       {:error, _changeset} ->
         {:noreply,
          socket
-         |> put_flash(:error, "Failed to disable MFA for this user.")}
+         |> put_flash(:error, gettext("Failed to disable MFA for this user."))}
     end
   end
 
   def render(assigns) do
-    confirm_prompt = "This will discard your changes without saving. Are you sure?"
+    confirm_prompt = gettext("This will discard your changes without saving. Are you sure?")
 
     assigns = Map.put_new(assigns, :confirm_prompt, confirm_prompt)
 
     ~H"""
     <article>
       <.modal target={@myself} close_confirmation={@confirm_prompt}>
-        <h3 class="sec-head">Editing <%= @user.username %></h3>
+        <h3 class="sec-head"><%= gettext("Editing %{username}", username: @user.username) %></h3>
         <p class="sec-subhead">
-          These changes will affect this user's account.
+          <%= gettext("These changes will affect this user's account.") %>
         </p>
         <hr class="h-8 sep" />
         <.form
@@ -127,40 +127,40 @@ defmodule PlatformWeb.ProfilesLive.EditComponent do
         >
           <div class="space-y-6">
             <div>
-              <%= label(f, :roles, "Roles") %>
+              <%= label(f, :roles, gettext("Roles")) %>
               <div phx-update="ignore" id="ignore-user-roles">
-                <%= multiple_select(f, :roles, [:trusted, :admin], id: "user-roles-input") %>
+                <%= multiple_select(f, :roles, [{gettext("Trusted"), :trusted}, {gettext("Admin"), :admin}], id: "user-roles-input") %>
               </div>
               <p class="support">
-                For more information about roles on Atlos, view our <a
+                <%= gettext("For more information about roles on Atlos, view our") %> <a
                   href="https://docs.atlos.org/investigations/collaboration/#roles--permissions"
                   class="underline"
                   target="blank"
-                >role documentation</a>.
+                ><%= gettext("role documentation") %></a>.
               </p>
               <%= error_tag(f, :roles) %>
             </div>
             <div>
-              <%= label(f, :restrictions, "Restrictions") %>
+              <%= label(f, :restrictions, gettext("Restrictions")) %>
               <div phx-update="ignore" id="ignore-user-restrictions">
-                <%= multiple_select(f, :restrictions, [:suspended, :muted],
+                <%= multiple_select(f, :restrictions, [{gettext("Suspended"), :suspended}, {gettext("Muted"), :muted}],
                   id: "user-restrictions-input"
                 ) %>
               </div>
               <%= error_tag(f, :restrictions) %>
             </div>
             <div>
-              <%= label(f, :bio, "Bio") %>
+              <%= label(f, :bio, gettext("Bio")) %>
               <%= textarea(f, :bio) %>
               <%= error_tag(f, :bio) %>
             </div>
             <div>
-              <%= label(f, :flair, "Flair") %>
+              <%= label(f, :flair, gettext("Flair")) %>
               <%= text_input(f, :flair) %>
               <%= error_tag(f, :flair) %>
             </div>
             <div>
-              <%= label(f, :billing_flags, "Billing Flags") %>
+              <%= label(f, :billing_flags, gettext("Billing Flags")) %>
               <div phx-update="ignore" id="ignore-user-billing-flags">
                 <%= multiple_select(f, :billing_flags, Platform.Billing.get_billing_flags(),
                   id: "user-billing-flags-input",
@@ -168,39 +168,39 @@ defmodule PlatformWeb.ProfilesLive.EditComponent do
                 ) %>
               </div>
               <p class="support">
-                To associate a user with an organizational account, add billing flag "Organization/Org Name", e.g., "Organization/Atlos". "Complimentary" will provide the user free Pro access without interfacing with the billing system.
+                <%= gettext("To associate a user with an organizational account, add billing flag \"Organization/Org Name\", e.g., \"Organization/Atlos\". \"Complimentary\" will provide the user free Pro access without interfacing with the billing system.") %>
               </p>
               <%= error_tag(f, :billing_flags) %>
             </div>
             <div>
-              <%= label(f, :admin_notes, "Admin Notes") %>
+              <%= label(f, :admin_notes, gettext("Admin Notes")) %>
               <%= textarea(f, :admin_notes) %>
-              <p class="support">These notes are available to all admins.</p>
+              <p class="support"><%= gettext("These notes are available to all admins.") %></p>
               <%= error_tag(f, :admin_notes) %>
             </div>
             <div :if={@user.has_mfa}>
-              <label class="label">Multi-Factor Authentication</label>
+              <label class="label"><%= gettext("Multi-Factor Authentication") %></label>
               <div class="flex items-center gap-3">
-                <p class="chip ~positive">Enabled</p>
+                <p class="chip ~positive"><%= gettext("Enabled") %></p>
                 <button
                   type="button"
                   phx-click="disable_mfa"
                   phx-target={@myself}
-                  data-confirm="Are you sure you want to disable MFA for this user? This will remove their authenticator app setup and recovery codes."
+                  data-confirm={gettext("Are you sure you want to disable MFA for this user? This will remove their authenticator app setup and recovery codes.")}
                   class="button ~critical @low text-sm"
                 >
-                  Disable MFA
+                  <%= gettext("Disable MFA") %>
                 </button>
               </div>
-              <p class="support">Disabling MFA will remove the user's authenticator app configuration and all recovery codes.</p>
+              <p class="support"><%= gettext("Disabling MFA will remove the user's authenticator app configuration and all recovery codes.") %></p>
             </div>
             <div class="flex md:justify-between">
-              <%= submit("Save",
-                phx_disable_with: "Saving...",
+              <%= submit(gettext("Save"),
+                phx_disable_with: gettext("Saving..."),
                 class: "button ~urge @high"
               ) %>
               <button x-on:click="closeModal()" type="button" class="base-button">
-                Cancel
+                <%= gettext("Cancel") %>
               </button>
             </div>
           </div>

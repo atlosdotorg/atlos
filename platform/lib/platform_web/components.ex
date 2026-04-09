@@ -4,6 +4,7 @@ defmodule PlatformWeb.Components do
   import Phoenix.HTML.Form
   use PhoenixHTMLHelpers
   import PlatformWeb.ErrorHelpers
+  use Gettext, backend: PlatformWeb.Gettext
 
   alias Phoenix.LiveView.JS
   alias Platform.Accounts
@@ -125,7 +126,7 @@ defmodule PlatformWeb.Components do
               x-on:click={"window.closeModal(); " <> @js_on_close}
               phx-target={@target}
             >
-              <span class="sr-only">Close</span>
+              <span class="sr-only"><%= gettext("Close") %></span>
               <!-- Heroicon name: outline/x -->
               <svg
                 class="h-6 w-6"
@@ -346,11 +347,11 @@ defmodule PlatformWeb.Components do
           class="grid md:flex md:flex-col md:justify-start grid-cols-3 gap-1 md:grid-cols-1 mt-6 w-full px-2 md:h-full md:pb-2 pb-6 md:max-h-full"
           x-show="open"
         >
-          <.navlink to="/home" label="Home" request_path={@path}>
+          <.navlink to="/home" label={gettext("Home")} request_path={@path}>
             <Heroicons.home solid class="text-neutral-300 group-hover:text-white h-6 w-6" />
           </.navlink>
 
-          <.navlink to={"/profile/#{@current_user.username}"} label="Profile" request_path={@path}>
+          <.navlink to={"/profile/#{@current_user.username}"} label={gettext("Profile")} request_path={@path}>
             <Heroicons.user mini class="text-neutral-300 group-hover:text-white h-6 w-6" />
           </.navlink>
 
@@ -362,7 +363,7 @@ defmodule PlatformWeb.Components do
                 Accounts.active_incidents_params(@current_user)
               )
             }
-            label="Incidents"
+            label={gettext("Incidents")}
             request_path={@path}
           >
             <svg
@@ -381,7 +382,7 @@ defmodule PlatformWeb.Components do
             </svg>
           </.navlink>
 
-          <.navlink to="/projects" label="Projects" request_path={@path}>
+          <.navlink to="/projects" label={gettext("Projects")} request_path={@path}>
             <svg
               class="text-neutral-300 group-hover:text-white h-6 w-6"
               xmlns="http://www.w3.org/2000/svg"
@@ -399,7 +400,7 @@ defmodule PlatformWeb.Components do
             </svg>
           </.navlink>
 
-          <.navlink to="/notifications" label="Notifications" request_path={@path}>
+          <.navlink to="/notifications" label={gettext("Notifications")} request_path={@path}>
             <div class="relative">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -431,7 +432,7 @@ defmodule PlatformWeb.Components do
             </div>
           </.navlink>
           <%= if !is_nil(@current_user) and Accounts.is_admin(@current_user) do %>
-            <.navlink to="/adminland" label="Adminland" request_path={@path}>
+            <.navlink to="/adminland" label={gettext("Adminland")} request_path={@path}>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 class="text-neutral-300 group-hover:text-white h-6 w-6"
@@ -455,7 +456,7 @@ defmodule PlatformWeb.Components do
               path={@path}
             >
               <div data-tooltip="Ctrl + I">
-                <.navlink label="New" request_path={@path}>
+                <.navlink label={gettext("New")} request_path={@path}>
                   <Heroicons.plus mini class="text-neutral-300 group-hover:text-white h-6 w-6" />
                 </.navlink>
               </div>
@@ -468,7 +469,7 @@ defmodule PlatformWeb.Components do
               id="global-search-modal"
             >
               <div data-tooltip="Ctrl + K">
-                <.navlink label="Search" request_path={@path}>
+                <.navlink label={gettext("Search")} request_path={@path}>
                   <Heroicons.magnifying_glass
                     mini
                     class="text-neutral-300 group-hover:text-white h-6 w-6"
@@ -483,12 +484,42 @@ defmodule PlatformWeb.Components do
             }
             class="w-full"
           >
-            <.navlink to="/settings#billing" label="Upgrade" request_path={@path}>
+            <.navlink to="/settings#billing" label={gettext("Upgrade")} request_path={@path}>
               <Heroicons.arrow_up_circle mini class="text-neutral-300 group-hover:text-white h-6 w-6" />
             </.navlink>
           </div>
+          <div class="w-full" x-data="{ langOpen: false }">
+            <div class="relative w-full" x-on:click.outside="langOpen = false">
+              <button
+                type="button"
+                x-on:click="langOpen = !langOpen"
+                class="transition w-full p-3 rounded-md flex flex-col items-center text-xs font-medium text-neutral-300 hover:bg-neutral-800 hover:text-white group"
+              >
+                <Heroicons.globe_americas mini class="text-neutral-300 group-hover:text-white h-6 w-6" />
+                <span class="mt-2 text-center w-full"><%= gettext("Language") %></span>
+              </button>
+
+              <div
+                x-show="langOpen"
+                x-transition
+                class="absolute bottom-full left-0 mb-2 md:mb-0 md:bottom-0 md:left-full md:ml-2 w-48 rounded-md bg-neutral-800 shadow-lg ring-1 ring-black ring-opacity-5 z-50 text-white font-medium text-sm overflow-hidden"
+                style="display: none;"
+              >
+                <a href="?locale=en" class="block px-4 py-3 hover:bg-neutral-700">
+                  <span class="inline-flex items-center gap-2">
+                    <span class="text-lg">🇺🇸</span> English (US)
+                  </span>
+                </a>
+                <a href="?locale=pt_BR" class="block px-4 py-3 hover:bg-neutral-700 border-t border-neutral-700">
+                  <span class="inline-flex items-center gap-2">
+                    <span class="text-lg">🇧🇷</span> Português (BR)
+                  </span>
+                </a>
+              </div>
+            </div>
+          </div>
           <%= if not is_nil(@current_user) do %>
-            <.navlink to="/settings" label="Account" request_path={@path}>
+            <.navlink to="/settings" label={gettext("Account")} request_path={@path}>
               <img
                 class="relative z-30 inline-block h-6 w-6 rounded-full ring-2 ring-neutral-300"
                 src={Accounts.get_profile_photo_path(@current_user)}
@@ -504,9 +535,23 @@ defmodule PlatformWeb.Components do
   end
 
   def stepper(%{options: options, active: active} = assigns) do
-    active_index = Enum.find_index(options, &String.equivalent?(&1, active))
+    # Options can be plain strings or {id, label} tuples.
+    # Extract the ID for comparison purposes.
+    extract_id = fn
+      {id, _label} -> id
+      item when is_binary(item) -> item
+    end
+
+    active_index = Enum.find_index(options, fn opt -> String.equivalent?(extract_id.(opt), active) end)
+
+    # Extract the display label from an option
+    extract_label = fn
+      {_id, label} -> label
+      item when is_binary(item) -> item
+    end
 
     assigns = assign(assigns, :active_index, active_index)
+    assigns = assign(assigns, :extract_label, extract_label)
 
     ~H"""
     <nav aria-label="Progress">
@@ -515,6 +560,7 @@ defmodule PlatformWeb.Components do
         class="border border-gray-300 rounded-md divide-y divide-gray-300 md:flex md:divide-y-0 bg-white"
       >
         <%= for {item, index} <- Enum.with_index(@options) do %>
+          <% label = @extract_label.(item) %>
           <li class="relative md:flex-1 md:flex">
             <%= if index < @active_index do %>
               <!-- Completed Step -->
@@ -536,7 +582,7 @@ defmodule PlatformWeb.Components do
                       />
                     </svg>
                   </span>
-                  <span class="ml-4 text-sm font-medium text-gray-900"><%= item %></span>
+                  <span class="ml-4 text-sm font-medium text-gray-900"><%= label %></span>
                 </span>
               </div>
             <% end %>
@@ -547,7 +593,7 @@ defmodule PlatformWeb.Components do
                 <span class="flex-shrink-0 w-10 h-10 flex items-center justify-center border-2 border-urge-600 rounded-full">
                   <span class="text-urge-600"><%= index + 1 %></span>
                 </span>
-                <span class="ml-4 text-sm font-medium text-urge-600"><%= item %></span>
+                <span class="ml-4 text-sm font-medium text-urge-600"><%= label %></span>
               </div>
             <% end %>
 
@@ -558,7 +604,7 @@ defmodule PlatformWeb.Components do
                   <span class="flex-shrink-0 w-10 h-10 flex items-center justify-center border-2 border-gray-300 rounded-full">
                     <span class="text-gray-500"><%= index + 1 %></span>
                   </span>
-                  <span class="ml-4 text-sm font-medium text-gray-500"><%= item %></span>
+                  <span class="ml-4 text-sm font-medium text-gray-500"><%= label %></span>
                 </span>
               </div>
             <% end %>
@@ -607,7 +653,7 @@ defmodule PlatformWeb.Components do
       >
         <.media_badges media={@media} only_status={true} />
         <span :if={not @media.project.active} class="badge ~yellow">
-          <Heroicons.archive_box mini class="h-3 w-3 mr-px" /> Archived
+          <Heroicons.archive_box mini class="h-3 w-3 mr-px" /> <%= gettext("Archived") %>
         </span>
       </.link>
       <.link
@@ -622,7 +668,7 @@ defmodule PlatformWeb.Components do
       >
         <.media_badges media={@media} only_status={true} />
         <span :if={not @media.project.active} class="badge ~yellow">
-          <Heroicons.archive_box mini class="h-3 w-3 mr-px" /> Archived
+          <Heroicons.archive_box mini class="h-3 w-3 mr-px" /> <%= gettext("Archived") %>
         </span>
       </.link>
     </article>
@@ -794,14 +840,14 @@ defmodule PlatformWeb.Components do
                   <span
                     :if={@head.api_token}
                     class="text-gray-900 font-medium inline-flex gap-1 flex-wrap"
-                    data-tooltip="This action was taken by a bot."
+                    data-tooltip={gettext("This action was taken by a bot.")}
                   >
                     <%= @head.api_token.name %>
                     <span class="font-normal text-xs badge ~urge self-center">Bot</span>
                   </span>
                   <%= case @head.type do %>
                     <% :update_attribute -> %>
-                      made <%= length(@update) %> updates to <% changed_attrs =
+                      <%= gettext("made") %> <%= length(@update) %> <%= gettext("updates to") %> <% changed_attrs =
                         @attributes |> Enum.filter(&(!is_nil(&1))) |> Enum.with_index() %>
                       <%= for {attr, idx} <- changed_attrs do %>
                         <span class="font-medium text-gray-800">
@@ -810,13 +856,13 @@ defmodule PlatformWeb.Components do
                       <% end %>
                       <%= if Enum.empty?(changed_attrs) do %>
                         <span class="font-medium text-gray-800">
-                          attributes
+                          <%= gettext("attributes") %>
                         </span>
                       <% end %>
                     <% :upload_version -> %>
-                      added
+                      <%= gettext("added") %>
                       <span class="font-medium text-gray-800">
-                        <%= length(@update) %> pieces of media
+                        <%= length(@update) %> <%= gettext("pieces of media") %>
                       </span>
                   <% end %>
                   <.rel_time time={@head.inserted_at} />
@@ -909,7 +955,7 @@ defmodule PlatformWeb.Components do
                   <span
                     :if={@update.api_token}
                     class="text-gray-900 font-medium inline-flex gap-1 flex-wrap"
-                    data-tooltip="This action was taken by a bot."
+                    data-tooltip={gettext("This action was taken by a bot.")}
                   >
                     <%= @update.api_token.name %>
                     <span class="font-normal text-xs badge ~urge self-center">Bot</span>
@@ -919,7 +965,7 @@ defmodule PlatformWeb.Components do
                       <% attr =
                         Attribute.get_attribute(@update.modified_attribute,
                           project: @update.media.project
-                        ) %> updated
+                        ) %> <%= gettext("updated") %>
                       <%= if not is_nil(attr) do %>
                         <.link
                           class="text-button text-gray-800 inline-block"
@@ -928,16 +974,16 @@ defmodule PlatformWeb.Components do
                           <%= attr.label %> &nearr;
                         </.link>
                       <% else %>
-                        a deleted or unknown attribute
+                        <%= gettext("a deleted or unknown attribute") %>
                       <% end %>
                     <% :create -> %>
-                      added this incident
+                      <%= gettext("added this incident") %>
                     <% :delete -> %>
-                      deleted this incident
+                      <%= gettext("deleted this incident") %>
                     <% :undelete -> %>
-                      restored this incident
+                      <%= gettext("restored this incident") %>
                     <% :upload_version -> %>
-                      uploaded
+                      <%= gettext("uploaded") %>
                       <.link
                         patch={
                             "/incidents/#{@update.media.slug}/detail/#{@update.media_version.scoped_id}"
@@ -953,9 +999,9 @@ defmodule PlatformWeb.Components do
                         &nearr;
                       </.link>
                     <% :comment -> %>
-                      commented
+                      <%= gettext("commented") %>
                     <% _ -> %>
-                      performed an unknown action
+                      <%= gettext("performed an unknown action") %>
                   <% end %>
                   <.rel_time time={@update.inserted_at} />
                   <%= if @update.hidden do %>
@@ -973,7 +1019,7 @@ defmodule PlatformWeb.Components do
                         />
                         <path d="M12.454 16.697L9.75 13.992a4 4 0 01-3.742-3.741L2.335 6.578A9.98 9.98 0 00.458 10c1.274 4.057 5.065 7 9.542 7 .847 0 1.669-.105 2.454-.303z" />
                       </svg>
-                      Hidden
+                      <%= gettext("Hidden") %>
                     </span>
                   <% end %>
                 </div>
@@ -1318,7 +1364,7 @@ defmodule PlatformWeb.Components do
       </div>
       <h2 class="text-lg md:text-xl text-neutral-500 font-medium text-center px-4">
         <span class="text-neutral-800"><%= @invite.owner.username %></span>
-        has invited you to join
+        <%= gettext("has invited you to join") %>
         <%= if is_nil(@invite.project) do %>
           <span class="text-neutral-800">
             Atlos
@@ -1327,33 +1373,25 @@ defmodule PlatformWeb.Components do
           <span class="text-neutral-800">
             <%= @invite.project.name %>
           </span>
-          as <%= if Enum.member?(
-                      [:editor, :owner],
-                      @invite.project_access_level
-                    ),
-                    do: "an",
-                    else: "a" %>
-          <span class="text-neutral-800">
-            <%= case @invite.project_access_level do %>
-              <% :owner -> %>
-                Owner
-              <% :manager -> %>
-                Manager
-              <% :editor -> %>
-                Editor
-              <% :viewer -> %>
-                Viewer
-              <% :data_only_viewer -> %>
-                Data-only Viewer
-            <% end %>
-          </span>
+          <%= case @invite.project_access_level do %>
+            <% :owner -> %>
+              <%= gettext("as an") %> <span class="text-neutral-800"><%= gettext("Owner") %></span>
+            <% :manager -> %>
+              <%= gettext("as a") %> <span class="text-neutral-800"><%= gettext("Manager") %></span>
+            <% :editor -> %>
+              <%= gettext("as an") %> <span class="text-neutral-800"><%= gettext("Editor") %></span>
+            <% :viewer -> %>
+              <%= gettext("as a") %> <span class="text-neutral-800"><%= gettext("Viewer") %></span>
+            <% :data_only_viewer -> %>
+              <%= gettext("as a") %> <span class="text-neutral-800"><%= gettext("Data-only Viewer") %></span>
+          <% end %>
         <% end %>
       </h2>
       <div :if={not is_nil(@inner_block)}>
         <%= render_slot(@inner_block) %>
       </div>
       <p class="text-xs text-neutral-500">
-        This invitation will expire <.rel_time time={@invite.expires} />
+        <%= gettext("This invitation will expire") %> <.rel_time time={@invite.expires} />
       </p>
     </section>
     """
@@ -1695,11 +1733,11 @@ defmodule PlatformWeb.Components do
     <%= case Platform.Security.get_security_mode_state() do %>
       <% :read_only -> %>
         <.notification type="security">
-          Atlos is in read-only mode. <%= Platform.Security.get_security_mode_description() %>
+          <%= gettext("Atlos is in read-only mode.") %> <%= Platform.Security.get_security_mode_description() %>
         </.notification>
       <% :no_access -> %>
         <.notification type="security">
-          Atlos is in no-access mode. <%= Platform.Security.get_security_mode_description() %>
+          <%= gettext("Atlos is in no-access mode.") %> <%= Platform.Security.get_security_mode_description() %>
         </.notification>
       <% _ -> %>
     <% end %>
@@ -3814,7 +3852,7 @@ defmodule PlatformWeb.Components do
     """
   end
 
-  defp user_name_display(%{user: %Accounts.User{} = user} = assigns) do
+  defp user_name_display(%{user: %Accounts.User{} = _user} = assigns) do
     assigns =
       assign_new(assigns, :icon, fn -> false end)
       |> assign_new(:flair, fn -> true end)
@@ -3824,22 +3862,22 @@ defmodule PlatformWeb.Components do
     <span>
       <.link
         class={"font-medium inline-flex gap-2 flex-wrap items-center #{@class}"}
-        navigate={"/profile/#{user.username}"}
+        navigate={"/profile/#{@user.username}"}
       >
         <%= if @icon do %>
           <img
             class="absolute z-30 min-w-5 inline-block h-5 w-5 rounded-full"
-            src={Accounts.get_profile_photo_path(user)}
-            alt={"Profile photo for #{user.username}"}
+            src={Accounts.get_profile_photo_path(@user)}
+            alt={"Profile photo for #{@user.username}"}
           />
         <% end %>
         <span class={if @icon, do: "ml-7", else: ""}>
-          <%= user.username %>
-          <%= if Accounts.is_admin(user) and @flair do %>
+          <%= @user.username %>
+          <%= if Accounts.is_admin(@user) and @flair do %>
             <span class="font-normal text-xs badge ~critical self-center">Admin</span>
           <% end %>
-          <%= if String.length(user.flair) > 0 and @flair do %>
-            <span class="font-normal text-xs badge ~urge self-center"><%= user.flair %></span>
+          <%= if String.length(@user.flair) > 0 and @flair do %>
+            <span class="font-normal text-xs badge ~urge self-center"><%= @user.flair %></span>
           <% end %>
         </span>
       </.link>
@@ -4004,14 +4042,14 @@ defmodule PlatformWeb.Components do
     ~H"""
     <div class="text-center text-xs mt-4">
       <p>
-        Atlos is <a href="https://github.com/atlosdotorg/atlos" class="underline">open source</a>.
+        <%= gettext("Atlos is") %> <a href="https://github.com/atlosdotorg/atlos" class="underline"><%= gettext("open source") %></a>.
       </p>
       <p>
-        By using Atlos, you agree to our
+        <%= gettext("By using Atlos, you agree to our") %>
         <a href="https://docs.atlos.org/legal/terms/">
-          <span class="underline">Terms</span>
+          <span class="underline"><%= gettext("Terms") %></span>
         </a>
-        and <a href="https://docs.atlos.org/legal/privacy-policy/"><span class="underline">Privacy Policy</span></a>.
+        <%= gettext("and") %> <a href="https://docs.atlos.org/legal/privacy-policy/"><span class="underline"><%= gettext("Privacy Policy") %></span></a>.
       </p>
     </div>
     """

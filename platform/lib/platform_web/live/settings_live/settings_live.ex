@@ -21,7 +21,7 @@ defmodule PlatformWeb.SettingsLive do
        :user_rolling_update_count,
        Platform.Updates.get_total_updates_by_user_over_30d(socket.assigns.current_user)
      )
-     |> assign(:title, "Settings")
+     |> assign(:title, gettext("Settings"))
      |> assign(:discord_link, System.get_env("COMMUNITY_DISCORD_LINK"))}
   end
 
@@ -34,7 +34,7 @@ defmodule PlatformWeb.SettingsLive do
   def handle_event("visit_customer_portal", _params, socket) do
     case Platform.Billing.get_portal_url(socket.assigns.current_user) do
       {:ok, url} -> {:noreply, socket |> redirect(external: url)}
-      {:error, _} -> {:noreply, socket |> put_flash(:error, "Failed to get customer portal URL")}
+      {:error, _} -> {:noreply, socket |> put_flash(:error, gettext("Failed to get customer portal URL"))}
     end
   end
 
@@ -43,6 +43,6 @@ defmodule PlatformWeb.SettingsLive do
   end
 
   def handle_info(:update_successful, socket) do
-    {:noreply, socket |> put_flash(:info, "Changes saved successfully")}
+    {:noreply, socket |> put_flash(:info, gettext("Changes saved successfully"))}
   end
 end

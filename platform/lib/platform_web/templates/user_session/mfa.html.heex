@@ -8,14 +8,14 @@
     class="flex flex-col gap-y-4"
   >
     <div>
-      <%= label(f, :current_otp_code, "Authentication code") %>
+      <%= label(f, :current_otp_code, gettext("Authentication code")) %>
       <%= text_input(f, :current_otp_code, required: true) %>
       <%= error_tag(f, :current_otp_code) %>
     </div>
 
     <div class="flex gap-4 items-center text-neutral-500">
-      <%= submit("Confirm", class: "button ~urge @high") %>
-      <%= link("Back", to: Routes.user_session_path(@conn, :new)) %>
+      <%= submit(gettext("Confirm"), class: "button ~urge @high") %>
+      <%= link(gettext("Back"), to: Routes.user_session_path(@conn, :new)) %>
     </div>
   </.form>
 </div>

@@ -39,7 +39,7 @@ defmodule PlatformWeb.AdminlandLive.SecurityModeCreateLive do
 
       {:noreply,
        socket
-       |> put_flash(:info, "Security mode set successfully.")
+       |> put_flash(:info, gettext("Security mode set successfully."))
        |> redirect(to: Routes.adminland_index_path(socket, :security))}
     else
       {:error, changeset} -> {:noreply, socket |> assign(:changeset, changeset)}
@@ -64,30 +64,30 @@ defmodule PlatformWeb.AdminlandLive.SecurityModeCreateLive do
           <%= label(
             f,
             :description,
-            "User-facing description"
+            gettext("User-facing description")
           ) %>
           <%= text_input(f, :description,
-            placeholder: "Some user-facing description...",
+            placeholder: gettext("Some user-facing description..."),
             phx_debounce: "250"
           ) %>
           <%= error_tag(f, :description) %>
           <p class="support">
-            This description will be shown to users when they try to perform a disallowed action (e.g., logging in when mode is "No Access"). Only relevant for non-Normal security modes.
+            <%= gettext("This description will be shown to users when they try to perform a disallowed action (e.g., logging in when mode is \"No Access\"). Only relevant for non-Normal security modes.") %>
           </p>
         </div>
 
         <div>
-          <%= label(f, :mode, "What security mode would you like to set?") %>
+          <%= label(f, :mode, gettext("What security mode would you like to set?")) %>
           <div phx-update="ignore" id="mode-selector">
             <%= select(
               f,
               :mode,
-              [Normal: "normal", "Read Only": "read_only", "No Access": "no_access"],
+              [{gettext("Normal"), "normal"}, {gettext("Read Only"), "read_only"}, {gettext("No Access"), "no_access"}],
               data_descriptions:
                 Jason.encode!(%{
-                  "normal" => "Everyone can use Atlos normally",
-                  "read_only" => "Only admins can edit incident data",
-                  "no_access" => "Only Admins can access Atlos"
+                  "normal" => gettext("Everyone can use Atlos normally"),
+                  "read_only" => gettext("Only admins can edit incident data"),
+                  "no_access" => gettext("Only Admins can access Atlos")
                 })
             ) %>
           </div>
@@ -95,8 +95,8 @@ defmodule PlatformWeb.AdminlandLive.SecurityModeCreateLive do
         </div>
 
         <%= submit(
-          "Set security mode",
-          phx_disable_with: "Setting...",
+          gettext("Set security mode"),
+          phx_disable_with: gettext("Setting..."),
           class: "button ~urge @high mt-4"
         ) %>
       </.form>

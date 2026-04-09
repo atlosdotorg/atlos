@@ -81,8 +81,8 @@ defmodule PlatformWeb.UpdatesLive.PaginatedMediaUpdateFeed do
       <%= if Enum.empty?(@media) do %>
         <div class="text-center mt-8">
           <Heroicons.archive_box class="mx-auto h-12 w-12 text-gray-400" />
-          <h3 class="mt-2 text-sm font-medium text-gray-900">No activity to display</h3>
-          <p class="mt-1 text-sm text-gray-500">Get started by working on an incident</p>
+          <h3 class="mt-2 text-sm font-medium text-gray-900"><%= gettext("No activity to display") %></h3>
+          <p class="mt-1 text-sm text-gray-500"><%= gettext("Get started by working on an incident") %></p>
         </div>
       <% end %>
       <%= for incident <- @media |> Enum.filter(& not Enum.empty?(&1.updates)) do %>
@@ -105,7 +105,7 @@ defmodule PlatformWeb.UpdatesLive.PaginatedMediaUpdateFeed do
             navigate={"/incidents/#{incident.slug}#comment-box"}
             class="text-xs text-neutral-500 mt-2 transition-all hover:text-urge-600 font-medium opacity-0 group-hover:opacity-100 group-focus-within:opacity-100"
           >
-            <span x-ref="link">Open incident &rarr;</span>
+            <span x-ref="link"><%= gettext("Open incident") %> &rarr;</span>
           </.link>
         </div>
       <% end %>
@@ -116,9 +116,9 @@ defmodule PlatformWeb.UpdatesLive.PaginatedMediaUpdateFeed do
             phx-click="load_more"
             phx-target={@myself}
             class="text-button"
-            phx-disable-with="Loading..."
+            phx-disable-with={gettext("Loading...")}
           >
-            Load More
+            <%= gettext("Load More") %>
           </button>
         <% end %>
       </div>

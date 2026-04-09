@@ -54,7 +54,7 @@ defmodule PlatformWeb.ProjectsLive.MembersComponent do
     params = params |> Map.put("project_id", socket.assigns.project.id)
 
     if not can_edit(socket) do
-      raise PlatformWeb.Errors.Unauthorized, "You do not have permission to edit this project"
+      raise PlatformWeb.Errors.Unauthorized, gettext("You do not have permission to edit this project")
     end
 
     case socket.assigns.editing do
@@ -82,14 +82,14 @@ defmodule PlatformWeb.ProjectsLive.MembersComponent do
 
   def handle_event("delete_member", %{"username" => username}, socket) do
     if not can_edit(socket) do
-      raise PlatformWeb.Errors.Unauthorized, "You do not have permission to edit this project"
+      raise PlatformWeb.Errors.Unauthorized, gettext("You do not have permission to edit this project")
     end
 
     # Don't allow the last owner to be removed
     owners = socket.assigns.memberships |> Enum.filter(&(&1.role == :owner))
 
     if length(owners) == 1 and hd(owners).user.username == username do
-      raise PlatformWeb.Errors.Unauthorized, "You cannot remove the last owner"
+      raise PlatformWeb.Errors.Unauthorized, gettext("You cannot remove the last owner")
     end
 
     membership =
@@ -113,7 +113,7 @@ defmodule PlatformWeb.ProjectsLive.MembersComponent do
       {:noreply,
        socket
        |> redirect(to: "/")
-       |> put_flash(:info, "You have successfully removed yourself from the project.")}
+       |> put_flash(:info, gettext("You have successfully removed yourself from the project."))}
     else
       {:noreply,
        socket
@@ -128,7 +128,7 @@ defmodule PlatformWeb.ProjectsLive.MembersComponent do
 
   def handle_event("edit_member", %{"username" => username}, socket) do
     if not can_edit(socket) do
-      raise PlatformWeb.Errors.Unauthorized, "You do not have permission to edit this project"
+      raise PlatformWeb.Errors.Unauthorized, gettext("You do not have permission to edit this project")
     end
 
     socket =
@@ -142,7 +142,7 @@ defmodule PlatformWeb.ProjectsLive.MembersComponent do
 
   def handle_event("leave_project", _params, socket) do
     if not socket.assigns.can_remove_self do
-      raise PlatformWeb.Errors.Unauthorized, "You cannot remove yourself from this project"
+      raise PlatformWeb.Errors.Unauthorized, gettext("You cannot remove yourself from this project")
     end
 
     # Regardless of their ability to edit the project, they should be able to leave
@@ -163,7 +163,7 @@ defmodule PlatformWeb.ProjectsLive.MembersComponent do
     {:noreply,
      socket
      |> redirect(to: "/")
-     |> put_flash(:info, "You have successfully removed yourself from the project.")}
+     |> put_flash(:info, gettext("You have successfully removed yourself from the project."))}
   end
 
   def handle_event("validate", %{"project_membership" => params}, socket) do
@@ -178,7 +178,7 @@ defmodule PlatformWeb.ProjectsLive.MembersComponent do
 
   def handle_event("save", %{"project_membership" => params}, socket) do
     if not can_edit(socket) do
-      raise PlatformWeb.Errors.Unauthorized, "You do not have permission to edit this project"
+      raise PlatformWeb.Errors.Unauthorized, gettext("You do not have permission to edit this project")
     end
 
     params = params |> Map.put("project_id", socket.assigns.project.id)
@@ -234,9 +234,9 @@ defmodule PlatformWeb.ProjectsLive.MembersComponent do
     ~H"""
     <div class="flex flex-col lg:flex-row gap-4 pt-8 w-full">
       <div class="mb-4 lg:w-[20rem] lg:mr-16">
-        <p class="sec-head text-xl">Members</p>
+        <p class="sec-head text-xl"><%= gettext("Members") %></p>
         <p class="sec-subhead">
-          View and manage access to the project.
+          <%= gettext("View and manage access to the project.") %>
         </p>
       </div>
       <section class="flex flex-col mb-8 grow">
@@ -246,7 +246,7 @@ defmodule PlatformWeb.ProjectsLive.MembersComponent do
             <div class="inline-block min-w-full">
               <%= if Enum.empty?(@memberships) do %>
                 <div class="text-sm text-gray-500">
-                  This project has no members.
+                  <%= gettext("This project has no members.") %>
                 </div>
               <% else %>
                 <div class="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8 grow">
@@ -259,13 +259,13 @@ defmodule PlatformWeb.ProjectsLive.MembersComponent do
                               scope="col"
                               class="pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6 py-4"
                             >
-                              User
+                              <%= gettext("User") %>
                             </th>
                             <th
                               scope="col"
                               class="px-3 text-left text-sm font-semibold text-gray-900 py-4"
                             >
-                              Role
+                              <%= gettext("Role") %>
                             </th>
                             <th
                               scope="col"
@@ -276,10 +276,10 @@ defmodule PlatformWeb.ProjectsLive.MembersComponent do
                                   type="button"
                                   class="button ~critical @high my-2"
                                   phx-click="leave_project"
-                                  data-confirm="Are you sure you want to leave this project? To rejoin it, you will need to be invited again."
+                                  data-confirm={gettext("Are you sure you want to leave this project? To rejoin it, you will need to be invited again.")}
                                   phx-target={@myself}
                                 >
-                                  Leave Project
+                                  <%= gettext("Leave Project") %>
                                 </button>
                               <% end %>
                               <span class="sr-only">Manage</span>
@@ -300,19 +300,19 @@ defmodule PlatformWeb.ProjectsLive.MembersComponent do
                                 <div>
                                   <%= case membership.role do %>
                                     <% :owner -> %>
-                                      <span class="chip ~critical @high">Owner</span>
+                                      <span class="chip ~critical @high"><%= gettext("Owner") %></span>
                                     <% :manager -> %>
-                                      <span class="chip ~critical">Manager</span>
+                                      <span class="chip ~critical"><%= gettext("Manager") %></span>
                                     <% :editor -> %>
-                                      <span class="chip ~info">Editor</span>
+                                      <span class="chip ~info"><%= gettext("Editor") %></span>
                                     <% :viewer -> %>
-                                      <span class="chip ~neutral">Viewer</span>
+                                      <span class="chip ~neutral"><%= gettext("Viewer") %></span>
                                     <% :data_only_viewer -> %>
                                       <span
                                         class="chip ~warning"
-                                        data-tooltip="This user cannot see comments or the usernames of project members."
+                                        data-tooltip={gettext("This user cannot see comments or the usernames of project members.")}
                                       >
-                                        Data-only Viewer
+                                        <%= gettext("Data-only Viewer") %>
                                       </span>
                                   <% end %>
                                 </div>
@@ -325,12 +325,12 @@ defmodule PlatformWeb.ProjectsLive.MembersComponent do
                                       class="text-button text-neutral-600 mr-2"
                                       phx-click="delete_member"
                                       phx-value-username={membership.user.username}
-                                      data-confirm={"Are you sure that you want to remove #{membership.user.username} from #{@project.name}?"}
-                                      data-tooltip={"Remove #{membership.user.username}"}
+                                      data-confirm={gettext("Are you sure that you want to remove %{username} from %{project_name}?", username: membership.user.username, project_name: @project.name)}
+                                      data-tooltip={gettext("Remove %{username}", username: membership.user.username)}
                                     >
                                       <Heroicons.minus_circle mini class="h-5 w-5" />
                                       <span class="sr-only">
-                                        Remove <%= membership.user.username %>
+                                        <%= gettext("Remove %{username}", username: membership.user.username) %>
                                       </span>
                                     </button>
                                   <% end %>
@@ -339,10 +339,10 @@ defmodule PlatformWeb.ProjectsLive.MembersComponent do
                                     class="text-button text-neutral-600"
                                     phx-click="edit_member"
                                     phx-value-username={membership.user.username}
-                                    data-tooltip={"Change permissions for #{membership.user.username}"}
+                                    data-tooltip={gettext("Change permissions for %{username}", username: membership.user.username)}
                                   >
                                     <Heroicons.cog_6_tooth mini class="h-5 w-5" />
-                                    <span class="sr-only">Edit <%= membership.user.username %></span>
+                                    <span class="sr-only"><%= gettext("Edit %{username}", username: membership.user.username) %></span>
                                   </button>
                                 <% end %>
                               </td>
@@ -356,7 +356,7 @@ defmodule PlatformWeb.ProjectsLive.MembersComponent do
                       class="rounded-lg border text-sm border-urge-400 bg-urge-100 p-4 text-urge-700 mt-4"
                     >
                       <p>
-                        Because you're a data-only viewer, you cannot see this project's other members.
+                        <%= gettext("Because you're a data-only viewer, you cannot see this project's other members.") %>
                       </p>
                     </div>
                   </div>
@@ -367,10 +367,10 @@ defmodule PlatformWeb.ProjectsLive.MembersComponent do
         </div>
       </section>
       <%= if not is_nil(@changeset) and can_edit do %>
-        <.modal target={} close_confirmation="Your changes will be lost. Are you sure?">
+        <.modal target={@myself} close_confirmation={gettext("Your changes will be lost. Are you sure?")}>
           <div class="mb-8">
             <p class="sec-head">
-              Edit role
+              <%= gettext("Edit role") %>
             </p>
           </div>
           <.form
@@ -387,32 +387,32 @@ defmodule PlatformWeb.ProjectsLive.MembersComponent do
             <%= hidden_input(@form, :username, value: @editing) %>
 
             <div>
-              <%= label(
+               <%= label(
                 @form,
                 :role,
-                "Role"
+                gettext("Role")
               ) %>
               <div class="phx-form" id="member-role-select" phx-update="ignore">
                 <%= select(
                   @form,
                   :role,
                   [
-                    {"Data-only Viewer", "data_only_viewer"},
-                    {"Viewer", "viewer"},
-                    {"Editor", "editor"},
-                    {"Manager", "manager"},
-                    {"Owner", "owner"}
+                    {gettext("Data-only Viewer"), "data_only_viewer"},
+                    {gettext("Viewer"), "viewer"},
+                    {gettext("Editor"), "editor"},
+                    {gettext("Manager"), "manager"},
+                    {gettext("Owner"), "owner"}
                   ],
                   "data-descriptions":
                     Jason.encode!(%{
                       "data_only_viewer" =>
-                        "Can view data but not comments or project members, and cannot edit or create",
-                      "viewer" => "Can view and comment, but not edit or create",
-                      "editor" => "Can view, comment, and edit, but not mark as complete",
+                        gettext("Can view data but not comments or project members, and cannot edit or create"),
+                      "viewer" => gettext("Can view and comment, but not edit or create"),
+                      "editor" => gettext("Can view, comment, and edit, but not mark as complete"),
                       "manager" =>
-                        "Can view, comment, edit, mark as complete, and edit completed incidents",
+                        gettext("Can view, comment, edit, mark as complete, and edit completed incidents"),
                       "owner" =>
-                        "Everything managers can do, plus add and remove members to the project"
+                        gettext("Everything managers can do, plus add and remove members to the project")
                     })
                 ) %>
               </div>
@@ -420,8 +420,8 @@ defmodule PlatformWeb.ProjectsLive.MembersComponent do
             </div>
             <div>
               <%= submit(
-                "Save",
-                phx_disable_with: "Saving...",
+                gettext("Save"),
+                phx_disable_with: gettext("Saving..."),
                 class: "button ~urge @high"
               ) %>
             </div>

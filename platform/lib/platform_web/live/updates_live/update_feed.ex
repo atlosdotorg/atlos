@@ -73,7 +73,7 @@ defmodule PlatformWeb.UpdatesLive.UpdateFeed do
     <div class="flow-root">
       <ul role="list" class="-mb-8">
         <%= if length(@to_show) == 0 do %>
-          <p class="text-gray-600">There are no recent updates to show.</p>
+          <p class="text-gray-600"><%= gettext("There are no recent updates to show.") %></p>
         <% end %>
         <%= for {update, idx} <- @to_show do %>
           <.update_entry

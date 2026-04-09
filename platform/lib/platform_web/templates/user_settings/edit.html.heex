@@ -18,7 +18,7 @@
       </div>
       <div class="ml-3 flex-1 md:flex md:justify-between">
         <p class="text-sm text-urge-700">
-          For your security, changing your password will log all other devices out of your account.
+          <%= gettext("For your security, changing your password will log all other devices out of your account.") %>
         </p>
       </div>
     </div>
@@ -33,17 +33,17 @@
   >
     <%= if @password_changeset.action do %>
       <div class="aside ~critical mb-4">
-        <p>Oops, something went wrong! Please check the errors below.</p>
+        <p><%= gettext("Oops, something went wrong! Please check the errors below.") %></p>
       </div>
     <% end %>
 
     <%= hidden_input(f, :action, name: "action", value: "update_password") %>
 
-    <%= label(f, :password, "New password") %>
+    <%= label(f, :password, gettext("New password")) %>
     <%= password_input(f, :password, required: true) %>
     <%= error_tag(f, :password) %>
 
-    <%= label(f, :password_confirmation, "Confirm new password") %>
+    <%= label(f, :password_confirmation, gettext("Confirm new password")) %>
     <%= password_input(f, :password_confirmation, required: true) %>
     <%= error_tag(f, :password_confirmation) %>
 
@@ -56,8 +56,8 @@
     <%= error_tag(f, :current_password) %>
 
     <div class="mt-4 flex gap-4 items-center">
-      <%= submit("Change password", class: "button ~urge @high") %>
-      <.link navigate="/settings" class="text-button text-sm">Return to settings</.link>
+      <%= submit(gettext("Change password"), class: "button ~urge @high") %>
+      <.link navigate="/settings" class="text-button text-sm"><%= gettext("Return to settings") %></.link>
     </div>
   </.form>
 </div>

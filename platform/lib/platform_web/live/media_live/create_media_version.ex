@@ -28,7 +28,7 @@ defmodule PlatformWeb.MediaLive.CreateMediaVersion do
           class="group relative min-w-0 flex-1 overflow-hidden bg-white py-4 px-4 text-sm font-medium text-center hover:bg-gray-50 focus:z-10"
           aria-current="page"
         >
-          <span>Link to Media</span>
+          <span><%= gettext("Link to Media") %></span>
           <span
             x-transition
             x-show="tab === 'link'"
@@ -50,7 +50,7 @@ defmodule PlatformWeb.MediaLive.CreateMediaVersion do
           x-on:click="tab = 'upload'"
           class="group relative min-w-0 flex-1 overflow-hidden bg-white py-4 px-4 text-sm font-medium text-center hover:bg-gray-50 focus:z-10"
         >
-          <span>Manual Upload</span>
+          <span><%= gettext("Manual Upload") %></span>
           <span
             x-transition
             x-show="tab === 'upload'"

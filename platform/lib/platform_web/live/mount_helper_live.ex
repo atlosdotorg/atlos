@@ -48,6 +48,11 @@ defmodule PlatformWeb.MountHelperLive do
   end
 
   defp attach_metadata(socket, session) do
-    socket |> assign(:remote_ip, Map.get(session, :remote_ip))
+    locale = Map.get(session, "locale", "en")
+    Gettext.put_locale(PlatformWeb.Gettext, locale)
+
+    socket
+    |> assign(:remote_ip, Map.get(session, "remote_ip"))
+    |> assign(:locale, locale)
   end
 end

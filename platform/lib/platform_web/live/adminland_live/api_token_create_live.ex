@@ -47,27 +47,27 @@ defmodule PlatformWeb.AdminlandLive.APITokenCreateLive do
           phx-submit="save"
           class="phx-form"
         >
-          <%= label(f, :name, "What should we call this token?") %>
+          <%= label(f, :name, gettext("What should we call this token?")) %>
           <%= text_input(f, :name) %>
           <p class="support">
-            This name will be visible to members of the project and associated with any actions performed by the token.
+            <%= gettext("This name will be visible to members of the project and associated with any actions performed by the token.") %>
           </p>
           <%= error_tag(f, :name) %>
 
-          <%= label(f, :description, "How will you use this API token?") %>
+          <%= label(f, :description, gettext("How will you use this API token?")) %>
           <%= textarea(f, :description,
-            placeholder: "Some information about this token...",
+            placeholder: gettext("Some information about this token..."),
             phx_debounce: "250",
             rows: 3
           ) %>
           <p class="support">
-            This is just for your reference, so you can remember what this token is for. It will be visible to other project owners.
+            <%= gettext("This is just for your reference, so you can remember what this token is for. It will be visible to other project owners.") %>
           </p>
           <%= error_tag(f, :description) %>
 
           <%= submit(
-            "Create API Token",
-            phx_disable_with: "Creating...",
+            gettext("Create API Token"),
+            phx_disable_with: gettext("Creating..."),
             class: "button ~urge @high mt-4"
           ) %>
         </.form>
@@ -91,11 +91,11 @@ defmodule PlatformWeb.AdminlandLive.APITokenCreateLive do
           </p>
           <h2 class="font-mono text-lg font-medium my-2"><%= @token.value %></h2>
           <p class="text-gray-600 text-sm">
-            Your API token "<%= @token.description %>" is shown above. Be sure to store it somewhere, as you won't be able to see it again.
+            <%= gettext("Your API token \"%{description}\" is shown above. Be sure to store it somewhere, as you won't be able to see it again.", description: @token.description) %>
           </p>
           <p class="mt-4">
             <.link class="text-button text-sm" patch={Routes.adminland_index_path(@socket, :api)}>
-              Close
+              <%= gettext("Close") %>
             </.link>
           </p>
         </div>

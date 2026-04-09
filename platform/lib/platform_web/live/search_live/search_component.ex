@@ -188,7 +188,7 @@ defmodule PlatformWeb.SearchLive.SearchComponent do
                     type="text"
                     phx-debounce="200"
                     class="h-12 w-full border-0 bg-transparent pl-11 pr-4 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm"
-                    placeholder="Search..."
+                    placeholder={gettext("Search...")}
                     role="combobox"
                     aria-expanded="false"
                     aria-controls="options"
@@ -216,7 +216,7 @@ defmodule PlatformWeb.SearchLive.SearchComponent do
                   <%= case result_type do %>
                     <% :users -> %>
                       <li :if={not Enum.empty?(@results.users)}>
-                        <h2 class="text-xs font-medium text-neutral-500">Users</h2>
+                        <h2 class="text-xs font-medium text-neutral-500"><%= gettext("Users") %></h2>
                         <ul class="-mx-4 mt-2 text-sm text-neutral-700">
                           <%= for {user, idx} <- @results.users do %>
                             <.link
@@ -248,7 +248,7 @@ defmodule PlatformWeb.SearchLive.SearchComponent do
                       </li>
                     <% :media -> %>
                       <li :if={not Enum.empty?(@results.media)}>
-                        <h2 class="text-xs font-medium text-neutral-500">Incidents</h2>
+                        <h2 class="text-xs font-medium text-neutral-500"><%= gettext("Incidents") %></h2>
                         <ul class="-mx-4 mt-2 text-sm text-neutral-700">
                           <%= for {item, idx} <- @results.media do %>
                             <.link
@@ -273,7 +273,7 @@ defmodule PlatformWeb.SearchLive.SearchComponent do
                       </li>
                     <% :media_versions -> %>
                       <li :if={not Enum.empty?(@results.media_versions)}>
-                        <h2 class="text-xs font-medium text-neutral-500">Source Material</h2>
+                        <h2 class="text-xs font-medium text-neutral-500"><%= gettext("Source Material") %></h2>
                         <ul class="-mx-4 mt-2 text-sm text-neutral-700">
                           <%= for {item, idx} <- @results.media_versions do %>
                             <.link
@@ -303,7 +303,7 @@ defmodule PlatformWeb.SearchLive.SearchComponent do
                                         <%= Platform.Material.get_media_version_title(item)
                                         |> Platform.Utils.truncate(100) %>
                                       <% else %>
-                                        Uploaded File
+                                        <%= gettext("Uploaded File") %>
                                       <% end %>
                                     </p>
                                     <%= if Platform.Material.get_media_version_title(item) != item.source_url do %>
@@ -320,7 +320,7 @@ defmodule PlatformWeb.SearchLive.SearchComponent do
                       </li>
                     <% :projects -> %>
                       <li :if={not Enum.empty?(@results.projects)}>
-                        <h2 class="text-xs font-medium text-neutral-500">Projects</h2>
+                        <h2 class="text-xs font-medium text-neutral-500"><%= gettext("Projects") %></h2>
                         <ul class="-mx-4 mt-2 text-sm text-neutral-700">
                           <%= for {item, idx} <- @results.projects do %>
                             <.link
@@ -357,7 +357,7 @@ defmodule PlatformWeb.SearchLive.SearchComponent do
                                     :if={not item.active}
                                     class="text-sm text-yellow-600 flex gap-1 items-center"
                                   >
-                                    <Heroicons.archive_box mini class="h-4 w-4 opacity-50" /> Archived
+                                    <Heroicons.archive_box mini class="h-4 w-4 opacity-50" /> <%= gettext("Archived") %>
                                   </p>
                                 </article>
                               </li>
@@ -367,7 +367,7 @@ defmodule PlatformWeb.SearchLive.SearchComponent do
                       </li>
                     <% :updates -> %>
                       <li :if={not Enum.empty?(@results.updates)}>
-                        <h2 class="text-xs font-medium text-neutral-500">Updates</h2>
+                        <h2 class="text-xs font-medium text-neutral-500"><%= gettext("Updates") %></h2>
                         <ul class="-mx-4 mt-2 text-sm text-neutral-700">
                           <%= for {item, idx} <- @results.updates do %>
                             <div
@@ -413,24 +413,24 @@ defmodule PlatformWeb.SearchLive.SearchComponent do
                     d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"
                   />
                 </svg>
-                <p class="mt-4 font-semibold text-gray-900">No results found</p>
+                <p class="mt-4 font-semibold text-gray-900"><%= gettext("No results found") %></p>
                 <p class="mt-2 text-gray-500">
-                  We couldn’t find anything that matches <span class="font-medium"><%= @query %></span>. Please try again.
+                  <%= gettext("We couldn’t find anything that matches") %> <span class="font-medium"><%= @query %></span>. <%= gettext("Please try again.") %>
                 </p>
               </div>
 
               <div class="flex flex-wrap items-center bg-gray-50 px-4 py-2.5 text-xs text-gray-700">
-                Search for anything with <kbd class="flex h-5 items-center justify-center rounded border border-gray-300 font-semibold text-gray-700 px-1 mx-1">
-                Ctrl K
-              </kbd>. Use arrow keys to navigate,
+                <%= gettext("Search for anything with") %> <kbd class="flex h-5 items-center justify-center rounded border border-gray-300 font-semibold text-gray-700 px-1 mx-1">
+                <%= gettext("Ctrl K") %>
+              </kbd>. <%= gettext("Use arrow keys to navigate,") %>
                 <kbd class="flex h-5 items-center justify-center rounded border border-gray-300 font-semibold text-gray-700 px-1 mx-1">
-                  enter
+                  <%= gettext("enter") %>
                 </kbd>
-                to select, and
+                <%= gettext("to select, and") %>
                 <kbd class="flex h-5 items-center justify-center rounded border border-gray-300 font-semibold text-gray-700 px-1 mx-1">
-                  esc
+                  <%= gettext("esc") %>
                 </kbd>
-                to close.
+                <%= gettext("to close.") %>
               </div>
             </div>
           </div>
