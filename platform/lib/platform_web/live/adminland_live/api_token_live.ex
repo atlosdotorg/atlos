@@ -1,7 +1,6 @@
 defmodule PlatformWeb.AdminlandLive.APITokenLive do
   use PlatformWeb, :live_component
   alias Platform.API
-  alias Platform.API.APIToken
   alias Platform.Auditor
 
   def update(assigns, socket) do
@@ -24,165 +23,162 @@ defmodule PlatformWeb.AdminlandLive.APITokenLive do
      socket |> redirect(to: Routes.adminland_index_path(socket, :api)) |> assign_tokens()}
   end
 
-  def handle_event("deactivate_token", %{"token" => token_id}, socket) do
+  def handle_event("delete_token", %{"token" => token_id}, socket) do
     with token <- API.get_api_token!(token_id),
-         true <- APIToken.admin_managed?(token),
-         {:ok, _} <- API.deactivate_api_token(token) do
+         {:ok, _} <- API.delete_api_token(token) do
       Auditor.log(
-        :api_token_deactivated,
+        :api_token_deleted,
         %{description: token.description},
         socket.assigns.parent_socket
       )
 
-      {:noreply,
-       socket |> put_flash(:info, "API token deactivated successfully.") |> assign_tokens()}
+      {:noreply, socket |> put_flash(:info, "API token deleted successfully.") |> assign_tokens()}
     else
-      _ -> {:noreply, socket |> put_flash(:info, "Unable to deactivate API token.")}
+      _ -> {:noreply, socket |> put_flash(:info, "Unable to delete API token.")}
     end
   end
 
   def render(assigns) do
     ~H"""
-    <section class="flex-1 flex flex-col mb-8 grow">
-      <div class="flow-root">
-        <div>
-          <div class="inline-block min-w-full">
-            <div class="mb-8 bg-urge-50 border border-urge-400 aside ~urge prose text-sm w-full min-w-full">
-              <p>
-                <strong class="text-blue-800">
-                  Admins create
-                  <a class="text-blue-800" href="https://docs.atlos.org/admin/api/">
-                    instance-wide v2 tokens
-                  </a>
-                  here.
-                </strong>
-                These grant full v2 API access across every project on this instance. Project-scoped v2 tokens are listed here for visibility but are managed by project owners from the project's Access page. Legacy v1 tokens are deprecated and can no longer be created. Learn more in our <a
-                  class="text-blue-800"
-                  href="https://docs.atlos.org/admin/api/"
-                >admin API documentation</a>.
-              </p>
-            </div>
-            <div class="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
-              <div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
-                <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
-                  <table class="min-w-full divide-y divide-gray-300">
-                    <thead class="bg-gray-50">
+    <section class="max-w-3xl mx-auto">
+      <div class="flex flex-col">
+        <div class="-my-2 -mx-4 overflow-x-auto sm:-mx-6 lg:-mx-8">
+          <div class="inline-block min-w-full py-2 align-middle md:px-6 lg:px-8">
+            <%= if length(@tokens) > 0 do %>
+              <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
+                <table class="min-w-full divide-y divide-gray-300">
+                  <thead class="bg-white">
+                    <tr>
+                      <th
+                        scope="col"
+                        class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6"
+                      >
+                        Description
+                      </th>
+                      <th
+                        scope="col"
+                        class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
+                      >
+                        Created
+                      </th>
+                      <th scope="col" class="py-3.5 pl-3 pr-4 sm:pr-6">
+                        <span class="sr-only">More Actions</span>
+                        <.link
+                          class="button ~urge @high float-right"
+                          patch={Routes.adminland_index_path(@socket, :api_new)}
+                        >
+                          New Token
+                        </.link>
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-gray-200 bg-white">
+                    <%= for token <- @tokens do %>
                       <tr>
-                        <th
-                          scope="col"
-                          class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6"
-                        >
-                          Name
-                        </th>
-                        <th
-                          scope="col"
-                          class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
-                        >
-                          Last used
-                        </th>
-                        <th
-                          scope="col"
-                          class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
-                        >
-                          Created
-                        </th>
-                        <th
-                          scope="col"
-                          class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
-                        >
-                          Permissions
-                        </th>
-                        <th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-6 text-right">
-                          <.link
-                            class="button ~urge @high"
-                            patch={Routes.adminland_index_path(@socket, :api_new)}
-                          >
-                            Create
-                          </.link>
-                          <span class="sr-only">Deactivate</span>
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-200 bg-white">
-                      <tr :if={Enum.empty?(@tokens)} class="text-center py-8 text-gray-500">
-                        <td class="py-4 px-4 bg-neutral-50" colspan="5">
-                          No API tokens have been created.
-                        </td>
-                      </tr>
-                      <tr :for={token <- @tokens} id={token.id}>
-                        <td class="py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
-                          <%= token.name %>
-                          <span :if={!is_nil(token.description)} data-tooltip={token.description}>
-                            <Heroicons.information_circle
-                              mini
-                              class="h-4 w-4 text-gray-400 inline-block"
-                            />
-                          </span>
-                          <span :if={token.is_legacy} class="chip ~warning ml-2">Legacy v1</span>
-                          <span
-                            :if={!token.is_legacy and is_nil(token.project_id)}
-                            class="chip ~urge ml-2"
-                          >
-                            Instance-wide v2
-                          </span>
-                          <span :if={!is_nil(token.project_id)} class="chip ~positive ml-2">
-                            Project-scoped v2
-                          </span>
-                          <span
-                            :if={not token.is_active}
-                            class="chip ~critical ml-2"
-                            data-tooltip="This token has been deactivated and can no longer be used."
-                          >
-                            Deactivated
+                        <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm sm:pl-6">
+                          <%= token.name %> (<%= token.description || "no description" %>)
+                          <span :if={token.is_legacy} class="chip ~warning">Legacy</span>
+                          <span :if={!is_nil(token.project_id)} class="chip ~positive">
+                            Project Based
                           </span>
                         </td>
-                        <td class="px-3 py-4 text-sm text-gray-500">
-                          <%= if not is_nil(token.last_used) do %>
-                            <%= token.last_used |> Date.to_string() %>
-                          <% else %>
-                            Never
-                          <% end %>
-                        </td>
-                        <td class="px-3 py-4 text-sm text-gray-500">
+                        <td class="max-w-md px-3 py-4 text-sm text-gray-500">
                           <.rel_time time={token.inserted_at} />
-                          <%= if not is_nil(token.creator) do %>
-                            by <.user_text user={token.creator} />
-                          <% end %>
                         </td>
-                        <td class="px-3 py-4 text-sm text-gray-500">
-                          <div class="flex flex-wrap gap-1">
-                            <%= for permission <- token.permissions do %>
-                              <span class="chip ~neutral"><%= permission %></span>
-                            <% end %>
-                          </div>
-                        </td>
-                        <td class="relative py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
+                        <td class="pl-3 pr-4 sm:pr-6">
                           <button
-                            :if={APIToken.admin_managed?(token) and token.is_active}
-                            phx-click="deactivate_token"
+                            :if={token.is_legacy}
+                            phx-click="delete_token"
                             phx-value-token={token.id}
                             phx-target={@myself}
-                            data-confirm={"Are you sure you want to deactivate the token \"#{token.name}\"? This action cannot be undone."}
-                            data-tooltip={"Deactivate " <> token.name}
+                            data-confirm="Are you sure you want to delete this API token?"
+                            class="font-medium text-critical-500 hover:text-critical-700 float-right text-sm"
                           >
-                            <Heroicons.minus_circle mini class="h-5 w-5" />
-                            <span class="sr-only">Deactivate <%= token.name %></span>
+                            Delete
                           </button>
                         </td>
                       </tr>
-                    </tbody>
-                  </table>
+                    <% end %>
+                  </tbody>
+                </table>
+              </div>
+            <% else %>
+              <div class="text-center">
+                <svg
+                  class="mx-auto h-12 w-12 text-gray-400"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  aria-hidden="true"
+                >
+                  <path
+                    vector-effect="non-scaling-stroke"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"
+                  />
+                </svg>
+                <h3 class="mt-2 text-sm font-medium text-gray-900">No API tokens</h3>
+                <p class="mt-1 text-sm text-gray-500">Get started by creating a new API token.</p>
+                <div class="mt-6">
+                  <.link
+                    class="button ~urge @high"
+                    patch={Routes.adminland_index_path(@socket, :api_new)}
+                  >
+                    New Token
+                  </.link>
                 </div>
               </div>
+            <% end %>
+            <div class="bg-urge-50 border border-urge-400 mx-auto aside ~urge prose text-sm mt-8 w-full">
+              <p>
+                <strong class="text-blue-800">
+                  The Atlos API is a deprecated read-only API for administrators.
+                </strong>
+                You can learn more about the API authentication scheme and endpoints below. Note that this API is deprecated and will be removed in a future release. Please use project-specific API tokens instead.
+              </p>
+              <details class="-mt-2">
+                <summary class="cursor-pointer font-medium">How to use the API</summary>
+                <p>The Atlos API supports the following endpoints:</p>
+                <ul>
+                  <li>
+                    <code>/api/v1/media</code>
+                    &mdash; returns all incidents, with the most recently modified incidents listed first (internally, incidents are called media &mdash; that is, collections of individual pieces of media)
+                  </li>
+                  <li>
+                    <code>/api/v1/media_versions</code>
+                    &mdash; returns all media versions, with the most recently modified media versions listed first
+                  </li>
+                </ul>
+                <p>
+                  All endpoints return 30 results at a time. You can paginate using the
+                  <code>cursor</code>
+                  query parameter, whose value is provided by the <code>next</code>
+                  and <code>previous</code>
+                  keys in the response. Results are available under the <code>results</code>
+                  key.
+                </p>
+                <p>
+                  To authenticate against the API, include a <code>Authorization</code>
+                  header and set its value to <code>Bearer &lt;your token&gt;</code>
+                  (without the brackets).
+                </p>
+              </details>
             </div>
           </div>
         </div>
       </div>
       <%= if @show_creation_modal do %>
         <.modal target={@myself} close_confirmation={}>
-          <p class="sec-head">
-            New API Token
-          </p>
+          <div class="mb-8">
+            <p class="sec-head">
+              New API Token
+            </p>
+            <p class="sec-subhead">
+              Note that you will only be able to see the secret value once.
+            </p>
+          </div>
           <.live_component
             module={PlatformWeb.AdminlandLive.APITokenCreateLive}
             id="new-token"
