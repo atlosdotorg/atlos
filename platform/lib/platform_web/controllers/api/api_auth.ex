@@ -28,8 +28,8 @@ defmodule PlatformWeb.APIAuth do
     end
   end
 
-  def require_v2_token(conn, _opts) do
-    if not conn.assigns.token.is_legacy do
+  def require_project_scoped_token(conn, _opts) do
+    if !is_nil(conn.assigns.token.project_id) and !conn.assigns.token.is_legacy do
       conn
     else
       conn

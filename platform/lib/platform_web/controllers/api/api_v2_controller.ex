@@ -64,30 +64,18 @@ defmodule PlatformWeb.APIV2Controller do
     end
   end
 
-  # Project-scoped tokens always operate on their own project; instance-wide tokens use the supplied fallback id.
-  defp target_project(%Platform.API.APIToken{} = token, fallback_id) do
-    id = token.project_id || fallback_id
-    id && Projects.get_project(id)
-  end
-
   def media_versions(conn, params) do
     project_id = conn.assigns.token.project_id
 
-    base_query =
-      from(m in Material.MediaVersion,
-        join: incident in assoc(m, :media),
-        order_by: [desc: m.inserted_at]
-      )
-
-    query =
-      if is_nil(project_id) do
-        base_query
-      else
-        from([_m, incident] in base_query, where: incident.project_id == ^project_id)
-      end
-
     pagination_api(conn, params, fn opts ->
-      Material.query_media_versions_paginated(query, opts)
+      Material.query_media_versions_paginated(
+        from(m in Material.MediaVersion,
+          join: incident in assoc(m, :media),
+          where: incident.project_id == ^project_id,
+          order_by: [desc: m.inserted_at]
+        ),
+        opts
+      )
     end)
   end
 
@@ -96,8 +84,7 @@ defmodule PlatformWeb.APIV2Controller do
     media_version = Material.get_media_version(params["id"])
 
     cond do
-      is_nil(media_version) or
-          (not is_nil(project_id) and media_version.media.project_id != project_id) ->
+      is_nil(media_version) or media_version.media.project_id != project_id ->
         json(conn |> put_status(401), %{error: "media version not found or unauthorized"})
 
       true ->
@@ -106,27 +93,18 @@ defmodule PlatformWeb.APIV2Controller do
   end
 
   def create_media(conn, params) do
-    token_project_id = conn.assigns.token.project_id
-    media_project = target_project(conn.assigns.token, params["project_id"])
+    project_id = conn.assigns.token.project_id
+    project = Projects.get_project!(project_id)
 
-    other_params = ["urls", "project_id"]
+    other_params = ["urls"]
 
     is_unknown_attr = fn {key, _} ->
       not Enum.member?(other_params, key) and
-        is_nil(Attribute.get_attribute(key, project: media_project))
+        is_nil(Attribute.get_attribute(key, project: project))
     end
 
     cond do
       not Permissions.can_api_token_create_media?(conn.assigns.token) ->
-        json(conn |> put_status(401), %{error: "unauthorized"})
-
-      is_nil(media_project) and is_nil(token_project_id) ->
-        json(conn |> put_status(401), %{
-          error: "project not found (must supply a valid project_id)"
-        })
-
-      is_nil(media_project) or
-          not Permissions.can_add_media_to_project?(conn.assigns.token, media_project) ->
         json(conn |> put_status(401), %{error: "unauthorized"})
 
       # Ensure that all of the attributes in the input are valid, and note in the
@@ -150,13 +128,13 @@ defmodule PlatformWeb.APIV2Controller do
             # Merge the generated attribute change params. If `project_attributes` is already in
             # the accumulator, merge the new attribute change params with the existing ones.
             Material.generate_attribute_change_params(
-              Attribute.get_attribute(key, project: media_project),
+              Attribute.get_attribute(key, project: project),
               value,
-              media_project,
+              project,
               acc
             )
           end)
-          |> Map.put("project_id", media_project.id)
+          |> Map.put("project_id", project_id)
 
         # We expect a JSON array of URLs in the incident creation flow
         media_params =
@@ -316,11 +294,9 @@ defmodule PlatformWeb.APIV2Controller do
     project_id = conn.assigns.token.project_id
 
     base_query =
-      if is_nil(project_id) do
-        from(m in Material.Media)
-      else
-        from(m in Material.Media, where: m.project_id == ^project_id)
-      end
+      from(m in Material.Media,
+        where: m.project_id == ^project_id
+      )
 
     search_changeset = Material.MediaSearch.changeset(params)
 
@@ -342,8 +318,7 @@ defmodule PlatformWeb.APIV2Controller do
     media = Material.get_full_media_by_slug(params["slug"])
 
     cond do
-      is_nil(media) or
-          (not is_nil(project_id) and media.project_id != project_id) ->
+      is_nil(media) or media.project_id != project_id ->
         json(conn |> put_status(401), %{error: "incident not found"})
 
       not Permissions.can_api_token_post_comment?(conn.assigns.token, media) ->
@@ -379,30 +354,21 @@ defmodule PlatformWeb.APIV2Controller do
 
     cond do
       (not is_nil(media_slug) and is_nil(media)) or
-          (not is_nil(media) and not is_nil(project_id) and media.project_id != project_id) ->
+          (not is_nil(media) and media.project_id != project_id) ->
         conn |> put_status(401) |> json(%{error: "media not found"})
 
       not Permissions.can_api_token_read_updates?(conn.assigns.token) ->
         conn |> put_status(401) |> json(%{error: "api token not authorized to read updates"})
 
       true ->
-        base_query =
-          from(u in Updates.Update,
-            join: m in assoc(u, :media),
-            order_by: [desc: u.inserted_at],
-            preload: [:user, media: m]
-          )
-
-        query =
-          if is_nil(project_id) do
-            base_query
-          else
-            from([_u, m] in base_query, where: m.project_id == ^project_id)
-          end
-
         pagination_api(conn, params, fn opts ->
           Updates.query_updates_paginated(
-            query
+            from(u in Updates.Update,
+              join: m in assoc(u, :media),
+              where: m.project_id == ^project_id,
+              order_by: [desc: u.inserted_at],
+              preload: [:user, media: m]
+            )
             |> then(fn q ->
               if media do
                 where(q, [u], u.media_id == ^media.id)
@@ -417,26 +383,21 @@ defmodule PlatformWeb.APIV2Controller do
   end
 
   def update(conn, params) do
-    token_project_id = conn.assigns.token.project_id
+    project_id = conn.assigns.token.project_id
+    project = Projects.get_project!(project_id)
 
     # ok if nil
     message = params["message"]
+
+    attribute = params["attribute"] |> Attribute.get_attribute(project: project)
     value = params["value"]
     media = Material.get_full_media_by_slug(params["slug"])
-
-    project = target_project(conn.assigns.token, media && media.project_id)
-
-    attribute =
-      if is_nil(project),
-        do: nil,
-        else: Attribute.get_attribute(params["attribute"], project: project)
 
     cond do
       is_nil(value) ->
         json(conn |> put_status(401), %{error: "value not provided"})
 
-      is_nil(media) or
-          (not is_nil(token_project_id) and media.project_id != token_project_id) ->
+      is_nil(media) or media.project_id != project_id ->
         json(conn |> put_status(401), %{error: "incident not found"})
 
       not Permissions.can_api_token_edit_media?(conn.assigns.token, media) ->

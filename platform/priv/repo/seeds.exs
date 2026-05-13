@@ -13,7 +13,6 @@
 alias Platform.Projects
 alias Platform.Accounts
 alias Platform.Material
-alias Platform.API
 
 {:ok, regular} =
   Accounts.register_user(%{
@@ -101,43 +100,6 @@ random_projects =
 
     project
   end)
-
-IO.puts("Creating seed API tokens")
-
-{:ok, _} =
-  API.create_api_token(
-    nil,
-    admin,
-    %{
-      "name" => "Seed Legacy v1",
-      "description" => "Seeded legacy v1 token for local development"
-    },
-    legacy: true
-  )
-
-{:ok, _} =
-  API.create_api_token(
-    nil,
-    admin,
-    %{
-      "name" => "Seed Instance-wide v2",
-      "description" => "Seeded instance-wide v2 token for local development",
-      "permissions" => [:read, :comment, :edit]
-    },
-    legacy: false
-  )
-
-{:ok, _} =
-  API.create_api_token(
-    List.first(random_projects),
-    admin,
-    %{
-      "name" => "Seed Project-scoped v2",
-      "description" => "Seeded project-scoped v2 token for local development",
-      "permissions" => [:read, :comment, :edit]
-    },
-    legacy: false
-  )
 
 IO.puts("Creating seed media")
 

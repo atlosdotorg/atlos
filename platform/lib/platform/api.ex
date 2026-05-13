@@ -6,7 +6,6 @@ defmodule Platform.API do
   import Ecto.Query, warn: false
   alias Platform.Repo
 
-  alias Platform.Accounts
   alias Platform.API.APIToken
   alias Platform.Projects.Project
 
@@ -64,33 +63,36 @@ defmodule Platform.API do
 
   ## Examples
 
-      iex> create_api_token(project, user, %{field: value})
+      iex> create_api_token(%{field: value})
       {:ok, %APIToken{}}
 
-      iex> create_api_token(nil, admin, %{field: value})
-      {:ok, %APIToken{}}
-
-      iex> create_api_token(project, user, %{field: bad_value})
+      iex> create_api_token(%{field: bad_value})
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_api_token(project_or_nil, %Accounts.User{} = creator, attrs \\ %{}, opts \\ []) do
-    legacy = Keyword.get(opts, :legacy, false)
-    needs_admin = legacy or is_nil(project_or_nil)
+  def create_api_token(attrs \\ %{}, opts \\ []) do
+    changeset =
+      %APIToken{}
+      |> APIToken.changeset(attrs)
 
-    if needs_admin and not Accounts.is_admin(creator) do
-      raise "User does not have permission to create an instance-wide or legacy API token"
-    end
+    changeset =
+      if Keyword.get(opts, :project) do
+        Ecto.Changeset.put_change(changeset, :project_id, Keyword.get(opts, :project).id)
+      else
+        changeset
+      end
 
-    hydrated_attrs =
-      attrs
-      |> Map.new(fn {k, v} -> {to_string(k), v} end)
-      |> Map.put("creator_id", creator.id)
-      |> Map.put("project_id", project_or_nil && project_or_nil.id)
-      |> Map.put("is_legacy", legacy)
+    changeset =
+      if Keyword.get(opts, :creator) do
+        Ecto.Changeset.put_change(changeset, :creator_id, Keyword.get(opts, :creator).id)
+      else
+        changeset
+      end
 
-    %APIToken{}
-    |> APIToken.changeset(hydrated_attrs)
+    changeset =
+      Ecto.Changeset.put_change(changeset, :is_legacy, Keyword.get(opts, :legacy, false))
+
+    changeset
     |> Repo.insert()
   end
 
