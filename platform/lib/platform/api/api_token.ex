@@ -62,8 +62,43 @@ defmodule Platform.API.APIToken do
         []
       end
     end)
+    |> validate_project(api_token)
+    |> validate_is_legacy(api_token)
     |> assoc_constraint(:project)
     |> assoc_constraint(:creator)
     |> put_change(:value, Platform.Utils.generate_secure_code())
   end
+
+  defp validate_project(changeset, api_token) do
+    case get_change(changeset, :project_id, :no_change) do
+      :no_change ->
+        changeset
+
+      _value ->
+        if api_token.id,
+          do: add_error(changeset, :project_id, "Cannot change a token's project"),
+          else: changeset
+    end
+  end
+
+  defp validate_is_legacy(changeset, api_token) do
+    case get_change(changeset, :is_legacy, :no_change) do
+      :no_change ->
+        changeset
+
+      _value ->
+        if api_token.id,
+          do: add_error(changeset, :is_legacy, "Cannot change a token's legacy status"),
+          else: changeset
+    end
+  end
+
+  @doc """
+  An admin-managed token is one that surfaces in Adminland: legacy v1 tokens
+  and instance-wide v2 tokens (no project). Project-scoped tokens are managed
+  by their project's owners and excluded.
+  """
+  def admin_managed?(%__MODULE__{is_legacy: true}), do: true
+  def admin_managed?(%__MODULE__{project_id: nil}), do: true
+  def admin_managed?(%__MODULE__{}), do: false
 end

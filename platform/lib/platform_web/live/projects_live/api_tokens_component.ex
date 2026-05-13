@@ -98,12 +98,8 @@ defmodule PlatformWeb.ProjectsLive.APITokensComponent do
     cs = changeset(socket, params)
 
     if cs.valid? do
-      params =
-        params
-        |> Map.put("project_id", socket.assigns.project.id)
-        |> Map.put("creator_id", socket.assigns.current_user.id)
-
-      result = API.create_api_token(params)
+      result =
+        API.create_api_token(socket.assigns.project, socket.assigns.current_user, params)
 
       case result do
         {:ok, token} ->

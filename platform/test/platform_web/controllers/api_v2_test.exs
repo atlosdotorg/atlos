@@ -664,4 +664,375 @@ defmodule PlatformWeb.APIV2Test do
 
     # Ensure arbitrary optional attribute values are stored correctly
   end
+
+  test "GET /api/v2/incidents returns incidents from every project", %{conn: _conn} do
+    project_a = project_fixture()
+    project_b = project_fixture()
+    media_a = media_fixture(%{project_id: project_a.id})
+    media_b = media_fixture(%{project_id: project_b.id})
+
+    token = api_token_fixture_instance_wide_v2()
+
+    auth_conn =
+      build_conn()
+      |> put_req_header("authorization", "Bearer " <> token.value)
+      |> get("/api/v2/incidents")
+
+    body = json_response(auth_conn, 200)
+    slugs = Enum.map(body["results"], & &1["slug"])
+    assert media_a.slug in slugs
+    assert media_b.slug in slugs
+  end
+
+  test "POST /api/v2/add_comment/:slug works across projects", %{conn: _conn} do
+    project_a = project_fixture()
+    project_b = project_fixture()
+    media_a = media_fixture(%{project_id: project_a.id})
+    media_b = media_fixture(%{project_id: project_b.id})
+
+    token = api_token_fixture_instance_wide_v2()
+
+    for media <- [media_a, media_b] do
+      resp =
+        build_conn()
+        |> put_req_header("authorization", "Bearer " <> token.value)
+        |> post("/api/v2/add_comment/#{media.slug}", %{"message" => "hello from admin"})
+
+      assert json_response(resp, 200) == %{"success" => true}
+    end
+  end
+
+  test "POST /api/v2/incidents/new requires a project_id in the body", %{conn: _conn} do
+    token = api_token_fixture_instance_wide_v2()
+
+    resp =
+      build_conn()
+      |> put_req_header("authorization", "Bearer " <> token.value)
+      |> post("/api/v2/incidents/new", %{"description" => "no project specified"})
+
+    assert json_response(resp, 401) == %{
+             "error" =>
+               "project not found (must supply a valid project_id)"
+           }
+  end
+
+  test "POST /api/v2/incidents/new creates in the supplied project", %{conn: _conn} do
+    project = project_fixture()
+    token = api_token_fixture_instance_wide_v2()
+
+    resp =
+      build_conn()
+      |> put_req_header("authorization", "Bearer " <> token.value)
+      |> post("/api/v2/incidents/new", %{
+        "description" => "admin-created incident",
+        "project_id" => project.id,
+        "sensitive" => ["Not Sensitive"]
+      })
+
+    body = json_response(resp, 200)
+    assert body["success"] == true
+    assert body["result"]["attr_description"] == "admin-created incident"
+    assert body["result"]["project"]["id"] == project.id
+  end
+
+  test "legacy v1 tokens are still rejected at v2", %{conn: _conn} do
+    legacy = api_token_fixture_legacy()
+
+    resp =
+      build_conn()
+      |> put_req_header("authorization", "Bearer " <> legacy.value)
+      |> get("/api/v2/incidents")
+
+    assert json_response(resp, 401) == %{"error" => "invalid token or token not found"}
+  end
+
+  test "project-scoped tokens still only see their project", %{conn: _conn} do
+    project_a = project_fixture()
+    project_b = project_fixture()
+    _media_a = media_fixture(%{project_id: project_a.id})
+    media_b = media_fixture(%{project_id: project_b.id})
+
+    token_a = api_token_fixture(%{project_id: project_a.id})
+
+    auth_conn =
+      build_conn()
+      |> put_req_header("authorization", "Bearer " <> token_a.value)
+      |> get("/api/v2/incidents")
+
+    body = json_response(auth_conn, 200)
+    slugs = Enum.map(body["results"], & &1["slug"])
+    refute media_b.slug in slugs
+  end
+
+  test "POST /incidents/new rejects a non-existent project_id", %{conn: _conn} do
+    token = api_token_fixture_instance_wide_v2()
+    bogus_uuid = Ecto.UUID.generate()
+
+    resp =
+      build_conn()
+      |> put_req_header("authorization", "Bearer " <> token.value)
+      |> post("/api/v2/incidents/new", %{
+        "description" => "should fail",
+        "project_id" => bogus_uuid,
+        "sensitive" => ["Not Sensitive"]
+      })
+
+    assert json_response(resp, 401) == %{
+             "error" =>
+               "project not found (must supply a valid project_id)"
+           }
+  end
+
+  test "instance-wide token without :edit cannot create incidents", %{conn: _conn} do
+    project = project_fixture()
+    token = api_token_fixture_instance_wide_v2(%{permissions: [:read, :comment]})
+
+    resp =
+      build_conn()
+      |> put_req_header("authorization", "Bearer " <> token.value)
+      |> post("/api/v2/incidents/new", %{
+        "description" => "Test incident description",
+        "project_id" => project.id,
+        "sensitive" => ["Not Sensitive"]
+      })
+
+    assert json_response(resp, 401) == %{"error" => "unauthorized"}
+  end
+
+  test "instance-wide token without :comment cannot post comments", %{conn: _conn} do
+    project = project_fixture()
+    media = media_fixture(%{project_id: project.id})
+    token = api_token_fixture_instance_wide_v2(%{permissions: [:read, :edit]})
+
+    resp =
+      build_conn()
+      |> put_req_header("authorization", "Bearer " <> token.value)
+      |> post("/api/v2/add_comment/#{media.slug}", %{"message" => "should fail"})
+
+    assert json_response(resp, 401) == %{"error" => "api token not authorized to post comment"}
+  end
+
+  test "instance-wide token without :edit cannot update attributes", %{conn: _conn} do
+    project = project_fixture()
+    media = media_fixture(%{project_id: project.id})
+    token = api_token_fixture_instance_wide_v2(%{permissions: [:read, :comment]})
+
+    resp =
+      build_conn()
+      |> put_req_header("authorization", "Bearer " <> token.value)
+      |> post("/api/v2/update/#{media.slug}/description", %{
+        "message" => "test",
+        "value" => "should not stick"
+      })
+
+    assert json_response(resp, 401) == %{"error" => "api token not authorized to edit"}
+  end
+
+  test "deactivated instance-wide token is rejected on writes", %{conn: _conn} do
+    # Note: `APIToken.changeset/2` runs `put_change(:value, generate_secure_code())`
+    # unconditionally, so any update — including deactivation — rotates the
+    # secret. The original token value therefore fails at the auth plug
+    # ("invalid token or token not found") rather than reaching the
+    # permission layer's `is_active` check. Either rejection is acceptable;
+    # this test pins the end-to-end behavior so a regression that leaves
+    # deactivated tokens valid would be caught regardless of which layer fires.
+    project = project_fixture()
+    media = media_fixture(%{project_id: project.id})
+    token = api_token_fixture_instance_wide_v2()
+    {:ok, _} = Platform.API.deactivate_api_token(token)
+
+    assert_rejected = fn conn ->
+      body = json_response(conn, 401)
+      refute Map.get(body, "success")
+      assert is_binary(body["error"])
+    end
+
+    build_conn()
+    |> put_req_header("authorization", "Bearer " <> token.value)
+    |> post("/api/v2/add_comment/#{media.slug}", %{"message" => "should fail"})
+    |> assert_rejected.()
+
+    build_conn()
+    |> put_req_header("authorization", "Bearer " <> token.value)
+    |> post("/api/v2/update/#{media.slug}/description", %{
+      "message" => "test",
+      "value" => "should not stick"
+    })
+    |> assert_rejected.()
+
+    build_conn()
+    |> put_req_header("authorization", "Bearer " <> token.value)
+    |> post("/api/v2/incidents/new", %{
+      "description" => "should fail",
+      "project_id" => project.id,
+      "sensitive" => ["Not Sensitive"]
+    })
+    |> assert_rejected.()
+
+    # And the side-effects didn't happen.
+    assert Material.get_media!(media.id).attr_description == media.attr_description
+  end
+
+  test "pagination cursor signed by one token cannot be replayed by another", %{conn: _conn} do
+    project = project_fixture()
+
+    # Create enough media to guarantee a `next` cursor (limit is 100).
+    Enum.each(1..101, fn _ -> media_fixture(%{project_id: project.id}) end)
+
+    token_a = api_token_fixture_instance_wide_v2()
+    token_b = api_token_fixture_instance_wide_v2()
+
+    page_one =
+      build_conn()
+      |> put_req_header("authorization", "Bearer " <> token_a.value)
+      |> get("/api/v2/incidents")
+      |> json_response(200)
+
+    assert is_binary(page_one["next"])
+
+    # Replay token_a's cursor with token_b — should not return results.
+    replay =
+      build_conn()
+      |> put_req_header("authorization", "Bearer " <> token_b.value)
+      |> get("/api/v2/incidents", %{"cursor" => page_one["next"]})
+      |> json_response(200)
+
+    assert replay["error"] == "unable to verify or parse pagination information"
+    refute Map.has_key?(replay, "results")
+  end
+
+  test "project-scoped token cannot fetch another project's source_material by id",
+       %{conn: _conn} do
+    project_a = project_fixture()
+    project_b = project_fixture()
+    media_b = media_fixture(%{project_id: project_b.id})
+
+    {:ok, version_b} =
+      Material.create_media_version(media_b, %{
+        upload_type: :user_provided,
+        status: :pending,
+        source_url: "https://example.com/b"
+      })
+
+    token_a = api_token_fixture(%{project_id: project_a.id})
+
+    resp =
+      build_conn()
+      |> put_req_header("authorization", "Bearer " <> token_a.value)
+      |> get("/api/v2/source_material/#{version_b.id}")
+
+    assert json_response(resp, 401) == %{"error" => "media version not found or unauthorized"}
+  end
+
+  test "project-scoped token cannot escape its scope by forging project_id in body",
+       %{conn: _conn} do
+    project_a = project_fixture()
+    project_b = project_fixture()
+
+    token_a =
+      api_token_fixture(%{project_id: project_a.id, permissions: [:read, :comment, :edit]})
+
+    # Caller tries to force creation in project_b by passing project_id in the body.
+    resp =
+      build_conn()
+      |> put_req_header("authorization", "Bearer " <> token_a.value)
+      |> post("/api/v2/incidents/new", %{
+        "description" => "trying to escape my project scope",
+        "project_id" => project_b.id,
+        "sensitive" => ["Not Sensitive"]
+      })
+
+    body = json_response(resp, 200)
+    assert body["success"] == true
+    # The forged project_id is silently ignored — incident lands in project_a.
+    assert body["result"]["project"]["id"] == project_a.id
+    refute body["result"]["project"]["id"] == project_b.id
+  end
+
+  test "project-scoped token cannot update another project's media", %{conn: _conn} do
+    project_a = project_fixture()
+    project_b = project_fixture()
+    media_b = media_fixture(%{project_id: project_b.id})
+
+    token_a =
+      api_token_fixture(%{project_id: project_a.id, permissions: [:read, :comment, :edit]})
+
+    resp =
+      build_conn()
+      |> put_req_header("authorization", "Bearer " <> token_a.value)
+      |> post("/api/v2/update/#{media_b.slug}/description", %{
+        "message" => "test",
+        "value" => "should not stick"
+      })
+
+    assert json_response(resp, 401) == %{"error" => "incident not found"}
+    assert Material.get_media!(media_b.id).attr_description == media_b.attr_description
+  end
+
+  test "project-scoped token cannot post comment on another project's media",
+       %{conn: _conn} do
+    project_a = project_fixture()
+    project_b = project_fixture()
+    media_b = media_fixture(%{project_id: project_b.id})
+
+    token_a =
+      api_token_fixture(%{project_id: project_a.id, permissions: [:read, :comment, :edit]})
+
+    resp =
+      build_conn()
+      |> put_req_header("authorization", "Bearer " <> token_a.value)
+      |> post("/api/v2/add_comment/#{media_b.slug}", %{"message" => "should not appear"})
+
+    assert json_response(resp, 401) == %{"error" => "incident not found"}
+  end
+
+  test "project-scoped token cannot read updates from another project", %{conn: _conn} do
+    project_a = project_fixture()
+    project_b = project_fixture()
+    media_a = media_fixture(%{project_id: project_a.id})
+    media_b = media_fixture(%{project_id: project_b.id})
+
+    # Seed a comment in each project via that project's own token.
+    writer_a =
+      api_token_fixture(%{project_id: project_a.id, permissions: [:read, :comment]})
+
+    writer_b =
+      api_token_fixture(%{project_id: project_b.id, permissions: [:read, :comment]})
+
+    build_conn()
+    |> put_req_header("authorization", "Bearer " <> writer_a.value)
+    |> post("/api/v2/add_comment/#{media_a.slug}", %{"message" => "comment in A"})
+
+    build_conn()
+    |> put_req_header("authorization", "Bearer " <> writer_b.value)
+    |> post("/api/v2/add_comment/#{media_b.slug}", %{"message" => "comment in B"})
+
+    token_a = api_token_fixture(%{project_id: project_a.id})
+
+    body =
+      build_conn()
+      |> put_req_header("authorization", "Bearer " <> token_a.value)
+      |> get("/api/v2/updates")
+      |> json_response(200)
+
+    media_ids = Enum.map(body["results"], & &1["media_id"])
+    assert media_a.id in media_ids
+    refute media_b.id in media_ids
+  end
+
+  test "project-scoped token cannot fetch updates filtered to another project's media",
+       %{conn: _conn} do
+    project_a = project_fixture()
+    project_b = project_fixture()
+    media_b = media_fixture(%{project_id: project_b.id})
+
+    token_a = api_token_fixture(%{project_id: project_a.id})
+
+    resp =
+      build_conn()
+      |> put_req_header("authorization", "Bearer " <> token_a.value)
+      |> get("/api/v2/updates", %{"slug" => media_b.slug})
+
+    assert json_response(resp, 401) == %{"error" => "media not found"}
+  end
 end

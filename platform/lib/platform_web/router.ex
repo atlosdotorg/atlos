@@ -86,7 +86,7 @@ defmodule PlatformWeb.Router do
     end
 
     scope "/v2" do
-      pipe_through([:require_project_scoped_token])
+      pipe_through([:require_v2_token])
 
       get("/source_material", APIV2Controller, :media_versions)
       get("/source_material/:id", APIV2Controller, :media_version)
