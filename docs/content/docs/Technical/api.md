@@ -14,18 +14,12 @@ You can learn more about the API authentication scheme and endpoints below. API 
 
 Please note that the API is in beta and not all operations are supported; if you need something, please get in touch via [email](mailto:contact@atlos.org) or on [Discord](https://discord.gg/gqCcHc9Gav).
 
-{{< callout type="info" >}}
-**Admins can also create instance-wide tokens** that work across every project on the instance. See [Admin API access](/admin/api/) for details.
-{{< /callout >}}
-
 ## Create an API token
 1. Navigate to the project for which you need an API token.
 2. Navigate to the **Access** page of the project.
 3. Press the **Create** button in the API Tokens section of the page.
 4. Assign the token a name, write a description of what the token is used for, and select permissions for the token.
 5. Click the **Create Token** button.
-
-If you administer the instance and need access across every project on it, create an [instance-wide token](/admin/api/) instead.
 
 
 ## API Vocabulary
@@ -200,10 +194,9 @@ requests.post(
 
 
 ### Create an incident
-`POST /api/v2/incidents/new` creates a new incident. It has the following required parameters:
+`POST /api/v2/incidents/new` creates a new incident. It has two required parameters:
 - `description`, the incident's description. `description` should be a string of at least 8 characters.
 - `sensitive`, a string array of the incident's sensitivity. That should be either `["Not Sensitive"]`, or any combination of the values `["Graphic Violence", "Deceptive or Misleading", "Personal Information Visible"]`.
-- `project_id`, the ID of the project to create the incident in. Required only if you're using an [instance-wide admin token](/admin/api/); ignored for project-scoped tokens.
 
 It also has many optional parameters:
 - Any attribute, both core and custom. See below for more information on accessing attributes' API identifiers.
