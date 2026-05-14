@@ -39,6 +39,11 @@ defmodule PlatformWeb.Endpoint do
     from: "avatars"
   )
 
+  plug(Plug.Static,
+    at: "/attachments",
+    from: "attachments"
+  )
+
   # Code reloading can be explicitly enabled under the
   # :code_reloader configuration of your endpoint.
   if code_reloading? do
