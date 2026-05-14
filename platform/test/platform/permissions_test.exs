@@ -6,6 +6,7 @@ defmodule Platform.PermissionsTest do
   alias Platform.ProjectsFixtures
   alias Platform.AccountsFixtures
   alias Platform.MaterialFixtures
+  alias Platform.APIFixtures
 
   setup do
     project = ProjectsFixtures.project_fixture()
@@ -100,6 +101,107 @@ defmodule Platform.PermissionsTest do
 
     test "can_create_media?/1", context do
       assert Permissions.can_create_media?(context.editor)
+    end
+
+    test "can_add_media_to_project?/2 with API token enforces token scope", context do
+      other_project = ProjectsFixtures.project_fixture()
+
+      project_scoped =
+        APIFixtures.api_token_fixture(%{
+          project_id: context.project.id,
+          permissions: [:read, :edit]
+        })
+
+      foreign_scoped =
+        APIFixtures.api_token_fixture(%{
+          project_id: other_project.id,
+          permissions: [:read, :edit]
+        })
+
+      instance_wide = APIFixtures.api_token_fixture_instance_wide_v2()
+
+      assert Permissions.can_add_media_to_project?(project_scoped, context.project)
+      refute Permissions.can_add_media_to_project?(foreign_scoped, context.project)
+
+      assert Permissions.can_add_media_to_project?(instance_wide, context.project)
+      assert Permissions.can_add_media_to_project?(instance_wide, other_project)
+    end
+
+    test "can_add_media_to_project?/2 with API token returns false for inactive project",
+         context do
+      {:ok, inactive} = Projects.update_project_active(context.project, false)
+
+      project_scoped =
+        APIFixtures.api_token_fixture(%{project_id: inactive.id, permissions: [:read, :edit]})
+
+      instance_wide = APIFixtures.api_token_fixture_instance_wide_v2()
+
+      refute Permissions.can_add_media_to_project?(project_scoped, inactive)
+      refute Permissions.can_add_media_to_project?(instance_wide, inactive)
+    end
+
+    test "can_api_token_post_comment?/2", context do
+      other_project = ProjectsFixtures.project_fixture()
+
+      project_scoped =
+        APIFixtures.api_token_fixture(%{
+          project_id: context.project.id,
+          permissions: [:read, :comment]
+        })
+
+      foreign_scoped =
+        APIFixtures.api_token_fixture(%{
+          project_id: other_project.id,
+          permissions: [:read, :comment]
+        })
+
+      instance_wide =
+        APIFixtures.api_token_fixture_instance_wide_v2(%{permissions: [:read, :comment]})
+
+      read_only =
+        APIFixtures.api_token_fixture(%{
+          project_id: context.project.id,
+          permissions: [:read]
+        })
+
+      assert Permissions.can_api_token_post_comment?(project_scoped, context.media)
+      refute Permissions.can_api_token_post_comment?(foreign_scoped, context.media)
+      assert Permissions.can_api_token_post_comment?(instance_wide, context.media)
+      refute Permissions.can_api_token_post_comment?(read_only, context.media)
+    end
+
+    test "can_api_token_edit_media?/2", context do
+      other_project = ProjectsFixtures.project_fixture()
+
+      project_scoped =
+        APIFixtures.api_token_fixture(%{
+          project_id: context.project.id,
+          permissions: [:read, :edit]
+        })
+
+      foreign_scoped =
+        APIFixtures.api_token_fixture(%{
+          project_id: other_project.id,
+          permissions: [:read, :edit]
+        })
+
+      instance_wide =
+        APIFixtures.api_token_fixture_instance_wide_v2(%{permissions: [:read, :edit]})
+
+      read_only =
+        APIFixtures.api_token_fixture(%{
+          project_id: context.project.id,
+          permissions: [:read]
+        })
+
+      assert Permissions.can_api_token_edit_media?(project_scoped, context.media)
+      refute Permissions.can_api_token_edit_media?(foreign_scoped, context.media)
+      assert Permissions.can_api_token_edit_media?(instance_wide, context.media)
+      refute Permissions.can_api_token_edit_media?(read_only, context.media)
+
+      # Any edit-capable token can edit it media with no project
+      unassigned_media = %Platform.Material.Media{project_id: nil}
+      assert Permissions.can_api_token_edit_media?(foreign_scoped, unassigned_media)
     end
   end
 end

@@ -117,7 +117,8 @@ defmodule Platform.Permissions do
 
   def can_api_token_post_comment?(%APIToken{} = token, %Media{} = media) do
     Enum.member?(token.permissions, :comment) and token.is_active and
-      token.project_id == media.project_id and _is_media_editable?(media)
+      (is_nil(token.project_id) or token.project_id == media.project_id) and
+      _is_media_editable?(media)
   end
 
   def can_api_token_create_media?(%APIToken{} = token) do
@@ -125,10 +126,11 @@ defmodule Platform.Permissions do
   end
 
   def can_api_token_edit_media?(%APIToken{} = token, %Media{} = media) do
-    # If media is being created and doesn't yet have a project, the token should able to give the media a project
+    # If media is being created and doesn't yet have a project, the token should able to give the media a project even if the token is project-scoped
     Enum.member?(token.permissions, :edit) and token.is_active and
       _is_media_editable?(media) and
-      (token.project_id == media.project_id or is_nil(media.project_id))
+      (is_nil(token.project_id) or token.project_id == media.project_id or
+         is_nil(media.project_id))
   end
 
   def can_api_token_update_attribute?(
@@ -160,7 +162,8 @@ defmodule Platform.Permissions do
   end
 
   def can_add_media_to_project?(%APIToken{} = token, %Project{} = project) do
-    Enum.member?(token.permissions, :edit) and token.is_active and project.active
+    Enum.member?(token.permissions, :edit) and token.is_active and project.active and
+      (is_nil(token.project_id) or token.project_id == project.id)
   end
 
   def can_bulk_upload_media_to_project?(%User{}, %Project{active: false}) do
