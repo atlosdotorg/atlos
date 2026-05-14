@@ -236,6 +236,18 @@ defmodule Platform.Accounts.User do
   end
 
   @doc """
+  A user changeset for admins to disable MFA without password verification.
+  """
+  def admin_disable_mfa_changeset(user) do
+    user
+    |> change()
+    |> put_change(:has_mfa, false)
+    |> put_change(:otp_secret, nil)
+    |> put_change(:recovery_codes, [])
+    |> put_change(:used_recovery_codes, [])
+  end
+
+  @doc """
   A user changeset for disabling MFA.
   """
   def confirm_mfa_changeset(user, attrs) do

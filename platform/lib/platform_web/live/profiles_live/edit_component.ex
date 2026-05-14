@@ -78,6 +78,31 @@ defmodule PlatformWeb.ProfilesLive.EditComponent do
     {:noreply, socket |> assign(:changeset, changeset)}
   end
 
+  def handle_event("disable_mfa", _params, socket) do
+    if not Accounts.is_admin(socket.assigns.current_user) do
+      raise PlatformWeb.Errors.Unauthorized, "No permission"
+    end
+
+    case Accounts.admin_disable_user_mfa(socket.assigns.user) do
+      {:ok, _user} ->
+        Auditor.log(
+          :mfa_disabled_by_admin,
+          %{affected_user: socket.assigns.user.username},
+          socket
+        )
+
+        {:noreply,
+         socket
+         |> put_flash(:info, "MFA has been disabled for this user.")
+         |> assign_user()}
+
+      {:error, _changeset} ->
+        {:noreply,
+         socket
+         |> put_flash(:error, "Failed to disable MFA for this user.")}
+    end
+  end
+
   def render(assigns) do
     confirm_prompt = "This will discard your changes without saving. Are you sure?"
 
@@ -152,6 +177,22 @@ defmodule PlatformWeb.ProfilesLive.EditComponent do
               <%= textarea(f, :admin_notes) %>
               <p class="support">These notes are available to all admins.</p>
               <%= error_tag(f, :admin_notes) %>
+            </div>
+            <div :if={@user.has_mfa}>
+              <label class="label">Multi-Factor Authentication</label>
+              <div class="flex items-center gap-3">
+                <p class="chip ~positive">Enabled</p>
+                <button
+                  type="button"
+                  phx-click="disable_mfa"
+                  phx-target={@myself}
+                  data-confirm="Are you sure you want to disable MFA for this user? This will remove their authenticator app setup and recovery codes."
+                  class="button ~critical @low text-sm"
+                >
+                  Disable MFA
+                </button>
+              </div>
+              <p class="support">Disabling MFA will remove the user's authenticator app configuration and all recovery codes.</p>
             </div>
             <div class="flex md:justify-between">
               <%= submit("Save",
