@@ -107,6 +107,24 @@ defmodule Platform.Material do
   end
 
   @doc """
+  Query the list of media but only select data that is relevant for the map view.
+  """
+  def query_media_map_data(query \\ Media, opts \\ []) do
+    _query_media(query, Keyword.put(opts, :hydrate, false))
+    |> exclude(:select)
+    |> select([m, project: p], %{
+      id: m.id,
+      slug: m.slug,
+      status: m.attr_status,
+      geolocation: m.attr_geolocation,
+      project_id: m.project_id,
+      display_color: p.color,
+    })
+    |> limit(^Keyword.get(opts, :limit, 100_000))
+    |> Repo.all()  # Note: Changed from Repo.query() to Repo.all()
+  end
+
+  @doc """
   Get recently updated media, based on the most recent Update (including comments). Supports pagination via the `offset` and `limit` options.
   """
   def get_recently_updated_media_paginated(opts \\ []) do

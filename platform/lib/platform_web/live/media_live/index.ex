@@ -57,7 +57,7 @@ defmodule PlatformWeb.MediaLive.Index do
       |> max(1)
 
     search_keywords = [
-      limit: if(display == "map", do: 100_000, else: 51),
+      limit: 51,
       offset: (page - 1) * 51,
       hydrate: display != "map"
     ]
@@ -70,11 +70,20 @@ defmodule PlatformWeb.MediaLive.Index do
         search_keywords
       )
 
+    # Load the map data if in map view
+    map_data =
+      if display == "map" do
+        get_map_data(socket, changeset)
+      else
+        nil
+      end
+
     socket
     |> assign(
       :changeset,
       changeset
     )
+    |> assign(:map_data, map_data)
     |> assign(:display, display)
     |> assign(:full_width, display == "table")
     |> assign(:query_params, params)
@@ -193,6 +202,15 @@ defmodule PlatformWeb.MediaLive.Index do
         for_user: socket.assigns.current_user
       )
     )
+  end
+
+  defp get_map_data(socket, c) do
+    {query, _pagination_options} =
+      Material.MediaSearch.search_query(Material.Media, c, socket.assigns.current_user)
+
+    query
+    |> Material.MediaSearch.filter_viewable(socket.assigns.current_user)
+    |> Material.query_media_map_data(for_user: socket.assigns.current_user)
   end
 
   defp apply_bulk_action(socket, selection, action, during_message, result_message) do
