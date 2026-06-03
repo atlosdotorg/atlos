@@ -1006,7 +1006,11 @@ defmodule PlatformWeb.Components do
                   <% end %>
 
                   <%= if not Enum.empty?(@update.attachments) do %>
-                    <div class="relative" x-data={"#{"{hidden: #{Media.is_graphic(@update.media)}}"}"}>
+                    <div
+                      class="relative"
+                      x-data={"#{"{hidden: #{Media.is_graphic(@update.media)}}"}"}
+                      x-bind:class="hidden && 'min-h-[12rem]'"
+                    >
                       <%= if Media.is_graphic(@update.media) do %>
                         <div
                           class="w-full z-[2] h-full absolute bg-neutral-50 rounded-lg flex items-center justify-around top-0"
