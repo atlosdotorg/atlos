@@ -80,7 +80,7 @@ requests.get(
 
 ```python
 requests.get(
-    f"httpps://platform.atlos.org/api/v2/source_material",
+    f"https://platform.atlos.org/api/v2/source_material",
     headers={"Authorization": f"Bearer {api_token}"},
     params={"cursor": cursor},
 )
