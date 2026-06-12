@@ -295,13 +295,13 @@ defmodule Platform.Material.Media do
       uri.scheme != nil && uri.host != nil && uri.host =~ "."
     end
 
-    validate_change(changeset, field, fn field, value ->
+    validate_change(changeset, field, fn _field, value ->
       if is_list(value) do
         if Enum.all?(value, valid?) do
           []
         else
           [
-            {field,
+            {:urls,
              "The following entries are not valid urls: " <>
                (Enum.filter(value, &(not valid?.(&1))) |> Enum.join(", "))}
           ]

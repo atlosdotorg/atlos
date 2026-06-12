@@ -288,7 +288,6 @@ defmodule PlatformWeb.NewLive.NewComponent do
                       />
                       <p class="support">Atlos will attempt to archive these URLs automatically.</p>
                       <%= error_tag(@form, :urls) %>
-                      <%= error_tag(@form, :urls_parsed) %>
                       <%= if not Enum.empty?(@url_deconfliction) do %>
                         <div class="mt-4">
                           <.multi_deconfliction_warning
