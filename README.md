@@ -1,25 +1,30 @@
 <p align="center">
-  <img align="center" src="platform/priv/static/images/wordmark.svg" height="50" alt="Atlos wordmark">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/static/Logodark.png">
+    <img align="center" src="docs/static/Logo.png" height="60" alt="Atlos wordmark">
+  </picture>
   <br>
 
   <p align="center">
-    The collaborative workspace for visual verification
+    The non-profit, open source platform for visual investigations.
     <br>
   </p>
-  <p align="center"><a href="https://atlos.notion.site/Platform-Overview-46d4723f22ef420fb5ad0e07feba8d79">Platform Overview</a> &bull; <a href="platform">Code</a></p>
+  <p align="center"><a href="https://atlos.org">atlos.org</a> &bull; <a href="https://docs.atlos.org">Docs</a> &bull; <a href="platform">Code</a></p>
 </p>
 
 <br>
 
 ## About
 
-Atlos is a non-profit platform used by investigators to catalog and verify eyewitness media at scale. Atlos is specialized to the needs of visual investigations: The platform automatically archives source media and implements industry-standard researcher safety measures by default. While other systems are dedicated collaborative tools or databases, Atlos does both. Atlos powers Bellingcat's sprawling investigation into civilian harm in Ukraine.
+Atlos is a non-profit and open source platform that enables visual investigators to collaborate at scale. Atlos is purpose-built for visual investigations: the platform automatically archives source media, tracks every change to the underlying data, and implements industry-standard researcher safety measures by default. Atlos powers large-scale open source investigations around the world, including Bellingcat's investigation into civilian harm in Ukraine.
 
-You can learn more about Atlos at https://atlos.org.
+Learn more at [atlos.org](https://atlos.org), or read the [docs](https://docs.atlos.org).
 
 ## Subprojects
 
-The Atlos platform is in the [`platform/`](platform) subdirectory. The landing page is in the [`landing/`](landing) subdirectory. We have good technical documentation for the platform in the [`platform/`](platform/) subdirectory.
+- [`platform/`](platform) — the Atlos platform (Phoenix/Elixir). Technical documentation lives in the subdirectory's README.
+- [`landing/`](landing) — the legacy landing page.
+- [`docs/`](docs) — the user-facing documentation site at [docs.atlos.org](https://docs.atlos.org).
 
 ## License
 
