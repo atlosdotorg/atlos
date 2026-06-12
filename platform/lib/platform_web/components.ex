@@ -732,6 +732,7 @@ defmodule PlatformWeb.Components do
       assign(assigns, :profile_ring_classes, profile_ring_classes)
       |> assign_new(:ignore_permissions, fn -> false end)
       |> assign_new(:id_prefix, fn -> "update" end)
+      |> assign_new(:interactive, fn -> true end)
 
     if is_list(update) do
       [head | _] = update
@@ -1006,17 +1007,13 @@ defmodule PlatformWeb.Components do
                   <% end %>
 
                   <%= if not Enum.empty?(@update.attachments) do %>
-                    <div
-                      class="relative"
-                      x-data={"#{"{hidden: #{Media.is_graphic(@update.media)}}"}"}
-                      x-bind:class="hidden && 'min-h-[12rem]'"
-                    >
+                    <div x-data={"#{"{hidden: #{Media.is_graphic(@update.media)}}"}"}>
                       <%= if Media.is_graphic(@update.media) do %>
                         <div
-                          class="w-full z-[2] h-full absolute bg-neutral-50 rounded-lg flex items-center justify-around top-0"
+                          class={"flex items-center justify-around py-4 " <> if @interactive, do: "bg-neutral-50", else: ""}
                           x-show="hidden"
                         >
-                          <div class="text-center w-48 py-4">
+                          <div class="text-center w-48">
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
                               class="mx-auto h-8 w-8 text-critical-600"
@@ -1038,6 +1035,7 @@ defmodule PlatformWeb.Components do
                               This media may be graphic. Please proceed with caution.
                             </p>
                             <button
+                              :if={@interactive}
                               type="button"
                               x-on:click="hidden = false"
                               class="button mt-1 original py-1 px-2 text-xs"
@@ -1047,7 +1045,7 @@ defmodule PlatformWeb.Components do
                           </div>
                         </div>
                       <% end %>
-                      <div class="p-2 grid grid-cols-2 md:grid-cols-3 gap-2">
+                      <div class="p-2 grid grid-cols-2 md:grid-cols-3 gap-2" x-show="!hidden" x-cloak>
                         <%= for {attachment, idx} <- @update.attachments |> Enum.with_index() do %>
                           <% url =
                             Uploads.UpdateAttachment.url({attachment, @update.media}, :original,
@@ -1075,7 +1073,7 @@ defmodule PlatformWeb.Components do
                           </div>
                         <% end %>
                       </div>
-                      <%= if Media.is_graphic(@update.media) do %>
+                      <%= if Media.is_graphic(@update.media) and @interactive do %>
                         <div class="px-2 pb-2 flex justify-end" x-show="!hidden" x-cloak>
                           <button
                             type="button"

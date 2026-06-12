@@ -388,6 +388,7 @@ defmodule PlatformWeb.SearchLive.SearchComponent do
                                   current_user={@current_user}
                                   show_line={false}
                                   show_media={true}
+                                  interactive={false}
                                   id_prefix="search"
                                 />
                               </div>
