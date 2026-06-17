@@ -27,29 +27,29 @@ defmodule PlatformWeb.AdminlandLive.UserListLive do
                       scope="col"
                       class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6"
                     >
-                      User
+                      <%= gettext("User") %>
                     </th>
                     <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                      Status
+                      <%= gettext("Status") %>
                     </th>
                     <th
                       :if={Platform.Billing.is_enabled?()}
                       scope="col"
                       class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
                     >
-                      Plan
+                      <%= gettext("Plan") %>
                     </th>
                     <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                      Bio
+                      <%= gettext("Bio") %>
                     </th>
                     <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                      Joined
+                      <%= gettext("Joined") %>
                     </th>
                     <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                      MFA
+                      <%= gettext("MFA") %>
                     </th>
                     <th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-6">
-                      <span class="sr-only">More</span>
+                      <span class="sr-only"><%= gettext("More") %></span>
                     </th>
                   </tr>
                 </thead>
@@ -63,7 +63,7 @@ defmodule PlatformWeb.AdminlandLive.UserListLive do
                               class="relative z-30 inline-block h-10 w-10 rounded-full ring-2 ring-white"
                               src={Accounts.get_profile_photo_path(user)}
                               title={user.username}
-                              alt={"Profile photo for #{user.username}"}
+                              alt={gettext("Profile photo for %{username}", username: user.username)}
                             />
                           </div>
                           <div class="ml-4">
@@ -87,7 +87,7 @@ defmodule PlatformWeb.AdminlandLive.UserListLive do
                           <span class="chip ~positive mb-1"><%= item %></span>
                         <% end %>
                         <%= if length(user.restrictions || []) + length(user.roles || []) == 0 do %>
-                          <span class="chip ~neutral mb-1">regular</span>
+                          <span class="chip ~neutral mb-1"><%= gettext("regular") %></span>
                         <% end %>
                       </td>
                       <td
@@ -96,7 +96,7 @@ defmodule PlatformWeb.AdminlandLive.UserListLive do
                       >
                         <% plan = Platform.Billing.get_user_plan(user) %>
                         <p :if={plan.is_free} class="chip ~neutral whitespace-nowrap">
-                          No Plan
+                          <%= gettext("No Plan") %>
                         </p>
                         <p :if={not plan.is_free} class="chip ~positive whitespace-nowrap">
                           <%= plan.name %>
@@ -110,14 +110,14 @@ defmodule PlatformWeb.AdminlandLive.UserListLive do
                       </td>
                       <td class="max-w-md px-3 py-4 text-sm text-gray-500">
                         <%= if user.has_mfa do %>
-                          <span class="chip ~positive mb-1">enabled</span>
+                          <span class="chip ~positive mb-1"><%= gettext("enabled") %></span>
                         <% else %>
-                          <span class="chip ~critical mb-1">disabled</span>
+                          <span class="chip ~critical mb-1"><%= gettext("disabled") %></span>
                         <% end %>
                       </td>
                       <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
                         <.link patch={"/profile/#{user.username}"} class="text-button">
-                          Details
+                          <%= gettext("Details") %>
                         </.link>
                       </td>
                     </tr>

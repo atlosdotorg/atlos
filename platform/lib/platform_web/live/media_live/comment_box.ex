@@ -101,7 +101,7 @@ defmodule PlatformWeb.MediaLive.CommentBox do
 
         {:noreply,
          socket
-         |> put_flash(:info, "Your comment has been posted.")
+         |> put_flash(:info, gettext("Your comment has been posted."))
          |> reset_state()
          |> push_patch(to: Routes.media_show_path(socket, :show, socket.assigns.media.slug))}
 
@@ -111,7 +111,7 @@ defmodule PlatformWeb.MediaLive.CommentBox do
       _ ->
         {:noreply,
          socket
-         |> put_flash(:error, "Unable to post your comment.")}
+         |> put_flash(:error, gettext("Unable to post your comment."))}
     end
   end
 
@@ -177,13 +177,13 @@ defmodule PlatformWeb.MediaLive.CommentBox do
             <img
               class="inline-block h-10 w-10 rounded-full"
               src={Accounts.get_profile_photo_path(@current_user)}
-              alt="Your profile photo"
+              alt={gettext("Your profile photo")}
             />
           </div>
           <div class="min-w-0 grow">
             <div class="relative">
               <div class="-ml-1 border border-gray-300 rounded-lg shadow-sm overflow-hidden focus-within:border-urge-500 focus-within:ring-1 focus-within:ring-urge-500 transition pt-1">
-                <label for="comment" class="sr-only">Add a comment...</label>
+                <label for="comment" class="sr-only"><%= gettext("Add a comment...") %></label>
                 <.interactive_textarea
                   disabled={@disabled}
                   form={f}
@@ -192,8 +192,8 @@ defmodule PlatformWeb.MediaLive.CommentBox do
                   model="content"
                   placeholder={
                     if(@disabled,
-                      do: "Commenting has been disabled",
-                      else: "Add a comment..."
+                      do: gettext("Commenting has been disabled"),
+                      else: gettext("Add a comment...")
                     )
                   }
                   id={"comment-parent-input-#{@render_id}"}
@@ -222,8 +222,8 @@ defmodule PlatformWeb.MediaLive.CommentBox do
                   </div>
                 </div>
                 <div class="flex-shrink-0">
-                  <%= submit("Post",
-                    phx_disable_with: "Posting...",
+                  <%= submit(gettext("Post"),
+                    phx_disable_with: gettext("Posting..."),
                     class: "button ~urge @high",
                     disabled: @disabled
                   ) %>

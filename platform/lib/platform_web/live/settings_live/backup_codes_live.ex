@@ -10,7 +10,7 @@ defmodule PlatformWeb.SettingsLive.BackupCodesLive do
     if cs.valid? do
       {:ok,
        socket
-       |> assign(:title, "Set Up Backup Codes")
+       |> assign(:title, gettext("Set Up Backup Codes"))
        |> assign(:valid, true)}
     else
       # This should normally be unreachable
@@ -23,7 +23,7 @@ defmodule PlatformWeb.SettingsLive.BackupCodesLive do
   def render(assigns) do
     ~H"""
     <div class="space-y-8 max-w-xl md:mx-auto mx-4">
-      <h1 class="page-header">Set Up Backup Codes</h1>
+      <h1 class="page-header"><%= gettext("Set Up Backup Codes") %></h1>
       <.mfa_status user={@current_user} />
       <%= if @current_user.has_mfa && @valid do %>
         <.live_component
@@ -33,9 +33,9 @@ defmodule PlatformWeb.SettingsLive.BackupCodesLive do
         />
       <% end %>
       <%= if @current_user.has_mfa && !@valid do %>
-        <p class="text-red-600">Invalid backup code.</p>
+        <p class="text-red-600"><%= gettext("Invalid backup code.") %></p>
       <% end %>
-      <.link navigate="/settings/mfa" class="text-button mt-4 block">&larr; Multifactor Auth</.link>
+      <.link navigate="/settings/mfa" class="text-button mt-4 block">&larr; <%= gettext("Multifactor Auth") %></.link>
     </div>
     """
   end

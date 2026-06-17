@@ -39,21 +39,21 @@ defmodule PlatformWeb.AdminlandLive.SecurityLive do
             <.card>
               <:header>
                 <div class="md:flex justify-between items-center">
-                  <p class="sec-head">Security Mode</p>
+                  <p class="sec-head"><%= gettext("Security Mode") %></p>
                   <.link
                     class="button ~urge @high float-right"
                     patch={Routes.adminland_index_path(@socket, :security_mode_create)}
                   >
-                    Change Security Mode
+                    <%= gettext("Change Security Mode") %>
                   </.link>
                 </div>
               </:header>
               <div class="aside ~neutral text-sm mb-4">
                 <p>
                   <strong class="font-semibold">
-                    Security modes enable admins to quickly restrict behavior on Atlos.
+                    <%= gettext("Security modes enable admins to quickly restrict behavior on Atlos.") %>
                   </strong>
-                  Security modes can be useful for scheduled maintenance, or for responding to potential security incidents. Admins have the ability to restrict editing by all non-admin users, or to block all non-admin users from accessing Atlos.
+                  <%= gettext("Security modes can be useful for scheduled maintenance, or for responding to potential security incidents. Admins have the ability to restrict editing by all non-admin users, or to block all non-admin users from accessing Atlos.") %>
                 </p>
               </div>
               <%= if length(@security_modes) > 0 do %>
@@ -65,25 +65,25 @@ defmodule PlatformWeb.AdminlandLive.SecurityLive do
                           scope="col"
                           class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6"
                         >
-                          Description
+                          <%= gettext("Description") %>
                         </th>
                         <th
                           scope="col"
                           class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
                         >
-                          Set
+                          <%= gettext("Set") %>
                         </th>
                         <th
                           scope="col"
                           class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
                         >
-                          Mode
+                          <%= gettext("Mode") %>
                         </th>
                         <th
                           scope="col"
                           class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
                         >
-                          User
+                          <%= gettext("User") %>
                         </th>
                       </tr>
                     </thead>
@@ -124,14 +124,14 @@ defmodule PlatformWeb.AdminlandLive.SecurityLive do
                       d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"
                     />
                   </svg>
-                  <h3 class="mt-2 text-sm font-medium text-gray-900">No security mode changes</h3>
-                  <p class="mt-1 text-sm text-gray-500">You can change the security mode below.</p>
+                  <h3 class="mt-2 text-sm font-medium text-gray-900"><%= gettext("No security mode changes") %></h3>
+                  <p class="mt-1 text-sm text-gray-500"><%= gettext("You can change the security mode below.") %></p>
                   <div class="mt-6">
                     <.link
                       class="button ~urge @high"
                       patch={Routes.adminland_index_path(@socket, :security_mode_create)}
                     >
-                      Change Security Mode
+                      <%= gettext("Change Security Mode") %>
                     </.link>
                   </div>
                 </div>
@@ -141,16 +141,16 @@ defmodule PlatformWeb.AdminlandLive.SecurityLive do
             <.card>
               <div class="md:flex items-center justify-between">
                 <div>
-                  <p class="sec-head">Reset All Sessions</p>
-                  <p class="sec-subhead">In an emergency, you can easily log everyone out.</p>
+                  <p class="sec-head"><%= gettext("Reset All Sessions") %></p>
+                  <p class="sec-subhead"><%= gettext("In an emergency, you can easily log everyone out.") %></p>
                 </div>
                 <button
                   class="button ~critical @high"
-                  data-confirm="Are you sure you would like to log everyone out? This will log you out as well."
+                  data-confirm={gettext("Are you sure you would like to log everyone out? This will log you out as well.")}
                   phx-click="reset_sessions"
                   phx-target={@myself}
                 >
-                  Reset All Sessions
+                  <%= gettext("Reset All Sessions") %>
                 </button>
               </div>
             </.card>
@@ -158,10 +158,10 @@ defmodule PlatformWeb.AdminlandLive.SecurityLive do
         </div>
       </div>
       <%= if @show_creation_modal do %>
-        <.modal target={@myself} close_confirmation={}>
+        <.modal target={@myself}>
           <div class="mb-8">
             <p class="sec-head">
-              New security mode
+              <%= gettext("New security mode") %>
             </p>
           </div>
           <.live_component

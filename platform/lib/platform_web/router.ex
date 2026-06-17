@@ -9,6 +9,7 @@ defmodule PlatformWeb.Router do
     plug(RemoteIp)
     plug(:accepts, ["html"])
     plug(:fetch_session)
+    plug(PlatformWeb.Plugs.SetLocale)
     plug(:fetch_live_flash)
     plug(:put_root_layout, {PlatformWeb.LayoutView, :root})
     plug(:protect_from_forgery)

@@ -82,18 +82,18 @@
       <p class="p-4 text-urge-600">
         <span class="font-medium" x-text="selectedCountToDisplay()" />
         <span x-show="selectedCount() > 1">
-          incidents
+          <%= gettext("incidents") %>
         </span>
         <span x-show="selectedCount() === 1">
-          incident
+          <%= gettext("incident") %>
         </span>
-        selected
+        <%= gettext("selected") %>
       </p>
       <div class="p-4 hover:bg-neutral-50 transition">
-        <.dropdown label="Add tag">
+        <.dropdown label={gettext("Add tag")}>
           <div class="p-4 ts-ignore flex flex-col gap-4" x-data="{tag: null}">
             <select x-model="tag" class="w-full input-base" id="bulk-action-select">
-              <option value="">Select a tag</option>
+              <option value=""><%= gettext("Select a tag") %></option>
               <%= for tag <- Platform.Material.Attribute.options(Platform.Material.Attribute.get_attribute(:tags, project: @active_project)) do %>
                 <option value={tag}><%= tag %></option>
               <% end %>
@@ -104,20 +104,20 @@
               phx-click="bulk_apply_tag"
               x-bind:phx-value-tag="tag"
               x-bind:phx-value-selection="selectedValuesJSON()"
-              x-bind:data-confirm="`Are you sure you want to apply the tag '${tag}' to the ${selectedCountToDisplay()} selected incident(s)?`"
+              x-bind:data-confirm={"`" <> gettext("Are you sure you want to apply the tag '%{tag}' to the %{count} selected incident(s)?", tag: "${tag}", count: "${selectedCountToDisplay()}") <> "`"}
               x-on:confirmed="open = false"
-              phx-disable-with="Working..."
+              phx-disable-with={gettext("Working...")}
             >
-              Apply
+              <%= gettext("Apply") %>
             </button>
           </div>
         </.dropdown>
       </div>
       <div class="p-4 hover:bg-neutral-50 transition">
-        <.dropdown label="Set status">
+        <.dropdown label={gettext("Set status")}>
           <div class="p-4 ts-ignore flex flex-col gap-4" x-data="{status: null}">
             <select x-model="status" class="w-full input-base" id="status-select">
-              <option value="">Select a status</option>
+              <option value=""><%= gettext("Select a status") %></option>
               <%= for status <- Platform.Material.Attribute.options(Platform.Material.Attribute.get_attribute(:status, project: @active_project)) do %>
                 <option value={status}><%= status %></option>
               <% end %>
@@ -128,20 +128,20 @@
               phx-click="bulk_apply_status"
               x-bind:phx-value-status="status"
               x-bind:phx-value-selection="selectedValuesJSON()"
-              x-bind:data-confirm="`Are you sure you want to set the status to ${status} for the ${selectedCountToDisplay()} selected incident(s)?`"
+              x-bind:data-confirm={"`" <> gettext("Are you sure you want to set the status to %{status} for the %{count} selected incident(s)?", status: "${status}", count: "${selectedCountToDisplay()}") <> "`"}
               x-on:confirmed="open = false"
-              phx-disable-with="Working..."
+              phx-disable-with={gettext("Working...")}
             >
-              Apply
+              <%= gettext("Apply") %>
             </button>
           </div>
         </.dropdown>
       </div>
       <div class="p-4 hover:bg-neutral-50 transition">
-        <.dropdown label="Copy to Project">
+        <.dropdown label={gettext("Copy to Project")}>
           <div class="p-4 ts-ignore flex flex-col gap-4" x-data="{project_id: null}">
             <select x-model="project_id" class="w-full input-base" id="project_id-select">
-              <option value="">Select a project...</option>
+              <option value=""><%= gettext("Select a project...") %></option>
               <% base_project_id = if Enum.empty?(@media), do: nil, else: hd(@media).project_id %>
               <%= for project <- Platform.Projects.list_editable_projects_for_user(@current_user) do %>
                 <option value={project.id}>
@@ -155,11 +155,11 @@
               phx-click="bulk_copy_to_project"
               x-bind:phx-value-project-id="project_id"
               x-bind:phx-value-selection="selectedValuesJSON()"
-              x-bind:data-confirm="`Are you sure you want to copy the ${selectedCountToDisplay()} selected incidents into ${project.name}?`"
+              x-bind:data-confirm={"`" <> gettext("Are you sure you want to copy the %{count} selected incidents into %{project_name}?", count: "${selectedCountToDisplay()}", project_name: "${project.name}") <> "`"}
               x-on:confirmed="open = false"
-              phx-disable-with="Working..."
+              phx-disable-with={gettext("Working...")}
             >
-              Apply
+              <%= gettext("Apply") %>
             </button>
           </div>
         </.dropdown>
@@ -171,10 +171,10 @@
           x-bind:disabled="isAllSelected"
           x-bind:class="{'opacity-50': isAllSelected}"
         >
-          Select All <span x-text="maxSelectableToDisplay()" />
+          <%= gettext("Select All") %> <span x-text="maxSelectableToDisplay()" />
         </button>
         <button x-on:click="deselectAll()" class="text-button">
-          Close
+          <%= gettext("Close") %>
         </button>
       </div>
     </div>
@@ -211,25 +211,17 @@
           <strong class="font-medium text-neutral-700">
             <%= @bulk_background_task.result.message %>
           </strong>
-          <%= @bulk_background_task.result.success_count %> <%= Platform.Utils.pluralize(
-            @bulk_background_task.result.success_count,
-            "incident was",
-            "incidents were"
-          ) %> modified, and <%= @bulk_background_task.result.failure_count %> <%= Platform.Utils.pluralize(
-            @bulk_background_task.result.failure_count,
-            "incident was",
-            "incidents were"
-          ) %> skipped.
+          <%= ngettext("%{count} incident was modified", "%{count} incidents were modified", @bulk_background_task.result.success_count, count: @bulk_background_task.result.success_count) %>, <%= gettext("and") %> <%= ngettext("%{count} incident was skipped", "%{count} incidents were skipped", @bulk_background_task.result.failure_count, count: @bulk_background_task.result.failure_count) %>.
           <%= if @bulk_background_task.result.failure_count > 0 do %>
-            Skipped actions are usually a result of insufficient permissions.
+            <%= gettext("Skipped actions are usually a result of insufficient permissions.") %>
           <% end %>
           <button
             type="button"
             phx-click="dismiss_bulk_background_task"
             class="ml-2"
-            data-tooltip="Dismiss"
+            data-tooltip={gettext("Dismiss")}
           >
-            <span class="sr-only">Dismiss</span>
+            <span class="sr-only"><%= gettext("Dismiss") %></span>
             <Heroicons.x_mark mini class="h-5 w-5 text-gray-400" />
           </button>
         </section>
@@ -238,14 +230,14 @@
           class="flex gap-2 items-center"
         >
           <Heroicons.x_circle mini class="h-5 w-5 text-red-600" />
-          Unable to complete your bulk action.
+          <%= gettext("Unable to complete your bulk action.") %>
           <button
             type="button"
             phx-click="dismiss_bulk_background_task"
             class="ml-2"
-            data-tooltip="Dismiss"
+            data-tooltip={gettext("Dismiss")}
           >
-            <span class="sr-only">Dismiss</span>
+            <span class="sr-only"><%= gettext("Dismiss") %></span>
             <Heroicons.x_mark mini class="h-5 w-5 text-gray-400" />
           </button>
         </section>
@@ -312,12 +304,12 @@
                 <span class="font-medium text-neutral-800">
                   <%= nongeolocated_length |> Formatter.format_number() %>
                 </span>
-                ungeolocated incidents also match &rarr;
+                <%= gettext("ungeolocated incidents also match") %> &rarr;
               </button>
             <% end %>
             <%= if Enum.empty?(@media) do %>
               <div class="relative text-sm shadow md:-mt-4 z-[10] bg-white py-2 px-4 rounded-full text-center mx-auto text-neutral-600">
-                No results found
+                <%= gettext("No results found") %>
               </div>
             <% end %>
           </div>
@@ -335,9 +327,9 @@
               <div class="flex flex-col items-center justify-around h-full min-h-[60vh]">
                 <div class="flex flex-col justify-around items-center gap-4">
                   <Heroicons.squares_2x2 class="h-16 w-16 text-neutral-400" />
-                  <h2 class="text-lg font-medium text-center">Select a project</h2>
+                  <h2 class="text-lg font-medium text-center"><%= gettext("Select a project") %></h2>
                   <p class="text-sm text-neutral-600 mb-8 text-center">
-                    Every project has a different schema &mdash; select a project to view these incidents in a table.
+                    <%= gettext("Every project has a different schema — select a project to view these incidents in a table.") %>
                   </p>
                   <%= if not Enum.empty?(@user_projects) do %>
                     <div class="flex flex-wrap justify-center gap-2 md:max-w-prose">
@@ -359,7 +351,7 @@
                     </div>
                   <% else %>
                     <p class="italic text-sm text-neutral-600 text-center">
-                      You don't have any projects.
+                      <%= gettext("You don't have any projects.") %>
                     </p>
                   <% end %>
                 </div>
@@ -380,7 +372,7 @@
                             scope="col"
                             class="md:sticky left-0 z-[101] top-0 border-b border-t border-neutral-200 bg-neutral-100 px-2 py-3 font-medium text-sm text-left"
                           >
-                            Incident
+                            <%= gettext("Incident") %>
                           </th>
                           <%= for {attr, group} <- @attributes_with_groups do %>
                             <th
@@ -400,7 +392,7 @@
                               scope="col"
                               class="md:sticky z-[100] top-0 border-b border-t border-neutral-200 bg-neutral-100 bg-opacity-[95%] px-4 py-3 font-medium text-sm text-left"
                             >
-                              Source <%= idx + 1 %>
+                              <%= gettext("Source %{count}", count: idx + 1) %>
                             </th>
                           <% end %>
                         </tr>
@@ -440,15 +432,15 @@
                                   class="flex-shrink-0 w-5 mr-2 group-hover:block"
                                   x-bind:class={"{'hidden': !hasItemSelected('#{media.id}')}"}
                                   x-cloak
-                                  x-bind:title="(() => {
+                                  x-bind:title={"(() => {
                                     if (isAllSelected) {
-                                      return `All ${selectedCountToDisplay()} incidents are selected, so individual incidents cannot be deselected.`
+                                      return `" <> gettext("All %{count} incidents are selected, so individual incidents cannot be deselected.", count: "${selectedCountToDisplay()}") <> "`
                                     } else if (hasItemSelected('#{media.id}')) {
-                                      return 'Deselect this incident'
+                                      return '" <> gettext("Deselect this incident") <> "'
                                     } else {
-                                      return 'Select this incident'
+                                      return '" <> gettext("Select this incident") <> "'
                                     }
-                                  })()"
+                                  })()"}
                                 >
                                   <input
                                     x-on:change={"setItemSelected('#{media.id}', $event.target.checked)"}
@@ -495,7 +487,7 @@
                                     <% end %>
                                     <%= if is_subscribed do %>
                                       <span
-                                        data-tooltip="You're subscribed"
+                                        data-tooltip={gettext("You're subscribed")}
                                         class="text-neutral-400"
                                       >
                                         <svg
@@ -512,20 +504,20 @@
                                           />
                                         </svg>
                                         <span class="sr-only">
-                                          You&apos;re subscribed
+                                          <%= gettext("You're subscribed") %>
                                         </span>
                                       </span>
                                     <% end %>
                                     <%= if media.is_assigned do %>
-                                      <span data-tooltip="You're assigned" class="text-urge-600">
+                                      <span data-tooltip={gettext("You're assigned")} class="text-urge-600">
                                         <Heroicons.bookmark mini class="h-3 w-3" />
                                         <span class="sr-only">
-                                          You&apos;re assigned
+                                          <%= gettext("You're assigned") %>
                                         </span>
                                       </span>
                                     <% end %>
                                     <%= if has_unread_notification do %>
-                                      <span data-tooltip="Unread notification">
+                                      <span data-tooltip={gettext("Unread notification")}>
                                         <svg
                                           viewBox="0 0 120 120"
                                           xmlns="http://www.w3.org/2000/svg"
@@ -535,7 +527,7 @@
                                           <circle cx="60" cy="60" r="40" />
                                         </svg>
                                         <span class="sr-only">
-                                          Unread notification
+                                          <%= gettext("Unread notification") %>
                                         </span>
                                       </span>
                                     <% end %>
@@ -575,7 +567,7 @@
                                 <%= cond do %>
                                   <% length(versions) > @source_cols + 1 && idx == @source_cols -> %>
                                     <span class="text-neutral-400 px-4 text-sm whitespace-nowrap">
-                                      <%= length(versions) - @source_cols %> more source(s) available on the incident page
+                                      <%= ngettext("%{count} more source available on the incident page", "%{count} more sources available on the incident page", length(versions) - @source_cols, count: length(versions) - @source_cols) %>
                                     </span>
                                   <% not is_nil(version) -> %>
                                     <div class="text-sm flex items-center text-gray-900 px-4 whitespace-nowrap text-ellipsis overflow-hidden h-6 w-[12rem]">

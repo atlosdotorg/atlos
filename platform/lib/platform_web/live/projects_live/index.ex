@@ -11,7 +11,7 @@ defmodule PlatformWeb.ProjectsLive.Index do
   def handle_params(_params, _uri, socket) do
     {:noreply,
      socket
-     |> assign(:title, "Projects")
+     |> assign(:title, gettext("Projects"))
      |> assign(:projects, Projects.list_projects_for_user(socket.assigns.current_user))}
   end
 
@@ -31,11 +31,11 @@ defmodule PlatformWeb.ProjectsLive.Index do
     <article class="w-full xl:max-w-screen-xl md:mx-auto px-4">
       <div class="mb-8 flex flex-col md:flex-row md:justify-between gap-4 pb-4 border-b">
         <h1 class="text-3xl font-medium heading">
-          Projects
+          <%= gettext("Projects") %>
         </h1>
         <%= if Permissions.can_create_project?(@current_user) do %>
           <.link patch="/projects/new" class="button ~urge @high">
-            New Project
+            <%= gettext("New Project") %>
           </.link>
         <% end %>
       </div>
@@ -57,12 +57,12 @@ defmodule PlatformWeb.ProjectsLive.Index do
                 d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"
               />
             </svg>
-            <h3 class="mt-2 text-sm font-medium text-gray-900">No projects</h3>
+            <h3 class="mt-2 text-sm font-medium text-gray-900"><%= gettext("No projects") %></h3>
             <%= if Permissions.can_create_project?(@current_user) do %>
-              <p class="mt-1 text-sm text-gray-500">Get started by creating a new project.</p>
+              <p class="mt-1 text-sm text-gray-500"><%= gettext("Get started by creating a new project.") %></p>
               <div class="mt-6">
                 <.link type="button" class="button ~urge @high" patch="/projects/new">
-                  New Project
+                  <%= gettext("New Project") %>
                 </.link>
               </div>
             <% end %>
@@ -77,7 +77,7 @@ defmodule PlatformWeb.ProjectsLive.Index do
         <%= if not Enum.empty?(inactive_projects) do %>
           <div class="mt-16">
             <h2 class="text-xl font-medium">
-              Archived Projects
+              <%= gettext("Archived Projects") %>
             </h2>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
               <%= for project <- inactive_projects do %>
@@ -88,10 +88,10 @@ defmodule PlatformWeb.ProjectsLive.Index do
         <% end %>
       </div>
       <%= if @live_action == :new do %>
-        <.modal target={} close_confirmation="Your changes will be lost. Are you sure?">
+        <.modal target={nil} close_confirmation={gettext("Your changes will be lost. Are you sure?")}>
           <div class="mb-8">
             <p class="sec-head">
-              New Project
+              <%= gettext("New Project") %>
             </p>
           </div>
           <.live_component

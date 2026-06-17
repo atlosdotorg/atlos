@@ -12,7 +12,7 @@ defmodule PlatformWeb.MediaLive.MergeVersionsLive do
        |> assign_new(:destination, fn -> nil end)
        |> assign_new(:changeset, fn -> changeset(%{}, assigns.source, socket) end)}
     else
-      raise PlatformWeb.Errors.Unauthorized, "No permission"
+      raise PlatformWeb.Errors.Unauthorized, gettext("No permission")
     end
   end
 
@@ -38,18 +38,18 @@ defmodule PlatformWeb.MediaLive.MergeVersionsLive do
         slug ->
           case Material.get_full_media_by_slug(slug) do
             nil ->
-              [{field, "This incident doesn't seem to exist. Is the six-character correct?"}]
+              [{field, gettext("This incident doesn't seem to exist. Is the six-character correct?")}]
 
             media ->
               cond do
                 not Permissions.can_view_media?(socket.assigns.current_user, media) ->
-                  [{field, "This incident doesn't seem to exist. Is the six-character correct?"}]
+                  [{field, gettext("This incident doesn't seem to exist. Is the six-character correct?")}]
 
                 not Permissions.can_edit_media?(socket.assigns.current_user, media) ->
-                  [{field, "You don't have permission to edit this incident."}]
+                  [{field, gettext("You don't have permission to edit this incident.")}]
 
                 media.id == source.id ->
-                  [{field, "You cannot merge media into itself."}]
+                  [{field, gettext("You cannot merge media into itself.")}]
 
                 true ->
                   []
@@ -120,17 +120,17 @@ defmodule PlatformWeb.MediaLive.MergeVersionsLive do
             <%= label(
               f,
               :destination,
-              "What is the slug (code) of the incident to merge media into?"
+              gettext("What is the slug (code) of the incident to merge media into?")
             ) %>
-            <%= text_input(f, :destination, placeholder: "E.g., 123456", phx_debounce: "250") %>
+            <%= text_input(f, :destination, placeholder: gettext("E.g., 123456"), phx_debounce: "250") %>
             <p class="support">
-              Media from <%= @source.slug %> will be copied to this incident.
+              <%= gettext("Media from %{slug} will be copied to this incident.", slug: @source.slug) %>
             </p>
             <%= error_tag(f, :destination) %>
           </div>
           <%= submit(
-            "Merge",
-            phx_disable_with: "Merging...",
+            gettext("Merge"),
+            phx_disable_with: gettext("Merging..."),
             class: "button ~urge @high"
           ) %>
         </div>

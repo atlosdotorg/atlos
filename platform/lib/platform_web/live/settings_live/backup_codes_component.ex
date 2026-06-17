@@ -55,9 +55,9 @@ defmodule PlatformWeb.SettingsLive.BackupComponent do
     <div>
       <.card>
         <:header>
-          <h3 class="sec-head">Backup Codes</h3>
+          <h3 class="sec-head"><%= gettext("Backup Codes") %></h3>
           <p class="sec-subhead">
-            Generate backup codes to use in case you lose access to your authenticator app.
+            <%= gettext("Generate backup codes to use in case you lose access to your authenticator app.") %>
           </p>
         </:header>
         <p class="-mt-1">
@@ -81,47 +81,47 @@ defmodule PlatformWeb.SettingsLive.BackupComponent do
                     target: "_blank"
                 do %>
                 <div>
-                  <Heroicons.arrow_down_tray mini class="w-4 h-4 mr-1 inline-block" /> Download
+                  <Heroicons.arrow_down_tray mini class="w-4 h-4 mr-1 inline-block" /> <%= gettext("Download") %>
                 </div>
               <% end %>
               <button
                 phx-click="generate_recovery_codes"
                 phx-target={@myself}
-                data-confirm="Please confirm that you want to generate a new set of backup codes. Your old codes will no longer work after this action."
+                data-confirm={gettext("Please confirm that you want to generate a new set of backup codes. Your old codes will no longer work after this action.")}
                 class="button ~urge @high mt-4"
               >
                 <span class="phx-only-during-reg">
-                  <Heroicons.arrow_path mini class="w-4 h-4 mr-1 inline-block" /> Regenerate Codes
+                  <Heroicons.arrow_path mini class="w-4 h-4 mr-1 inline-block" /> <%= gettext("Regenerate Codes") %>
                 </span>
                 <span class="phx-only-during-submit">
-                  <.loading_spinner text="Generating..." />
+                  <.loading_spinner text={gettext("Generating...")} />
                 </span>
               </button>
               <button
                 phx-click="delete_recovery_codes"
-                data-confirm="Please confirm that you want to remove all backup codes. You won't be able to use those backup codes again."
+                data-confirm={gettext("Please confirm that you want to remove all backup codes. You won't be able to use those backup codes again.")}
                 phx-target={@myself}
                 class="button ~critical @high mt-4"
               >
                 <span class="phx-only-during-reg">
-                  <Heroicons.trash mini class="w-4 h-4 mr-1 inline-block" /> Delete All Codes
+                  <Heroicons.trash mini class="w-4 h-4 mr-1 inline-block" /> <%= gettext("Delete All Codes") %>
                 </span>
                 <span class="phx-only-during-submit">
-                  <.loading_spinner text="Deleting..." />
+                  <.loading_spinner text={gettext("Deleting...")} />
                 </span>
               </button>
             </div>
           <% else %>
             <p class="support">
-              You currently don't have any backup codes setup. Backup codes can be used to log into Atlos if you lose access to your authenticator app.
+              <%= gettext("You currently don't have any backup codes setup. Backup codes can be used to log into Atlos if you lose access to your authenticator app.") %>
             </p>
             <button
               phx-click="generate_recovery_codes"
-              phx-disable-with="Generating codes..."
+              phx-disable-with={gettext("Generating codes...")}
               phx-target={@myself}
               class="button ~urge @high mt-4"
             >
-              Get Backup Codes
+              <%= gettext("Get Backup Codes") %>
             </button>
           <% end %>
         </p>

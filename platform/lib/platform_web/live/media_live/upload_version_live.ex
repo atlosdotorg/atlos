@@ -108,7 +108,7 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
       {:noreply,
        socket
        |> assign(:changeset, changeset)
-       |> assign(:error, "Please be sure to provide a photo or video and its source link.")}
+       |> assign(:error, gettext("Please be sure to provide a photo or video and its source link."))}
     else
       entry = hd(socket.assigns.uploads.media_upload.entries)
 
@@ -189,11 +189,11 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
   end
 
   defp friendly_error(:too_large),
-    do: "This file is too large; the maximum size is 250 megabytes."
+    do: gettext("This file is too large; the maximum size is 250 megabytes.")
 
   defp friendly_error(:not_accepted),
     do:
-      "The file type you are uploading is not supported. Please contact us if you think this is an error."
+      gettext("The file type you are uploading is not supported. Please contact us if you think this is an error.")
 
   def render(assigns) do
     active_uploads = Enum.filter(assigns.uploads.media_upload.entries, &(!&1.cancelled?))
@@ -222,7 +222,7 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
             class="text-sm label ~neutral"
             type="button"
           >
-            Cancel Upload
+            <%= gettext("Cancel Upload") %>
           </button>
           """
         end
@@ -275,9 +275,9 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
                 </svg>
                 <div class="w-full text-sm text-gray-600">
                   <div class="w-42 mt-2 text-center">
-                    <p class="font-medium text-neutral-800 mb-1">Processing your media...</p>
+                    <p class="font-medium text-neutral-800 mb-1"><%= gettext("Processing your media...") %></p>
                     <p>
-                      This might take a moment. You will be redirected to the incident once the upload is complete.
+                      <%= gettext("This might take a moment. You will be redirected to the incident once the upload is complete.") %>
                     </p>
                   </div>
                 </div>
@@ -302,7 +302,7 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
                       />
                     </svg>
                     <div class="w-full text-sm text-gray-600">
-                      <p>Something went wrong while processing your upload.</p>
+                      <p><%= gettext("Something went wrong while processing your upload.") %></p>
                       <%= for entry <- @uploads.media_upload.entries do %>
                         <%= for err <- upload_errors(@uploads.media_upload, entry) do %>
                           <p class="my-2"><%= friendly_error(err) %></p>
@@ -312,7 +312,7 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
                         for={@uploads.media_upload.ref}
                         class="relative cursor-pointer bg-white rounded-md font-medium !text-urge-600 hover:text-urge-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-urge-500"
                       >
-                        <span>Upload another file</span>
+                        <span><%= gettext("Upload another file") %></span>
                       </label>
                     </div>
                   </div>
@@ -336,7 +336,7 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
                     <div class="w-full text-sm text-gray-600">
                       <%= for entry <- @uploads.media_upload.entries do %>
                         <div class="w-42 mt-4 text-center">
-                          <p>Selected: <%= Utils.truncate(entry.client_name) %></p>
+                          <p><%= gettext("Selected: %{name}", name: Utils.truncate(entry.client_name)) %></p>
                         </div>
                       <% end %>
                     </div>
@@ -368,24 +368,24 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
                         for={@uploads.media_upload.ref}
                         class="relative cursor-pointer bg-white rounded-md font-medium !text-urge-600 hover:text-urge-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-urge-500"
                       >
-                        <span>Upload a file</span>
+                        <span><%= gettext("Upload a file") %></span>
                       </label>
-                      <p class="pl-1 text-center">or drag and drop</p>
+                      <p class="pl-1 text-center"><%= gettext("or drag and drop") %></p>
                     </div>
-                    <p class="text-xs text-gray-500">Any file up to 250MB</p>
+                    <p class="text-xs text-gray-500"><%= gettext("Any file up to 250MB") %></p>
                   </div>
               <% end %>
             </div>
           </div>
           <%= if not @processing do %>
             <div>
-              <%= label(f, :source_url, "Where did this media come from? (Optional)") %>
+              <%= label(f, :source_url, gettext("Where did this media come from? (Optional)")) %>
               <%= url_input(f, :source_url,
-                placeholder: "https://example.com/...",
+                placeholder: gettext("https://example.com/..."),
                 phx_debounce: "250"
               ) %>
               <p class="support">
-                This might be a tweet, a Telegram message, or something else. Where did the media come from?
+                <%= gettext("This might be a tweet, a Telegram message, or something else. Where did the media come from?") %>
               </p>
               <%= error_tag(f, :source_url) %>
 
@@ -394,13 +394,13 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
               <% end %>
             </div>
             <div>
-              <%= label(f, :explanation, "Briefly Explain Your Addition") %>
+              <%= label(f, :explanation, gettext("Briefly Explain Your Addition")) %>
               <div class="border border-gray-300 rounded shadow-sm overflow-hidden focus-within:border-urge-500 focus-within:ring-1 focus-within:ring-urge-500 transition">
                 <.interactive_textarea
                   form={f}
                   disabled={false}
                   name={:explanation}
-                  placeholder="Optionally provide more context on this media."
+                  placeholder={gettext("Optionally provide more context on this media.")}
                   id="comment-box-parent-input"
                   rows={1}
                   class="block w-full !border-0 resize-none focus:ring-0 sm:text-sm shadow-none"
@@ -410,8 +410,8 @@ defmodule PlatformWeb.MediaLive.UploadVersionLive do
             </div>
             <div class="flex flex-col sm:flex-row gap-4 justify-between sm:items-center">
               <%= submit(
-                "Publish to Atlos",
-                phx_disable_with: "Uploading...",
+                gettext("Publish to Atlos"),
+                phx_disable_with: gettext("Uploading..."),
                 class: "button ~urge @high"
               ) %>
             </div>

@@ -40,7 +40,7 @@ defmodule PlatformWeb.ProjectsLive.InvitesComponent do
       |> Map.put("owner_id", socket.assigns.current_user.id)
 
     if not can_edit(socket) do
-      raise PlatformWeb.Errors.Unauthorized, "You do not have permission to edit this project"
+      raise PlatformWeb.Errors.Unauthorized, gettext("You do not have permission to edit this project")
     end
 
     Invites.change_invite(
@@ -55,7 +55,7 @@ defmodule PlatformWeb.ProjectsLive.InvitesComponent do
 
   def handle_event("deactivate_invite", %{"id" => invite_id}, socket) do
     if not can_edit(socket) do
-      raise PlatformWeb.Errors.Unauthorized, "You do not have permission to edit this project"
+      raise PlatformWeb.Errors.Unauthorized, gettext("You do not have permission to edit this project")
     end
 
     invite =
@@ -77,12 +77,12 @@ defmodule PlatformWeb.ProjectsLive.InvitesComponent do
     {:noreply,
      socket
      |> assign_invites()
-     |> put_flash(:info, "Deactivated the invite. It can no longer be used to join the project.")}
+     |> put_flash(:info, gettext("Deactivated the invite. It can no longer be used to join the project."))}
   end
 
   def handle_event("create_invite", %{}, socket) do
     if not can_edit(socket) do
-      raise PlatformWeb.Errors.Unauthorized, "You do not have permission to edit this project"
+      raise PlatformWeb.Errors.Unauthorized, gettext("You do not have permission to edit this project")
     end
 
     {:noreply,
@@ -102,7 +102,7 @@ defmodule PlatformWeb.ProjectsLive.InvitesComponent do
 
   def handle_event("save", %{"invite" => params}, socket) do
     if not can_edit(socket) do
-      raise PlatformWeb.Errors.Unauthorized, "You do not have permission to edit this project"
+      raise PlatformWeb.Errors.Unauthorized, gettext("You do not have permission to edit this project")
     end
 
     params =
@@ -150,9 +150,9 @@ defmodule PlatformWeb.ProjectsLive.InvitesComponent do
     ~H"""
     <div class="flex flex-col lg:flex-row gap-4 pt-8 w-full">
       <div class="mb-4 lg:w-[20rem] lg:mr-16">
-        <p class="sec-head text-xl">Invites</p>
+        <p class="sec-head text-xl"><%= gettext("Invites") %></p>
         <p class="sec-subhead">
-          View and manage invitations to this project.
+          <%= gettext("View and manage invitations to this project.") %>
         </p>
       </div>
       <section class="flex flex-col mb-8 grow">
@@ -162,10 +162,10 @@ defmodule PlatformWeb.ProjectsLive.InvitesComponent do
               <%= if Enum.empty?(@invites) do %>
                 <div class="text-center w-full bg-white border rounded-lg shadow py-8 px-8">
                   <Heroicons.user_plus class="mx-auto h-8 w-8 text-gray-400" />
-                  <h3 class="mt-2 text-sm font-medium text-gray-900">No invites</h3>
+                  <h3 class="mt-2 text-sm font-medium text-gray-900"><%= gettext("No invites") %></h3>
                   <%= if @can_edit do %>
                     <p class="mt-1 text-sm text-gray-500">
-                      Add users to this project by creating an invite.
+                      <%= gettext("Add users to this project by creating an invite.") %>
                     </p>
                     <div class="mt-6">
                       <button
@@ -174,7 +174,7 @@ defmodule PlatformWeb.ProjectsLive.InvitesComponent do
                         phx-target={@myself}
                         phx-click="create_invite"
                       >
-                        New Invite
+                        <%= gettext("New Invite") %>
                       </button>
                     </div>
                   <% end %>
@@ -190,38 +190,38 @@ defmodule PlatformWeb.ProjectsLive.InvitesComponent do
                               scope="col"
                               class="pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6 py-4"
                             >
-                              Link
+                              <%= gettext("Link") %>
                             </th>
                             <th
                               scope="col"
                               class="pr-3 text-left text-sm font-semibold text-gray-900 py-4"
                             >
-                              Expires
+                              <%= gettext("Expires") %>
                             </th>
                             <th
                               scope="col"
                               class="pr-3 text-left text-sm font-semibold text-gray-900 py-4"
                             >
-                              Single Use
+                              <%= gettext("Single Use") %>
                             </th>
                             <th
                               scope="col"
                               class="pr-3 text-left text-sm font-semibold text-gray-900 py-4"
                             >
-                              Creator
+                              <%= gettext("Creator") %>
                             </th>
                             <th
                               scope="col"
                               class="pr-3 text-left text-sm font-semibold text-gray-900 py-4"
                             >
-                              Users
+                              <%= gettext("Users") %>
                             </th>
                             <th
                               scope="col"
                               class="pr-3 text-left text-sm font-semibold text-gray-900 py-4"
-                              data-tooltip="Users who use this invite will be added to the project with this role."
+                              data-tooltip={gettext("Users who use this invite will be added to the project with this role.")}
                             >
-                              Role
+                              <%= gettext("Role") %>
                             </th>
                             <th
                               scope="col"
@@ -234,10 +234,10 @@ defmodule PlatformWeb.ProjectsLive.InvitesComponent do
                                   phx-click="create_invite"
                                   phx-target={@myself}
                                 >
-                                  Create Invite
+                                  <%= gettext("Create Invite") %>
                                 </button>
                               <% end %>
-                              <span class="sr-only">Manage</span>
+                              <span class="sr-only"><%= gettext("Manage") %></span>
                             </th>
                           </tr>
                         </thead>
@@ -256,7 +256,7 @@ defmodule PlatformWeb.ProjectsLive.InvitesComponent do
                                 >
                                   <Heroicons.link mini class="h-5 w-5 text-urge-400" />
                                   <span class="truncate">
-                                    Copy Link
+                                    <%= gettext("Copy Link") %>
                                   </span>
                                 </button>
                               </td>
@@ -265,9 +265,9 @@ defmodule PlatformWeb.ProjectsLive.InvitesComponent do
                               </td>
                               <td class="pr-3 text-sm text-gray-600">
                                 <%= if invite.single_use do %>
-                                  Yes
+                                  <%= gettext("Yes") %>
                                 <% else %>
-                                  No
+                                  <%= gettext("No") %>
                                 <% end %>
                               </td>
                               <td class="pr-3 text-sm text-gray-600 -ml-2">
@@ -283,22 +283,22 @@ defmodule PlatformWeb.ProjectsLive.InvitesComponent do
                                   users={invite.uses |> Enum.map(& &1.user)}
                                 />
                                 <span :if={Enum.empty?(invite.uses)} class="text-gray-500">
-                                  No one
+                                  <%= gettext("No one") %>
                                 </span>
                               </td>
                               <td class="pr-3 text-sm text-gray-500">
                                 <div>
                                   <%= case invite.project_access_level do %>
                                     <% :owner -> %>
-                                      <span class="chip ~critical @high">Owner</span>
+                                      <span class="chip ~critical @high"><%= gettext("Owner") %></span>
                                     <% :manager -> %>
-                                      <span class="chip ~critical">Manager</span>
+                                      <span class="chip ~critical"><%= gettext("Manager") %></span>
                                     <% :editor -> %>
-                                      <span class="chip ~info">Editor</span>
+                                      <span class="chip ~info"><%= gettext("Editor") %></span>
                                     <% :viewer -> %>
-                                      <span class="chip ~neutral">Viewer</span>
+                                      <span class="chip ~neutral"><%= gettext("Viewer") %></span>
                                     <% :data_only_viewer -> %>
-                                      <span class="chip ~neutral">Data-only Viewer</span>
+                                      <span class="chip ~neutral"><%= gettext("Data-only Viewer") %></span>
                                   <% end %>
                                 </div>
                               </td>
@@ -309,12 +309,12 @@ defmodule PlatformWeb.ProjectsLive.InvitesComponent do
                                     class="text-button text-neutral-600 mr-2"
                                     phx-click="deactivate_invite"
                                     phx-value-id={invite.id}
-                                    data-confirm="Are you sure that you want deactivate this invite code?"
-                                    data-tooltip="Deactivate this invite code"
+                                    data-confirm={gettext("Are you sure that you want deactivate this invite code?")}
+                                    data-tooltip={gettext("Deactivate this invite code")}
                                   >
                                     <Heroicons.minus_circle mini class="h-5 w-5" />
                                     <span class="sr-only">
-                                      Deactivate this invite
+                                      <%= gettext("Deactivate this invite") %>
                                     </span>
                                   </button>
                                 <% end %>
@@ -333,12 +333,12 @@ defmodule PlatformWeb.ProjectsLive.InvitesComponent do
       </section>
       <.modal
         :if={not is_nil(@changeset) and @can_edit}
-        target={}
+        target={@myself}
         close_confirmation="Your changes will be lost. Are you sure?"
       >
         <div class="mb-8">
           <p class="sec-head">
-            Invite others to <%= @project.name %>
+            <%= gettext("Invite others to %{project_name}", project_name: @project.name) %>
           </p>
         </div>
         <.form
@@ -351,26 +351,25 @@ defmodule PlatformWeb.ProjectsLive.InvitesComponent do
           <div class="text-sm text-urge-800 flex flex-col gap-4 bg-urge-50 border border-urge-600 p-4 rounded">
             <p>
               <span class="font-semibold">
-                Invite others to this project by creating an invite code.
+                <%= gettext("Invite others to this project by creating an invite code.") %>
               </span>
-              Users who use the invite
-              code will be added to the project with the role you select below.
+              <%= gettext("Users who use the invite code will be added to the project with the role you select below.") %>
             </p>
             <p>
-              You can share invite codes with individuals without an Atlos account; they will be prompted to create an account when they use the invite code.
+              <%= gettext("You can share invite codes with individuals without an Atlos account; they will be prompted to create an account when they use the invite code.") %>
             </p>
           </div>
           <div>
-            <%= label(@form, :expires, "Expires") %>
+            <%= label(@form, :expires, gettext("Expires")) %>
             <div id="invite-expires" phx-update="ignore">
               <%= select(@form, :expires, [
-                {"In 24 hours",
+                {gettext("In 24 hours"),
                  NaiveDateTime.utc_now()
                  |> NaiveDateTime.add(24, :hour)
                  |> NaiveDateTime.to_iso8601()},
-                {"In 7 days",
+                {gettext("In 7 days"),
                  NaiveDateTime.utc_now() |> NaiveDateTime.add(7, :day) |> NaiveDateTime.to_iso8601()},
-                {"In 30 days",
+                {gettext("In 30 days"),
                  NaiveDateTime.utc_now()
                  |> NaiveDateTime.add(30, :day)
                  |> NaiveDateTime.to_iso8601()}
@@ -379,32 +378,32 @@ defmodule PlatformWeb.ProjectsLive.InvitesComponent do
             <%= error_tag(@form, :expires) %>
           </div>
           <div>
-            <%= label(
+             <%= label(
               @form,
               :project_access_level,
-              "Role"
+              gettext("Role")
             ) %>
             <div class="phx-form" id="member-role-select" phx-update="ignore">
               <%= select(
                 @form,
                 :project_access_level,
                 [
-                  {"Data-only Viewer", "data_only_viewer"},
-                  {"Viewer", "viewer"},
-                  {"Editor", "editor"},
-                  {"Manager", "manager"},
-                  {"Owner", "owner"}
+                  {gettext("Data-only Viewer"), "data_only_viewer"},
+                  {gettext("Viewer"), "viewer"},
+                  {gettext("Editor"), "editor"},
+                  {gettext("Manager"), "manager"},
+                  {gettext("Owner"), "owner"}
                 ],
                 "data-descriptions":
                   Jason.encode!(%{
                     "data_only_viewer" =>
-                      "Can view data but not comments or project members, and cannot edit or create",
-                    "viewer" => "Can view and comment, but not edit or create",
-                    "editor" => "Can view, comment, and edit, but not mark as complete",
+                      gettext("Can view data but not comments or project members, and cannot edit or create"),
+                    "viewer" => gettext("Can view and comment, but not edit or create"),
+                    "editor" => gettext("Can view, comment, and edit, but not mark as complete"),
                     "manager" =>
-                      "Can view, comment, edit, mark as complete, and edit completed incidents",
+                      gettext("Can view, comment, edit, mark as complete, and edit completed incidents"),
                     "owner" =>
-                      "Everything managers can do, plus add and remove members to the project"
+                      gettext("Everything managers can do, plus add and remove members to the project")
                   })
               ) %>
             </div>
@@ -413,7 +412,7 @@ defmodule PlatformWeb.ProjectsLive.InvitesComponent do
           <div>
             <div class="flex items-center gap-2">
               <%= checkbox(@form, :single_use) %>
-              <%= label(@form, :single_use, "Limit this invite to one use only",
+              <%= label(@form, :single_use, gettext("Limit this invite to one use only"),
                 class: "text-neutral-600"
               ) %>
             </div>
@@ -421,38 +420,38 @@ defmodule PlatformWeb.ProjectsLive.InvitesComponent do
           </div>
           <div>
             <%= submit(
-              "Create invite",
-              phx_disable_with: "Saving...",
+              gettext("Create invite"),
+              phx_disable_with: gettext("Saving..."),
               class: "button ~urge @high"
             ) %>
           </div>
         </.form>
       </.modal>
-      <.modal :if={not is_nil(@active_invite)} target={}>
+      <.modal :if={not is_nil(@active_invite)} target={@myself}>
         <div class="flex items-center flex-col gap-4" x-data="{pulse: false}">
           <Heroicons.link class="h-8 w-8 text-urge-500" />
           <p class="font-medium text-lg">
-            Your invite is ready to go
+            <%= gettext("Your invite is ready to go") %>
           </p>
           <p class="text-sm text-center text-gray-600">
-            Share the link below with others to invite them to this project. If they don't have an Atlos account, they will be prompted to create one.
+            <%= gettext("Share the link below with others to invite them to this project. If they don't have an Atlos account, they will be prompted to create one.") %>
           </p>
           <% url = Routes.invite_url(@socket, :new, @active_invite.code) %>
           <button
             type="button"
             x-bind:class="pulse ? 'animate-ping' : ''"
             class="font-mono text-center text-sm text-urge-600 rounded bg-urge-50 p-2 cursor-pointer"
-            data-tooltip="Click to copy"
+            data-tooltip={gettext("Click to copy")}
             x-on:click={"window.setClipboard(#{Jason.encode!(url)}); pulse = true; setTimeout(() => pulse = false, 500)"}
           >
             <%= url %>
           </button>
           <p class="text-sm text-center text-gray-600">
-            This invite will expire on <.rel_time time={@active_invite.expires} /> and can be used
+            <%= gettext("This invite will expire on") %> <.rel_time time={@active_invite.expires} /> <%= gettext("and can be used") %>
             <%= if @active_invite.single_use do %>
-              only once.
+              <%= gettext("only once.") %>
             <% else %>
-              multiple times.
+              <%= gettext("multiple times.") %>
             <% end %>
           </p>
         </div>

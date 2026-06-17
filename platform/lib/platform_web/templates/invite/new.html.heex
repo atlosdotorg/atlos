@@ -5,11 +5,11 @@
         <%= if @is_member_already do %>
           <div class="prose prose-sm text-center">
             <p>
-              You are already a member of the project, so you don't need to accept this invitation.
+              <%= gettext("You are already a member of the project, so you don't need to accept this invitation.") %>
             </p>
           </div>
           <a href={"/projects/#{@invite.project.id}"} class="base-button">
-            Go to project
+            <%= gettext("Go to project") %>
           </a>
         <% else %>
           <.form
@@ -17,9 +17,9 @@
             method="post"
             action={Routes.invite_path(@conn, :accept, @invite.code)}
           >
-            <%= submit("Accept invitation", class: "button ~urge @high shadow-xs") %>
+            <%= submit(gettext("Accept invitation"), class: "button ~urge @high shadow-xs") %>
             <.link to="/" class="base-button">
-              Cancel
+              <%= gettext("Cancel") %>
             </.link>
           </.form>
         <% end %>
@@ -28,15 +28,15 @@
   <% else %>
     <Heroicons.exclamation_triangle class="h-12 w-12 text-critical-500" />
     <h2 class="text-lg md:text-xl text-neutral-800 font-medium text-center px-4">
-      Sorry, this invite is not valid.
+      <%= gettext("Sorry, this invite is not valid.") %>
     </h2>
     <div class="prose prose-sm text-center">
       <p>
-        Please ask the person who invited you to send you a new invitation.
+        <%= gettext("Please ask the person who invited you to send you a new invitation.") %>
       </p>
     </div>
     <a href="/" class="base-button">
-      Return home
+      <%= gettext("Return home") %>
     </a>
   <% end %>
 </section>

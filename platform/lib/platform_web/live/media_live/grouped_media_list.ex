@@ -4,10 +4,10 @@ defmodule PlatformWeb.MediaLive.GroupedMediaList do
 
   def groups(%Platform.Accounts.User{} = _user) do
     [
-      {"To Do", %{"attr_status" => ["To Do"]}},
-      {"In Progress", %{"attr_status" => ["In Progress"]}},
-      {"Help Needed", %{"attr_status" => ["Help Needed"]}},
-      {"Ready for Review", %{"attr_status" => ["Ready for Review"]}}
+      {gettext("To Do"), %{"attr_status" => ["To Do"]}},
+      {gettext("In Progress"), %{"attr_status" => ["In Progress"]}},
+      {gettext("Help Needed"), %{"attr_status" => ["Help Needed"]}},
+      {gettext("Ready for Review"), %{"attr_status" => ["Ready for Review"]}}
     ]
   end
 
@@ -59,11 +59,11 @@ defmodule PlatformWeb.MediaLive.GroupedMediaList do
                 class="block sm:mt-0 font-medium text-neutral-600 hover:text-neutral-800"
                 navigate={link}
               >
-                All
+                <%= gettext("All") %>
                 <span class={"badge text-sm mb-px " <> Platform.Material.Attribute.attr_color(:status, label)}>
                   <%= label %>
                 </span>
-                incidents &rarr;
+                <%= gettext("incidents") %> &rarr;
               </.link>
             </div>
             <%= if Enum.empty?(media) do %>
@@ -83,7 +83,7 @@ defmodule PlatformWeb.MediaLive.GroupedMediaList do
                     d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"
                   />
                 </svg>
-                <h3 class="mt-2 font-medium text-gray-900">No incidents</h3>
+                <h3 class="mt-2 font-medium text-gray-900"><%= gettext("No incidents") %></h3>
               </div>
             <% else %>
               <div class="grid gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 sm:grid-rows-1">

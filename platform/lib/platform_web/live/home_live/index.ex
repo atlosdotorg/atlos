@@ -6,7 +6,7 @@ defmodule PlatformWeb.HomeLive.Index do
   def mount(_params, _session, socket) do
     {:ok,
      socket
-     |> assign(:title, "Home")}
+     |> assign(:title, gettext("Home"))}
   end
 
   def handle_params(_params, _uri, socket) do

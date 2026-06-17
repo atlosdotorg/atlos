@@ -12,7 +12,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
     if not is_nil(assigns.project) and
          not Permissions.can_edit_project_metadata?(assigns.current_user, assigns.project) and
          not Permissions.can_change_project_active_status?(assigns.current_user, assigns.project) do
-      raise PlatformWeb.Errors.Unauthorized, "You do not have permission to edit this project"
+      raise PlatformWeb.Errors.Unauthorized, gettext("You do not have permission to edit this project")
     end
 
     socket =
@@ -289,11 +289,11 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
 
   def type_mapping,
     do: [
-      "Single Select": :select,
-      "Multiple Select": :multi_select,
-      Text: :text,
-      Date: :date,
-      Location: :location
+      {gettext("Single Select"), :select},
+      {gettext("Multiple Select"), :multi_select},
+      {gettext("Text"), :text},
+      {gettext("Date"), :date},
+      {gettext("Location"), :location}
     ]
 
   def name_mapping,
@@ -424,7 +424,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
           <%= @decorator_for.label %>
         </span>
         <%= label(@f_attr, :enabled, class: "!flex items-center gap-2") do %>
-          <span class="text-xs text-neutral-500 !font-normal">Enable</span>
+          <span class="text-xs text-neutral-500 !font-normal"><%= gettext("Enable") %></span>
           <%= checkbox(@f_attr, :enabled,
             "x-on:change": "if ($event.target.checked) { open = true; console.log('opening', open) }"
           ) %>
@@ -468,7 +468,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
           class:
             "block shadow-sm w-full rounded border border-gray-300 my-1 py-2 pl-3 pr-10 text-base focus:border-urge-500 focus:outline-none focus:ring-urge-500 sm:text-sm"
         ) %>
-        <p class="support">After creation, modifying an attribute's type is limited.</p>
+        <p class="support"><%= gettext("After creation, modifying an attribute's type is limited.") %></p>
         <%= error_tag(@f_attr, :type) %>
       </div>
       <div :if={@enabled} x-transition>
@@ -476,7 +476,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
         <%= text_input(@f_attr, :description, class: "my-1") %>
         <%= error_tag(@f_attr, :description) %>
         <p class="support">
-          Optional. The description will be displayed when editing this attribute.
+          <%= gettext("Optional. The description will be displayed when editing this attribute.") %>
         </p>
       </div>
       <%= if (Ecto.Changeset.get_field(@f_attr.source, :type) in [:select, :multi_select] or Ecto.Changeset.get_field(@f_attr.source, :type) == nil) do %>
@@ -492,17 +492,16 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
               <div>
                 <textarea
                   interactive-tags
-                  placeholder="Enter options for this attribute..."
+                  placeholder={gettext("Enter options for this attribute...")}
                   class="input-base bg-white overflow-hidden break-all !pr-1"
                   data-feedback={"textarea-#{id}"}
                 />
               </div>
             </div>
           </div>
-          <%= error_tag(@f_attr, :options) %>
           <%= error_tag(@f_attr, :options_json) %>
           <p class="support">
-            Press enter to add a new option.
+            <%= gettext("Press enter to add a new option.") %>
           </p>
         </div>
       <% end %>
@@ -514,7 +513,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
             </div>
             <div class="ml-3 flex-1 lg:flex lg:justify-between">
               <p class="text-sm text-blue-700">
-                Once you change to a multi-select, you will not be able to change back to a single-select.
+                <%= gettext("Once you change to a multi-select, you will not be able to change back to a single-select.") %>
               </p>
             </div>
           </div>
@@ -545,7 +544,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
             <%= text_input(ef, :description, class: "my-1") %>
             <%= error_tag(ef, :description) %>
             <p class="support">
-              Optional. The description will be displayed with this attribute group to provide additional context.
+              <%= gettext("Optional. The description will be displayed with this attribute group to provide additional context.") %>
             </p>
           </div>
           <div>
@@ -582,18 +581,18 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
             </div>
             <%= error_tag(ef, :color) %>
             <p class="support">
-              This color will help visually identify the attribute group.
+              <%= gettext("This color will help visually identify the attribute group.") %>
             </p>
           </div>
           <div class="mt-4">
             <p class="flex gap-2 items-center mb-1">
               <%= checkbox(ef, :show_in_creation_form) %>
               <%= label(ef, :show_in_creation_form, class: "!text-neutral-600 !font-normal") do %>
-                Include this group in the incident creation window
+                <%= gettext("Include this group in the incident creation window") %>
               <% end %>
             </p>
             <p class="support">
-              If enabled, the attributes in this group are included in the incident creation window. If disabled, the group's attributes aren't shown in the incident creation window but can still be edited directly on the incident page.
+              <%= gettext("If enabled, the attributes in this group are included in the incident creation window. If disabled, the group's attributes aren't shown in the incident creation window but can still be edited directly on the incident page.") %>
             </p>
             <%= error_tag(ef, :show_in_creation_form) %>
           </div>
@@ -606,7 +605,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
   def decorator_description(assigns) do
     ~H"""
     <span>
-      Decorators capture additional data for each attribute. For example, you can use decorators to associate confidence values with each attribute value.
+      <%= gettext("Decorators capture additional data for each attribute. For example, you can use decorators to associate confidence values with each attribute value.") %>
     </span>
     """
   end
@@ -619,7 +618,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
           :if={@editable}
           mini
           class="h-4 w-4 cursor-pointer text-gray-400 mr-2 -ml-2 handle shrink-0"
-          data-tooltip="Drag to move this attribute"
+          data-tooltip={gettext("Drag to move this attribute")}
         />
         <div>
           <%= @attr.label %>
@@ -643,12 +642,12 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
             phx-target={@myself}
           >
             <Heroicons.pencil_square mini class="h-5 w-5 text-urge-600" />
-            <span class="sr-only">Edit <%= @attr.label %></span>
+            <span class="sr-only"><%= gettext("Edit %{label}", label: @attr.label) %></span>
           </button>
         <% else %>
           <Heroicons.lock_closed
             class="h-5 w-5 text-gray-400"
-            data-tooltip="This is a core attribute and cannot be edited."
+            data-tooltip={gettext("This is a core attribute and cannot be edited.")}
           />
         <% end %>
       </div>
@@ -672,8 +671,8 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
           >
             <%= if length(@show_panes) > 1 do %>
               <div class="mb-4 lg:w-[20rem] lg:mr-16">
-                <p class="sec-head text-xl">General</p>
-                <p class="sec-subhead">General information about the project.</p>
+                <p class="sec-head text-xl"><%= gettext("General") %></p>
+                <p class="sec-subhead"><%= gettext("General information about the project.") %></p>
               </div>
             <% end %>
             <div class="flex flex-col gap-4 grow">
@@ -687,46 +686,46 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                   </div>
                   <div class="ml-3">
                     <h3 class="text-sm font-medium text-yellow-800">
-                      This project has been archived
+                      <%= gettext("This project has been archived") %>
                     </h3>
                     <div class="mt-2 text-sm text-yellow-700">
                       <p>
-                        This project has been archived, so it is not possible to edit its data or incidents. To edit this project, you must unarchive it first.
+                        <%= gettext("This project has been archived, so it is not possible to edit its data or incidents. To edit this project, you must unarchive it first.") %>
                       </p>
                     </div>
                   </div>
                 </div>
               </div>
               <div>
-                <%= label(f, :name) %>
+                <%= label(f, :name, gettext("Name")) %>
                 <%= text_input(f, :name,
-                  placeholder: "What should we call this project?",
+                  placeholder: gettext("What should we call this project?"),
                   disabled: not Permissions.can_edit_project_metadata?(@current_user, @project)
                 ) %>
                 <%= error_tag(f, :name) %>
               </div>
               <div>
-                <%= label(f, :code) %>
+                <%= label(f, :code, gettext("Code")) %>
                 <%= text_input(f, :code,
                   class: "uppercase font-mono",
-                  placeholder: "E.g., CIV",
+                  placeholder: gettext("E.g., CIV"),
                   disabled: not Permissions.can_edit_project_metadata?(@current_user, @project)
                 ) %>
                 <%= error_tag(f, :code) %>
                 <p class="support">
-                  This is a short code that will be used to identify this project in incident IDs. E.g., CIV-1234.
+                  <%= gettext("This is a short code that will be used to identify this project in incident IDs. E.g., CIV-1234.") %>
                 </p>
               </div>
               <div>
-                <%= label(f, :description) %>
+                <%= label(f, :description, gettext("Description")) %>
                 <%= textarea(f, :description,
-                  placeholder: "Provide a short description for the project...",
+                  placeholder: gettext("Provide a short description for the project..."),
                   disabled: not Permissions.can_edit_project_metadata?(@current_user, @project)
                 ) %>
                 <%= error_tag(f, :description) %>
               </div>
               <div>
-                <%= label(f, :color) %>
+                <%= label(f, :color, gettext("Color")) %>
                 <div id="color-picker" phx-update="ignore">
                   <div
                     class="flex gap-1 flex-wrap items-center"
@@ -761,22 +760,22 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                 </div>
                 <%= error_tag(f, :color) %>
                 <p class="support">
-                  This color will help visually identify the project.
+                  <%= gettext("This color will help visually identify the project.") %>
                 </p>
               </div>
               <details class="flex flex-col gap-4">
-                <summary class="text-button cursor-pointer text-sm">Advanced options</summary>
+                <summary class="text-button cursor-pointer text-sm"><%= gettext("Advanced options") %></summary>
                 <div class="mt-4">
                   <p class="flex gap-2 items-center mb-1">
                     <%= checkbox(f, :should_sync_with_internet_archive,
                       disabled: not Permissions.can_edit_project_metadata?(@current_user, @project)
                     ) %>
                     <%= label(f, :should_sync_with_internet_archive) do %>
-                      Share with the Internet Archive
+                      <%= gettext("Share with the Internet Archive") %>
                     <% end %>
                   </p>
                   <p class="support">
-                    If enabled, links added to this project as source material will be automatically archived by the <a href="https://archive.org">Internet Archive</a>.
+                    <%= gettext("If enabled, links added to this project as source material will be automatically archived by the %{internet_archive}.", internet_archive: "<a href=\"https://archive.org\">Internet Archive</a>") |> raw() %>
                   </p>
                   <%= error_tag(f, :should_sync_with_internet_archive) %>
                 </div>
@@ -786,11 +785,11 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                       disabled: not Permissions.can_edit_project_metadata?(@current_user, @project)
                     ) %>
                     <%= label(f, :source_material_archival_enabled) do %>
-                      Use built-in source material archival
+                      <%= gettext("Use built-in source material archival") %>
                     <% end %>
                   </p>
                   <p class="support">
-                    If enabled, Atlos will automatically archive source material links added to this project. Disable if you'd like to use a custom archival solution.
+                    <%= gettext("If enabled, Atlos will automatically archive source material links added to this project. Disable if you'd like to use a custom archival solution.") %>
                   </p>
                   <%= error_tag(f, :source_material_archival_enabled) %>
                 </div>
@@ -798,7 +797,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
               <div class="mt-8">
                 <div class="flex justify-between gap-4 flex-wrap">
                   <div>
-                    <%= submit("Save",
+                    <%= submit(gettext("Save"),
                       class: "button ~urge @high",
                       disabled: not Permissions.can_edit_project_metadata?(@current_user, @project)
                     ) %>
@@ -808,30 +807,30 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                       <%= if @project.active do %>
                         <button
                           phx-click="toggle_active"
-                          data-confirm="Are you sure you want to archive this project? Incidents will no longer be editable."
+                          data-confirm={gettext("Are you sure you want to archive this project? Incidents will no longer be editable.")}
                           class="button ~critical @high"
                           type="button"
                           phx-target={@myself}
-                          data-tooltip="Archiving a project freezes its data and prevents all members from creating or editing its incidents."
+                          data-tooltip={gettext("Archiving a project freezes its data and prevents all members from creating or editing its incidents.")}
                         >
-                          Archive Project
+                          <%= gettext("Archive Project") %>
                         </button>
                       <% else %>
                         <button
                           phx-click="toggle_active"
-                          data-confirm="Are you sure you want to unarchive this project? Incidents will be editable again."
+                          data-confirm={gettext("Are you sure you want to unarchive this project? Incidents will be editable again.")}
                           class="button ~critical @high"
                           type="button"
                           phx-target={@myself}
-                          data-tooltip="Archiving a project freezes its data and prevents all members from creating or editing its incidents."
+                          data-tooltip={gettext("Archiving a project freezes its data and prevents all members from creating or editing its incidents.")}
                         >
-                          Unarchive Project
+                          <%= gettext("Unarchive Project") %>
                         </button>
                       <% end %>
                     </div>
                   <% else %>
                     <button phx-click="close" class="base-button" type="button" phx-target={@myself}>
-                      Cancel
+                      <%= gettext("Cancel") %>
                     </button>
                   <% end %>
                 </div>
@@ -852,9 +851,9 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
             <div class="flex flex-col lg:flex-row gap-4 pt-8">
               <%= if length(@show_panes) > 1 do %>
                 <div class="mb-4 lg:w-[20rem] lg:mr-16 shrink-0">
-                  <p class="sec-head text-xl">Attributes</p>
+                  <p class="sec-head text-xl"><%= gettext("Attributes") %></p>
                   <p class="sec-subhead">
-                    Define the data model for incidents in this project. You can add new attributes, or edit the existing ones.
+                    <%= gettext("Define the data model for incidents in this project. You can add new attributes, or edit the existing ones.") %>
                   </p>
                   <div class="flex gap-2 mt-8">
                     <button
@@ -866,7 +865,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                       ,
                     >
                       <Heroicons.plus mini class="-ml-0.5 mr-2 text-urge-200 h-5 w-5" />
-                      Add&nbsp;Group
+                      <%= gettext("Add Group") %>
                     </button>
                     <button
                       :if={Permissions.can_edit_project_metadata?(@current_user, @project)}
@@ -877,7 +876,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                       ,
                     >
                       <Heroicons.plus mini class="-ml-0.5 mr-2 text-urge-200 h-5 w-5" />
-                      Add&nbsp;Attribute
+                      <%= gettext("Add Attribute") %>
                     </button>
                   </div>
                 </div>
@@ -891,7 +890,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                       </div>
                       <div class="ml-3 flex-1 lg:flex lg:justify-between">
                         <p class="text-sm text-blue-700">
-                          We've provided some default suggested attributes for this project. You can edit these attributes, or add new ones.
+                          <%= gettext("We've provided some default suggested attributes for this project. You can edit these attributes, or add new ones.") %>
                         </p>
                       </div>
                     </div>
@@ -906,7 +905,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                       js_on_close="document.cancelFormEvent($event)"
                     >
                       <section class="mb-6">
-                        <h2 class="sec-head">Create Group</h2>
+                        <h2 class="sec-head"><%= gettext("Create Group") %></h2>
                       </section>
                       <.edit_attribute_group
                         f={f}
@@ -916,7 +915,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                       />
                       <div class="mt-8 flex justify-between items-center">
                         <div class="flex items-center gap-2">
-                          <%= submit("Save", class: "button ~urge @high") %>
+                          <%= submit(gettext("Save"), class: "button ~urge @high") %>
                           <button
                             type="button"
                             phx-target={@myself}
@@ -924,7 +923,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                             class="base-button"
                             x-on:click="document.cancelFormEvent"
                           >
-                            Cancel
+                            <%= gettext("Cancel") %>
                           </button>
                         </div>
                       </div>
@@ -967,15 +966,15 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                                   <Heroicons.arrows_up_down
                                     mini
                                     class="h-4 w-4 cursor-pointer text-gray-400 handle"
-                                    data-tooltip="Drag to move this group"
+                                    data-tooltip={gettext("Drag to move this group")}
                                   />
                                 </h3>
                                 <span class="pr-6 text-left text-sm font-medium text-gray-900">
                                   <%= case group do %>
                                     <% :unassigned -> %>
-                                      Ungrouped Attributes
+                                      <%= gettext("Ungrouped Attributes") %>
                                     <% :core -> %>
-                                      Core Attributes
+                                      <%= gettext("Core Attributes") %>
                                     <% _ -> %>
                                       <%= group.name %>
                                   <% end %>
@@ -994,15 +993,15 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                                   phx-value-id={group.id}
                                   phx-target={@myself}
                                 >
-                                  Edit Group
+                                  <%= gettext("Edit Group") %>
                                 </button>
                               </div>
                               <p class="text-xs text-neutral-500 mx-4 mt-2 mb-3">
                                 <%= case group do %>
                                   <% :unassigned -> %>
-                                    Ungrouped attributes are not associated with any group.
+                                    <%= gettext("Ungrouped attributes are not associated with any group.") %>
                                   <% :core -> %>
-                                    Core attributes are required for all incidents. You can't modify core attributes.
+                                    <%= gettext("Core attributes are required for all incidents. You can't modify core attributes.") %>
                                   <% _ -> %>
                                     <%= group.description %>
                                 <% end %>
@@ -1026,7 +1025,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                                         js_on_close="document.cancelFormEvent($event)"
                                       >
                                         <section class="mb-6">
-                                          <h2 class="sec-head">Edit Group</h2>
+                                          <h2 class="sec-head"><%= gettext("Edit Group") %></h2>
                                         </section>
                                         <.edit_attribute_group
                                           f={f}
@@ -1036,7 +1035,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                                         />
                                         <div class="mt-8 flex justify-between items-center">
                                           <div>
-                                            <%= submit("Save", class: "button ~urge @high") %>
+                                            <%= submit(gettext("Save"), class: "button ~urge @high") %>
                                             <button
                                               type="button"
                                               phx-target={@myself}
@@ -1044,7 +1043,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                                               class="base-button"
                                               x-on:click="document.cancelFormEvent"
                                             >
-                                              Cancel
+                                              <%= gettext("Cancel") %>
                                             </button>
                                           </div>
                                           <button
@@ -1052,11 +1051,11 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                                             phx-target={@myself}
                                             phx-click="delete_group"
                                             phx-value-id={group_id}
-                                            data-confirm={"Are you sure you want to delete the group \"#{group.name}\"? This action cannot be undone. Attributes in this group will be moved to the unassigned group and will not be deleted."}
-                                            data-tooltip="Delete this group (without deleting its attributes)"
+                                            data-confirm={gettext("Are you sure you want to delete the group \"%{group_name}\"? This action cannot be undone. Attributes in this group will be moved to the unassigned group and will not be deleted.", group_name: group.name)}
+                                            data-tooltip={gettext("Delete this group (without deleting its attributes)")}
                                             class="button ~critical @high"
                                           >
-                                            Delete
+                                            <%= gettext("Delete") %>
                                           </button>
                                         </div>
                                       </.modal>
@@ -1081,7 +1080,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                                       data-sortable={to_string(group != :core)}
                                     >
                                       <div class="text-sm text-neutral-500 p-4 sibling-sortable-hidden">
-                                        There are no attributes in this group. Drag attributes into this group to add them.
+                                        <%= gettext("There are no attributes in this group. Drag attributes into this group to add them.") %>
                                       </div>
                                       <.inputs_for
                                         :let={f_attr}
@@ -1119,7 +1118,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                                                 js_on_close="document.cancelFormEvent($event)"
                                               >
                                                 <section class="mb-6">
-                                                  <h2 class="sec-head">Edit Custom Attribute</h2>
+                                                  <h2 class="sec-head"><%= gettext("Edit Custom Attribute") %></h2>
                                                 </section>
                                                 <.edit_custom_project_attribute
                                                   f_attr={f_attr}
@@ -1127,7 +1126,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                                                 />
                                                 <div class="mt-8 flex justify-between items-center">
                                                   <div>
-                                                    <%= submit("Save", class: "button ~urge @high") %>
+                                                    <%= submit(gettext("Save"), class: "button ~urge @high") %>
                                                     <button
                                                       type="button"
                                                       phx-target={@myself}
@@ -1135,7 +1134,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                                                       class="base-button"
                                                       x-on:click="document.cancelFormEvent"
                                                     >
-                                                      Cancel
+                                                      <%= gettext("Cancel") %>
                                                     </button>
                                                   </div>
                                                   <%= if Ecto.Changeset.get_field(f_attr.source, :id) do %>
@@ -1146,11 +1145,11 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                                                       phx-value-id={
                                                         Ecto.Changeset.get_field(f_attr.source, :id)
                                                       }
-                                                      data-confirm={"Are you sure you want to delete the attribute \"#{Ecto.Changeset.get_field(f_attr.source, :name)}\"? This action cannot be undone. This will remove this attribute from all incidents in this project."}
-                                                      data-tooltip="Delete this attribute"
+                                                      data-confirm={gettext("Are you sure you want to delete the attribute \"%{attribute_name}\"? This action cannot be undone. This will remove this attribute from all incidents in this project.", attribute_name: Ecto.Changeset.get_field(f_attr.source, :name))}
+                                                      data-tooltip={gettext("Delete this attribute")}
                                                       class="button ~critical @high"
                                                     >
-                                                      Delete
+                                                      <%= gettext("Delete") %>
                                                     </button>
                                                   <% end %>
                                                 </div>
@@ -1188,7 +1187,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                             js_on_close="document.cancelFormEvent($event)"
                           >
                             <section class="mb-4">
-                              <h2 class="sec-head">Manage Decorators</h2>
+                              <h2 class="sec-head"><%= gettext("Manage Decorators") %></h2>
                               <p class="sec-subhead">
                                 <.decorator_description />
                               </p>
@@ -1227,7 +1226,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                             </div>
                             <div class="flex justify-between items-center border-t -mx-6 px-6 pt-12">
                               <div>
-                                <%= submit("Save", class: "button ~urge @high") %>
+                                <%= submit(gettext("Save"), class: "button ~urge @high") %>
                                 <button
                                   type="button"
                                   phx-target={@myself}
@@ -1235,7 +1234,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                                   class="base-button"
                                   x-on:click="document.cancelFormEvent"
                                 >
-                                  Cancel
+                                  <%= gettext("Cancel") %>
                                 </button>
                               </div>
                             </div>
@@ -1245,7 +1244,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                       <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg relative divide-y divide-gray-300">
                         <div class="bg-gray-50 flex items-center justify-between px-4 sm:px-6">
                           <p class="py-3.5 text-left text-sm font-medium text-gray-900">
-                            Decorators
+                            <%= gettext("Decorators") %>
                           </p>
                           <button
                             :if={Permissions.can_edit_project_metadata?(@current_user, @project)}
@@ -1254,7 +1253,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                             phx-target={@myself}
                             class="text-button text-sm"
                           >
-                            Edit Decorators
+                            <%= gettext("Edit Decorators") %>
                           </button>
                         </div>
                         <div class="p-4 sm:p-6 bg-white">
@@ -1262,10 +1261,10 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
                           <p class="text-sm text-neutral-600">
                             <.decorator_description />
                             <span :if={Enum.empty?(decorators)}>
-                              You have not enabled any decorators.
+                              <%= gettext("You have not enabled any decorators.") %>
                             </span>
                             <span :if={not Enum.empty?(decorators)}>
-                              You have enabled the following decorators:
+                              <%= gettext("You have enabled the following decorators:") %>
                             </span>
                           </p>
                           <div :if={not Enum.empty?(decorators)} class="flex gap-2 flex-wrap mt-4">

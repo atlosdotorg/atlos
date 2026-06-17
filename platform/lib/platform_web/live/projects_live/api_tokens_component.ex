@@ -37,7 +37,7 @@ defmodule PlatformWeb.ProjectsLive.APITokensComponent do
       |> Map.put("creator_id", socket.assigns.current_user.id)
 
     if not can_edit(socket) do
-      raise PlatformWeb.Errors.Unauthorized, "You do not have permission to edit this project"
+      raise PlatformWeb.Errors.Unauthorized, gettext("You do not have permission to edit this project")
     end
 
     API.change_api_token(%APIToken{}, params)
@@ -55,7 +55,7 @@ defmodule PlatformWeb.ProjectsLive.APITokensComponent do
 
   def handle_event("deactivate_token", %{"id" => token_id}, socket) do
     if not can_edit(socket) do
-      raise PlatformWeb.Errors.Unauthorized, "You do not have permission to edit this project"
+      raise PlatformWeb.Errors.Unauthorized, gettext("You do not have permission to edit this project")
     end
 
     # We look through the tokens in the socket, rather than fetching them again,
@@ -141,9 +141,9 @@ defmodule PlatformWeb.ProjectsLive.APITokensComponent do
       <% can_edit = Permissions.can_edit_project_api_tokens?(@current_user, @project) %>
       <div :if={can_edit} class="flex flex-col lg:flex-row gap-4 pt-8 w-full">
         <div class="mb-4 lg:w-[20rem] lg:mr-16">
-          <p class="sec-head text-xl">API Tokens</p>
+          <p class="sec-head text-xl"><%= gettext("API Tokens") %></p>
           <p class="sec-subhead">
-            Use API tokens to connect your project to external services. You can create multiple tokens with different permissions.
+            <%= gettext("Use API tokens to connect your project to external services. You can create multiple tokens with different permissions.") %>
           </p>
         </div>
         <section class="flex-1 flex flex-col mb-8 grow">
@@ -153,16 +153,9 @@ defmodule PlatformWeb.ProjectsLive.APITokensComponent do
                 <div class="mb-8 bg-urge-50 border border-urge-400 aside ~urge prose text-sm w-full min-w-full">
                   <p>
                     <strong class="text-blue-800">
-                      The beta
-                      <a class="text-blue-800" href="https://docs.atlos.org/technical/api/">
-                        Atlos API
-                      </a>
-                      allows you to connect your project to external services.
+                      <%= gettext("The beta %{atlos_api} allows you to connect your project to external services.", atlos_api: "<a class=\"text-blue-800\" href=\"https://docs.atlos.org/technical/api/\">" <> gettext("Atlos API") <> "</a>") |> raw() %>
                     </strong>
-                    API tokens are sensitive, as they allow access to your project. Learn more about how to use the Atlos API in our <a
-                      class="text-blue-800"
-                      href="https://docs.atlos.org/technical/api/"
-                    >documentation</a>.
+                    <%= gettext("API tokens are sensitive, as they allow access to your project. Learn more about how to use the Atlos API in our %{documentation}.", documentation: "<a class=\"text-blue-800\" href=\"https://docs.atlos.org/technical/api/\">" <> gettext("documentation") <> "</a>") |> raw() %>
                   </p>
                 </div>
                 <div class="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
@@ -175,25 +168,25 @@ defmodule PlatformWeb.ProjectsLive.APITokensComponent do
                               scope="col"
                               class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6"
                             >
-                              Name
+                              <%= gettext("Name") %>
                             </th>
                             <th
                               scope="col"
                               class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
                             >
-                              Last used
+                              <%= gettext("Last used") %>
                             </th>
                             <th
                               scope="col"
                               class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
                             >
-                              Created
+                              <%= gettext("Created") %>
                             </th>
                             <th
                               scope="col"
                               class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
                             >
-                              Permissions
+                              <%= gettext("Permissions") %>
                             </th>
                             <th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-6 text-right">
                               <%= if can_edit do %>
@@ -203,17 +196,17 @@ defmodule PlatformWeb.ProjectsLive.APITokensComponent do
                                   phx-click="add_token"
                                   phx-target={@myself}
                                 >
-                                  Create
+                                  <%= gettext("Create") %>
                                 </button>
                               <% end %>
-                              <span class="sr-only">Deactivate</span>
+                              <span class="sr-only"><%= gettext("Deactivate") %></span>
                             </th>
                           </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-200 bg-white">
                           <tr :if={Enum.empty?(@tokens)} class="text-center py-8 text-gray-500">
                             <td class="py-4 px-4 bg-neutral-50">
-                              No API tokens have been created for this project.
+                              <%= gettext("No API tokens have been created for this project.") %>
                             </td>
                           </tr>
                           <tr :for={token <- @tokens} id={token.id}>
@@ -226,14 +219,14 @@ defmodule PlatformWeb.ProjectsLive.APITokensComponent do
                                 />
                               </span>
                               <%= if token.is_legacy do %>
-                                <span class="chip ~warning ml-2">Legacy</span>
+                                <span class="chip ~warning ml-2"><%= gettext("Legacy") %></span>
                               <% end %>
                               <%= if not token.is_active do %>
                                 <span
                                   class="chip ~critical ml-2"
-                                  data-tooltip="This token has been deactivated and can no longer be used."
+                                  data-tooltip={gettext("This token has been deactivated and can no longer be used.")}
                                 >
-                                  Deactivated
+                                  <%= gettext("Deactivated") %>
                                 </span>
                               <% end %>
                             </td>
@@ -241,11 +234,11 @@ defmodule PlatformWeb.ProjectsLive.APITokensComponent do
                               <%= if not is_nil(token.last_used) do %>
                                 <%= token.last_used |> Date.to_string() %>
                               <% else %>
-                                Never
+                                <%= gettext("Never") %>
                               <% end %>
                             </td>
                             <td class=" px-3 py-4 text-sm text-gray-500">
-                              <.rel_time time={token.inserted_at} /> by
+                              <.rel_time time={token.inserted_at} /> <%= gettext("by") %>
                               <.user_text user={token.creator} />
                             </td>
                             <td class=" px-3 py-4 text-sm text-gray-500 flex flex-wrap gap-1">
@@ -261,13 +254,13 @@ defmodule PlatformWeb.ProjectsLive.APITokensComponent do
                                   type="button"
                                   phx-click="deactivate_token"
                                   phx-target={@myself}
-                                  data-confirm={"Are you sure you want to deactivate the token \"#{token.name}\"? This action cannot be undone."}
+                                  data-confirm={gettext("Are you sure you want to deactivate the token \"%{token_name}\"? This action cannot be undone.", token_name: token.name)}
                                   phx-value-id={token.id}
                                   class="text-neutral-600 hover:text-neutral-900"
-                                  data-tooltip={"Deactivate " <> token.name}
+                                  data-tooltip={gettext("Deactivate %{token_name}", token_name: token.name)}
                                 >
                                   <Heroicons.minus_circle mini class="h-5 w-5" />
-                                  <span class="sr-only">Deactivate <%= token.name %></span>
+                                  <span class="sr-only"><%= gettext("Deactivate %{token_name}", token_name: token.name) %></span>
                                 </button>
                               <% end %>
                             </td>
@@ -283,7 +276,7 @@ defmodule PlatformWeb.ProjectsLive.APITokensComponent do
           <%= if not is_nil(@show_token) do %>
             <.modal
               target={@myself}
-              close_confirmation="Be sure to store your token, as you won't be able to see it again."
+              close_confirmation={gettext("Be sure to store your token, as you won't be able to see it again.")}
             >
               <div class="text-center">
                 <p class="flex justify-center">
@@ -304,7 +297,7 @@ defmodule PlatformWeb.ProjectsLive.APITokensComponent do
                 </p>
                 <h2 class="font-mono text-lg font-medium my-2"><%= @show_token.value %></h2>
                 <p class="text-gray-600 text-sm">
-                  Your API token "<%= @show_token.name %>" is shown above. Be sure to store it somewhere safe, as you won't be able to see it again.
+                  <%= gettext("Your API token \"%{token_name}\" is shown above. Be sure to store it somewhere safe, as you won't be able to see it again.", token_name: @show_token.name) %>
                 </p>
                 <p class="mt-4">
                   <button
@@ -313,17 +306,17 @@ defmodule PlatformWeb.ProjectsLive.APITokensComponent do
                     phx-click="close_token_display"
                     phx-target={@myself}
                   >
-                    Close
+                    <%= gettext("Close") %>
                   </button>
                 </p>
               </div>
             </.modal>
           <% end %>
           <%= if not is_nil(@changeset) and can_edit do %>
-            <.modal target={} close_confirmation="Your changes will be lost. Are you sure?">
+            <.modal target={@myself} close_confirmation={gettext("Your changes will be lost. Are you sure?")}>
               <div class="mb-8">
                 <p class="sec-head">
-                  Create an API token
+                  <%= gettext("Create an API token") %>
                 </p>
               </div>
               <.form
@@ -337,16 +330,16 @@ defmodule PlatformWeb.ProjectsLive.APITokensComponent do
                   <%= label(
                     @form,
                     :name,
-                    "What do you want to call this token?"
+                    gettext("What do you want to call this token?")
                   ) %>
                   <%= text_input(
                     @form,
                     :name,
-                    placeholder: "The name of the token...",
+                    placeholder: gettext("The name of the token..."),
                     phx_debounce: 1000
                   ) %>
                   <p class="support">
-                    This name will be visible to members of the project and associated with any actions performed by the token.
+                    <%= gettext("This name will be visible to members of the project and associated with any actions performed by the token.") %>
                   </p>
                   <%= error_tag(@form, :name) %>
                 </div>
@@ -355,17 +348,17 @@ defmodule PlatformWeb.ProjectsLive.APITokensComponent do
                   <%= label(
                     @form,
                     :description,
-                    "How will you use this API token?"
+                    gettext("How will you use this API token?")
                   ) %>
                   <%= textarea(
                     @form,
                     :description,
-                    placeholder: "Some information about this token...",
+                    placeholder: gettext("Some information about this token..."),
                     phx_debounce: 250,
                     rows: 3
                   ) %>
                   <p class="support">
-                    This is just for your reference, so you can remember what this token is for. It will be visible to other project owners.
+                    <%= gettext("This is just for your reference, so you can remember what this token is for. It will be visible to other project owners.") %>
                   </p>
                   <%= error_tag(@form, :description) %>
                 </div>
@@ -374,23 +367,23 @@ defmodule PlatformWeb.ProjectsLive.APITokensComponent do
                   <%= label(
                     @form,
                     :permissions,
-                    "What permissions should this token have?"
+                    gettext("What permissions should this token have?")
                   ) %>
                   <div id="permissions-select" phx-update="ignore">
                     <%= multiple_select(
                       @form,
                       :permissions,
                       [
-                        {"Read", "read"},
-                        {"Comment", "comment"},
-                        {"Edit", "edit"}
+                        {gettext("Read"), "read"},
+                        {gettext("Comment"), "comment"},
+                        {gettext("Edit"), "edit"}
                       ],
                       "data-descriptions":
                         Jason.encode!(%{
                           "read" =>
-                            "Can read incidents and comments, including hidden and restricted incidents",
-                          "comment" => "Can add comments to incidents",
-                          "edit" => "Can create incidents and edit incidents' attributes and metadata"
+                            gettext("Can read incidents and comments, including hidden and restricted incidents"),
+                          "comment" => gettext("Can add comments to incidents"),
+                          "edit" => gettext("Can create incidents and edit incidents' attributes and metadata")
                         }),
                       "data-required": Jason.encode!(["read"])
                     ) %>
@@ -400,8 +393,8 @@ defmodule PlatformWeb.ProjectsLive.APITokensComponent do
 
                 <div>
                   <%= submit(
-                    "Create Token",
-                    phx_disable_with: "Saving...",
+                    gettext("Create Token"),
+                    phx_disable_with: gettext("Saving..."),
                     class: "button ~urge @high"
                   ) %>
                 </div>

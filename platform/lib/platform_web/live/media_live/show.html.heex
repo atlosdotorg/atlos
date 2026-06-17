@@ -69,7 +69,7 @@
           <button
             class="font-mono text-base sm:text-2xl transition-all text-neutral-500 font-medium p-1 -m-1 rounded hover:bg-neutral-200 transition-all"
             x-bind:class="pulse ? 'animate-ping' : ''"
-            data-tooltip="Copy information to your clipboard"
+            data-tooltip={gettext("Copy information to your clipboard")}
             type="button"
             x-on:click={"window.setClipboard(#{Jason.encode!(title_for_copying)}); pulse = true; setTimeout(() => pulse = false, 500)"}
           >
@@ -85,7 +85,7 @@
             <.link
               class={title_classes <> " hover:bg-neutral-200 focus:bg-neutral-200"}
               patch={Routes.media_show_path(@socket, :edit, @media.slug, :description)}
-              data-tooltip="Edit description"
+              data-tooltip={gettext("Edit description")}
               replace={true}
             >
               <%= @media.attr_description %>
@@ -122,7 +122,7 @@
                   aria-expanded="true"
                   aria-haspopup="true"
                 >
-                  <span class="sr-only">Open options</span>
+                  <span class="sr-only"><%= gettext("Open options") %></span>
                   <!-- Heroicon name: solid/dots-vertical -->
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -137,7 +137,7 @@
                     />
                   </svg>
 
-                  <span class="md:hidden text-neutral-800 ml-1">Additional options</span>
+                  <span class="md:hidden text-neutral-800 ml-1"><%= gettext("Additional options") %></span>
                 </button>
               </div>
 
@@ -162,9 +162,9 @@
                     x-on:click="open = false"
                     data-confirm={
                       if @media.deleted,
-                        do: "Are you sure you want to restore this incident?",
+                        do: gettext("Are you sure you want to restore this incident?"),
                         else:
-                          "Are you sure you want to delete this incident? This action is reversible."
+                          gettext("Are you sure you want to delete this incident? This action is reversible.")
                     }
                   >
                     <svg
@@ -181,9 +181,9 @@
                     </svg>
 
                     <%= if @media.deleted do %>
-                      Restore
+                      <%= gettext("Restore") %>
                     <% else %>
-                      Delete
+                      <%= gettext("Delete") %>
                     <% end %>
                   </button>
                   <.link
@@ -202,7 +202,7 @@
                       <path d="M9.97.97a.75.75 0 011.06 0l3 3a.75.75 0 01-1.06 1.06l-1.72-1.72v3.44h-1.5V3.31L8.03 5.03a.75.75 0 01-1.06-1.06l3-3zM9.75 6.75v6a.75.75 0 001.5 0v-6h3a3 3 0 013 3v7.5a3 3 0 01-3 3h-7.5a3 3 0 01-3-3v-7.5a3 3 0 013-3h3z" />
                       <path d="M7.151 21.75a2.999 2.999 0 002.599 1.5h7.5a3 3 0 003-3v-7.5c0-1.11-.603-2.08-1.5-2.599v7.099a4.5 4.5 0 01-4.5 4.5H7.151z" />
                     </svg>
-                    Copy Source Material
+                    <%= gettext("Copy Source Material") %>
                   </.link>
                   <.link
                     :if={Permissions.can_copy_media?(@current_user, @media)}
@@ -214,7 +214,7 @@
                     <Heroicons.arrow_right_on_rectangle
                       mini
                       class="mr-3 h-5 w-5 text-gray-400 group-hover:text-gray-500"
-                    /> Copy to Project
+                    /> <%= gettext("Copy to Project") %>
                   </.link>
                 </div>
               </div>
@@ -227,7 +227,7 @@
       <div class="lg:col-span-2 space-y-8">
         <.card no_pad={true} class="overflow-hidden">
           <:header>
-            <h3 class="sec-head">Attributes</h3>
+            <h3 class="sec-head"><%= gettext("Attributes") %></h3>
           </:header>
           <div class="border-gray-200 flex flex-col divide-y">
             <section
@@ -285,10 +285,10 @@
         <.card>
           <:header>
             <div class="flex justify-between items-center">
-              <h3 class="sec-head">Feed</h3>
+              <h3 class="sec-head"><%= gettext("Feed") %></h3>
               <%= if length(@updates) > 5 and @membership.role != :data_only_viewer do %>
                 <a class="text-button flex text-sm items-center" href="#feed-bottom">
-                  Jump to Latest
+                  <%= gettext("Jump to Latest") %>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     class="h-4 w-4 ml-1"
@@ -323,7 +323,7 @@
             />
           <% else %>
             <div class="text-gray-500 text-sm">
-              You are a data-only viewer, so you cannot view the feed or comment on this incident.
+              <%= gettext("You are a data-only viewer, so you cannot view the feed or comment on this incident.") %>
             </div>
           <% end %>
         </.card>
@@ -331,7 +331,7 @@
       <div class="space-y-8">
         <.card>
           <:header>
-            <h3 class="sec-head">Metadata</h3>
+            <h3 class="sec-head"><%= gettext("Metadata") %></h3>
           </:header>
           <div class="border-gray-200">
             <.attr_display_block
@@ -353,14 +353,14 @@
         <.card>
           <:header>
             <div class="md:flex justify-between items-center mt-1">
-              <h3 class="sec-head">Source Material</h3>
+              <h3 class="sec-head"><%= gettext("Source Material") %></h3>
               <%= if Permissions.can_edit_media?(@current_user, @media) do %>
                 <section class="text-sm overflow-visible">
                   <.link
                     class="text-button inline-block"
                     patch={Routes.media_show_path(@socket, :upload, @media.slug)}
                   >
-                    + Add Material
+                    <%= gettext("+ Add Material") %>
                   </.link>
                 </section>
               <% end %>
@@ -387,14 +387,14 @@
                   />
                 </svg>
                 <span class="mt-2 block text-sm font-medium text-gray-700">
-                  No media uploaded
+                  <%= gettext("No media uploaded") %>
                 </span>
                 <%= if Permissions.can_edit_media?(@current_user, @media) do %>
                   <.link
                     class="text-button text-sm"
                     patch={Routes.media_show_path(@socket, :upload, @media.slug)}
                   >
-                    + Upload Media
+                    <%= gettext("+ Upload Media") %>
                   </.link>
                 <% end %>
               </div>
@@ -413,9 +413,9 @@
               <details class="mb-4">
                 <summary
                   class="cursor-pointer text-button text-sm"
-                  data-tooltip="Minimized source material can be viewed by all project members."
+                  data-tooltip={gettext("Minimized source material can be viewed by all project members.")}
                 >
-                  View minimized media
+                  <%= gettext("View minimized media") %>
                 </summary>
                 <div class="divide-gray-200 grid grid-cols-1 divide-y divide-dashed">
                   <%= for version <- hidden_versions do %>
@@ -432,9 +432,9 @@
               <details class="mb-4">
                 <summary
                   class="cursor-pointer text-button text-sm"
-                  data-tooltip="Removed source material can only be viewed by project owners and managers."
+                  data-tooltip={gettext("Removed source material can only be viewed by project owners and managers.")}
                 >
-                  View removed media
+                  <%= gettext("View removed media") %>
                 </summary>
                 <div class="divide-gray-200 grid grid-cols-1 divide-y divide-dashed">
                   <%= for version <- removed_versions do %>
@@ -451,7 +451,7 @@
         </.card>
         <.card no_pad={@media.attr_geolocation != nil}>
           <:header>
-            <h3 class="sec-head">Location</h3>
+            <h3 class="sec-head"><%= gettext("Location") %></h3>
             <%= if @media.attr_geolocation do %>
               <p class="sec-subhead">
                 <% {lon, lat} = @media.attr_geolocation.coordinates %>
@@ -460,11 +460,11 @@
                   target="_blank"
                   href={"https://maps.google.com/maps?q=#{lat},#{lon}"}
                 >
-                  View
+                  <%= gettext("View") %>
                   <span class="font-medium underline">
                     <.location lat={lat} lon={lon} />
                   </span>
-                  on Google Maps
+                  <%= gettext("on Google Maps") %>
                 </a>
               </p>
             <% end %>
@@ -499,13 +499,13 @@
                   d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
                 />
               </svg>
-              <span class="mt-2 block text-sm font-medium text-gray-700">Not yet geolocated</span>
+              <span class="mt-2 block text-sm font-medium text-gray-700"><%= gettext("Not yet geolocated") %></span>
               <.link
                 class="text-button mt-1 text-sm inline-block"
                 patch={Routes.media_show_path(@socket, :edit, @media.slug, :geolocation)}
                 replace={true}
               >
-                + Geolocation
+                <%= gettext("+ Geolocation") %>
               </.link>
             </div>
           <% end %>
@@ -523,15 +523,15 @@
     <% end %>
     <%= if @live_action == :upload do %>
       <.modal
-        target={}
-        close_confirmation="Are you sure you want to exit the upload process? Your upload is not complete."
+        target={nil}
+        close_confirmation={gettext("Are you sure you want to exit the upload process? Your upload is not complete.")}
       >
         <div class="mb-8">
           <p class="sec-head">
-            <%= Media.slug_to_display(@media) %>: Upload Media
+            <%= Media.slug_to_display(@media) %>: <%= gettext("Upload Media") %>
           </p>
           <p class="sec-subhead">
-            Note that additional media should document the same event.
+            <%= gettext("Note that additional media should document the same event.") %>
           </p>
         </div>
         <.live_component
@@ -544,13 +544,13 @@
     <% end %>
     <%= if @live_action == :history do %>
       <% attr = Attribute.get_attribute(@attribute, project: @media.project) %>
-      <.modal target={} close_confirmation="">
+      <.modal target={nil} close_confirmation="">
         <div class="mb-8">
           <div class="sm:flex justify-between">
             <div>
               <p class="support font-mono"><%= Media.slug_to_display(@media) %></p>
               <p class="sec-head">
-                History: <%= attr.label %>
+                <%= gettext("History: %{attribute}", attribute: attr.label) %>
               </p>
               <p class="sec-subhead"><%= attr.description %></p>
             </div>
@@ -561,7 +561,7 @@
                   patch={Routes.media_show_path(@socket, :edit, @media.slug, attr.name)}
                   replace={true}
                 >
-                  Edit
+                  <%= gettext("Edit") %>
                 </.link>
               <% end %>
             </div>
@@ -585,15 +585,15 @@
       </.modal>
     <% end %>
     <%= if @live_action == :merge do %>
-      <.modal target={} close_confirmation="">
+      <.modal target={nil} close_confirmation="">
         <div class="mb-8">
           <div>
             <p class="support font-mono"><%= Media.slug_to_display(@media) %></p>
             <p class="sec-head">
-              Copy Source Material
+              <%= gettext("Copy Source Material") %>
             </p>
             <p class="sec-subhead">
-              Copy source material associated with this incident into another incident. Note that media that has been hidden from view (i.e., marked as hidden or removed) will not be merged.
+              <%= gettext("Copy source material associated with this incident into another incident. Note that media that has been hidden from view (i.e., marked as hidden or removed) will not be merged.") %>
             </p>
           </div>
         </div>
@@ -606,15 +606,15 @@
       </.modal>
     <% end %>
     <%= if @live_action == :copy do %>
-      <.modal target={} close_confirmation="">
+      <.modal target={nil} close_confirmation="">
         <div class="mb-8">
           <div>
             <p class="support font-mono"><%= Media.slug_to_display(@media) %></p>
             <p class="sec-head">
-              Copy to Project
+              <%= gettext("Copy to Project") %>
             </p>
             <p class="sec-subhead">
-              Duplicate this incident or copy it into another project. Attributes will be copied when possible.
+              <%= gettext("Duplicate this incident or copy it into another project. Attributes will be copied when possible.") %>
             </p>
           </div>
         </div>
@@ -627,15 +627,15 @@
       </.modal>
     <% end %>
     <%= if @live_action == :auto_metadata do %>
-      <.modal target={} close_confirmation="">
+      <.modal target={nil} close_confirmation="">
         <div class="mb-8">
           <div>
             <p class="support font-mono"><%= Media.slug_to_display(@media) %></p>
             <p class="sec-head">
-              Automatic Metadata
+              <%= gettext("Automatic Metadata") %>
             </p>
             <p class="sec-subhead">
-              This information is automatically generated by Atlos based on the incident's data.
+              <%= gettext("This information is automatically generated by Atlos based on the incident's data.") %>
             </p>
           </div>
         </div>
@@ -646,7 +646,7 @@
     <% end %>
     <%= if @live_action == :media_version_detail do %>
       <% version = Enum.find(@media_versions, &(to_string(&1.scoped_id) == @scoped_id)) %>
-      <.modal :if={not is_nil(version)} target={} close_confirmation="" wide={true} no_pad={true}>
+      <.modal :if={not is_nil(version)} target={nil} close_confirmation="" wide={true} no_pad={true}>
         <div class="flex flex-col sm:flex-row sm:max-h-[85vh] h-full rounded-lg sm:overflow-hidden">
           <section class="sm:max-w-[20rem] sm:min-w-[15rem] flex flex-col self-stretch p-8 overflow-y-auto">
             <div>
@@ -660,9 +660,9 @@
                 <span class="font-sans">
                   <%= case version.status do %>
                     <% :pending -> %>
-                      <span class="chip ~info">Pending Archival</span>
+                      <span class="chip ~info"><%= gettext("Pending Archival") %></span>
                     <% :error -> %>
-                      <span class="chip ~critical">Error</span>
+                      <span class="chip ~critical"><%= gettext("Error") %></span>
                     <% _ -> %>
                   <% end %>
                 </span>
@@ -674,7 +674,7 @@
                       <%= Platform.Material.get_media_version_title(version)
                       |> Platform.Utils.truncate(80) %>
                     <% else %>
-                      Uploaded File
+                      <%= gettext("Uploaded File") %>
                     <% end %>
                   </p>
                   <%= if Platform.Material.get_media_version_title(version) != version.source_url and not is_nil(version.source_url) do %>
@@ -688,31 +688,31 @@
             <dl class="grid grid-cols-1 gap-4 my-8">
               <div class="flex w-full flex items-center gap-x-2">
                 <dt class="flex-none">
-                  <span class="sr-only">Added</span>
+                  <span class="sr-only"><%= gettext("Added") %></span>
                   <Heroicons.calendar mini class="h-5 w-5 text-gray-400" />
                 </dt>
                 <dd class="text-sm text-gray-500">
-                  Added <.rel_time time={version.inserted_at} />
+                  <%= gettext("Added") %> <.rel_time time={version.inserted_at} />
                 </dd>
               </div>
               <div class="flex w-full flex items-center gap-x-2">
                 <dt class="flex-none">
-                  <span class="sr-only">Artifacts</span>
+                  <span class="sr-only"><%= gettext("Artifacts") %></span>
                   <Heroicons.rectangle_group mini class="h-5 w-5 text-gray-400" />
                 </dt>
                 <dd class="text-sm text-gray-500">
-                  <%= length(version.artifacts) %> artifacts
+                  <%= ngettext("%{count} artifact", "%{count} artifacts", length(version.artifacts), count: length(version.artifacts)) %>
                 </dd>
               </div>
               <div class="flex w-full flex items-center gap-x-2">
                 <dt class="flex-none">
-                  <span class="sr-only">Upload Type</span>
+                  <span class="sr-only"><%= gettext("Upload Type") %></span>
                   <Heroicons.archive_box mini class="h-5 w-5 text-gray-400" />
                 </dt>
                 <dd class="text-sm text-gray-500">
                   <%= if version.upload_type == :user_provided,
-                    do: "Manually Uploaded",
-                    else: "Archived by Atlos" %>
+                    do: gettext("Manually Uploaded"),
+                    else: gettext("Archived by Atlos") %>
                 </dd>
               </div>
             </dl>
@@ -726,14 +726,15 @@
                   target="_blank"
                   rel="noopener noreferrer"
                   class="base-button flex gap-2 text-xs"
+                  title={gettext("Open on Archive.org")}
                 >
-                  <Heroicons.arrow_up_right mini class="w-4 h-4 text-neutral-500" /> Archive.org
+                  <Heroicons.arrow_up_right mini class="w-4 h-4 text-neutral-500" /> <%= gettext("Archive.org") %>
                 </a>
                 <button
                   type="button"
                   rel="nofollow"
                   role="menuitem"
-                  title="Copy Hash Information"
+                  title={gettext("Copy Hash Information")}
                   class="base-button flex gap-2 text-xs"
                   x-on:click={
                       "window.setClipboard(" <>
@@ -741,7 +742,7 @@
                         ")"
                     }
                 >
-                  <Heroicons.link mini class="w-4 h-4 text-neutral-500" /> Copy URL
+                  <Heroicons.link mini class="w-4 h-4 text-neutral-500" /> <%= gettext("Copy URL") %>
                 </button>
               <% end %>
               <%= if version.visibility == :visible do %>
@@ -752,10 +753,10 @@
                   phx-value-version={version.id}
                   phx-value-state="hidden"
                   class="base-button flex gap-2 text-xs"
-                  title="Hide"
-                  data-tooltip="Minimized source material can still be viewed by project members."
+                  title={gettext("Hide")}
+                  data-tooltip={gettext("Minimized source material can still be viewed by project members.")}
                 >
-                  <Heroicons.minus_circle mini class="w-4 h-4 text-neutral-500" /> Minimize
+                  <Heroicons.minus_circle mini class="w-4 h-4 text-neutral-500" /> <%= gettext("Minimize") %>
                 </button>
               <% end %>
               <%= if version.visibility == :hidden do %>
@@ -766,9 +767,9 @@
                   phx-value-version={version.id}
                   phx-value-state="visible"
                   class="base-button flex gap-2 text-xs"
-                  title="Unhide"
+                  title={gettext("Unhide")}
                 >
-                  <Heroicons.plus_circle mini class="w-4 h-4 text-neutral-500" /> Unminimize
+                  <Heroicons.plus_circle mini class="w-4 h-4 text-neutral-500" /> <%= gettext("Unminimize") %>
                 </button>
               <% end %>
               <%= if Platform.Permissions.can_change_media_version_visibility?(@current_user, version) do %>
@@ -780,12 +781,12 @@
                   phx-value-state={
                     if version.visibility == :removed, do: "visible", else: "removed"
                   }
-                  title={if version.visibility == :removed, do: "Undo Removal", else: "Remove"}
+                  title={if version.visibility == :removed, do: gettext("Undo Removal"), else: gettext("Remove")}
                   class="base-button flex gap-2 text-xs"
-                  data-tooltip="Removed source material can only be viewed by project owners and managers."
+                  data-tooltip={gettext("Removed source material can only be viewed by project owners and managers.")}
                 >
                   <Heroicons.eye_slash mini class="w-4 h-4 text-neutral-500" />
-                  <%= if version.visibility == :removed, do: "Undo Removal", else: "Remove" %>
+                  <%= if version.visibility == :removed, do: gettext("Undo Removal"), else: gettext("Remove") %>
                 </button>
               <% end %>
               <%= if Platform.Permissions.can_rearchive_media_version?(@current_user, version) do %>
@@ -796,7 +797,7 @@
                   phx-value-version={version.id}
                   class="base-button flex gap-2 text-xs"
                 >
-                  <Heroicons.arrow_path mini class="w-4 h-4 text-neutral-500" /> Rearchive
+                  <Heroicons.arrow_path mini class="w-4 h-4 text-neutral-500" /> <%= gettext("Rearchive") %>
                 </button>
               <% end %>
             </div>
@@ -809,13 +810,13 @@
             >
               <summary
                 class="text-neutral-500 text-xs cursor-pointer"
-                data-tooltip="Source material metadata is structured information associated with this media by Atlos and other integrations."
+                data-tooltip={gettext("Source material metadata is structured information associated with this media by Atlos and other integrations.")}
               >
-                View and manage metadata
+                <%= gettext("View and manage metadata") %>
               </summary>
               <section class="py-4">
                 <p class="text-xs text-neutral-700">
-                  Source material metadata is an advanced feature, and most users don't need to use it. Some metadata is set automatically by Atlos (e.g., "auto_archive_successful" and "content_info") while others are set by integrations.
+                  <%= gettext("Source material metadata is an advanced feature, and most users don't need to use it. Some metadata is set automatically by Atlos (e.g., \"auto_archive_successful\" and \"content_info\") while others are set by integrations.") %>
                 </p>
               </section>
               <article class="flex flex-col rounded bg-neutral-100 w-full divide-y divide-dashed divide-neutral-300 py-1">
@@ -831,9 +832,9 @@
                       phx-click="clear_metadata_namespace"
                       phx-value-version={version.id}
                       phx-value-namespace={namespace}
-                      data-confirm="Are you sure you want to clear this metadata?"
+                      data-confirm={gettext("Are you sure you want to clear this metadata?")}
                     >
-                      Clear
+                      <%= gettext("Clear") %>
                     </button>
                   </div>
                   <pre class="text-xs whitespace-pre-wrap max-w-full overflow-hidden"><%= Jason.encode!(version.metadata[namespace], pretty: true) |> String.trim(" \t\n") %></pre>
@@ -841,7 +842,7 @@
               </article>
             </details>
             <p class="text-xs text-neutral-500 mt-8">
-              Atlos provides best-effort archival. Archives may be incomplete or missing, and should not be relied on for legal evidence.
+              <%= gettext("Atlos provides best-effort archival. Archives may be incomplete or missing, and should not be relied on for legal evidence.") %>
             </p>
           </section>
           <section class="grow flex flex-col bg-neutral-50 sm:border-l py-8 sm:py-0 rounded-lg sm:rounded-l-none rounded-r-lg sm:overflow-y-auto sm:max-h-full">
@@ -849,7 +850,7 @@
               <div class="flex flex-col items-center justify-center h-full">
                 <Heroicons.cloud class="w-16 h-16 text-neutral-300" />
                 <p class="text-sm text-neutral-500 mt-4">
-                  No artifacts available
+                  <%= gettext("No artifacts available") %>
                 </p>
               </div>
             <% end %>
@@ -873,15 +874,15 @@
                   <% else %>
                     <%= case artifact.type do %>
                       <% :pdf -> %>
-                        PDF
+                        <%= gettext("PDF") %>
                       <% :media -> %>
-                        Source Media
+                        <%= gettext("Source Media") %>
                       <% :upload -> %>
-                        File Upload
+                        <%= gettext("File Upload") %>
                       <% :viewport -> %>
-                        Viewport Screenshot
+                        <%= gettext("Viewport Screenshot") %>
                       <% :fullpage -> %>
-                        Full Page Screenshot
+                        <%= gettext("Full Page Screenshot") %>
                       <% _ -> %>
                         <%= artifact.type %>
                     <% end %>
@@ -915,17 +916,17 @@
                             />
                           </svg>
                           <h3 class="mt-2 font-medium text-gray-900 text-sm">
-                            Potentially Graphic
+                            <%= gettext("Potentially Graphic") %>
                           </h3>
                           <p class="mt-1 text-gray-500 text-sm">
-                            This media may be graphic. Please proceed with caution.
+                            <%= gettext("This media may be graphic. Please proceed with caution.") %>
                           </p>
                           <button
                             type="button"
                             x-on:click="hidden = false"
                             class="button mt-1 original py-1 px-2 text-xs"
                           >
-                            Show
+                            <%= gettext("Show") %>
                           </button>
                         </div>
                       </div>
@@ -946,7 +947,7 @@
                           <div class="opacity-0 overflow-hidden group-hover:opacity-100 block absolute inset-0 transition-all flex group-hover:bg-white/50 flex-col gap-2 items-center justify-center w-full h-full">
                             <Heroicons.link class="h-8 w-8 text-neutral-600" />
                             <span class="text-neutral-600">
-                              Open full image in new tab (in color)
+                              <%= gettext("Open full image in new tab (in color)") %>
                             </span>
                           </div>
                         </a>
@@ -989,7 +990,7 @@
                             class="base-button shrink-0"
                             target="_blank"
                           >
-                            <Heroicons.arrow_up_right mini class="h-4 w-4 mr-1" /> Open
+                            <Heroicons.arrow_up_right mini class="h-4 w-4 mr-1" /> <%= gettext("Open") %>
                           </a>
                         </div>
                     <% end %>
@@ -1003,7 +1004,7 @@
                       class="base-button bg-neutral-50 text-xs"
                     >
                       <Heroicons.archive_box_arrow_down mini class="opacity-75 h-4 w-4 mr-1" />
-                      Download
+                      <%= gettext("Download") %>
                     </a>
                     <%= if is_media do %>
                       <button
@@ -1011,29 +1012,29 @@
                         class="base-button bg-neutral-50 text-xs"
                       >
                         <Heroicons.swatch mini class="opacity-75 h-4 w-4 mr-1" />
-                        <span x-text="grayscale ? 'Show Color' : 'Hide Color'">Show Color</span>
+                        <span x-text={"grayscale ? '" <> gettext("Show Color") <> "' : '" <> gettext("Hide Color") <> "'"}><%= gettext("Show Color") %></span>
                       </button>
                     <% end %>
                   </div>
                   <!-- Show the metadata -->
                   <dl class="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 truncate uppercase font-mono text-sm">
                     <div>
-                      <dt class="text-neutral-500">File Size</dt>
+                      <dt class="text-neutral-500"><%= gettext("File Size") %></dt>
                       <dd>
                         <%= (artifact.file_size / 1_000_000)
                         |> Formatter.format_number(decimal_places: 2) %> MB
                       </dd>
                     </div>
                     <div>
-                      <dt class="text-neutral-500">File Type</dt>
+                      <dt class="text-neutral-500"><%= gettext("File Type") %></dt>
                       <dd class="truncate max-w-full"><%= artifact.mime_type %></dd>
                     </div>
                     <div :if={artifact.uploading_token}>
-                      <dt class="text-neutral-500">Uploaded By</dt>
+                      <dt class="text-neutral-500"><%= gettext("Uploaded By") %></dt>
                       <dd class="truncate max-w-full"><%= artifact.uploading_token.name %></dd>
                     </div>
                     <div class="lg:col-span-2">
-                      <dt class="text-neutral-500">Hashes</dt>
+                      <dt class="text-neutral-500"><%= gettext("Hashes") %></dt>
                       <dd class="overflow-hidden truncate max-w-full">
                         <p class="overflow-hidden truncate max-w-full">
                           SHA256: <%= artifact.file_hash_sha256 %>
@@ -1058,31 +1059,31 @@
     <.floating_bottom>
       <%= if Platform.Accounts.is_muted(@current_user) do %>
         <.floating_warning>
-          Your account has been muted. As a result, you cannot edit or comment on this incident.
+          <%= gettext("Your account has been muted. As a result, you cannot edit or comment on this incident.") %>
         </.floating_warning>
       <% end %>
       <%= if @media.deleted do %>
         <.floating_warning>
-          <strong>This incident is marked as deleted.</strong>
-          Only project managers and owners can edit its content.
+          <strong><%= gettext("This incident is marked as deleted.") %></strong>
+          <%= gettext("Only project managers and owners can edit its content.") %>
         </.floating_warning>
       <% end %>
       <%= if @media.attr_status == "Completed" do %>
         <.floating_info>
-          <strong>This incident is marked as completed.</strong>
-          Only project managers and owners can edit its content.
+          <strong><%= gettext("This incident is marked as completed.") %></strong>
+          <%= gettext("Only project managers and owners can edit its content.") %>
         </.floating_info>
       <% end %>
       <%= if @media.attr_status == "Cancelled" do %>
         <.floating_info>
-          <strong>This incident is marked as cancelled.</strong>
-          Only project managers and owners can edit its content.
+          <strong><%= gettext("This incident is marked as cancelled.") %></strong>
+          <%= gettext("Only project managers and owners can edit its content.") %>
         </.floating_info>
       <% end %>
       <%= if Media.has_restrictions(@media) do %>
         <.floating_warning>
-          <strong>This incident has been restricted.</strong>
-          As a result, you may not be able to edit or update it.
+          <strong><%= gettext("This incident has been restricted.") %></strong>
+          <%= gettext("As a result, you may not be able to edit or update it.") %>
         </.floating_warning>
       <% end %>
     </.floating_bottom>

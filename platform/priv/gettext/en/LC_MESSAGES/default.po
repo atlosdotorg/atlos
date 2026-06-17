@@ -1,0 +1,4307 @@
+## "msgid"s in this file come from POT (.pot) files.
+###
+### Do not add, change, or remove "msgid"s manually here as
+### they're tied to the ones in the corresponding POT file
+### (with the same domain).
+###
+### Use "mix gettext.extract --merge" or "mix gettext.merge"
+### to merge POT files into PO files.
+msgid ""
+msgstr ""
+"Language: en\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: lib/platform_web/live/media_live/show.html.heex:704
+#, elixir-autogen, elixir-format
+msgid "%{count} artifact"
+msgid_plural "%{count} artifacts"
+msgstr[0] ""
+msgstr[1] ""
+
+#: lib/platform_web/live/home_live/index.html.heex:33
+#, elixir-autogen, elixir-format
+msgid "%{count} edit remaining this month"
+msgid_plural "%{count} edits remaining this month"
+msgstr[0] ""
+msgstr[1] ""
+
+#: lib/platform_web/live/media_live/index.html.heex:214
+#, elixir-autogen, elixir-format
+msgid "%{count} incident was modified"
+msgid_plural "%{count} incidents were modified"
+msgstr[0] ""
+msgstr[1] ""
+
+#: lib/platform_web/live/media_live/index.html.heex:214
+#, elixir-autogen, elixir-format
+msgid "%{count} incident was skipped"
+msgid_plural "%{count} incidents were skipped"
+msgstr[0] ""
+msgstr[1] ""
+
+#: lib/platform_web/live/media_live/index.html.heex:570
+#, elixir-autogen, elixir-format
+msgid "%{count} more source available on the incident page"
+msgid_plural "%{count} more sources available on the incident page"
+msgstr[0] ""
+msgstr[1] ""
+
+#: lib/platform_web/live/media_live/show.ex:86
+#, elixir-autogen, elixir-format
+msgid "%{slug}: %{description}"
+msgstr ""
+
+#: lib/platform_web/live/media_live/show.html.heex:363
+#, elixir-autogen, elixir-format
+msgid "+ Add Material"
+msgstr ""
+
+#: lib/platform_web/live/media_live/show.html.heex:508
+#, elixir-autogen, elixir-format
+msgid "+ Geolocation"
+msgstr ""
+
+#: lib/platform_web/live/media_live/show.html.heex:397
+#, elixir-autogen, elixir-format
+msgid "+ Upload Media"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/api_documentation_component.ex:23
+#, elixir-autogen, elixir-format
+msgid "API Details"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/api_documentation_component.ex:53
+#, elixir-autogen, elixir-format
+msgid "API Identifier"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/api_tokens_component.ex:144
+#: lib/platform_web/live/projects_live/show.ex:343
+#, elixir-autogen, elixir-format
+msgid "API Tokens"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/api_documentation_component.ex:28
+#, elixir-autogen, elixir-format
+msgid "API documentation."
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/api_token_live.ex:35
+#, elixir-autogen, elixir-format
+msgid "API token deleted successfully."
+msgstr ""
+
+#: lib/platform_web/live/projects_live/api_tokens_component.ex:158
+#, elixir-autogen, elixir-format
+msgid "API tokens are sensitive, as they allow access to your project. Learn more about how to use the Atlos API in our %{documentation}."
+msgstr ""
+
+#: lib/platform_web/templates/invite/new.html.heex:20
+#, elixir-autogen, elixir-format
+msgid "Accept invitation"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/show.ex:168
+#, elixir-autogen, elixir-format
+msgid "Access"
+msgstr ""
+
+#: lib/platform_web/components.ex:522
+#: lib/platform_web/live/home_live/index.html.heex:60
+#: lib/platform_web/live/settings_live/settings_live.html.heex:3
+#, elixir-autogen, elixir-format
+msgid "Account"
+msgstr ""
+
+#: lib/platform_web/live/settings_live/settings_live.html.heex:126
+#, elixir-autogen, elixir-format
+msgid "Account & Security"
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/activity_feed_live.ex:108
+#, elixir-autogen, elixir-format
+msgid "Active Incidents"
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/activity_feed_live.ex:96
+#, elixir-autogen, elixir-format
+msgid "Active Projects"
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/activity_feed_live.ex:102
+#, elixir-autogen, elixir-format
+msgid "Active Users"
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/index.html.heex:26
+#: lib/platform_web/live/profiles_live/show.ex:41
+#: lib/platform_web/live/profiles_live/show.ex:45
+#: lib/platform_web/live/profiles_live/show.html.heex:59
+#, elixir-autogen, elixir-format
+msgid "Activity"
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/activity_feed_live.ex:140
+#, elixir-autogen, elixir-format
+msgid "Activity Feed"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/edit_component.ex:879
+#, elixir-autogen, elixir-format
+msgid "Add Attribute"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/edit_component.ex:868
+#, elixir-autogen, elixir-format
+msgid "Add Group"
+msgstr ""
+
+#: lib/platform_web/live/media_live/comment_box.ex:186
+#: lib/platform_web/live/media_live/comment_box.ex:196
+#, elixir-autogen, elixir-format
+msgid "Add a comment..."
+msgstr ""
+
+#: lib/platform_web/live/media_live/link_version_live.ex:120
+#, elixir-autogen, elixir-format
+msgid "Add a link and Atlos will add it to the incident and attempt to archive it automatically."
+msgstr ""
+
+#: lib/platform_web/live/new_live/new_component.ex:308
+#, elixir-autogen, elixir-format
+msgid "Add additional information"
+msgstr ""
+
+#: lib/platform_web/live/media_live/index.html.heex:93
+#, elixir-autogen, elixir-format
+msgid "Add tag"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/invites_component.ex:168
+#, elixir-autogen, elixir-format
+msgid "Add users to this project by creating an invite."
+msgstr ""
+
+#: lib/platform_web/live/media_live/show.html.heex:691
+#: lib/platform_web/live/media_live/show.html.heex:695
+#, elixir-autogen, elixir-format
+msgid "Added"
+msgstr ""
+
+#: lib/platform_web/live/settings_live/settings_live.html.heex:169
+#, elixir-autogen, elixir-format
+msgid "Additional Resources"
+msgstr ""
+
+#: lib/platform_web/live/media_live/show.html.heex:140
+#, elixir-autogen, elixir-format
+msgid "Additional options"
+msgstr ""
+
+#: lib/platform_web/live/profiles_live/edit_component.ex:132
+#: lib/platform_web/live/profiles_live/show.html.heex:16
+#: lib/platform_web/live/profiles_live/show.html.heex:120
+#, elixir-autogen, elixir-format
+msgid "Admin"
+msgstr ""
+
+#: lib/platform_web/live/profiles_live/edit_component.ex:176
+#: lib/platform_web/live/profiles_live/show.html.heex:246
+#, elixir-autogen, elixir-format
+msgid "Admin Notes"
+msgstr ""
+
+#: lib/platform_web/live/profiles_live/show.html.heex:161
+#, elixir-autogen, elixir-format
+msgid "Administration"
+msgstr ""
+
+#: lib/platform_web/components.ex:435
+#: lib/platform_web/live/adminland_live/index.ex:5
+#: lib/platform_web/live/adminland_live/index.html.heex:5
+#, elixir-autogen, elixir-format
+msgid "Adminland"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/edit_component.ex:767
+#, elixir-autogen, elixir-format
+msgid "Advanced options"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/edit_component.ex:471
+#, elixir-autogen, elixir-format
+msgid "After creation, modifying an attribute's type is limited."
+msgstr ""
+
+#: lib/platform_web/live/media_live/grouped_media_list.ex:62
+#, elixir-autogen, elixir-format
+msgid "All"
+msgstr ""
+
+#: lib/platform_web/live/media_live/index.html.heex:437
+#, elixir-autogen, elixir-format
+msgid "All %{count} incidents are selected, so individual incidents cannot be deselected."
+msgstr ""
+
+#: lib/platform_web/live/projects_live/export_live.ex:86
+#, elixir-autogen, elixir-format
+msgid "All Data & Media (ZIP)"
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/api_token_live.ex:155
+#, elixir-autogen, elixir-format
+msgid "All endpoints return 30 results at a time. You can paginate using the %{cursor_code} query parameter, whose value is provided by the %{next_code} and %{previous_code} keys in the response. Results are available under the %{results_code} key."
+msgstr ""
+
+#: lib/platform_web/live/settings_live/settings_live.html.heex:55
+#, elixir-autogen, elixir-format
+msgid "Allowed Edits (30d)"
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/announcements_live.ex:57
+#: lib/platform_web/live/adminland_live/index.html.heex:40
+#, elixir-autogen, elixir-format
+msgid "Announcements"
+msgstr ""
+
+#: lib/platform_web/live/media_live/upload_version_live.ex:375
+#, elixir-autogen, elixir-format
+msgid "Any file up to 250MB"
+msgstr ""
+
+#: lib/platform_web/live/media_live/index.ex:306
+#, elixir-autogen, elixir-format
+msgid "Applied the tag %{tag}."
+msgstr ""
+
+#: lib/platform_web/live/media_live/index.html.heex:111
+#: lib/platform_web/live/media_live/index.html.heex:135
+#: lib/platform_web/live/media_live/index.html.heex:162
+#, elixir-autogen, elixir-format
+msgid "Apply"
+msgstr ""
+
+#: lib/platform_web/live/media_live/index.ex:305
+#, elixir-autogen, elixir-format
+msgid "Applying the tag %{tag}..."
+msgstr ""
+
+#: lib/platform_web/live/projects_live/edit_component.ex:816
+#, elixir-autogen, elixir-format
+msgid "Archive Project"
+msgstr ""
+
+#: lib/platform_web/live/media_live/show.html.heex:731
+#, elixir-autogen, elixir-format
+msgid "Archive.org"
+msgstr ""
+
+#: lib/platform_web/components.ex:656
+#: lib/platform_web/components.ex:671
+#: lib/platform_web/live/search_live/search_component.ex:360
+#, elixir-autogen, elixir-format
+msgid "Archived"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/index.ex:80
+#, elixir-autogen, elixir-format
+msgid "Archived Projects"
+msgstr ""
+
+#: lib/platform_web/live/media_live/show.html.heex:715
+#, elixir-autogen, elixir-format
+msgid "Archived by Atlos"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/edit_component.ex:814
+#: lib/platform_web/live/projects_live/edit_component.ex:825
+#, elixir-autogen, elixir-format
+msgid "Archiving a project freezes its data and prevents all members from creating or editing its incidents."
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/invites_component.ex:210
+#: lib/platform_web/live/projects_live/invites_component.ex:312
+#, elixir-autogen, elixir-format
+msgid "Are you sure that you want deactivate this invite code?"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/members_component.ex:328
+#, elixir-autogen, elixir-format
+msgid "Are you sure that you want to remove %{username} from %{project_name}?"
+msgstr ""
+
+#: lib/platform_web/live/media_live/index.html.heex:107
+#, elixir-autogen, elixir-format
+msgid "Are you sure you want to apply the tag '%{tag}' to the %{count} selected incident(s)?"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/edit_component.ex:810
+#, elixir-autogen, elixir-format
+msgid "Are you sure you want to archive this project? Incidents will no longer be editable."
+msgstr ""
+
+#: lib/platform_web/live/media_live/show.html.heex:835
+#, elixir-autogen, elixir-format
+msgid "Are you sure you want to clear this metadata?"
+msgstr ""
+
+#: lib/platform_web/live/media_live/index.html.heex:158
+#, elixir-autogen, elixir-format
+msgid "Are you sure you want to copy the %{count} selected incidents into %{project_name}?"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/api_tokens_component.ex:257
+#, elixir-autogen, elixir-format
+msgid "Are you sure you want to deactivate the token \"%{token_name}\"? This action cannot be undone."
+msgstr ""
+
+#: lib/platform_web/live/projects_live/edit_component.ex:1148
+#, elixir-autogen, elixir-format
+msgid "Are you sure you want to delete the attribute \"%{attribute_name}\"? This action cannot be undone. This will remove this attribute from all incidents in this project."
+msgstr ""
+
+#: lib/platform_web/live/projects_live/edit_component.ex:1054
+#, elixir-autogen, elixir-format
+msgid "Are you sure you want to delete the group \"%{group_name}\"? This action cannot be undone. Attributes in this group will be moved to the unassigned group and will not be deleted."
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/api_token_live.ex:94
+#, elixir-autogen, elixir-format
+msgid "Are you sure you want to delete this API token?"
+msgstr ""
+
+#: lib/platform_web/live/media_live/show.html.heex:167
+#, elixir-autogen, elixir-format
+msgid "Are you sure you want to delete this incident? This action is reversible."
+msgstr ""
+
+#: lib/platform_web/live/profiles_live/edit_component.ex:189
+#, elixir-autogen, elixir-format
+msgid "Are you sure you want to disable MFA for this user? This will remove their authenticator app setup and recovery codes."
+msgstr ""
+
+#: lib/platform_web/live/media_live/show.html.heex:527
+#, elixir-autogen, elixir-format
+msgid "Are you sure you want to exit the upload process? Your upload is not complete."
+msgstr ""
+
+#: lib/platform_web/live/projects_live/members_component.ex:279
+#, elixir-autogen, elixir-format
+msgid "Are you sure you want to leave this project? To rejoin it, you will need to be invited again."
+msgstr ""
+
+#: lib/platform_web/live/media_live/show.html.heex:165
+#, elixir-autogen, elixir-format
+msgid "Are you sure you want to restore this incident?"
+msgstr ""
+
+#: lib/platform_web/live/media_live/index.html.heex:131
+#, elixir-autogen, elixir-format
+msgid "Are you sure you want to set the status to %{status} for the %{count} selected incident(s)?"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/edit_component.ex:821
+#, elixir-autogen, elixir-format
+msgid "Are you sure you want to unarchive this project? Incidents will be editable again."
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/security_live.ex:149
+#, elixir-autogen, elixir-format
+msgid "Are you sure you would like to log everyone out? This will log you out as well."
+msgstr ""
+
+#: lib/platform_web/live/media_live/show.html.heex:700
+#, elixir-autogen, elixir-format
+msgid "Artifacts"
+msgstr ""
+
+#: lib/platform_web/live/media_live/show.html.heex:1086
+#, elixir-autogen, elixir-format
+msgid "As a result, you may not be able to edit or update it."
+msgstr ""
+
+#: lib/platform_web/live/home_live/index.html.heex:44
+#, elixir-autogen, elixir-format
+msgid "Assigned to Me"
+msgstr ""
+
+#: lib/platform_web/live/profiles_live/show.html.heex:74
+#, elixir-autogen, elixir-format
+msgid "Assignments"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/api_tokens_component.ex:156
+#: lib/platform_web/live/projects_live/show.ex:358
+#, elixir-autogen, elixir-format
+msgid "Atlos API"
+msgstr ""
+
+#: lib/platform_web/live/profiles_live/show.html.heex:220
+#, elixir-autogen, elixir-format
+msgid "Atlos Plan"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/bulk_upload_live.ex:243
+#, elixir-autogen, elixir-format
+msgid "Atlos can perform bulk imports from CSV files into this project with the following columns:"
+msgstr ""
+
+#: lib/platform_web/views/error_view.ex:19
+#, elixir-autogen, elixir-format
+msgid "Atlos experienced an error processing your request. This error has been reported to our team. Please contact us if the issue continues."
+msgstr ""
+
+#: lib/platform_web/components.ex:4045
+#, elixir-autogen, elixir-format
+msgid "Atlos is"
+msgstr ""
+
+#: lib/platform_web/live/settings_live/settings_live.html.heex:43
+#, elixir-autogen, elixir-format
+msgid "Atlos is a non-profit platform, and we rely on subscriptions to cover our costs."
+msgstr ""
+
+#: lib/platform_web/templates/user_registration/no_access.html.heex:18
+#, elixir-autogen, elixir-format
+msgid "Atlos is in maintenance mode."
+msgstr ""
+
+#: lib/platform_web/components.ex:1740
+#, elixir-autogen, elixir-format
+msgid "Atlos is in no-access mode."
+msgstr ""
+
+#: lib/platform_web/components.ex:1736
+#, elixir-autogen, elixir-format
+msgid "Atlos is in read-only mode."
+msgstr ""
+
+#: lib/platform_web/live/media_live/show.html.heex:845
+#, elixir-autogen, elixir-format
+msgid "Atlos provides best-effort archival. Archives may be incomplete or missing, and should not be relied on for legal evidence."
+msgstr ""
+
+#: lib/platform_web/live/projects_live/bulk_upload_live.ex:236
+#, elixir-autogen, elixir-format
+msgid "Atlos requires a very specific format for bulk uploads."
+msgstr ""
+
+#: lib/platform_web/live/media_live/show.ex:223
+#, elixir-autogen, elixir-format
+msgid "Atlos will archive and process the media in the background. Check back in a few minutes."
+msgstr ""
+
+#: lib/platform_web/live/new_live/new_component.ex:288
+#, elixir-autogen, elixir-format
+msgid "Atlos will attempt to archive these URLs automatically."
+msgstr ""
+
+#: lib/platform_web/live/media_live/show.ex:207
+#, elixir-autogen, elixir-format
+msgid "Atlos will rearchive the source material."
+msgstr ""
+
+#: lib/platform_web/live/media_live/edit_attribute.ex:34
+#, elixir-autogen, elixir-format
+msgid "Attribute not found"
+msgstr ""
+
+#: lib/platform_web/live/media_live/show.html.heex:230
+#: lib/platform_web/live/projects_live/edit_component.ex:854
+#, elixir-autogen, elixir-format
+msgid "Attributes"
+msgstr ""
+
+#: lib/platform_web/templates/user_session/mfa.html.heex:11
+#, elixir-autogen, elixir-format
+msgid "Authentication code"
+msgstr ""
+
+#: lib/platform_web/live/media_live/show.html.heex:635
+#, elixir-autogen, elixir-format
+msgid "Automatic Metadata"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/bulk_upload_live.ex:570
+#: lib/platform_web/templates/user_session/mfa.html.heex:18
+#, elixir-autogen, elixir-format
+msgid "Back"
+msgstr ""
+
+#: lib/platform_web/live/media_live/queue.ex:48
+#, elixir-autogen, elixir-format
+msgid "Back to overview"
+msgstr ""
+
+#: lib/platform_web/live/settings_live/backup_codes_component.ex:58
+#, elixir-autogen, elixir-format
+msgid "Backup Codes"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/api_tokens_component.ex:279
+#, elixir-autogen, elixir-format
+msgid "Be sure to store your token, as you won't be able to see it again."
+msgstr ""
+
+#: lib/platform_web/live/projects_live/members_component.ex:359
+#, elixir-autogen, elixir-format
+msgid "Because you're a data-only viewer, you cannot see this project's other members."
+msgstr ""
+
+#: lib/platform_web/live/home_live/index.html.heex:98
+#, elixir-autogen, elixir-format
+msgid "Billing"
+msgstr ""
+
+#: lib/platform_web/live/profiles_live/edit_component.ex:163
+#: lib/platform_web/live/profiles_live/show.html.heex:206
+#, elixir-autogen, elixir-format
+msgid "Billing Flags"
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/user_list_live.ex:43
+#: lib/platform_web/live/profiles_live/edit_component.ex:153
+#, elixir-autogen, elixir-format
+msgid "Bio"
+msgstr ""
+
+#: lib/platform_web/live/media_live/link_version_live.ex:128
+#: lib/platform_web/live/media_live/upload_version_live.ex:397
+#, elixir-autogen, elixir-format
+msgid "Briefly Explain Your Addition"
+msgstr ""
+
+#: lib/platform_web/live/media_live/edit_attribute.ex:256
+#, elixir-autogen, elixir-format
+msgid "Briefly Explain Your Change"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/bulk_upload_live.ex:225
+#, elixir-autogen, elixir-format
+msgid "Bulk Import"
+msgstr ""
+
+#: lib/platform_web/components.ex:4048
+#, elixir-autogen, elixir-format
+msgid "By using Atlos, you agree to our"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/bulk_upload_live.ex:457
+#, elixir-autogen, elixir-format
+msgid "CSV up to 250MB"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/api_tokens_component.ex:385
+#, elixir-autogen, elixir-format
+msgid "Can add comments to incidents"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/api_tokens_component.ex:386
+#, elixir-autogen, elixir-format
+msgid "Can create incidents and edit incidents' attributes and metadata"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/api_tokens_component.ex:384
+#, elixir-autogen, elixir-format
+msgid "Can read incidents and comments, including hidden and restricted incidents"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/invites_component.ex:401
+#: lib/platform_web/live/projects_live/members_component.ex:410
+#, elixir-autogen, elixir-format
+msgid "Can view and comment, but not edit or create"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/invites_component.ex:400
+#: lib/platform_web/live/projects_live/members_component.ex:409
+#, elixir-autogen, elixir-format
+msgid "Can view data but not comments or project members, and cannot edit or create"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/invites_component.ex:402
+#: lib/platform_web/live/projects_live/members_component.ex:411
+#, elixir-autogen, elixir-format
+msgid "Can view, comment, and edit, but not mark as complete"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/invites_component.ex:404
+#: lib/platform_web/live/projects_live/members_component.ex:413
+#, elixir-autogen, elixir-format
+msgid "Can view, comment, edit, mark as complete, and edit completed incidents"
+msgstr ""
+
+#: lib/platform_web/live/media_live/edit_attribute.ex:283
+#: lib/platform_web/live/profiles_live/edit_component.ex:203
+#: lib/platform_web/live/projects_live/edit_component.ex:833
+#: lib/platform_web/live/projects_live/edit_component.ex:926
+#: lib/platform_web/live/projects_live/edit_component.ex:1046
+#: lib/platform_web/live/projects_live/edit_component.ex:1137
+#: lib/platform_web/live/projects_live/edit_component.ex:1237
+#: lib/platform_web/templates/invite/new.html.heex:22
+#, elixir-autogen, elixir-format
+msgid "Cancel"
+msgstr ""
+
+#: lib/platform_web/live/media_live/upload_version_live.ex:225
+#: lib/platform_web/live/projects_live/bulk_upload_live.ex:216
+#, elixir-autogen, elixir-format
+msgid "Cancel Upload"
+msgstr ""
+
+#: lib/platform_web/live/home_live/index.html.heex:212
+#, elixir-autogen, elixir-format
+msgid "Cancelled"
+msgstr ""
+
+#: lib/platform_web/live/settings_live/profile_component.ex:150
+#, elixir-autogen, elixir-format
+msgid "Change"
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/security_live.ex:47
+#: lib/platform_web/live/adminland_live/security_live.ex:134
+#, elixir-autogen, elixir-format
+msgid "Change Security Mode"
+msgstr ""
+
+#: lib/platform_web/live/settings_live/settings_live.html.heex:142
+#: lib/platform_web/templates/user_settings/edit.html.heex:59
+#, elixir-autogen, elixir-format
+msgid "Change password"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/members_component.ex:342
+#, elixir-autogen, elixir-format
+msgid "Change permissions for %{username}"
+msgstr ""
+
+#: lib/platform_web/live/settings_live/settings_live.ex:46
+#, elixir-autogen, elixir-format
+msgid "Changes saved successfully"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/show.ex:65
+#, elixir-autogen, elixir-format
+msgid "Changes saved."
+msgstr ""
+
+#: lib/platform_web/live/media_live/show.html.heex:837
+#, elixir-autogen, elixir-format
+msgid "Clear"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/invites_component.ex:444
+#, elixir-autogen, elixir-format
+msgid "Click to copy"
+msgstr ""
+
+#: lib/platform_web/components.ex:129
+#: lib/platform_web/live/adminland_live/api_token_create_live.ex:98
+#: lib/platform_web/live/media_live/index.html.heex:177
+#: lib/platform_web/live/projects_live/api_tokens_component.ex:309
+#: lib/platform_web/live/settings_live/settings_live.html.heex:213
+#, elixir-autogen, elixir-format
+msgid "Close"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/edit_component.ex:708
+#, elixir-autogen, elixir-format
+msgid "Code"
+msgstr ""
+
+#: lib/platform_web/templates/error/error.html.heex:9
+#: lib/platform_web/templates/layout/root.html.heex:15
+#, elixir-autogen, elixir-format
+msgid "Collaborative OSINT"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/edit_component.ex:728
+#, elixir-autogen, elixir-format
+msgid "Color"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/api_tokens_component.ex:378
+#, elixir-autogen, elixir-format
+msgid "Comment"
+msgstr ""
+
+#: lib/platform_web/live/media_live/comment_box.ex:195
+#, elixir-autogen, elixir-format
+msgid "Commenting has been disabled"
+msgstr ""
+
+#: lib/platform_web/live/home_live/index.html.heex:212
+#, elixir-autogen, elixir-format
+msgid "Completed"
+msgstr ""
+
+#: lib/platform_web/templates/user_session/mfa.html.heex:17
+#, elixir-autogen, elixir-format
+msgid "Confirm"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/bulk_upload_live.ex:274
+#, elixir-autogen, elixir-format
+msgid "Confirm information"
+msgstr ""
+
+#: lib/platform_web/templates/user_confirmation/edit.html.heex:10
+#, elixir-autogen, elixir-format
+msgid "Confirm my account"
+msgstr ""
+
+#: lib/platform_web/templates/user_reset_password/edit.html.heex:22
+#: lib/platform_web/templates/user_settings/edit.html.heex:46
+#, elixir-autogen, elixir-format
+msgid "Confirm new password"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/show.ex:345
+#, elixir-autogen, elixir-format
+msgid "Connect with external tools and manage your project's data via an API."
+msgstr ""
+
+#: lib/platform_web/templates/error/error.html.heex:74
+#, elixir-autogen, elixir-format
+msgid "Contact Us"
+msgstr ""
+
+#: lib/platform_web/live/settings_live/mfa_live.html.heex:118
+#, elixir-autogen, elixir-format
+msgid "Continue"
+msgstr ""
+
+#: lib/platform_web/live/media_live/index.ex:375
+#, elixir-autogen, elixir-format
+msgid "Copied into %{project_name}."
+msgstr ""
+
+#: lib/platform_web/live/media_live/copy_media_live.ex:137
+#, elixir-autogen, elixir-format
+msgid "Copy"
+msgstr ""
+
+#: lib/platform_web/live/media_live/show.html.heex:737
+#, elixir-autogen, elixir-format
+msgid "Copy Hash Information"
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/invites_component.ex:154
+#: lib/platform_web/live/projects_live/invites_component.ex:259
+#, elixir-autogen, elixir-format
+msgid "Copy Link"
+msgstr ""
+
+#: lib/platform_web/live/media_live/show.html.heex:205
+#: lib/platform_web/live/media_live/show.html.heex:593
+#, elixir-autogen, elixir-format
+msgid "Copy Source Material"
+msgstr ""
+
+#: lib/platform_web/live/media_live/show.html.heex:745
+#, elixir-autogen, elixir-format
+msgid "Copy URL"
+msgstr ""
+
+#: lib/platform_web/live/media_live/show.ex:269
+#, elixir-autogen, elixir-format
+msgid "Copy complete. The new incident is [%{slug}](/incidents/%{slug})."
+msgstr ""
+
+#: lib/platform_web/live/media_live/show.html.heex:72
+#: lib/platform_web/live/projects_live/api_documentation_component.ex:105
+#, elixir-autogen, elixir-format
+msgid "Copy information to your clipboard"
+msgstr ""
+
+#: lib/platform_web/live/media_live/show.html.heex:596
+#, elixir-autogen, elixir-format
+msgid "Copy source material associated with this incident into another incident. Note that media that has been hidden from view (i.e., marked as hidden or removed) will not be merged."
+msgstr ""
+
+#: lib/platform_web/live/media_live/copy_media_live.ex:118
+#: lib/platform_web/live/media_live/index.html.heex:141
+#: lib/platform_web/live/media_live/show.html.heex:217
+#: lib/platform_web/live/media_live/show.html.heex:614
+#, elixir-autogen, elixir-format
+msgid "Copy to Project"
+msgstr ""
+
+#: lib/platform_web/live/media_live/index.ex:374
+#, elixir-autogen, elixir-format
+msgid "Copying to %{project_name}..."
+msgstr ""
+
+#: lib/platform_web/live/media_live/copy_media_live.ex:138
+#, elixir-autogen, elixir-format
+msgid "Copying..."
+msgstr ""
+
+#: lib/platform_web/live/projects_live/edit_component.ex:977
+#, elixir-autogen, elixir-format
+msgid "Core Attributes"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/edit_component.ex:1004
+#, elixir-autogen, elixir-format
+msgid "Core attributes are required for all incidents. You can't modify core attributes."
+msgstr ""
+
+#: lib/platform_web/live/projects_live/api_tokens_component.ex:199
+#, elixir-autogen, elixir-format
+msgid "Create"
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/api_token_create_live.ex:69
+#, elixir-autogen, elixir-format
+msgid "Create API Token"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/edit_component.ex:908
+#, elixir-autogen, elixir-format
+msgid "Create Group"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/invites_component.ex:237
+#, elixir-autogen, elixir-format
+msgid "Create Invite"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/api_tokens_component.ex:396
+#, elixir-autogen, elixir-format
+msgid "Create Token"
+msgstr ""
+
+#: lib/platform_web/live/new_live/new_component.ex:209
+#, elixir-autogen, elixir-format
+msgid "Create a Project"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/api_tokens_component.ex:319
+#, elixir-autogen, elixir-format
+msgid "Create an API token"
+msgstr ""
+
+#: lib/platform_web/templates/layout/interstitial.html.heex:24
+#, elixir-autogen, elixir-format
+msgid "Create an Atlos account to join the project. If you already have an Atlos account, please"
+msgstr ""
+
+#: lib/platform_web/live/new_live/new_component.ex:398
+#, elixir-autogen, elixir-format
+msgid "Create incident"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/invites_component.ex:423
+#, elixir-autogen, elixir-format
+msgid "Create invite"
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/api_token_live.ex:62
+#: lib/platform_web/live/projects_live/api_tokens_component.ex:183
+#, elixir-autogen, elixir-format
+msgid "Created"
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/api_token_create_live.ex:70
+#, elixir-autogen, elixir-format
+msgid "Creating..."
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/invites_component.ex:119
+#: lib/platform_web/live/projects_live/invites_component.ex:211
+#, elixir-autogen, elixir-format
+msgid "Creator"
+msgstr ""
+
+#: lib/platform_web/live/search_live/search_component.ex:424
+#, elixir-autogen, elixir-format
+msgid "Ctrl K"
+msgstr ""
+
+#: lib/platform_web/live/settings_live/mfa_live.html.heex:33
+#: lib/platform_web/live/settings_live/mfa_live.html.heex:110
+#, elixir-autogen, elixir-format
+msgid "Current Code"
+msgstr ""
+
+#: lib/platform_web/components.ex:1386
+#: lib/platform_web/live/projects_live/invites_component.ex:301
+#: lib/platform_web/live/projects_live/invites_component.ex:391
+#: lib/platform_web/live/projects_live/members_component.ex:315
+#: lib/platform_web/live/projects_live/members_component.ex:400
+#, elixir-autogen, elixir-format
+msgid "Data-only Viewer"
+msgstr ""
+
+#: lib/platform_web/live/profiles_live/show.ex:44
+#: lib/platform_web/live/projects_live/edit_component.ex:295
+#, elixir-autogen, elixir-format
+msgid "Date"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/api_tokens_component.ex:202
+#, elixir-autogen, elixir-format
+msgid "Deactivate"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/api_tokens_component.ex:260
+#: lib/platform_web/live/projects_live/api_tokens_component.ex:263
+#, elixir-autogen, elixir-format
+msgid "Deactivate %{token_name}"
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/invites_component.ex:215
+#: lib/platform_web/live/projects_live/invites_component.ex:317
+#, elixir-autogen, elixir-format
+msgid "Deactivate this invite"
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/invites_component.ex:211
+#: lib/platform_web/live/projects_live/invites_component.ex:313
+#, elixir-autogen, elixir-format
+msgid "Deactivate this invite code"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/api_tokens_component.ex:229
+#, elixir-autogen, elixir-format
+msgid "Deactivated"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/invites_component.ex:80
+#, elixir-autogen, elixir-format
+msgid "Deactivated the invite. It can no longer be used to join the project."
+msgstr ""
+
+#: lib/platform_web/live/projects_live/edit_component.ex:1247
+#, elixir-autogen, elixir-format
+msgid "Decorators"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/edit_component.ex:608
+#, elixir-autogen, elixir-format
+msgid "Decorators capture additional data for each attribute. For example, you can use decorators to associate confidence values with each attribute value."
+msgstr ""
+
+#: lib/platform_web/live/projects_live/edit_component.ex:856
+#, elixir-autogen, elixir-format
+msgid "Define the data model for incidents in this project. You can add new attributes, or edit the existing ones."
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/api_token_live.ex:97
+#: lib/platform_web/live/media_live/show.html.heex:186
+#: lib/platform_web/live/projects_live/edit_component.ex:1058
+#: lib/platform_web/live/projects_live/edit_component.ex:1152
+#, elixir-autogen, elixir-format
+msgid "Delete"
+msgstr ""
+
+#: lib/platform_web/live/settings_live/backup_codes_component.ex:107
+#, elixir-autogen, elixir-format
+msgid "Delete All Codes"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/edit_component.ex:1149
+#, elixir-autogen, elixir-format
+msgid "Delete this attribute"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/edit_component.ex:1055
+#, elixir-autogen, elixir-format
+msgid "Delete this group (without deleting its attributes)"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/show.ex:178
+#, elixir-autogen, elixir-format
+msgid "Deleted"
+msgstr ""
+
+#: lib/platform_web/live/settings_live/backup_codes_component.ex:110
+#, elixir-autogen, elixir-format
+msgid "Deleting..."
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/api_token_live.ex:56
+#: lib/platform_web/live/adminland_live/security_live.ex:68
+#: lib/platform_web/live/projects_live/edit_component.ex:720
+#, elixir-autogen, elixir-format
+msgid "Description"
+msgstr ""
+
+#: lib/platform_web/live/media_live/index.html.heex:439
+#, elixir-autogen, elixir-format
+msgid "Deselect this incident"
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/user_list_live.ex:120
+#, elixir-autogen, elixir-format
+msgid "Details"
+msgstr ""
+
+#: lib/platform_web/live/profiles_live/edit_component.ex:192
+#: lib/platform_web/live/settings_live/mfa_live.html.heex:93
+#, elixir-autogen, elixir-format
+msgid "Disable MFA"
+msgstr ""
+
+#: lib/platform_web/live/settings_live/mfa_live.html.heex:71
+#, elixir-autogen, elixir-format
+msgid "Disable Multi-Factor Authentication"
+msgstr ""
+
+#: lib/platform_web/live/profiles_live/show.html.heex:261
+#, elixir-autogen, elixir-format
+msgid "Disabled"
+msgstr ""
+
+#: lib/platform_web/live/profiles_live/edit_component.ex:195
+#, elixir-autogen, elixir-format
+msgid "Disabling MFA will remove the user's authenticator app configuration and all recovery codes."
+msgstr ""
+
+#: lib/platform_web/live/media_live/index.html.heex:222
+#: lib/platform_web/live/media_live/index.html.heex:224
+#: lib/platform_web/live/media_live/index.html.heex:238
+#: lib/platform_web/live/media_live/index.html.heex:240
+#, elixir-autogen, elixir-format
+msgid "Dismiss"
+msgstr ""
+
+#: lib/platform_web/live/media_live/show.html.heex:1007
+#: lib/platform_web/live/settings_live/backup_codes_component.ex:84
+#, elixir-autogen, elixir-format
+msgid "Download"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/edit_component.ex:621
+#, elixir-autogen, elixir-format
+msgid "Drag to move this attribute"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/edit_component.ex:969
+#, elixir-autogen, elixir-format
+msgid "Drag to move this group"
+msgstr ""
+
+#: lib/platform_web/live/new_live/new_component.ex:285
+#, elixir-autogen, elixir-format
+msgid "Drop URLs here..."
+msgstr ""
+
+#: lib/platform_web/live/media_live/show.html.heex:617
+#, elixir-autogen, elixir-format
+msgid "Duplicate this incident or copy it into another project. Attributes will be copied when possible."
+msgstr ""
+
+#: lib/platform_web/live/media_live/merge_versions_live.ex:125
+#, elixir-autogen, elixir-format
+msgid "E.g., 123456"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/edit_component.ex:711
+#, elixir-autogen, elixir-format
+msgid "E.g., CIV"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/export_live.ex:38
+#, elixir-autogen, elixir-format
+msgid "Each incident folder will contain a metadata.json file with the incident metadata, an updates.json file with its updates, and a folder for each piece of source material attached to the incident."
+msgstr ""
+
+#: lib/platform_web/live/media_live/show.html.heex:564
+#: lib/platform_web/live/profiles_live/show.html.heex:169
+#: lib/platform_web/live/projects_live/api_tokens_component.ex:379
+#, elixir-autogen, elixir-format
+msgid "Edit"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/edit_component.ex:645
+#, elixir-autogen, elixir-format
+msgid "Edit %{label}"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/members_component.ex:345
+#, elixir-autogen, elixir-format
+msgid "Edit %{username}"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/edit_component.ex:1121
+#, elixir-autogen, elixir-format
+msgid "Edit Custom Attribute"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/edit_component.ex:1256
+#, elixir-autogen, elixir-format
+msgid "Edit Decorators"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/edit_component.ex:996
+#: lib/platform_web/live/projects_live/edit_component.ex:1028
+#, elixir-autogen, elixir-format
+msgid "Edit Group"
+msgstr ""
+
+#: lib/platform_web/live/media_live/show.html.heex:88
+#, elixir-autogen, elixir-format
+msgid "Edit description"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/members_component.ex:373
+#, elixir-autogen, elixir-format
+msgid "Edit role"
+msgstr ""
+
+#: lib/platform_web/live/profiles_live/show.html.heex:104
+#, elixir-autogen, elixir-format
+msgid "Edited"
+msgstr ""
+
+#: lib/platform_web/live/profiles_live/edit_component.ex:114
+#, elixir-autogen, elixir-format
+msgid "Editing %{username}"
+msgstr ""
+
+#: lib/platform_web/components.ex:1382
+#: lib/platform_web/live/adminland_live/invites_component.ex:195
+#: lib/platform_web/live/projects_live/invites_component.ex:297
+#: lib/platform_web/live/projects_live/invites_component.ex:393
+#: lib/platform_web/live/projects_live/members_component.ex:307
+#: lib/platform_web/live/projects_live/members_component.ex:402
+#, elixir-autogen, elixir-format
+msgid "Editor"
+msgstr ""
+
+#: lib/platform_web/live/profiles_live/show.html.heex:176
+#, elixir-autogen, elixir-format
+msgid "Email"
+msgstr ""
+
+#: lib/platform_web/live/profiles_live/show.html.heex:186
+#, elixir-autogen, elixir-format
+msgid "Email Confirmed"
+msgstr ""
+
+#: lib/platform_web/live/settings_live/settings_live.html.heex:153
+#, elixir-autogen, elixir-format
+msgid "Email Preferences"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/edit_component.ex:427
+#, elixir-autogen, elixir-format
+msgid "Enable"
+msgstr ""
+
+#: lib/platform_web/live/settings_live/mfa_live.html.heex:40
+#, elixir-autogen, elixir-format
+msgid "Enable MFA"
+msgstr ""
+
+#: lib/platform_web/live/settings_live/mfa_live.html.heex:9
+#, elixir-autogen, elixir-format
+msgid "Enable Multi-Factor Authentication"
+msgstr ""
+
+#: lib/platform_web/live/profiles_live/edit_component.ex:184
+#: lib/platform_web/live/profiles_live/show.html.heex:259
+#, elixir-autogen, elixir-format
+msgid "Enabled"
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/announcements_live.ex:80
+#, elixir-autogen, elixir-format
+msgid "Enter a message (markdown is allowed)."
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/activity_feed_live.ex:155
+#, elixir-autogen, elixir-format
+msgid "Enter a query..."
+msgstr ""
+
+#: lib/platform_web/live/projects_live/edit_component.ex:495
+#, elixir-autogen, elixir-format
+msgid "Enter options for this attribute..."
+msgstr ""
+
+#: lib/platform_web/live/settings_live/mfa_live.html.heex:35
+#: lib/platform_web/live/settings_live/mfa_live.html.heex:112
+#, elixir-autogen, elixir-format
+msgid "Enter the code from your authenticator app..."
+msgstr ""
+
+#: lib/platform_web/live/settings_live/mfa_live.html.heex:88
+#, elixir-autogen, elixir-format
+msgid "Enter your current password"
+msgstr ""
+
+#: lib/platform_web/live/media_live/show.html.heex:665
+#, elixir-autogen, elixir-format
+msgid "Error"
+msgstr ""
+
+#: lib/platform_web/live/media_live/index.html.heex:332
+#, elixir-autogen, elixir-format
+msgid "Every project has a different schema — select a project to view these incidents in a table."
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/security_mode_create_live.ex:88
+#, elixir-autogen, elixir-format
+msgid "Everyone can use Atlos normally"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/invites_component.ex:406
+#: lib/platform_web/live/projects_live/members_component.ex:415
+#, elixir-autogen, elixir-format
+msgid "Everything managers can do, plus add and remove members to the project"
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/invites_component.ex:113
+#: lib/platform_web/live/projects_live/invites_component.ex:199
+#: lib/platform_web/live/projects_live/invites_component.ex:363
+#, elixir-autogen, elixir-format
+msgid "Expires"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/export_live.ex:8
+#, elixir-autogen, elixir-format
+msgid "Export"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/export_live.ex:54
+#, elixir-autogen, elixir-format
+msgid "Export Incidents"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/export_live.ex:76
+#, elixir-autogen, elixir-format
+msgid "Export all metadata and media in this project. Note that this is an expensive operation and may take a long time to complete."
+msgstr ""
+
+#: lib/platform_web/live/projects_live/export_live.ex:55
+#, elixir-autogen, elixir-format
+msgid "Export metadata about all incidents in this project."
+msgstr ""
+
+#: lib/platform_web/live/projects_live/export_live.ex:9
+#, elixir-autogen, elixir-format
+msgid "Export your data to other portable formats."
+msgstr ""
+
+#: lib/platform_web/live/profiles_live/edit_component.ex:102
+#, elixir-autogen, elixir-format
+msgid "Failed to disable MFA for this user."
+msgstr ""
+
+#: lib/platform_web/live/settings_live/settings_live.ex:37
+#, elixir-autogen, elixir-format
+msgid "Failed to get customer portal URL"
+msgstr ""
+
+#: lib/platform_web/live/media_live/show.html.heex:288
+#, elixir-autogen, elixir-format
+msgid "Feed"
+msgstr ""
+
+#: lib/platform_web/live/media_live/show.html.heex:1022
+#, elixir-autogen, elixir-format
+msgid "File Size"
+msgstr ""
+
+#: lib/platform_web/live/media_live/show.html.heex:1029
+#, elixir-autogen, elixir-format
+msgid "File Type"
+msgstr ""
+
+#: lib/platform_web/live/media_live/show.html.heex:881
+#, elixir-autogen, elixir-format
+msgid "File Upload"
+msgstr ""
+
+#: lib/platform_web/live/profiles_live/edit_component.ex:158
+#, elixir-autogen, elixir-format
+msgid "Flair"
+msgstr ""
+
+#: lib/platform_web/live/profiles_live/edit_component.ex:135
+#, elixir-autogen, elixir-format
+msgid "For more information about roles on Atlos, view our"
+msgstr ""
+
+#: lib/platform_web/templates/user_settings/edit.html.heex:21
+#, elixir-autogen, elixir-format
+msgid "For your security, changing your password will log all other devices out of your account."
+msgstr ""
+
+#: lib/platform_web/templates/page/index.html.heex:27
+#, elixir-autogen, elixir-format
+msgid "Forum"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/bulk_upload_live.ex:519
+#, elixir-autogen, elixir-format
+msgid "Found %{count} incident."
+msgid_plural "Found %{count} incidents."
+msgstr[0] ""
+msgstr[1] ""
+
+#: lib/platform_web/live/projects_live/export_live.ex:74
+#, elixir-autogen, elixir-format
+msgid "Full Export"
+msgstr ""
+
+#: lib/platform_web/live/media_live/show.html.heex:885
+#, elixir-autogen, elixir-format
+msgid "Full Page Screenshot"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/export_live.ex:35
+#, elixir-autogen, elixir-format
+msgid "Full exports will create a zip file containing a folder for each incident in the project."
+msgstr ""
+
+#: lib/platform_web/live/projects_live/edit_component.ex:674
+#, elixir-autogen, elixir-format
+msgid "General"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/edit_component.ex:675
+#, elixir-autogen, elixir-format
+msgid "General information about the project."
+msgstr ""
+
+#: lib/platform_web/live/settings_live/backup_codes_component.ex:60
+#, elixir-autogen, elixir-format
+msgid "Generate backup codes to use in case you lose access to your authenticator app."
+msgstr ""
+
+#: lib/platform_web/live/settings_live/mfa_live.html.heex:55
+#, elixir-autogen, elixir-format
+msgid "Generating code..."
+msgstr ""
+
+#: lib/platform_web/live/settings_live/backup_codes_component.ex:120
+#, elixir-autogen, elixir-format
+msgid "Generating codes..."
+msgstr ""
+
+#: lib/platform_web/live/settings_live/backup_codes_component.ex:97
+#, elixir-autogen, elixir-format
+msgid "Generating..."
+msgstr ""
+
+#: lib/platform_web/live/settings_live/backup_codes_component.ex:124
+#, elixir-autogen, elixir-format
+msgid "Get Backup Codes"
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/api_token_live.ex:123
+#, elixir-autogen, elixir-format
+msgid "Get started by creating a new API token."
+msgstr ""
+
+#: lib/platform_web/live/projects_live/index.ex:62
+#, elixir-autogen, elixir-format
+msgid "Get started by creating a new project."
+msgstr ""
+
+#: lib/platform_web/live/home_live/index.html.heex:182
+#, elixir-autogen, elixir-format
+msgid "Get started by creating a project"
+msgstr ""
+
+#: lib/platform_web/live/home_live/index.html.heex:209
+#: lib/platform_web/live/projects_live/show.ex:223
+#, elixir-autogen, elixir-format
+msgid "Get started by creating an incident"
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/invites_component.ex:97
+#, elixir-autogen, elixir-format
+msgid "Get started by creating an invite code"
+msgstr ""
+
+#: lib/platform_web/live/updates_live/paginated_media_update_feed.ex:85
+#, elixir-autogen, elixir-format
+msgid "Get started by working on an incident"
+msgstr ""
+
+#: lib/platform_web/templates/invite/new.html.heex:12
+#, elixir-autogen, elixir-format
+msgid "Go to project"
+msgstr ""
+
+#: lib/platform_web/templates/page/index.html.heex:11
+#, elixir-autogen, elixir-format
+msgid "Guides & Docs"
+msgstr ""
+
+#: lib/platform_web/templates/error/error.html.heex:64
+#, elixir-autogen, elixir-format
+msgid "HTTP ERROR"
+msgstr ""
+
+#: lib/platform_web/live/media_live/show.html.heex:1037
+#, elixir-autogen, elixir-format
+msgid "Hashes"
+msgstr ""
+
+#: lib/platform_web/live/home_live/index.html.heex:6
+#, elixir-autogen, elixir-format
+msgid "Hello, %{username}"
+msgstr ""
+
+#: lib/platform_web/templates/page/index.html.heex:24
+#, elixir-autogen, elixir-format
+msgid "Help"
+msgstr ""
+
+#: lib/platform_web/live/home_live/index.html.heex:212
+#: lib/platform_web/live/media_live/grouped_media_list.ex:9
+#: lib/platform_web/live/media_live/queue.ex:23
+#, elixir-autogen, elixir-format
+msgid "Help Needed"
+msgstr ""
+
+#: lib/platform_web/live/media_live/show.html.heex:756
+#, elixir-autogen, elixir-format
+msgid "Hide"
+msgstr ""
+
+#: lib/platform_web/live/media_live/show.html.heex:1015
+#, elixir-autogen, elixir-format
+msgid "Hide Color"
+msgstr ""
+
+#: lib/platform_web/live/media_live/show.html.heex:553
+#, elixir-autogen, elixir-format
+msgid "History: %{attribute}"
+msgstr ""
+
+#: lib/platform_web/components.ex:350
+#: lib/platform_web/live/home_live/index.ex:9
+#, elixir-autogen, elixir-format
+msgid "Home"
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/api_token_live.ex:142
+#, elixir-autogen, elixir-format
+msgid "How to use the API"
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/api_token_create_live.ex:57
+#: lib/platform_web/live/projects_live/api_tokens_component.ex:351
+#, elixir-autogen, elixir-format
+msgid "How will you use this API token?"
+msgstr ""
+
+#: lib/platform_web/templates/user_registration/new.html.heex:35
+#, elixir-autogen, elixir-format
+msgid "I agree to Atlos'"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/edit_component.ex:792
+#, elixir-autogen, elixir-format
+msgid "If enabled, Atlos will automatically archive source material links added to this project. Disable if you'd like to use a custom archival solution."
+msgstr ""
+
+#: lib/platform_web/live/projects_live/edit_component.ex:778
+#, elixir-autogen, elixir-format
+msgid "If enabled, links added to this project as source material will be automatically archived by the %{internet_archive}."
+msgstr ""
+
+#: lib/platform_web/live/projects_live/edit_component.ex:595
+#, elixir-autogen, elixir-format
+msgid "If enabled, the attributes in this group are included in the incident creation window. If disabled, the group's attributes aren't shown in the incident creation window but can still be edited directly on the incident page."
+msgstr ""
+
+#: lib/platform_web/live/projects_live/bulk_upload_live.ex:521
+#, elixir-autogen, elixir-format
+msgid "If everything below looks right, click \"Publish\" to publish these incidents to Atlos. Note that media will be archived on a best-effort basis."
+msgstr ""
+
+#: lib/platform_web/live/settings_live/mfa_live.html.heex:23
+#, elixir-autogen, elixir-format
+msgid "If you cannot scan the code, you can also add the code to your MFA application manually using this link: %{url_link}. To finish setting up MFA, enter the current code below:"
+msgstr ""
+
+#: lib/platform_web/live/settings_live/settings_live.html.heex:103
+#, elixir-autogen, elixir-format
+msgid "If you have any questions, please do not hesitate to reach out to us at %{email_link}."
+msgstr ""
+
+#: lib/platform_web/live/settings_live/settings_live.html.heex:180
+#, elixir-autogen, elixir-format
+msgid "If you haven't already, %{join_link}, where you can chat with the Atlos team, connect with the community, and provide feedback."
+msgstr ""
+
+#: lib/platform_web/live/settings_live/mfa_live.html.heex:73
+#, elixir-autogen, elixir-format
+msgid "If you want, you can disable MFA here. To setup a new MFA code, disable then re-enable MFA."
+msgstr ""
+
+#: lib/platform_web/live/settings_live/settings_live.html.heex:109
+#, elixir-autogen, elixir-format
+msgid "If you would like to cancel your subscription, change your payment method, or view past invoices, you can do so below."
+msgstr ""
+
+#: lib/platform_web/live/settings_live/profile_component.ex:129
+#, elixir-autogen, elixir-format
+msgid "If you would like to change your username, please contact us."
+msgstr ""
+
+#: lib/platform_web/live/projects_live/invites_component.ex:366
+#, elixir-autogen, elixir-format
+msgid "In 24 hours"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/invites_component.ex:372
+#, elixir-autogen, elixir-format
+msgid "In 30 days"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/invites_component.ex:370
+#, elixir-autogen, elixir-format
+msgid "In 7 days"
+msgstr ""
+
+#: lib/platform_web/live/home_live/index.html.heex:212
+#: lib/platform_web/live/media_live/grouped_media_list.ex:8
+#: lib/platform_web/live/media_live/queue.ex:22
+#, elixir-autogen, elixir-format
+msgid "In Progress"
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/security_live.ex:145
+#, elixir-autogen, elixir-format
+msgid "In an emergency, you can easily log everyone out."
+msgstr ""
+
+#: lib/platform_web/live/projects_live/export_live.ex:41
+#, elixir-autogen, elixir-format
+msgid "In the source material folder, there will be a metadata.json file with the version metadata, and a file for each artifact (file) associated with the version."
+msgstr ""
+
+#: lib/platform_web/live/media_live/index.html.heex:375
+#, elixir-autogen, elixir-format
+msgid "Incident"
+msgstr ""
+
+#: lib/platform_web/live/media_live/card.ex:17
+#, elixir-autogen, elixir-format
+msgid "Incident %{slug}"
+msgstr ""
+
+#: lib/platform_web/live/media_live/show.ex:183
+#, elixir-autogen, elixir-format
+msgid "Incident deleted."
+msgstr ""
+
+#: lib/platform_web/live/media_live/show.ex:183
+#, elixir-autogen, elixir-format
+msgid "Incident restored."
+msgstr ""
+
+#: lib/platform_web/components.ex:366
+#: lib/platform_web/live/media_live/index.ex:10
+#: lib/platform_web/live/projects_live/show.ex:109
+#: lib/platform_web/live/search_live/search_component.ex:251
+#, elixir-autogen, elixir-format
+msgid "Incidents"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/edit_component.ex:591
+#, elixir-autogen, elixir-format
+msgid "Include this group in the incident creation window"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/api_documentation_component.ex:47
+#, elixir-autogen, elixir-format
+msgid "Interface Name"
+msgstr ""
+
+#: lib/platform_web/live/settings_live/backup_codes_live.ex:36
+#, elixir-autogen, elixir-format
+msgid "Invalid backup code."
+msgstr ""
+
+#: lib/platform_web/templates/user_registration/new.html.heex:24
+#, elixir-autogen, elixir-format
+msgid "Invite Code"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/invites_component.ex:341
+#, elixir-autogen, elixir-format
+msgid "Invite others to %{project_name}"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/invites_component.ex:354
+#, elixir-autogen, elixir-format
+msgid "Invite others to this project by creating an invite code."
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/index.html.heex:96
+#: lib/platform_web/live/projects_live/invites_component.ex:153
+#, elixir-autogen, elixir-format
+msgid "Invites"
+msgstr ""
+
+#: lib/platform_web/live/media_live/edit_attribute.ex:184
+#, elixir-autogen, elixir-format
+msgid "It may require additional review during the verification process."
+msgstr ""
+
+#: lib/platform_web/live/projects_live/bulk_upload_live.ex:585
+#, elixir-autogen, elixir-format
+msgid "It will continue in the background. You can safely close this tab."
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/user_list_live.ex:46
+#: lib/platform_web/live/profiles_live/show.html.heex:180
+#, elixir-autogen, elixir-format
+msgid "Joined"
+msgstr ""
+
+#: lib/platform_web/live/media_live/show.html.heex:291
+#, elixir-autogen, elixir-format
+msgid "Jump to Latest"
+msgstr ""
+
+#: lib/platform_web/components.ex:499
+#, elixir-autogen, elixir-format
+msgid "Language"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/api_tokens_component.ex:177
+#, elixir-autogen, elixir-format
+msgid "Last used"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/bulk_upload_live.ex:240
+#, elixir-autogen, elixir-format
+msgid "Learn about the required file format"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/export_live.ex:26
+#, elixir-autogen, elixir-format
+msgid "Learn more about the structure of Atlos exports"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/members_component.ex:282
+#, elixir-autogen, elixir-format
+msgid "Leave Project"
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/api_token_live.ex:80
+#: lib/platform_web/live/projects_live/api_tokens_component.ex:222
+#, elixir-autogen, elixir-format
+msgid "Legacy"
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/index.html.heex:90
+#, elixir-autogen, elixir-format
+msgid "Legacy API Access"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/invites_component.ex:415
+#, elixir-autogen, elixir-format
+msgid "Limit this invite to one use only"
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/invites_component.ex:110
+#: lib/platform_web/live/projects_live/invites_component.ex:193
+#, elixir-autogen, elixir-format
+msgid "Link"
+msgstr ""
+
+#: lib/platform_web/live/media_live/create_media_version.ex:31
+#, elixir-autogen, elixir-format
+msgid "Link to Media"
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/activity_feed_live.ex:185
+#: lib/platform_web/live/media_live/paginated_media_list.ex:85
+#: lib/platform_web/live/notifications_live/notifications_list_live.ex:212
+#: lib/platform_web/live/updates_live/paginated_media_update_feed.ex:121
+#, elixir-autogen, elixir-format
+msgid "Load More"
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/activity_feed_live.ex:183
+#: lib/platform_web/live/media_live/paginated_media_list.ex:83
+#: lib/platform_web/live/notifications_live/notifications_list_live.ex:209
+#: lib/platform_web/live/updates_live/paginated_media_update_feed.ex:119
+#, elixir-autogen, elixir-format
+msgid "Loading..."
+msgstr ""
+
+#: lib/platform_web/live/media_live/show.html.heex:454
+#: lib/platform_web/live/projects_live/edit_component.ex:296
+#, elixir-autogen, elixir-format
+msgid "Location"
+msgstr ""
+
+#: lib/platform_web/live/home_live/index.html.heex:107
+#, elixir-autogen, elixir-format
+msgid "Log Out"
+msgstr ""
+
+#: lib/platform_web/templates/layout/_user_menu.html.heex:8
+#: lib/platform_web/templates/user_confirmation/edit.html.heex:12
+#: lib/platform_web/templates/user_confirmation/new.html.heex:9
+#: lib/platform_web/templates/user_reset_password/new.html.heex:22
+#: lib/platform_web/templates/user_session/new.html.heex:31
+#, elixir-autogen, elixir-format
+msgid "Log in"
+msgstr ""
+
+#: lib/platform_web/live/settings_live/settings_live.html.heex:136
+#: lib/platform_web/templates/layout/_user_menu.html.heex:5
+#, elixir-autogen, elixir-format
+msgid "Log out"
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/user_list_live.ex:49
+#, elixir-autogen, elixir-format
+msgid "MFA"
+msgstr ""
+
+#: lib/platform_web/live/profiles_live/edit_component.ex:96
+#, elixir-autogen, elixir-format
+msgid "MFA has been disabled for this user."
+msgstr ""
+
+#: lib/platform_web/live/settings_live/mfa_live.ex:55
+#, elixir-autogen, elixir-format
+msgid "MFA was disabled successfully."
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/invites_component.ex:135
+#: lib/platform_web/live/projects_live/invites_component.ex:240
+#: lib/platform_web/live/projects_live/show.ex:158
+#, elixir-autogen, elixir-format
+msgid "Manage"
+msgstr ""
+
+#: lib/platform_web/live/home_live/index.html.heex:85
+#, elixir-autogen, elixir-format
+msgid "Manage Account"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/edit_component.ex:1190
+#, elixir-autogen, elixir-format
+msgid "Manage Decorators"
+msgstr ""
+
+#: lib/platform_web/live/settings_live/settings_live.html.heex:216
+#, elixir-autogen, elixir-format
+msgid "Manage my subscription"
+msgstr ""
+
+#: lib/platform_web/live/settings_live/settings_live.html.heex:155
+#, elixir-autogen, elixir-format
+msgid "Manage which emails you receive from Atlos."
+msgstr ""
+
+#: lib/platform_web/live/settings_live/settings_live.html.heex:25
+#, elixir-autogen, elixir-format
+msgid "Manage your subscription and billing information."
+msgstr ""
+
+#: lib/platform_web/components.ex:1380
+#: lib/platform_web/live/adminland_live/invites_component.ex:193
+#: lib/platform_web/live/projects_live/invites_component.ex:295
+#: lib/platform_web/live/projects_live/invites_component.ex:394
+#: lib/platform_web/live/projects_live/members_component.ex:305
+#: lib/platform_web/live/projects_live/members_component.ex:403
+#, elixir-autogen, elixir-format
+msgid "Manager"
+msgstr ""
+
+#: lib/platform_web/live/media_live/create_media_version.ex:53
+#, elixir-autogen, elixir-format
+msgid "Manual Upload"
+msgstr ""
+
+#: lib/platform_web/live/media_live/show.html.heex:714
+#, elixir-autogen, elixir-format
+msgid "Manually Uploaded"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/show.ex:141
+#, elixir-autogen, elixir-format
+msgid "Map"
+msgstr ""
+
+#: lib/platform_web/live/notifications_live/notifications_list_live.ex:223
+#, elixir-autogen, elixir-format
+msgid "Mark All Read"
+msgstr ""
+
+#: lib/platform_web/live/notifications_live/notifications_list_live.ex:103
+#: lib/platform_web/live/notifications_live/notifications_list_live.ex:187
+#, elixir-autogen, elixir-format
+msgid "Mark as read"
+msgstr ""
+
+#: lib/platform_web/live/notifications_live/notifications_list_live.ex:173
+#, elixir-autogen, elixir-format
+msgid "Mark as unread"
+msgstr ""
+
+#: lib/platform_web/live/media_live/merge_versions_live.ex:127
+#, elixir-autogen, elixir-format
+msgid "Media from %{slug} will be copied to this incident."
+msgstr ""
+
+#: lib/platform_web/live/media_live/show.ex:161
+#, elixir-autogen, elixir-format
+msgid "Media visibility changed successfully."
+msgstr ""
+
+#: lib/platform_web/live/projects_live/members_component.ex:237
+#, elixir-autogen, elixir-format
+msgid "Members"
+msgstr ""
+
+#: lib/platform_web/live/media_live/merge_versions_live.ex:132
+#, elixir-autogen, elixir-format
+msgid "Merge"
+msgstr ""
+
+#: lib/platform_web/live/media_live/show.ex:256
+#, elixir-autogen, elixir-format
+msgid "Merge initiated! The media will continue to merge in the background."
+msgstr ""
+
+#: lib/platform_web/live/media_live/merge_versions_live.ex:133
+#, elixir-autogen, elixir-format
+msgid "Merging..."
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/announcements_live.ex:77
+#, elixir-autogen, elixir-format
+msgid "Message"
+msgstr ""
+
+#: lib/platform_web/live/media_live/show.html.heex:334
+#: lib/platform_web/live/projects_live/api_documentation_component.ex:73
+#, elixir-autogen, elixir-format
+msgid "Metadata"
+msgstr ""
+
+#: lib/platform_web/live/media_live/show.ex:121
+#, elixir-autogen, elixir-format
+msgid "Metadata cleared successfully."
+msgstr ""
+
+#: lib/platform_web/live/media_live/show.html.heex:759
+#, elixir-autogen, elixir-format
+msgid "Minimize"
+msgstr ""
+
+#: lib/platform_web/live/media_live/show.html.heex:416
+#, elixir-autogen, elixir-format
+msgid "Minimized source material can be viewed by all project members."
+msgstr ""
+
+#: lib/platform_web/live/media_live/show.html.heex:757
+#, elixir-autogen, elixir-format
+msgid "Minimized source material can still be viewed by project members."
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/security_live.ex:80
+#, elixir-autogen, elixir-format
+msgid "Mode"
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/user_list_live.ex:52
+#, elixir-autogen, elixir-format
+msgid "More"
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/api_token_live.ex:65
+#, elixir-autogen, elixir-format
+msgid "More Actions"
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/invites_component.ex:72
+#, elixir-autogen, elixir-format
+msgid "Multi use"
+msgstr ""
+
+#: lib/platform_web/live/profiles_live/edit_component.ex:182
+#: lib/platform_web/live/profiles_live/show.html.heex:256
+#: lib/platform_web/live/settings_live/mfa_live.ex:9
+#: lib/platform_web/live/settings_live/mfa_live.html.heex:2
+#, elixir-autogen, elixir-format
+msgid "Multi-Factor Authentication"
+msgstr ""
+
+#: lib/platform_web/live/settings_live/settings_live.html.heex:145
+#, elixir-autogen, elixir-format
+msgid "Multi-factor auth"
+msgstr ""
+
+#: lib/platform_web/live/settings_live/mfa_live.html.heex:11
+#, elixir-autogen, elixir-format
+msgid "Multi-factor authentication helps keep your account secure."
+msgstr ""
+
+#: lib/platform_web/live/settings_live/mfa_live.html.heex:47
+#, elixir-autogen, elixir-format
+msgid "Multi-factor authentication is a crucial way that we keep Atlos secure. To learn more about MFA (also known as 2FA) and to discover authenticator apps, visit %{mfa_info_link}."
+msgstr ""
+
+#: lib/platform_web/live/settings_live/backup_codes_live.ex:38
+#, elixir-autogen, elixir-format
+msgid "Multifactor Auth"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/edit_component.ex:293
+#, elixir-autogen, elixir-format
+msgid "Multiple Select"
+msgstr ""
+
+#: lib/platform_web/live/profiles_live/edit_component.ex:146
+#, elixir-autogen, elixir-format
+msgid "Muted"
+msgstr ""
+
+#: lib/platform_web/live/home_live/index.html.heex:91
+#, elixir-autogen, elixir-format
+msgid "My Subscriptions"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/api_tokens_component.ex:171
+#: lib/platform_web/live/projects_live/edit_component.ex:700
+#, elixir-autogen, elixir-format
+msgid "Name"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/api_tokens_component.ex:237
+#, elixir-autogen, elixir-format
+msgid "Never"
+msgstr ""
+
+#: lib/platform_web/components.ex:459
+#, elixir-autogen, elixir-format
+msgid "New"
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/api_token_live.ex:177
+#, elixir-autogen, elixir-format
+msgid "New API Token"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/bulk_upload_live.ex:595
+#, elixir-autogen, elixir-format
+msgid "New Import"
+msgstr ""
+
+#: lib/platform_web/live/new_live/new_component.ex:199
+#: lib/platform_web/live/projects_live/show.ex:117
+#, elixir-autogen, elixir-format
+msgid "New Incident"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/invites_component.ex:177
+#, elixir-autogen, elixir-format
+msgid "New Invite"
+msgstr ""
+
+#: lib/platform_web/live/home_live/index.html.heex:184
+#: lib/platform_web/live/projects_live/index.ex:38
+#: lib/platform_web/live/projects_live/index.ex:65
+#: lib/platform_web/live/projects_live/index.ex:94
+#, elixir-autogen, elixir-format
+msgid "New Project"
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/api_token_live.ex:70
+#: lib/platform_web/live/adminland_live/api_token_live.ex:129
+#, elixir-autogen, elixir-format
+msgid "New Token"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/bulk_upload_live.ex:512
+#, elixir-autogen, elixir-format
+msgid "New Upload"
+msgstr ""
+
+#: lib/platform_web/templates/user_reset_password/edit.html.heex:16
+#: lib/platform_web/templates/user_settings/edit.html.heex:42
+#, elixir-autogen, elixir-format
+msgid "New password"
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/security_live.ex:164
+#, elixir-autogen, elixir-format
+msgid "New security mode"
+msgstr ""
+
+#: lib/platform_web/live/notifications_live/notifications_live.html.heex:20
+#, elixir-autogen, elixir-format
+msgid "Newest first"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/bulk_upload_live.ex:275
+#, elixir-autogen, elixir-format
+msgid "Next steps"
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/invites_component.ex:165
+#: lib/platform_web/live/projects_live/invites_component.ex:270
+#, elixir-autogen, elixir-format
+msgid "No"
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/api_token_live.ex:122
+#, elixir-autogen, elixir-format
+msgid "No API tokens"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/api_tokens_component.ex:209
+#, elixir-autogen, elixir-format
+msgid "No API tokens have been created for this project."
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/security_mode_create_live.ex:85
+#, elixir-autogen, elixir-format
+msgid "No Access"
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/user_list_live.ex:99
+#: lib/platform_web/live/profiles_live/show.html.heex:224
+#, elixir-autogen, elixir-format
+msgid "No Plan"
+msgstr ""
+
+#: lib/platform_web/live/new_live/new_component.ex:205
+#, elixir-autogen, elixir-format
+msgid "No Projects"
+msgstr ""
+
+#: lib/platform_web/live/updates_live/paginated_media_update_feed.ex:84
+#, elixir-autogen, elixir-format
+msgid "No activity to display"
+msgstr ""
+
+#: lib/platform_web/live/media_live/show.html.heex:853
+#, elixir-autogen, elixir-format
+msgid "No artifacts available"
+msgstr ""
+
+#: lib/platform_web/live/home_live/index.html.heex:208
+#: lib/platform_web/live/projects_live/show.ex:222
+#, elixir-autogen, elixir-format
+msgid "No data to display"
+msgstr ""
+
+#: lib/platform_web/live/media_live/grouped_media_list.ex:86
+#, elixir-autogen, elixir-format
+msgid "No incidents"
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/invites_component.ex:96
+#, elixir-autogen, elixir-format
+msgid "No invite codes"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/invites_component.ex:165
+#, elixir-autogen, elixir-format
+msgid "No invites"
+msgstr ""
+
+#: lib/platform_web/live/media_live/show.html.heex:390
+#, elixir-autogen, elixir-format
+msgid "No media uploaded"
+msgstr ""
+
+#: lib/platform_web/live/notifications_live/notifications_list_live.ex:88
+#, elixir-autogen, elixir-format
+msgid "No notifications"
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/invites_component.ex:184
+#: lib/platform_web/live/projects_live/invites_component.ex:286
+#, elixir-autogen, elixir-format
+msgid "No one"
+msgstr ""
+
+#: lib/platform_web/live/media_live/copy_media_live.ex:20
+#: lib/platform_web/live/media_live/merge_versions_live.ex:15
+#: lib/platform_web/live/media_live/show.ex:154
+#: lib/platform_web/live/profiles_live/edit_component.ex:14
+#: lib/platform_web/live/profiles_live/edit_component.ex:51
+#: lib/platform_web/live/profiles_live/edit_component.ex:83
+#: lib/platform_web/live/projects_live/bulk_upload_live.ex:14
+#: lib/platform_web/live/projects_live/bulk_upload_live.ex:128
+#, elixir-autogen, elixir-format
+msgid "No permission"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/index.ex:60
+#, elixir-autogen, elixir-format
+msgid "No projects"
+msgstr ""
+
+#: lib/platform_web/live/home_live/index.html.heex:181
+#, elixir-autogen, elixir-format
+msgid "No projects to display"
+msgstr ""
+
+#: lib/platform_web/live/media_live/index.html.heex:312
+#: lib/platform_web/live/search_live/search_component.ex:416
+#, elixir-autogen, elixir-format
+msgid "No results found"
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/security_live.ex:127
+#, elixir-autogen, elixir-format
+msgid "No security mode changes"
+msgstr ""
+
+#: lib/platform_web/live/profiles_live/show.html.heex:201
+#: lib/platform_web/live/profiles_live/show.html.heex:215
+#: lib/platform_web/live/profiles_live/show.html.heex:241
+#: lib/platform_web/live/profiles_live/show.html.heex:251
+#, elixir-autogen, elixir-format
+msgid "None"
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/security_mode_create_live.ex:85
+#, elixir-autogen, elixir-format
+msgid "Normal"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/show.ex:18
+#: lib/platform_web/live/projects_live/show.ex:23
+#, elixir-autogen, elixir-format
+msgid "Not found"
+msgstr ""
+
+#: lib/platform_web/live/media_live/show.html.heex:502
+#, elixir-autogen, elixir-format
+msgid "Not yet geolocated"
+msgstr ""
+
+#: lib/platform_web/live/media_live/show.html.heex:534
+#, elixir-autogen, elixir-format
+msgid "Note that additional media should document the same event."
+msgstr ""
+
+#: lib/platform_web/live/projects_live/bulk_upload_live.ex:265
+#, elixir-autogen, elixir-format
+msgid "Note that this format perfectly matches Atlos' bulk exports."
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/api_token_live.ex:180
+#, elixir-autogen, elixir-format
+msgid "Note that you will only be able to see the secret value once."
+msgstr ""
+
+#: lib/platform_web/components.ex:403
+#: lib/platform_web/live/notifications_live/notifications_live.ex:7
+#: lib/platform_web/live/notifications_live/notifications_live.html.heex:2
+#, elixir-autogen, elixir-format
+msgid "Notifications"
+msgstr ""
+
+#: lib/platform_web/live/notifications_live/notifications_list_live.ex:90
+#, elixir-autogen, elixir-format
+msgid "Notifications will appear here when you're tagged or someone updates an incident you're subscribed to."
+msgstr ""
+
+#: lib/platform_web/live/notifications_live/notifications_live.html.heex:21
+#, elixir-autogen, elixir-format
+msgid "Oldest first"
+msgstr ""
+
+#: lib/platform_web/live/settings_live/settings_live.html.heex:36
+#, elixir-autogen, elixir-format
+msgid "On April 1, 2024, you will need to subscribe to a paid plan for unlimited edits."
+msgstr ""
+
+#: lib/platform_web/live/projects_live/edit_component.ex:516
+#, elixir-autogen, elixir-format
+msgid "Once you change to a multi-select, you will not be able to change back to a single-select."
+msgstr ""
+
+#: lib/platform_web/live/settings_live/mfa_live.html.heex:50
+#, elixir-autogen, elixir-format
+msgid "Once you're ready to enable MFA, get your authenticator app ready and press the button below."
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/security_mode_create_live.ex:90
+#, elixir-autogen, elixir-format
+msgid "Only Admins can access Atlos"
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/security_mode_create_live.ex:89
+#, elixir-autogen, elixir-format
+msgid "Only admins can edit incident data"
+msgstr ""
+
+#: lib/platform_web/live/media_live/show.html.heex:1068
+#: lib/platform_web/live/media_live/show.html.heex:1074
+#: lib/platform_web/live/media_live/show.html.heex:1080
+#, elixir-autogen, elixir-format
+msgid "Only project managers and owners can edit its content."
+msgstr ""
+
+#: lib/platform_web/templates/user_reset_password/edit.html.heex:11
+#: lib/platform_web/templates/user_settings/edit.html.heex:36
+#, elixir-autogen, elixir-format
+msgid "Oops, something went wrong! Please check the errors below."
+msgstr ""
+
+#: lib/platform_web/live/media_live/show.html.heex:993
+#, elixir-autogen, elixir-format
+msgid "Open"
+msgstr ""
+
+#: lib/platform_web/live/media_live/show.html.heex:950
+#, elixir-autogen, elixir-format
+msgid "Open full image in new tab (in color)"
+msgstr ""
+
+#: lib/platform_web/live/updates_live/paginated_media_update_feed.ex:108
+#, elixir-autogen, elixir-format
+msgid "Open incident"
+msgstr ""
+
+#: lib/platform_web/live/media_live/show.html.heex:729
+#, elixir-autogen, elixir-format
+msgid "Open on Archive.org"
+msgstr ""
+
+#: lib/platform_web/live/media_live/show.html.heex:125
+#, elixir-autogen, elixir-format
+msgid "Open options"
+msgstr ""
+
+#: lib/platform_web/live/new_live/new_component.ex:279
+#: lib/platform_web/live/projects_live/bulk_upload_live.ex:253
+#, elixir-autogen, elixir-format
+msgid "Optional"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/edit_component.ex:479
+#, elixir-autogen, elixir-format
+msgid "Optional. The description will be displayed when editing this attribute."
+msgstr ""
+
+#: lib/platform_web/live/projects_live/edit_component.ex:547
+#, elixir-autogen, elixir-format
+msgid "Optional. The description will be displayed with this attribute group to provide additional context."
+msgstr ""
+
+#: lib/platform_web/live/media_live/link_version_live.ex:134
+#: lib/platform_web/live/media_live/upload_version_live.ex:403
+#, elixir-autogen, elixir-format
+msgid "Optionally provide more context on this media."
+msgstr ""
+
+#: lib/platform_web/live/media_live/queue.ex:20
+#: lib/platform_web/live/projects_live/show.ex:133
+#, elixir-autogen, elixir-format
+msgid "Overview"
+msgstr ""
+
+#: lib/platform_web/components.ex:1378
+#: lib/platform_web/live/adminland_live/invites_component.ex:191
+#: lib/platform_web/live/projects_live/invites_component.ex:293
+#: lib/platform_web/live/projects_live/invites_component.ex:395
+#: lib/platform_web/live/projects_live/members_component.ex:303
+#: lib/platform_web/live/projects_live/members_component.ex:404
+#, elixir-autogen, elixir-format
+msgid "Owner"
+msgstr ""
+
+#: lib/platform_web/live/media_live/show.html.heex:877
+#, elixir-autogen, elixir-format
+msgid "PDF"
+msgstr ""
+
+#: lib/platform_web/live/settings_live/mfa_live.html.heex:86
+#, elixir-autogen, elixir-format
+msgid "Password"
+msgstr ""
+
+#: lib/platform_web/templates/page/index.html.heex:3
+#, elixir-autogen, elixir-format
+msgid "Peace of mind from prototype to production"
+msgstr ""
+
+#: lib/platform_web/live/media_live/show.html.heex:663
+#, elixir-autogen, elixir-format
+msgid "Pending Archival"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/api_tokens_component.ex:189
+#, elixir-autogen, elixir-format
+msgid "Permissions"
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/user_list_live.ex:40
+#, elixir-autogen, elixir-format
+msgid "Plan"
+msgstr ""
+
+#: lib/platform_web/templates/invite/new.html.heex:35
+#, elixir-autogen, elixir-format
+msgid "Please ask the person who invited you to send you a new invitation."
+msgstr ""
+
+#: lib/platform_web/live/media_live/upload_version_live.ex:111
+#, elixir-autogen, elixir-format
+msgid "Please be sure to provide a photo or video and its source link."
+msgstr ""
+
+#: lib/platform_web/live/settings_live/backup_codes_component.ex:90
+#, elixir-autogen, elixir-format
+msgid "Please confirm that you want to generate a new set of backup codes. Your old codes will no longer work after this action."
+msgstr ""
+
+#: lib/platform_web/live/settings_live/backup_codes_component.ex:102
+#, elixir-autogen, elixir-format
+msgid "Please confirm that you want to remove all backup codes. You won't be able to use those backup codes again."
+msgstr ""
+
+#: lib/platform_web/views/error_view.ex:23
+#, elixir-autogen, elixir-format
+msgid "Please contact us if you believed you are receiving this message in error."
+msgstr ""
+
+#: lib/platform_web/live/projects_live/bulk_upload_live.ex:287
+#, elixir-autogen, elixir-format
+msgid "Please correct the errors below and re-upload your CSV."
+msgstr ""
+
+#: lib/platform_web/live/search_live/search_component.ex:418
+#, elixir-autogen, elixir-format
+msgid "Please try again."
+msgstr ""
+
+#: lib/platform_web/templates/layout/live.html.heex:98
+#, elixir-autogen, elixir-format
+msgid "Please upgrade your plan to continue editing data on Atlos."
+msgstr ""
+
+#: lib/platform_web/live/settings_live/profile_component.ex:111
+#, elixir-autogen, elixir-format
+msgid "Please upload a .PNG, .JPG, or .JPEG file."
+msgstr ""
+
+#: lib/platform_web/live/media_live/comment_box.ex:225
+#, elixir-autogen, elixir-format
+msgid "Post"
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/announcements_live.ex:89
+#, elixir-autogen, elixir-format
+msgid "Post Announcement"
+msgstr ""
+
+#: lib/platform_web/live/media_live/edit_attribute.ex:278
+#, elixir-autogen, elixir-format
+msgid "Post update →"
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/announcements_live.ex:91
+#: lib/platform_web/live/media_live/comment_box.ex:226
+#, elixir-autogen, elixir-format
+msgid "Posting..."
+msgstr ""
+
+#: lib/platform_web/live/media_live/show.html.heex:919
+#, elixir-autogen, elixir-format
+msgid "Potentially Graphic"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/edit_component.ex:504
+#, elixir-autogen, elixir-format
+msgid "Press enter to add a new option."
+msgstr ""
+
+#: lib/platform_web/components.ex:4052
+#: lib/platform_web/templates/user_registration/new.html.heex:40
+#, elixir-autogen, elixir-format
+msgid "Privacy Policy"
+msgstr ""
+
+#: lib/platform_web/live/media_live/upload_version_live.ex:278
+#, elixir-autogen, elixir-format
+msgid "Processing your media..."
+msgstr ""
+
+#: lib/platform_web/live/projects_live/bulk_upload_live.ex:326
+#, elixir-autogen, elixir-format
+msgid "Processing your upload..."
+msgstr ""
+
+#: lib/platform_web/live/notifications_live/notifications_list_live.ex:220
+#, elixir-autogen, elixir-format
+msgid "Processing..."
+msgstr ""
+
+#: lib/platform_web/components.ex:354
+#: lib/platform_web/live/settings_live/settings_live.html.heex:7
+#, elixir-autogen, elixir-format
+msgid "Profile"
+msgstr ""
+
+#: lib/platform_web/live/settings_live/profile_component.ex:132
+#, elixir-autogen, elixir-format
+msgid "Profile Photo"
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/user_list_live.ex:66
+#: lib/platform_web/live/profiles_live/show.html.heex:8
+#, elixir-autogen, elixir-format
+msgid "Profile photo for %{username}"
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/invites_component.ex:122
+#: lib/platform_web/live/new_live/new_component.ex:227
+#: lib/platform_web/live/projects_live/show.ex:77
+#, elixir-autogen, elixir-format
+msgid "Project"
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/api_token_live.ex:82
+#, elixir-autogen, elixir-format
+msgid "Project Based"
+msgstr ""
+
+#: lib/platform_web/live/media_live/show.ex:242
+#, elixir-autogen, elixir-format
+msgid "Project changed successfully."
+msgstr ""
+
+#: lib/platform_web/components.ex:385
+#: lib/platform_web/live/adminland_live/activity_feed_live.ex:123
+#: lib/platform_web/live/home_live/index.html.heex:172
+#: lib/platform_web/live/projects_live/index.ex:14
+#: lib/platform_web/live/projects_live/index.ex:34
+#: lib/platform_web/live/search_live/search_component.ex:323
+#, elixir-autogen, elixir-format
+msgid "Projects"
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/activity_feed_live.ex:124
+#, elixir-autogen, elixir-format
+msgid "Projects with activity in the last two weeks."
+msgstr ""
+
+#: lib/platform_web/live/projects_live/edit_component.ex:722
+#, elixir-autogen, elixir-format
+msgid "Provide a short description for the project..."
+msgstr ""
+
+#: lib/platform_web/live/media_live/link_version_live.ex:144
+#: lib/platform_web/live/media_live/upload_version_live.ex:413
+#: lib/platform_web/live/projects_live/bulk_upload_live.ex:578
+#, elixir-autogen, elixir-format
+msgid "Publish to Atlos"
+msgstr ""
+
+#: lib/platform_web/live/media_live/queue.ex:13
+#: lib/platform_web/live/media_live/queue.ex:45
+#: lib/platform_web/live/media_live/queue.ex:53
+#: lib/platform_web/live/projects_live/show.ex:149
+#, elixir-autogen, elixir-format
+msgid "Queue"
+msgstr ""
+
+#: lib/platform_web/live/home_live/index.html.heex:133
+#, elixir-autogen, elixir-format
+msgid "Quick Access"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/api_tokens_component.ex:377
+#, elixir-autogen, elixir-format
+msgid "Read"
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/security_mode_create_live.ex:85
+#, elixir-autogen, elixir-format
+msgid "Read Only"
+msgstr ""
+
+#: lib/platform_web/live/home_live/index.html.heex:212
+#: lib/platform_web/live/media_live/grouped_media_list.ex:10
+#: lib/platform_web/live/media_live/queue.ex:24
+#, elixir-autogen, elixir-format
+msgid "Ready for Review"
+msgstr ""
+
+#: lib/platform_web/live/media_live/show.html.heex:800
+#, elixir-autogen, elixir-format
+msgid "Rearchive"
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/activity_feed_live.ex:114
+#: lib/platform_web/live/home_live/index.html.heex:153
+#, elixir-autogen, elixir-format
+msgid "Recent Updates"
+msgstr ""
+
+#: lib/platform_web/live/media_live/edit_attribute.ex:262
+#, elixir-autogen, elixir-format
+msgid "Recommended for all non-trivial changes."
+msgstr ""
+
+#: lib/platform_web/live/settings_live/backup_codes_component.ex:94
+#, elixir-autogen, elixir-format
+msgid "Regenerate Codes"
+msgstr ""
+
+#: lib/platform_web/templates/layout/_user_menu.html.heex:7
+#: lib/platform_web/templates/user_confirmation/edit.html.heex:11
+#: lib/platform_web/templates/user_confirmation/new.html.heex:8
+#: lib/platform_web/templates/user_registration/new.html.heex:53
+#: lib/platform_web/templates/user_reset_password/new.html.heex:21
+#: lib/platform_web/templates/user_session/new.html.heex:33
+#, elixir-autogen, elixir-format
+msgid "Register"
+msgstr ""
+
+#: lib/platform_web/live/media_live/show.html.heex:784
+#: lib/platform_web/live/media_live/show.html.heex:789
+#: lib/platform_web/live/settings_live/profile_component.ex:164
+#, elixir-autogen, elixir-format
+msgid "Remove"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/members_component.ex:329
+#: lib/platform_web/live/projects_live/members_component.ex:333
+#, elixir-autogen, elixir-format
+msgid "Remove %{username}"
+msgstr ""
+
+#: lib/platform_web/live/media_live/show.html.heex:435
+#: lib/platform_web/live/media_live/show.html.heex:786
+#, elixir-autogen, elixir-format
+msgid "Removed source material can only be viewed by project owners and managers."
+msgstr ""
+
+#: lib/platform_web/live/settings_live/settings_live.html.heex:193
+#, elixir-autogen, elixir-format
+msgid "Repeat our brief %{onboarding_link} to refresh yourself on the basics of Atlos."
+msgstr ""
+
+#: lib/platform_web/live/projects_live/bulk_upload_live.ex:245
+#, elixir-autogen, elixir-format
+msgid "Required"
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/security_live.ex:144
+#: lib/platform_web/live/adminland_live/security_live.ex:153
+#, elixir-autogen, elixir-format
+msgid "Reset All Sessions"
+msgstr ""
+
+#: lib/platform_web/templates/user_reset_password/edit.html.heex:28
+#: lib/platform_web/templates/user_session/new.html.heex:32
+#, elixir-autogen, elixir-format
+msgid "Reset password"
+msgstr ""
+
+#: lib/platform_web/templates/page/index.html.heex:8
+#, elixir-autogen, elixir-format
+msgid "Resources"
+msgstr ""
+
+#: lib/platform_web/live/media_live/show.html.heex:184
+#, elixir-autogen, elixir-format
+msgid "Restore"
+msgstr ""
+
+#: lib/platform_web/live/profiles_live/edit_component.ex:144
+#: lib/platform_web/live/profiles_live/show.html.heex:192
+#, elixir-autogen, elixir-format
+msgid "Restrictions"
+msgstr ""
+
+#: lib/platform_web/live/media_live/paginated_media_list.ex:61
+#, elixir-autogen, elixir-format
+msgid "Resubscribe"
+msgstr ""
+
+#: lib/platform_web/templates/error/error.html.heex:80
+#, elixir-autogen, elixir-format
+msgid "Return Home"
+msgstr ""
+
+#: lib/platform_web/templates/invite/new.html.heex:39
+#, elixir-autogen, elixir-format
+msgid "Return home"
+msgstr ""
+
+#: lib/platform_web/templates/user_settings/edit.html.heex:60
+#, elixir-autogen, elixir-format
+msgid "Return to settings"
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/invites_component.ex:132
+#: lib/platform_web/live/projects_live/invites_component.ex:224
+#: lib/platform_web/live/projects_live/invites_component.ex:384
+#: lib/platform_web/live/projects_live/members_component.ex:268
+#: lib/platform_web/live/projects_live/members_component.ex:393
+#, elixir-autogen, elixir-format
+msgid "Role"
+msgstr ""
+
+#: lib/platform_web/live/profiles_live/edit_component.ex:130
+#: lib/platform_web/live/profiles_live/show.html.heex:232
+#, elixir-autogen, elixir-format
+msgid "Roles"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/bulk_upload_live.ex:480
+#, elixir-autogen, elixir-format
+msgid "Row %{idx}"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/bulk_upload_live.ex:531
+#, elixir-autogen, elixir-format
+msgid "Row %{idx}:"
+msgstr ""
+
+#: lib/platform_web/live/profiles_live/edit_component.ex:198
+#: lib/platform_web/live/projects_live/edit_component.ex:800
+#: lib/platform_web/live/projects_live/edit_component.ex:918
+#: lib/platform_web/live/projects_live/edit_component.ex:1038
+#: lib/platform_web/live/projects_live/edit_component.ex:1129
+#: lib/platform_web/live/projects_live/edit_component.ex:1229
+#: lib/platform_web/live/projects_live/members_component.ex:423
+#: lib/platform_web/live/settings_live/email_preferences_component.ex:77
+#: lib/platform_web/live/settings_live/profile_component.ex:192
+#, elixir-autogen, elixir-format
+msgid "Save"
+msgstr ""
+
+#: lib/platform_web/live/media_live/edit_attribute.ex:279
+#: lib/platform_web/live/new_live/new_component.ex:399
+#: lib/platform_web/live/profiles_live/edit_component.ex:199
+#: lib/platform_web/live/projects_live/api_tokens_component.ex:397
+#: lib/platform_web/live/projects_live/invites_component.ex:424
+#: lib/platform_web/live/projects_live/members_component.ex:424
+#: lib/platform_web/live/settings_live/email_preferences_component.ex:78
+#: lib/platform_web/live/settings_live/mfa_live.html.heex:41
+#: lib/platform_web/live/settings_live/mfa_live.html.heex:94
+#: lib/platform_web/live/settings_live/profile_component.ex:193
+#, elixir-autogen, elixir-format
+msgid "Saving..."
+msgstr ""
+
+#: lib/platform_web/components.ex:472
+#: lib/platform_web/live/adminland_live/activity_feed_live.ex:153
+#, elixir-autogen, elixir-format
+msgid "Search"
+msgstr ""
+
+#: lib/platform_web/live/search_live/search_component.ex:423
+#, elixir-autogen, elixir-format
+msgid "Search for anything with"
+msgstr ""
+
+#: lib/platform_web/live/notifications_live/notifications_live.html.heex:30
+#, elixir-autogen, elixir-format
+msgid "Search your notifications..."
+msgstr ""
+
+#: lib/platform_web/live/search_live/search_component.ex:191
+#, elixir-autogen, elixir-format
+msgid "Search..."
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/index.html.heex:58
+#, elixir-autogen, elixir-format
+msgid "Security"
+msgstr ""
+
+#: lib/platform_web/live/settings_live/mfa_live.html.heex:103
+#, elixir-autogen, elixir-format
+msgid "Security Check"
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/security_live.ex:42
+#, elixir-autogen, elixir-format
+msgid "Security Mode"
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/security_mode_create_live.ex:42
+#, elixir-autogen, elixir-format
+msgid "Security mode set successfully."
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/security_live.ex:56
+#, elixir-autogen, elixir-format
+msgid "Security modes can be useful for scheduled maintenance, or for responding to potential security incidents. Admins have the ability to restrict editing by all non-admin users, or to block all non-admin users from accessing Atlos."
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/security_live.ex:54
+#, elixir-autogen, elixir-format
+msgid "Security modes enable admins to quickly restrict behavior on Atlos."
+msgstr ""
+
+#: lib/platform_web/live/settings_live/settings_live.html.heex:187
+#, elixir-autogen, elixir-format
+msgid "See our tips on %{researcher_resilience_link} for more information on staying safe."
+msgstr ""
+
+#: lib/platform_web/live/media_live/index.html.heex:174
+#, elixir-autogen, elixir-format
+msgid "Select All"
+msgstr ""
+
+#: lib/platform_web/live/media_live/index.html.heex:330
+#, elixir-autogen, elixir-format
+msgid "Select a project"
+msgstr ""
+
+#: lib/platform_web/live/media_live/index.html.heex:144
+#, elixir-autogen, elixir-format
+msgid "Select a project..."
+msgstr ""
+
+#: lib/platform_web/live/media_live/index.html.heex:120
+#, elixir-autogen, elixir-format
+msgid "Select a status"
+msgstr ""
+
+#: lib/platform_web/live/media_live/index.html.heex:96
+#, elixir-autogen, elixir-format
+msgid "Select a tag"
+msgstr ""
+
+#: lib/platform_web/live/media_live/index.html.heex:441
+#, elixir-autogen, elixir-format
+msgid "Select this incident"
+msgstr ""
+
+#: lib/platform_web/live/media_live/upload_version_live.ex:339
+#, elixir-autogen, elixir-format
+msgid "Selected: %{name}"
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/announcements_live.ex:58
+#, elixir-autogen, elixir-format
+msgid "Send an announcement to everyone on Atlos."
+msgstr ""
+
+#: lib/platform_web/templates/user_confirmation/new.html.heex:7
+#: lib/platform_web/templates/user_reset_password/new.html.heex:20
+#, elixir-autogen, elixir-format
+msgid "Send instructions"
+msgstr ""
+
+#: lib/platform_web/live/settings_live/email_preferences_component.ex:54
+#, elixir-autogen, elixir-format
+msgid "Send me an email when..."
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/security_live.ex:74
+#, elixir-autogen, elixir-format
+msgid "Set"
+msgstr ""
+
+#: lib/platform_web/live/settings_live/backup_codes_live.ex:13
+#: lib/platform_web/live/settings_live/backup_codes_live.ex:26
+#, elixir-autogen, elixir-format
+msgid "Set Up Backup Codes"
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/security_mode_create_live.ex:98
+#, elixir-autogen, elixir-format
+msgid "Set security mode"
+msgstr ""
+
+#: lib/platform_web/live/media_live/index.html.heex:117
+#, elixir-autogen, elixir-format
+msgid "Set status"
+msgstr ""
+
+#: lib/platform_web/live/media_live/index.ex:330
+#, elixir-autogen, elixir-format
+msgid "Setting status to %{status}..."
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/security_mode_create_live.ex:99
+#, elixir-autogen, elixir-format
+msgid "Setting..."
+msgstr ""
+
+#: lib/platform_web/live/settings_live/settings_live.ex:24
+#: lib/platform_web/templates/layout/_user_menu.html.heex:4
+#, elixir-autogen, elixir-format
+msgid "Settings"
+msgstr ""
+
+#: lib/platform_web/live/settings_live/mfa_live.html.heex:57
+#, elixir-autogen, elixir-format
+msgid "Setup Multi-Factor Authentication"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/invites_component.ex:437
+#, elixir-autogen, elixir-format
+msgid "Share the link below with others to invite them to this project. If they don't have an Atlos account, they will be prompted to create one."
+msgstr ""
+
+#: lib/platform_web/live/projects_live/edit_component.ex:774
+#, elixir-autogen, elixir-format
+msgid "Share with the Internet Archive"
+msgstr ""
+
+#: lib/platform_web/live/media_live/show.html.heex:929
+#: lib/platform_web/live/notifications_live/notifications_live.html.heex:11
+#, elixir-autogen, elixir-format
+msgid "Show"
+msgstr ""
+
+#: lib/platform_web/live/media_live/show.html.heex:1015
+#: lib/platform_web/live/media_live/show.html.heex:1015
+#, elixir-autogen, elixir-format
+msgid "Show Color"
+msgstr ""
+
+#: lib/platform_web/templates/user_registration/new.html.heex:54
+#, elixir-autogen, elixir-format
+msgid "Sign in to existing account"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/edit_component.ex:292
+#, elixir-autogen, elixir-format
+msgid "Single Select"
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/invites_component.ex:116
+#: lib/platform_web/live/projects_live/invites_component.ex:205
+#, elixir-autogen, elixir-format
+msgid "Single Use"
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/invites_component.ex:70
+#, elixir-autogen, elixir-format
+msgid "Single use"
+msgstr ""
+
+#: lib/platform_web/live/media_live/index.html.heex:216
+#, elixir-autogen, elixir-format
+msgid "Skipped actions are usually a result of insufficient permissions."
+msgstr ""
+
+#: lib/platform_web/live/media_live/edit_attribute.ex:247
+#, elixir-autogen, elixir-format
+msgid "Some information about this incident is missing."
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/api_token_create_live.ex:59
+#: lib/platform_web/live/projects_live/api_tokens_component.ex:356
+#, elixir-autogen, elixir-format
+msgid "Some information about this token..."
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/security_mode_create_live.ex:70
+#, elixir-autogen, elixir-format
+msgid "Some user-facing description..."
+msgstr ""
+
+#: lib/platform_web/live/settings_live/email_preferences_component.ex:69
+#, elixir-autogen, elixir-format
+msgid "Someone logs into my account"
+msgstr ""
+
+#: lib/platform_web/live/settings_live/email_preferences_component.ex:59
+#, elixir-autogen, elixir-format
+msgid "Someone mentions"
+msgstr ""
+
+#: lib/platform_web/live/media_live/upload_version_live.ex:305
+#: lib/platform_web/live/projects_live/bulk_upload_live.ex:380
+#, elixir-autogen, elixir-format
+msgid "Something went wrong while processing your upload."
+msgstr ""
+
+#: lib/platform_web/templates/invite/new.html.heex:31
+#, elixir-autogen, elixir-format
+msgid "Sorry, this invite is not valid."
+msgstr ""
+
+#: lib/platform_web/templates/page/index.html.heex:14
+#, elixir-autogen, elixir-format
+msgid "Source"
+msgstr ""
+
+#: lib/platform_web/live/media_live/index.html.heex:395
+#, elixir-autogen, elixir-format
+msgid "Source %{count}"
+msgstr ""
+
+#: lib/platform_web/live/media_live/show.html.heex:356
+#: lib/platform_web/live/new_live/new_component.ex:279
+#: lib/platform_web/live/search_live/search_component.ex:276
+#, elixir-autogen, elixir-format
+msgid "Source Material"
+msgstr ""
+
+#: lib/platform_web/live/media_live/show.html.heex:879
+#, elixir-autogen, elixir-format
+msgid "Source Media"
+msgstr ""
+
+#: lib/platform_web/live/media_live/show.html.heex:819
+#, elixir-autogen, elixir-format
+msgid "Source material metadata is an advanced feature, and most users don't need to use it. Some metadata is set automatically by Atlos (e.g., \"auto_archive_successful\" and \"content_info\") while others are set by integrations."
+msgstr ""
+
+#: lib/platform_web/live/media_live/show.html.heex:813
+#, elixir-autogen, elixir-format
+msgid "Source material metadata is structured information associated with this media by Atlos and other integrations."
+msgstr ""
+
+#: lib/platform_web/live/projects_live/export_live.ex:64
+#, elixir-autogen, elixir-format
+msgid "Spreadsheet (CSV)"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/export_live.ex:32
+#, elixir-autogen, elixir-format
+msgid "Spreadsheet (CSV) exports will contain a row for each incident in your project, as well as a link to each piece of attached source material. Files uploaded directly to Atlos are not included in CSV exports."
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/activity_feed_live.ex:91
+#: lib/platform_web/live/home_live/index.html.heex:200
+#, elixir-autogen, elixir-format
+msgid "Statistics"
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/user_list_live.ex:33
+#, elixir-autogen, elixir-format
+msgid "Status"
+msgstr ""
+
+#: lib/platform_web/live/media_live/index.ex:331
+#, elixir-autogen, elixir-format
+msgid "Status set to %{status}."
+msgstr ""
+
+#: lib/platform_web/live/media_live/subscribe_button.ex:16
+#, elixir-autogen, elixir-format
+msgid "Subscribe"
+msgstr ""
+
+#: lib/platform_web/live/media_live/subscribe_button.ex:15
+#, elixir-autogen, elixir-format
+msgid "Subscribed"
+msgstr ""
+
+#: lib/platform_web/live/settings_live/settings_live.html.heex:23
+#, elixir-autogen, elixir-format
+msgid "Subscription & Billing"
+msgstr ""
+
+#: lib/platform_web/live/notifications_live/notifications_live.html.heex:42
+#: lib/platform_web/live/profiles_live/show.html.heex:89
+#, elixir-autogen, elixir-format
+msgid "Subscriptions"
+msgstr ""
+
+#: lib/platform_web/live/profiles_live/edit_component.ex:146
+#, elixir-autogen, elixir-format
+msgid "Suspended"
+msgstr ""
+
+#: lib/platform_web/components.ex:4050
+#: lib/platform_web/templates/user_registration/new.html.heex:37
+#, elixir-autogen, elixir-format
+msgid "Terms"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/edit_component.ex:294
+#, elixir-autogen, elixir-format
+msgid "Text"
+msgstr ""
+
+#: lib/platform_web/live/settings_live/settings_live.html.heex:97
+#, elixir-autogen, elixir-format
+msgid "Thank you for being an Atlos subscriber. Your subscription provides full access to the Atlos platform."
+msgstr ""
+
+#: lib/platform_web/templates/user_confirmation/edit.html.heex:2
+#, elixir-autogen, elixir-format
+msgid "Thank you for joining Atlos. Click the button below to confirm that this email belongs to you."
+msgstr ""
+
+#: lib/platform_web/live/settings_live/settings_live.html.heex:205
+#, elixir-autogen, elixir-format
+msgid "Thank you for subscribing to Atlos."
+msgstr ""
+
+#: lib/platform_web/live/settings_live/settings_live.html.heex:87
+#, elixir-autogen, elixir-format
+msgid "Thank you for supporting Atlos."
+msgstr ""
+
+#: lib/platform_web/live/projects_live/show.ex:353
+#, elixir-autogen, elixir-format
+msgid "The"
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/api_token_live.ex:137
+#, elixir-autogen, elixir-format
+msgid "The Atlos API is a deprecated read-only API for administrators."
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/api_token_live.ex:143
+#, elixir-autogen, elixir-format
+msgid "The Atlos API supports the following endpoints:"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/api_documentation_component.ex:25
+#, elixir-autogen, elixir-format
+msgid "The Atlos API uses API-specific identifers, rather than interface names, to refer to attributes, metadata, and even the project itself. Learn more in our"
+msgstr ""
+
+#: lib/platform_web/live/profiles_live/edit_component.ex:65
+#, elixir-autogen, elixir-format
+msgid "The access changes have been saved."
+msgstr ""
+
+#: lib/platform_web/live/projects_live/api_tokens_component.ex:156
+#, elixir-autogen, elixir-format
+msgid "The beta %{atlos_api} allows you to connect your project to external services."
+msgstr ""
+
+#: lib/platform_web/live/media_live/upload_version_live.ex:196
+#, elixir-autogen, elixir-format
+msgid "The file type you are uploading is not supported. Please contact us if you think this is an error."
+msgstr ""
+
+#: lib/platform_web/live/projects_live/bulk_upload_live.ex:43
+#, elixir-autogen, elixir-format
+msgid "The file type you are uploading is not supported. We only support CSV uploads."
+msgstr ""
+
+#: lib/platform_web/live/projects_live/api_tokens_component.ex:338
+#, elixir-autogen, elixir-format
+msgid "The name of the token..."
+msgstr ""
+
+#: lib/platform_web/live/projects_live/edit_component.ex:1083
+#, elixir-autogen, elixir-format
+msgid "There are no attributes in this group. Drag attributes into this group to add them."
+msgstr ""
+
+#: lib/platform_web/live/updates_live/update_feed.ex:76
+#, elixir-autogen, elixir-format
+msgid "There are no recent updates to show."
+msgstr ""
+
+#: lib/platform_web/live/projects_live/bulk_upload_live.ex:473
+#, elixir-autogen, elixir-format
+msgid "There were errors processing your upload. Please review the errors and try again."
+msgstr ""
+
+#: lib/platform_web/live/profiles_live/edit_component.ex:116
+#, elixir-autogen, elixir-format
+msgid "These changes will affect this user's account."
+msgstr ""
+
+#: lib/platform_web/live/settings_live/resiliency_component.ex:22
+#, elixir-autogen, elixir-format
+msgid "These features are coming soon."
+msgstr ""
+
+#: lib/platform_web/live/profiles_live/edit_component.ex:178
+#, elixir-autogen, elixir-format
+msgid "These notes are available to all admins."
+msgstr ""
+
+#: lib/platform_web/live/settings_live/settings_live.html.heex:171
+#, elixir-autogen, elixir-format
+msgid "These resources can help you use Atlos more effectively."
+msgstr ""
+
+#: lib/platform_web/live/projects_live/edit_component.ex:584
+#, elixir-autogen, elixir-format
+msgid "This color will help visually identify the attribute group."
+msgstr ""
+
+#: lib/platform_web/live/projects_live/edit_component.ex:763
+#, elixir-autogen, elixir-format
+msgid "This color will help visually identify the project."
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/security_mode_create_live.ex:75
+#, elixir-autogen, elixir-format
+msgid "This description will be shown to users when they try to perform a disallowed action (e.g., logging in when mode is \"No Access\"). Only relevant for non-Normal security modes."
+msgstr ""
+
+#: lib/platform_web/live/settings_live/profile_component.ex:110
+#, elixir-autogen, elixir-format
+msgid "This file is too large; the maximum size is 1 megabyte."
+msgstr ""
+
+#: lib/platform_web/live/media_live/upload_version_live.ex:192
+#: lib/platform_web/live/projects_live/bulk_upload_live.ex:40
+#, elixir-autogen, elixir-format
+msgid "This file is too large; the maximum size is 250 megabytes."
+msgstr ""
+
+#: lib/platform_web/live/media_live/merge_versions_live.ex:41
+#: lib/platform_web/live/media_live/merge_versions_live.ex:46
+#, elixir-autogen, elixir-format
+msgid "This incident doesn't seem to exist. Is the six-character correct?"
+msgstr ""
+
+#: lib/platform_web/live/media_live/show.html.heex:1085
+#, elixir-autogen, elixir-format
+msgid "This incident has been restricted."
+msgstr ""
+
+#: lib/platform_web/live/media_live/show.html.heex:1079
+#, elixir-autogen, elixir-format
+msgid "This incident is marked as cancelled."
+msgstr ""
+
+#: lib/platform_web/live/media_live/show.html.heex:1073
+#, elixir-autogen, elixir-format
+msgid "This incident is marked as completed."
+msgstr ""
+
+#: lib/platform_web/live/media_live/show.html.heex:1067
+#, elixir-autogen, elixir-format
+msgid "This incident is marked as deleted."
+msgstr ""
+
+#: lib/platform_web/live/media_live/show.html.heex:638
+#, elixir-autogen, elixir-format
+msgid "This information is automatically generated by Atlos based on the incident's data."
+msgstr ""
+
+#: lib/platform_web/live/settings_live/settings_live.html.heex:9
+#, elixir-autogen, elixir-format
+msgid "This information will be displayed to others on Atlos."
+msgstr ""
+
+#: lib/platform_web/components.ex:1394
+#, elixir-autogen, elixir-format
+msgid "This invitation will expire"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/invites_component.ex:450
+#, elixir-autogen, elixir-format
+msgid "This invite will expire on"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/edit_component.ex:650
+#, elixir-autogen, elixir-format
+msgid "This is a core attribute and cannot be edited."
+msgstr ""
+
+#: lib/platform_web/live/projects_live/edit_component.ex:716
+#, elixir-autogen, elixir-format
+msgid "This is a short code that will be used to identify this project in incident IDs. E.g., CIV-1234."
+msgstr ""
+
+#: lib/platform_web/live/media_live/edit_attribute.ex:183
+#, elixir-autogen, elixir-format
+msgid "This is a volunteer-created incident."
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/api_token_create_live.ex:64
+#: lib/platform_web/live/projects_live/api_tokens_component.ex:361
+#, elixir-autogen, elixir-format
+msgid "This is just for your reference, so you can remember what this token is for. It will be visible to other project owners."
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/activity_feed_live.ex:141
+#, elixir-autogen, elixir-format
+msgid "This is the latest activity on Atlos."
+msgstr ""
+
+#: lib/platform_web/live/projects_live/show.ex:199
+#, elixir-autogen, elixir-format
+msgid "This is where we typically show recent updates to the project, but because you're a data-only viewer, this information is not available."
+msgstr ""
+
+#: lib/platform_web/live/media_live/show.html.heex:922
+#, elixir-autogen, elixir-format
+msgid "This media may be graphic. Please proceed with caution."
+msgstr ""
+
+#: lib/platform_web/live/media_live/upload_version_live.ex:388
+#, elixir-autogen, elixir-format
+msgid "This might be a tweet, a Telegram message, or something else. Where did the media come from?"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/bulk_upload_live.ex:328
+#, elixir-autogen, elixir-format
+msgid "This might take a moment. Please keep the window open."
+msgstr ""
+
+#: lib/platform_web/live/media_live/upload_version_live.ex:280
+#, elixir-autogen, elixir-format
+msgid "This might take a moment. You will be redirected to the incident once the upload is complete."
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/api_token_create_live.ex:53
+#: lib/platform_web/live/projects_live/api_tokens_component.ex:342
+#, elixir-autogen, elixir-format
+msgid "This name will be visible to members of the project and associated with any actions performed by the token."
+msgstr ""
+
+#: lib/platform_web/live/media_live/copy_media_live.ex:46
+#, elixir-autogen, elixir-format
+msgid "This project doesn't seem to exist."
+msgstr ""
+
+#: lib/platform_web/live/projects_live/edit_component.ex:689
+#, elixir-autogen, elixir-format
+msgid "This project has been archived"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/edit_component.ex:693
+#, elixir-autogen, elixir-format
+msgid "This project has been archived, so it is not possible to edit its data or incidents. To edit this project, you must unarchive it first."
+msgstr ""
+
+#: lib/platform_web/live/projects_live/members_component.ex:249
+#, elixir-autogen, elixir-format
+msgid "This project has no members."
+msgstr ""
+
+#: lib/platform_web/live/projects_live/api_tokens_component.ex:227
+#, elixir-autogen, elixir-format
+msgid "This token has been deactivated and can no longer be used."
+msgstr ""
+
+#: lib/platform_web/live/projects_live/members_component.ex:313
+#, elixir-autogen, elixir-format
+msgid "This user cannot see comments or the usernames of project members."
+msgstr ""
+
+#: lib/platform_web/live/profiles_live/show.ex:80
+#, elixir-autogen, elixir-format
+msgid "This user does not exist or is not available."
+msgstr ""
+
+#: lib/platform_web/live/media_live/edit_attribute.ex:161
+#: lib/platform_web/live/profiles_live/edit_component.ex:107
+#, elixir-autogen, elixir-format
+msgid "This will discard your changes without saving. Are you sure?"
+msgstr ""
+
+#: lib/platform_web/live/profiles_live/show.ex:37
+#, elixir-autogen, elixir-format
+msgid "Time"
+msgstr ""
+
+#: lib/platform_web/live/home_live/index.html.heex:212
+#: lib/platform_web/live/media_live/grouped_media_list.ex:7
+#: lib/platform_web/live/media_live/queue.ex:21
+#, elixir-autogen, elixir-format
+msgid "To Do"
+msgstr ""
+
+#: lib/platform_web/live/profiles_live/edit_component.ex:171
+#, elixir-autogen, elixir-format
+msgid "To associate a user with an organizational account, add billing flag \"Organization/Org Name\", e.g., \"Organization/Atlos\". \"Complimentary\" will provide the user free Pro access without interfacing with the billing system."
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/api_token_live.ex:163
+#, elixir-autogen, elixir-format
+msgid "To authenticate against the API, include a %{auth_header_code} header and set its value to %{bearer_code} (without the brackets)."
+msgstr ""
+
+#: lib/platform_web/live/settings_live/settings_live.html.heex:128
+#, elixir-autogen, elixir-format
+msgid "To change your email or username, please contact us."
+msgstr ""
+
+#: lib/platform_web/live/settings_live/mfa_live.html.heex:77
+#, elixir-autogen, elixir-format
+msgid "To disable MFA, please enter your password below."
+msgstr ""
+
+#: lib/platform_web/live/settings_live/mfa_live.html.heex:17
+#, elixir-autogen, elixir-format
+msgid "To enable MFA, scan the following code using your multi-factor authentication app."
+msgstr ""
+
+#: lib/platform_web/live/media_live/edit_attribute.ex:201
+#, elixir-autogen, elixir-format
+msgid "To make unlimited edits, please"
+msgstr ""
+
+#: lib/platform_web/live/settings_live/mfa_live.html.heex:105
+#, elixir-autogen, elixir-format
+msgid "To view your backup codes or disable MFA, please enter your current MFA code below."
+msgstr ""
+
+#: lib/platform_web/live/profiles_live/edit_component.ex:132
+#, elixir-autogen, elixir-format
+msgid "Trusted"
+msgstr ""
+
+#: lib/platform_web/live/media_live/index.html.heex:233
+#, elixir-autogen, elixir-format
+msgid "Unable to complete your bulk action."
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/api_token_live.ex:37
+#, elixir-autogen, elixir-format
+msgid "Unable to delete API token."
+msgstr ""
+
+#: lib/platform_web/live/projects_live/bulk_upload_live.ex:171
+#, elixir-autogen, elixir-format
+msgid "Unable to parse this location; please enter geolocation in separate \"latitude\" and \"longitude\" columns."
+msgstr ""
+
+#: lib/platform_web/live/media_live/comment_box.ex:114
+#, elixir-autogen, elixir-format
+msgid "Unable to post your comment."
+msgstr ""
+
+#: lib/platform_web/live/media_live/show.ex:280
+#, elixir-autogen, elixir-format
+msgid "Unable to process the given media. Please try again."
+msgstr ""
+
+#: lib/platform_web/templates/user_registration/new.html.heex:6
+#, elixir-autogen, elixir-format
+msgid "Unable to register your account. Check for errors below, and ensure you completed the captcha."
+msgstr ""
+
+#: lib/platform_web/live/projects_live/edit_component.ex:827
+#, elixir-autogen, elixir-format
+msgid "Unarchive Project"
+msgstr ""
+
+#: lib/platform_web/live/media_live/show.html.heex:784
+#: lib/platform_web/live/media_live/show.html.heex:789
+#, elixir-autogen, elixir-format
+msgid "Undo Removal"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/edit_component.ex:975
+#, elixir-autogen, elixir-format
+msgid "Ungrouped Attributes"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/edit_component.ex:1002
+#, elixir-autogen, elixir-format
+msgid "Ungrouped attributes are not associated with any group."
+msgstr ""
+
+#: lib/platform_web/live/media_live/show.html.heex:770
+#, elixir-autogen, elixir-format
+msgid "Unhide"
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/invites_component.ex:170
+#, elixir-autogen, elixir-format
+msgid "Unknown"
+msgstr ""
+
+#: lib/platform_web/live/settings_live/settings_live.html.heex:59
+#, elixir-autogen, elixir-format
+msgid "Unlimited"
+msgstr ""
+
+#: lib/platform_web/live/media_live/show.html.heex:772
+#, elixir-autogen, elixir-format
+msgid "Unminimize"
+msgstr ""
+
+#: lib/platform_web/live/media_live/index.html.heex:520
+#: lib/platform_web/live/media_live/index.html.heex:530
+#: lib/platform_web/live/notifications_live/notifications_list_live.ex:115
+#, elixir-autogen, elixir-format
+msgid "Unread notification"
+msgstr ""
+
+#: lib/platform_web/live/media_live/paginated_media_list.ex:60
+#, elixir-autogen, elixir-format
+msgid "Unsubscribe"
+msgstr ""
+
+#: lib/platform_web/live/search_live/search_component.ex:370
+#, elixir-autogen, elixir-format
+msgid "Updates"
+msgstr ""
+
+#: lib/platform_web/components.ex:487
+#, elixir-autogen, elixir-format
+msgid "Upgrade"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/show.ex:364
+#: lib/platform_web/templates/layout/live.html.heex:101
+#, elixir-autogen, elixir-format
+msgid "Upgrade my account"
+msgstr ""
+
+#: lib/platform_web/live/home_live/index.html.heex:22
+#, elixir-autogen, elixir-format
+msgid "Upgrade to Pro"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/show.ex:351
+#, elixir-autogen, elixir-format
+msgid "Upgrade to use the API"
+msgstr ""
+
+#: lib/platform_web/live/media_live/show.html.heex:531
+#, elixir-autogen, elixir-format
+msgid "Upload Media"
+msgstr ""
+
+#: lib/platform_web/live/media_live/show.html.heex:709
+#, elixir-autogen, elixir-format
+msgid "Upload Type"
+msgstr ""
+
+#: lib/platform_web/live/media_live/upload_version_live.ex:371
+#: lib/platform_web/live/projects_live/bulk_upload_live.ex:453
+#, elixir-autogen, elixir-format
+msgid "Upload a file"
+msgstr ""
+
+#: lib/platform_web/live/media_live/upload_version_live.ex:315
+#: lib/platform_web/live/projects_live/bulk_upload_live.ex:390
+#, elixir-autogen, elixir-format
+msgid "Upload another file"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/bulk_upload_live.ex:273
+#, elixir-autogen, elixir-format
+msgid "Upload incidents"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/bulk_upload_live.ex:226
+#, elixir-autogen, elixir-format
+msgid "Upload many incidents from a CSV file."
+msgstr ""
+
+#: lib/platform_web/live/projects_live/bulk_upload_live.ex:355
+#, elixir-autogen, elixir-format
+msgid "Uploaded %{filename}."
+msgstr ""
+
+#: lib/platform_web/live/media_live/show.html.heex:1033
+#, elixir-autogen, elixir-format
+msgid "Uploaded By"
+msgstr ""
+
+#: lib/platform_web/live/media_live/show.html.heex:677
+#: lib/platform_web/live/search_live/search_component.ex:306
+#, elixir-autogen, elixir-format
+msgid "Uploaded File"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/bulk_upload_live.ex:415
+#, elixir-autogen, elixir-format
+msgid "Uploading %{filename}"
+msgstr ""
+
+#: lib/platform_web/live/media_live/link_version_live.ex:145
+#: lib/platform_web/live/media_live/upload_version_live.ex:414
+#, elixir-autogen, elixir-format
+msgid "Uploading..."
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/activity_feed_live.ex:92
+#, elixir-autogen, elixir-format
+msgid "Usage over the past two weeks."
+msgstr ""
+
+#: lib/platform_web/live/projects_live/api_tokens_component.ex:146
+#, elixir-autogen, elixir-format
+msgid "Use API tokens to connect your project to external services. You can create multiple tokens with different permissions."
+msgstr ""
+
+#: lib/platform_web/live/search_live/search_component.ex:425
+#, elixir-autogen, elixir-format
+msgid "Use arrow keys to navigate,"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/edit_component.ex:788
+#, elixir-autogen, elixir-format
+msgid "Use built-in source material archival"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/api_documentation_component.ex:81
+#, elixir-autogen, elixir-format
+msgid "Use the API to access or update incident metadata in the same way as other attributes."
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/security_live.ex:86
+#: lib/platform_web/live/adminland_live/user_list_live.ex:30
+#: lib/platform_web/live/projects_live/members_component.ex:262
+#, elixir-autogen, elixir-format
+msgid "User"
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/security_mode_create_live.ex:67
+#, elixir-autogen, elixir-format
+msgid "User-facing description"
+msgstr ""
+
+#: lib/platform_web/live/settings_live/profile_component.ex:127
+#, elixir-autogen, elixir-format
+msgid "Username"
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/index.html.heex:72
+#: lib/platform_web/live/adminland_live/invites_component.ex:125
+#: lib/platform_web/live/projects_live/invites_component.ex:217
+#: lib/platform_web/live/search_live/search_component.ex:219
+#, elixir-autogen, elixir-format
+msgid "Users"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/invites_component.ex:356
+#, elixir-autogen, elixir-format
+msgid "Users who use the invite code will be added to the project with the role you select below."
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/invites_component.ex:130
+#: lib/platform_web/live/projects_live/invites_component.ex:222
+#, elixir-autogen, elixir-format
+msgid "Users who use this invite will be added to the project with this role."
+msgstr ""
+
+#: lib/platform_web/live/settings_live/mfa_live.html.heex:119
+#, elixir-autogen, elixir-format
+msgid "Validating..."
+msgstr ""
+
+#: lib/platform_web/live/media_live/show.html.heex:463
+#, elixir-autogen, elixir-format
+msgid "View"
+msgstr ""
+
+#: lib/platform_web/live/settings_live/mfa_live.html.heex:127
+#, elixir-autogen, elixir-format
+msgid "View All Settings"
+msgstr ""
+
+#: lib/platform_web/live/home_live/index.html.heex:79
+#, elixir-autogen, elixir-format
+msgid "View Profile"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/show.ex:211
+#, elixir-autogen, elixir-format
+msgid "View Project Data"
+msgstr ""
+
+#: lib/platform_web/live/home_live/index.html.heex:247
+#, elixir-autogen, elixir-format
+msgid "View all incidents"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/members_component.ex:239
+#, elixir-autogen, elixir-format
+msgid "View and manage access to the project."
+msgstr ""
+
+#: lib/platform_web/live/projects_live/invites_component.ex:155
+#, elixir-autogen, elixir-format
+msgid "View and manage invitations to this project."
+msgstr ""
+
+#: lib/platform_web/live/media_live/show.html.heex:815
+#, elixir-autogen, elixir-format
+msgid "View and manage metadata"
+msgstr ""
+
+#: lib/platform_web/live/notifications_live/notifications_live.html.heex:50
+#, elixir-autogen, elixir-format
+msgid "View and manage subscriptions"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/show.ex:254
+#, elixir-autogen, elixir-format
+msgid "View in queue"
+msgstr ""
+
+#: lib/platform_web/live/media_live/show.html.heex:418
+#, elixir-autogen, elixir-format
+msgid "View minimized media"
+msgstr ""
+
+#: lib/platform_web/live/settings_live/profile_component.ex:198
+#, elixir-autogen, elixir-format
+msgid "View my profile and activity"
+msgstr ""
+
+#: lib/platform_web/live/media_live/show.html.heex:437
+#, elixir-autogen, elixir-format
+msgid "View removed media"
+msgstr ""
+
+#: lib/platform_web/components.ex:1384
+#: lib/platform_web/live/adminland_live/invites_component.ex:197
+#: lib/platform_web/live/projects_live/invites_component.ex:299
+#: lib/platform_web/live/projects_live/invites_component.ex:392
+#: lib/platform_web/live/projects_live/members_component.ex:309
+#: lib/platform_web/live/projects_live/members_component.ex:401
+#, elixir-autogen, elixir-format
+msgid "Viewer"
+msgstr ""
+
+#: lib/platform_web/live/media_live/show.html.heex:883
+#, elixir-autogen, elixir-format
+msgid "Viewport Screenshot"
+msgstr ""
+
+#: lib/platform_web/live/search_live/search_component.ex:418
+#, elixir-autogen, elixir-format
+msgid "We couldn’t find anything that matches"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/bulk_upload_live.ex:286
+#, elixir-autogen, elixir-format
+msgid "We encountered errors while processing your upload."
+msgstr ""
+
+#: lib/platform_web/live/settings_live/settings_live.html.heex:49
+#, elixir-autogen, elixir-format
+msgid "We have some capacity to support in-need investigations at no cost. If you are a human rights organization and our subscription fees are a barrier to using Atlos, please %{contact_us_link}."
+msgstr ""
+
+#: lib/platform_web/live/projects_live/bulk_upload_live.ex:523
+#, elixir-autogen, elixir-format
+msgid "We have truncated the list to the first 50 incidents."
+msgstr ""
+
+#: lib/platform_web/live/projects_live/edit_component.ex:893
+#, elixir-autogen, elixir-format
+msgid "We've provided some default suggested attributes for this project. You can edit these attributes, or add new ones."
+msgstr ""
+
+#: lib/platform_web/templates/page/index.html.heex:2
+#, elixir-autogen, elixir-format
+msgid "Welcome to %{name}!"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/api_tokens_component.ex:333
+#, elixir-autogen, elixir-format
+msgid "What do you want to call this token?"
+msgstr ""
+
+#: lib/platform_web/live/media_live/link_version_live.ex:117
+#, elixir-autogen, elixir-format
+msgid "What is the link to the media you would like to upload?"
+msgstr ""
+
+#: lib/platform_web/live/media_live/merge_versions_live.ex:123
+#, elixir-autogen, elixir-format
+msgid "What is the slug (code) of the incident to merge media into?"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/api_tokens_component.ex:370
+#, elixir-autogen, elixir-format
+msgid "What permissions should this token have?"
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/security_mode_create_live.ex:80
+#, elixir-autogen, elixir-format
+msgid "What security mode would you like to set?"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/edit_component.ex:702
+#, elixir-autogen, elixir-format
+msgid "What should we call this project?"
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/api_token_create_live.ex:50
+#, elixir-autogen, elixir-format
+msgid "What should we call this token?"
+msgstr ""
+
+#: lib/platform_web/live/media_live/upload_version_live.ex:382
+#, elixir-autogen, elixir-format
+msgid "Where did this media come from? (Optional)"
+msgstr ""
+
+#: lib/platform_web/live/media_live/index.html.heex:109
+#: lib/platform_web/live/media_live/index.html.heex:133
+#: lib/platform_web/live/media_live/index.html.heex:160
+#, elixir-autogen, elixir-format
+msgid "Working..."
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/invites_component.ex:163
+#: lib/platform_web/live/projects_live/invites_component.ex:268
+#, elixir-autogen, elixir-format
+msgid "Yes"
+msgstr ""
+
+#: lib/platform_web/live/media_live/show.html.heex:326
+#, elixir-autogen, elixir-format
+msgid "You are a data-only viewer, so you cannot view the feed or comment on this incident."
+msgstr ""
+
+#: lib/platform_web/templates/invite/new.html.heex:8
+#, elixir-autogen, elixir-format
+msgid "You are already a member of the project, so you don't need to accept this invitation."
+msgstr ""
+
+#: lib/platform_web/live/media_live/edit_attribute.ex:199
+#, elixir-autogen, elixir-format
+msgid "You are limited to %{count} edits every 30 days."
+msgstr ""
+
+#: lib/platform_web/live/profiles_live/show.html.heex:33
+#, elixir-autogen, elixir-format
+msgid "You are not part of any projects."
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/security_live.ex:128
+#, elixir-autogen, elixir-format
+msgid "You can change the security mode below."
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/api_token_live.ex:139
+#, elixir-autogen, elixir-format
+msgid "You can learn more about the API authentication scheme and endpoints below. Note that this API is deprecated and will be removed in a future release. Please use project-specific API tokens instead."
+msgstr ""
+
+#: lib/platform_web/live/projects_live/invites_component.ex:359
+#, elixir-autogen, elixir-format
+msgid "You can share invite codes with individuals without an Atlos account; they will be prompted to create an account when they use the invite code."
+msgstr ""
+
+#: lib/platform_web/live/media_live/edit_attribute.ex:248
+#, elixir-autogen, elixir-format
+msgid "You can still make this change, but note that the following field is not set: %{fields}."
+msgid_plural "You can still make this change, but note that the following fields are not set: %{fields}."
+msgstr[0] ""
+msgstr[1] ""
+
+#: lib/platform_web/live/media_live/show.ex:187
+#, elixir-autogen, elixir-format
+msgid "You cannot change this incident's deletion status."
+msgstr ""
+
+#: lib/platform_web/live/media_live/show.ex:137
+#, elixir-autogen, elixir-format
+msgid "You cannot change this media version's visibility."
+msgstr ""
+
+#: lib/platform_web/live/media_live/index.ex:418
+#, elixir-autogen, elixir-format
+msgid "You cannot edit this data on %{slug}."
+msgstr ""
+
+#: lib/platform_web/live/media_live/merge_versions_live.ex:52
+#, elixir-autogen, elixir-format
+msgid "You cannot merge media into itself."
+msgstr ""
+
+#: lib/platform_web/live/media_live/show.ex:209
+#, elixir-autogen, elixir-format
+msgid "You cannot rearchive this source material."
+msgstr ""
+
+#: lib/platform_web/live/projects_live/members_component.ex:92
+#, elixir-autogen, elixir-format
+msgid "You cannot remove the last owner"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/members_component.ex:145
+#, elixir-autogen, elixir-format
+msgid "You cannot remove yourself from this project"
+msgstr ""
+
+#: lib/platform_web/live/settings_live/backup_codes_component.ex:116
+#, elixir-autogen, elixir-format
+msgid "You currently don't have any backup codes setup. Backup codes can be used to log into Atlos if you lose access to your authenticator app."
+msgstr ""
+
+#: lib/platform_web/live/profiles_live/show.html.heex:35
+#, elixir-autogen, elixir-format
+msgid "You do not have any projects in common with this user."
+msgstr ""
+
+#: lib/platform_web/live/media_live/edit_attribute.ex:39
+#, elixir-autogen, elixir-format
+msgid "You do not have permission to edit this attribute"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/api_tokens_component.ex:40
+#: lib/platform_web/live/projects_live/api_tokens_component.ex:58
+#: lib/platform_web/live/projects_live/edit_component.ex:15
+#: lib/platform_web/live/projects_live/invites_component.ex:43
+#: lib/platform_web/live/projects_live/invites_component.ex:58
+#: lib/platform_web/live/projects_live/invites_component.ex:85
+#: lib/platform_web/live/projects_live/invites_component.ex:105
+#: lib/platform_web/live/projects_live/members_component.ex:57
+#: lib/platform_web/live/projects_live/members_component.ex:85
+#: lib/platform_web/live/projects_live/members_component.ex:131
+#: lib/platform_web/live/projects_live/members_component.ex:181
+#, elixir-autogen, elixir-format
+msgid "You do not have permission to edit this project"
+msgstr ""
+
+#: lib/platform_web/live/new_live/new_component.ex:207
+#, elixir-autogen, elixir-format
+msgid "You don't have any projects yet. You'll need to create one before you can add media."
+msgstr ""
+
+#: lib/platform_web/live/media_live/index.html.heex:354
+#, elixir-autogen, elixir-format
+msgid "You don't have any projects."
+msgstr ""
+
+#: lib/platform_web/live/media_live/index.ex:344
+#, elixir-autogen, elixir-format
+msgid "You don't have permission to add media to this project."
+msgstr ""
+
+#: lib/platform_web/live/media_live/merge_versions_live.ex:49
+#, elixir-autogen, elixir-format
+msgid "You don't have permission to edit this incident."
+msgstr ""
+
+#: lib/platform_web/live/settings_live/settings_live.html.heex:82
+#, elixir-autogen, elixir-format
+msgid "You have Atlos %{plan_name}."
+msgstr ""
+
+#: lib/platform_web/live/projects_live/edit_component.ex:1267
+#, elixir-autogen, elixir-format
+msgid "You have enabled the following decorators:"
+msgstr ""
+
+#: lib/platform_web/live/media_live/edit_attribute.ex:202
+#, elixir-autogen, elixir-format
+msgid "You have made %{count} edit in the last 30 days."
+msgid_plural "You have made %{count} edits in the last 30 days."
+msgstr[0] ""
+msgstr[1] ""
+
+#: lib/platform_web/live/projects_live/edit_component.ex:1264
+#, elixir-autogen, elixir-format
+msgid "You have not enabled any decorators."
+msgstr ""
+
+#: lib/platform_web/live/projects_live/members_component.ex:116
+#: lib/platform_web/live/projects_live/members_component.ex:166
+#, elixir-autogen, elixir-format
+msgid "You have successfully removed yourself from the project."
+msgstr ""
+
+#: lib/platform_web/live/new_live/new_component.ex:139
+#, elixir-autogen, elixir-format
+msgid "You have unsaved changes. Are you sure you want to exit?"
+msgstr ""
+
+#: lib/platform_web/templates/user_registration/suspended.html.heex:20
+#, elixir-autogen, elixir-format
+msgid "You may not access Atlos. Please contact us if you believe this was an error."
+msgstr ""
+
+#: lib/platform_web/live/new_live/new_component.ex:403
+#, elixir-autogen, elixir-format
+msgid "You will be redirected to the incident"
+msgstr ""
+
+#: lib/platform_web/live/notifications_live/notifications_live.html.heex:44
+#, elixir-autogen, elixir-format
+msgid "You'll receive a notification when an incident you're subscribed to changes."
+msgstr ""
+
+#: lib/platform_web/live/projects_live/show.ex:197
+#, elixir-autogen, elixir-format
+msgid "You're a data-only viewer."
+msgstr ""
+
+#: lib/platform_web/live/settings_live/settings_live.html.heex:34
+#, elixir-autogen, elixir-format
+msgid "You're an early adopter — thank you! We're providing free access to Atlos for early adopters until March 31, 2024."
+msgstr ""
+
+#: lib/platform_web/live/media_live/index.html.heex:512
+#: lib/platform_web/live/media_live/index.html.heex:515
+#, elixir-autogen, elixir-format
+msgid "You're assigned"
+msgstr ""
+
+#: lib/platform_web/live/media_live/index.html.heex:490
+#: lib/platform_web/live/media_live/index.html.heex:507
+#, elixir-autogen, elixir-format
+msgid "You're subscribed"
+msgstr ""
+
+#: lib/platform_web/templates/layout/live.html.heex:97
+#, elixir-autogen, elixir-format
+msgid "You've hit your monthly edit limit."
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/api_token_create_live.ex:94
+#, elixir-autogen, elixir-format
+msgid "Your API token \"%{description}\" is shown above. Be sure to store it somewhere, as you won't be able to see it again."
+msgstr ""
+
+#: lib/platform_web/live/projects_live/api_tokens_component.ex:300
+#, elixir-autogen, elixir-format
+msgid "Your API token \"%{token_name}\" is shown above. Be sure to store it somewhere safe, as you won't be able to see it again."
+msgstr ""
+
+#: lib/platform_web/live/media_live/show.html.heex:1062
+#, elixir-autogen, elixir-format
+msgid "Your account has been muted. As a result, you cannot edit or comment on this incident."
+msgstr ""
+
+#: lib/platform_web/templates/user_registration/suspended.html.heex:18
+#, elixir-autogen, elixir-format
+msgid "Your account has been suspended."
+msgstr ""
+
+#: lib/platform_web/live/media_live/index.ex:438
+#, elixir-autogen, elixir-format
+msgid "Your changes were applied successfully."
+msgstr ""
+
+#: lib/platform_web/live/projects_live/api_tokens_component.ex:316
+#: lib/platform_web/live/projects_live/index.ex:91
+#: lib/platform_web/live/projects_live/members_component.ex:370
+#, elixir-autogen, elixir-format
+msgid "Your changes will be lost. Are you sure?"
+msgstr ""
+
+#: lib/platform_web/live/media_live/comment_box.ex:104
+#, elixir-autogen, elixir-format
+msgid "Your comment has been posted."
+msgstr ""
+
+#: lib/platform_web/live/projects_live/export_live.ex:22
+#, elixir-autogen, elixir-format
+msgid "Your data on Atlos is fully portable. You can export your project's data to a spreadsheet (CSV), or you can export all of your project's data and media to a zip file."
+msgstr ""
+
+#: lib/platform_web/live/projects_live/bulk_upload_live.ex:584
+#, elixir-autogen, elixir-format
+msgid "Your import has begun!"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/invites_component.ex:434
+#, elixir-autogen, elixir-format
+msgid "Your invite is ready to go"
+msgstr ""
+
+#: lib/platform_web/live/settings_live/settings_live.html.heex:84
+#, elixir-autogen, elixir-format
+msgid "Your plan is managed by an organization."
+msgstr ""
+
+#: lib/platform_web/live/media_live/comment_box.ex:180
+#, elixir-autogen, elixir-format
+msgid "Your profile photo"
+msgstr ""
+
+#: lib/platform_web/live/settings_live/settings_live.html.heex:209
+#, elixir-autogen, elixir-format
+msgid "Your subscription will be renewed automatically. Your payment helps keep our non-profit, open source platform running. We're grateful for your support."
+msgstr ""
+
+#: lib/platform_web/live/media_live/edit_attribute.ex:132
+#, elixir-autogen, elixir-format
+msgid "Your update has been saved."
+msgstr ""
+
+#: lib/platform_web/live/notifications_live/notifications_live.html.heex:13
+#, elixir-autogen, elixir-format
+msgid "all notifications"
+msgstr ""
+
+#: lib/platform_web/components.ex:4052
+#: lib/platform_web/live/media_live/index.html.heex:214
+#: lib/platform_web/templates/user_registration/new.html.heex:38
+#, elixir-autogen, elixir-format
+msgid "and"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/invites_component.ex:450
+#, elixir-autogen, elixir-format
+msgid "and can be used"
+msgstr ""
+
+#: lib/platform_web/components.ex:1380
+#: lib/platform_web/components.ex:1384
+#: lib/platform_web/components.ex:1386
+#, elixir-autogen, elixir-format
+msgid "as a"
+msgstr ""
+
+#: lib/platform_web/components.ex:1378
+#: lib/platform_web/components.ex:1382
+#, elixir-autogen, elixir-format
+msgid "as an"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/api_tokens_component.ex:241
+#, elixir-autogen, elixir-format
+msgid "by"
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/user_list_live.ex:115
+#, elixir-autogen, elixir-format
+msgid "disabled"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/api_tokens_component.ex:158
+#, elixir-autogen, elixir-format
+msgid "documentation"
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/user_list_live.ex:113
+#, elixir-autogen, elixir-format
+msgid "enabled"
+msgstr ""
+
+#: lib/platform_web/live/search_live/search_component.ex:427
+#, elixir-autogen, elixir-format
+msgid "enter"
+msgstr ""
+
+#: lib/platform_web/live/search_live/search_component.ex:431
+#, elixir-autogen, elixir-format
+msgid "esc"
+msgstr ""
+
+#: lib/platform_web/components.ex:1367
+#, elixir-autogen, elixir-format
+msgid "has invited you to join"
+msgstr ""
+
+#: lib/platform_web/live/media_live/upload_version_live.ex:384
+#, elixir-autogen, elixir-format
+msgid "https://example.com/..."
+msgstr ""
+
+#: lib/platform_web/live/settings_live/email_preferences_component.ex:63
+#, elixir-autogen, elixir-format
+msgid "in a comment"
+msgstr ""
+
+#: lib/platform_web/live/media_live/index.html.heex:88
+#, elixir-autogen, elixir-format
+msgid "incident"
+msgstr ""
+
+#: lib/platform_web/live/media_live/grouped_media_list.ex:66
+#: lib/platform_web/live/media_live/index.html.heex:85
+#, elixir-autogen, elixir-format
+msgid "incidents"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/bulk_upload_live.ex:262
+#, elixir-autogen, elixir-format
+msgid "include sources as URLs in columns named %{source_1}, %{source_2}, %{source_3}, etc."
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/invites_component.ex:73
+#, elixir-autogen, elixir-format
+msgid "invite expiring"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/show.ex:360
+#, elixir-autogen, elixir-format
+msgid "is a powerful way to connect your investigations on Atlos to other tools."
+msgstr ""
+
+#: lib/platform_web/live/projects_live/invites_component.ex:454
+#, elixir-autogen, elixir-format
+msgid "multiple times."
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/api_token_live.ex:79
+#, elixir-autogen, elixir-format
+msgid "no description"
+msgstr ""
+
+#: lib/platform_web/live/media_live/show.html.heex:467
+#, elixir-autogen, elixir-format
+msgid "on Google Maps"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/invites_component.ex:452
+#, elixir-autogen, elixir-format
+msgid "only once."
+msgstr ""
+
+#: lib/platform_web/live/notifications_live/notifications_live.html.heex:15
+#, elixir-autogen, elixir-format
+msgid "only tags"
+msgstr ""
+
+#: lib/platform_web/live/notifications_live/notifications_live.html.heex:14
+#, elixir-autogen, elixir-format
+msgid "only unreads"
+msgstr ""
+
+#: lib/platform_web/components.ex:4045
+#, elixir-autogen, elixir-format
+msgid "open source"
+msgstr ""
+
+#: lib/platform_web/live/media_live/upload_version_live.ex:373
+#: lib/platform_web/live/projects_live/bulk_upload_live.ex:455
+#, elixir-autogen, elixir-format
+msgid "or drag and drop"
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/user_list_live.ex:90
+#, elixir-autogen, elixir-format
+msgid "regular"
+msgstr ""
+
+#: lib/platform_web/live/settings_live/email_preferences_component.ex:70
+#, elixir-autogen, elixir-format
+msgid "required for all accounts"
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/api_token_live.ex:147
+#, elixir-autogen, elixir-format
+msgid "returns all incidents, with the most recently modified incidents listed first (internally, incidents are called media — that is, collections of individual pieces of media)"
+msgstr ""
+
+#: lib/platform_web/live/adminland_live/api_token_live.ex:151
+#, elixir-autogen, elixir-format
+msgid "returns all media versions, with the most recently modified media versions listed first"
+msgstr ""
+
+#: lib/platform_web/live/profiles_live/edit_component.ex:139
+#, elixir-autogen, elixir-format
+msgid "role documentation"
+msgstr ""
+
+#: lib/platform_web/live/media_live/index.html.heex:90
+#, elixir-autogen, elixir-format
+msgid "selected"
+msgstr ""
+
+#: lib/platform_web/templates/layout/interstitial.html.heex:26
+#, elixir-autogen, elixir-format
+msgid "sign in"
+msgstr ""
+
+#: lib/platform_web/live/projects_live/bulk_upload_live.ex:261
+#, elixir-autogen, elixir-format
+msgid "sources"
+msgstr ""
+
+#: lib/platform_web/templates/layout/interstitial.html.heex:27
+#, elixir-autogen, elixir-format
+msgid "to accept the invite."
+msgstr ""
+
+#: lib/platform_web/live/search_live/search_component.ex:433
+#, elixir-autogen, elixir-format
+msgid "to close."
+msgstr ""
+
+#: lib/platform_web/live/search_live/search_component.ex:429
+#, elixir-autogen, elixir-format
+msgid "to select, and"
+msgstr ""
+
+#: lib/platform_web/live/media_live/index.html.heex:307
+#, elixir-autogen, elixir-format
+msgid "ungeolocated incidents also match"
+msgstr ""
+
+#: lib/platform_web/live/media_live/edit_attribute.ex:201
+#, elixir-autogen, elixir-format
+msgid "upgrade your plan"
+msgstr ""
+
+#: lib/platform_web/templates/page/index.html.heex:18
+#, elixir-autogen, elixir-format
+msgid "v1.6 Changelog"
+msgstr ""
+
+#: lib/platform_web/components.ex:1022
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Hidden"
+msgstr ""
+
+#: lib/platform_web/components.ex:843
+#: lib/platform_web/components.ex:958
+#, elixir-autogen, elixir-format
+msgid "This action was taken by a bot."
+msgstr ""
+
+#: lib/platform_web/components.ex:977
+#, elixir-autogen, elixir-format
+msgid "a deleted or unknown attribute"
+msgstr ""
+
+#: lib/platform_web/components.ex:863
+#, elixir-autogen, elixir-format, fuzzy
+msgid "added"
+msgstr ""
+
+#: lib/platform_web/components.ex:980
+#, elixir-autogen, elixir-format, fuzzy
+msgid "added this incident"
+msgstr ""
+
+#: lib/platform_web/components.ex:859
+#, elixir-autogen, elixir-format, fuzzy
+msgid "attributes"
+msgstr ""
+
+#: lib/platform_web/components.ex:1002
+#, elixir-autogen, elixir-format, fuzzy
+msgid "commented"
+msgstr ""
+
+#: lib/platform_web/components.ex:982
+#, elixir-autogen, elixir-format, fuzzy
+msgid "deleted this incident"
+msgstr ""
+
+#: lib/platform_web/components.ex:850
+#, elixir-autogen, elixir-format
+msgid "made"
+msgstr ""
+
+#: lib/platform_web/components.ex:1004
+#, elixir-autogen, elixir-format
+msgid "performed an unknown action"
+msgstr ""
+
+#: lib/platform_web/components.ex:865
+#, elixir-autogen, elixir-format
+msgid "pieces of media"
+msgstr ""
+
+#: lib/platform_web/components.ex:984
+#, elixir-autogen, elixir-format, fuzzy
+msgid "restored this incident"
+msgstr ""
+
+#: lib/platform_web/components.ex:968
+#, elixir-autogen, elixir-format, fuzzy
+msgid "updated"
+msgstr ""
+
+#: lib/platform_web/components.ex:850
+#, elixir-autogen, elixir-format, fuzzy
+msgid "updates to"
+msgstr ""
+
+#: lib/platform_web/components.ex:986
+#, elixir-autogen, elixir-format, fuzzy
+msgid "uploaded"
+msgstr ""

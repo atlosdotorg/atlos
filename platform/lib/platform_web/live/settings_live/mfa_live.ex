@@ -6,7 +6,7 @@ defmodule PlatformWeb.SettingsLive.MFALive do
   def mount(_params, _session, socket) do
     {:ok,
      socket
-     |> assign(:title, "Multi-Factor Authentication")
+     |> assign(:title, gettext("Multi-Factor Authentication"))
      |> assign(:secret, nil)
      |> assign(:otp_passed, false)
      |> assign(:otp_gate, Accounts.confirm_user_mfa_changeset(socket.assigns.current_user))
@@ -52,7 +52,7 @@ defmodule PlatformWeb.SettingsLive.MFALive do
         {:noreply,
          socket
          |> assign(:current_user, user)
-         |> put_flash(:info, "MFA was disabled successfully.")}
+         |> put_flash(:info, gettext("MFA was disabled successfully."))}
 
       {:error, changeset} ->
         {:noreply, socket |> assign(:disable_changeset, changeset)}

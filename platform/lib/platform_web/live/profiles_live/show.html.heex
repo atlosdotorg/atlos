@@ -5,7 +5,7 @@
         class="inline-block h-12 w-12 rounded-full ring-2 ring-white shadow-md"
         src={Accounts.get_profile_photo_path(@user)}
         title={@user.username}
-        alt={"Profile photo for #{@user.username}"}
+        alt={gettext("Profile photo for %{username}", username: @user.username)}
       />
       <div class="flex flex-col gap-4">
         <div class="flex gap-4 flex-wrap items-center">
@@ -13,7 +13,7 @@
             <%= @username %>
           </span>
           <%= if Accounts.is_admin(@user) do %>
-            <p class="chip ~critical">Admin</p>
+            <p class="chip ~critical"><%= gettext("Admin") %></p>
           <% end %>
           <%= if String.length(@user.flair || "") > 0 do %>
             <p class="chip ~urge"><%= @user.flair %></p>
@@ -30,9 +30,9 @@
       <%= if Enum.empty?(@shared_projects) do %>
         <p class="text-gray-600">
           <%= if @user.id == @current_user.id do %>
-            You are not part of any projects.
+            <%= gettext("You are not part of any projects.") %>
           <% else %>
-            You do not have any projects in common with this user.
+            <%= gettext("You do not have any projects in common with this user.") %>
           <% end %>
         </p>
       <% else %>
@@ -56,7 +56,7 @@
       >
         <div class="flex items-center justify-center gap-2">
           <Heroicons.clock mini class="h-5 w-5 opacity-50 group-hover:opacity-75" />
-          <span>Activity</span>
+          <span><%= gettext("Activity") %></span>
         </div>
         <span
           :if={@live_action == :show}
@@ -71,7 +71,7 @@
       >
         <div class="flex items-center justify-center gap-2">
           <Heroicons.bookmark mini class="h-5 w-5 opacity-50 group-hover:opacity-75" />
-          <span>Assignments</span>
+          <span><%= gettext("Assignments") %></span>
         </div>
         <span
           :if={@live_action == :assignments}
@@ -86,7 +86,7 @@
       >
         <div class="flex items-center justify-center gap-2">
           <Heroicons.eye mini class="h-5 w-5 opacity-50 group-hover:opacity-75" />
-          <span>Subscriptions</span>
+          <span><%= gettext("Subscriptions") %></span>
         </div>
         <span
           :if={@live_action == :subscriptions}
@@ -101,7 +101,7 @@
       >
         <div class="flex items-center justify-center gap-2">
           <Heroicons.pencil mini class="h-5 w-5 opacity-50 group-hover:opacity-75" />
-          <span>Edited</span>
+          <span><%= gettext("Edited") %></span>
         </div>
         <span
           :if={@live_action == :edited}
@@ -117,7 +117,7 @@
         >
           <div class="flex items-center justify-center gap-2">
             <Heroicons.building_library mini class="h-5 w-5 opacity-50 group-hover:opacity-75" />
-            <span>Admin</span>
+            <span><%= gettext("Admin") %></span>
           </div>
           <span
             :if={@live_action == :admin or @live_action == :admin_edit}
@@ -158,7 +158,7 @@
               <div class="flex justify-between items-center">
                 <div>
                   <p class="sec-head">
-                    Administration
+                    <%= gettext("Administration") %>
                   </p>
                 </div>
                 <div>
@@ -166,30 +166,30 @@
                     class="button ~urge @high"
                     patch={Routes.profiles_show_path(@socket, :admin_edit, @username)}
                   >
-                    Edit
+                    <%= gettext("Edit") %>
                   </.link>
                 </div>
               </div>
             </:header>
             <dl class="grid grid-cols-1 gap-x-4 gap-y-8 sm:grid-cols-2 mb-8">
               <div class="sm:col-span-1">
-                <dt class="text-sm text-gray-500">Email</dt>
+                <dt class="text-sm text-gray-500"><%= gettext("Email") %></dt>
                 <dd class="mt-1 text-sm text-gray-900"><%= @user.email %></dd>
               </div>
               <div class="sm:col-span-1">
-                <dt class="text-sm text-gray-500">Joined</dt>
+                <dt class="text-sm text-gray-500"><%= gettext("Joined") %></dt>
                 <dd class="mt-1 text-sm text-gray-900">
                   <.rel_time time={@user.inserted_at} />
                 </dd>
               </div>
               <div class="sm:col-span-1">
-                <dt class="text-sm text-gray-500">Email Confirmed</dt>
+                <dt class="text-sm text-gray-500"><%= gettext("Email Confirmed") %></dt>
                 <dd class="mt-1 text-sm text-gray-900">
                   <.rel_time time={@user.confirmed_at} />
                 </dd>
               </div>
               <div class="sm:col-span-1">
-                <dt class="text-sm text-gray-500">Restrictions</dt>
+                <dt class="text-sm text-gray-500"><%= gettext("Restrictions") %></dt>
                 <dd class="mt-1 text-sm text-gray-900">
                   <%= if length(@user.restrictions || []) > 0 do %>
                     <%= for r <- @user.restrictions do %>
@@ -198,12 +198,12 @@
                       </p>
                     <% end %>
                   <% else %>
-                    None
+                    <%= gettext("None") %>
                   <% end %>
                 </dd>
               </div>
               <div :if={Platform.Billing.is_enabled?()} class="sm:col-span-1">
-                <dt class="text-sm text-gray-500">Billing Flags</dt>
+                <dt class="text-sm text-gray-500"><%= gettext("Billing Flags") %></dt>
                 <dd class="mt-1 text-sm text-gray-900">
                   <%= if length(@user.billing_flags || []) > 0 do %>
                     <%= for r <- @user.billing_flags do %>
@@ -212,16 +212,16 @@
                       </p>
                     <% end %>
                   <% else %>
-                    None
+                    <%= gettext("None") %>
                   <% end %>
                 </dd>
               </div>
               <div :if={Platform.Billing.is_enabled?()} class="sm:col-span-1">
-                <dt class="text-sm text-gray-500">Atlos Plan</dt>
+                <dt class="text-sm text-gray-500"><%= gettext("Atlos Plan") %></dt>
                 <dd class="mt-1 text-sm text-gray-900">
                   <% plan = Platform.Billing.get_user_plan(@user) %>
                   <p :if={plan.is_free} class="chip ~neutral">
-                    No Plan
+                    <%= gettext("No Plan") %>
                   </p>
                   <p :if={not plan.is_free} class="chip ~positive">
                     <%= plan.name %>
@@ -229,7 +229,7 @@
                 </dd>
               </div>
               <div class="sm:col-span-1">
-                <dt class="text-sm font-medium text-gray-500">Roles</dt>
+                <dt class="text-sm font-medium text-gray-500"><%= gettext("Roles") %></dt>
                 <dd class="mt-1 text-sm text-gray-900">
                   <%= if length(@user.roles || []) > 0 do %>
                     <%= for r <- @user.roles do %>
@@ -238,27 +238,27 @@
                       </p>
                     <% end %>
                   <% else %>
-                    None
+                    <%= gettext("None") %>
                   <% end %>
                 </dd>
               </div>
               <div>
-                <dt class="text-sm font-medium text-gray-500">Admin Notes</dt>
+                <dt class="text-sm font-medium text-gray-500"><%= gettext("Admin Notes") %></dt>
                 <dd class="mt-1 text-sm text-gray-900">
                   <%= if String.length(@user.admin_notes) > 0 do %>
                     <p><%= @user.admin_notes %></p>
                   <% else %>
-                    <p>None</p>
+                    <p><%= gettext("None") %></p>
                   <% end %>
                 </dd>
               </div>
               <div class="sm:col-span-1">
-                <dt class="text-sm font-medium text-gray-500">Multi-Factor Authentication</dt>
+                <dt class="text-sm font-medium text-gray-500"><%= gettext("Multi-Factor Authentication") %></dt>
                 <dd class="mt-1 text-sm text-gray-900">
                   <%= if @user.has_mfa do %>
-                    <p class="chip ~positive">Enabled</p>
+                    <p class="chip ~positive"><%= gettext("Enabled") %></p>
                   <% else %>
-                    <p class="chip ~neutral">Disabled</p>
+                    <p class="chip ~neutral"><%= gettext("Disabled") %></p>
                   <% end %>
                 </dd>
               </div>

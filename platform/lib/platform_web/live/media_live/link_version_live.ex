@@ -114,10 +114,10 @@ defmodule PlatformWeb.MediaLive.LinkVersionLive do
       >
         <div class="space-y-6">
           <div>
-            <%= label(f, :source_url, "What is the link to the media you would like to upload?") %>
+            <%= label(f, :source_url, gettext("What is the link to the media you would like to upload?")) %>
             <%= url_input(f, :source_url, placeholder: "https://twitter.com/...", phx_debounce: "250") %>
             <p class="support">
-              Add a link and Atlos will add it to the incident and attempt to archive it automatically.
+              <%= gettext("Add a link and Atlos will add it to the incident and attempt to archive it automatically.") %>
             </p>
             <%= error_tag(f, :source_url) %>
             <%= if length(@url_duplicate_of) > 0 do %>
@@ -125,13 +125,13 @@ defmodule PlatformWeb.MediaLive.LinkVersionLive do
             <% end %>
           </div>
           <div>
-            <%= label(f, :explanation, "Briefly Explain Your Addition") %>
+            <%= label(f, :explanation, gettext("Briefly Explain Your Addition")) %>
             <div class="border border-gray-300 rounded shadow-sm overflow-hidden focus-within:border-urge-500 focus-within:ring-1 focus-within:ring-urge-500 transition">
               <.interactive_textarea
                 form={f}
                 disabled={false}
                 name={:explanation}
-                placeholder="Optionally provide more context on this media."
+                placeholder={gettext("Optionally provide more context on this media.")}
                 id="comment-box-parent-input"
                 rows={1}
                 class="block w-full !border-0 resize-none focus:ring-0 sm:text-sm shadow-none"
@@ -141,8 +141,8 @@ defmodule PlatformWeb.MediaLive.LinkVersionLive do
           </div>
           <div class="flex flex-col sm:flex-row gap-4 justify-between sm:items-center">
             <%= submit(
-              "Publish to Atlos",
-              phx_disable_with: "Uploading...",
+              gettext("Publish to Atlos"),
+              phx_disable_with: gettext("Uploading..."),
               class: "button ~urge @high"
             ) %>
           </div>

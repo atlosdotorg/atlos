@@ -7,7 +7,7 @@ defmodule PlatformWeb.MediaLive.Index do
   def mount(_params, _session, socket) do
     {:ok,
      socket
-     |> assign(:title, "Incidents")
+     |> assign(:title, gettext("Incidents"))
      |> stream(:media_stream, [], dom_id: &"incident-#{&1.slug}")}
   end
 
@@ -302,8 +302,8 @@ defmodule PlatformWeb.MediaLive.Index do
            end
          end
        end,
-       "Applying the tag #{tag}...",
-       "Applied the tag #{tag}."
+       gettext("Applying the tag %{tag}...", tag: tag),
+       gettext("Applied the tag %{tag}.", tag: tag)
      )}
   end
 
@@ -327,8 +327,8 @@ defmodule PlatformWeb.MediaLive.Index do
            end
          end
        end,
-       "Setting status to #{status}...",
-       "Status set to #{status}."
+       gettext("Setting status to %{status}...", status: status),
+       gettext("Status set to %{status}.", status: status)
      )}
   end
 
@@ -341,7 +341,7 @@ defmodule PlatformWeb.MediaLive.Index do
 
     if not Platform.Permissions.can_add_media_to_project?(socket.assigns.current_user, project) do
       raise PlatformWeb.Errors.Unauthorized,
-            "You don't have permission to add media to this project."
+            gettext("You don't have permission to add media to this project.")
     end
 
     {:noreply,
@@ -371,8 +371,8 @@ defmodule PlatformWeb.MediaLive.Index do
              :error
          end
        end,
-       "Copying to #{project.name |> Platform.Utils.truncate()}...",
-       "Copied into #{project.name |> Platform.Utils.truncate()}."
+       gettext("Copying to %{project_name}...", project_name: (project.name |> Platform.Utils.truncate())),
+       gettext("Copied into %{project_name}.", project_name: (project.name |> Platform.Utils.truncate()))
      )}
   end
 
@@ -415,7 +415,7 @@ defmodule PlatformWeb.MediaLive.Index do
        socket
        |> put_flash(
          :error,
-         "You cannot edit this data on #{Media.slug_to_display(media)}."
+         gettext("You cannot edit this data on %{slug}.", slug: Media.slug_to_display(media))
        )}
     end
   end
@@ -435,7 +435,7 @@ defmodule PlatformWeb.MediaLive.Index do
        socket
        |> assign(:editing, nil)
        |> assign_update_media(updated_media.id)
-       |> put_flash(:info, "Your changes were applied successfully.")}
+       |> put_flash(:info, gettext("Your changes were applied successfully."))}
     end
   end
 

@@ -16,11 +16,11 @@ defmodule PlatformWeb.ErrorView do
     description =
       if String.starts_with?(template, "5") do
         ~H"""
-        Atlos experienced an error processing your request. This error has been reported to our team. Please contact us if the issue continues.
+        <%= gettext("Atlos experienced an error processing your request. This error has been reported to our team. Please contact us if the issue continues.") %>
         """
       else
         ~H"""
-        Please contact us if you believed you are receiving this message in error.
+        <%= gettext("Please contact us if you believed you are receiving this message in error.") %>
         """
       end
 

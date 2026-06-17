@@ -54,8 +54,8 @@ defmodule PlatformWeb.AdminlandLive.AnnouncementsLive do
           <:header>
             <div class="flex flex-col md:flex-row gap-4 md:gap-8 justify-between">
               <div>
-                <p class="sec-head">Announcements</p>
-                <p class="sec-subhead">Send an announcement to everyone on Atlos.</p>
+                <p class="sec-head"><%= gettext("Announcements") %></p>
+                <p class="sec-subhead"><%= gettext("Send an announcement to everyone on Atlos.") %></p>
               </div>
             </div>
           </:header>
@@ -74,10 +74,10 @@ defmodule PlatformWeb.AdminlandLive.AnnouncementsLive do
             class="phx-form"
           >
             <div class="gap-2">
-              <%= label(f, :message, "Message", class: "block text-sm font-medium text-gray-700") %>
+              <%= label(f, :message, gettext("Message"), class: "block text-sm font-medium text-gray-700") %>
               <div class="mt-1">
                 <%= textarea(f, :message,
-                  placeholder: "Enter a message (markdown is allowed).",
+                  placeholder: gettext("Enter a message (markdown is allowed)."),
                   phx_debounce: "500",
                   rows: 4,
                   class:
@@ -86,9 +86,9 @@ defmodule PlatformWeb.AdminlandLive.AnnouncementsLive do
               </div>
               <%= error_tag(f, :message) %>
             </div>
-            <%= submit("Post Announcement",
+            <%= submit(gettext("Post Announcement"),
               class: "button ~urge @high mt-4",
-              phx_disable_with: "Posting..."
+              phx_disable_with: gettext("Posting...")
             ) %>
           </.form>
         </.card>

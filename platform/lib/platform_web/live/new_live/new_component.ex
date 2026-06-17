@@ -129,15 +129,14 @@ defmodule PlatformWeb.NewLive.NewComponent do
     ~H"""
     <div
       phx-hook="CanTriggerLiveViewEvent"
-      x-data="{
-      // Active if the URL fragment is #new
+      x-data={"{
       active: window.location.hash === '#new',
       setActive(val) {
         if (val) {
           this.$refs.base.dispatchEvent(new CustomEvent('platform:liveview_event', {detail: {event: 'activate'}}))
         }
         if (!val && document.elementContainsActiveUnsavedForms($refs.base)) {
-          if (confirm('You have unsaved changes. Are you sure you want to exit?')) {
+          if (confirm('#{gettext("You have unsaved changes. Are you sure you want to exit?")}')) {
             this.active = false
           }
         } else {
@@ -150,7 +149,7 @@ defmodule PlatformWeb.NewLive.NewComponent do
           window.resumeBodyScroll()
         }
       }
-    }"
+    }"}
       x-init="() => {
         window.openNewIncidentDialog = () => {
           setActive(true)
@@ -197,17 +196,17 @@ defmodule PlatformWeb.NewLive.NewComponent do
               }
             >
               <div class="flex">
-                <h2 class="font-medium text-xl p-4">New Incident</h2>
+                <h2 class="font-medium text-xl p-4"><%= gettext("New Incident") %></h2>
               </div>
               <%= if Enum.empty?(@project_options) do %>
                 <div class="flex flex-col gap-4 items-center justify-around p-4">
                   <div class="flex flex-col gap-2 items-center justify-around">
                     <Heroicons.archive_box class="w-12 h-12 text-neutral-500" />
-                    <h2 class="text-md font-medium">No Projects</h2>
+                    <h2 class="text-md font-medium"><%= gettext("No Projects") %></h2>
                     <p class="text-sm text-neutral-500 text-center">
-                      You don't have any projects yet. You'll need to create one before you can add media.
+                      <%= gettext("You don't have any projects yet. You'll need to create one before you can add media.") %>
                     </p>
-                    <.link href="/projects/new" class="button ~urge @high">Create a Project</.link>
+                    <.link href="/projects/new" class="button ~urge @high"><%= gettext("Create a Project") %></.link>
                   </div>
                 </div>
               <% else %>
@@ -225,7 +224,7 @@ defmodule PlatformWeb.NewLive.NewComponent do
                         <%= label(
                           @form,
                           :project_id,
-                          "Project"
+                          gettext("Project")
                         ) %>
                         <div phx-update="ignore" id={"project_selector_#{@path_hash}"}>
                           <%= select(
@@ -277,16 +276,16 @@ defmodule PlatformWeb.NewLive.NewComponent do
 
                     <div class="flex flex-col gap-1">
                       <label>
-                        Source Material <span class="badge ~neutral inline text-xs">Optional</span>
+                        <%= gettext("Source Material") %> <span class="badge ~neutral inline text-xs"><%= gettext("Optional") %></span>
                       </label>
                       <.interactive_urldrop
                         form={@form}
                         id="urldrop"
                         name={:urls}
-                        placeholder="Drop URLs here..."
+                        placeholder={gettext("Drop URLs here...")}
                         class="input-base"
                       />
-                      <p class="support">Atlos will attempt to archive these URLs automatically.</p>
+                      <p class="support"><%= gettext("Atlos will attempt to archive these URLs automatically.") %></p>
                       <%= error_tag(@form, :urls) %>
                       <%= error_tag(@form, :urls_parsed) %>
                       <%= if not Enum.empty?(@url_deconfliction) do %>
@@ -306,7 +305,7 @@ defmodule PlatformWeb.NewLive.NewComponent do
                       class="text-button w-full block flex gap-1 items-center justify-between cursor-pointer transition-all text-sm"
                       x-on:click="open = !open"
                     >
-                      Add additional information
+                      <%= gettext("Add additional information") %>
                       <Heroicons.plus_circle mini class="w-8 h-8" x-show="!open" />
                       <Heroicons.minus_circle mini class="w-8 h-8" x-show="open" />
                     </button>
@@ -396,12 +395,12 @@ defmodule PlatformWeb.NewLive.NewComponent do
                   </div>
 
                   <div class="md:flex gap-2 items-center justify-between p-4">
-                    <%= submit("Create incident",
-                      phx_disable_with: "Saving...",
+                    <%= submit(gettext("Create incident"),
+                      phx_disable_with: gettext("Saving..."),
                       class: "button ~urge @high",
                       disabled: @disabled
                     ) %>
-                    <p class="support text-neutral-500">You will be redirected to the incident</p>
+                    <p class="support text-neutral-500"><%= gettext("You will be redirected to the incident") %></p>
                   </div>
                 </.form>
               <% end %>
