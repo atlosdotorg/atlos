@@ -628,10 +628,16 @@ defmodule Platform.Material.Attribute do
         if Keyword.get(opts, :exclude_options, false) == false and not Enum.empty?(projects) and
              allow_user_defined_options(attr) and
              attr.type == :multi_select do
+          # Merge, rather than replace: a project attribute can define a starting
+          # set of options *and* allow collaborators to add their own. (The core
+          # `:tags` attribute has no predefined options, so this is a no-op there.)
           Map.put(
             attr,
             :options,
-            Material.get_values_of_attribute_cached(attr, projects: projects)
+            Enum.uniq(
+              (attr.options || []) ++
+                Material.get_values_of_attribute_cached(attr, projects: projects)
+            )
           )
         else
           attr

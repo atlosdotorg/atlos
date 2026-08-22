@@ -435,6 +435,7 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
         <%= hidden_input(@f_attr, :type) %>
         <%= hidden_input(@f_attr, :description) %>
         <%= hidden_input(@f_attr, :options_json) %>
+        <%= hidden_input(@f_attr, :allow_user_defined_options) %>
       <% end %>
       <div :if={@enabled} x-transition>
         <%= label(@f_attr, :name, class: "!text-neutral-600 !font-normal") %>
@@ -504,6 +505,22 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
           <p class="support">
             Press enter to add a new option.
           </p>
+        </div>
+      <% end %>
+      <%= if Ecto.Changeset.get_field(@f_attr.source, :type) == :multi_select do %>
+        <div :if={@enabled} x-transition>
+          <%= label(@f_attr, :allow_user_defined_options, class: "!flex items-center gap-2") do %>
+            <%= checkbox(@f_attr, :allow_user_defined_options) %>
+            <span class="text-sm text-neutral-600 !font-normal">
+              Let collaborators add their own values
+            </span>
+          <% end %>
+          <p class="support">
+            Works like tags: collaborators can enter values that aren't listed above, and
+            values already used elsewhere in the project are suggested as they type. Useful
+            for open-ended entities — license plates, officer IDs, callsigns.
+          </p>
+          <%= error_tag(@f_attr, :allow_user_defined_options) %>
         </div>
       <% end %>
       <%= if Ecto.Changeset.get_field(@f_attr.source, :type) == :multi_select and Ecto.Changeset.get_field(@f_attr.source, :type) == :select do %>

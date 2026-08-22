@@ -1449,7 +1449,46 @@ defmodule Platform.Material do
   @doc """
   Get the unique values of the given attribute across *all* media. Will hit the database.
   """
-  def get_values_of_attribute(%Attribute{type: :multi_select} = attribute, opts \\ []) do
+  def get_values_of_attribute(attribute, opts \\ [])
+
+  # Project attribute values live inside the `project_attributes` JSONB column
+  # rather than in a dedicated array column, so we can't `unnest` our way to them
+  # the way we can for core attributes like `:tags`. `attribute.name` holds the
+  # `ProjectAttribute`'s UUID.
+  #
+  # Values that aren't JSON arrays (a `:text` attribute, a `null`, a missing key)
+  # are skipped rather than raising -- a single malformed row shouldn't take out
+  # the whole query.
+  def get_values_of_attribute(
+        %Attribute{type: :multi_select, schema_field: :project_attributes} = attribute,
+        opts
+      ) do
+    {project_filter, project_params} =
+      case Keyword.get(opts, :projects) do
+        nil -> {"", []}
+        projects -> {" AND m.project_id = ANY($2::text[]::uuid[])", [Enum.map(projects, & &1.id)]}
+      end
+
+    %Postgrex.Result{rows: rows} =
+      Repo.query!(
+        """
+        SELECT DISTINCT val
+        FROM media m,
+             LATERAL jsonb_array_elements(COALESCE(m.project_attributes, '[]'::jsonb)) AS attr,
+             LATERAL jsonb_array_elements_text(
+               CASE WHEN jsonb_typeof(attr->'value') = 'array'
+                    THEN attr->'value'
+                    ELSE '[]'::jsonb END
+             ) AS val
+        WHERE attr->>'id' = $1#{project_filter}
+        """,
+        [to_string(attribute.name) | project_params]
+      )
+
+    List.flatten(rows)
+  end
+
+  def get_values_of_attribute(%Attribute{type: :multi_select} = attribute, opts) do
     projects = Keyword.get(opts, :projects)
 
     Media

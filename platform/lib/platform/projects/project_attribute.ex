@@ -4,13 +4,20 @@ defmodule Platform.Projects.ProjectAttribute do
 
   alias Platform.Material.Attribute
 
-  @derive {Jason.Encoder, only: [:name, :description, :type, :options]}
+  @derive {Jason.Encoder,
+           only: [:name, :description, :type, :options, :allow_user_defined_options]}
   @primary_key {:id, :binary_id, autogenerate: true}
   embedded_schema do
     field(:name, :string)
     field(:description, :string, default: "")
     field(:type, Ecto.Enum, values: [:select, :text, :date, :multi_select])
     field(:options, {:array, :string}, default: [])
+
+    # When true, a `:multi_select` attribute behaves like the built-in Tags
+    # attribute: collaborators may enter values that aren't in `options`, and
+    # the set of known values is derived from what's actually in use. Useful
+    # for open-ended entities (license plates, officer IDs, callsigns).
+    field(:allow_user_defined_options, :boolean, default: false)
     # empty string if not a decorator
     field(:decorator_for, :string, default: "")
     field(:enabled, :boolean, default: true)
@@ -50,7 +57,8 @@ defmodule Platform.Projects.ProjectAttribute do
       :id,
       :description,
       :decorator_for,
-      :enabled
+      :enabled,
+      :allow_user_defined_options
     ])
     |> cast(%{options_json: json_options}, [:options_json])
     |> cast(
@@ -82,15 +90,29 @@ defmodule Platform.Projects.ProjectAttribute do
         []
       end
     end)
+    # Only `:multi_select` supports user-defined options (this mirrors the core
+    # `Attribute` validation, which only honors the flag for multi-selects).
+    |> then(fn changeset ->
+      if get_field(changeset, :type) != :multi_select do
+        put_change(changeset, :allow_user_defined_options, false)
+      else
+        changeset
+      end
+    end)
     |> then(fn changeset ->
       if Enum.member?([:select, :multi_select], get_field(changeset, :type)) do
+        # When collaborators can define their own options, a predefined list is
+        # optional -- an attribute like "License Plates" starts out empty.
+        {min_options, message} =
+          if get_field(changeset, :allow_user_defined_options) do
+            {0, "You may provide at most 512 options."}
+          else
+            {1, "You must provide between 1 and 512 options."}
+          end
+
         changeset
         |> validate_required([:options])
-        |> validate_length(:options,
-          min: 1,
-          max: 512,
-          message: "You must provide between 1 and 512 options."
-        )
+        |> validate_length(:options, min: min_options, max: 512, message: message)
         |> validate_change(:options, fn :options, options ->
           if Enum.any?(options, fn option -> String.length(option) > 50 end) do
             [options: "An option cannot be longer than 50 characters"]
@@ -121,6 +143,7 @@ defmodule Platform.Projects.ProjectAttribute do
       label: attribute.name || "Untitled",
       type: attribute.type,
       options: attribute.options,
+      allow_user_defined_options: attribute.allow_user_defined_options,
       description: attribute.description,
       pane: if(attribute.decorator_for != "", do: :not_shown, else: :attributes),
       required: false,
