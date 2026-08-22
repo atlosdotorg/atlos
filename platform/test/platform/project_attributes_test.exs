@@ -45,16 +45,31 @@ defmodule Platform.ProjectAttributesTest do
       assert Ecto.Changeset.get_field(changeset, :options) == []
     end
 
-    test "still requires at least one option for a closed multi-select" do
+    test "still refuses to let a closed multi-select have its options cleared" do
       changeset =
-        ProjectAttribute.changeset(%ProjectAttribute{}, %{
-          "name" => "Impact",
-          "type" => "multi_select",
-          "options_json" => "[]"
-        })
+        ProjectAttribute.changeset(
+          %ProjectAttribute{name: "Impact", type: :multi_select, options: ["Structure"]},
+          %{"options_json" => "[]"}
+        )
 
       refute changeset.valid?
       assert %{options: _} = errors_on(changeset)
+    end
+
+    test "lets an open multi-select have its options cleared" do
+      changeset =
+        ProjectAttribute.changeset(
+          %ProjectAttribute{
+            name: "License Plates",
+            type: :multi_select,
+            options: ["AB-123-CD"],
+            allow_user_defined_options: true
+          },
+          %{"options_json" => "[]"}
+        )
+
+      assert changeset.valid?
+      assert Ecto.Changeset.get_field(changeset, :options) == []
     end
 
     test "predefined options and user-defined options can coexist" do
