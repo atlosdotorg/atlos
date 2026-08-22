@@ -512,13 +512,12 @@ defmodule PlatformWeb.ProjectsLive.EditComponent do
           <%= label(@f_attr, :allow_user_defined_options, class: "!flex items-center gap-2") do %>
             <%= checkbox(@f_attr, :allow_user_defined_options) %>
             <span class="text-sm text-neutral-600 !font-normal">
-              Let collaborators add their own values
+              Allow new values
             </span>
           <% end %>
           <p class="support">
-            Works like tags: collaborators can enter values that aren't listed above, and
-            values already used elsewhere in the project are suggested as they type. Useful
-            for open-ended entities — license plates, officer IDs, callsigns.
+            Works like tags: any value can be entered, and values already used in this
+            project are suggested.
           </p>
           <%= error_tag(@f_attr, :allow_user_defined_options) %>
         </div>

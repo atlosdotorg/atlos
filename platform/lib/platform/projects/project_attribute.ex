@@ -14,9 +14,9 @@ defmodule Platform.Projects.ProjectAttribute do
     field(:options, {:array, :string}, default: [])
 
     # When true, a `:multi_select` attribute behaves like the built-in Tags
-    # attribute: collaborators may enter values that aren't in `options`, and
-    # the set of known values is derived from what's actually in use. Useful
-    # for open-ended entities (license plates, officer IDs, callsigns).
+    # attribute: any value may be entered, not just those in `options`, and the
+    # set of suggested values is derived from what's actually in use. Useful for
+    # open-ended entities (license plates, officer IDs, callsigns).
     field(:allow_user_defined_options, :boolean, default: false)
     # empty string if not a decorator
     field(:decorator_for, :string, default: "")
@@ -101,7 +101,7 @@ defmodule Platform.Projects.ProjectAttribute do
     end)
     |> then(fn changeset ->
       if Enum.member?([:select, :multi_select], get_field(changeset, :type)) do
-        # When collaborators can define their own options, a predefined list is
+        # When new values are allowed, a predefined option list is
         # optional -- an attribute like "License Plates" starts out empty.
         {min_options, message} =
           if get_field(changeset, :allow_user_defined_options) do

@@ -629,7 +629,7 @@ defmodule Platform.Material.Attribute do
              allow_user_defined_options(attr) and
              attr.type == :multi_select do
           # Merge, rather than replace: a project attribute can define a starting
-          # set of options *and* allow collaborators to add their own. (The core
+          # set of options *and* accept new ones. (The core
           # `:tags` attribute has no predefined options, so this is a no-op there.)
           Map.put(
             attr,
