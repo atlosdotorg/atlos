@@ -18,17 +18,91 @@ defmodule Platform.GlobalSearch do
   @doc """
   Search all of Atlos for a given query string for the user.
 
-  A blank query returns no results without touching the database: with an
-  empty string, every ILIKE clause below becomes `ILIKE '%%'` and each query
-  degenerates into ranking and sorting every row the user can see. The search
-  component runs a search on every mount, so this path must stay cheap.
+  A blank query returns the most recent items of each type, matching what the
+  full search produces for an empty string (every ILIKE matches, all ranks are
+  zero, so ordering collapses to insertion date) — but via cheap queries that
+  skip the matching and ranking. The full queries degenerate into ranking every
+  row the user can see, and the search component runs a blank search on every
+  mount, so this path must stay cheap.
   """
   defmemo perform_search(query, %User{} = user) when is_binary(query), expires_in: 10000 do
     if String.trim(query) == "" do
-      %{media_versions: [], media: [], users: [], projects: [], updates: []}
+      recent_items(user)
     else
       run_search(query, user)
     end
+  end
+
+  defp recent_items(%User{} = user) do
+    media_version_query =
+      from(
+        mv in MediaVersion,
+        join: m in assoc(mv, :media),
+        join: p in assoc(m, :project),
+        join: pm in assoc(p, :memberships),
+        on: pm.user_id == ^user.id,
+        where: not is_nil(pm),
+        order_by: [desc: mv.inserted_at],
+        limit: 3,
+        preload: [media: [:project]],
+        select: %{item: mv, exact_match: false, cd_rank: 0}
+      )
+
+    media_query =
+      from(
+        m in Media,
+        join: p in assoc(m, :project),
+        join: pm in assoc(p, :memberships),
+        on: pm.user_id == ^user.id,
+        where: not is_nil(pm),
+        order_by: [desc: m.inserted_at],
+        limit: 3,
+        preload: [:project],
+        select: %{item: m, exact_match: false, cd_rank: 0}
+      )
+
+    projects_query =
+      from(
+        p in Project,
+        join: pm in assoc(p, :memberships),
+        on: pm.user_id == ^user.id,
+        where: not is_nil(pm),
+        order_by: [desc: p.inserted_at],
+        limit: 3,
+        select: %{item: p, exact_match: false, cd_rank: 0}
+      )
+
+    updates_query =
+      from(
+        u in Update,
+        join: m in assoc(u, :media),
+        join: p in assoc(m, :project),
+        join: pm in assoc(p, :memberships),
+        on: pm.user_id == ^user.id,
+        where: not is_nil(pm),
+        order_by: [desc: u.inserted_at],
+        limit: 3,
+        select: %{item: u, exact_match: false, cd_rank: 0}
+      )
+      |> Platform.Updates.preload_fields()
+
+    %{
+      media_versions:
+        Repo.all(media_version_query)
+        |> Enum.filter(fn item -> Permissions.can_view_media_version?(user, item.item) end),
+      media:
+        Repo.all(media_query)
+        |> Enum.filter(fn item -> Permissions.can_view_media?(user, item.item) end),
+      # The full search returns no users for queries under three characters,
+      # so a blank query lists none either
+      users: [],
+      projects:
+        Repo.all(projects_query)
+        |> Enum.filter(fn item -> Permissions.can_view_project?(user, item.item) end),
+      updates:
+        Repo.all(updates_query)
+        |> Enum.filter(fn item -> Permissions.can_view_update?(user, item.item) end)
+    }
   end
 
   defp run_search(query, %User{} = user) do
