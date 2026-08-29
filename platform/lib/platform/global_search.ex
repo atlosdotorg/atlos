@@ -17,8 +17,21 @@ defmodule Platform.GlobalSearch do
 
   @doc """
   Search all of Atlos for a given query string for the user.
+
+  A blank query returns no results without touching the database: with an
+  empty string, every ILIKE clause below becomes `ILIKE '%%'` and each query
+  degenerates into ranking and sorting every row the user can see. The search
+  component runs a search on every mount, so this path must stay cheap.
   """
   defmemo perform_search(query, %User{} = user) when is_binary(query), expires_in: 10000 do
+    if String.trim(query) == "" do
+      %{media_versions: [], media: [], users: [], projects: [], updates: []}
+    else
+      run_search(query, user)
+    end
+  end
+
+  defp run_search(query, %User{} = user) do
     query_lower_raw = String.trim(query) |> String.downcase()
 
     query_cleaned =
