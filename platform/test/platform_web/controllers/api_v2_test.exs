@@ -664,4 +664,100 @@ defmodule PlatformWeb.APIV2Test do
 
     # Ensure arbitrary optional attribute values are stored correctly
   end
+
+  test "GET /api/v2/project", %{conn: conn} do
+    noauth_conn = get(conn, "/api/v2/project")
+    assert json_response(noauth_conn, 401) == %{"error" => "invalid token or token not found"}
+
+    project = project_fixture()
+    token = api_token_fixture(%{project_id: project.id})
+
+    auth_conn =
+      build_conn()
+      |> put_req_header("authorization", "Bearer " <> token.value)
+      |> get("/api/v2/project")
+
+    %{"success" => true, "result" => result} = json_response(auth_conn, 200)
+    assert result["id"] == project.id
+    assert result["name"] == project.name
+    assert result["code"] == project.code
+
+    attributes = result["attributes"]
+
+    # Core attributes are identified by their name
+    status = Enum.find(attributes, &(&1["id"] == "status"))
+    assert not is_nil(status)
+    assert status["is_custom"] == false
+    assert status["type"] == "select"
+    assert Enum.member?(status["options"], "In Progress")
+
+    # Project-defined attributes are identified by their UUID, which is what
+    # POST /api/v2/update/:slug/:attribute expects
+    impact_definition = project.attributes |> Enum.find(&(&1.name == "Impact"))
+    impact = Enum.find(attributes, &(&1["id"] == impact_definition.id))
+    assert not is_nil(impact)
+    assert impact["is_custom"] == true
+    assert impact["name"] == "Impact"
+    assert impact["options"] == impact_definition.options
+  end
+
+  test "deactivated tokens are rejected" do
+    project = project_fixture()
+    token = api_token_fixture(%{project_id: project.id})
+
+    {:ok, deactivated} = Platform.API.deactivate_api_token(token)
+    assert deactivated.is_active == false
+
+    conn =
+      build_conn()
+      |> put_req_header("authorization", "Bearer " <> deactivated.value)
+      |> get("/api/v2/incidents")
+
+    assert json_response(conn, 401) == %{"error" => "invalid token or token not found"}
+  end
+
+  test "POST /api/v2/source_material/new/:slug accepts boolean archive param" do
+    project = project_fixture()
+    token = api_token_fixture(%{project_id: project.id, permissions: [:read, :comment, :edit]})
+    media = media_fixture(%{project_id: project.id})
+
+    auth_conn =
+      build_conn()
+      |> put_req_header("authorization", "Bearer " <> token.value)
+      |> post("/api/v2/source_material/new/#{media.slug}", %{
+        "url" => "https://atlos.org",
+        "archive" => true
+      })
+
+    %{"success" => true, "result" => version} = json_response(auth_conn, 200)
+    assert version["upload_type"] == "direct"
+  end
+
+  test "GET /api/v2/updates returns distinct old and new values" do
+    project = project_fixture()
+    token = api_token_fixture(%{project_id: project.id, permissions: [:read, :comment, :edit]})
+    media = media_fixture(%{project_id: project.id})
+    original_description = media.attr_description
+
+    auth_conn =
+      build_conn()
+      |> put_req_header("authorization", "Bearer " <> token.value)
+      |> post("/api/v2/update/#{media.slug}/description", %{
+        "message" => "test",
+        "value" => "new description"
+      })
+
+    assert json_response(auth_conn, 200) == %{"success" => true}
+
+    auth_conn =
+      build_conn()
+      |> put_req_header("authorization", "Bearer " <> token.value)
+      |> get("/api/v2/updates")
+
+    %{"results" => results} = json_response(auth_conn, 200)
+    update = Enum.find(results, &(&1["type"] == "update_attribute"))
+
+    assert update["new_value"]["attr_description"] == "new description"
+    assert update["old_value"]["attr_description"] == original_description
+  end
 end

@@ -59,7 +59,17 @@ requests.get(
 Paginate using the `cursor` query parameter, whose value is provided by the `next` and `previous` keys in the response. Results are available under the `results` key.
 
 ## API Endpoints
-The Atlos API supports `GET` and `POST` endpoints. All `GET` endpoints return 30 results at a time. 
+The Atlos API supports `GET` and `POST` endpoints. All paginated `GET` endpoints return up to 100 results at a time. 
+
+### Get project information and attribute definitions
+`GET /api/v2/project` returns the project associated with your API token, including the full list of its attribute definitions. Each attribute definition includes an `id` (the value to use with the [attribute update endpoint](#update-an-incidents-attributes)), a human-readable `name`, a `type` (`select`, `multi_select`, `text`, or `date`), and the available `options` for select-type attributes. Core Atlos attributes are identified by name (e.g., `status`); attributes defined by your project are identified by UUID.
+
+```python
+requests.get(
+    f"https://platform.atlos.org/api/v2/project",
+    headers={"Authorization": f"Bearer {api_token}"}
+)
+```
 
 ### Get all incidents in a project
 `GET /api/v2/incidents` returns all incidents in a project.

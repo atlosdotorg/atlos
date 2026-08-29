@@ -172,7 +172,7 @@ defmodule PlatformWeb.APIV2Controller do
   def create_media_version(conn, params) do
     media_id = params["slug"]
     url = params["url"]
-    should_archive = params["archive"] == "true"
+    should_archive = params["archive"] in [true, "true"]
 
     media = Material.get_full_media_by_slug(media_id)
 
@@ -288,6 +288,15 @@ defmodule PlatformWeb.APIV2Controller do
             json(conn |> put_status(401), %{error: "valid file not provided"})
         end
     end
+  end
+
+  def project(conn, _params) do
+    project = Projects.get_project!(conn.assigns.token.project_id)
+
+    json(conn, %{
+      success: true,
+      result: PlatformWeb.APISerialization.project_with_attributes(project)
+    })
   end
 
   def incidents(conn, params) do

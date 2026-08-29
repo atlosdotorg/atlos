@@ -193,10 +193,13 @@ defimpl Jason.Encoder, for: Platform.Updates.Update do
         :modified_attribute
       ])
       |> Enum.into(%{}, fn
+        {key, nil} when key in [:old_value, :new_value] ->
+          {key, nil}
+
         {key, value} when key in [:old_value, :new_value] ->
           case Jason.decode(value) do
-            {:ok, v} -> {:new_value, v}
-            {:error, _} -> {:new_value, value}
+            {:ok, v} -> {key, v}
+            {:error, _} -> {key, value}
           end
 
         {key, %Ecto.Association.NotLoaded{}} ->

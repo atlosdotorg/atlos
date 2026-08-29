@@ -105,6 +105,7 @@ defmodule PlatformWeb.Router do
         :upload_media_version_file
       )
 
+      get("/project", APIV2Controller, :project)
       get("/incidents", APIV2Controller, :incidents)
       get("/updates", APIV2Controller, :get_updates)
       post("/add_comment/:slug", APIV2Controller, :add_comment)
