@@ -1,6 +1,6 @@
 # Plan: An MCP Server for Atlos
 
-**Status:** Proposal / implementation plan
+**Status:** Phases 0–1 implemented (plus the docs page from Phase 2); registry listing, the npm shim, and Phase 3 remain
 **Scope:** Let AI agents (Claude, and any MCP-capable client) work with Atlos investigations — search and read incidents, add source material, post comments, and update attributes — through the Model Context Protocol.
 
 ---

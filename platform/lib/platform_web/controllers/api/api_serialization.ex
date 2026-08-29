@@ -4,6 +4,7 @@ defmodule PlatformWeb.APISerialization do
   """
 
   alias Platform.Material.Attribute
+  alias Platform.Material.Media
   alias Platform.Projects.Project
 
   @doc """
@@ -42,5 +43,62 @@ defmodule PlatformWeb.APISerialization do
         Attribute.active_attributes(project: project)
         |> Enum.map(&attribute_definition/1)
     }
+  end
+
+  @doc """
+  A compact serialization of an incident, suitable for search results. Expects
+  the media's `project` and `versions` to be preloaded (as done by
+  `Platform.Material.hydrate_media_query/2`).
+  """
+  def incident_summary(%Media{} = media) do
+    project =
+      case media.project do
+        %Ecto.Association.NotLoaded{} -> nil
+        other -> other
+      end
+
+    %{
+      id: media.id,
+      slug: Media.slug_to_display(media),
+      url: PlatformWeb.Endpoint.url() <> "/incidents/" <> media.slug,
+      description: media.attr_description,
+      status: media.attr_status,
+      date: media.attr_date,
+      tags: media.attr_tags,
+      sensitive: media.attr_sensitive,
+      restrictions: media.attr_restrictions,
+      geolocation: geolocation(media.attr_geolocation),
+      custom_attributes: custom_attribute_values(media, project),
+      source_material_count:
+        case media.versions do
+          %Ecto.Association.NotLoaded{} -> nil
+          versions -> length(versions)
+        end,
+      deleted: media.deleted,
+      inserted_at: media.inserted_at,
+      updated_at: media.updated_at
+    }
+  end
+
+  defp geolocation(%Geo.Point{coordinates: {lon, lat}}),
+    do: %{latitude: lat, longitude: lon}
+
+  defp geolocation(_), do: nil
+
+  defp custom_attribute_values(%Media{}, nil), do: []
+
+  defp custom_attribute_values(%Media{} = media, %Project{} = project) do
+    project.attributes
+    |> Enum.filter(& &1.enabled)
+    |> Enum.map(fn definition ->
+      %{
+        id: definition.id,
+        name: definition.name,
+        value:
+          media.project_attributes
+          |> Enum.find(%{}, &(&1.id == definition.id))
+          |> Map.get(:value)
+      }
+    end)
   end
 end

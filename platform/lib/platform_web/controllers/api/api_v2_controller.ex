@@ -152,8 +152,7 @@ defmodule PlatformWeb.APIV2Controller do
 
         case Material.create_media_audited(conn.assigns.token, media_params) do
           {:ok, media} ->
-            media_with_project =
-              Platform.Repo.preload(media, [:project, :versions])
+            media_with_project = Platform.Repo.preload(media, [:project, :versions])
 
             Auditor.log(
               :media_created,
@@ -309,8 +308,7 @@ defmodule PlatformWeb.APIV2Controller do
 
     search_changeset = Material.MediaSearch.changeset(params)
 
-    {query, pagination_options} =
-      Material.MediaSearch.search_query(base_query, search_changeset)
+    {query, pagination_options} = Material.MediaSearch.search_query(base_query, search_changeset)
 
     pagination_api(conn, params, fn opts ->
       Material.query_media_paginated(

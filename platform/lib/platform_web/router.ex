@@ -113,6 +113,14 @@ defmodule PlatformWeb.Router do
     end
   end
 
+  scope "/mcp", PlatformWeb do
+    pipe_through([:api, :check_api_token, :require_project_scoped_token])
+
+    post("/", MCPController, :handle)
+    get("/", MCPController, :reject)
+    delete("/", MCPController, :reject)
+  end
+
   scope "/", PlatformWeb do
     get("/health_check", HealthCheckController, :index)
     # Will return non-200 status code after uptime is > 12 hours
