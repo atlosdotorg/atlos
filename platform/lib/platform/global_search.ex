@@ -17,95 +17,8 @@ defmodule Platform.GlobalSearch do
 
   @doc """
   Search all of Atlos for a given query string for the user.
-
-  A blank query returns the most recent items of each type, matching what the
-  full search produces for an empty string (every ILIKE matches, all ranks are
-  zero, so ordering collapses to insertion date) — but via cheap queries that
-  skip the matching and ranking. The full queries degenerate into ranking every
-  row the user can see, and the search component runs a blank search on every
-  mount, so this path must stay cheap.
   """
   defmemo perform_search(query, %User{} = user) when is_binary(query), expires_in: 10000 do
-    if String.trim(query) == "" do
-      recent_items(user)
-    else
-      run_search(query, user)
-    end
-  end
-
-  defp recent_items(%User{} = user) do
-    media_version_query =
-      from(
-        mv in MediaVersion,
-        join: m in assoc(mv, :media),
-        join: p in assoc(m, :project),
-        join: pm in assoc(p, :memberships),
-        on: pm.user_id == ^user.id,
-        where: not is_nil(pm),
-        order_by: [desc: mv.inserted_at],
-        limit: 3,
-        preload: [media: [:project]],
-        select: %{item: mv, exact_match: false, cd_rank: 0}
-      )
-
-    media_query =
-      from(
-        m in Media,
-        join: p in assoc(m, :project),
-        join: pm in assoc(p, :memberships),
-        on: pm.user_id == ^user.id,
-        where: not is_nil(pm),
-        order_by: [desc: m.inserted_at],
-        limit: 3,
-        preload: [:project],
-        select: %{item: m, exact_match: false, cd_rank: 0}
-      )
-
-    projects_query =
-      from(
-        p in Project,
-        join: pm in assoc(p, :memberships),
-        on: pm.user_id == ^user.id,
-        where: not is_nil(pm),
-        order_by: [desc: p.inserted_at],
-        limit: 3,
-        select: %{item: p, exact_match: false, cd_rank: 0}
-      )
-
-    updates_query =
-      from(
-        u in Update,
-        join: m in assoc(u, :media),
-        join: p in assoc(m, :project),
-        join: pm in assoc(p, :memberships),
-        on: pm.user_id == ^user.id,
-        where: not is_nil(pm),
-        order_by: [desc: u.inserted_at],
-        limit: 3,
-        select: %{item: u, exact_match: false, cd_rank: 0}
-      )
-      |> Platform.Updates.preload_fields()
-
-    %{
-      media_versions:
-        Repo.all(media_version_query)
-        |> Enum.filter(fn item -> Permissions.can_view_media_version?(user, item.item) end),
-      media:
-        Repo.all(media_query)
-        |> Enum.filter(fn item -> Permissions.can_view_media?(user, item.item) end),
-      # The full search returns no users for queries under three characters,
-      # so a blank query lists none either
-      users: [],
-      projects:
-        Repo.all(projects_query)
-        |> Enum.filter(fn item -> Permissions.can_view_project?(user, item.item) end),
-      updates:
-        Repo.all(updates_query)
-        |> Enum.filter(fn item -> Permissions.can_view_update?(user, item.item) end)
-    }
-  end
-
-  defp run_search(query, %User{} = user) do
     query_lower_raw = String.trim(query) |> String.downcase()
 
     query_cleaned =
@@ -116,6 +29,19 @@ defmodule Platform.GlobalSearch do
 
     query_websearch =
       query_cleaned |> String.replace(~r/\s+/, " OR ") |> String.replace(~r/[^a-zA-Z0-9\s\-]/, "")
+
+    # With a blank query, every ILIKE below matches and every rank is zero, so
+    # the ranked ordering collapses to insertion date anyway — but computing
+    # those ranks forces Postgres to score every row visible to the user, which
+    # can exceed the Task.await_many timeout below (the search component runs a
+    # blank search on every mount). Sort directly on inserted_at in that case.
+    order_recents_first = fn q ->
+      if query_cleaned == "" do
+        q |> exclude(:order_by) |> order_by([x], desc: x.inserted_at)
+      else
+        q
+      end
+    end
 
     media_version_query =
       from(
@@ -159,6 +85,7 @@ defmodule Platform.GlobalSearch do
             )
         }
       )
+      |> then(order_recents_first)
 
     media_query =
       from(
@@ -202,6 +129,7 @@ defmodule Platform.GlobalSearch do
             )
         }
       )
+      |> then(order_recents_first)
 
     users_query =
       from(
@@ -272,6 +200,7 @@ defmodule Platform.GlobalSearch do
             )
         }
       )
+      |> then(order_recents_first)
 
     updates_query =
       from(
@@ -315,6 +244,7 @@ defmodule Platform.GlobalSearch do
         }
       )
       |> Platform.Updates.preload_fields()
+      |> then(order_recents_first)
 
     # Run each query in parallel
     [media_version_results, media_results, users_results, projects_results, updates_results] =
