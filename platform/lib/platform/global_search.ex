@@ -72,6 +72,7 @@ defmodule Platform.GlobalSearch do
             )
         }
       )
+      |> order_recents_first(query_websearch)
 
     media_query =
       from(
@@ -115,6 +116,7 @@ defmodule Platform.GlobalSearch do
             )
         }
       )
+      |> order_recents_first(query_websearch)
 
     users_query =
       from(
@@ -185,6 +187,7 @@ defmodule Platform.GlobalSearch do
             )
         }
       )
+      |> order_recents_first(query_websearch)
 
     updates_query =
       from(
@@ -228,6 +231,7 @@ defmodule Platform.GlobalSearch do
         }
       )
       |> Platform.Updates.preload_fields()
+      |> order_recents_first(query_websearch)
 
     # Run each query in parallel
     [media_version_results, media_results, users_results, projects_results, updates_results] =
@@ -265,4 +269,13 @@ defmodule Platform.GlobalSearch do
       updates: updates_results
     }
   end
+
+  # A blank search runs on every page mount and used to time out with a
+  # 500 right after login. With no terms every row ranks zero, so
+  # ordering by recency returns the same rows as the ranked order, but
+  # lets Postgres use an index and stop after LIMIT instead of scanning.
+  defp order_recents_first(query, ""),
+    do: query |> exclude(:order_by) |> order_by([x], desc: x.inserted_at)
+
+  defp order_recents_first(query, _query_websearch), do: query
 end
