@@ -628,10 +628,16 @@ defmodule Platform.Material.Attribute do
         if Keyword.get(opts, :exclude_options, false) == false and not Enum.empty?(projects) and
              allow_user_defined_options(attr) and
              attr.type == :multi_select do
+          # Merge, rather than replace: a project attribute can define a starting
+          # set of options *and* accept new ones. (The core
+          # `:tags` attribute has no predefined options, so this is a no-op there.)
           Map.put(
             attr,
             :options,
-            Material.get_values_of_attribute_cached(attr, projects: projects)
+            Enum.uniq(
+              (attr.options || []) ++
+                Material.get_values_of_attribute_cached(attr, projects: projects)
+            )
           )
         else
           attr
@@ -1050,9 +1056,40 @@ defmodule Platform.Material.Attribute do
       case attribute.type do
         :multi_select ->
           if Attribute.allow_user_defined_options(attribute) == true do
-            # If `allow_user_defined_options` is unset or false, verify that the
-            # values are a subset of the options.
+            # Any value is allowed, but it must be one the attribute's stored
+            # vocabulary can actually hold. Every value in use has to be a valid
+            # option -- that invariant is what makes turning this setting back
+            # off safe -- so a value we couldn't store has to be refused here
+            # rather than silently dropped on the way to the vocabulary.
             changeset
+            |> validate_change(attribute.schema_field, fn _, vals ->
+              max_length = Platform.Projects.ProjectAttribute.max_option_length()
+              too_long = Enum.filter(vals, &(String.length(&1) > max_length))
+
+              if too_long == [] or Keyword.get(opts, :allow_invalid_selects, false) do
+                []
+              else
+                [
+                  {attribute.schema_field,
+                   "Value(s) too long: #{Enum.join(too_long, ", ")}. Values cannot be longer than #{max_length} characters."}
+                ]
+              end
+            end)
+            |> validate_change(attribute.schema_field, fn _, vals ->
+              max_options = Platform.Projects.ProjectAttribute.max_options()
+              existing = options(attribute)
+              additions = vals |> Enum.reject(&(&1 in existing)) |> Enum.uniq()
+
+              if length(existing) + length(additions) <= max_options or
+                   Keyword.get(opts, :allow_invalid_selects, false) do
+                []
+              else
+                [
+                  {attribute.schema_field,
+                   "This attribute already has the maximum of #{max_options} values, so new ones can't be added. Remove unused values in the project's settings first."}
+                ]
+              end
+            end)
           else
             changeset
             |> validate_change(attribute.schema_field, fn _, vals ->

@@ -476,6 +476,8 @@ defmodule Platform.Material do
         changeset
         |> Repo.insert()
 
+      absorb_user_defined_values(media)
+
       {:ok, _} =
         Updates.change_from_media_creation(media, bot_account)
         |> Updates.create_update_from_changeset()
@@ -1172,6 +1174,7 @@ defmodule Platform.Material do
       |> Attribute.combined_changeset([attribute], attrs, opts)
       |> Repo.update()
 
+    absorb_user_defined_values(result)
     invalidate_attribute_values_cache()
 
     result
@@ -1208,6 +1211,7 @@ defmodule Platform.Material do
       change_media_attributes(media, attributes, attrs, opts)
       |> Repo.update()
 
+    absorb_user_defined_values(result)
     invalidate_attribute_values_cache()
 
     result
@@ -1449,7 +1453,46 @@ defmodule Platform.Material do
   @doc """
   Get the unique values of the given attribute across *all* media. Will hit the database.
   """
-  def get_values_of_attribute(%Attribute{type: :multi_select} = attribute, opts \\ []) do
+  def get_values_of_attribute(attribute, opts \\ [])
+
+  # Project attribute values live inside the `project_attributes` JSONB column
+  # rather than in a dedicated array column, so we can't `unnest` our way to them
+  # the way we can for core attributes like `:tags`. `attribute.name` holds the
+  # `ProjectAttribute`'s UUID.
+  #
+  # Values that aren't JSON arrays (a `:text` attribute, a `null`, a missing key)
+  # are skipped rather than raising -- a single malformed row shouldn't take out
+  # the whole query.
+  def get_values_of_attribute(
+        %Attribute{type: :multi_select, schema_field: :project_attributes} = attribute,
+        opts
+      ) do
+    {project_filter, project_params} =
+      case Keyword.get(opts, :projects) do
+        nil -> {"", []}
+        projects -> {" AND m.project_id = ANY($2::text[]::uuid[])", [Enum.map(projects, & &1.id)]}
+      end
+
+    %Postgrex.Result{rows: rows} =
+      Repo.query!(
+        """
+        SELECT DISTINCT val
+        FROM media m,
+             LATERAL jsonb_array_elements(COALESCE(m.project_attributes, '[]'::jsonb)) AS attr,
+             LATERAL jsonb_array_elements_text(
+               CASE WHEN jsonb_typeof(attr->'value') = 'array'
+                    THEN attr->'value'
+                    ELSE '[]'::jsonb END
+             ) AS val
+        WHERE attr->>'id' = $1#{project_filter}
+        """,
+        [to_string(attribute.name) | project_params]
+      )
+
+    List.flatten(rows)
+  end
+
+  def get_values_of_attribute(%Attribute{type: :multi_select} = attribute, opts) do
     projects = Keyword.get(opts, :projects)
 
     Media
@@ -1471,6 +1514,43 @@ defmodule Platform.Material do
   defmemo get_values_of_attribute_cached(%Attribute{type: :multi_select} = attribute, opts \\ []),
     expires_in: 300 * 1000 do
     get_values_of_attribute(attribute, opts)
+  end
+
+  @doc """
+  Persist any newly-entered values on `media` into the stored vocabulary of the
+  project attributes that allow user-defined options.
+
+  Called after every successful write so that the vocabulary is populated the
+  same way regardless of how the value arrived -- the incident editor, the v2
+  API, or a bulk CSV import.
+
+  Takes the `{:ok, media}` / `{:error, changeset}` tuple the write paths already
+  have, and passes failures straight through, so callers don't have to branch.
+  """
+  def absorb_user_defined_values({:error, _} = result), do: result
+
+  def absorb_user_defined_values({:ok, %Media{} = media} = result) do
+    absorb_user_defined_values(media)
+    result
+  end
+
+  def absorb_user_defined_values(%Media{} = media) do
+    project = Projects.get_project(media.project_id)
+
+    open_attribute_ids =
+      case project do
+        nil -> []
+        p -> p.attributes |> Enum.filter(& &1.allow_user_defined_options) |> Enum.map(& &1.id)
+      end
+
+    for pa <- media.project_attributes || [],
+        pa.id in open_attribute_ids,
+        is_list(pa.value),
+        pa.value != [] do
+      Projects.absorb_attribute_values(media.project_id, pa.id, pa.value)
+    end
+
+    media
   end
 
   @doc """
