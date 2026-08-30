@@ -270,13 +270,9 @@ defmodule Platform.GlobalSearch do
     }
   end
 
-  # When the query has no searchable characters (blank or punctuation-only),
-  # every ILIKE in the queries above matches all non-NULL rows and every rank
-  # is zero, so the ranked ordering collapses to insertion date anyway — but
-  # computing those ranks forces Postgres to score every row visible to the
-  # user, which can exceed the Task.await_many timeout above (the search
-  # component runs a blank search on every mount). Sort directly on
-  # inserted_at in that case.
+  # A query with no searchable characters matches everything with rank zero,
+  # so ranked ordering would pointlessly score every visible row (and time
+  # out on mount-time blank searches) — sort those queries by recency instead.
   defp order_recents_first(query, ""),
     do: query |> exclude(:order_by) |> order_by([x], desc: x.inserted_at)
 
