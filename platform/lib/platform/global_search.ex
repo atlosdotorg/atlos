@@ -30,13 +30,14 @@ defmodule Platform.GlobalSearch do
     query_websearch =
       query_cleaned |> String.replace(~r/\s+/, " OR ") |> String.replace(~r/[^a-zA-Z0-9\s\-]/, "")
 
-    # With a blank query, every ILIKE below matches and every rank is zero, so
+    # When the query has no searchable characters (blank or punctuation-only),
+    # every ILIKE below matches all non-NULL rows and every rank is zero, so
     # the ranked ordering collapses to insertion date anyway — but computing
     # those ranks forces Postgres to score every row visible to the user, which
     # can exceed the Task.await_many timeout below (the search component runs a
     # blank search on every mount). Sort directly on inserted_at in that case.
     order_recents_first = fn q ->
-      if query_cleaned == "" do
+      if query_websearch == "" do
         q |> exclude(:order_by) |> order_by([x], desc: x.inserted_at)
       else
         q
