@@ -271,8 +271,9 @@ defmodule Platform.GlobalSearch do
   end
 
   # With no search terms, all ranks are zero, so ranked order is already
-  # recency order. Skipping the ranking avoids scoring every visible row,
-  # which used to time out page mounts.
+  # recency order. Sorting on inserted_at instead lets Postgres serve the
+  # query from an index and stop after `limit` rows rather than visiting
+  # every visible row — which used to time out and 500 the page after login.
   defp order_recents_first(query, ""),
     do: query |> exclude(:order_by) |> order_by([x], desc: x.inserted_at)
 
