@@ -9,6 +9,9 @@ defmodule Platform.Statistics do
   Most functions take a keyword list of options:
 
   - `days`: the length of the activity window in days (default 30).
+  - `ending`: the end of the activity window (default: now). Windowed queries
+    cover `ending - days` up to `ending`, so passing `ending: <days ago>`
+    yields the prior period, for period-over-period comparisons.
   - `include_api`: whether to include updates made via API tokens (i.e.,
     updates with no `user_id`). Defaults to `true` for instance-wide counts.
     Per-user rollups and attention segments always exclude API activity.
@@ -91,10 +94,7 @@ defmodule Platform.Statistics do
   count: integer}`, ordered by date. Buckets with no activity are omitted.
   """
   def activity_over_time(opts \\ []) do
-    bucket =
-      case Keyword.get(opts, :bucket, :week) do
-        b when b in [:day, :week, :month] -> Atom.to_string(b)
-      end
+    bucket = bucket_option(opts)
 
     # The bucketed date is referenced by select-list position ("GROUP BY 1"):
     # since the bucket is a query parameter, Postgres cannot tell that a
@@ -299,15 +299,85 @@ defmodule Platform.Statistics do
     |> Repo.all()
   end
 
-  defp window_days(opts), do: Keyword.get(opts, :days, @default_window_days)
+  @doc """
+  Counts of newly registered users in the window (`current`) and in the
+  equally sized window before it (`prior`).
+  """
+  def new_user_statistics(opts \\ []) do
+    {window_start, window_end} = window_bounds(opts)
+    prior_start = NaiveDateTime.add(window_start, -window_days(opts) * 86_400)
 
-  defp window_start(opts) do
-    NaiveDateTime.add(NaiveDateTime.utc_now(), -window_days(opts) * 86_400)
+    from(u in User,
+      where: u.username != @automation_username,
+      select: %{
+        current:
+          fragment(
+            "count(*) filter (where ? >= ? and ? <= ?)",
+            u.inserted_at,
+            ^window_start,
+            u.inserted_at,
+            ^window_end
+          ),
+        prior:
+          fragment(
+            "count(*) filter (where ? >= ? and ? < ?)",
+            u.inserted_at,
+            ^prior_start,
+            u.inserted_at,
+            ^window_start
+          )
+      }
+    )
+    |> Repo.one()
   end
 
+  @doc """
+  New user registrations over time, bucketed like `activity_over_time/1`.
+  Returns a list of `%{date: naive_datetime, count: integer}`, ordered by
+  date. Buckets with no registrations are omitted.
+  """
+  def new_users_over_time(opts \\ []) do
+    bucket = bucket_option(opts)
+    {window_start, window_end} = window_bounds(opts)
+
+    from(u in User,
+      where: u.username != @automation_username,
+      where: u.inserted_at >= ^window_start and u.inserted_at <= ^window_end,
+      group_by: fragment("1"),
+      order_by: fragment("1"),
+      select: %{
+        date: fragment("date_trunc(?::text, ?)", ^bucket, u.inserted_at),
+        count: count(u.id)
+      }
+    )
+    |> Repo.all()
+  end
+
+  defp window_days(opts), do: Keyword.get(opts, :days, @default_window_days)
+
+  defp window_bounds(opts) do
+    window_end = Keyword.get(opts, :ending, NaiveDateTime.utc_now())
+    {NaiveDateTime.add(window_end, -window_days(opts) * 86_400), window_end}
+  end
+
+  defp window_start(opts), do: window_bounds(opts) |> elem(0)
+
+  defp bucket_option(opts) do
+    case Keyword.get(opts, :bucket, :week) do
+      b when b in [:day, :week, :month] -> Atom.to_string(b)
+    end
+  end
+
+  # The upper bound is inclusive: timestamps are second-precision, so a strict
+  # bound at "now" would exclude rows inserted in the current second.
   defp in_window(query, opts) do
-    window_start = window_start(opts)
-    where(query, [update: u], u.inserted_at >= ^window_start)
+    {window_start, window_end} = window_bounds(opts)
+
+    where(
+      query,
+      [update: u],
+      u.inserted_at >= ^window_start and u.inserted_at <= ^window_end
+    )
   end
 
   defp maybe_exclude_api(query, opts) do

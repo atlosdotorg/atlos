@@ -70,6 +70,42 @@ defmodule Platform.StatisticsTest do
       assert stats.active_incidents == 2
       assert stats.active_projects == 2
     end
+
+    test "supports an explicit window end for prior-period comparisons" do
+      user = user_fixture()
+      media = media_fixture(%{project_id: project_fixture(%{}, owner: user).id})
+
+      comment!(media, user)
+      comment!(media, user, at: days_ago(20))
+
+      stats = Statistics.overview_statistics(days: 14, ending: days_ago(14))
+
+      assert stats.total_updates == 1
+      assert stats.active_users == 1
+    end
+  end
+
+  describe "new_user_statistics/1" do
+    test "counts sign-ups in the current and prior windows" do
+      _current = user_fixture()
+      _prior = user_fixture() |> backdate_user!(days_ago(20))
+      _older = user_fixture() |> backdate_user!(days_ago(100))
+
+      stats = Statistics.new_user_statistics(days: 14)
+
+      assert stats.current == 1
+      assert stats.prior == 1
+    end
+  end
+
+  describe "new_users_over_time/1" do
+    test "buckets sign-ups by day" do
+      _one = user_fixture()
+      _two = user_fixture()
+      _outside = user_fixture() |> backdate_user!(days_ago(100))
+
+      assert [%{count: 2}] = Statistics.new_users_over_time(days: 14, bucket: :day)
+    end
   end
 
   describe "active_projects/1" do

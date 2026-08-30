@@ -5,8 +5,8 @@ defmodule PlatformWeb.AdminlandLive.Index do
     {:ok, socket |> assign(:title, "Adminland")}
   end
 
-  def handle_params(_params, _uri, socket) do
+  def handle_params(params, _uri, socket) do
     # We pass the full socket to children for audit logging
-    {:noreply, socket |> assign(:full_socket, socket)}
+    {:noreply, socket |> assign(:full_socket, socket) |> assign(:params, params)}
   end
 end

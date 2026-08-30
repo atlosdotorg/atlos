@@ -229,8 +229,8 @@ defmodule PlatformWeb.Router do
     live_session :admin, on_mount: {MountHelperLive, :admin} do
       live("/adminland/", AdminlandLive.Index, :activity)
       live("/adminland/users", AdminlandLive.Index, :users)
-      live("/adminland/deleted", AdminlandLive.Index, :deleted)
       live("/adminland/activity", AdminlandLive.Index, :activity)
+      live("/adminland/usage", AdminlandLive.Index, :usage)
       live("/adminland/announcements", AdminlandLive.Index, :announcements)
       live("/adminland/security", AdminlandLive.Index, :security)
       live("/adminland/security/update", AdminlandLive.Index, :security_mode_create)
