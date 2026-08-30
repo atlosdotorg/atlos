@@ -270,10 +270,10 @@ defmodule Platform.GlobalSearch do
     }
   end
 
-  # With no search terms, all ranks are zero, so ranked order is already
-  # recency order. Sorting on inserted_at instead lets Postgres serve the
-  # query from an index and stop after `limit` rows rather than visiting
-  # every visible row — which used to time out and 500 the page after login.
+  # A blank search runs on every page mount and used to time out with a
+  # 500 right after login. With no terms every row ranks zero, so
+  # ordering by recency returns the same rows as the ranked order, but
+  # lets Postgres use an index and stop after LIMIT instead of scanning.
   defp order_recents_first(query, ""),
     do: query |> exclude(:order_by) |> order_by([x], desc: x.inserted_at)
 
