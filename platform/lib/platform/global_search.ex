@@ -270,8 +270,9 @@ defmodule Platform.GlobalSearch do
     }
   end
 
-  # For blank or punctuation-only queries, ranking scores every visible row
-  # just to tie at zero and fall back to recency — it timed out page mounts.
+  # With no search terms, all ranks are zero, so ranked order is already
+  # recency order. Skipping the ranking avoids scoring every visible row,
+  # which used to time out page mounts.
   defp order_recents_first(query, ""),
     do: query |> exclude(:order_by) |> order_by([x], desc: x.inserted_at)
 
