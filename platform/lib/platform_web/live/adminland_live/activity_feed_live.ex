@@ -24,36 +24,15 @@ defmodule PlatformWeb.AdminlandLive.ActivityFeedLive do
     )
   end
 
-  defp assign_statistics(socket, filter \\ fn _ -> true end) do
-    recent_updates =
-      Updates.list_updates(inserted_after: NaiveDateTime.add(NaiveDateTime.utc_now(), -14, :day))
-      |> Enum.filter(filter)
+  defp assign_statistics(socket) do
+    stats = Platform.Statistics.overview_statistics(days: 14)
 
     socket
-    |> assign(
-      :projects,
-      recent_updates
-      |> Enum.map(& &1.media.project)
-      |> Enum.filter(&(not is_nil(&1)))
-      |> Enum.uniq_by(& &1.id)
-    )
-    |> assign(
-      :active_projects_count,
-      recent_updates
-      |> Enum.map(& &1.media.project)
-      |> Enum.filter(&(not is_nil(&1)))
-      |> Enum.uniq_by(& &1.id)
-      |> length()
-    )
-    |> assign(
-      :active_users_count,
-      recent_updates |> Enum.map(& &1.user_id) |> Enum.uniq() |> length()
-    )
-    |> assign(
-      :active_incidents_count,
-      recent_updates |> Enum.map(& &1.media_id) |> Enum.uniq() |> length()
-    )
-    |> assign(:recent_updates_count, length(recent_updates))
+    |> assign(:projects, Platform.Statistics.active_projects(days: 14))
+    |> assign(:active_projects_count, stats.active_projects)
+    |> assign(:active_users_count, stats.active_users)
+    |> assign(:active_incidents_count, stats.active_incidents)
+    |> assign(:recent_updates_count, stats.total_updates)
   end
 
   defp perform_search(socket, extend \\ [], opts \\ []) do
