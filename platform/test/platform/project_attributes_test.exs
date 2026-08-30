@@ -347,7 +347,7 @@ defmodule Platform.ProjectAttributesTest do
     end
 
     test "a full vocabulary refuses new values rather than diverging" do
-      max = ProjectAttribute.max_user_defined_options()
+      max = ProjectAttribute.max_options()
       full = Enum.map(1..max, &"PLATE-#{&1}")
       {project, attr_id} = project_with_open_attribute(options: full)
       attribute = Attribute.get_attribute(attr_id, project: project)

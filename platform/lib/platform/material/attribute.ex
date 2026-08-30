@@ -1076,7 +1076,7 @@ defmodule Platform.Material.Attribute do
               end
             end)
             |> validate_change(attribute.schema_field, fn _, vals ->
-              max_options = Platform.Projects.ProjectAttribute.max_user_defined_options()
+              max_options = Platform.Projects.ProjectAttribute.max_options()
               existing = options(attribute)
               additions = vals |> Enum.reject(&(&1 in existing)) |> Enum.uniq()
 

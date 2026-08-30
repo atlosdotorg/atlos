@@ -4,15 +4,13 @@ defmodule Platform.Projects.ProjectAttribute do
 
   alias Platform.Material.Attribute
 
-  # Hand-written option lists stay small; a vocabulary that grows itself needs
-  # more headroom, but not unbounded -- `attributes` is an embedded JSON column
-  # on `projects`, which is read on nearly every request.
+  # One ceiling for every option list, hand-written or grown by use. `attributes`
+  # is an embedded JSON column on `projects`, read on nearly every request, so
+  # the list has to stay small either way.
   @max_options 512
-  @max_user_defined_options 2_000
   @max_option_length 50
 
   def max_options, do: @max_options
-  def max_user_defined_options, do: @max_user_defined_options
   def max_option_length, do: @max_option_length
 
   @derive {Jason.Encoder,
@@ -114,17 +112,16 @@ defmodule Platform.Projects.ProjectAttribute do
       if Enum.member?([:select, :multi_select], get_field(changeset, :type)) do
         # When new values are allowed, a predefined option list is optional --
         # an attribute like "License Plates" starts out empty and grows itself.
-        {min_options, max_opts, message} =
+        {min_options, message} =
           if get_field(changeset, :allow_user_defined_options) do
-            {0, @max_user_defined_options,
-             "You may provide at most #{@max_user_defined_options} options."}
+            {0, "You may provide at most #{@max_options} options."}
           else
-            {1, @max_options, "You must provide between 1 and #{@max_options} options."}
+            {1, "You must provide between 1 and #{@max_options} options."}
           end
 
         changeset
         |> validate_required([:options])
-        |> validate_length(:options, min: min_options, max: max_opts, message: message)
+        |> validate_length(:options, min: min_options, max: @max_options, message: message)
         |> validate_change(:options, fn :options, options ->
           if Enum.any?(options, fn option -> String.length(option) > @max_option_length end) do
             [options: "An option cannot be longer than #{@max_option_length} characters"]

@@ -537,7 +537,7 @@ defmodule Platform.Projects do
   by an owner in the project's settings.
 
   Values that can't be stored -- ones that are too long, or that would push the
-  vocabulary past `ProjectAttribute.max_user_defined_options/0` -- are skipped.
+  vocabulary past `ProjectAttribute.max_options/0` -- are skipped.
   This is a backstop, not the intended path: `Attribute.validate_attribute/4`
   refuses such values up front, so an incident can never hold a value the
   vocabulary lacks. It can still fire for writes that deliberately bypass
@@ -562,7 +562,7 @@ defmodule Platform.Projects do
 
         true ->
           existing = attribute.options || []
-          room = ProjectAttribute.max_user_defined_options() - length(existing)
+          room = ProjectAttribute.max_options() - length(existing)
 
           additions =
             values
