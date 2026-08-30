@@ -270,9 +270,10 @@ defmodule Platform.GlobalSearch do
     }
   end
 
-  # A query with no searchable characters matches every row at rank zero, so
-  # rank ordering returns the same rows as recency ordering — it just scores
-  # the whole visible set first, which timed out mount-time blank searches.
+  # When the query is blank or all punctuation, every row matches and all
+  # ranks are zero — so ordering by rank returns the same rows as ordering by
+  # recency, but only after scoring every visible row, which timed out
+  # mount-time blank searches.
   defp order_recents_first(query, ""),
     do: query |> exclude(:order_by) |> order_by([x], desc: x.inserted_at)
 
