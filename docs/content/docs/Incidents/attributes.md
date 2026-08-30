@@ -45,7 +45,9 @@ Custom attributes have four components:
 
 - **Attribute Description—** An optional description of the attribute. We highly recommend including a detailed description of how you expect investigators to use the attribute to avoid confusion. 
 - **Attribute Options—** Attribute options are the potential values for each attribute. Specify each option by typing a value, pressing Enter, and repeating until you’ve listed every option. 
-- **Allow new values—** Available on multiple select attributes. When enabled, the attribute behaves like tags: any value can be entered, not just those in the option list, and values already used in the project are suggested. Leave the option list empty to start from scratch. Use this for open-ended entities you discover as you go — license plates, officer IDs, unit callsigns — where you can’t list the values in advance but still want each one to be a distinct, searchable value rather than free text.
+- **Allow new values—** Available on multiple select attributes. When enabled, the attribute behaves like tags: any value can be entered, not just those in the option list. Leave the option list empty to start from scratch. Use this for open-ended entities you discover as you go — license plates, officer IDs, unit callsigns — where you can’t list the values in advance but still want each one to be a distinct, searchable value rather than free text.
+
+  New values are added to the attribute’s option list as they’re entered, so they’re suggested on every other incident in the project — this is how you tell whether a value has come up before. Values stay in the list even after the last incident using them drops it; to remove one, edit the attribute’s options. Because the list is shared, turning this setting back off is safe: every value already in use is by then a regular option.
 
 ### Customize attributes
 To customize a project’s data model: 

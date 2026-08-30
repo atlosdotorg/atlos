@@ -243,6 +243,157 @@ defmodule Platform.ProjectAttributesTest do
     end
   end
 
+  describe "stored vocabulary" do
+    defp vocabulary(project_id, attr_id) do
+      Projects.get_project!(project_id).attributes
+      |> Enum.find(&(&1.id == attr_id))
+      |> Map.get(:options)
+    end
+
+    test "a newly entered value is persisted into the attribute's options" do
+      {project, attr_id} = project_with_open_attribute()
+      attribute = Attribute.get_attribute(attr_id, project: project)
+      media = media_fixture(%{project_id: project.id})
+
+      assert vocabulary(project.id, attr_id) == []
+
+      {:ok, _} = Material.update_media_attribute_internal(media, attribute, ["AB-123-CD"])
+
+      assert vocabulary(project.id, attr_id) == ["AB-123-CD"]
+    end
+
+    test "a value survives after the last incident using it drops it" do
+      {project, attr_id} = project_with_open_attribute()
+      attribute = Attribute.get_attribute(attr_id, project: project)
+      media = media_fixture(%{project_id: project.id})
+
+      {:ok, _} = Material.update_media_attribute_internal(media, attribute, ["KEEP-ME", "DROP-ME"])
+      assert Enum.sort(vocabulary(project.id, attr_id)) == ["DROP-ME", "KEEP-ME"]
+
+      # Remove it from the only incident that had it.
+      {:ok, _} = Material.update_media_attribute_internal(media, attribute, ["KEEP-ME"])
+      Material.invalidate_attribute_values_cache()
+
+      # No longer in use...
+      assert Material.get_values_of_attribute(attribute, projects: [project]) == ["KEEP-ME"]
+      # ...but still in the vocabulary.
+      assert Enum.sort(vocabulary(project.id, attr_id)) == ["DROP-ME", "KEEP-ME"]
+    end
+
+    test "the vocabulary only grows, and never duplicates" do
+      {project, attr_id} = project_with_open_attribute(options: ["PREDEFINED"])
+      attribute = Attribute.get_attribute(attr_id, project: project)
+
+      for value <- [["PREDEFINED", "A"], ["A", "B"], ["B"]] do
+        media = media_fixture(%{project_id: project.id})
+        {:ok, _} = Material.update_media_attribute_internal(media, attribute, value)
+      end
+
+      vocab = vocabulary(project.id, attr_id)
+      assert Enum.sort(vocab) == ["A", "B", "PREDEFINED"]
+      assert Enum.uniq(vocab) == vocab
+    end
+
+    test "closed attributes never absorb anything" do
+      project = project_fixture()
+
+      {:ok, project} =
+        Projects.update_project(project, %{
+          "attributes" => %{
+            "0" => %{
+              "name" => "Impact",
+              "type" => "multi_select",
+              "options_json" => Jason.encode!(["Structure"])
+            }
+          }
+        })
+
+      attr = project.attributes |> Enum.find(&(&1.name == "Impact"))
+      attribute = Attribute.get_attribute(attr.id, project: project)
+      media = media_fixture(%{project_id: project.id})
+
+      # `_internal` bypasses select validation, so this writes an off-list value.
+      {:ok, _} = Material.update_media_attribute_internal(media, attribute, ["Not An Option"])
+
+      assert vocabulary(project.id, attr.id) == ["Structure"]
+    end
+
+    test "values too long to store are skipped rather than raising" do
+      {project, attr_id} = project_with_open_attribute()
+      attribute = Attribute.get_attribute(attr_id, project: project)
+      media = media_fixture(%{project_id: project.id})
+
+      long = String.duplicate("x", ProjectAttribute.max_option_length() + 1)
+      {:ok, _} = Material.update_media_attribute_internal(media, attribute, ["SHORT", long])
+
+      assert vocabulary(project.id, attr_id) == ["SHORT"]
+    end
+
+    test "unchecking the flag leaves no stranded values" do
+      {project, attr_id} = project_with_open_attribute()
+      attribute = Attribute.get_attribute(attr_id, project: project)
+      media = media_fixture(%{project_id: project.id})
+
+      {:ok, _} = Material.update_media_attribute_internal(media, attribute, ["AB-123-CD"])
+
+      # Close the attribute back up.
+      project = Projects.get_project!(project.id)
+
+      attrs =
+        project.attributes
+        |> Enum.map(
+          &%{
+            "id" => &1.id,
+            "name" => &1.name,
+            "type" => to_string(&1.type),
+            "options_json" => Jason.encode!(&1.options),
+            "allow_user_defined_options" =>
+              if(&1.id == attr_id, do: "false", else: to_string(&1.allow_user_defined_options))
+          }
+        )
+        |> Enum.with_index()
+        |> Map.new(fn {a, i} -> {to_string(i), a} end)
+
+      {:ok, closed_project} = Projects.update_project(project, %{"attributes" => attrs})
+      closed = Attribute.get_attribute(attr_id, project: closed_project)
+
+      refute closed.allow_user_defined_options
+      # The value that was entered while open is now a legitimate option.
+      assert "AB-123-CD" in Attribute.options(closed)
+
+      # ...so re-saving the incident's existing value still validates.
+      {:ok, _} =
+        Material.update_media_attribute(media, closed, %{
+          "project_attributes" => %{"0" => %{"id" => attr_id, "value" => ["AB-123-CD"]}}
+        })
+    end
+
+    test "absorbs values arriving through a bulk import" do
+      {project, attr_id} = project_with_open_attribute()
+
+      cs =
+        Material.bulk_import_change(
+          %{
+            "description" => "imported",
+            "sensitive" => "Not Sensitive",
+            "status" => "To Do",
+            "license plates" => "BULK-1, BULK-2"
+          },
+          project
+        )
+
+      assert cs.valid?
+      {:ok, _} = Material.bulk_import_create(%Platform.Material.Media{}, %{
+        "description" => "imported",
+        "sensitive" => "Not Sensitive",
+        "status" => "To Do",
+        "license plates" => "BULK-1, BULK-2"
+      }, project)
+
+      assert Enum.sort(vocabulary(project.id, attr_id)) == ["BULK-1", "BULK-2"]
+    end
+  end
+
   describe "get_attribute/2 option injection" do
     test "injects in-use values as options for user-defined-options project attributes" do
       {project, attr_id} = project_with_open_attribute(options: ["PREDEFINED"])

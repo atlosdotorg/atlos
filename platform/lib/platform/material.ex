@@ -476,6 +476,8 @@ defmodule Platform.Material do
         changeset
         |> Repo.insert()
 
+      absorb_user_defined_values(media)
+
       {:ok, _} =
         Updates.change_from_media_creation(media, bot_account)
         |> Updates.create_update_from_changeset()
@@ -1172,6 +1174,7 @@ defmodule Platform.Material do
       |> Attribute.combined_changeset([attribute], attrs, opts)
       |> Repo.update()
 
+    absorb_user_defined_values(result)
     invalidate_attribute_values_cache()
 
     result
@@ -1208,6 +1211,7 @@ defmodule Platform.Material do
       change_media_attributes(media, attributes, attrs, opts)
       |> Repo.update()
 
+    absorb_user_defined_values(result)
     invalidate_attribute_values_cache()
 
     result
@@ -1510,6 +1514,43 @@ defmodule Platform.Material do
   defmemo get_values_of_attribute_cached(%Attribute{type: :multi_select} = attribute, opts \\ []),
     expires_in: 300 * 1000 do
     get_values_of_attribute(attribute, opts)
+  end
+
+  @doc """
+  Persist any newly-entered values on `media` into the stored vocabulary of the
+  project attributes that allow user-defined options.
+
+  Called after every successful write so that the vocabulary is populated the
+  same way regardless of how the value arrived -- the incident editor, the v2
+  API, or a bulk CSV import.
+
+  Takes the `{:ok, media}` / `{:error, changeset}` tuple the write paths already
+  have, and passes failures straight through, so callers don't have to branch.
+  """
+  def absorb_user_defined_values({:error, _} = result), do: result
+
+  def absorb_user_defined_values({:ok, %Media{} = media} = result) do
+    absorb_user_defined_values(media)
+    result
+  end
+
+  def absorb_user_defined_values(%Media{} = media) do
+    project = Projects.get_project(media.project_id)
+
+    open_attribute_ids =
+      case project do
+        nil -> []
+        p -> p.attributes |> Enum.filter(& &1.allow_user_defined_options) |> Enum.map(& &1.id)
+      end
+
+    for pa <- media.project_attributes || [],
+        pa.id in open_attribute_ids,
+        is_list(pa.value),
+        pa.value != [] do
+      Projects.absorb_attribute_values(media.project_id, pa.id, pa.value)
+    end
+
+    media
   end
 
   @doc """

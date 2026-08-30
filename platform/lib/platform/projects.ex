@@ -527,4 +527,70 @@ defmodule Platform.Projects do
     |> Enum.filter(& &1.enabled)
     |> Enum.map(&ProjectAttribute.to_attribute/1)
   end
+
+  @doc """
+  Add `values` to the stored vocabulary of the given project attribute.
+
+  Attributes that allow user-defined options keep a durable list of every value
+  that has been used, so a value survives even after the last incident using it
+  drops it. The vocabulary only grows here; removing a value is a deliberate act
+  by an owner in the project's settings.
+
+  Values that can't be stored -- ones that are too long, or that would push the
+  vocabulary past `ProjectAttribute.max_user_defined_options/0` -- are skipped
+  rather than raising. They remain valid on incidents and are still suggested
+  (see `Platform.Material.Attribute.get_attribute/2`, which unions the stored
+  vocabulary with the values actually in use); they just don't become durable.
+
+  Returns `{:ok, project}` -- with the unmodified project when there is nothing
+  to absorb.
+  """
+  def absorb_attribute_values(project_id, attribute_id, values) when is_list(values) do
+    Repo.transaction(fn ->
+      # Lock the row: concurrent incident edits would otherwise read-modify-write
+      # the same embedded attribute list and silently drop each other's values.
+      project =
+        from(p in Project, where: p.id == ^project_id, lock: "FOR UPDATE")
+        |> Repo.one!()
+
+      attribute = Enum.find(project.attributes, &(&1.id == attribute_id))
+
+      cond do
+        is_nil(attribute) or not attribute.allow_user_defined_options ->
+          project
+
+        true ->
+          existing = attribute.options || []
+          room = ProjectAttribute.max_user_defined_options() - length(existing)
+
+          additions =
+            values
+            |> Enum.reject(&(&1 in existing))
+            |> Enum.uniq()
+            |> Enum.filter(&(String.length(&1) <= ProjectAttribute.max_option_length()))
+            |> Enum.take(max(room, 0))
+
+          if additions == [] do
+            project
+          else
+            # Note: this must be a changeset, not a modified struct. `put_embed`
+            # runs structs through `Ecto.Changeset.change/1`, which treats them
+            # as data rather than changes, so a struct edit persists nothing.
+            updated =
+              Enum.map(project.attributes, fn a ->
+                if a.id == attribute_id do
+                  Ecto.Changeset.change(a, options: existing ++ additions)
+                else
+                  a
+                end
+              end)
+
+            project
+            |> Ecto.Changeset.change()
+            |> Ecto.Changeset.put_embed(:attributes, updated)
+            |> Repo.update!()
+          end
+      end
+    end)
+  end
 end
