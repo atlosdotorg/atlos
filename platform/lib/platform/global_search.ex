@@ -30,20 +30,6 @@ defmodule Platform.GlobalSearch do
     query_websearch =
       query_cleaned |> String.replace(~r/\s+/, " OR ") |> String.replace(~r/[^a-zA-Z0-9\s\-]/, "")
 
-    # When the query has no searchable characters (blank or punctuation-only),
-    # every ILIKE below matches all non-NULL rows and every rank is zero, so
-    # the ranked ordering collapses to insertion date anyway — but computing
-    # those ranks forces Postgres to score every row visible to the user, which
-    # can exceed the Task.await_many timeout below (the search component runs a
-    # blank search on every mount). Sort directly on inserted_at in that case.
-    order_recents_first = fn q ->
-      if query_websearch == "" do
-        q |> exclude(:order_by) |> order_by([x], desc: x.inserted_at)
-      else
-        q
-      end
-    end
-
     media_version_query =
       from(
         mv in MediaVersion,
@@ -86,7 +72,7 @@ defmodule Platform.GlobalSearch do
             )
         }
       )
-      |> then(order_recents_first)
+      |> order_recents_first(query_websearch)
 
     media_query =
       from(
@@ -130,7 +116,7 @@ defmodule Platform.GlobalSearch do
             )
         }
       )
-      |> then(order_recents_first)
+      |> order_recents_first(query_websearch)
 
     users_query =
       from(
@@ -201,7 +187,7 @@ defmodule Platform.GlobalSearch do
             )
         }
       )
-      |> then(order_recents_first)
+      |> order_recents_first(query_websearch)
 
     updates_query =
       from(
@@ -245,7 +231,7 @@ defmodule Platform.GlobalSearch do
         }
       )
       |> Platform.Updates.preload_fields()
-      |> then(order_recents_first)
+      |> order_recents_first(query_websearch)
 
     # Run each query in parallel
     [media_version_results, media_results, users_results, projects_results, updates_results] =
@@ -283,4 +269,16 @@ defmodule Platform.GlobalSearch do
       updates: updates_results
     }
   end
+
+  # When the query has no searchable characters (blank or punctuation-only),
+  # every ILIKE in the queries above matches all non-NULL rows and every rank
+  # is zero, so the ranked ordering collapses to insertion date anyway — but
+  # computing those ranks forces Postgres to score every row visible to the
+  # user, which can exceed the Task.await_many timeout above (the search
+  # component runs a blank search on every mount). Sort directly on
+  # inserted_at in that case.
+  defp order_recents_first(query, ""),
+    do: query |> exclude(:order_by) |> order_by([x], desc: x.inserted_at)
+
+  defp order_recents_first(query, _query_websearch), do: query
 end
