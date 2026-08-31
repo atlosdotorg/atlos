@@ -296,6 +296,81 @@ defmodule Platform.StatisticsTest do
     end
   end
 
+  describe "explore_series/1 and explore_totals/1" do
+    test "split by project counts per project" do
+      user = user_fixture()
+      project = project_fixture(%{}, owner: user)
+      other_project = project_fixture(%{}, owner: user)
+      media = media_fixture(%{project_id: project.id})
+      other_media = media_fixture(%{project_id: other_project.id})
+
+      comment!(media, user)
+      comment!(media, user)
+      comment!(other_media, user)
+
+      series = Statistics.explore_series(days: 14, bucket: :day, split: :project)
+      by_project = Map.new(series, &{&1.project_id, &1.count})
+
+      assert by_project[project.id] == 2
+      assert by_project[other_project.id] == 1
+
+      totals = Statistics.explore_totals(days: 14, split: :project)
+      assert [%{current: 2}, %{current: 1}] = totals
+    end
+
+    test "split by kind separates types, filters restrict" do
+      user = user_fixture()
+      media = media_fixture(%{project_id: project_fixture(%{}, owner: user).id})
+      comment!(media, user)
+
+      assert [%{type: :comment, api: false, count: 1}] =
+               Statistics.explore_series(days: 14, bucket: :day, split: :kind)
+
+      assert [] =
+               Statistics.explore_series(
+                 days: 14,
+                 bucket: :day,
+                 split: :kind,
+                 filter_kind: :upload_version
+               )
+
+      assert [%{count: 1}] =
+               Statistics.explore_series(
+                 days: 14,
+                 bucket: :day,
+                 split: :none,
+                 filter_source: :human
+               )
+
+      assert [] = Statistics.explore_series(days: 14, bucket: :day, filter_source: :api)
+    end
+
+    test "the active metric counts distinct people" do
+      user_one = user_fixture()
+      user_two = user_fixture()
+      project = project_fixture(%{}, owner: user_one)
+      media = media_fixture(%{project_id: project.id}, for_user: user_two)
+
+      comment!(media, user_one)
+      comment!(media, user_one)
+      comment!(media, user_two)
+
+      assert [%{count: 2}] = Statistics.explore_series(days: 14, bucket: :day, metric: :active)
+
+      assert [%{current: 2, prior: 0}] = Statistics.explore_totals(days: 14, metric: :active)
+    end
+
+    test "totals compute prior-period counts" do
+      user = user_fixture()
+      media = media_fixture(%{project_id: project_fixture(%{}, owner: user).id})
+
+      comment!(media, user)
+      comment!(media, user, at: days_ago(20))
+
+      assert [%{current: 1, prior: 1}] = Statistics.explore_totals(days: 14)
+    end
+  end
+
   describe "project_member_rollups/2" do
     test "counts only activity within the given project" do
       owner = user_fixture()

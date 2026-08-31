@@ -379,6 +379,248 @@ defmodule Platform.Statistics do
     |> Repo.all()
   end
 
+  @explore_metrics [:contributions, :incidents, :active]
+  @explore_splits [:none, :kind, :project, :person, :source]
+
+  @doc """
+  The time-series half of the Explore query engine: update counts bucketed by
+  time and, optionally, split along one dimension.
+
+  Options (beyond the shared window options):
+
+  - `metric`: `:contributions` (all updates), `:incidents` (only `:create`
+    updates), or `:active` (distinct contributing users). Default
+    `:contributions`. (`:signups` is served by `new_users_over_time/1`.)
+  - `split`: `:none`, `:kind`, `:project`, `:person`, or `:source`.
+  - Filters: `filter_project_id`, `filter_user_id`, `filter_kind` (an update
+    type atom), `filter_source` (`:api` or `:human`).
+
+  Returns rows shaped by the split: every row has `date` and `count` (already
+  the requested metric); `:kind` rows add `type` and `api`, `:project` rows
+  add `project_id`, `:person` rows add `user_id` (`nil` for API activity),
+  and `:source` rows add `api`.
+  """
+  def explore_series(opts \\ []) do
+    bucket = bucket_option(opts)
+    metric = explore_metric(opts)
+    base = explore_base(opts) |> in_window(opts)
+
+    query =
+      case explore_split(opts) do
+        :none ->
+          from([update: u] in base,
+            group_by: fragment("1"),
+            order_by: fragment("1"),
+            select: %{
+              date: fragment("date_trunc(?::text, ?)", ^bucket, u.inserted_at),
+              count: count(u.id),
+              people: fragment("count(distinct ?)", u.user_id)
+            }
+          )
+
+        :kind ->
+          from([update: u] in base,
+            group_by: [fragment("1"), u.type, is_nil(u.user_id)],
+            order_by: fragment("1"),
+            select: %{
+              date: fragment("date_trunc(?::text, ?)", ^bucket, u.inserted_at),
+              type: u.type,
+              api: is_nil(u.user_id),
+              count: count(u.id),
+              people: fragment("count(distinct ?)", u.user_id)
+            }
+          )
+
+        :project ->
+          from([update: u, media: m] in base,
+            group_by: [fragment("1"), m.project_id],
+            order_by: fragment("1"),
+            select: %{
+              date: fragment("date_trunc(?::text, ?)", ^bucket, u.inserted_at),
+              project_id: m.project_id,
+              count: count(u.id),
+              people: fragment("count(distinct ?)", u.user_id)
+            }
+          )
+
+        :person ->
+          from([update: u] in base,
+            group_by: [fragment("1"), u.user_id],
+            order_by: fragment("1"),
+            select: %{
+              date: fragment("date_trunc(?::text, ?)", ^bucket, u.inserted_at),
+              user_id: u.user_id,
+              count: count(u.id),
+              people: fragment("count(distinct ?)", u.user_id)
+            }
+          )
+
+        :source ->
+          from([update: u] in base,
+            group_by: [fragment("1"), is_nil(u.user_id)],
+            order_by: fragment("1"),
+            select: %{
+              date: fragment("date_trunc(?::text, ?)", ^bucket, u.inserted_at),
+              api: is_nil(u.user_id),
+              count: count(u.id),
+              people: fragment("count(distinct ?)", u.user_id)
+            }
+          )
+      end
+
+    query
+    |> Repo.all()
+    |> Enum.map(&explore_row(&1, metric))
+  end
+
+  @doc """
+  The totals half of the Explore query engine: per-split-value totals for the
+  current window and the equally sized window before it. Takes the same
+  options as `explore_series/1` (minus `bucket`). Every row has `current`
+  and `prior`, plus the same split identifier fields as `explore_series/1`.
+  """
+  def explore_totals(opts \\ []) do
+    metric = explore_metric(opts)
+    {window_start, window_end} = window_bounds(opts)
+    prior_start = NaiveDateTime.add(window_start, -window_days(opts) * 86_400)
+
+    base =
+      explore_base(opts)
+      |> where(
+        [update: u],
+        u.inserted_at >= ^prior_start and u.inserted_at <= ^window_end
+      )
+
+    group =
+      case explore_split(opts) do
+        :none -> dynamic([update: u], fragment("1"))
+        :kind -> nil
+        :project -> dynamic([media: m], m.project_id)
+        :person -> dynamic([update: u], u.user_id)
+        :source -> dynamic([update: u], is_nil(u.user_id))
+      end
+
+    query =
+      from([update: u] in base,
+        select: %{
+          current: fragment("count(*) filter (where ? >= ?)", u.inserted_at, ^window_start),
+          prior:
+            fragment(
+              "count(*) filter (where ? < ?)",
+              u.inserted_at,
+              ^window_start
+            ),
+          current_people:
+            fragment(
+              "count(distinct ?) filter (where ? >= ?)",
+              u.user_id,
+              u.inserted_at,
+              ^window_start
+            ),
+          prior_people:
+            fragment(
+              "count(distinct ?) filter (where ? < ?)",
+              u.user_id,
+              u.inserted_at,
+              ^window_start
+            )
+        }
+      )
+
+    query =
+      case explore_split(opts) do
+        :none ->
+          query
+
+        :kind ->
+          from([update: u] in query,
+            group_by: [u.type, is_nil(u.user_id)],
+            select_merge: %{type: u.type, api: is_nil(u.user_id)}
+          )
+
+        :project ->
+          from([media: m] in query,
+            group_by: ^group,
+            select_merge: %{project_id: m.project_id}
+          )
+
+        :person ->
+          from([update: u] in query,
+            group_by: ^group,
+            select_merge: %{user_id: u.user_id}
+          )
+
+        :source ->
+          from([update: u] in query,
+            group_by: ^group,
+            select_merge: %{api: is_nil(u.user_id)}
+          )
+      end
+
+    query
+    |> Repo.all()
+    |> Enum.map(fn row ->
+      row
+      |> explore_totals_row(metric)
+      |> Map.drop([:current_people, :prior_people])
+    end)
+    |> Enum.sort_by(& &1.current, :desc)
+  end
+
+  defp explore_metric(opts) do
+    case Keyword.get(opts, :metric, :contributions) do
+      m when m in @explore_metrics -> m
+    end
+  end
+
+  defp explore_split(opts) do
+    case Keyword.get(opts, :split, :none) do
+      s when s in @explore_splits -> s
+    end
+  end
+
+  defp explore_row(row, :active), do: row |> Map.put(:count, row.people) |> Map.delete(:people)
+  defp explore_row(row, _metric), do: Map.delete(row, :people)
+
+  defp explore_totals_row(row, :active),
+    do: %{row | current: row.current_people, prior: row.prior_people}
+
+  defp explore_totals_row(row, _metric), do: row
+
+  defp explore_base(opts) do
+    from(u in Update, as: :update, join: m in assoc(u, :media), as: :media)
+    |> then(fn query ->
+      if explore_metric(opts) == :incidents,
+        do: where(query, [update: u], u.type == :create),
+        else: query
+    end)
+    |> then(fn query ->
+      case Keyword.get(opts, :filter_project_id) do
+        nil -> query
+        id -> where(query, [media: m], m.project_id == ^id)
+      end
+    end)
+    |> then(fn query ->
+      case Keyword.get(opts, :filter_user_id) do
+        nil -> query
+        id -> where(query, [update: u], u.user_id == ^id)
+      end
+    end)
+    |> then(fn query ->
+      case Keyword.get(opts, :filter_kind) do
+        nil -> query
+        kind -> where(query, [update: u], u.type == ^kind and not is_nil(u.user_id))
+      end
+    end)
+    |> then(fn query ->
+      case Keyword.get(opts, :filter_source) do
+        nil -> query
+        :api -> where(query, [update: u], is_nil(u.user_id))
+        :human -> where(query, [update: u], not is_nil(u.user_id))
+      end
+    end)
+  end
+
   @doc """
   Activity rollups for every project the given user is a member of, counting
   only their updates within each project. Most recently active first.

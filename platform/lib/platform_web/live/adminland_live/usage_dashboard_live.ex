@@ -106,7 +106,16 @@ defmodule PlatformWeb.AdminlandLive.UsageDashboardLive do
     ~H"""
     <section class="max-w-3xl mx-auto">
       <div class="flex flex-col gap-16">
-        <.range_picker days={@days} include_api={@include_api} />
+        <.range_picker days={@days} include_api={@include_api}>
+          <:extra>
+            <.link
+              patch="/adminland/usage/explore"
+              class="text-sm font-medium text-urge-600 hover:text-urge-700 flex items-center gap-1"
+            >
+              <Heroicons.chart_pie mini class="h-4 w-4" /> Explore
+            </.link>
+          </:extra>
+        </.range_picker>
 
         <.card>
           <:header>

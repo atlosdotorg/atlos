@@ -27,7 +27,7 @@
         </.link>
         <.link
           class={
-            if(@live_action in [:usage, :usage_project, :usage_user],
+            if(@live_action in [:usage, :usage_explore, :usage_project, :usage_user],
               do: active_classes,
               else: inactive_classes
             )
@@ -127,6 +127,14 @@
           parent_socket={@full_socket}
           params={@params}
           id="usage-dashboard"
+        />
+      <% :usage_explore -> %>
+        <.live_component
+          module={PlatformWeb.AdminlandLive.UsageExploreLive}
+          current_user={@current_user}
+          parent_socket={@full_socket}
+          params={@params}
+          id="usage-explore"
         />
       <% :usage_project -> %>
         <.live_component

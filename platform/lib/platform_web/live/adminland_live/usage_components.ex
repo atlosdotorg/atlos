@@ -41,6 +41,15 @@ defmodule PlatformWeb.AdminlandLive.UsageComponents do
     "/adminland/usage#{rest}?days=#{days}&api=#{if include_api, do: "1", else: "0"}"
   end
 
+  def palette, do: @kind_colors
+
+  def kind_color(label) do
+    case Enum.find_index(@kind_order, &(&1 == label)) do
+      nil -> "#94a3b8"
+      i -> Enum.at(@kind_colors, i)
+    end
+  end
+
   def kind(%{api: true}), do: "API"
   def kind(%{type: :update_attribute}), do: "Edits"
   def kind(%{type: :comment}), do: "Comments"
@@ -109,6 +118,45 @@ defmodule PlatformWeb.AdminlandLive.UsageComponents do
     ])
     |> Vl.to_spec()
     |> Jason.encode!()
+  end
+
+  @doc """
+  A generic stacked bar chart for the Explore page: rows are
+  `%{date, label, color, count}`, with explicit per-label colors so a series
+  keeps its hue across queries. Returns `nil` when there is no data.
+  """
+  def explore_chart_spec([], _bucket), do: nil
+
+  def explore_chart_spec(rows, bucket) do
+    labels = rows |> Enum.map(&{&1.label, &1.color}) |> Enum.uniq() |> Enum.sort()
+    single_series = length(labels) < 2
+
+    chart =
+      base_chart()
+      |> Vl.data_from_values(
+        date: Enum.map(rows, & &1.date),
+        label: Enum.map(rows, & &1.label),
+        count: Enum.map(rows, & &1.count)
+      )
+      |> Vl.mark(:bar, stroke: "white", stroke_width: 1)
+      |> encode_date_axis(bucket)
+      |> Vl.encode_field(:y, "count", type: :quantitative, title: "Count")
+      |> Vl.encode_field(:color, "label",
+        type: :nominal,
+        title: nil,
+        legend: if(single_series, do: nil, else: []),
+        scale: [
+          domain: Enum.map(labels, &elem(&1, 0)),
+          range: Enum.map(labels, &elem(&1, 1))
+        ]
+      )
+      |> Vl.encode(:tooltip, [
+        [field: "date", type: :temporal, title: "Date"],
+        [field: "label", type: :nominal, title: "Series"],
+        [field: "count", type: :quantitative, title: "Count"]
+      ])
+
+    chart |> Vl.to_spec() |> Jason.encode!()
   end
 
   defp base_chart do
@@ -238,6 +286,7 @@ defmodule PlatformWeb.AdminlandLive.UsageComponents do
   attr(:days, :integer, required: true)
   attr(:include_api, :boolean, required: true)
   attr(:rest, :string, default: "")
+  slot(:extra)
 
   def range_picker(assigns) do
     ~H"""
@@ -263,17 +312,20 @@ defmodule PlatformWeb.AdminlandLive.UsageComponents do
           </.link>
         <% end %>
       </div>
-      <.link
-        patch={usage_path(@days, not @include_api, @rest)}
-        class="text-sm text-neutral-600 hover:text-neutral-700 flex items-center gap-2"
-      >
-        <%= if @include_api do %>
-          <Heroicons.check_circle mini class="h-4 w-4 text-urge-600" />
-        <% else %>
-          <Heroicons.minus_circle mini class="h-4 w-4 opacity-50" />
-        <% end %>
-        Include API activity
-      </.link>
+      <div class="flex items-center gap-5 flex-wrap">
+        <.link
+          patch={usage_path(@days, not @include_api, @rest)}
+          class="text-sm text-neutral-600 hover:text-neutral-700 flex items-center gap-2"
+        >
+          <%= if @include_api do %>
+            <Heroicons.check_circle mini class="h-4 w-4 text-urge-600" />
+          <% else %>
+            <Heroicons.minus_circle mini class="h-4 w-4 opacity-50" />
+          <% end %>
+          Include API activity
+        </.link>
+        <%= render_slot(@extra) %>
+      </div>
     </div>
     """
   end
