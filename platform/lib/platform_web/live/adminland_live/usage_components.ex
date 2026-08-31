@@ -83,7 +83,7 @@ defmodule PlatformWeb.AdminlandLive.UsageComponents do
       kind: Enum.map(data, & &1.kind),
       count: Enum.map(data, & &1.count)
     )
-    |> Vl.mark(:bar, stroke: "white", stroke_width: 1)
+    |> Vl.mark(:bar, [stroke: "white", stroke_width: 1] ++ bar_mark_opts())
     |> encode_date_axis(bucket)
     |> Vl.encode_field(:y, "count", type: :quantitative, title: "Contributions")
     |> Vl.encode_field(:color, "kind",
@@ -113,7 +113,7 @@ defmodule PlatformWeb.AdminlandLive.UsageComponents do
       date: Enum.map(rows, & &1.date),
       count: Enum.map(rows, & &1.count)
     )
-    |> Vl.mark(:bar, color: hd(@kind_colors), corner_radius_end: 2)
+    |> Vl.mark(:bar, [color: hd(@kind_colors), corner_radius_end: 2] ++ bar_mark_opts())
     |> encode_date_axis(bucket)
     |> Vl.encode_field(:y, "count", type: :quantitative, title: title)
     |> Vl.encode(:tooltip, [
@@ -141,7 +141,7 @@ defmodule PlatformWeb.AdminlandLive.UsageComponents do
         label: Enum.map(rows, & &1.label),
         count: Enum.map(rows, & &1.count)
       )
-      |> Vl.mark(:bar, stroke: "white", stroke_width: 1)
+      |> Vl.mark(:bar, [stroke: "white", stroke_width: 1] ++ bar_mark_opts())
       |> encode_date_axis(bucket)
       |> Vl.encode_field(:y, "count", type: :quantitative, title: "Count")
       |> Vl.encode_field(:color, "label",
@@ -190,16 +190,25 @@ defmodule PlatformWeb.AdminlandLive.UsageComponents do
 
   # A fixed tick count and day-level label format keep the axis legible: with
   # sparse data, Vega-Lite otherwise falls back to hour-level tick labels.
+  # The time_unit gives bars a band to fill (see bar_mark_opts/0); without it
+  # a continuous temporal scale renders skinny sliver bars.
   defp encode_date_axis(chart, bucket) do
-    format = if bucket == :week, do: "%b %d", else: "%b %d"
+    time_unit =
+      case bucket do
+        :day -> "yearmonthdate"
+        :week -> "yearweek"
+        :month -> "yearmonth"
+      end
 
     Vl.encode_field(chart, :x, "date",
       type: :temporal,
+      time_unit: time_unit,
       title: nil,
-      scale: [nice: "day"],
-      axis: [format: format, tick_count: 6, label_angle: 0]
+      axis: [format: "%b %d", tick_count: 6, label_angle: 0]
     )
   end
+
+  defp bar_mark_opts, do: [width: [band: 0.8]]
 
   attr(:label, :string, required: true)
   attr(:value, :integer, required: true)
