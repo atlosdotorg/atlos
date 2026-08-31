@@ -241,6 +241,61 @@ defmodule Platform.StatisticsTest do
     end
   end
 
+  describe "activity_over_time/1 filters" do
+    test "supports project and user filters" do
+      user = user_fixture()
+      other = user_fixture()
+      project = project_fixture(%{}, owner: user)
+      other_project = project_fixture(%{}, owner: other)
+      media = media_fixture(%{project_id: project.id})
+      other_media = media_fixture(%{project_id: other_project.id})
+
+      comment!(media, user)
+      comment!(other_media, other)
+
+      assert [%{count: 1}] =
+               Statistics.activity_over_time(days: 14, bucket: :day, project_id: project.id)
+
+      assert [%{count: 1}] =
+               Statistics.activity_over_time(days: 14, bucket: :day, user_id: user.id)
+    end
+  end
+
+  describe "user_project_rollups/2" do
+    test "returns per-project counts for one user's memberships" do
+      user = user_fixture()
+      project = project_fixture(%{}, owner: user)
+      other_project = project_fixture(%{}, owner: user)
+      media = media_fixture(%{project_id: project.id})
+      _quiet_media = media_fixture(%{project_id: other_project.id})
+
+      comment!(media, user)
+      comment!(media, user)
+
+      rollups = Statistics.user_project_rollups(user.id, days: 14)
+
+      assert length(rollups) == 2
+      active = Enum.find(rollups, &(&1.project.id == project.id))
+      quiet = Enum.find(rollups, &(&1.project.id == other_project.id))
+
+      assert active.current == 2
+      assert active.lifetime == 2
+      assert active.membership.role == :owner
+      assert quiet.current == 0
+      assert is_nil(quiet.last_active_at)
+    end
+  end
+
+  describe "last_session_at/1" do
+    test "returns the most recent session, or nil without one" do
+      user = user_fixture()
+      assert is_nil(Statistics.last_session_at(user.id))
+
+      _token = Platform.Accounts.generate_user_session_token(user)
+      assert NaiveDateTime.diff(NaiveDateTime.utc_now(), Statistics.last_session_at(user.id)) < 60
+    end
+  end
+
   describe "project_member_rollups/2" do
     test "counts only activity within the given project" do
       owner = user_fixture()

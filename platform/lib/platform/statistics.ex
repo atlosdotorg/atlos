@@ -12,6 +12,10 @@ defmodule Platform.Statistics do
   - `ending`: the end of the activity window (default: now). Windowed queries
     cover `ending - days` up to `ending`, so passing `ending: <days ago>`
     yields the prior period, for period-over-period comparisons.
+  - `project_id`: restrict to activity within one project (supported by
+    `overview_statistics/1` and `activity_over_time/1`).
+  - `user_id`: restrict to one user's activity (supported by
+    `activity_over_time/1`).
   - `include_api`: whether to include updates made via API tokens (i.e.,
     updates with no `user_id`). Defaults to `true` for instance-wide counts.
     Per-user rollups and attention segments always exclude API activity.
@@ -54,6 +58,7 @@ defmodule Platform.Statistics do
     from(u in Update,
       as: :update,
       join: m in assoc(u, :media),
+      as: :media,
       select: %{
         total_updates: count(u.id),
         active_users: count(u.user_id, :distinct),
@@ -63,6 +68,12 @@ defmodule Platform.Statistics do
     )
     |> in_window(opts)
     |> maybe_exclude_api(opts)
+    |> then(fn query ->
+      case Keyword.get(opts, :project_id) do
+        nil -> query
+        project_id -> where(query, [media: m], m.project_id == ^project_id)
+      end
+    end)
     |> Repo.one()
   end
 
@@ -112,6 +123,21 @@ defmodule Platform.Statistics do
     )
     |> in_window(opts)
     |> maybe_exclude_api(opts)
+    |> then(fn query ->
+      case Keyword.get(opts, :project_id) do
+        nil ->
+          query
+
+        project_id ->
+          from(u in query, join: m in assoc(u, :media), where: m.project_id == ^project_id)
+      end
+    end)
+    |> then(fn query ->
+      case Keyword.get(opts, :user_id) do
+        nil -> query
+        user_id -> where(query, [update: u], u.user_id == ^user_id)
+      end
+    end)
     |> Repo.all()
   end
 
@@ -351,6 +377,65 @@ defmodule Platform.Statistics do
       }
     )
     |> Repo.all()
+  end
+
+  @doc """
+  Activity rollups for every project the given user is a member of, counting
+  only their updates within each project. Most recently active first.
+
+  Returns a list of `%{membership: %ProjectMembership{}, project: %Project{},
+  current: integer, prior: integer, lifetime: integer,
+  last_active_at: naive_datetime | nil}`.
+  """
+  def user_project_rollups(user_id, opts \\ []) do
+    window_start = window_start(opts)
+    prior_start = NaiveDateTime.add(window_start, -window_days(opts) * 86_400)
+
+    user_updates =
+      from(u in Update,
+        join: m in assoc(u, :media),
+        where: u.user_id == ^user_id,
+        select: %{id: u.id, project_id: m.project_id, inserted_at: u.inserted_at}
+      )
+
+    from(pm in ProjectMembership,
+      where: pm.user_id == ^user_id,
+      join: p in assoc(pm, :project),
+      left_join: up in subquery(user_updates),
+      on: up.project_id == p.id,
+      group_by: [pm.id, p.id],
+      order_by: [desc_nulls_last: max(up.inserted_at)],
+      select: %{
+        membership: pm,
+        project: p,
+        lifetime: count(up.id),
+        last_active_at: max(up.inserted_at),
+        current: fragment("count(*) filter (where ? >= ?)", up.inserted_at, ^window_start),
+        prior:
+          fragment(
+            "count(*) filter (where ? >= ? and ? < ?)",
+            up.inserted_at,
+            ^prior_start,
+            up.inserted_at,
+            ^window_start
+          )
+      }
+    )
+    |> Repo.all()
+  end
+
+  @doc """
+  When the given user last started a session (i.e., last signed in), or `nil`
+  if they have no recorded session. Together with their last update, this
+  distinguishes someone who is gone from someone who signs in but does not
+  contribute.
+  """
+  def last_session_at(user_id) do
+    from(t in Platform.Accounts.UserToken,
+      where: t.user_id == ^user_id and t.context == "session",
+      select: max(t.inserted_at)
+    )
+    |> Repo.one()
   end
 
   defp window_days(opts), do: Keyword.get(opts, :days, @default_window_days)

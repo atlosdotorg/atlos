@@ -1,29 +1,24 @@
 defmodule PlatformWeb.AdminlandLive.UsageDashboardLive do
   @moduledoc """
-  The Adminland usage dashboard: instance-wide activity statistics with a
-  focus on the people behind them — who is active, who has gone quiet, and
-  who may need support. All data comes from `Platform.Statistics`.
+  The Adminland usage dashboard overview: instance-wide activity statistics
+  with a focus on the people behind them — who is active, who has gone quiet,
+  and who may need support. All data comes from `Platform.Statistics`.
   """
   use PlatformWeb, :live_component
 
-  alias Platform.Accounts
+  import PlatformWeb.AdminlandLive.UsageComponents
+
   alias Platform.Statistics
-  alias VegaLite, as: Vl
-
-  @valid_days [7, 30, 90, 365]
-
-  # Fixed categorical assignment: each kind of activity always renders in the
-  # same color, regardless of which kinds are present in the window.
-  @kind_order ["Edits", "Comments", "Uploads", "New incidents", "Other", "API"]
-  @kind_colors ["#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4", "#008300"]
+  alias PlatformWeb.AdminlandLive.UsageComponents
 
   def update(assigns, socket) do
     days = parse_days(assigns[:params])
     include_api = parse_include_api(assigns[:params])
     opts = [days: days, include_api: include_api]
+    bucket = bucket_for(days)
 
-    activity = Statistics.activity_over_time(opts ++ [bucket: bucket_for(days)])
-    signups = Statistics.new_users_over_time(days: days, bucket: bucket_for(days))
+    activity = Statistics.activity_over_time(opts ++ [bucket: bucket])
+    signups = Statistics.new_users_over_time(days: days, bucket: bucket)
 
     {:ok,
      socket
@@ -33,8 +28,11 @@ defmodule PlatformWeb.AdminlandLive.UsageDashboardLive do
      |> assign(:stats, Statistics.overview_statistics(opts))
      |> assign(:prior_stats, Statistics.overview_statistics(opts ++ [ending: prior_ending(days)]))
      |> assign(:new_users, Statistics.new_user_statistics(days: days))
-     |> assign(:activity_chart, activity_chart(activity))
-     |> assign(:signups_chart, signups_chart(signups))
+     |> assign(:activity_chart, UsageComponents.activity_chart_spec(activity, bucket))
+     |> assign(
+       :signups_chart,
+       UsageComponents.single_series_chart_spec(signups, "New users", bucket)
+     )
      |> assign(:segments, Statistics.attention_segments())
      |> assign(:top_projects, Statistics.project_rollups(opts) |> Enum.take(5))
      |> assign(
@@ -45,18 +43,6 @@ defmodule PlatformWeb.AdminlandLive.UsageDashboardLive do
        |> Enum.take(5)
      )}
   end
-
-  defp parse_days(%{"days" => days}) do
-    case Integer.parse(days) do
-      {value, ""} when value in @valid_days -> value
-      _ -> 30
-    end
-  end
-
-  defp parse_days(_), do: 30
-
-  defp parse_include_api(%{"api" => "0"}), do: false
-  defp parse_include_api(_), do: true
 
   # The prior-period window end, truncated to the hour so that the memoized
   # overview query is not re-run on every render.
@@ -69,140 +55,28 @@ defmodule PlatformWeb.AdminlandLive.UsageDashboardLive do
     }
   end
 
-  defp bucket_for(days) when days <= 30, do: :day
-  defp bucket_for(_days), do: :week
-
-  defp kind(%{api: true}), do: "API"
-  defp kind(%{type: :update_attribute}), do: "Edits"
-  defp kind(%{type: :comment}), do: "Comments"
-  defp kind(%{type: :upload_version}), do: "Uploads"
-  defp kind(%{type: :create}), do: "New incidents"
-  defp kind(_), do: "Other"
-
-  defp activity_chart([]), do: nil
-
-  defp activity_chart(rows) do
-    data =
-      rows
-      |> Enum.group_by(fn row -> {row.date, kind(row)} end)
-      |> Enum.map(fn {{date, kind}, group} ->
-        %{date: date, kind: kind, count: group |> Enum.map(& &1.count) |> Enum.sum()}
-      end)
-      |> Enum.sort_by(& &1.date, NaiveDateTime)
-
-    Vl.new(height: 220, width: "container")
-    |> Vl.data_from_values(
-      date: Enum.map(data, & &1.date),
-      kind: Enum.map(data, & &1.kind),
-      count: Enum.map(data, & &1.count)
-    )
-    |> Vl.mark(:bar)
-    |> Vl.encode_field(:x, "date", type: :temporal, title: nil)
-    |> Vl.encode_field(:y, "count", type: :quantitative, title: "Updates")
-    |> Vl.encode_field(:color, "kind",
-      type: :nominal,
-      title: nil,
-      sort: @kind_order,
-      scale: [domain: @kind_order, range: @kind_colors]
-    )
-    |> Vl.encode(:tooltip, [
-      [field: "date", type: :temporal, title: "Date"],
-      [field: "kind", type: :nominal, title: "Kind"],
-      [field: "count", type: :quantitative, title: "Updates"]
-    ])
-    |> Vl.to_spec()
-    |> Jason.encode!()
-  end
-
-  defp signups_chart([]), do: nil
-
-  defp signups_chart(rows) do
-    Vl.new(height: 220, width: "container")
-    |> Vl.data_from_values(
-      date: Enum.map(rows, & &1.date),
-      count: Enum.map(rows, & &1.count)
-    )
-    |> Vl.mark(:bar, color: "#2a78d6")
-    |> Vl.encode_field(:x, "date", type: :temporal, title: nil)
-    |> Vl.encode_field(:y, "count", type: :quantitative, title: "New users")
-    |> Vl.encode(:tooltip, [
-      [field: "date", type: :temporal, title: "Date"],
-      [field: "count", type: :quantitative, title: "New users"]
-    ])
-    |> Vl.to_spec()
-    |> Jason.encode!()
-  end
-
-  defp usage_path(days, include_api) do
-    "/adminland/usage?days=#{days}&api=#{if include_api, do: "1", else: "0"}"
-  end
-
-  defp range_label(7), do: "7 days"
-  defp range_label(30), do: "30 days"
-  defp range_label(90), do: "90 days"
-  defp range_label(365), do: "1 year"
-
-  defp valid_days, do: @valid_days
-
-  attr(:label, :string, required: true)
-  attr(:value, :integer, required: true)
-  attr(:prior, :integer, required: true)
-
-  defp stat_tile(assigns) do
-    ~H"""
-    <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2 bg-white px-4 py-8 sm:px-6">
-      <dt class="text-sm font-medium leading-6 text-gray-500"><%= @label %></dt>
-      <dd class="w-full flex-none text-3xl font-medium leading-10 tracking-tight text-gray-900">
-        <%= Formatter.format_number(@value) %>
-      </dd>
-      <dd class="text-xs text-gray-500">
-        vs. <%= Formatter.format_number(@prior) %> in the prior period
-        <%= if @value > @prior do %>
-          <span class="text-positive-600 font-medium">&uarr;</span>
-        <% end %>
-        <%= if @value < @prior do %>
-          <span class="text-critical-600 font-medium">&darr;</span>
-        <% end %>
-      </dd>
-    </div>
-    """
-  end
-
-  attr(:rollup, :map, required: true)
-  slot(:detail, required: true)
-
-  defp segment_row(assigns) do
-    ~H"""
-    <li class="flex items-center justify-between gap-4 py-3">
-      <.link navigate={"/profile/" <> @rollup.user.username} class="flex items-center gap-3 min-w-0">
-        <img
-          class="h-8 w-8 rounded-full shrink-0"
-          src={Accounts.get_profile_photo_path(@rollup.user)}
-          alt={"Profile photo for #{@rollup.user.username}"}
-        />
-        <span class="font-medium text-sm text-gray-900 truncate"><%= @rollup.user.username %></span>
-        <%= if :muted in (@rollup.user.restrictions || []) do %>
-          <span class="chip ~warning @high text-xs">Muted</span>
-        <% end %>
-      </.link>
-      <span class="text-xs text-gray-500 text-right shrink-0">
-        <%= render_slot(@detail) %>
-      </span>
-    </li>
-    """
-  end
-
   attr(:title, :string, required: true)
   attr(:subtitle, :string, required: true)
   attr(:rollups, :list, required: true)
   attr(:empty, :string, required: true)
+  attr(:days, :integer, required: true)
+  attr(:include_api, :boolean, required: true)
+  slot(:icon, required: true)
   slot(:detail, required: true)
 
   defp segment_card(assigns) do
     ~H"""
     <.card>
       <:header>
-        <p class="sec-head"><%= @title %></p>
+        <div class="flex items-center gap-2">
+          <span class="flex items-center justify-center h-7 w-7 rounded-md bg-urge-50 text-urge-600">
+            <%= render_slot(@icon) %>
+          </span>
+          <p class="sec-head"><%= @title %></p>
+          <span :if={not Enum.empty?(@rollups)} class="chip ~neutral">
+            <%= length(@rollups) %>
+          </span>
+        </div>
         <p class="sec-subhead"><%= @subtitle %></p>
       </:header>
       <%= if Enum.empty?(@rollups) do %>
@@ -210,9 +84,12 @@ defmodule PlatformWeb.AdminlandLive.UsageDashboardLive do
       <% else %>
         <ul class="divide-y divide-gray-100">
           <%= for rollup <- Enum.take(@rollups, 10) do %>
-            <.segment_row rollup={rollup}>
+            <.person_row
+              user={rollup.user}
+              navigate={usage_path(@days, @include_api, "/user/#{rollup.user.username}")}
+            >
               <:detail><%= render_slot(@detail, rollup) %></:detail>
-            </.segment_row>
+            </.person_row>
           <% end %>
         </ul>
         <%= if length(@rollups) > 10 do %>
@@ -229,36 +106,7 @@ defmodule PlatformWeb.AdminlandLive.UsageDashboardLive do
     ~H"""
     <section class="max-w-3xl mx-auto">
       <div class="flex flex-col gap-16">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div class="flex items-center gap-1" role="group" aria-label="Time range">
-            <%= for days <- valid_days() do %>
-              <.link
-                patch={usage_path(days, @include_api)}
-                class={
-                  if(days == @days,
-                    do:
-                      "rounded transition bg-urge-100 text-urge-600 px-3 py-1.5 font-medium text-sm",
-                    else:
-                      "rounded transition hover:bg-neutral-200 text-neutral-600 px-3 py-1.5 font-medium text-sm"
-                  )
-                }
-              >
-                <%= range_label(days) %>
-              </.link>
-            <% end %>
-          </div>
-          <.link
-            patch={usage_path(@days, not @include_api)}
-            class="text-sm text-neutral-600 hover:text-neutral-700 flex items-center gap-2"
-          >
-            <%= if @include_api do %>
-              <Heroicons.check_circle mini class="h-4 w-4 text-urge-600" />
-            <% else %>
-              <Heroicons.minus_circle mini class="h-4 w-4 opacity-50" />
-            <% end %>
-            Include API activity
-          </.link>
-        </div>
+        <.range_picker days={@days} include_api={@include_api} />
 
         <.card>
           <:header>
@@ -318,7 +166,10 @@ defmodule PlatformWeb.AdminlandLive.UsageDashboardLive do
           subtitle="Joined in the last two months but have hardly contributed. A welcome or a pointer to a project may help."
           rollups={@segments.never_started}
           empty="Everyone who joined recently has gotten going. Nice."
+          days={@days}
+          include_api={@include_api}
         >
+          <:icon><Heroicons.user_plus mini class="h-4 w-4" /></:icon>
           <:detail :let={rollup}>
             Joined <.rel_time time={rollup.user.inserted_at} />
             &middot; <%= rollup.lifetime %> contributions
@@ -330,7 +181,10 @@ defmodule PlatformWeb.AdminlandLive.UsageDashboardLive do
           subtitle="Established contributors with no activity in the last three weeks. May be worth a check-in."
           rollups={@segments.gone_quiet}
           empty="No established contributors have gone quiet."
+          days={@days}
+          include_api={@include_api}
         >
+          <:icon><Heroicons.moon mini class="h-4 w-4" /></:icon>
           <:detail :let={rollup}>
             Last active <.rel_time time={rollup.last_active_at} />
             &middot; <%= rollup.lifetime %> lifetime contributions
@@ -342,7 +196,10 @@ defmodule PlatformWeb.AdminlandLive.UsageDashboardLive do
           subtitle="Contributors whose activity dropped sharply this month compared to last month."
           rollups={@segments.winding_down}
           empty="Nobody's activity has dropped sharply."
+          days={@days}
+          include_api={@include_api}
         >
+          <:icon><Heroicons.arrow_trending_down mini class="h-4 w-4" /></:icon>
           <:detail :let={rollup}>
             <%= rollup.current %> this month, down from <%= rollup.prior %>
           </:detail>
@@ -350,7 +207,12 @@ defmodule PlatformWeb.AdminlandLive.UsageDashboardLive do
 
         <.card>
           <:header>
-            <p class="sec-head">Most active projects</p>
+            <div class="flex items-center gap-2">
+              <span class="flex items-center justify-center h-7 w-7 rounded-md bg-urge-50 text-urge-600">
+                <Heroicons.trophy mini class="h-4 w-4" />
+              </span>
+              <p class="sec-head">Most active projects</p>
+            </div>
             <p class="sec-subhead">
               By contributions over the past <%= range_label(@days) %>. A high top-contributor share can signal that one person is carrying the project.
             </p>
@@ -371,24 +233,31 @@ defmodule PlatformWeb.AdminlandLive.UsageDashboardLive do
                 <tbody class="divide-y divide-gray-100">
                   <%= for rollup <- @top_projects do %>
                     <tr>
-                      <td class="py-2 pr-4">
+                      <td class="py-2.5 pr-4">
                         <.link
-                          navigate={"/projects/" <> rollup.project.id}
-                          class="font-medium text-gray-900 hover:text-urge-600"
+                          navigate={usage_path(@days, @include_api, "/project/#{rollup.project.id}")}
+                          class="font-medium text-gray-900 hover:text-urge-600 transition flex items-center gap-2"
                         >
+                          <span
+                            class="h-2.5 w-2.5 rounded-full shrink-0"
+                            style={"background-color: #{rollup.project.color || "#60a5fa"}"}
+                          >
+                          </span>
                           <%= rollup.project.name %>
                         </.link>
                       </td>
-                      <td class="py-2 pr-4 text-right tabular-nums">
+                      <td class="py-2.5 pr-4 text-right tabular-nums">
                         <%= Formatter.format_number(rollup.total_updates) %>
                       </td>
-                      <td class="py-2 pr-4 text-right tabular-nums">
+                      <td class="py-2.5 pr-4 text-right tabular-nums">
                         <%= Formatter.format_number(rollup.contributor_count) %>
                       </td>
-                      <td class="py-2 text-right tabular-nums">
-                        <%= if is_nil(rollup.top_contributor_share),
-                          do: "—",
-                          else: "#{round(rollup.top_contributor_share * 100)}%" %>
+                      <td class="py-2.5 text-right tabular-nums">
+                        <%= if is_nil(rollup.top_contributor_share) do %>
+                          &mdash;
+                        <% else %>
+                          <.share_meter share={rollup.top_contributor_share} />
+                        <% end %>
                       </td>
                     </tr>
                   <% end %>
@@ -403,7 +272,10 @@ defmodule PlatformWeb.AdminlandLive.UsageDashboardLive do
           subtitle={"By contributions over the past #{range_label(@days)}."}
           rollups={@top_users}
           empty="No contributor activity in this window."
+          days={@days}
+          include_api={@include_api}
         >
+          <:icon><Heroicons.fire mini class="h-4 w-4" /></:icon>
           <:detail :let={rollup}>
             <%= rollup.current %> contributions &middot; last active
             <.rel_time time={rollup.last_active_at} />

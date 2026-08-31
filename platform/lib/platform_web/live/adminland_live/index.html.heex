@@ -26,7 +26,12 @@
           Activity
         </.link>
         <.link
-          class={if(@live_action == :usage, do: active_classes, else: inactive_classes)}
+          class={
+            if(@live_action in [:usage, :usage_project, :usage_user],
+              do: active_classes,
+              else: inactive_classes
+            )
+          }
           patch="/adminland/usage"
         >
           <Heroicons.chart_bar mini class="h-4 w-4 opacity-75" /> Usage
@@ -122,6 +127,22 @@
           parent_socket={@full_socket}
           params={@params}
           id="usage-dashboard"
+        />
+      <% :usage_project -> %>
+        <.live_component
+          module={PlatformWeb.AdminlandLive.UsageProjectLive}
+          current_user={@current_user}
+          parent_socket={@full_socket}
+          params={@params}
+          id={"usage-project-" <> @params["id"]}
+        />
+      <% :usage_user -> %>
+        <.live_component
+          module={PlatformWeb.AdminlandLive.UsageUserLive}
+          current_user={@current_user}
+          parent_socket={@full_socket}
+          params={@params}
+          id={"usage-user-" <> @params["username"]}
         />
       <% :announcements -> %>
         <.live_component
