@@ -37,8 +37,12 @@ defmodule PlatformWeb.AdminlandLive.UsageComponents do
   def bucket_for(days) when days <= 30, do: :day
   def bucket_for(_days), do: :week
 
-  def usage_path(days, include_api, rest \\ "") do
-    "/adminland/usage#{rest}?days=#{days}&api=#{if include_api, do: "1", else: "0"}"
+  def usage_path(days, include_api, rest \\ "", extra \\ %{}) do
+    query =
+      %{"days" => Integer.to_string(days), "api" => if(include_api, do: "1", else: "0")}
+      |> Map.merge(Map.new(extra, fn {k, v} -> {to_string(k), to_string(v)} end))
+
+    "/adminland/usage#{rest}?" <> URI.encode_query(query)
   end
 
   def palette, do: @kind_colors
@@ -287,6 +291,7 @@ defmodule PlatformWeb.AdminlandLive.UsageComponents do
   attr(:days, :integer, required: true)
   attr(:include_api, :boolean, required: true)
   attr(:rest, :string, default: "")
+  attr(:extra_params, :map, default: %{})
   slot(:extra)
 
   def range_picker(assigns) do
@@ -299,7 +304,7 @@ defmodule PlatformWeb.AdminlandLive.UsageComponents do
       >
         <%= for days <- valid_days() do %>
           <.link
-            patch={usage_path(days, @include_api, @rest)}
+            patch={usage_path(days, @include_api, @rest, @extra_params)}
             class={
               if(days == @days,
                 do:
@@ -315,7 +320,7 @@ defmodule PlatformWeb.AdminlandLive.UsageComponents do
       </div>
       <div class="flex items-center gap-5 flex-wrap">
         <.link
-          patch={usage_path(@days, not @include_api, @rest)}
+          patch={usage_path(@days, not @include_api, @rest, @extra_params)}
           class="text-sm text-neutral-600 hover:text-neutral-700 flex items-center gap-2"
         >
           <%= if @include_api do %>

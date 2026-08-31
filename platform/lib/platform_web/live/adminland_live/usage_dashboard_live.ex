@@ -33,6 +33,13 @@ defmodule PlatformWeb.AdminlandLive.UsageDashboardLive do
        :signups_chart,
        UsageComponents.single_series_chart_spec(signups, "New users", bucket)
      )
+     |> assign(
+       :explore_params,
+       Map.take(
+         assigns[:params] || %{},
+         ["metric", "split", "f_project", "f_user", "f_kind", "f_source"]
+       )
+     )
      |> assign(:segments, Statistics.attention_segments())
      |> assign(:top_projects, Statistics.project_rollups(opts) |> Enum.take(5))
      |> assign(
@@ -106,16 +113,7 @@ defmodule PlatformWeb.AdminlandLive.UsageDashboardLive do
     ~H"""
     <section class="max-w-3xl mx-auto">
       <div class="flex flex-col gap-16">
-        <.range_picker days={@days} include_api={@include_api}>
-          <:extra>
-            <.link
-              patch="/adminland/usage/explore"
-              class="text-sm font-medium text-urge-600 hover:text-urge-700 flex items-center gap-1"
-            >
-              <Heroicons.chart_pie mini class="h-4 w-4" /> Explore
-            </.link>
-          </:extra>
-        </.range_picker>
+        <.range_picker days={@days} include_api={@include_api} extra_params={@explore_params} />
 
         <.card>
           <:header>
@@ -169,6 +167,13 @@ defmodule PlatformWeb.AdminlandLive.UsageDashboardLive do
             <div id="usage-signups-chart" class="w-full" data-vega={@signups_chart}></div>
           <% end %>
         </.card>
+
+        <.live_component
+          module={PlatformWeb.AdminlandLive.UsageExploreLive}
+          current_user={@current_user}
+          params={@params}
+          id="usage-explore"
+        />
 
         <.segment_card
           title="Never got started"

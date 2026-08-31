@@ -83,7 +83,7 @@ defmodule PlatformWeb.AdminlandUsageTest do
 
     conn = log_in_user(conn, admin)
 
-    {:ok, view, html} = live(conn, "/adminland/usage/explore")
+    {:ok, view, html} = live(conn, "/adminland/usage")
     assert html =~ "Breakdown"
     assert html =~ "Comments"
 
@@ -92,12 +92,12 @@ defmodule PlatformWeb.AdminlandUsageTest do
     |> element("form[phx-change=change]")
     |> render_change(%{"metric" => "contributions", "split" => "project", "days" => "30"})
 
-    assert_patch(view, "/adminland/usage/explore?split=project")
+    assert_patch(view, "/adminland/usage?split=project")
     assert render(view) =~ "Explore Project"
 
     # A filtered, split view straight from the URL
     {:ok, _view, html} =
-      live(conn, "/adminland/usage/explore?split=person&f_project=#{project.id}")
+      live(conn, "/adminland/usage?split=person&f_project=#{project.id}")
 
     assert html =~ admin.username
     assert html =~ "project: Explore Project"
@@ -110,7 +110,7 @@ defmodule PlatformWeb.AdminlandUsageTest do
       conn
       |> log_in_user(admin)
       |> live(
-        "/adminland/usage/explore?metric=nope&split=nope&days=nope&f_project=nope&f_kind=nope"
+        "/adminland/usage?metric=nope&split=nope&days=nope&f_project=nope&f_kind=nope"
       )
 
     assert html =~ "Breakdown" or html =~ "Nothing matches this query"

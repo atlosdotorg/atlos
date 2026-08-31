@@ -89,8 +89,7 @@ defmodule PlatformWeb.AdminlandLive.UsageExploreLive do
     next = %{
       state
       | metric: parse_metric(params["metric"]),
-        split: parse_split(params["split"]),
-        days: UsageComponents.parse_days(params)
+        split: parse_split(params["split"])
     }
 
     {:noreply, push_patch(socket, to: explore_path(next))}
@@ -105,6 +104,7 @@ defmodule PlatformWeb.AdminlandLive.UsageExploreLive do
       metric: parse_metric(params["metric"]),
       split: parse_split(params["split"]),
       days: UsageComponents.parse_days(params),
+      include_api: UsageComponents.parse_include_api(params),
       filters: parse_filters(params)
     }
     |> then(fn state ->
@@ -156,12 +156,15 @@ defmodule PlatformWeb.AdminlandLive.UsageExploreLive do
     end)
   end
 
+  # Explore lives on the usage overview page, so its links carry the page's
+  # shared window params (days, api) alongside the explore state.
   defp explore_path(state) do
     query =
       [
+        {"days", state.days != 30 && Integer.to_string(state.days)},
+        {"api", state.include_api == false && "0"},
         {"metric", state.metric != :contributions && Atom.to_string(state.metric)},
         {"split", state.split != :kind && Atom.to_string(state.split)},
-        {"days", state.days != 30 && Integer.to_string(state.days)},
         {"f_project", state.filters[:project]},
         {"f_user", state.filters[:user]},
         {"f_kind", state.filters[:kind] && Atom.to_string(state.filters[:kind])},
@@ -169,7 +172,7 @@ defmodule PlatformWeb.AdminlandLive.UsageExploreLive do
       ]
       |> Enum.filter(fn {_k, v} -> v not in [nil, false] end)
 
-    "/adminland/usage/explore" <>
+    "/adminland/usage" <>
       if(Enum.empty?(query), do: "", else: "?" <> URI.encode_query(query))
   end
 
@@ -334,218 +337,205 @@ defmodule PlatformWeb.AdminlandLive.UsageExploreLive do
 
   def render(assigns) do
     ~H"""
-    <section class="max-w-3xl mx-auto">
-      <div class="flex flex-col gap-8">
-        <div class="flex flex-col gap-4">
-          <.link
-            patch={usage_path(@state.days, true)}
-            class="text-sm text-neutral-600 hover:text-urge-600 transition flex items-center gap-1 self-start"
-          >
-            <Heroicons.arrow_left mini class="h-4 w-4" /> Usage overview
-          </.link>
-          <div class="flex items-center gap-2 flex-wrap text-sm text-neutral-500">
-            <span class="uppercase text-xs font-medium tracking-wide">Quick views</span>
-            <.link
-              patch={
-                preset(@state, %{metric: :contributions, split: :project, filters: %{kind: :comment}})
-              }
-              class="chip ~neutral hover:text-urge-600 transition"
-            >
-              Comments by project
-            </.link>
-            <.link
-              patch={preset(@state, %{metric: :contributions, split: :source, filters: %{}})}
-              class="chip ~neutral hover:text-urge-600 transition"
-            >
-              API vs. human
-            </.link>
-            <.link
-              patch={preset(@state, %{metric: :active, split: :project, filters: %{}})}
-              class="chip ~neutral hover:text-urge-600 transition"
-            >
-              Active people by project
-            </.link>
-            <.link
-              patch={preset(@state, %{metric: :signups, split: :none, filters: %{}})}
-              class="chip ~neutral hover:text-urge-600 transition"
-            >
-              Sign-ups
-            </.link>
-          </div>
-        </div>
-
-        <.card>
-          <form phx-change="change" phx-target={@myself} class="ts-ignore">
-            <div class="flex flex-wrap items-center gap-2 text-sm">
-              <span class="text-neutral-500">Show</span>
-              <select
-                name="metric"
-                class="rounded-full border-gray-300 bg-neutral-100 text-sm font-medium py-1 pl-3 pr-8 focus:ring-urge-500 focus:border-urge-500"
-              >
-                <%= for {value, label} <- @metrics do %>
-                  <option value={value} selected={value == Atom.to_string(@state.metric)}>
-                    <%= label %>
-                  </option>
-                <% end %>
-              </select>
-              <span class="text-neutral-500">by</span>
-              <select
-                name="split"
-                disabled={@state.metric == :signups}
-                class="rounded-full border-gray-300 bg-neutral-100 text-sm font-medium py-1 pl-3 pr-8 focus:ring-urge-500 focus:border-urge-500 disabled:opacity-50"
-              >
-                <%= for {value, label} <- @splits do %>
-                  <option value={value} selected={value == Atom.to_string(@state.split)}>
-                    <%= label %>
-                  </option>
-                <% end %>
-              </select>
-              <span class="text-neutral-500">over the last</span>
-              <select
-                name="days"
-                class="rounded-full border-gray-300 bg-neutral-100 text-sm font-medium py-1 pl-3 pr-8 focus:ring-urge-500 focus:border-urge-500"
-              >
-                <%= for days <- valid_days() do %>
-                  <option value={days} selected={days == @state.days}>
-                    <%= range_label(days) %>
-                  </option>
-                <% end %>
-              </select>
+    <div>
+      <.card>
+        <:header>
+          <div class="flex items-center justify-between gap-4 flex-wrap">
+            <div>
+              <p class="sec-head">Explore</p>
+              <p class="sec-subhead">
+                Slice usage any way you like. Every view is a shareable link.
+              </p>
             </div>
-          </form>
-          <div class="flex flex-wrap items-center gap-2 mt-3">
-            <%= for {label, remove_path} <- @filter_chips do %>
-              <span class="chip ~urge flex items-center gap-1">
-                <%= label %>
-                <.link
-                  patch={remove_path}
-                  aria-label={"Remove filter " <> label}
-                  class="hover:opacity-70"
-                >
-                  &times;
-                </.link>
-              </span>
-            <% end %>
-            <span :if={Enum.empty?(@filter_chips)} class="text-xs text-neutral-400">
-              No filters — click a series or breakdown row to drill in.
-            </span>
+            <div class="flex items-center gap-1.5 flex-wrap text-sm">
+              <.link
+                patch={
+                  preset(@state, %{
+                    metric: :contributions,
+                    split: :project,
+                    filters: %{kind: :comment}
+                  })
+                }
+                class="chip ~neutral hover:text-urge-600 transition"
+              >
+                Comments by project
+              </.link>
+              <.link
+                patch={preset(@state, %{metric: :contributions, split: :source, filters: %{}})}
+                class="chip ~neutral hover:text-urge-600 transition"
+              >
+                API vs. human
+              </.link>
+              <.link
+                patch={preset(@state, %{metric: :active, split: :project, filters: %{}})}
+                class="chip ~neutral hover:text-urge-600 transition"
+              >
+                Active people by project
+              </.link>
+              <.link
+                patch={preset(@state, %{metric: :signups, split: :none, filters: %{}})}
+                class="chip ~neutral hover:text-urge-600 transition"
+              >
+                Sign-ups
+              </.link>
+            </div>
           </div>
-        </.card>
+        </:header>
 
-        <.card>
-          <:header>
-            <div class="flex items-baseline gap-3 flex-wrap">
-              <p class="sec-head">Result</p>
+        <form phx-change="change" phx-target={@myself} class="ts-ignore">
+          <div class="flex flex-wrap items-center gap-2 text-sm">
+            <span class="text-neutral-500">Show</span>
+            <select
+              name="metric"
+              class="rounded-full border-gray-300 bg-neutral-100 text-sm font-medium py-1 pl-3 pr-8 focus:ring-urge-500 focus:border-urge-500"
+            >
+              <%= for {value, label} <- @metrics do %>
+                <option value={value} selected={value == Atom.to_string(@state.metric)}>
+                  <%= label %>
+                </option>
+              <% end %>
+            </select>
+            <span class="text-neutral-500">by</span>
+            <select
+              name="split"
+              disabled={@state.metric == :signups}
+              class="rounded-full border-gray-300 bg-neutral-100 text-sm font-medium py-1 pl-3 pr-8 focus:ring-urge-500 focus:border-urge-500 disabled:opacity-50"
+            >
+              <%= for {value, label} <- @splits do %>
+                <option value={value} selected={value == Atom.to_string(@state.split)}>
+                  <%= label %>
+                </option>
+              <% end %>
+            </select>
+            <span class="text-neutral-500">over the past <%= range_label(@state.days) %></span>
+            <span class="flex items-baseline gap-2 ml-auto">
               <span class="text-2xl font-medium tabular-nums text-gray-900">
                 <%= Formatter.format_number(@total) %>
               </span>
               <.delta_chip value={@total} prior={@prior_total} />
-              <span class="text-xs text-neutral-400">vs. prior <%= range_label(@state.days) %></span>
-            </div>
-          </:header>
-          <div
-            :if={length(@legend_rows) > 1 or @legend_other}
-            class="flex flex-wrap items-center gap-1.5 mb-3"
-          >
-            <%= for row <- @legend_rows do %>
-              <%= if is_nil(row.drill) do %>
-                <span class="inline-flex items-center gap-1.5 rounded-full border border-gray-200 px-2.5 py-0.5 text-xs font-medium text-gray-700">
-                  <span class="h-2 w-2 rounded-full shrink-0" style={"background-color: #{row.color}"}>
-                  </span>
-                  <%= row.label %>
-                </span>
-              <% else %>
-                <.link
-                  patch={explore_path(row.drill)}
-                  title={"Filter to #{row.label} and split one level deeper"}
-                  class="inline-flex items-center gap-1.5 rounded-full border border-gray-200 px-2.5 py-0.5 text-xs font-medium text-gray-700 hover:border-urge-500 hover:text-urge-600 transition"
-                >
-                  <span class="h-2 w-2 rounded-full shrink-0" style={"background-color: #{row.color}"}>
-                  </span>
-                  <%= row.label %>
-                </.link>
-              <% end %>
-            <% end %>
-            <span
-              :if={@legend_other}
-              class="inline-flex items-center gap-1.5 rounded-full border border-gray-200 px-2.5 py-0.5 text-xs font-medium text-gray-500"
-            >
-              <span class="h-2 w-2 rounded-full shrink-0" style="background-color: #94a3b8"></span>
-              Other
-            </span>
-            <span :if={@state.split != :none} class="text-xs text-neutral-400 ml-1">
-              Click a series to drill in.
             </span>
           </div>
-          <%= if is_nil(@chart) do %>
-            <p class="text-sm text-gray-500">Nothing matches this query in this window.</p>
-          <% else %>
-            <div id="usage-explore-chart" class="w-full" data-vega={@chart}></div>
+        </form>
+        <div class="flex flex-wrap items-center gap-2 mt-3 mb-4">
+          <%= for {label, remove_path} <- @filter_chips do %>
+            <span class="chip ~urge flex items-center gap-1">
+              <%= label %>
+              <.link
+                patch={remove_path}
+                aria-label={"Remove filter " <> label}
+                class="hover:opacity-70"
+              >
+                &times;
+              </.link>
+            </span>
           <% end %>
-          <div :if={not Enum.empty?(@table_rows)} class="mt-6 border-t border-gray-100 pt-4">
-            <p class="text-xs text-gray-500 uppercase tracking-wide font-medium mb-1">Breakdown</p>
-            <div class="overflow-x-auto">
-              <table class="min-w-full divide-y divide-gray-200 text-sm">
-                <thead>
-                  <tr class="text-left text-xs text-gray-500 uppercase tracking-wide">
-                    <th class="py-2 pr-4 font-medium">Series</th>
-                    <th class="py-2 pr-4 font-medium text-right">Count</th>
-                    <th class="py-2 pr-4 font-medium text-right">Share</th>
-                    <th class="py-2 font-medium text-right">vs. prior</th>
-                  </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-100">
-                  <%= for row <- Enum.take(@table_rows, 15) do %>
-                    <tr>
-                      <td class="py-2.5 pr-4">
-                        <%= if is_nil(row.drill) do %>
-                          <span class="flex items-center gap-2 font-medium text-gray-900">
-                            <span
-                              class="h-2.5 w-2.5 rounded-full shrink-0"
-                              style={"background-color: #{row.color}"}
-                            >
-                            </span>
-                            <%= row.label %>
-                          </span>
-                        <% else %>
-                          <.link
-                            patch={explore_path(row.drill)}
-                            class="flex items-center gap-2 font-medium text-gray-900 hover:text-urge-600 transition"
+          <span :if={Enum.empty?(@filter_chips)} class="text-xs text-neutral-400">
+            No filters — click a series or breakdown row to drill in.
+          </span>
+        </div>
+
+        <div
+          :if={length(@legend_rows) > 1 or @legend_other}
+          class="flex flex-wrap items-center gap-1.5 mb-3"
+        >
+          <%= for row <- @legend_rows do %>
+            <%= if is_nil(row.drill) do %>
+              <span class="inline-flex items-center gap-1.5 rounded-full border border-gray-200 px-2.5 py-0.5 text-xs font-medium text-gray-700">
+                <span class="h-2 w-2 rounded-full shrink-0" style={"background-color: #{row.color}"}>
+                </span>
+                <%= row.label %>
+              </span>
+            <% else %>
+              <.link
+                patch={explore_path(row.drill)}
+                title={"Filter to #{row.label} and split one level deeper"}
+                class="inline-flex items-center gap-1.5 rounded-full border border-gray-200 px-2.5 py-0.5 text-xs font-medium text-gray-700 hover:border-urge-500 hover:text-urge-600 transition"
+              >
+                <span class="h-2 w-2 rounded-full shrink-0" style={"background-color: #{row.color}"}>
+                </span>
+                <%= row.label %>
+              </.link>
+            <% end %>
+          <% end %>
+          <span
+            :if={@legend_other}
+            class="inline-flex items-center gap-1.5 rounded-full border border-gray-200 px-2.5 py-0.5 text-xs font-medium text-gray-500"
+          >
+            <span class="h-2 w-2 rounded-full shrink-0" style="background-color: #94a3b8"></span>
+            Other
+          </span>
+          <span :if={@state.split != :none} class="text-xs text-neutral-400 ml-1">
+            Click a series to drill in.
+          </span>
+        </div>
+        <%= if is_nil(@chart) do %>
+          <p class="text-sm text-gray-500">Nothing matches this query in this window.</p>
+        <% else %>
+          <div id="usage-explore-chart" class="w-full" data-vega={@chart}></div>
+        <% end %>
+        <div :if={not Enum.empty?(@table_rows)} class="mt-6 border-t border-gray-100 pt-4">
+          <p class="text-xs text-gray-500 uppercase tracking-wide font-medium mb-1">Breakdown</p>
+          <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200 text-sm">
+              <thead>
+                <tr class="text-left text-xs text-gray-500 uppercase tracking-wide">
+                  <th class="py-2 pr-4 font-medium">Series</th>
+                  <th class="py-2 pr-4 font-medium text-right">Count</th>
+                  <th class="py-2 pr-4 font-medium text-right">Share</th>
+                  <th class="py-2 font-medium text-right">vs. prior</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-100">
+                <%= for row <- Enum.take(@table_rows, 15) do %>
+                  <tr>
+                    <td class="py-2.5 pr-4">
+                      <%= if is_nil(row.drill) do %>
+                        <span class="flex items-center gap-2 font-medium text-gray-900">
+                          <span
+                            class="h-2.5 w-2.5 rounded-full shrink-0"
+                            style={"background-color: #{row.color}"}
                           >
-                            <span
-                              class="h-2.5 w-2.5 rounded-full shrink-0"
-                              style={"background-color: #{row.color}"}
-                            >
-                            </span>
-                            <%= row.label %>
-                          </.link>
-                        <% end %>
-                      </td>
-                      <td class="py-2.5 pr-4 text-right tabular-nums">
-                        <%= Formatter.format_number(row.current) %>
-                      </td>
-                      <td class="py-2.5 pr-4 text-right tabular-nums">
-                        <%= if @total > 0 do %>
-                          <.share_meter share={row.current / @total} />
-                        <% else %>
-                          &mdash;
-                        <% end %>
-                      </td>
-                      <td class="py-2.5 text-right">
-                        <.delta_chip value={row.current} prior={row.prior} />
-                      </td>
-                    </tr>
-                  <% end %>
-                </tbody>
-              </table>
-              <p :if={length(@table_rows) > 15} class="text-xs text-gray-500 mt-2">
-                And <%= length(@table_rows) - 15 %> more.
-              </p>
-            </div>
+                          </span>
+                          <%= row.label %>
+                        </span>
+                      <% else %>
+                        <.link
+                          patch={explore_path(row.drill)}
+                          class="flex items-center gap-2 font-medium text-gray-900 hover:text-urge-600 transition"
+                        >
+                          <span
+                            class="h-2.5 w-2.5 rounded-full shrink-0"
+                            style={"background-color: #{row.color}"}
+                          >
+                          </span>
+                          <%= row.label %>
+                        </.link>
+                      <% end %>
+                    </td>
+                    <td class="py-2.5 pr-4 text-right tabular-nums">
+                      <%= Formatter.format_number(row.current) %>
+                    </td>
+                    <td class="py-2.5 pr-4 text-right tabular-nums">
+                      <%= if @total > 0 do %>
+                        <.share_meter share={row.current / @total} />
+                      <% else %>
+                        &mdash;
+                      <% end %>
+                    </td>
+                    <td class="py-2.5 text-right">
+                      <.delta_chip value={row.current} prior={row.prior} />
+                    </td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+            <p :if={length(@table_rows) > 15} class="text-xs text-gray-500 mt-2">
+              And <%= length(@table_rows) - 15 %> more.
+            </p>
           </div>
-        </.card>
-      </div>
-    </section>
+        </div>
+      </.card>
+    </div>
     """
   end
 end
