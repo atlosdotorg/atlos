@@ -76,6 +76,8 @@ defmodule PlatformWeb.AdminlandLive.UsageExploreLive do
        UsageComponents.explore_chart_spec(chart_rows, bucket_for(state.days))
      )
      |> assign(:table_rows, table_rows)
+     |> assign(:legend_rows, Enum.take(table_rows, 7))
+     |> assign(:legend_other, length(table_rows) > 7)
      |> assign(:total, total)
      |> assign(:prior_total, prior_total)
      |> assign(:filter_chips, filter_chips(state))}
@@ -425,7 +427,7 @@ defmodule PlatformWeb.AdminlandLive.UsageExploreLive do
               </span>
             <% end %>
             <span :if={Enum.empty?(@filter_chips)} class="text-xs text-neutral-400">
-              No filters — click a breakdown row to drill in.
+              No filters — click a series or breakdown row to drill in.
             </span>
           </div>
         </.card>
@@ -441,77 +443,105 @@ defmodule PlatformWeb.AdminlandLive.UsageExploreLive do
               <span class="text-xs text-neutral-400">vs. prior <%= range_label(@state.days) %></span>
             </div>
           </:header>
+          <div
+            :if={length(@legend_rows) > 1 or @legend_other}
+            class="flex flex-wrap items-center gap-1.5 mb-3"
+          >
+            <%= for row <- @legend_rows do %>
+              <%= if is_nil(row.drill) do %>
+                <span class="inline-flex items-center gap-1.5 rounded-full border border-gray-200 px-2.5 py-0.5 text-xs font-medium text-gray-700">
+                  <span class="h-2 w-2 rounded-full shrink-0" style={"background-color: #{row.color}"}>
+                  </span>
+                  <%= row.label %>
+                </span>
+              <% else %>
+                <.link
+                  patch={explore_path(row.drill)}
+                  title={"Filter to #{row.label} and split one level deeper"}
+                  class="inline-flex items-center gap-1.5 rounded-full border border-gray-200 px-2.5 py-0.5 text-xs font-medium text-gray-700 hover:border-urge-500 hover:text-urge-600 transition"
+                >
+                  <span class="h-2 w-2 rounded-full shrink-0" style={"background-color: #{row.color}"}>
+                  </span>
+                  <%= row.label %>
+                </.link>
+              <% end %>
+            <% end %>
+            <span
+              :if={@legend_other}
+              class="inline-flex items-center gap-1.5 rounded-full border border-gray-200 px-2.5 py-0.5 text-xs font-medium text-gray-500"
+            >
+              <span class="h-2 w-2 rounded-full shrink-0" style="background-color: #94a3b8"></span>
+              Other
+            </span>
+            <span :if={@state.split != :none} class="text-xs text-neutral-400 ml-1">
+              Click a series to drill in.
+            </span>
+          </div>
           <%= if is_nil(@chart) do %>
             <p class="text-sm text-gray-500">Nothing matches this query in this window.</p>
           <% else %>
             <div id="usage-explore-chart" class="w-full" data-vega={@chart}></div>
           <% end %>
-        </.card>
-
-        <.card :if={not Enum.empty?(@table_rows)}>
-          <:header>
-            <p class="sec-head">Breakdown</p>
-            <p :if={@state.split != :none} class="sec-subhead">
-              Click a row to filter to it and split one level deeper.
-            </p>
-          </:header>
-          <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200 text-sm">
-              <thead>
-                <tr class="text-left text-xs text-gray-500 uppercase tracking-wide">
-                  <th class="py-2 pr-4 font-medium">Series</th>
-                  <th class="py-2 pr-4 font-medium text-right">Count</th>
-                  <th class="py-2 pr-4 font-medium text-right">Share</th>
-                  <th class="py-2 font-medium text-right">vs. prior</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-gray-100">
-                <%= for row <- Enum.take(@table_rows, 15) do %>
-                  <tr>
-                    <td class="py-2.5 pr-4">
-                      <%= if is_nil(row.drill) do %>
-                        <span class="flex items-center gap-2 font-medium text-gray-900">
-                          <span
-                            class="h-2.5 w-2.5 rounded-full shrink-0"
-                            style={"background-color: #{row.color}"}
-                          >
-                          </span>
-                          <%= row.label %>
-                        </span>
-                      <% else %>
-                        <.link
-                          patch={explore_path(row.drill)}
-                          class="flex items-center gap-2 font-medium text-gray-900 hover:text-urge-600 transition"
-                        >
-                          <span
-                            class="h-2.5 w-2.5 rounded-full shrink-0"
-                            style={"background-color: #{row.color}"}
-                          >
-                          </span>
-                          <%= row.label %>
-                        </.link>
-                      <% end %>
-                    </td>
-                    <td class="py-2.5 pr-4 text-right tabular-nums">
-                      <%= Formatter.format_number(row.current) %>
-                    </td>
-                    <td class="py-2.5 pr-4 text-right tabular-nums">
-                      <%= if @total > 0 do %>
-                        <.share_meter share={row.current / @total} />
-                      <% else %>
-                        &mdash;
-                      <% end %>
-                    </td>
-                    <td class="py-2.5 text-right">
-                      <.delta_chip value={row.current} prior={row.prior} />
-                    </td>
+          <div :if={not Enum.empty?(@table_rows)} class="mt-6 border-t border-gray-100 pt-4">
+            <p class="text-xs text-gray-500 uppercase tracking-wide font-medium mb-1">Breakdown</p>
+            <div class="overflow-x-auto">
+              <table class="min-w-full divide-y divide-gray-200 text-sm">
+                <thead>
+                  <tr class="text-left text-xs text-gray-500 uppercase tracking-wide">
+                    <th class="py-2 pr-4 font-medium">Series</th>
+                    <th class="py-2 pr-4 font-medium text-right">Count</th>
+                    <th class="py-2 pr-4 font-medium text-right">Share</th>
+                    <th class="py-2 font-medium text-right">vs. prior</th>
                   </tr>
-                <% end %>
-              </tbody>
-            </table>
-            <p :if={length(@table_rows) > 15} class="text-xs text-gray-500 mt-2">
-              And <%= length(@table_rows) - 15 %> more.
-            </p>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                  <%= for row <- Enum.take(@table_rows, 15) do %>
+                    <tr>
+                      <td class="py-2.5 pr-4">
+                        <%= if is_nil(row.drill) do %>
+                          <span class="flex items-center gap-2 font-medium text-gray-900">
+                            <span
+                              class="h-2.5 w-2.5 rounded-full shrink-0"
+                              style={"background-color: #{row.color}"}
+                            >
+                            </span>
+                            <%= row.label %>
+                          </span>
+                        <% else %>
+                          <.link
+                            patch={explore_path(row.drill)}
+                            class="flex items-center gap-2 font-medium text-gray-900 hover:text-urge-600 transition"
+                          >
+                            <span
+                              class="h-2.5 w-2.5 rounded-full shrink-0"
+                              style={"background-color: #{row.color}"}
+                            >
+                            </span>
+                            <%= row.label %>
+                          </.link>
+                        <% end %>
+                      </td>
+                      <td class="py-2.5 pr-4 text-right tabular-nums">
+                        <%= Formatter.format_number(row.current) %>
+                      </td>
+                      <td class="py-2.5 pr-4 text-right tabular-nums">
+                        <%= if @total > 0 do %>
+                          <.share_meter share={row.current / @total} />
+                        <% else %>
+                          &mdash;
+                        <% end %>
+                      </td>
+                      <td class="py-2.5 text-right">
+                        <.delta_chip value={row.current} prior={row.prior} />
+                      </td>
+                    </tr>
+                  <% end %>
+                </tbody>
+              </table>
+              <p :if={length(@table_rows) > 15} class="text-xs text-gray-500 mt-2">
+                And <%= length(@table_rows) - 15 %> more.
+              </p>
+            </div>
           </div>
         </.card>
       </div>

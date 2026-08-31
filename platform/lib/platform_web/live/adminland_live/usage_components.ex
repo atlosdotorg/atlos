@@ -129,7 +129,6 @@ defmodule PlatformWeb.AdminlandLive.UsageComponents do
 
   def explore_chart_spec(rows, bucket) do
     labels = rows |> Enum.map(&{&1.label, &1.color}) |> Enum.uniq() |> Enum.sort()
-    single_series = length(labels) < 2
 
     chart =
       base_chart()
@@ -144,7 +143,9 @@ defmodule PlatformWeb.AdminlandLive.UsageComponents do
       |> Vl.encode_field(:color, "label",
         type: :nominal,
         title: nil,
-        legend: if(single_series, do: nil, else: []),
+        # The page renders its own clickable legend chips, so the drill
+        # affordance sits right on the chart instead of Vega's static legend.
+        legend: nil,
         scale: [
           domain: Enum.map(labels, &elem(&1, 0)),
           range: Enum.map(labels, &elem(&1, 1))
