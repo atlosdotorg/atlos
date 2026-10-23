@@ -11,6 +11,9 @@ defmodule PlatformWeb.MCP.Tools.UpdateIncidentAttribute do
   def name, do: "update_incident_attribute"
 
   @impl true
+  def title, do: "Update incident attribute"
+
+  @impl true
   def description do
     "Set the value of one attribute on an incident. `attribute` is an attribute id from " <>
       "`get_project`: a core attribute's name (e.g. \"status\", \"description\", \"tags\") " <>

@@ -17,6 +17,9 @@ defmodule PlatformWeb.MCP.Tools.GetIncidentUpdates do
   def name, do: "get_incident_updates"
 
   @impl true
+  def title, do: "Get incident activity"
+
+  @impl true
   def description do
     "Get the activity feed — comments, attribute changes, and other updates — for one " <>
       "incident (pass `slug`) or for the whole project (omit `slug`), most recent first. " <>

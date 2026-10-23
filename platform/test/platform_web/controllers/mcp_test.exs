@@ -163,8 +163,16 @@ defmodule PlatformWeb.MCPTest do
 
     for tool <- response["result"]["tools"] do
       assert tool["annotations"]["readOnlyHint"] == true
+      assert is_binary(tool["title"]) and tool["title"] == tool["annotations"]["title"]
       assert is_map(tool["inputSchema"])
     end
+
+    # Write tools don't
+    response = json_response(rpc(edit_token, "tools/list", %{}), 200)
+    add_comment = Enum.find(response["result"]["tools"], &(&1["name"] == "add_comment"))
+    assert add_comment["title"] == "Add comment"
+    assert add_comment["annotations"]["readOnlyHint"] == false
+    assert add_comment["annotations"]["destructiveHint"] == false
 
     # Calling a tool the token can't see is a protocol error
     response =

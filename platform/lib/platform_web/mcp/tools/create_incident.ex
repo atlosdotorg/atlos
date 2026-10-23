@@ -12,6 +12,9 @@ defmodule PlatformWeb.MCP.Tools.CreateIncident do
   def name, do: "create_incident"
 
   @impl true
+  def title, do: "Create incident"
+
+  @impl true
   def description do
     "Create a new incident in a project. `description` and `sensitive` are required " <>
       "core attributes. Additional attributes — core or project-defined — can be set via " <>

@@ -8,6 +8,9 @@ defmodule PlatformWeb.MCP.Tools.GetIncident do
   def name, do: "get_incident"
 
   @impl true
+  def title, do: "Get incident"
+
+  @impl true
   def description do
     "Get the full detail of one incident by its slug (e.g. \"CIV-1234\" or the bare slug), " <>
       "including all attribute values, project-defined attribute values, and its source " <>

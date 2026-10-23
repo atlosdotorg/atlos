@@ -10,6 +10,9 @@ defmodule PlatformWeb.MCP.Tools.AddComment do
   def name, do: "add_comment"
 
   @impl true
+  def title, do: "Add comment"
+
+  @impl true
   def description do
     "Post a comment on an incident's activity feed. The comment is attributed to the " <>
       "connected user, or to the API token. Maximum length is 2,500 characters."

@@ -14,6 +14,9 @@ defmodule PlatformWeb.MCP.Tool do
   @doc "The tool's name, as exposed over MCP."
   @callback name() :: String.t()
 
+  @doc "A short human-readable name, shown to people in client UIs (e.g. tool permission settings)."
+  @callback title() :: String.t()
+
   @doc "Human-readable description of the tool, shown to models."
   @callback description() :: String.t()
 

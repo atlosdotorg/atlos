@@ -9,6 +9,9 @@ defmodule PlatformWeb.MCP.Tools.GetSourceMaterial do
   def name, do: "get_source_material"
 
   @impl true
+  def title, do: "Get source material"
+
+  @impl true
   def description do
     "Get one piece of source material by its ID (a UUID), including its archival status, " <>
       "metadata, and artifacts. Each artifact includes a time-limited signed `access_url` " <>

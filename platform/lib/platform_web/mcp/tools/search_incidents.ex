@@ -15,6 +15,9 @@ defmodule PlatformWeb.MCP.Tools.SearchIncidents do
   def name, do: "search_incidents"
 
   @impl true
+  def title, do: "Search incidents"
+
+  @impl true
   def description do
     "Search incidents, in one project or across every project you can access. All " <>
       "filters are optional; with no filters, " <>

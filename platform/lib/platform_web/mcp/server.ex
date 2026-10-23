@@ -65,14 +65,19 @@ defmodule PlatformWeb.MCP.Server do
   end
 
   def describe_tool(tool) do
+    # Clients use these annotations to group and gate tools in their UI; for
+    # example, claude.ai sorts tools into read-only and write tools by
+    # readOnlyHint when people choose which tools need approval.
     %{
       name: tool.name(),
+      title: tool.title(),
       description: tool.description(),
       inputSchema: tool.input_schema(),
       annotations: %{
+        title: tool.title(),
         readOnlyHint: tool.read_only?(),
         destructiveHint: false,
-        idempotentHint: false,
+        idempotentHint: tool.read_only?(),
         openWorldHint: false
       }
     }

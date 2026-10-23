@@ -8,16 +8,52 @@ defmodule PlatformWeb.OAuthAuthorizeView do
     end
   end
 
-  @doc """
-  What a connected client can do at most in a project, given the user's role.
-  """
-  def role_limit(role) do
-    role_name = role |> to_string() |> String.capitalize()
+  @access_levels [
+    %{
+      value: "edit",
+      scopes: ["read", "comment", "edit"],
+      label: "Read, comment, and edit",
+      description:
+        "view incidents, post comments, add source material, create incidents, and change attributes"
+    },
+    %{
+      value: "comment",
+      scopes: ["read", "comment"],
+      label: "Read and comment",
+      description: "view incidents and post comments"
+    },
+    %{
+      value: "read",
+      scopes: ["read"],
+      label: "Read only",
+      description: "view incidents, their activity, and source material"
+    }
+  ]
 
-    case Platform.OAuth.scopes_for_role(role) do
-      ["read", "comment", "edit"] -> "#{role_name} · up to edit"
-      ["read", "comment"] -> "#{role_name} · up to comment"
-      _ -> "#{role_name} · read only"
+  @doc """
+  The access levels to offer: those whose scopes were all requested and are
+  allowed by at least one of the user's roles.
+  """
+  def access_levels(offered_scopes),
+    do:
+      Enum.filter(@access_levels, fn level -> Enum.all?(level.scopes, &(&1 in offered_scopes)) end)
+
+  @doc """
+  The access level selected by default: the most access on offer.
+  """
+  def default_access(offered_scopes), do: hd(access_levels(offered_scopes)).value
+
+  def role_name(role), do: role |> to_string() |> String.replace("_", " ") |> String.capitalize()
+
+  @doc """
+  What a client given `scopes` can do in a project where the user has `role`.
+  """
+  def permissions_label(scopes, role) do
+    case Platform.OAuth.scopes_in_project(scopes, role) do
+      ["read", "comment", "edit"] -> "Read, comment, edit"
+      ["read", "comment"] -> "Read, comment"
+      ["read"] -> "Read only"
+      _ -> "No access"
     end
   end
 end

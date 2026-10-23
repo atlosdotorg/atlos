@@ -10,6 +10,9 @@ defmodule PlatformWeb.MCP.Tools.ListProjects do
   def name, do: "list_projects"
 
   @impl true
+  def title, do: "List projects"
+
+  @impl true
   def description do
     "List the Atlos projects this connection can access, with your role in each and what " <>
       "you can do there (read, comment, edit). Pass a project's `id` or `code` as the " <>

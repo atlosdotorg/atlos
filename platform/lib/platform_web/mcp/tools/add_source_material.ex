@@ -10,6 +10,9 @@ defmodule PlatformWeb.MCP.Tools.AddSourceMaterial do
   def name, do: "add_source_material"
 
   @impl true
+  def title, do: "Add source material"
+
+  @impl true
   def description do
     "Add a piece of source material to an existing incident by URL. When `archive` is " <>
       "true, Atlos archives the URL's content (screenshots, media files) asynchronously — " <>

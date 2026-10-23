@@ -8,6 +8,9 @@ defmodule PlatformWeb.MCP.Tools.GetProject do
   def name, do: "get_project"
 
   @impl true
+  def title, do: "Get project"
+
+  @impl true
   def description do
     "Get one Atlos project, including the full list of its " <>
       "attribute definitions. Each attribute definition has an `id` (pass this to " <>

@@ -259,9 +259,49 @@ defmodule PlatformWeb.OAuthTest do
 
       assert html =~ "Test Client"
       assert html =~ "Connectable Project"
+      assert html =~ "Read, comment, edit"
       refute html =~ "Data Only Project"
       assert html =~ "client.example.com"
       assert html =~ "Read, comment, and edit"
+    end
+
+    test "shows what the client can do in each project, for each access level" do
+      user = user_fixture()
+      project_fixture(%{name: "Owned Project"}, owner: user)
+      viewed = project_fixture(%{name: "Viewed Project", code: "code2"})
+      member_as(viewed, user, :viewer)
+
+      html =
+        build_conn()
+        |> log_in_user(user)
+        |> get("/oauth/authorize", authorize_params(register_client()))
+        |> html_response(200)
+
+      {:ok, document} = Floki.parse_document(html)
+
+      rows =
+        Floki.find(document, "li")
+        |> Enum.map(fn row ->
+          name = row |> Floki.find("span.text-neutral-800") |> Floki.text()
+
+          labels =
+            row
+            |> Floki.find("span[x-show]")
+            |> Enum.map(&{Floki.attribute(&1, "x-show") |> hd(), Floki.text(&1) |> String.trim()})
+            |> Map.new()
+
+          {name, labels}
+        end)
+        |> Map.new()
+
+      assert rows["Owned Project"] == %{
+               "access === 'edit'" => "Read, comment, edit",
+               "access === 'comment'" => "Read, comment",
+               "access === 'read'" => "Read only"
+             }
+
+      assert rows["Viewed Project"]["access === 'edit'"] == "Read, comment"
+      assert html =~ "Viewer"
     end
 
     test "only offers the access the user's roles allow, and needs a project" do
