@@ -11,20 +11,53 @@ Atlos speaks the [Model Context Protocol](https://modelcontextprotocol.io) (MCP)
 
 ## Connecting
 
-The MCP endpoint lives at `https://platform.atlos.org/mcp` (or your own host, if you self-host) and authenticates with the same project-scoped [API tokens]({{< relref "api.md" >}}) as the REST API, passed as a bearer token. For example, with Claude Code:
+The MCP endpoint lives at `https://platform.atlos.org/mcp` (or your own host, if you self-host). There are two ways to connect an assistant to it: sign in with your Atlos account, or use a project API token.
+
+### Sign in with your Atlos account
+
+Assistants that support signing in to MCP servers, such as Claude and Cursor, can connect with your Atlos account. Add Atlos as a custom connector or MCP server using the URL `https://platform.atlos.org/mcp`. Your assistant will open an Atlos page in your browser where you:
+
+1. Log in to Atlos, if you aren't already.
+2. Choose the project the assistant can access. An assistant can only see one project at a time; connect it again to use another.
+3. Choose what the assistant can do: **read only**, **read and comment**, or **read, comment, and edit**.
+4. Press **Connect**.
+
+With Claude Code, for example:
+
+```bash
+claude mcp add --transport http atlos https://platform.atlos.org/mcp
+```
+
+Then run `/mcp` inside Claude Code and choose Atlos to sign in.
+
+When you connect this way, the assistant acts as you. Its comments and edits appear under your name in the incident's activity feed, and it can never do more than you can: it sees the same incidents you see, and if your role in the project changes, the assistant's access changes with it. Here's the most each role can allow:
+
+| Your role | What an assistant can do |
+|---|---|
+| Owner, Manager, Editor | Read, comment, and edit |
+| Viewer | Read and comment |
+| Data-only viewer | Data-only viewers can't connect assistants |
+
+{{< callout type="info" >}}
+You can see and disconnect your connected assistants at any time from the **Connected Apps** section of your [account settings](https://platform.atlos.org/settings). Disconnecting takes effect immediately. If you're removed from a project, any assistants you connected to it lose access too.
+{{< /callout >}}
+
+### Use an API token
+
+You can also connect with the same project-scoped [API tokens]({{< relref "api.md" >}}) as the REST API, passed as a bearer token. This is useful for automated workflows that shouldn't be tied to one person's account. API tokens are only available to project owners. With Claude Code:
 
 ```bash
 claude mcp add --transport http atlos https://platform.atlos.org/mcp \
   --header "Authorization: Bearer YOUR_API_TOKEN"
 ```
 
-Clients that cannot send custom headers can bridge through [`mcp-remote`](https://www.npmjs.com/package/mcp-remote).
+Actions taken with an API token are attributed to the token, not to a person.
 
 The server uses stateless Streamable HTTP: each request is a single JSON-RPC POST. Server-initiated streams (SSE) are not currently supported.
 
 ## Available tools
 
-Which tools an assistant sees depends on the token's permissions — a read-only token exposes only read tools, so the token you mint is the ceiling on what an assistant can do:
+Which tools an assistant sees depends on the access you gave it (or the API token's permissions). A read-only connection only sees read tools:
 
 | Tool | Requires | What it does |
 |---|---|---|
@@ -38,10 +71,11 @@ Which tools an assistant sees depends on the token's permissions — a read-only
 | `create_incident` | Editor | Create an incident, including custom attribute values. |
 | `update_incident_attribute` | Editor | Set one attribute value, with a required explanation. |
 
-Every write is attributed to the API token in the incident's activity feed, and attribute updates made over MCP always require an explanation message, so an assistant's actions are auditable. Restricted attributes (like an incident's restrictions) cannot be changed over MCP, and nothing can be deleted.
+Every write appears in the incident's activity feed, attributed to you (if you signed in) or to the API token. Attribute updates made over MCP always require an explanation message, so an assistant's actions are auditable. Restricted attributes (like an incident's restrictions) cannot be changed over MCP, and nothing can be deleted.
 
 ## Safety notes
 
-- **Scope tokens deliberately.** If an assistant only needs to research, mint a read-only token. MCP grants no authority beyond the token's permissions.
+- **Give assistants only the access they need.** If an assistant only needs to research, choose **read only** when you connect it, or mint a read-only API token. MCP never grants more than you (or the token) already have.
+- **Only connect assistants you trust.** When you sign in, the assistant acts as you. Check the name of the app on the Atlos connection page before you press **Connect**, and disconnect apps you no longer use.
 - **Treat incident content as untrusted.** Incident descriptions, comments, and source material come from external — sometimes adversarial — sources. A well-behaved assistant should treat that content as data, not instructions; the server's instructions say so, but review your assistant's actions like you would a new teammate's.
 - **Sensitive media stays behind links.** Tools return time-limited signed URLs for artifacts rather than file contents, and incident payloads carry their sensitivity flags.
