@@ -1,0 +1,105 @@
+<div class="flex flex-col gap-y-6">
+  <div class="prose prose-sm">
+    <p>
+      <strong><%= @request.client.client_name %></strong>
+      wants to access Atlos as you (<strong><%= @current_user.username %></strong>).
+      Once connected, it can work in all of your projects. In each one, it can do what you
+      choose below, limited to what your role there allows. Its activity will appear under your
+      name.
+    </p>
+    <p class="text-neutral-600">
+      After you decide, you'll be sent to <strong><%= redirect_host(@request.redirect_uri) %></strong>.
+      Only connect applications you trust.
+    </p>
+  </div>
+
+  <%= if Enum.empty?(@memberships) do %>
+    <div class="aside ~warning">
+      <p>
+        You aren't a member of any project you can connect. Ask a project owner to add you to a
+        project, then try again.
+      </p>
+    </div>
+  <% end %>
+
+  <form
+    method="post"
+    action={Routes.o_auth_authorize_path(@conn, :create)}
+    class="phx-form flex flex-col gap-y-4"
+    x-data={"{ access: '#{default_access(@offered_scopes)}' }"}
+  >
+    <input type="hidden" name="_csrf_token" value={Plug.CSRFProtection.get_csrf_token()} />
+    <%= for {name, value} <- @request_params do %>
+      <input type="hidden" name={name} value={value} />
+    <% end %>
+
+    <%= if not Enum.empty?(@memberships) do %>
+      <fieldset class="flex flex-col gap-2">
+        <legend class="mb-2 block text-sm font-medium text-gray-700">Access</legend>
+        <label
+          :for={level <- access_levels(@offered_scopes)}
+          class="!flex gap-2 items-start !font-normal !mt-0"
+        >
+          <input
+            type="radio"
+            name="access"
+            value={level.value}
+            checked={level.value == default_access(@offered_scopes)}
+            x-model="access"
+          />
+          <span><%= level.label %> — <%= level.description %></span>
+        </label>
+      </fieldset>
+
+      <div>
+        <p class="block text-sm font-medium text-gray-700 mb-2">
+          What it can do in each of your projects (<%= length(@memberships) %>)
+        </p>
+        <ul class="text-sm divide-y border rounded-md max-h-56 overflow-y-auto">
+          <li
+            :for={membership <- @memberships}
+            class="flex justify-between items-center gap-4 px-3 py-2"
+          >
+            <span class="min-w-0">
+              <span class="block text-neutral-800"><%= membership.project.name %></span>
+              <span class="block text-xs text-neutral-500">
+                Your role: <%= role_name(membership.role) %>
+              </span>
+            </span>
+            <span class="shrink-0 whitespace-nowrap text-neutral-700 font-medium">
+              <span
+                :for={level <- access_levels(@offered_scopes)}
+                x-show={"access === '#{level.value}'"}
+                style={if level.value != default_access(@offered_scopes), do: "display: none"}
+              >
+                <%= permissions_label(level.scopes, membership.role) %>
+              </span>
+            </span>
+          </li>
+        </ul>
+        <p class="text-xs text-neutral-500 mt-2">
+          It will also get access to projects you join later, limited the same way by your role
+          in each.
+        </p>
+      </div>
+    <% end %>
+
+    <div class="flex gap-4 items-center">
+      <%= if not Enum.empty?(@memberships) do %>
+        <button type="submit" name="decision" value="approve" class="button ~urge @high">
+          Connect
+        </button>
+      <% end %>
+      <button type="submit" name="decision" value="deny" class="base-button">
+        Cancel
+      </button>
+    </div>
+  </form>
+
+  <p class="text-sm text-neutral-500">
+    You can disconnect applications at any time from your <a
+      href="/settings#connected-apps"
+      class="underline"
+    >account settings</a>.
+  </p>
+</div>

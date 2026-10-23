@@ -105,11 +105,58 @@ defmodule PlatformWeb.Router do
         :upload_media_version_file
       )
 
+      get("/project", APIV2Controller, :project)
       get("/incidents", APIV2Controller, :incidents)
       get("/updates", APIV2Controller, :get_updates)
       post("/add_comment/:slug", APIV2Controller, :add_comment)
       post("/update/:slug/:attribute", APIV2Controller, :update)
     end
+  end
+
+  pipeline :require_mcp_enabled do
+    plug(PlatformWeb.Plugs.RequireMCPEnabled)
+  end
+
+  pipeline :oauth_api do
+    plug(RemoteIp)
+    plug(:accepts, ["json"])
+    plug(PlatformWeb.Plugs.RequireMCPEnabled)
+  end
+
+  scope "/.well-known", PlatformWeb do
+    pipe_through(:oauth_api)
+
+    get("/oauth-protected-resource", OAuthController, :protected_resource_metadata)
+    get("/oauth-protected-resource/mcp", OAuthController, :protected_resource_metadata)
+    get("/oauth-authorization-server", OAuthController, :authorization_server_metadata)
+  end
+
+  scope "/oauth", PlatformWeb do
+    pipe_through(:oauth_api)
+
+    post("/register", OAuthController, :register)
+    post("/token", OAuthController, :token)
+    post("/revoke", OAuthController, :revoke)
+  end
+
+  scope "/oauth", PlatformWeb do
+    pipe_through([:browser, :require_mcp_enabled, :require_authenticated_user, :interstitial])
+
+    get("/authorize", OAuthAuthorizeController, :new)
+    post("/authorize", OAuthAuthorizeController, :create)
+  end
+
+  pipeline :mcp_auth do
+    plug(PlatformWeb.Plugs.RequireMCPEnabled)
+    plug(PlatformWeb.MCP.Auth)
+  end
+
+  scope "/mcp", PlatformWeb do
+    pipe_through([:api, :mcp_auth])
+
+    post("/", MCPController, :handle)
+    get("/", MCPController, :reject)
+    delete("/", MCPController, :reject)
   end
 
   scope "/", PlatformWeb do

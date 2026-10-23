@@ -4,7 +4,7 @@ description: Host Atlos on your own server.
 type: docs
 sidebar:
   open: true
-weight: 2
+weight: 3
 ---
 
 Atlos is open source, and you are welcome to self-host it on your own infrastructure. 

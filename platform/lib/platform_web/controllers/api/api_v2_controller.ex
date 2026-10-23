@@ -152,8 +152,7 @@ defmodule PlatformWeb.APIV2Controller do
 
         case Material.create_media_audited(conn.assigns.token, media_params) do
           {:ok, media} ->
-            media_with_project =
-              Platform.Repo.preload(media, [:project, :versions])
+            media_with_project = Platform.Repo.preload(media, [:project, :versions])
 
             Auditor.log(
               :media_created,
@@ -172,7 +171,7 @@ defmodule PlatformWeb.APIV2Controller do
   def create_media_version(conn, params) do
     media_id = params["slug"]
     url = params["url"]
-    should_archive = params["archive"] == "true"
+    should_archive = params["archive"] in [true, "true"]
 
     media = Material.get_full_media_by_slug(media_id)
 
@@ -290,6 +289,15 @@ defmodule PlatformWeb.APIV2Controller do
     end
   end
 
+  def project(conn, _params) do
+    project = Projects.get_project!(conn.assigns.token.project_id)
+
+    json(conn, %{
+      success: true,
+      result: PlatformWeb.APISerialization.project_with_attributes(project)
+    })
+  end
+
   def incidents(conn, params) do
     project_id = conn.assigns.token.project_id
 
@@ -300,8 +308,7 @@ defmodule PlatformWeb.APIV2Controller do
 
     search_changeset = Material.MediaSearch.changeset(params)
 
-    {query, pagination_options} =
-      Material.MediaSearch.search_query(base_query, search_changeset)
+    {query, pagination_options} = Material.MediaSearch.search_query(base_query, search_changeset)
 
     pagination_api(conn, params, fn opts ->
       Material.query_media_paginated(

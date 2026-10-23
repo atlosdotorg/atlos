@@ -6,7 +6,8 @@ defmodule PlatformWeb.APIAuth do
 
   def check_api_token(conn, _opts) do
     with ["Bearer " <> provided] <- get_req_header(conn, "authorization"),
-         token when not is_nil(token) <- API.get_api_token_by_value(provided) do
+         token when not is_nil(token) <- API.get_api_token_by_value(provided),
+         true <- token.is_active do
       conn |> assign(:token, token)
     else
       _ ->

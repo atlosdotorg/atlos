@@ -4,7 +4,7 @@ description: A guide to contributing to the Atlos codebase.
 type: docs
 sidebar:
   open: true
-weight: 3
+weight: 4
 ---
 
 We're eager to build a community of developers around Atlos. If you're interested in contributing to Atlos, join the `#technical-chat` channel on our [Discord server](https://discord.gg/gqCcHc9Gav).
