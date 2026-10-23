@@ -131,38 +131,27 @@ defmodule Platform.Material do
     user = Keyword.get(opts, :restrict_to_user)
     project_id = Keyword.get(opts, :restrict_to_project_id)
 
-    filter_user =
-      if is_nil(user) do
-        true
-      else
-        dynamic([m, update: u], u.user_id == ^user.id)
-      end
+    # Aggregate the most recent (matching) update per media first, so that we sort and limit
+    # ~one row per media instead of window-functioning over every (media x update) pair.
+    latest_updates =
+      from(u in Platform.Updates.Update,
+        group_by: u.media_id,
+        select: %{media_id: u.media_id, last_update_time: max(u.inserted_at)}
+      )
+      |> then(fn q -> if is_nil(user), do: q, else: where(q, [u], u.user_id == ^user.id) end)
+      |> then(fn q ->
+        if is_nil(project_id),
+          do: q,
+          else:
+            join(q, :inner, [u], m in Media, on: m.id == u.media_id and m.project_id == ^project_id)
+      end)
 
-    filter_project_id =
-      if is_nil(project_id) do
-        true
-      else
-        dynamic([m, update: u], m.project_id == ^project_id)
-      end
-
-    query =
-      Media
-      |> join(:left, [m], u in assoc(m, :updates), as: :update)
-      |> where([m, update: u], ^filter_user)
-      |> where([m, update: u], ^filter_project_id)
-      |> preload([m, update: u], updates: u)
-      |> preload([m, update: u], updates: [media: [:project]])
-      |> select_merge([m, update: u], %{
-        last_update_time: fragment("MAX(?) OVER (PARTITION BY ?)", u.inserted_at, m.id)
-      })
-      |> limit(^Keyword.get(opts, :limit, 25))
-      |> offset(^Keyword.get(opts, :offset, 0))
-
-    _query_media(query, Keyword.put(opts, :distinct, false))
-    |> prepend_order_by([m, update: u],
-      desc: fragment("MAX(?) OVER (PARTITION BY ?)", u.inserted_at, m.id),
-      desc: m.id
-    )
+    Media
+    |> join(:inner, [m], l in subquery(latest_updates), on: l.media_id == m.id, as: :latest)
+    |> select_merge([m, latest: l], %{last_update_time: l.last_update_time})
+    |> _query_media(Keyword.put(opts, :distinct, false))
+    |> prepend_order_by([m, latest: l], desc: l.last_update_time, desc: m.id)
+    |> limit(^Keyword.get(opts, :limit, 25))
     |> Repo.all()
   end
 

@@ -95,11 +95,12 @@ defmodule Platform.Permissions do
     end
   end
 
-  defmemo _is_media_editable?(%Media{project_id: nil}), expires_in: 5000 do
-    true
-  end
+  # Not memoized: memoizing on the full %Media{} struct (with preloaded updates, versions, and
+  # project attributes) made every call deep-normalize and copy a huge key into ETS. Everything
+  # this function depends on is already cached by key (security state, get_project/1).
+  def _is_media_editable?(%Media{project_id: nil}), do: true
 
-  defmemo _is_media_editable?(%Media{} = media), expires_in: 5000 do
+  def _is_media_editable?(%Media{} = media) do
     # Security mode must be normal, the media can't be deleted, and its project must be active.
 
     with :normal <- Platform.Security.get_security_mode_state(),
@@ -272,12 +273,17 @@ defmodule Platform.Permissions do
     media_list |> Enum.filter(&can_view_media?(user, &1, user_memberships[&1.project_id]))
   end
 
-  defmemo has_hit_edit_limit(%User{} = user), expires_in: 1000 do
+  def has_hit_edit_limit(%User{} = user) do
     if not Platform.Billing.is_enabled?() do
       false
     else
-      Platform.Billing.has_user_exceeded_edit_limit?(user)
+      _has_hit_edit_limit(user.id)
     end
+  end
+
+  # Keyed on the user ID rather than the (potentially large) user struct.
+  defmemo _has_hit_edit_limit(user_id), expires_in: 1000 do
+    Platform.Billing.has_user_exceeded_edit_limit?(Platform.Accounts.get_user!(user_id))
   end
 
   def can_edit_media?(%User{} = user, %Media{} = media) do
@@ -403,14 +409,17 @@ defmodule Platform.Permissions do
     not Enum.member?(user.restrictions || [], :muted)
   end
 
+  # Prefer the media already preloaded on the update/version; only fall back to a (lightweight,
+  # project-only) lookup when it isn't loaded. Permission checks never need versions/updates.
+  defp _get_media_for(%{media: %Media{} = media}), do: media
+  defp _get_media_for(%{media_id: media_id}), do: _get_media_from_id(media_id)
+
   defmemo _get_media_from_id(media_id), expires_in: 1000 do
-    # Memoized media lookup to avoid hitting the database multiple times for the same media during a request.
-    # This is a classic n+1 query problem; we should probably fix it at the database level.
-    Material.get_media!(media_id)
+    Platform.Repo.get!(Media, media_id) |> Platform.Repo.preload(:project)
   end
 
   def can_view_update?(%User{} = user, %Update{} = update) do
-    media = _get_media_from_id(update.media_id)
+    media = _get_media_for(update)
     membership = Projects.get_project_membership_by_user_and_project_id(user, media.project_id)
 
     can_view_update?(user, %{update | media: media}, membership)
@@ -448,7 +457,7 @@ defmodule Platform.Permissions do
   end
 
   def can_view_media_version?(%User{} = user, %MediaVersion{} = version) do
-    media = _get_media_from_id(version.media_id)
+    media = _get_media_for(version)
 
     with true <- can_view_media?(user, media),
          membership when not is_nil(membership) <-
@@ -463,7 +472,7 @@ defmodule Platform.Permissions do
   end
 
   def can_change_media_version_visibility?(%User{} = user, %MediaVersion{} = version) do
-    media = _get_media_from_id(version.media_id)
+    media = _get_media_for(version)
 
     with true <- can_view_media?(user, media),
          membership when not is_nil(membership) <-
@@ -479,7 +488,7 @@ defmodule Platform.Permissions do
     version.status == :error and
       version.upload_type == :direct and
       (
-        media = _get_media_from_id(version.media_id)
+        media = _get_media_for(version)
 
         with true <- can_view_media?(user, media),
              true <- media.project.active,
@@ -496,7 +505,7 @@ defmodule Platform.Permissions do
   end
 
   def can_user_change_update_visibility?(%User{} = user, %Update{} = update) do
-    media = _get_media_from_id(update.media_id)
+    media = _get_media_for(update)
 
     with true <- can_view_media?(user, media),
          membership when not is_nil(membership) <-

@@ -18,7 +18,16 @@ defmodule Platform.GlobalSearch do
   @doc """
   Search all of Atlos for a given query string for the user.
   """
-  defmemo perform_search(query, %User{} = user) when is_binary(query), expires_in: 10000 do
+  def perform_search(query, %User{} = user) when is_binary(query) do
+    # A blank query matches (and ranks) every row; the search box calls this on every mount.
+    if String.trim(query) == "" do
+      %{media_versions: [], media: [], users: [], projects: [], updates: []}
+    else
+      _perform_search(query, user)
+    end
+  end
+
+  defmemo _perform_search(query, %User{} = user) when is_binary(query), expires_in: 10000 do
     query_lower_raw = String.trim(query) |> String.downcase()
 
     query_cleaned =

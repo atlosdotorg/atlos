@@ -51,7 +51,44 @@ defmodule Platform.Material.Attribute do
   end
 
   def attributes(opts \\ []) do
-    project = Keyword.get(opts, :project)
+    attribute_index(Keyword.get(opts, :project)).list
+  end
+
+  # Building the attribute list is O(number of attributes) and is called per table cell, so we
+  # cache an index (list, by-name map, parent->children map) per project version in the process
+  # dictionary. Keyed on {id, updated_at} so edits to the project's attributes invalidate it.
+  defp attribute_index(project) do
+    key =
+      case project do
+        %Platform.Projects.Project{id: id, updated_at: updated_at} when not is_nil(id) ->
+          {__MODULE__, :index, id, updated_at}
+
+        nil ->
+          {__MODULE__, :index, nil}
+
+        _ ->
+          nil
+      end
+
+    case key && Process.get(key) do
+      nil ->
+        list = build_attributes(project)
+
+        index = %{
+          list: list,
+          by_name: Map.new(list, &{to_string(&1.name), &1}),
+          children: Enum.group_by(list, &to_string(&1.parent))
+        }
+
+        if key, do: Process.put(key, index)
+        index
+
+      index ->
+        index
+    end
+  end
+
+  defp build_attributes(project) do
 
     project_attrs =
       if project do
@@ -615,7 +652,7 @@ defmodule Platform.Material.Attribute do
         name_or_id
       end
 
-    value = Enum.find(attributes(opts), &(&1.name |> to_string() == real_name))
+    value = Map.get(attribute_index(Keyword.get(opts, :project)).by_name, real_name)
 
     case value do
       nil ->
@@ -1324,7 +1361,6 @@ defmodule Platform.Material.Attribute do
   """
   def get_children(parent_name, opts \\ []) do
     # We convert to a string so that we support both atom and string names.
-    name_str = to_string(parent_name)
-    attributes(opts) |> Enum.filter(&(to_string(&1.parent) == name_str))
+    Map.get(attribute_index(Keyword.get(opts, :project)).children, to_string(parent_name), [])
   end
 end
