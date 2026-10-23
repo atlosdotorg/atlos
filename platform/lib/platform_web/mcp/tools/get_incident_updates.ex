@@ -7,6 +7,7 @@ defmodule PlatformWeb.MCP.Tools.GetIncidentUpdates do
   alias Platform.Accounts.User
   alias Platform.Permissions
   alias Platform.Updates
+  alias PlatformWeb.MCP.Context
   alias PlatformWeb.MCP.Cursor
   alias PlatformWeb.MCP.Tools.Helpers
 
@@ -33,6 +34,12 @@ defmodule PlatformWeb.MCP.Tools.GetIncidentUpdates do
           "type" => "string",
           "description" => "Optional incident slug to scope the feed to one incident."
         },
+        "project" => %{
+          "type" => "string",
+          "description" =>
+            "Optional project id or code from list_projects, to scope the feed to one project. " <>
+              "With neither slug nor project, returns updates from every project you can access."
+        },
         "cursor" => %{
           "type" => "string",
           "description" => "Opaque pagination cursor from a previous result."
@@ -56,16 +63,24 @@ defmodule PlatformWeb.MCP.Tools.GetIncidentUpdates do
         slug -> Helpers.get_scoped_media(context, slug)
       end
 
+    project_ids_result =
+      case Map.get(args, "project") do
+        nil ->
+          {:ok, Context.project_ids(context)}
+
+        _ ->
+          with {:ok, project} <- Helpers.resolve_project(context, args), do: {:ok, [project.id]}
+      end
+
     with {:ok, media} <- media_result,
+         {:ok, project_ids} <- project_ids_result,
          true <- can_read_updates?(context) || :unauthorized,
          {:ok, after_cursor} <- Cursor.extract(args["cursor"], context.cursor_salt) do
-      project_id = context.project_id
-
       results =
         Updates.query_updates_paginated(
           from(u in Updates.Update,
             join: m in assoc(u, :media),
-            where: m.project_id == ^project_id,
+            where: m.project_id in ^project_ids,
             order_by: [desc: u.inserted_at],
             preload: [:user, media: m]
           )

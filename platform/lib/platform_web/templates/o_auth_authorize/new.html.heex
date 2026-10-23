@@ -3,8 +3,9 @@
     <p>
       <strong><%= @request.client.client_name %></strong>
       wants to access Atlos as you (<strong><%= @current_user.username %></strong>).
-      Once connected, it will be able to do anything you choose below in one project, with the
-      same permissions you have there. Activity will appear under your name.
+      Once connected, it will be able to work in all of your projects, doing whatever you choose
+      below, but never more than your role in each project allows. Activity will appear under
+      your name.
     </p>
     <p class="text-neutral-600">
       After you decide, you'll be sent to <strong><%= redirect_host(@request.redirect_uri) %></strong>.
@@ -32,35 +33,24 @@
     <% end %>
 
     <%= if not Enum.empty?(@memberships) do %>
-      <div>
-        <label for="project_id">Project</label>
-        <select id="project_id" name="project_id" required>
-          <%= for membership <- @memberships do %>
-            <option value={membership.project_id}>
-              <%= membership.project.name %> (<%= role_label(membership.role) %>)
-            </option>
-          <% end %>
-        </select>
-      </div>
-
       <fieldset class="flex flex-col gap-2">
         <legend class="mb-2 block text-sm font-medium text-gray-700">Access</legend>
-        <%= if "edit" in @request.scopes do %>
+        <%= if "edit" in @offered_scopes do %>
           <label class="!flex gap-2 items-start !font-normal !mt-0">
             <input type="radio" name="access" value="edit" checked />
             <span>
               Read, comment, and edit — view incidents, post comments, add source material, create
-              incidents, and change attributes (if your role allows it)
+              incidents, and change attributes
             </span>
           </label>
         <% end %>
-        <%= if "comment" in @request.scopes do %>
+        <%= if "comment" in @offered_scopes do %>
           <label class="!flex gap-2 items-start !font-normal !mt-0">
             <input
               type="radio"
               name="access"
               value="comment"
-              checked={"edit" not in @request.scopes}
+              checked={"edit" not in @offered_scopes}
             />
             <span>Read and comment — view incidents and post comments</span>
           </label>
@@ -70,11 +60,29 @@
             type="radio"
             name="access"
             value="read"
-            checked={"comment" not in @request.scopes and "edit" not in @request.scopes}
+            checked={"comment" not in @offered_scopes}
           />
           <span>Read only — view incidents, their activity, and source material</span>
         </label>
       </fieldset>
+
+      <div>
+        <p class="block text-sm font-medium text-gray-700 mb-2">
+          Projects it can access (<%= length(@memberships) %>)
+        </p>
+        <ul class="text-sm divide-y border rounded-md max-h-48 overflow-y-auto">
+          <li :for={membership <- @memberships} class="flex justify-between gap-4 px-3 py-2">
+            <span class="text-neutral-800"><%= membership.project.name %></span>
+            <span class="text-neutral-500 whitespace-nowrap">
+              <%= role_limit(membership.role) %>
+            </span>
+          </li>
+        </ul>
+        <p class="text-xs text-neutral-500 mt-2">
+          This includes projects you join later. Projects where you're a data-only viewer aren't
+          included.
+        </p>
+      </div>
     <% end %>
 
     <div class="flex gap-4 items-center">

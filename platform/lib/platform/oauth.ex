@@ -3,11 +3,11 @@ defmodule Platform.OAuth do
   OAuth 2.1 authorization server for the MCP endpoint.
 
   Users authorize an MCP client (registered through dynamic client
-  registration) to act as them within a single project. The resulting access
-  token carries a set of scopes — `read`, `comment`, and `edit`, mirroring API
-  token permissions — and on every request is further limited by the user's
-  current role in the project, so a token never grants more than the user
-  could do in the web app.
+  registration) to act as them, across every project they belong to. The
+  resulting access token carries a set of scopes — `read`, `comment`, and
+  `edit`, mirroring API token permissions — and in each project these are
+  further limited by the user's current role there, so a token never grants
+  more than the user could do in the web app.
 
   All clients are public clients: there are no client secrets, and the
   authorization code flow requires PKCE (S256). Codes and tokens are stored
@@ -22,7 +22,6 @@ defmodule Platform.OAuth do
   alias Platform.OAuth.Client
   alias Platform.OAuth.Grant
   alias Platform.Projects
-  alias Platform.Projects.ProjectMembership
   alias Platform.Repo
 
   @scopes ["read", "comment", "edit"]
@@ -55,9 +54,10 @@ defmodule Platform.OAuth do
   ## Scopes and roles
 
   @doc """
-  The scopes a member with the given role may grant. Data-only viewers can't
-  connect MCP clients: they can't see the activity feed or project members,
-  and the MCP tools don't model those restrictions.
+  The scopes a member with the given role may use in that project. Projects
+  where the user is a data-only viewer aren't available over MCP: data-only
+  viewers can't see the activity feed or project members, and the MCP tools
+  don't model those restrictions.
   """
   def scopes_for_role(role) when role in [:owner, :manager, :editor], do: @scopes
   def scopes_for_role(:viewer), do: ["read", "comment"]
@@ -82,18 +82,33 @@ defmodule Platform.OAuth do
 
   def parse_scope(_), do: :error
 
+  @doc """
+  The granted scopes that apply in a project where the user has `role`.
+  """
+  def scopes_in_project(granted_scopes, role),
+    do: Enum.filter(granted_scopes, &(&1 in scopes_for_role(role)))
+
   defp normalize_scopes(scopes), do: Enum.filter(@scopes, &(&1 in scopes))
 
   @doc """
-  The project memberships through which the user may authorize a client:
-  every membership except data-only viewer, in active or archived projects.
-  Projects where the user can grant the most access come first, so the
-  consent screen's default choice matches its default access level.
+  The project memberships an authorized client can use: every membership
+  except data-only viewer, in active or archived projects, sorted by project
+  name.
   """
-  def grantable_memberships(%User{} = user) do
+  def accessible_memberships(%User{} = user) do
     Projects.get_users_project_memberships(user)
     |> Enum.filter(&(scopes_for_role(&1.role) != []))
-    |> Enum.sort_by(&{-length(scopes_for_role(&1.role)), String.downcase(&1.project.name)})
+    |> Enum.sort_by(&String.downcase(&1.project.name))
+  end
+
+  @doc """
+  The most a client could be allowed to do in any of the user's projects:
+  the union of the scopes their roles allow.
+  """
+  def max_scopes(%User{} = user) do
+    accessible_memberships(user)
+    |> Enum.flat_map(&scopes_for_role(&1.role))
+    |> normalize_scopes()
   end
 
   @doc """
@@ -123,25 +138,18 @@ defmodule Platform.OAuth do
 
   @doc """
   Issue an authorization code after the user approves a client. The scopes
-  must be ones the user's role in the project allows. Returns the plaintext
+  must be ones at least one of the user's roles allows. Returns the plaintext
   code, which is shown to the client exactly once.
   """
   def create_authorization_code(
         %Client{} = client,
         %User{} = user,
-        project_id,
         scopes,
         redirect_uri,
         code_challenge
       ) do
-    membership = Projects.get_project_membership_by_user_and_project_id(user, project_id)
-
     cond do
-      is_nil(membership) or membership.user_id != user.id ->
-        {:error, :invalid_project}
-
-      not Enum.all?(scopes, &(&1 in scopes_for_role(membership.role))) or
-          "read" not in scopes ->
+      "read" not in scopes or not Enum.all?(scopes, &(&1 in max_scopes(user))) ->
         {:error, :invalid_scope}
 
       not Client.redirect_uri_allowed?(client, redirect_uri) ->
@@ -155,7 +163,6 @@ defmodule Platform.OAuth do
             code_hash: hash_token(code),
             client_id: client.id,
             user_id: user.id,
-            project_id: project_id,
             scopes: normalize_scopes(scopes),
             redirect_uri: redirect_uri,
             code_challenge: code_challenge,
@@ -233,7 +240,6 @@ defmodule Platform.OAuth do
         refresh_token_hash: hash_token(refresh_token),
         client_id: auth_code.client_id,
         user_id: auth_code.user_id,
-        project_id: auth_code.project_id,
         authorization_code_id: auth_code.id,
         scopes: auth_code.scopes,
         access_token_expires_at: DateTime.add(issued_at, @access_token_ttl_seconds, :second),
@@ -338,10 +344,12 @@ defmodule Platform.OAuth do
 
   @doc """
   Look up the grant for an access token, if the token is valid: unexpired,
-  unrevoked, and belonging to a user who can still use OAuth and is still a
-  member of the project in a role that can grant access. Returns
+  unrevoked, and belonging to a user who can still use OAuth. Returns
   `{:ok, grant, scopes}`, where `scopes` are the granted scopes limited to
-  what the user's current role allows, or `:error`.
+  what the user's current roles allow in at least one project, or `:error`.
+  `read` is always kept, so a user who has left every project can still list
+  (no) projects rather than see no tools at all. Each project's own limit is
+  applied per request.
   """
   def authenticate_access_token(token) when is_binary(token) do
     with %Grant{} = grant <-
@@ -349,13 +357,9 @@ defmodule Platform.OAuth do
            |> Repo.preload([:user, :client]),
          true <- is_nil(grant.revoked_at),
          true <- DateTime.compare(grant.access_token_expires_at, now()) == :gt,
-         true <- user_can_use_oauth?(grant.user),
-         %ProjectMembership{} = membership <-
-           Projects.get_project_membership_by_user_and_project_id(grant.user, grant.project_id),
-         scopes when scopes != [] <-
-           Enum.filter(grant.scopes, &(&1 in scopes_for_role(membership.role))) do
+         true <- user_can_use_oauth?(grant.user) do
       touch_grant(grant)
-      {:ok, grant, scopes}
+      {:ok, grant, Enum.filter(grant.scopes, &(&1 == "read" or &1 in max_scopes(grant.user)))}
     else
       _ -> :error
     end
@@ -383,7 +387,7 @@ defmodule Platform.OAuth do
         g.user_id == ^user.id and is_nil(g.revoked_at) and
           g.refresh_token_expires_at > ^now(),
       order_by: [desc: g.inserted_at],
-      preload: [:client, :project]
+      preload: [:client]
     )
     |> Repo.all()
   end

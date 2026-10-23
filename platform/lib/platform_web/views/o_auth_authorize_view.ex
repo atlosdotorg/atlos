@@ -8,5 +8,16 @@ defmodule PlatformWeb.OAuthAuthorizeView do
     end
   end
 
-  def role_label(role), do: role |> to_string() |> String.replace("_", " ")
+  @doc """
+  What a connected client can do at most in a project, given the user's role.
+  """
+  def role_limit(role) do
+    role_name = role |> to_string() |> String.capitalize()
+
+    case Platform.OAuth.scopes_for_role(role) do
+      ["read", "comment", "edit"] -> "#{role_name} · up to edit"
+      ["read", "comment"] -> "#{role_name} · up to comment"
+      _ -> "#{role_name} · read only"
+    end
+  end
 end

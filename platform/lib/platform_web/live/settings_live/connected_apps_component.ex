@@ -37,7 +37,7 @@ defmodule PlatformWeb.SettingsLive.ConnectedAppsComponent do
             <div>
               <p class="font-medium text-neutral-800"><%= grant.client.client_name %></p>
               <p class="text-neutral-600">
-                <%= grant.project.name %> &middot; <%= Enum.join(grant.scopes, ", ") %>
+                All your projects &middot; <%= Enum.join(grant.scopes, ", ") %>
               </p>
               <p class="text-neutral-500 text-xs">
                 Connected <.rel_time time={grant.inserted_at} />

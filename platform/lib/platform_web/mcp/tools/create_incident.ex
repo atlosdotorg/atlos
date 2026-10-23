@@ -4,7 +4,6 @@ defmodule PlatformWeb.MCP.Tools.CreateIncident do
   alias Platform.Auditor
   alias Platform.Material
   alias Platform.Material.Attribute
-  alias Platform.Projects
   alias PlatformWeb.APISerialization
   alias PlatformWeb.MCP.Context
   alias PlatformWeb.MCP.Tools.Helpers
@@ -14,7 +13,7 @@ defmodule PlatformWeb.MCP.Tools.CreateIncident do
 
   @impl true
   def description do
-    "Create a new incident in this project. `description` and `sensitive` are required " <>
+    "Create a new incident in a project. `description` and `sensitive` are required " <>
       "core attributes. Additional attributes — core or project-defined — can be set via " <>
       "the `attributes` map, keyed by the attribute ids returned by `get_project`. URLs " <>
       "passed in `urls` are attached as source material and archived. Returns the created " <>
@@ -26,6 +25,7 @@ defmodule PlatformWeb.MCP.Tools.CreateIncident do
     %{
       "type" => "object",
       "properties" => %{
+        "project" => Helpers.project_argument_schema("The project to create the incident in."),
         "description" => %{
           "type" => "string",
           "description" => "A one-sentence description of the incident (8-240 characters)."
@@ -65,10 +65,15 @@ defmodule PlatformWeb.MCP.Tools.CreateIncident do
 
   @impl true
   def call(context, args) do
-    project = Projects.get_project!(context.project_id)
+    with {:ok, project} <- Helpers.resolve_project(context, args) do
+      create(context, project, args)
+    end
+  end
 
+  defp create(context, project, args) do
     attribute_values =
       Map.get(args, "attributes", %{})
+      |> then(fn attributes -> if is_map(attributes), do: attributes, else: %{} end)
       |> Map.merge(
         %{"description" => args["description"], "sensitive" => args["sensitive"]}
         |> Enum.reject(fn {_, v} -> is_nil(v) end)
@@ -116,7 +121,7 @@ defmodule PlatformWeb.MCP.Tools.CreateIncident do
               acc
             )
           end)
-          |> Map.put("project_id", context.project_id)
+          |> Map.put("project_id", project.id)
           |> then(fn params ->
             case Map.get(args, "urls") do
               nil -> params

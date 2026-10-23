@@ -13,7 +13,6 @@ defmodule Platform.OAuth.AuthorizationCode do
 
     belongs_to :client, Platform.OAuth.Client
     belongs_to :user, Platform.Accounts.User
-    belongs_to :project, Platform.Projects.Project
 
     timestamps()
   end

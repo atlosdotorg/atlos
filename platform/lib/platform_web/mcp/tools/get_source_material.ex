@@ -2,6 +2,7 @@ defmodule PlatformWeb.MCP.Tools.GetSourceMaterial do
   @behaviour PlatformWeb.MCP.Tool
 
   alias Platform.Material
+  alias PlatformWeb.MCP.Context
   alias PlatformWeb.MCP.Tools.Helpers
 
   @impl true
@@ -45,7 +46,8 @@ defmodule PlatformWeb.MCP.Tools.GetSourceMaterial do
           :error -> nil
         end
 
-      if is_nil(media_version) or media_version.media.project_id != context.project_id or
+      if is_nil(media_version) or
+           not Context.has_permission_in_project?(context, media_version.media.project_id, :read) or
            Helpers.visible_versions(context, [media_version]) == [] do
         {:error, "source material not found"}
       else

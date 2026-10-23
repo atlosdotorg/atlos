@@ -5,6 +5,7 @@ defmodule PlatformWeb.MCP.Tools.SearchIncidents do
 
   alias Platform.Material
   alias PlatformWeb.APISerialization
+  alias PlatformWeb.MCP.Context
   alias PlatformWeb.MCP.Cursor
   alias PlatformWeb.MCP.Tools.Helpers
 
@@ -15,7 +16,8 @@ defmodule PlatformWeb.MCP.Tools.SearchIncidents do
 
   @impl true
   def description do
-    "Search the incidents in this project. All filters are optional; with no filters, " <>
+    "Search incidents, in one project or across every project you can access. All " <>
+      "filters are optional; with no filters, " <>
       "returns the most recently modified incidents first. Results are paginated: pass the " <>
       "`cursor` from a previous result to fetch the next page. Returns compact incident " <>
       "summaries; use `get_incident` for full detail on a specific incident."
@@ -26,6 +28,11 @@ defmodule PlatformWeb.MCP.Tools.SearchIncidents do
     %{
       "type" => "object",
       "properties" => %{
+        "project" => %{
+          "type" => "string",
+          "description" =>
+            "Optional project id or code from list_projects. Omit to search every project you can access."
+        },
         "query" => %{
           "type" => "string",
           "description" =>
@@ -112,14 +119,27 @@ defmodule PlatformWeb.MCP.Tools.SearchIncidents do
       |> put_present("no_media_versions", args["no_source_material"])
       |> put_present("sort", args["sort"])
 
-    base_query = from(m in Material.Media, where: m.project_id == ^context.project_id)
     changeset = Material.MediaSearch.changeset(search_params)
 
+    project_ids_result =
+      case Map.get(args, "project") do
+        nil ->
+          {:ok, Context.project_ids(context)}
+
+        _ ->
+          with {:ok, project} <- Helpers.resolve_project(context, args), do: {:ok, [project.id]}
+      end
+
     cond do
+      match?({:error, _}, project_ids_result) ->
+        project_ids_result
+
       not changeset.valid? ->
         {:error, %{invalid_search_parameters: Helpers.changeset_errors(changeset)}}
 
       true ->
+        {:ok, project_ids} = project_ids_result
+        base_query = from(m in Material.Media, where: m.project_id in ^project_ids)
         {query, pagination_options} = Material.MediaSearch.search_query(base_query, changeset)
 
         with {:ok, after_cursor} <- Cursor.extract(args["cursor"], context.cursor_salt) do

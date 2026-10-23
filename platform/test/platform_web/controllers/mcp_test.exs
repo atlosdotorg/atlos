@@ -55,6 +55,19 @@ defmodule PlatformWeb.MCPTest do
     assert json_response(legacy_conn, 401) == %{"error" => "invalid token or token not found"}
   end
 
+  test "an API token reaches only its own project" do
+    project = project_fixture()
+    other_project = project_fixture(%{code: "code2"})
+    token = api_token_fixture(%{project_id: project.id})
+
+    projects = call_tool!(token, "list_projects", %{})["projects"]
+    assert Enum.map(projects, & &1["id"]) == [project.id]
+
+    assert call_tool!(token, "get_project", %{})["project"]["id"] == project.id
+    assert call_tool!(token, "get_project", %{project: project.id})["project"]["id"] == project.id
+    assert tool_error(token, "get_project", %{project: other_project.id}) =~ "project not found"
+  end
+
   test "GET is rejected with 405" do
     project = project_fixture()
     token = api_token_fixture(%{project_id: project.id})
@@ -127,6 +140,7 @@ defmodule PlatformWeb.MCPTest do
       "get_incident_updates",
       "get_project",
       "get_source_material",
+      "list_projects",
       "search_incidents"
     ]
 

@@ -61,7 +61,7 @@ defmodule PlatformWeb.MCP.Tools.UpdateIncidentAttribute do
          {:ok, attribute_id} <- Helpers.require_string(args, "attribute"),
          {:ok, message} <- Helpers.require_string(args, "message"),
          {:ok, media} <- Helpers.get_scoped_media(context, slug) do
-      project = Projects.get_project!(context.project_id)
+      project = Projects.get_project!(media.project_id)
       attribute = Attribute.get_attribute(attribute_id, project: project)
       value = Map.get(args, "value")
 

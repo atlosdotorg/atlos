@@ -7,7 +7,7 @@ sidebar:
 weight: 2
 ---
 
-Atlos speaks the [Model Context Protocol](https://modelcontextprotocol.io) (MCP), so AI assistants like Claude can search, read, and — if you allow it — update the incidents in your project. The MCP server is built into the platform itself, so there is nothing to install.
+Atlos speaks the [Model Context Protocol](https://modelcontextprotocol.io) (MCP), so AI assistants like Claude can search, read, and — if you allow it — update the incidents in your projects. The MCP server is built into the platform itself, so there is nothing to install.
 
 {{< callout type="info" >}}
 If you self-host Atlos, the MCP server is off by default. To turn it on, set the `MCP_ENABLED` environment variable to `true`.
@@ -22,9 +22,10 @@ The MCP endpoint lives at `https://platform.atlos.org/mcp` (or your own host, if
 Assistants that support signing in to MCP servers, such as Claude and Cursor, can connect with your Atlos account. Add Atlos as a custom connector or MCP server using the URL `https://platform.atlos.org/mcp`. Your assistant will open an Atlos page in your browser where you:
 
 1. Log in to Atlos, if you aren't already.
-2. Choose the project the assistant can access. An assistant can only see one project at a time; connect it again to use another.
-3. Choose what the assistant can do: **read only**, **read and comment**, or **read, comment, and edit**.
-4. Press **Connect**.
+2. Choose what the assistant can do: **read only**, **read and comment**, or **read, comment, and edit**.
+3. Press **Connect**.
+
+The assistant can then work in all of your projects, including ones you join later.
 
 With Claude Code, for example:
 
@@ -34,16 +35,16 @@ claude mcp add --transport http atlos https://platform.atlos.org/mcp
 
 Then run `/mcp` inside Claude Code and choose Atlos to sign in.
 
-When you connect this way, the assistant acts as you. Its comments and edits appear under your name in the incident's activity feed, and it can never do more than you can: it sees the same incidents you see, and if your role in the project changes, the assistant's access changes with it. Here's the most each role can allow:
+When you connect this way, the assistant acts as you. Its comments and edits appear under your name in the incident's activity feed, and it can never do more than you can: it sees the same incidents you see, and in each project it's limited by your role there. If your role changes, the assistant's access changes with it. Here's the most it can do in a project, depending on your role:
 
 | Your role | What an assistant can do |
 |---|---|
 | Owner, Manager, Editor | Read, comment, and edit |
 | Viewer | Read and comment |
-| Data-only viewer | Data-only viewers can't connect assistants |
+| Data-only viewer | Nothing: assistants can't see projects where you're a data-only viewer |
 
 {{< callout type="info" >}}
-You can see and disconnect your connected assistants at any time from the **Connected Apps** section of your [account settings](https://platform.atlos.org/settings). Disconnecting takes effect immediately. If you're removed from a project, any assistants you connected to it lose access too.
+You can see and disconnect your connected assistants at any time from the **Connected Apps** section of your [account settings](https://platform.atlos.org/settings). Disconnecting takes effect immediately. If you're removed from a project, your assistants lose access to it too.
 {{< /callout >}}
 
 ### Use an API token
@@ -65,10 +66,11 @@ Which tools an assistant sees depends on the access you gave it (or the API toke
 
 | Tool | Requires | What it does |
 |---|---|---|
+| `list_projects` | Read | The projects the assistant can access, and what it can do in each. |
 | `get_project` | Read | Project info and all attribute definitions (IDs, types, options). |
 | `search_incidents` | Read | Search and filter incidents; paginated summaries. |
 | `get_incident` | Read | Full detail for one incident, by slug. |
-| `get_incident_updates` | Read | The activity feed for one incident or the whole project. |
+| `get_incident_updates` | Read | The activity feed for one incident, one project, or all your projects. |
 | `get_source_material` | Read | One piece of source material, with signed artifact download links. |
 | `add_comment` | Comment | Post a comment to an incident's feed. |
 | `add_source_material` | Editor | Attach a URL as source material, optionally archiving it. |

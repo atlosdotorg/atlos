@@ -51,14 +51,14 @@ defmodule PlatformWeb.OAuthTest do
   end
 
   # Runs the consent flow as `user` and returns the authorization code.
-  defp approve(user, client_id, project, access \\ "edit", overrides \\ %{}) do
+  defp approve(user, client_id, access \\ "edit", overrides \\ %{}) do
     conn =
       build_conn()
       |> log_in_user(user)
       |> post(
         "/oauth/authorize",
         authorize_params(client_id, overrides)
-        |> Map.merge(%{"decision" => "approve", "project_id" => project.id, "access" => access})
+        |> Map.merge(%{"decision" => "approve", "access" => access})
       )
 
     {location, query} = redirect_query(conn)
@@ -79,9 +79,9 @@ defmodule PlatformWeb.OAuthTest do
     })
   end
 
-  defp connect_client(user, project, access \\ "edit") do
+  defp connect_client(user, access \\ "edit") do
     client_id = register_client()
-    code = approve(user, client_id, project, access)
+    code = approve(user, client_id, access)
     tokens = json_response(exchange(client_id, code), 200)
     {client_id, tokens}
   end
@@ -97,6 +97,15 @@ defmodule PlatformWeb.OAuthTest do
       })
 
     user
+  end
+
+  defp member_as(project, user, role) do
+    {:ok, _} =
+      Projects.create_project_membership(%{
+        project_id: project.id,
+        username: user.username,
+        role: role
+      })
   end
 
   defp rpc(access_token, method, params) do
@@ -227,9 +236,9 @@ defmodule PlatformWeb.OAuthTest do
       assert query["error"] == "invalid_target"
     end
 
-    test "lists the projects the user can connect, excluding data-only viewer memberships" do
+    test "lists the projects the client will reach, excluding data-only viewer memberships" do
       user = user_fixture()
-      project = project_fixture(%{name: "Connectable Project"}, owner: user)
+      project_fixture(%{name: "Connectable Project"}, owner: user)
 
       data_only_project = project_fixture(%{name: "Data Only Project", code: "code2"})
 
@@ -252,19 +261,29 @@ defmodule PlatformWeb.OAuthTest do
       assert html =~ "Connectable Project"
       refute html =~ "Data Only Project"
       assert html =~ "client.example.com"
+      assert html =~ "Read, comment, and edit"
+    end
 
-      # Approving for the data-only project is refused
+    test "only offers the access the user's roles allow, and needs a project" do
+      viewer = member(project_fixture(), :viewer)
+      client_id = register_client()
+
+      html =
+        build_conn()
+        |> log_in_user(viewer)
+        |> get("/oauth/authorize", authorize_params(client_id))
+        |> html_response(200)
+
+      assert html =~ "Read and comment"
+      refute html =~ "Read, comment, and edit"
+
+      # Someone with no projects can't connect
       conn =
         build_conn()
-        |> log_in_user(user)
-        |> post(
-          "/oauth/authorize",
-          authorize_params(client_id)
-          |> Map.merge(%{"decision" => "approve", "project_id" => data_only_project.id})
-        )
+        |> log_in_user(user_fixture())
+        |> post("/oauth/authorize", authorize_params(client_id) |> Map.put("decision", "approve"))
 
       assert redirected_to(conn) =~ "/oauth/authorize?"
-      assert project.id
     end
 
     test "denying redirects with access_denied" do
@@ -286,10 +305,10 @@ defmodule PlatformWeb.OAuthTest do
   describe "token endpoint" do
     test "requires the right PKCE verifier and redirect URI, and codes are single use" do
       user = user_fixture()
-      project = project_fixture(%{}, owner: user)
+      project_fixture(%{}, owner: user)
       client_id = register_client()
 
-      code = approve(user, client_id, project)
+      code = approve(user, client_id)
 
       assert json_response(exchange(client_id, code, String.duplicate("w", 50)), 400)["error"] ==
                "invalid_grant"
@@ -297,7 +316,7 @@ defmodule PlatformWeb.OAuthTest do
       # The failed attempt consumed the code
       assert json_response(exchange(client_id, code), 400)["error"] == "invalid_grant"
 
-      code = approve(user, client_id, project)
+      code = approve(user, client_id)
       tokens = json_response(exchange(client_id, code), 200)
       assert tokens["token_type"] == "Bearer"
       assert tokens["scope"] == "read comment edit"
@@ -312,11 +331,11 @@ defmodule PlatformWeb.OAuthTest do
 
     test "codes are bound to the client that requested them" do
       user = user_fixture()
-      project = project_fixture(%{}, owner: user)
+      project_fixture(%{}, owner: user)
       client_id = register_client()
       other_client_id = register_client()
 
-      code = approve(user, client_id, project)
+      code = approve(user, client_id)
       assert json_response(exchange(other_client_id, code), 400)["error"] == "invalid_grant"
       assert json_response(exchange(client_id, code), 200)["access_token"]
     end
@@ -340,8 +359,8 @@ defmodule PlatformWeb.OAuthTest do
 
     test "refreshing rotates both tokens" do
       user = user_fixture()
-      project = project_fixture(%{}, owner: user)
-      {client_id, tokens} = connect_client(user, project)
+      project_fixture(%{}, owner: user)
+      {client_id, tokens} = connect_client(user)
 
       refresh = fn refresh_token, extra ->
         build_conn()
@@ -378,8 +397,8 @@ defmodule PlatformWeb.OAuthTest do
 
     test "revocation disables the grant" do
       user = user_fixture()
-      project = project_fixture(%{}, owner: user)
-      {_client_id, tokens} = connect_client(user, project)
+      project_fixture(%{}, owner: user)
+      {_client_id, tokens} = connect_client(user)
 
       assert json_response(rpc(tokens["access_token"], "ping", %{}), 200)
 
@@ -392,23 +411,39 @@ defmodule PlatformWeb.OAuthTest do
   end
 
   describe "MCP access as a user" do
-    test "acts as the user, scoped to the authorized project" do
+    test "acts as the user across their projects, and only their projects" do
       user = user_fixture()
-      project = project_fixture(%{}, owner: user)
-      other_project = project_fixture(%{code: "code2"}, owner: user)
+      project = project_fixture(%{name: "Alpha"}, owner: user)
+      other_project = project_fixture(%{name: "Beta", code: "code2"}, owner: user)
+      stranger_project = project_fixture(%{code: "code3"})
       media = media_fixture(%{project_id: project.id})
       other_media = media_fixture(%{project_id: other_project.id})
+      stranger_media = media_fixture(%{project_id: stranger_project.id})
 
-      {_client_id, tokens} = connect_client(user, project)
+      {_client_id, tokens} = connect_client(user)
       token = tokens["access_token"]
 
       assert "create_incident" in tool_names(token)
 
-      result = call_tool(token, "get_incident", %{slug: media.slug})
-      assert result["isError"] == false
+      projects = call_tool(token, "list_projects", %{})["structuredContent"]["projects"]
+      assert Enum.map(projects, & &1["name"]) == ["Alpha", "Beta"]
+      assert hd(projects)["permissions"] == ["read", "comment", "edit"]
 
-      result = call_tool(token, "get_incident", %{slug: other_media.slug})
-      assert result["isError"] == true
+      assert call_tool(token, "get_incident", %{slug: media.slug})["isError"] == false
+      assert call_tool(token, "get_incident", %{slug: other_media.slug})["isError"] == false
+      assert call_tool(token, "get_incident", %{slug: stranger_media.slug})["isError"] == true
+
+      # Search covers every project the user can reach, or just one
+      slugs = fn args ->
+        call_tool(token, "search_incidents", args)["structuredContent"]["results"]
+        |> Enum.map(& &1["slug"])
+        |> MapSet.new()
+      end
+
+      display = &Platform.Material.Media.slug_to_display/1
+      assert slugs.(%{}) == MapSet.new([display.(media), display.(other_media)])
+      assert slugs.(%{project: other_project.id}) == MapSet.new([display.(other_media)])
+      assert call_tool(token, "search_incidents", %{project: stranger_project.id})["isError"]
 
       result = call_tool(token, "add_comment", %{slug: media.slug, message: "Hello from MCP"})
       assert result["isError"] == false
@@ -420,22 +455,81 @@ defmodule PlatformWeb.OAuthTest do
       assert comment.user_id == user.id
       assert is_nil(comment.api_token_id)
 
-      result =
-        call_tool(token, "create_incident", %{
-          description: "Incident created through OAuth",
-          sensitive: ["Not Sensitive"]
-        })
+      incident = %{description: "Incident created through OAuth", sensitive: ["Not Sensitive"]}
 
+      # With more than one project, create_incident needs to be told which
+      result = call_tool(token, "create_incident", incident)
+      assert result["isError"] == true
+      assert hd(result["content"])["text"] =~ "project is required"
+
+      result = call_tool(token, "create_incident", Map.put(incident, :project, other_project.id))
       assert result["isError"] == false, inspect(result)
       slug = result["structuredContent"]["incident"]["slug"]
-      created = Platform.Material.get_full_media_by_slug(slug)
-      assert created.project_id == project.id
+      assert Platform.Material.get_full_media_by_slug(slug).project_id == other_project.id
+
+      result =
+        call_tool(token, "create_incident", Map.put(incident, :project, stranger_project.id))
+
+      assert result["isError"] == true
+    end
+
+    test "permissions apply per project, following each role" do
+      user = user_fixture()
+      owned = project_fixture(%{name: "Owned"}, owner: user)
+      viewed = project_fixture(%{name: "Viewed", code: "code2"})
+      member_as(viewed, user, :viewer)
+      owned_media = media_fixture(%{project_id: owned.id})
+      viewed_media = media_fixture(%{project_id: viewed.id})
+
+      {_client_id, tokens} = connect_client(user)
+      token = tokens["access_token"]
+
+      args = fn media ->
+        %{slug: media.slug, attribute: "description", value: "A new description", message: "Fix"}
+      end
+
+      assert call_tool(token, "update_incident_attribute", args.(owned_media))["isError"] ==
+               false
+
+      assert call_tool(token, "update_incident_attribute", args.(viewed_media))["isError"] ==
+               true
+
+      assert call_tool(token, "add_comment", %{slug: viewed_media.slug, message: "Hi"})[
+               "isError"
+             ] == false
+
+      assert call_tool(token, "create_incident", %{
+               project: viewed.id,
+               description: "Should not be created",
+               sensitive: ["Not Sensitive"]
+             })["isError"] == true
+
+      viewed_entry =
+        call_tool(token, "list_projects", %{})["structuredContent"]["projects"]
+        |> Enum.find(&(&1["name"] == "Viewed"))
+
+      assert viewed_entry["permissions"] == ["read", "comment"]
+      assert viewed_entry["role"] == "viewer"
+    end
+
+    test "projects where the user is a data-only viewer are out of reach" do
+      user = user_fixture()
+      project_fixture(%{}, owner: user)
+      data_only = project_fixture(%{code: "code2"})
+      member_as(data_only, user, :data_only_viewer)
+      media = media_fixture(%{project_id: data_only.id})
+
+      {_client_id, tokens} = connect_client(user)
+      token = tokens["access_token"]
+
+      assert call_tool(token, "get_incident", %{slug: media.slug})["isError"] == true
+      assert length(call_tool(token, "list_projects", %{})["structuredContent"]["projects"]) == 1
     end
 
     test "read-only access lists only read tools" do
       user = user_fixture()
-      project = project_fixture(%{}, owner: user)
-      {_client_id, tokens} = connect_client(user, project, "read")
+      project_fixture(%{}, owner: user)
+      {_client_id, tokens} = connect_client(user, "read")
 
       assert tokens["scope"] == "read"
       names = tool_names(tokens["access_token"])
@@ -455,7 +549,7 @@ defmodule PlatformWeb.OAuthTest do
         |> Ecto.Changeset.change(attr_restrictions: ["Hidden"])
         |> Repo.update!()
 
-      {_client_id, tokens} = connect_client(viewer, project, "edit")
+      {_client_id, tokens} = connect_client(viewer, "edit")
       token = tokens["access_token"]
 
       # The viewer asked for edit access, but their role caps it
@@ -479,8 +573,9 @@ defmodule PlatformWeb.OAuthTest do
       owner = user_fixture()
       project = project_fixture(%{}, owner: owner)
       editor = member(project, :editor)
+      media = media_fixture(%{project_id: project.id})
 
-      {_client_id, tokens} = connect_client(editor, project)
+      {_client_id, tokens} = connect_client(editor)
       token = tokens["access_token"]
       assert "update_incident_attribute" in tool_names(token)
 
@@ -493,7 +588,10 @@ defmodule PlatformWeb.OAuthTest do
       {:ok, _} = Projects.delete_project_membership(membership)
       Memoize.invalidate()
 
-      assert json_response(rpc(token, "ping", %{}), 401)
+      # The connection still works, but the project is out of reach
+      assert json_response(rpc(token, "ping", %{}), 200)
+      assert call_tool(token, "get_incident", %{slug: media.slug})["isError"] == true
+      assert call_tool(token, "list_projects", %{})["structuredContent"]["projects"] == []
     end
 
     test "owners and managers can change restricted attributes; editors can't" do
@@ -510,11 +608,11 @@ defmodule PlatformWeb.OAuthTest do
         message: "Freezing while we verify"
       }
 
-      {_client_id, tokens} = connect_client(editor, project)
+      {_client_id, tokens} = connect_client(editor)
       result = call_tool(tokens["access_token"], "update_incident_attribute", args)
       assert result["isError"] == true
 
-      {_client_id, tokens} = connect_client(manager, project)
+      {_client_id, tokens} = connect_client(manager)
       result = call_tool(tokens["access_token"], "update_incident_attribute", args)
       assert result["isError"] == false, inspect(result)
       assert Platform.Material.get_media!(media.id).attr_restrictions == ["Frozen"]
@@ -522,8 +620,8 @@ defmodule PlatformWeb.OAuthTest do
 
     test "users can list and revoke their grants" do
       user = user_fixture()
-      project = project_fixture(%{}, owner: user)
-      {_client_id, tokens} = connect_client(user, project)
+      project_fixture(%{}, owner: user)
+      {_client_id, tokens} = connect_client(user)
 
       [grant] = OAuth.list_active_grants(user)
       assert grant.client.client_name == "Test Client"

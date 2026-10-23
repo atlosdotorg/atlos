@@ -14,7 +14,6 @@ defmodule Platform.OAuth.Grant do
 
     belongs_to :client, Platform.OAuth.Client
     belongs_to :user, Platform.Accounts.User
-    belongs_to :project, Platform.Projects.Project
     belongs_to :authorization_code, Platform.OAuth.AuthorizationCode
 
     timestamps()

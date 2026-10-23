@@ -1,7 +1,7 @@
 defmodule PlatformWeb.OAuthAuthorizeController do
   @moduledoc """
   The OAuth authorization endpoint: a consent screen where a signed-in user
-  chooses which project, and what level of access, to give an MCP client.
+  chooses what level of access to give an MCP client across their projects.
 
   Request errors that can't be safely reported to the client (an unknown
   client, or a redirect URI the client didn't register) are shown to the user;
@@ -19,12 +19,15 @@ defmodule PlatformWeb.OAuthAuthorizeController do
   @request_params ~w(client_id redirect_uri response_type code_challenge code_challenge_method state scope resource)
 
   def new(conn, params) do
+    user = conn.assigns.current_user
+
     with {:ok, request} <- validate_request(conn, params) do
       render(conn, "new.html",
         title: "Connect #{request.client.client_name} to Atlos",
         request: request,
         request_params: Map.take(params, @request_params),
-        memberships: OAuth.grantable_memberships(conn.assigns.current_user)
+        memberships: OAuth.accessible_memberships(user),
+        offered_scopes: Enum.filter(request.scopes, &(&1 in OAuth.max_scopes(user)))
       )
     end
   end
@@ -40,33 +43,25 @@ defmodule PlatformWeb.OAuthAuthorizeController do
           _ -> OAuth.scopes()
         end
 
-      scopes = Enum.filter(request.scopes, &(&1 in level_scopes))
+      scopes =
+        request.scopes
+        |> Enum.filter(&(&1 in level_scopes))
+        |> Enum.filter(&(&1 in OAuth.max_scopes(user)))
 
-      membership =
-        Enum.find(OAuth.grantable_memberships(user), &(&1.project_id == params["project_id"]))
-
-      result =
-        if is_nil(membership) do
-          {:error, :invalid_project}
-        else
-          OAuth.create_authorization_code(
-            request.client,
-            user,
-            membership.project_id,
-            Enum.filter(scopes, &(&1 in OAuth.scopes_for_role(membership.role))),
-            request.redirect_uri,
-            request.code_challenge
-          )
-        end
-
-      case result do
+      case OAuth.create_authorization_code(
+             request.client,
+             user,
+             scopes,
+             request.redirect_uri,
+             request.code_challenge
+           ) do
         {:ok, code} ->
           Platform.Auditor.log(
             :oauth_client_authorized,
             %{
               client_id: request.client.client_id,
               client_name: request.client.client_name,
-              project_id: membership.project_id
+              scopes: scopes
             },
             conn
           )
@@ -75,7 +70,7 @@ defmodule PlatformWeb.OAuthAuthorizeController do
 
         {:error, _} ->
           conn
-          |> put_flash(:error, "Please choose a project you can connect.")
+          |> put_flash(:error, "You need to be a member of a project to connect an application.")
           |> redirect(
             to: Routes.o_auth_authorize_path(conn, :new, Map.take(params, @request_params))
           )

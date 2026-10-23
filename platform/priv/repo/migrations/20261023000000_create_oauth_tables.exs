@@ -26,9 +26,6 @@ defmodule Platform.Repo.Migrations.CreateOAuthTables do
 
       add :user_id, references(:users, type: :binary_id, on_delete: :delete_all), null: false
 
-      add :project_id, references(:projects, type: :binary_id, on_delete: :delete_all),
-        null: false
-
       add :scopes, {:array, :string}, null: false, default: []
       add :redirect_uri, :text, null: false
       add :code_challenge, :string, null: false
@@ -40,9 +37,9 @@ defmodule Platform.Repo.Migrations.CreateOAuthTables do
 
     create unique_index(:oauth_authorization_codes, [:code_hash])
 
-    # A grant is one user's authorization of one client for one project. It
-    # holds the current access and refresh tokens (both stored as SHA-256
-    # hashes); refreshing rotates both.
+    # A grant is one user's authorization of one client, covering every
+    # project the user belongs to. It holds the current access and refresh
+    # tokens (both stored as SHA-256 hashes); refreshing rotates both.
     create table(:oauth_grants, primary_key: false) do
       add :id, :uuid, primary_key: true
       add :access_token_hash, :binary, null: false
@@ -52,9 +49,6 @@ defmodule Platform.Repo.Migrations.CreateOAuthTables do
         null: false
 
       add :user_id, references(:users, type: :binary_id, on_delete: :delete_all), null: false
-
-      add :project_id, references(:projects, type: :binary_id, on_delete: :delete_all),
-        null: false
 
       add :authorization_code_id,
           references(:oauth_authorization_codes, type: :binary_id, on_delete: :nilify_all)
