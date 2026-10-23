@@ -60,6 +60,7 @@ defmodule Platform.Material do
     |> hydrate_media_query()
     |> order_by(desc: :inserted_at)
     |> Repo.all()
+    |> link_updates_to_media()
   end
 
   defp _query_media(query, opts) do
@@ -94,6 +95,7 @@ defmodule Platform.Material do
   def query_media(query \\ Media, opts \\ []) do
     _query_media(query, opts)
     |> Repo.all()
+    |> link_updates_to_media()
   end
 
   @doc """
@@ -104,6 +106,7 @@ defmodule Platform.Material do
     # Fallback for null/equal values
     |> order_by(desc: :id)
     |> Repo.paginate(opts)
+    |> link_updates_to_media()
   end
 
   @doc """
@@ -143,7 +146,9 @@ defmodule Platform.Material do
         if is_nil(project_id),
           do: q,
           else:
-            join(q, :inner, [u], m in Media, on: m.id == u.media_id and m.project_id == ^project_id)
+            join(q, :inner, [u], m in Media,
+              on: m.id == u.media_id and m.project_id == ^project_id
+            )
       end)
 
     Media
@@ -153,6 +158,7 @@ defmodule Platform.Material do
     |> prepend_order_by([m, latest: l], desc: l.last_update_time, desc: m.id)
     |> limit(^Keyword.get(opts, :limit, 25))
     |> Repo.all()
+    |> link_updates_to_media()
   end
 
   @doc """
@@ -164,6 +170,7 @@ defmodule Platform.Material do
     |> order_by(desc: :inserted_at)
     |> hydrate_media_query()
     |> Repo.all()
+    |> link_updates_to_media()
   end
 
   defp preload_media_versions(query) do
@@ -172,16 +179,32 @@ defmodule Platform.Material do
 
   defp preload_media_updates(query) do
     # TODO: should this be pulled into the Updates context somehow?
+    # Note: we don't preload `media` on updates -- that would re-fetch the parent media (with all of
+    # its attribute data) a second time. `link_updates_to_media/1` points it at the parent instead.
     query
     |> preload(
       updates: [
         :user,
         :media_version,
-        :api_token,
-        media: [:project]
+        :api_token
       ]
     )
   end
+
+  defp link_updates_to_media(%Media{updates: updates} = media) when is_list(updates) do
+    %{media | updates: Enum.map(updates, &%{&1 | media: media})}
+  end
+
+  defp link_updates_to_media(%Media{} = media), do: media
+  defp link_updates_to_media(nil), do: nil
+
+  defp link_updates_to_media(results) when is_list(results),
+    do: Enum.map(results, &link_updates_to_media/1)
+
+  defp link_updates_to_media(%{entries: entries} = page),
+    do: %{page | entries: link_updates_to_media(entries)}
+
+  defp link_updates_to_media(other), do: other
 
   defp preload_media_project(query) do
     query |> preload(project: [memberships: [:user]])
@@ -288,7 +311,7 @@ defmodule Platform.Material do
       ** (Ecto.NoResultsError)
 
   """
-  def get_media!(id), do: Repo.get!(Media |> hydrate_media_query(), id)
+  def get_media!(id), do: Repo.get!(Media |> hydrate_media_query(), id) |> link_updates_to_media()
 
   @doc """
   Gets a single media.
@@ -303,7 +326,8 @@ defmodule Platform.Material do
       iex> get_media(456)
       nil
   """
-  def get_media(id, opts \\ []), do: Repo.get(Media |> hydrate_media_query(opts), id)
+  def get_media(id, opts \\ []),
+    do: Repo.get(Media |> hydrate_media_query(opts), id) |> link_updates_to_media()
 
   @doc """
   Creates a media.
@@ -423,6 +447,7 @@ defmodule Platform.Material do
     Media
     |> hydrate_media_query()
     |> Repo.get_by(slug: get_raw_slug(slug))
+    |> link_updates_to_media()
   end
 
   @doc """

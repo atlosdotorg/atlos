@@ -89,7 +89,6 @@ defmodule Platform.Material.Attribute do
   end
 
   defp build_attributes(project) do
-
     project_attrs =
       if project do
         Platform.Projects.get_project_attributes(project)

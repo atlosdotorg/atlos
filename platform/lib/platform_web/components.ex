@@ -1960,7 +1960,15 @@ defmodule PlatformWeb.Components do
     old_words = if length(old_words) > 1000, do: Enum.take(old_words, 1000), else: old_words
     new_words = if length(new_words) > 1000, do: Enum.take(new_words, 1000), else: new_words
 
-    diff = List.myers_difference(old_words, new_words)
+    # List.myers_difference/2 is surprisingly slow (100ms+) when one side is empty and the other is
+    # long, which is the common case of a text attribute being set for the first time.
+    diff =
+      case {old_words, new_words} do
+        {[], []} -> []
+        {[], new_words} -> [ins: new_words]
+        {old_words, []} -> [del: old_words]
+        _ -> List.myers_difference(old_words, new_words)
+      end
 
     assigns = assign(assigns, :diff, diff)
 
