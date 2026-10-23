@@ -2,6 +2,7 @@ defmodule PlatformWeb.MCP.Tools.UpdateIncidentAttribute do
   @behaviour PlatformWeb.MCP.Tool
 
   alias Platform.Material
+  alias Platform.Accounts.User
   alias Platform.Material.Attribute
   alias Platform.Projects
   alias PlatformWeb.MCP.Tools.Helpers
@@ -16,7 +17,8 @@ defmodule PlatformWeb.MCP.Tools.UpdateIncidentAttribute do
       "or a project-defined attribute's UUID. For select attributes pass a string; for " <>
       "multi-select attributes pass an array of strings. A `message` explaining the change " <>
       "is required and is recorded on the incident's activity feed alongside the change. " <>
-      "Restricted attributes cannot be updated through this tool."
+      "Restricted attributes can only be changed by project owners and managers who " <>
+      "connected with their Atlos account, not with an API token."
   end
 
   @impl true
@@ -70,8 +72,8 @@ defmodule PlatformWeb.MCP.Tools.UpdateIncidentAttribute do
         is_nil(attribute) ->
           {:error, "attribute not found; call get_project to list this project's attribute ids"}
 
-        attribute.is_restricted == true ->
-          {:error, "this attribute is restricted and cannot be updated through MCP"}
+        attribute.is_restricted == true and not match?(%User{}, context.actor) ->
+          {:error, "this attribute is restricted and cannot be updated with an API token"}
 
         not Helpers.can_edit?(context, media, attribute) ->
           {:error, "not authorized to edit this incident"}

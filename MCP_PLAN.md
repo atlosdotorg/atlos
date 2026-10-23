@@ -122,6 +122,8 @@ Clients that can't send a custom header (e.g. claude.ai connectors) connect thro
 - **Tokens** (`/oauth/token`, `/oauth/revoke`): 1-hour access tokens and 30-day rotating refresh tokens, stored only as SHA-256 hashes (`Platform.OAuth`). Reusing a code revokes what it issued.
 - **Acting as the user:** an OAuth token acts as the user who approved it (`PlatformWeb.MCP.Context`). On every request its scopes are capped by the user's *current* role (owner/manager/editor: all; viewer: read+comment), and each tool runs the user permission checks (`can_view_media?`, `can_comment_on_media?`, `can_edit_media?`, …), so hidden incidents, removed source material, and hidden updates stay hidden. Removing the user from the project, suspending them, or `no_access` security mode cuts access immediately. Activity is attributed to the user.
 - **Revocation:** users see and disconnect their connected apps under Settings → Connected Apps.
+- **Feature flag:** everything above, and `/mcp` itself, returns 404 unless `MCP_ENABLED=true`.
+- **Restricted attributes:** owners and managers who signed in can change them through `update_incident_attribute`; API tokens can't.
 
 ## 6. Security considerations
 

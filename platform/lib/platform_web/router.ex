@@ -113,9 +113,14 @@ defmodule PlatformWeb.Router do
     end
   end
 
+  pipeline :require_mcp_enabled do
+    plug(PlatformWeb.Plugs.RequireMCPEnabled)
+  end
+
   pipeline :oauth_api do
     plug(RemoteIp)
     plug(:accepts, ["json"])
+    plug(PlatformWeb.Plugs.RequireMCPEnabled)
   end
 
   scope "/.well-known", PlatformWeb do
@@ -135,13 +140,14 @@ defmodule PlatformWeb.Router do
   end
 
   scope "/oauth", PlatformWeb do
-    pipe_through([:browser, :require_authenticated_user, :interstitial])
+    pipe_through([:browser, :require_mcp_enabled, :require_authenticated_user, :interstitial])
 
     get("/authorize", OAuthAuthorizeController, :new)
     post("/authorize", OAuthAuthorizeController, :create)
   end
 
   pipeline :mcp_auth do
+    plug(PlatformWeb.Plugs.RequireMCPEnabled)
     plug(PlatformWeb.MCP.Auth)
   end
 

@@ -26,6 +26,14 @@ defmodule PlatformWeb.MCP.Server do
     PlatformWeb.MCP.Tools.UpdateIncidentAttribute
   ]
 
+  @doc """
+  Whether the MCP server (and the OAuth sign-in that serves it) is enabled.
+  It is off unless the `MCP_ENABLED` environment variable is `true`.
+  """
+  def enabled? do
+    System.get_env("MCP_ENABLED") == "true"
+  end
+
   def negotiate_protocol_version(requested) do
     if requested in @protocol_versions do
       requested

@@ -2,6 +2,8 @@ defmodule Platform.OAuth.Client do
   use Ecto.Schema
   import Ecto.Changeset
 
+  @browser_handled_schemes ~w(javascript data file vbscript about blob filesystem ftp ws wss mailto tel sms)
+
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
   schema "oauth_clients" do
@@ -15,7 +17,7 @@ defmodule Platform.OAuth.Client do
   @doc """
   Changeset for dynamic client registration. Redirect URIs must be HTTPS,
   loopback HTTP (for native apps, RFC 8252 section 7.3), or a private-use URI
-  scheme in reverse-domain form (RFC 8252 section 7.1, e.g. `cursor://...`).
+  scheme for a native app (RFC 8252 section 7.1, e.g. `cursor://...`).
   """
   def registration_changeset(client, attrs) do
     client
@@ -42,10 +44,11 @@ defmodule Platform.OAuth.Client do
         loopback_host?(host)
 
       {:ok, %URI{scheme: scheme, fragment: nil}} when is_binary(scheme) ->
-        # Private-use schemes must look like a reverse domain name, which rules
-        # out javascript:, data:, file:, and similar.
-        String.contains?(scheme, ".") and
-          String.match?(scheme, ~r/^[a-z][a-z0-9+.\-]*$/)
+        # Private-use schemes for native apps. RFC 8252 recommends reverse
+        # domain names, but popular clients (e.g. Cursor) use plain names, so
+        # instead rule out schemes that a browser would act on itself.
+        String.match?(scheme, ~r/^[a-z][a-z0-9+.\-]*$/) and
+          scheme not in @browser_handled_schemes
 
       _ ->
         false

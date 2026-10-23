@@ -44,9 +44,9 @@
       </div>
 
       <fieldset class="flex flex-col gap-2">
-        <legend class="mb-2">Access</legend>
+        <legend class="mb-2 block text-sm font-medium text-gray-700">Access</legend>
         <%= if "edit" in @request.scopes do %>
-          <label class="flex gap-2 items-start font-normal">
+          <label class="!flex gap-2 items-start !font-normal !mt-0">
             <input type="radio" name="access" value="edit" checked />
             <span>
               Read, comment, and edit — view incidents, post comments, add source material, create
@@ -55,7 +55,7 @@
           </label>
         <% end %>
         <%= if "comment" in @request.scopes do %>
-          <label class="flex gap-2 items-start font-normal">
+          <label class="!flex gap-2 items-start !font-normal !mt-0">
             <input
               type="radio"
               name="access"
@@ -65,7 +65,7 @@
             <span>Read and comment — view incidents and post comments</span>
           </label>
         <% end %>
-        <label class="flex gap-2 items-start font-normal">
+        <label class="!flex gap-2 items-start !font-normal !mt-0">
           <input
             type="radio"
             name="access"

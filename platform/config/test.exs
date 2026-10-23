@@ -38,6 +38,7 @@ config :platform, Oban, testing: :inline
 
 # Disable billing
 System.put_env("BILLING_ENABLED", "false")
+System.put_env("MCP_ENABLED", "true")
 
 # Set the "MIX_ENV" environment variable to "test"
 System.put_env("MIX_ENV", "test")

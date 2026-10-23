@@ -7,7 +7,11 @@ sidebar:
 weight: 2
 ---
 
-Atlos speaks the [Model Context Protocol](https://modelcontextprotocol.io) (MCP), so AI assistants like Claude can search, read, and — if you allow it — update the incidents in your project. The MCP server is built into the platform itself: there is nothing to install, and self-hosted deployments serve it automatically.
+Atlos speaks the [Model Context Protocol](https://modelcontextprotocol.io) (MCP), so AI assistants like Claude can search, read, and — if you allow it — update the incidents in your project. The MCP server is built into the platform itself, so there is nothing to install.
+
+{{< callout type="info" >}}
+If you self-host Atlos, the MCP server is off by default. To turn it on, set the `MCP_ENABLED` environment variable to `true`.
+{{< /callout >}}
 
 ## Connecting
 
@@ -71,7 +75,7 @@ Which tools an assistant sees depends on the access you gave it (or the API toke
 | `create_incident` | Editor | Create an incident, including custom attribute values. |
 | `update_incident_attribute` | Editor | Set one attribute value, with a required explanation. |
 
-Every write appears in the incident's activity feed, attributed to you (if you signed in) or to the API token. Attribute updates made over MCP always require an explanation message, so an assistant's actions are auditable. Restricted attributes (like an incident's restrictions) cannot be changed over MCP, and nothing can be deleted.
+Every write appears in the incident's activity feed, attributed to you (if you signed in) or to the API token. Attribute updates made over MCP always require an explanation message, so an assistant's actions are auditable. Restricted attributes (like an incident's restrictions) can only be changed by project owners and managers who signed in with their Atlos account, not with an API token. Nothing can be deleted over MCP.
 
 ## Safety notes
 

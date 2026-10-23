@@ -105,6 +105,7 @@ The Atlos web application will read the following environment variables. Some ar
 - `STRIPE_PRICING_TABLE_ID` — Stripe pricing table ID (optional, required if `BILLING_ENABLED` is `true`)
 - `STRIPE_PUBLISHABLE_KEY` — Stripe publishable key (optional, required if `BILLING_ENABLED` is `true`)
 - `STRIPE_SECRET_KEY` — Stripe secret key (optional, required if `BILLING_ENABLED` is `true`)
+- `MCP_ENABLED` — whether to serve the [MCP](https://modelcontextprotocol.io) endpoint at `/mcp`, along with the OAuth sign-in that AI assistants use to connect (default `false`; set to `true` to enable)
 - `SHOW_MEDIA_VERSION_METADATA` — whether to show media version metadata in the UI (default disabled; to enable, set to any value)
 
 ### A special note on the database

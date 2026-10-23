@@ -1,6 +1,8 @@
 defmodule PlatformWeb.OAuthTest do
   use PlatformWeb.ConnCase
 
+  import Phoenix.LiveViewTest
+
   import Platform.AccountsFixtures
   import Platform.MaterialFixtures
   import Platform.ProjectsFixtures
@@ -149,13 +151,20 @@ defmodule PlatformWeb.OAuthTest do
                register_client([
                  @redirect_uri,
                  "http://localhost:3000/callback",
-                 "com.example.app:/callback"
+                 "com.example.app:/callback",
+                 "cursor://anysphere.cursor-retrieval/oauth/callback"
                ])
              )
     end
 
     test "rejects unsafe redirect URIs" do
-      for uri <- ["http://evil.example.com/cb", "javascript:alert(1)", "https://x.example.com/#f"] do
+      for uri <- [
+            "http://evil.example.com/cb",
+            "javascript:alert(1)",
+            "data:text/html,hi",
+            "file:///etc/passwd",
+            "https://x.example.com/#f"
+          ] do
         conn =
           build_conn()
           |> put_req_header("content-type", "application/json")
@@ -487,6 +496,30 @@ defmodule PlatformWeb.OAuthTest do
       assert json_response(rpc(token, "ping", %{}), 401)
     end
 
+    test "owners and managers can change restricted attributes; editors can't" do
+      owner = user_fixture()
+      project = project_fixture(%{}, owner: owner)
+      manager = member(project, :manager)
+      editor = member(project, :editor)
+      media = media_fixture(%{project_id: project.id})
+
+      args = %{
+        slug: media.slug,
+        attribute: "restrictions",
+        value: ["Frozen"],
+        message: "Freezing while we verify"
+      }
+
+      {_client_id, tokens} = connect_client(editor, project)
+      result = call_tool(tokens["access_token"], "update_incident_attribute", args)
+      assert result["isError"] == true
+
+      {_client_id, tokens} = connect_client(manager, project)
+      result = call_tool(tokens["access_token"], "update_incident_attribute", args)
+      assert result["isError"] == false, inspect(result)
+      assert Platform.Material.get_media!(media.id).attr_restrictions == ["Frozen"]
+    end
+
     test "users can list and revoke their grants" do
       user = user_fixture()
       project = project_fixture(%{}, owner: user)
@@ -499,6 +532,45 @@ defmodule PlatformWeb.OAuthTest do
       assert OAuth.revoke_user_grant(user, grant.id) == :ok
       assert OAuth.list_active_grants(user) == []
       assert json_response(rpc(tokens["access_token"], "ping", %{}), 401)
+    end
+  end
+
+  describe "when MCP is disabled" do
+    setup do
+      System.put_env("MCP_ENABLED", "false")
+      on_exit(fn -> System.put_env("MCP_ENABLED", "true") end)
+    end
+
+    test "the MCP endpoint and every OAuth route return 404" do
+      user = user_fixture()
+      project = project_fixture(%{}, owner: user)
+      token = Platform.APIFixtures.api_token_fixture(%{project_id: project.id})
+
+      conn =
+        build_conn()
+        |> put_req_header("authorization", "Bearer " <> token.value)
+        |> put_req_header("content-type", "application/json")
+        |> post("/mcp", Jason.encode!(%{jsonrpc: "2.0", id: 1, method: "ping"}))
+
+      assert response(conn, 404)
+
+      assert response(get(build_conn(), "/.well-known/oauth-protected-resource/mcp"), 404)
+      assert response(get(build_conn(), "/.well-known/oauth-authorization-server"), 404)
+      assert response(post(build_conn(), "/oauth/register", %{}), 404)
+      assert response(post(build_conn(), "/oauth/token", %{}), 404)
+      assert response(post(build_conn(), "/oauth/revoke", %{}), 404)
+
+      assert response(build_conn() |> log_in_user(user) |> get("/oauth/authorize"), 404)
+    end
+
+    test "settings don't show connected apps" do
+      user = user_fixture()
+      {:ok, _view, html} = build_conn() |> log_in_user(user) |> live("/settings")
+      refute html =~ "Connected Apps"
+
+      System.put_env("MCP_ENABLED", "true")
+      {:ok, _view, html} = build_conn() |> log_in_user(user) |> live("/settings")
+      assert html =~ "Connected Apps"
     end
   end
 end

@@ -87,11 +87,13 @@ defmodule Platform.OAuth do
   @doc """
   The project memberships through which the user may authorize a client:
   every membership except data-only viewer, in active or archived projects.
+  Projects where the user can grant the most access come first, so the
+  consent screen's default choice matches its default access level.
   """
   def grantable_memberships(%User{} = user) do
     Projects.get_users_project_memberships(user)
     |> Enum.filter(&(scopes_for_role(&1.role) != []))
-    |> Enum.sort_by(& &1.project.name)
+    |> Enum.sort_by(&{-length(scopes_for_role(&1.role)), String.downcase(&1.project.name)})
   end
 
   @doc """
