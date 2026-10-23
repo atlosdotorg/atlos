@@ -13,6 +13,8 @@ defmodule PlatformWeb.MCP.Tools.GetIncidentUpdates do
 
   @page_size 25
 
+  @data_only_message "the activity feed isn't available in projects where you're a data-only viewer"
+
   @impl true
   def name, do: "get_incident_updates"
 
@@ -78,6 +80,7 @@ defmodule PlatformWeb.MCP.Tools.GetIncidentUpdates do
     with {:ok, media} <- media_result,
          {:ok, project_ids} <- project_ids_result,
          true <- can_read_updates?(context) || :unauthorized,
+         {:ok, project_ids} <- with_feed_access(context, project_ids, media),
          {:ok, after_cursor} <- Cursor.extract(args["cursor"], context.cursor_salt) do
       results =
         Updates.query_updates_paginated(
@@ -113,6 +116,27 @@ defmodule PlatformWeb.MCP.Tools.GetIncidentUpdates do
     do: Permissions.can_api_token_read_updates?(token)
 
   defp can_read_updates?(%{actor: %User{}}), do: true
+
+  # As in the web app, data-only viewers can't see a project's activity feed.
+  # Leave those projects out of the query (so pages stay full), and say so
+  # when one was asked for specifically.
+  defp with_feed_access(%{actor: %APIToken{}}, project_ids, _media), do: {:ok, project_ids}
+
+  defp with_feed_access(%{actor: %User{}} = context, project_ids, media) do
+    data_only =
+      Context.memberships(context)
+      |> Enum.filter(&(&1.role == :data_only_viewer))
+      |> Enum.map(& &1.project_id)
+
+    asked_for = if media, do: [media.project_id], else: project_ids
+    allowed = Enum.reject(project_ids, &(&1 in data_only))
+
+    cond do
+      media && media.project_id in data_only -> {:error, @data_only_message}
+      asked_for != [] and Enum.all?(asked_for, &(&1 in data_only)) -> {:error, @data_only_message}
+      true -> {:ok, allowed}
+    end
+  end
 
   # Users don't see hidden updates unless they are a project owner or manager.
   # Filtering after pagination can make a page shorter than the page size;

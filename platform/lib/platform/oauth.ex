@@ -54,13 +54,13 @@ defmodule Platform.OAuth do
   ## Scopes and roles
 
   @doc """
-  The scopes a member with the given role may use in that project. Projects
-  where the user is a data-only viewer aren't available over MCP: data-only
-  viewers can't see the activity feed or project members, and the MCP tools
-  don't model those restrictions.
+  The scopes a member with the given role may use in that project. Data-only
+  viewers can read but not comment; like in the web app, the activity feed
+  is hidden from them (see `Platform.Permissions.can_view_update?/2`).
   """
   def scopes_for_role(role) when role in [:owner, :manager, :editor], do: @scopes
   def scopes_for_role(:viewer), do: ["read", "comment"]
+  def scopes_for_role(:data_only_viewer), do: ["read"]
   def scopes_for_role(_), do: []
 
   @doc """
@@ -91,9 +91,8 @@ defmodule Platform.OAuth do
   defp normalize_scopes(scopes), do: Enum.filter(@scopes, &(&1 in scopes))
 
   @doc """
-  The project memberships an authorized client can use: every membership
-  except data-only viewer, in active or archived projects, sorted by project
-  name.
+  The project memberships an authorized client can use (every membership,
+  in active or archived projects), sorted by project name.
   """
   def accessible_memberships(%User{} = user) do
     Projects.get_users_project_memberships(user)

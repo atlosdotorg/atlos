@@ -41,7 +41,7 @@ When you connect this way, the assistant acts as you. Its comments and edits app
 |---|---|
 | Owner, Manager, Editor | Read, comment, and edit |
 | Viewer | Read and comment |
-| Data-only viewer | Nothing: assistants can't see projects where you're a data-only viewer |
+| Data-only viewer | Read, but not the activity feed (just like in Atlos itself) |
 
 {{< callout type="info" >}}
 You can see and disconnect your connected assistants at any time from the **Connected Apps** section of your [account settings](https://platform.atlos.org/settings). Disconnecting takes effect immediately. If you're removed from a project, your assistants lose access to it too.

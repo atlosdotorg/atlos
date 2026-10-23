@@ -236,7 +236,7 @@ defmodule PlatformWeb.OAuthTest do
       assert query["error"] == "invalid_target"
     end
 
-    test "lists the projects the client will reach, excluding data-only viewer memberships" do
+    test "lists the projects the client will reach, including data-only viewer ones" do
       user = user_fixture()
       project_fixture(%{name: "Connectable Project"}, owner: user)
 
@@ -260,7 +260,8 @@ defmodule PlatformWeb.OAuthTest do
       assert html =~ "Test Client"
       assert html =~ "Connectable Project"
       assert html =~ "Read, comment, edit"
-      refute html =~ "Data Only Project"
+      assert html =~ "Data Only Project"
+      assert html =~ "Read only"
       assert html =~ "client.example.com"
       assert html =~ "Read, comment, and edit"
     end
@@ -552,18 +553,41 @@ defmodule PlatformWeb.OAuthTest do
       assert viewed_entry["role"] == "viewer"
     end
 
-    test "projects where the user is a data-only viewer are out of reach" do
+    test "data-only viewers can read incidents but not the activity feed" do
       user = user_fixture()
-      project_fixture(%{}, owner: user)
+      owned = project_fixture(%{}, owner: user)
       data_only = project_fixture(%{code: "code2"})
       member_as(data_only, user, :data_only_viewer)
       media = media_fixture(%{project_id: data_only.id})
+      owned_media = media_fixture(%{project_id: owned.id})
 
       {_client_id, tokens} = connect_client(user)
       token = tokens["access_token"]
 
-      assert call_tool(token, "get_incident", %{slug: media.slug})["isError"] == true
-      assert length(call_tool(token, "list_projects", %{})["structuredContent"]["projects"]) == 1
+      assert call_tool(token, "get_incident", %{slug: media.slug})["isError"] == false
+
+      entry =
+        call_tool(token, "list_projects", %{})["structuredContent"]["projects"]
+        |> Enum.find(&(&1["id"] == data_only.id))
+
+      assert entry["permissions"] == ["read"]
+
+      assert call_tool(token, "add_comment", %{slug: media.slug, message: "Hi"})["isError"] ==
+               true
+
+      error = call_tool(token, "get_incident_updates", %{slug: media.slug})
+      assert error["isError"] == true
+      assert hd(error["content"])["text"] =~ "data-only viewer"
+
+      assert call_tool(token, "get_incident_updates", %{project: data_only.id})["isError"] == true
+
+      # The combined feed only includes projects whose feed they can see
+      call_tool(token, "add_comment", %{slug: owned_media.slug, message: "Visible"})
+
+      updates = call_tool(token, "get_incident_updates", %{})["structuredContent"]["results"]
+
+      assert updates != []
+      assert Enum.all?(updates, &(&1["media_id"] == owned_media.id))
     end
 
     test "read-only access lists only read tools" do
