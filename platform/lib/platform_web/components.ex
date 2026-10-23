@@ -1471,7 +1471,7 @@ defmodule PlatformWeb.Components do
     ~H"""
     <article
       class="relative text-left overflow-visible"
-      x-data="{open: false}"
+      x-data="{open: false, shift: 0}"
       x-on:click.away="open = false"
       id={@id}
     >
@@ -1485,7 +1485,7 @@ defmodule PlatformWeb.Components do
               "bg-white"
             end}
           aria-haspopup="true"
-          x-on:click="open = !open"
+          x-on:click="open = !open; $nextTick(() => { shift = Math.max(0, 8 - ($el.closest('article').getBoundingClientRect().right - $refs.menu.offsetWidth)) })"
         >
           <%= @label %>
           <svg
@@ -1503,7 +1503,9 @@ defmodule PlatformWeb.Components do
         </button>
       </div>
       <div
-        class="absolute right-0 z-[10000] overflow-visible mt-2 w-96 origin-top-right rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
+        class="absolute right-0 z-[10000] overflow-visible mt-2 w-96 max-w-[calc(100vw-1rem)] origin-top-right rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
+        x-ref="menu"
+        x-bind:style="`right: ${-shift}px`"
         role="menu"
         x-transition
         aria-orientation="vertical"
@@ -1593,7 +1595,7 @@ defmodule PlatformWeb.Components do
     ~H"""
     <article
       class="relative text-left overflow-visible"
-      x-data="{open: false}"
+      x-data="{open: false, shift: 0}"
       x-on:click.away="open = false"
       id={@id}
     >
@@ -1607,7 +1609,7 @@ defmodule PlatformWeb.Components do
               "bg-white"
             end}
           aria-haspopup="true"
-          x-on:click="open = !open"
+          x-on:click="open = !open; $nextTick(() => { shift = Math.max(0, 8 - ($el.closest('article').getBoundingClientRect().right - $refs.menu.offsetWidth)) })"
         >
           <%= @attr.label %>
           <svg
@@ -1625,7 +1627,9 @@ defmodule PlatformWeb.Components do
         </button>
       </div>
       <div
-        class="absolute right-0 z-[10000] overflow-visible mt-2 w-96 origin-top-right rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
+        class="absolute right-0 z-[10000] overflow-visible mt-2 w-96 max-w-[calc(100vw-1rem)] origin-top-right rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
+        x-ref="menu"
+        x-bind:style="`right: ${-shift}px`"
         role="menu"
         x-transition
         aria-orientation="vertical"
@@ -2656,13 +2660,13 @@ defmodule PlatformWeb.Components do
               </div>
             </div>
             <div class={"flex bg-white border rounded sm:border-none sm:rounded-none sm:bg-transparent p-4 sm:p-0 justify-between gap-4 items-center w-full flex-col-reverse sm:flex-row " <> if Enum.member?(@exclude, :pagination) and Enum.member?(@exclude, :filters), do: "hidden", else: ""}>
-              <div class={if Enum.member?(@exclude, :pagination), do: "hidden", else: ""}>
+              <div class={"sm:shrink-0 whitespace-nowrap " <> if Enum.member?(@exclude, :pagination), do: "hidden", else: ""}>
                 <%= if assigns[:pagination] do %>
                   <%= render_slot(@pagination) %>
                 <% end %>
               </div>
-              <div class={if Enum.member?(@exclude, :filters), do: "hidden", else: ""}>
-                <div class="relative flex flex-wrap items-center h-full gap-2">
+              <div class={"min-w-0 " <> if Enum.member?(@exclude, :filters), do: "hidden", else: ""}>
+                <div class="relative flex flex-wrap items-center sm:justify-end h-full gap-2">
                   <.attr_filter id="status_filter" form={f} attr={Attribute.get_attribute(:status)} />
                   <.attr_filter
                     id="geolocation_filter"
