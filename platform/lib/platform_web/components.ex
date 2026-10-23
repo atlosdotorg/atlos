@@ -1456,6 +1456,129 @@ defmodule PlatformWeb.Components do
     """
   end
 
+  def attr_filter(%{attr: %Attribute{schema_field: :project_attributes}} = assigns) do
+    filter =
+      Material.MediaSearch.project_attribute_filter(assigns.form.source, assigns.attr.name) ||
+        %{values: [], text: nil, date_min: nil, date_max: nil}
+
+    assigns =
+      assigns
+      |> assign(:filter, filter)
+      |> assign(:is_active, filter != %{values: [], text: nil, date_min: nil, date_max: nil})
+      |> assign(:input_name, "#{assigns.form.name}[project_attributes][#{assigns.attr.name}]")
+      |> assign_new(:label, fn -> assigns.attr.label end)
+
+    ~H"""
+    <article
+      class="relative text-left overflow-visible"
+      x-data="{open: false}"
+      x-on:click.away="open = false"
+      id={@id}
+    >
+      <div>
+        <button
+          type="button"
+          class={"transition-all flex h-8 border shadow-sm rounded-lg py-1 px-2 w-full justify-center items-center gap-x-1 text-sm text-gray-900 " <>
+            if @is_active do
+              "text-white bg-urge-500 border-urge-500"
+            else
+              "bg-white"
+            end}
+          aria-haspopup="true"
+          x-on:click="open = !open"
+        >
+          <%= @label %>
+          <svg
+            class="-mr-1 h-5 w-5 opacity-75"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+            aria-hidden="true"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
+              clip-rule="evenodd"
+            />
+          </svg>
+        </button>
+      </div>
+      <div
+        class="absolute right-0 z-[10000] overflow-visible mt-2 w-96 origin-top-right rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
+        role="menu"
+        x-transition
+        aria-orientation="vertical"
+        tabindex="-1"
+        x-show="open"
+        x-cloak
+      >
+        <div class="p-2" role="none">
+          <p class="text-xs font-medium uppercase tracking-wide text-gray-500 mb-1">
+            Filter <%= @label %> to...
+          </p>
+          <div>
+            <%= case @attr.type do %>
+              <% x when x == :multi_select or x == :select -> %>
+                <div phx-update="ignore" id={"attr_select_#{@attr.name}"} class="phx-form">
+                  <select
+                    multiple
+                    name={@input_name <> "[values][]"}
+                    id={"attr_select_#{@attr.name}_input"}
+                    data-descriptions={
+                      Jason.encode!(%{"[Unset]" => "No #{String.downcase(@attr.label)} set"})
+                    }
+                  >
+                    <%= options_for_select(
+                      Enum.uniq(Attribute.options(@attr) ++ @filter.values) ++ ["[Unset]"],
+                      @filter.values
+                    ) %>
+                  </select>
+                </div>
+              <% :text -> %>
+                <div class="ts-ignore">
+                  <input
+                    type="text"
+                    name={@input_name <> "[text]"}
+                    id={"attr_text_#{@attr.name}_input"}
+                    value={@filter.text}
+                    placeholder="Contains..."
+                    class="input-base w-full"
+                    phx-debounce="1000"
+                  />
+                </div>
+              <% :date -> %>
+                <div>
+                  <div class="flex gap-2 items-center">
+                    <input
+                      type="date"
+                      name={@input_name <> "[date_min]"}
+                      id={"attr_date_min_#{@attr.name}_input"}
+                      value={@filter.date_min}
+                      class="input-base inline-flex items-center"
+                      phx-debounce="2000"
+                    />
+                    <span class="text-sm text-gray-600">until</span>
+                    <input
+                      type="date"
+                      name={@input_name <> "[date_max]"}
+                      id={"attr_date_max_#{@attr.name}_input"}
+                      value={@filter.date_max}
+                      class="input-base inline-flex items-center"
+                      phx-debounce="2000"
+                    />
+                  </div>
+                  <p class="support text-gray-600 mt-1">
+                    For an open ended range, leave the field blank.
+                  </p>
+                </div>
+              <% _ -> %>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    </article>
+    """
+  end
+
   def attr_filter(assigns) do
     assigns =
       assign(
@@ -2561,6 +2684,26 @@ defmodule PlatformWeb.Components do
                     form={f}
                     attr={Attribute.get_attribute(:sensitive)}
                   />
+                  <%= if not is_nil(assigns[:active_project]) do %>
+                    <%= for attr <- Platform.Projects.get_project_attributes(@active_project),
+                            attr.type in [:select, :multi_select, :text, :date] do %>
+                      <.attr_filter
+                        id={"project_attr_filter_#{attr.name}"}
+                        form={f}
+                        attr={attr}
+                        label={
+                          case attr.is_decorator &&
+                                 Attribute.get_attribute(attr.parent,
+                                   project: @active_project,
+                                   exclude_options: true
+                                 ) do
+                            %Attribute{label: parent_label} -> "#{parent_label}: #{attr.label}"
+                            _ -> attr.label
+                          end
+                        }
+                      />
+                    <% end %>
+                  <% end %>
                   <div
                     class="relative text-left overflow-visible"
                     data-tooltip="Filter to my assignments"

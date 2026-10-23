@@ -21,6 +21,8 @@ defmodule Platform.Material.MediaSearch do
     attr_geolocation: :string,
     attr_geolocation_radius: :integer,
     project_id: :string,
+    # Map of project attribute ID => filter (see `project_attribute_filters/1`)
+    project_attributes: :map,
     no_media_versions: :boolean,
     # User id
     only_subscribed_id: :string,
@@ -63,6 +65,73 @@ defmodule Platform.Material.MediaSearch do
       "date_asc"
     ])
   end
+
+  @doc """
+  Returns the project (custom) attribute filters in the given search changeset, as a map
+  of attribute ID => %{values: [string], text: string | nil, date_min: string | nil, date_max: string | nil}.
+  Attributes without any active filter are omitted.
+  """
+  def project_attribute_filters(%Ecto.Changeset{} = changeset) do
+    case Ecto.Changeset.get_field(changeset, :project_attributes) do
+      filters when is_map(filters) ->
+        filters
+        |> Enum.flat_map(fn {id, filter} ->
+          with {:ok, id} <- UUID.cast(id),
+               filter when is_map(filter) <- filter do
+            normalized = %{
+              values: normalize_filter_values(Map.get(filter, "values")),
+              text: normalize_filter_text(Map.get(filter, "text")),
+              date_min: normalize_filter_date(Map.get(filter, "date_min")),
+              date_max: normalize_filter_date(Map.get(filter, "date_max"))
+            }
+
+            if normalized == %{values: [], text: nil, date_min: nil, date_max: nil},
+              do: [],
+              else: [{id, normalized}]
+          else
+            _ -> []
+          end
+        end)
+        |> Map.new()
+
+      _ ->
+        %{}
+    end
+  end
+
+  @doc """
+  Returns the filter for the given project attribute ID in the search changeset, or nil if it is not being filtered.
+  """
+  def project_attribute_filter(%Ecto.Changeset{} = changeset, attribute_id) do
+    Map.get(project_attribute_filters(changeset), attribute_id)
+  end
+
+  defp normalize_filter_values(values) when is_list(values) do
+    values
+    |> Enum.filter(&(is_binary(&1) and &1 != ""))
+    |> Enum.uniq()
+    |> Enum.take(512)
+  end
+
+  defp normalize_filter_values(_), do: []
+
+  defp normalize_filter_text(text) when is_binary(text) do
+    case text |> String.trim() |> String.slice(0, 256) do
+      "" -> nil
+      text -> text
+    end
+  end
+
+  defp normalize_filter_text(_), do: nil
+
+  defp normalize_filter_date(date) when is_binary(date) do
+    case Date.from_iso8601(date) do
+      {:ok, date} -> Date.to_iso8601(date)
+      _ -> nil
+    end
+  end
+
+  defp normalize_filter_date(_), do: nil
 
   defp parse_location(location_string) do
     coords =
@@ -186,6 +255,18 @@ defmodule Platform.Material.MediaSearch do
     end
   end
 
+  defp apply_query_component(queryable, changeset, :project_attributes) do
+    changeset
+    |> project_attribute_filters()
+    |> Enum.reduce(queryable, fn {id, filter}, queryable ->
+      queryable
+      |> apply_project_attribute_values_filter(id, filter.values)
+      |> apply_project_attribute_text_filter(id, filter.text)
+      |> apply_project_attribute_date_filter(id, filter.date_min, :min)
+      |> apply_project_attribute_date_filter(id, filter.date_max, :max)
+    end)
+  end
+
   defp apply_query_component(queryable, changeset, :no_media_versions) do
     case Map.get(changeset.changes, :no_media_versions, nil) do
       nil ->
@@ -262,6 +343,91 @@ defmodule Platform.Material.MediaSearch do
     end
   end
 
+  # Project attribute values are stored in the `project_attributes` JSONB array as
+  # objects of the form {"id": attribute_id, "project_id": ..., "value": ...}.
+
+  defp apply_project_attribute_values_filter(queryable, _id, []), do: queryable
+
+  defp apply_project_attribute_values_filter(queryable, id, values) do
+    # Like tags, the incident must match at least one of the given values
+    conditions =
+      Enum.reduce(values, dynamic(false), fn
+        "[Unset]", acc ->
+          dynamic(
+            [m],
+            ^acc or
+              fragment(
+                "NOT EXISTS (SELECT 1 FROM jsonb_array_elements(CASE WHEN jsonb_typeof(?) = 'array' THEN ? ELSE '[]'::jsonb END) e WHERE e->>'id' = ? AND e->'value' IS NOT NULL AND e->'value' NOT IN ('null'::jsonb, '[]'::jsonb, '\"\"'::jsonb))",
+                m.project_attributes,
+                m.project_attributes,
+                ^id
+              )
+          )
+
+        value, acc ->
+          # Select values are stored as strings, and multi-select values as arrays of strings
+          single = Jason.encode!([%{id: id, value: value}])
+          multi = Jason.encode!([%{id: id, value: [value]}])
+
+          dynamic(
+            [m],
+            ^acc or fragment("? @> ?::text::jsonb", m.project_attributes, ^single) or
+              fragment("? @> ?::text::jsonb", m.project_attributes, ^multi)
+          )
+      end)
+
+    where(queryable, ^conditions)
+  end
+
+  defp apply_project_attribute_text_filter(queryable, _id, nil), do: queryable
+
+  defp apply_project_attribute_text_filter(queryable, id, text) do
+    pattern = "%" <> String.replace(text, ~r/([\\%_])/, "\\\\\\1") <> "%"
+
+    where(
+      queryable,
+      [m],
+      fragment(
+        "EXISTS (SELECT 1 FROM jsonb_array_elements(CASE WHEN jsonb_typeof(?) = 'array' THEN ? ELSE '[]'::jsonb END) e WHERE e->>'id' = ? AND e->>'value' ILIKE ?)",
+        m.project_attributes,
+        m.project_attributes,
+        ^id,
+        ^pattern
+      )
+    )
+  end
+
+  defp apply_project_attribute_date_filter(queryable, _id, nil, _bound), do: queryable
+
+  # Dates are stored as ISO 8601 strings, so they can be compared lexicographically
+  defp apply_project_attribute_date_filter(queryable, id, date, :min) do
+    where(
+      queryable,
+      [m],
+      fragment(
+        "EXISTS (SELECT 1 FROM jsonb_array_elements(CASE WHEN jsonb_typeof(?) = 'array' THEN ? ELSE '[]'::jsonb END) e WHERE e->>'id' = ? AND jsonb_typeof(e->'value') = 'string' AND e->>'value' >= ?)",
+        m.project_attributes,
+        m.project_attributes,
+        ^id,
+        ^date
+      )
+    )
+  end
+
+  defp apply_project_attribute_date_filter(queryable, id, date, :max) do
+    where(
+      queryable,
+      [m],
+      fragment(
+        "EXISTS (SELECT 1 FROM jsonb_array_elements(CASE WHEN jsonb_typeof(?) = 'array' THEN ? ELSE '[]'::jsonb END) e WHERE e->>'id' = ? AND jsonb_typeof(e->'value') = 'string' AND e->>'value' <> '' AND e->>'value' <= ?)",
+        m.project_attributes,
+        m.project_attributes,
+        ^id,
+        ^date
+      )
+    )
+  end
+
   defp apply_sort(queryable, changeset) do
     # Returns a {queryable, pagination_opts} tuple.
     uploaded_desc = {queryable |> Ecto.Query.order_by([i], desc: i.inserted_at), []}
@@ -324,6 +490,7 @@ defmodule Platform.Material.MediaSearch do
     |> apply_query_component(cs, :attr_geolocation)
     |> apply_query_component(cs, :no_media_versions)
     |> apply_query_component(cs, :project_id)
+    |> apply_query_component(cs, :project_attributes)
     |> apply_query_component(cs, :only_subscribed_id)
     |> apply_query_component(cs, :only_assigned_id)
     |> apply_query_component(cs, :has_been_edited_by_id)
