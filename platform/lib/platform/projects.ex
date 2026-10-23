@@ -316,7 +316,21 @@ defmodule Platform.Projects do
   def get_project_membership_by_user_and_project_id(_, ""), do: nil
 
   def get_project_membership_by_user_and_project_id(%Accounts.User{} = user, project_id) do
-    get_project_membership_by_user_id_and_project_id(user.id, project_id)
+    # Permission checks call this per row/cell. Each Memoize (ETS) hit copies the membership, with
+    # its preloaded project (including every attribute definition), into the caller's heap, so we
+    # keep a short-lived process-local copy in front of it.
+    key = {__MODULE__, :membership, user.id, project_id}
+    now = System.monotonic_time(:millisecond)
+
+    case Process.get(key) do
+      {expires_at, membership} when expires_at > now ->
+        membership
+
+      _ ->
+        membership = get_project_membership_by_user_id_and_project_id(user.id, project_id)
+        Process.put(key, {now + 1000, membership})
+        membership
+    end
   end
 
   defmemo get_project_membership_by_user_id_and_project_id(user_id, project_id), expires_in: 5000 do

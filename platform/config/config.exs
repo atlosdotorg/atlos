@@ -10,6 +10,11 @@ import Config
 config :platform,
   ecto_repos: [Platform.Repo]
 
+# Postgres' default random_page_cost (4) assumes spinning disks. Combined with the fact that the
+# planner doesn't account for detoasting, it makes full-text search on `media` prefer sequential
+# scans over the GIN index on `searchable`, which reads the whole table (and its TOAST) per search.
+config :platform, Platform.Repo, parameters: [random_page_cost: "1.1"]
+
 # Feature flags
 config :platform, :features,
   custom_project_attributes: true,
