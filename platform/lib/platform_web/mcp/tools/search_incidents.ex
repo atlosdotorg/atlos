@@ -159,7 +159,11 @@ defmodule PlatformWeb.MCP.Tools.SearchIncidents do
 
           {:ok,
            %{
-             results: Enum.map(results.entries, &APISerialization.incident_summary/1),
+             results:
+               Enum.map(results.entries, fn media ->
+                 APISerialization.incident_summary(media)
+                 |> Helpers.put_assignees(context, media)
+               end),
              cursor: Cursor.sign(results.metadata.after, context.cursor_salt)
            }}
         end

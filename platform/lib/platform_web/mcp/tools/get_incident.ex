@@ -13,7 +13,7 @@ defmodule PlatformWeb.MCP.Tools.GetIncident do
   @impl true
   def description do
     "Get the full detail of one incident by its slug (e.g. \"CIV-1234\" or the bare slug), " <>
-      "including all attribute values, project-defined attribute values, and its source " <>
+      "including all attribute values, project-defined attribute values, assignees, and its source " <>
       "material with artifact download links. Incidents may describe graphic or sensitive " <>
       "events; check the `sensitive` field before surfacing content to people."
   end
@@ -48,7 +48,8 @@ defmodule PlatformWeb.MCP.Tools.GetIncident do
          incident: %{media | versions: Helpers.visible_versions(context, media.versions)},
          slug: Media.slug_to_display(media),
          url: PlatformWeb.Endpoint.url() <> "/incidents/" <> media.slug
-       }}
+       }
+       |> Helpers.put_assignees(context, media)}
     end
   end
 end

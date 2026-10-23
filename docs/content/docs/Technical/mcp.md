@@ -67,15 +67,15 @@ Which tools an assistant sees depends on the access you gave it (or the API toke
 | Tool | Requires | What it does |
 |---|---|---|
 | `list_projects` | Read | The projects the assistant can access, and what it can do in each. |
-| `get_project` | Read | Project info and all attribute definitions (IDs, types, options). |
+| `get_project` | Read | Project info, all attribute definitions (IDs, types, options), and the project's members. |
 | `search_incidents` | Read | Search and filter incidents; paginated summaries. |
-| `get_incident` | Read | Full detail for one incident, by slug. |
-| `get_incident_updates` | Read | The activity feed for one incident, one project, or all your projects. |
+| `get_incident` | Read | Full detail for one incident, by slug, including who is assigned. |
+| `get_incident_updates` | Read | The activity feed, including comments, for one incident, one project, or all your projects. Can be limited to comments. |
 | `get_source_material` | Read | One piece of source material, with signed artifact download links. |
 | `add_comment` | Comment | Post a comment to an incident's feed. |
 | `add_source_material` | Editor | Attach a URL as source material, optionally archiving it. |
 | `create_incident` | Editor | Create an incident, including custom attribute values. |
-| `update_incident_attribute` | Editor | Set one attribute value, with a required explanation. |
+| `update_incident_attribute` | Editor | Set one attribute value, with a required explanation. This includes assigning people to an incident by username. |
 
 Every write appears in the incident's activity feed, attributed to you (if you signed in) or to the API token. Attribute updates made over MCP always require an explanation message, so an assistant's actions are auditable. Restricted attributes (like an incident's restrictions) can only be changed by project owners and managers who signed in with their Atlos account, not with an API token. Nothing can be deleted over MCP.
 

@@ -148,6 +148,90 @@ defmodule PlatformWeb.MCP.Tools.Helpers do
     do: Permissions.can_set_restricted_attribute_values_within_project?(user, project, attribute)
 
   @doc """
+  Whether the actor can see who is in a project, and so who is assigned to
+  its incidents. As in the web app, data-only viewers can't.
+  """
+  def can_view_members?(%Context{actor: %APIToken{}} = context, project_id),
+    do: project_id == context.project_id
+
+  def can_view_members?(%Context{actor: %User{}} = context, project_id) do
+    case Enum.find(Context.memberships(context), &(&1.project_id == project_id)) do
+      nil -> false
+      membership -> membership.role != :data_only_viewer
+    end
+  end
+
+  @doc """
+  The project's members, as `%{id, username}` maps.
+  """
+  def project_members(%Project{} = project) do
+    Projects.get_project_users(project)
+    |> Enum.map(&%{id: &1.id, username: &1.username})
+    |> Enum.sort_by(&String.downcase(&1.username))
+  end
+
+  @doc """
+  The incident's assignees, as `%{id, username}` maps, or `nil` if the actor
+  can't see project members.
+  """
+  def assignees(%Context{} = context, %Media{} = media) do
+    if can_view_members?(context, media.project_id) do
+      case media.attr_assignments do
+        assignments when is_list(assignments) ->
+          Enum.map(assignments, fn assignment ->
+            %{id: assignment.user_id, username: assignment.user && assignment.user.username}
+          end)
+
+        _ ->
+          []
+      end
+    end
+  end
+
+  @doc """
+  Add the incident's assignees to a serialized incident, if the actor can see
+  them.
+  """
+  def put_assignees(map, %Context{} = context, %Media{} = media) do
+    case assignees(context, media) do
+      nil -> map
+      list -> Map.put(map, :assignees, list)
+    end
+  end
+
+  @doc """
+  Resolve a list of usernames or user IDs to the IDs of project members.
+  """
+  def resolve_members(%Project{} = project, values) when is_list(values) do
+    members = Projects.get_project_users(project)
+
+    {ids, unknown} =
+      Enum.reduce(values, {[], []}, fn value, {ids, unknown} ->
+        key =
+          if is_binary(value), do: value |> String.trim() |> String.trim_leading("@"), else: value
+
+        case Enum.find(
+               members,
+               &(&1.id == key or String.downcase(&1.username) == String.downcase(to_string(key)))
+             ) do
+          nil -> {ids, [value | unknown]}
+          user -> {[user.id | ids], unknown}
+        end
+      end)
+
+    if unknown == [] do
+      {:ok, ids |> Enum.reverse() |> Enum.uniq()}
+    else
+      {:error,
+       "not members of this project: #{unknown |> Enum.reverse() |> Enum.map_join(", ", &inspect/1)}; " <>
+         "call get_project to list its members"}
+    end
+  end
+
+  def resolve_members(_project, _values),
+    do: {:error, "value must be an array of usernames (an empty array clears it)"}
+
+  @doc """
   Remove the source material the actor can't see (for users, material that
   has been removed is visible only to owners and managers).
   """

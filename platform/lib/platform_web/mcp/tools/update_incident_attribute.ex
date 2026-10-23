@@ -18,7 +18,8 @@ defmodule PlatformWeb.MCP.Tools.UpdateIncidentAttribute do
     "Set the value of one attribute on an incident. `attribute` is an attribute id from " <>
       "`get_project`: a core attribute's name (e.g. \"status\", \"description\", \"tags\") " <>
       "or a project-defined attribute's UUID. For select attributes pass a string; for " <>
-      "multi-select attributes pass an array of strings. A `message` explaining the change " <>
+      "multi-select attributes pass an array of strings; for `assignments` pass an array of " <>
+      "project members' usernames (from get_project), which replaces the current assignees. A `message` explaining the change " <>
       "is required and is recorded on the incident's activity feed alongside the change. " <>
       "Restricted attributes can only be changed by project owners and managers who " <>
       "connected with their Atlos account, not with an API token."
@@ -82,24 +83,37 @@ defmodule PlatformWeb.MCP.Tools.UpdateIncidentAttribute do
           {:error, "not authorized to edit this incident"}
 
         true ->
-          result =
-            Material.update_media_attributes_audited(
-              media,
-              [attribute],
-              Material.generate_attribute_change_params(attribute, value, project, %{
-                "explanation" => message
-              }),
-              Helpers.actor_opt(context)
-            )
-
-          case result do
-            {:ok, updated} ->
-              {:ok, %{success: true, slug: Material.Media.slug_to_display(media), id: updated.id}}
-
-            {:error, changeset} ->
-              {:error, Helpers.changeset_errors(changeset)}
+          with {:ok, value} <- normalize_value(attribute, project, value) do
+            update(context, media, project, attribute, value, message)
           end
       end
+    end
+  end
+
+  # Multi-user attributes (such as assignments) are stored as user IDs; let
+  # the model pass usernames, which it can learn from get_project.
+  defp normalize_value(%Attribute{type: :multi_users}, project, value),
+    do: Helpers.resolve_members(project, value)
+
+  defp normalize_value(_attribute, _project, value), do: {:ok, value}
+
+  defp update(context, media, project, attribute, value, message) do
+    result =
+      Material.update_media_attributes_audited(
+        media,
+        [attribute],
+        Material.generate_attribute_change_params(attribute, value, project, %{
+          "explanation" => message
+        }),
+        Helpers.actor_opt(context)
+      )
+
+    case result do
+      {:ok, updated} ->
+        {:ok, %{success: true, slug: Material.Media.slug_to_display(media), id: updated.id}}
+
+      {:error, changeset} ->
+        {:error, Helpers.changeset_errors(changeset)}
     end
   end
 end

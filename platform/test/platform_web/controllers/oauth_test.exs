@@ -553,6 +553,70 @@ defmodule PlatformWeb.OAuthTest do
       assert viewed_entry["role"] == "viewer"
     end
 
+    test "assignees can be seen and set by username, and comments read" do
+      owner = user_fixture()
+      project = project_fixture(%{}, owner: owner)
+      editor = member(project, :editor)
+      data_only = member(project, :data_only_viewer)
+      media = media_fixture(%{project_id: project.id})
+
+      {_client_id, tokens} = connect_client(owner)
+      token = tokens["access_token"]
+
+      members =
+        call_tool(token, "get_project", %{})["structuredContent"]["project"]["members"]
+        |> Enum.map(& &1["username"])
+
+      assert editor.username in members
+
+      args = %{
+        slug: media.slug,
+        attribute: "assignments",
+        value: [editor.username],
+        message: "Assigning"
+      }
+
+      result = call_tool(token, "update_incident_attribute", args)
+      assert result["isError"] == false, inspect(result)
+
+      incident = call_tool(token, "get_incident", %{slug: media.slug})["structuredContent"]
+      assert Enum.map(incident["assignees"], & &1["username"]) == [editor.username]
+
+      [summary] = call_tool(token, "search_incidents", %{})["structuredContent"]["results"]
+      assert Enum.map(summary["assignees"], & &1["username"]) == [editor.username]
+
+      # Only project members can be assigned
+      stranger = user_fixture()
+      result = call_tool(token, "update_incident_attribute", %{args | value: [stranger.username]})
+      assert result["isError"] == true
+      assert hd(result["content"])["text"] =~ "not members of this project"
+
+      # Comments can be read on their own
+      call_tool(token, "add_comment", %{slug: media.slug, message: "A comment"})
+
+      comments =
+        call_tool(token, "get_incident_updates", %{slug: media.slug, comments_only: true})[
+          "structuredContent"
+        ]["results"]
+
+      assert Enum.map(comments, & &1["explanation"]) == ["A comment"]
+      assert hd(comments)["user"]["username"] == owner.username
+
+      # Data-only viewers can't see members or assignees
+      {_client_id, tokens} = connect_client(data_only)
+      token = tokens["access_token"]
+
+      refute Map.has_key?(
+               call_tool(token, "get_project", %{})["structuredContent"]["project"],
+               "members"
+             )
+
+      refute Map.has_key?(
+               call_tool(token, "get_incident", %{slug: media.slug})["structuredContent"],
+               "assignees"
+             )
+    end
+
     test "data-only viewers can read incidents but not the activity feed" do
       user = user_fixture()
       owned = project_fixture(%{}, owner: user)

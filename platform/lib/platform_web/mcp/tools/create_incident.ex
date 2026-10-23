@@ -109,6 +109,12 @@ defmodule PlatformWeb.MCP.Tools.CreateIncident do
         {:error,
          "unknown attributes: #{inspect(unknown_attributes)}; call get_project to list this project's attribute ids"}
 
+      Enum.any?(attribute_values, fn {key, _} ->
+        match?(%Attribute{type: :multi_users}, Attribute.get_attribute(key, project: project))
+      end) ->
+        {:error,
+         "assignees can't be set when creating an incident; create it, then set them with update_incident_attribute"}
+
       forbidden_restricted_attributes != [] ->
         {:error,
          "only project owners and managers can set restricted attributes: #{inspect(forbidden_restricted_attributes)}"}
