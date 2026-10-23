@@ -98,7 +98,7 @@ defmodule PlatformWeb.MCP.Tools.SearchIncidents do
   def read_only?, do: true
 
   @impl true
-  def call(token, args) do
+  def call(context, args) do
     search_params =
       %{}
       |> put_present("query", args["query"])
@@ -112,7 +112,7 @@ defmodule PlatformWeb.MCP.Tools.SearchIncidents do
       |> put_present("no_media_versions", args["no_source_material"])
       |> put_present("sort", args["sort"])
 
-    base_query = from(m in Material.Media, where: m.project_id == ^token.project_id)
+    base_query = from(m in Material.Media, where: m.project_id == ^context.project_id)
     changeset = Material.MediaSearch.changeset(search_params)
 
     cond do
@@ -122,7 +122,7 @@ defmodule PlatformWeb.MCP.Tools.SearchIncidents do
       true ->
         {query, pagination_options} = Material.MediaSearch.search_query(base_query, changeset)
 
-        with {:ok, after_cursor} <- Cursor.extract(args["cursor"], token.value) do
+        with {:ok, after_cursor} <- Cursor.extract(args["cursor"], context.cursor_salt) do
           results =
             Material.query_media_paginated(
               query,
@@ -131,12 +131,13 @@ defmodule PlatformWeb.MCP.Tools.SearchIncidents do
                 after: after_cursor,
                 limit: @page_size
               )
+              |> Keyword.merge(visibility_options(context))
             )
 
           {:ok,
            %{
              results: Enum.map(results.entries, &APISerialization.incident_summary/1),
-             cursor: Cursor.sign(results.metadata.after, token.value)
+             cursor: Cursor.sign(results.metadata.after, context.cursor_salt)
            }}
         end
     end
@@ -144,4 +145,9 @@ defmodule PlatformWeb.MCP.Tools.SearchIncidents do
 
   defp put_present(map, _key, nil), do: map
   defp put_present(map, key, value), do: Map.put(map, key, value)
+
+  # Users only see the incidents they can view in the web app (hidden
+  # incidents are visible only to owners and managers).
+  defp visibility_options(%{actor: %Platform.Accounts.User{} = user}), do: [for_user: user]
+  defp visibility_options(_context), do: []
 end

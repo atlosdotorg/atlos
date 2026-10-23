@@ -1,7 +1,8 @@
 defmodule PlatformWeb.MCP.Tools.AddComment do
   @behaviour PlatformWeb.MCP.Tool
 
-  alias Platform.Permissions
+  alias Platform.API.APIToken
+  alias Platform.Accounts.User
   alias Platform.Updates
   alias PlatformWeb.MCP.Tools.Helpers
 
@@ -10,8 +11,8 @@ defmodule PlatformWeb.MCP.Tools.AddComment do
 
   @impl true
   def description do
-    "Post a comment on an incident's activity feed. The comment is attributed to this " <>
-      "API token. Maximum length is 2,500 characters."
+    "Post a comment on an incident's activity feed. The comment is attributed to the " <>
+      "connected user, or to the API token. Maximum length is 2,500 characters."
   end
 
   @impl true
@@ -40,20 +41,28 @@ defmodule PlatformWeb.MCP.Tools.AddComment do
   def read_only?, do: false
 
   @impl true
-  def call(token, args) do
+  def call(context, args) do
     with {:ok, slug} <- Helpers.require_string(args, "slug"),
          {:ok, message} <- Helpers.require_string(args, "message"),
-         {:ok, media} <- Helpers.get_scoped_media(token, slug) do
+         {:ok, media} <- Helpers.get_scoped_media(context, slug) do
       cond do
-        not Permissions.can_api_token_post_comment?(token, media) ->
-          {:error, "api token not authorized to post comment"}
+        not Helpers.can_comment?(context, media) ->
+          {:error, "not authorized to post a comment on this incident"}
 
         true ->
-          case Updates.post_comment_from_api_token(media, token, message) do
+          case post_comment(context, media, message) do
             {:ok, _} -> {:ok, %{success: true}}
             {:error, changeset} -> {:error, Helpers.changeset_errors(changeset)}
           end
       end
     end
+  end
+
+  defp post_comment(%{actor: %APIToken{} = token}, media, message),
+    do: Updates.post_comment_from_api_token(media, token, message)
+
+  defp post_comment(%{actor: %User{} = user}, media, message) do
+    Updates.change_from_comment(media, user, %{"explanation" => message})
+    |> Updates.create_update_from_changeset()
   end
 end

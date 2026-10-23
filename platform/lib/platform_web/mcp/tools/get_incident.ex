@@ -37,12 +37,12 @@ defmodule PlatformWeb.MCP.Tools.GetIncident do
   def read_only?, do: true
 
   @impl true
-  def call(token, args) do
+  def call(context, args) do
     with {:ok, slug} <- Helpers.require_string(args, "slug"),
-         {:ok, media} <- Helpers.get_scoped_media(token, slug) do
+         {:ok, media} <- Helpers.get_scoped_media(context, slug) do
       {:ok,
        %{
-         incident: media,
+         incident: %{media | versions: Helpers.visible_versions(context, media.versions)},
          slug: Media.slug_to_display(media),
          url: PlatformWeb.Endpoint.url() <> "/incidents/" <> media.slug
        }}

@@ -3,6 +3,8 @@ defmodule PlatformWeb.MCP.Tools.GetIncidentUpdates do
 
   import Ecto.Query
 
+  alias Platform.API.APIToken
+  alias Platform.Accounts.User
   alias Platform.Permissions
   alias Platform.Updates
   alias PlatformWeb.MCP.Cursor
@@ -47,17 +49,17 @@ defmodule PlatformWeb.MCP.Tools.GetIncidentUpdates do
   def read_only?, do: true
 
   @impl true
-  def call(token, args) do
+  def call(context, args) do
     media_result =
       case Map.get(args, "slug") do
         nil -> {:ok, nil}
-        slug -> Helpers.get_scoped_media(token, slug)
+        slug -> Helpers.get_scoped_media(context, slug)
       end
 
     with {:ok, media} <- media_result,
-         true <- Permissions.can_api_token_read_updates?(token) || :unauthorized,
-         {:ok, after_cursor} <- Cursor.extract(args["cursor"], token.value) do
-      project_id = token.project_id
+         true <- can_read_updates?(context) || :unauthorized,
+         {:ok, after_cursor} <- Cursor.extract(args["cursor"], context.cursor_salt) do
+      project_id = context.project_id
 
       results =
         Updates.query_updates_paginated(
@@ -80,12 +82,25 @@ defmodule PlatformWeb.MCP.Tools.GetIncidentUpdates do
 
       {:ok,
        %{
-         results: results.entries,
-         cursor: Cursor.sign(results.metadata.after, token.value)
+         results: visible_updates(context, results.entries),
+         cursor: Cursor.sign(results.metadata.after, context.cursor_salt)
        }}
     else
-      :unauthorized -> {:error, "api token not authorized to read updates"}
+      :unauthorized -> {:error, "not authorized to read updates"}
       {:error, message} -> {:error, message}
     end
   end
+
+  defp can_read_updates?(%{actor: %APIToken{} = token}),
+    do: Permissions.can_api_token_read_updates?(token)
+
+  defp can_read_updates?(%{actor: %User{}}), do: true
+
+  # Users don't see hidden updates unless they are a project owner or manager.
+  # Filtering after pagination can make a page shorter than the page size;
+  # the cursor still advances correctly.
+  defp visible_updates(%{actor: %APIToken{}}, updates), do: updates
+
+  defp visible_updates(%{actor: %User{} = user}, updates),
+    do: Permissions.filter_to_viewable_updates(updates, user)
 end

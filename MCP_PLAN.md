@@ -112,6 +112,17 @@ Design rules for all tools:
 - Multi-project sessions (needs a token model change — tokens are strictly project-scoped today; the recently reverted instance-wide-token work suggests this is an open product question, not a technical one).
 - File upload tool once ecosystem patterns mature; export tools (CSV/full) mirroring `ExportController`.
 
+### OAuth (implemented)
+
+Clients that can't send a custom header (e.g. claude.ai connectors) connect through OAuth 2.1, following the MCP authorization spec:
+
+- **Discovery:** a 401 from `/mcp` carries `WWW-Authenticate: Bearer resource_metadata=...`; `/.well-known/oauth-protected-resource[/mcp]` (RFC 9728) points at `/.well-known/oauth-authorization-server` (RFC 8414).
+- **Clients** register via dynamic client registration (`POST /oauth/register`, RFC 7591). All clients are public; PKCE (S256) is mandatory. Redirect URIs must be HTTPS, loopback HTTP (any port), or a reverse-domain private-use scheme.
+- **Consent** (`/oauth/authorize`): the signed-in user picks one project and an access level (read / read+comment / read+comment+edit). Data-only viewers can't connect.
+- **Tokens** (`/oauth/token`, `/oauth/revoke`): 1-hour access tokens and 30-day rotating refresh tokens, stored only as SHA-256 hashes (`Platform.OAuth`). Reusing a code revokes what it issued.
+- **Acting as the user:** an OAuth token acts as the user who approved it (`PlatformWeb.MCP.Context`). On every request its scopes are capped by the user's *current* role (owner/manager/editor: all; viewer: read+comment), and each tool runs the user permission checks (`can_view_media?`, `can_comment_on_media?`, `can_edit_media?`, …), so hidden incidents, removed source material, and hidden updates stay hidden. Removing the user from the project, suspending them, or `no_access` security mode cuts access immediately. Activity is attributed to the user.
+- **Revocation:** users see and disconnect their connected apps under Settings → Connected Apps.
+
 ## 6. Security considerations
 
 - **Capability ceiling is the token.** MCP adds no authority: every write path re-checks `Platform.Permissions.can_api_token_*`, `Security` mode, and project match, same as the REST API. Tokens remain owner-created, project-scoped, billing-gated.
@@ -123,5 +134,5 @@ Design rules for all tools:
 
 1. Should `update_incident_attribute` be allowed on restricted attributes (`is_restricted`, privileged values) with an `:edit` token, or should MCP be conservative and refuse? (Proposal: refuse in v1.)
 2. Library choice: `anubis_mcp` vs. hand-rolled Plug — prototype both in a spike; pick based on maintenance surface.
-3. Hosted Atlos: do we want MCP behind a feature/billing flag (`Plan.allowed_api` already exists — reuse it?).
+3. Hosted Atlos: do we want MCP behind a feature/billing flag (`Plan.allowed_api` already exists — reuse it?). OAuth access currently isn't gated by `allowed_api`; edits made through it still count toward the user's edit limit.
 4. Naming: `/mcp` vs `/api/mcp`; whether Phase 0 REST fixes ship as v2 changes or start a v3 namespace.

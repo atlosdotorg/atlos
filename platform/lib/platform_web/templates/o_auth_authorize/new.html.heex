@@ -1,0 +1,98 @@
+<div class="flex flex-col gap-y-6">
+  <div class="prose prose-sm">
+    <p>
+      <strong><%= @request.client.client_name %></strong>
+      wants to access Atlos as you (<strong><%= @current_user.username %></strong>).
+      Once connected, it will be able to do anything you choose below in one project, with the
+      same permissions you have there. Activity will appear under your name.
+    </p>
+    <p class="text-neutral-600">
+      After you decide, you'll be sent to <strong><%= redirect_host(@request.redirect_uri) %></strong>.
+      Only connect applications you trust.
+    </p>
+  </div>
+
+  <%= if Enum.empty?(@memberships) do %>
+    <div class="aside ~warning">
+      <p>
+        You aren't a member of any project you can connect. Ask a project owner to add you to a
+        project, then try again.
+      </p>
+    </div>
+  <% end %>
+
+  <form
+    method="post"
+    action={Routes.o_auth_authorize_path(@conn, :create)}
+    class="phx-form flex flex-col gap-y-4"
+  >
+    <input type="hidden" name="_csrf_token" value={Plug.CSRFProtection.get_csrf_token()} />
+    <%= for {name, value} <- @request_params do %>
+      <input type="hidden" name={name} value={value} />
+    <% end %>
+
+    <%= if not Enum.empty?(@memberships) do %>
+      <div>
+        <label for="project_id">Project</label>
+        <select id="project_id" name="project_id" required>
+          <%= for membership <- @memberships do %>
+            <option value={membership.project_id}>
+              <%= membership.project.name %> (<%= role_label(membership.role) %>)
+            </option>
+          <% end %>
+        </select>
+      </div>
+
+      <fieldset class="flex flex-col gap-2">
+        <legend class="mb-2">Access</legend>
+        <%= if "edit" in @request.scopes do %>
+          <label class="flex gap-2 items-start font-normal">
+            <input type="radio" name="access" value="edit" checked />
+            <span>
+              Read, comment, and edit — view incidents, post comments, add source material, create
+              incidents, and change attributes (if your role allows it)
+            </span>
+          </label>
+        <% end %>
+        <%= if "comment" in @request.scopes do %>
+          <label class="flex gap-2 items-start font-normal">
+            <input
+              type="radio"
+              name="access"
+              value="comment"
+              checked={"edit" not in @request.scopes}
+            />
+            <span>Read and comment — view incidents and post comments</span>
+          </label>
+        <% end %>
+        <label class="flex gap-2 items-start font-normal">
+          <input
+            type="radio"
+            name="access"
+            value="read"
+            checked={"comment" not in @request.scopes and "edit" not in @request.scopes}
+          />
+          <span>Read only — view incidents, their activity, and source material</span>
+        </label>
+      </fieldset>
+    <% end %>
+
+    <div class="flex gap-4 items-center">
+      <%= if not Enum.empty?(@memberships) do %>
+        <button type="submit" name="decision" value="approve" class="button ~urge @high">
+          Connect
+        </button>
+      <% end %>
+      <button type="submit" name="decision" value="deny" class="base-button">
+        Cancel
+      </button>
+    </div>
+  </form>
+
+  <p class="text-sm text-neutral-500">
+    You can disconnect applications at any time from your <a
+      href="/settings#connected-apps"
+      class="underline"
+    >account settings</a>.
+  </p>
+</div>

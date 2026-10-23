@@ -9,7 +9,7 @@ defmodule PlatformWeb.MCP.Tools.GetProject do
 
   @impl true
   def description do
-    "Get the Atlos project this token is scoped to, including the full list of its " <>
+    "Get the Atlos project this connection is scoped to, including the full list of its " <>
       "attribute definitions. Each attribute definition has an `id` (pass this to " <>
       "`update_incident_attribute` and `create_incident`), a human-readable name, a type " <>
       "(select, multi_select, text, or date), and the available options for select-type " <>
@@ -33,8 +33,8 @@ defmodule PlatformWeb.MCP.Tools.GetProject do
   def read_only?, do: true
 
   @impl true
-  def call(token, _args) do
-    project = Projects.get_project!(token.project_id)
+  def call(context, _args) do
+    project = Projects.get_project!(context.project_id)
     {:ok, %{project: APISerialization.project_with_attributes(project)}}
   end
 end

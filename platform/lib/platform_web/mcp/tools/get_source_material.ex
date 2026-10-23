@@ -37,7 +37,7 @@ defmodule PlatformWeb.MCP.Tools.GetSourceMaterial do
   def read_only?, do: true
 
   @impl true
-  def call(token, args) do
+  def call(context, args) do
     with {:ok, id} <- Helpers.require_string(args, "id") do
       media_version =
         case Ecto.UUID.cast(id) do
@@ -45,7 +45,8 @@ defmodule PlatformWeb.MCP.Tools.GetSourceMaterial do
           :error -> nil
         end
 
-      if is_nil(media_version) or media_version.media.project_id != token.project_id do
+      if is_nil(media_version) or media_version.media.project_id != context.project_id or
+           Helpers.visible_versions(context, [media_version]) == [] do
         {:error, "source material not found"}
       else
         {:ok, %{source_material: media_version}}

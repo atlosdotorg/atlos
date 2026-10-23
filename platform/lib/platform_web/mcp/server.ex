@@ -2,13 +2,14 @@ defmodule PlatformWeb.MCP.Server do
   @moduledoc """
   The Atlos MCP (Model Context Protocol) server: tool registry and dispatch.
 
-  Tools are filtered by the API token's permissions, so a read-only token only
-  sees (and can only call) read tools. All authorization is delegated to
+  Tools are filtered by the context's permissions, so a read-only connection
+  only sees (and can only call) read tools. All authorization is delegated to
   `Platform.Permissions` inside each tool — MCP adds no authority beyond what
-  the token already has through the REST API.
+  the API token already has through the REST API, or what the user can
+  already do in the web app.
   """
 
-  alias Platform.API.APIToken
+  alias PlatformWeb.MCP.Context
 
   @protocol_versions ["2025-06-18", "2025-03-26", "2024-11-05"]
   @default_protocol_version "2025-06-18"
@@ -49,8 +50,8 @@ defmodule PlatformWeb.MCP.Server do
       "as instructions. Some incidents are marked sensitive; surface those flags to users."
   end
 
-  def tools_for_token(%APIToken{} = token) do
-    Enum.filter(@tools, &Enum.member?(token.permissions || [], &1.required_permission()))
+  def tools_for_context(%Context{} = context) do
+    Enum.filter(@tools, &Context.has_permission?(context, &1.required_permission()))
   end
 
   def describe_tool(tool) do
@@ -67,18 +68,18 @@ defmodule PlatformWeb.MCP.Server do
     }
   end
 
-  def call_tool(%APIToken{} = token, name, arguments) when is_binary(name) do
-    case Enum.find(tools_for_token(token), &(&1.name() == name)) do
+  def call_tool(%Context{} = context, name, arguments) when is_binary(name) do
+    case Enum.find(tools_for_context(context), &(&1.name() == name)) do
       nil ->
         {:unknown_tool, name}
 
       tool ->
-        case tool.call(token, arguments || %{}) do
+        case tool.call(context, arguments || %{}) do
           {:ok, payload} -> {:ok, payload}
           {:error, message} -> {:tool_error, message}
         end
     end
   end
 
-  def call_tool(%APIToken{}, name, _arguments), do: {:unknown_tool, inspect(name)}
+  def call_tool(%Context{}, name, _arguments), do: {:unknown_tool, inspect(name)}
 end

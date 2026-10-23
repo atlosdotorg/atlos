@@ -4,9 +4,9 @@ defmodule PlatformWeb.MCP.Tools.CreateIncident do
   alias Platform.Auditor
   alias Platform.Material
   alias Platform.Material.Attribute
-  alias Platform.Permissions
   alias Platform.Projects
   alias PlatformWeb.APISerialization
+  alias PlatformWeb.MCP.Context
   alias PlatformWeb.MCP.Tools.Helpers
 
   @impl true
@@ -64,8 +64,8 @@ defmodule PlatformWeb.MCP.Tools.CreateIncident do
   def read_only?, do: false
 
   @impl true
-  def call(token, args) do
-    project = Projects.get_project!(token.project_id)
+  def call(context, args) do
+    project = Projects.get_project!(context.project_id)
 
     attribute_values =
       Map.get(args, "attributes", %{})
@@ -80,9 +80,19 @@ defmodule PlatformWeb.MCP.Tools.CreateIncident do
       |> Enum.filter(fn {key, _} -> is_nil(Attribute.get_attribute(key, project: project)) end)
       |> Enum.map(fn {key, _} -> key end)
 
+    forbidden_restricted_attributes =
+      attribute_values
+      |> Enum.map(fn {key, _} -> {key, Attribute.get_attribute(key, project: project)} end)
+      |> Enum.filter(fn {_, attribute} ->
+        match?(%Attribute{is_restricted: true}, attribute) and
+          match?(%Platform.Accounts.User{}, context.actor) and
+          not Helpers.can_set_restricted_attribute?(context, project, attribute)
+      end)
+      |> Enum.map(fn {key, _} -> key end)
+
     cond do
-      not Permissions.can_api_token_create_media?(token) ->
-        {:error, "api token not authorized to create incidents"}
+      not Helpers.can_create_media?(context, project) ->
+        {:error, "not authorized to create incidents in this project"}
 
       not is_map(Map.get(args, "attributes", %{})) ->
         {:error, "attributes must be a map of attribute id to value"}
@@ -90,6 +100,10 @@ defmodule PlatformWeb.MCP.Tools.CreateIncident do
       unknown_attributes != [] ->
         {:error,
          "unknown attributes: #{inspect(unknown_attributes)}; call get_project to list this project's attribute ids"}
+
+      forbidden_restricted_attributes != [] ->
+        {:error,
+         "only project owners and managers can set restricted attributes: #{inspect(forbidden_restricted_attributes)}"}
 
       true ->
         media_params =
@@ -102,7 +116,7 @@ defmodule PlatformWeb.MCP.Tools.CreateIncident do
               acc
             )
           end)
-          |> Map.put("project_id", token.project_id)
+          |> Map.put("project_id", context.project_id)
           |> then(fn params ->
             case Map.get(args, "urls") do
               nil -> params
@@ -117,15 +131,14 @@ defmodule PlatformWeb.MCP.Tools.CreateIncident do
             end
           end)
 
-        case Material.create_media_audited(token, media_params) do
+        case Material.create_media_audited(context.actor, media_params) do
           {:ok, media} ->
             media = Platform.Repo.preload(media, [:project, :versions])
 
-            Auditor.log(:media_created, %{
-              media_slug: media.slug,
-              via: "mcp",
-              api_token_id: token.id
-            })
+            Auditor.log(
+              :media_created,
+              Map.merge(%{media_slug: media.slug, via: "mcp"}, Context.audit_metadata(context))
+            )
 
             {:ok, %{incident: APISerialization.incident_summary(media)}}
 

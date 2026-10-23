@@ -3,7 +3,7 @@ defmodule PlatformWeb.MCP.Tools.AddSourceMaterial do
 
   alias Platform.Auditor
   alias Platform.Material
-  alias Platform.Permissions
+  alias PlatformWeb.MCP.Context
   alias PlatformWeb.MCP.Tools.Helpers
 
   @impl true
@@ -47,18 +47,18 @@ defmodule PlatformWeb.MCP.Tools.AddSourceMaterial do
   def read_only?, do: false
 
   @impl true
-  def call(token, args) do
+  def call(context, args) do
     should_archive = args["archive"] == true
 
     with {:ok, slug} <- Helpers.require_string(args, "slug"),
          {:ok, url} <- Helpers.require_string(args, "url"),
-         {:ok, media} <- Helpers.get_scoped_media(token, slug) do
+         {:ok, media} <- Helpers.get_scoped_media(context, slug) do
       cond do
-        not Permissions.can_api_token_edit_media?(token, media) ->
-          {:error, "api token not authorized to edit"}
+        not Helpers.can_edit?(context, media) ->
+          {:error, "not authorized to edit this incident"}
 
         true ->
-          case Material.create_media_version_audited(media, token, %{
+          case Material.create_media_version_audited(media, context.actor, %{
                  upload_type: if(should_archive, do: :direct, else: :user_provided),
                  status: :pending,
                  source_url: url,
@@ -67,12 +67,13 @@ defmodule PlatformWeb.MCP.Tools.AddSourceMaterial do
             {:ok, version} ->
               Material.archive_media_version(version)
 
-              Auditor.log(:media_version_uploaded, %{
-                media_slug: media.slug,
-                source_url: url,
-                via: "mcp",
-                api_token_id: token.id
-              })
+              Auditor.log(
+                :media_version_uploaded,
+                Map.merge(
+                  %{media_slug: media.slug, source_url: url, via: "mcp"},
+                  Context.audit_metadata(context)
+                )
+              )
 
               {:ok, %{source_material: version}}
 

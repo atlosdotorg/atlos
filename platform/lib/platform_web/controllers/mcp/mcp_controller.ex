@@ -5,8 +5,8 @@ defmodule PlatformWeb.MCPController do
   message, answered with a single JSON response. Sessions and the optional SSE
   stream are not used.
 
-  Authentication and project scoping happen in the router pipeline
-  (`PlatformWeb.APIAuth`), identically to the v2 REST API.
+  Authentication and project scoping happen in `PlatformWeb.MCP.Auth`, which
+  accepts either a project API token or an OAuth access token.
   """
 
   use PlatformWeb, :controller
@@ -79,7 +79,7 @@ defmodule PlatformWeb.MCPController do
 
   defp handle_method(conn, "tools/list", id, _params) do
     tools =
-      Server.tools_for_token(conn.assigns.token)
+      Server.tools_for_context(conn.assigns.mcp_context)
       |> Enum.map(&Server.describe_tool/1)
 
     rpc_result(conn, id, %{tools: tools})
@@ -89,7 +89,7 @@ defmodule PlatformWeb.MCPController do
     name = params["name"]
     arguments = Map.get(params, "arguments", %{})
 
-    case Server.call_tool(conn.assigns.token, name, arguments) do
+    case Server.call_tool(conn.assigns.mcp_context, name, arguments) do
       {:ok, payload} ->
         rpc_result(conn, id, %{
           content: [%{type: "text", text: Jason.encode!(payload)}],

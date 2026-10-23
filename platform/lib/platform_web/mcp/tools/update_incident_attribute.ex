@@ -3,7 +3,6 @@ defmodule PlatformWeb.MCP.Tools.UpdateIncidentAttribute do
 
   alias Platform.Material
   alias Platform.Material.Attribute
-  alias Platform.Permissions
   alias Platform.Projects
   alias PlatformWeb.MCP.Tools.Helpers
 
@@ -55,12 +54,12 @@ defmodule PlatformWeb.MCP.Tools.UpdateIncidentAttribute do
   def read_only?, do: false
 
   @impl true
-  def call(token, args) do
+  def call(context, args) do
     with {:ok, slug} <- Helpers.require_string(args, "slug"),
          {:ok, attribute_id} <- Helpers.require_string(args, "attribute"),
          {:ok, message} <- Helpers.require_string(args, "message"),
-         {:ok, media} <- Helpers.get_scoped_media(token, slug) do
-      project = Projects.get_project!(token.project_id)
+         {:ok, media} <- Helpers.get_scoped_media(context, slug) do
+      project = Projects.get_project!(context.project_id)
       attribute = Attribute.get_attribute(attribute_id, project: project)
       value = Map.get(args, "value")
 
@@ -74,8 +73,8 @@ defmodule PlatformWeb.MCP.Tools.UpdateIncidentAttribute do
         attribute.is_restricted == true ->
           {:error, "this attribute is restricted and cannot be updated through MCP"}
 
-        not Permissions.can_api_token_update_attribute?(token, media, attribute) ->
-          {:error, "api token not authorized to edit"}
+        not Helpers.can_edit?(context, media, attribute) ->
+          {:error, "not authorized to edit this incident"}
 
         true ->
           result =
@@ -85,7 +84,7 @@ defmodule PlatformWeb.MCP.Tools.UpdateIncidentAttribute do
               Material.generate_attribute_change_params(attribute, value, project, %{
                 "explanation" => message
               }),
-              api_token: token
+              Helpers.actor_opt(context)
             )
 
           case result do

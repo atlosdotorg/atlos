@@ -113,8 +113,40 @@ defmodule PlatformWeb.Router do
     end
   end
 
+  pipeline :oauth_api do
+    plug(RemoteIp)
+    plug(:accepts, ["json"])
+  end
+
+  scope "/.well-known", PlatformWeb do
+    pipe_through(:oauth_api)
+
+    get("/oauth-protected-resource", OAuthController, :protected_resource_metadata)
+    get("/oauth-protected-resource/mcp", OAuthController, :protected_resource_metadata)
+    get("/oauth-authorization-server", OAuthController, :authorization_server_metadata)
+  end
+
+  scope "/oauth", PlatformWeb do
+    pipe_through(:oauth_api)
+
+    post("/register", OAuthController, :register)
+    post("/token", OAuthController, :token)
+    post("/revoke", OAuthController, :revoke)
+  end
+
+  scope "/oauth", PlatformWeb do
+    pipe_through([:browser, :require_authenticated_user, :interstitial])
+
+    get("/authorize", OAuthAuthorizeController, :new)
+    post("/authorize", OAuthAuthorizeController, :create)
+  end
+
+  pipeline :mcp_auth do
+    plug(PlatformWeb.MCP.Auth)
+  end
+
   scope "/mcp", PlatformWeb do
-    pipe_through([:api, :check_api_token, :require_project_scoped_token])
+    pipe_through([:api, :mcp_auth])
 
     post("/", MCPController, :handle)
     get("/", MCPController, :reject)
