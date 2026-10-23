@@ -236,6 +236,23 @@ defmodule PlatformWeb.APIV2Test do
     assert json_response(conn, 401) == %{"error" => "incident not found"}
   end
 
+  test "POST /api/v2/update/:slug/geolocation sets the location" do
+    project = project_fixture()
+    token = api_token_fixture(%{project_id: project.id, permissions: [:read, :comment, :edit]})
+    media = media_fixture(%{project_id: project.id})
+
+    conn =
+      build_conn()
+      |> put_req_header("authorization", "Bearer " <> token.value)
+      |> post("/api/v2/update/#{media.slug}/geolocation", %{
+        "message" => "Located",
+        "value" => "49.84,24.03"
+      })
+
+    assert json_response(conn, 200) == %{"success" => true}
+    assert Material.get_media!(media.id).attr_geolocation.coordinates == {24.03, 49.84}
+  end
+
   test "POST /api/v2/update/:slug/:attribute" do
     project = project_fixture()
     other_project = project_fixture()

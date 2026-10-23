@@ -98,23 +98,14 @@ defmodule PlatformWeb.MCP.Tools.UpdateIncidentAttribute do
 
   defp normalize_value(_attribute, _project, value), do: {:ok, value}
 
-  # The location attribute's changeset reads a "latitude, longitude" string
-  # from "location" rather than from its schema field.
-  defp change_params(%Attribute{type: :location}, value, _project, message),
-    do: %{"location" => value, "explanation" => message}
-
-  defp change_params(attribute, value, project, message),
-    do:
-      Material.generate_attribute_change_params(attribute, value, project, %{
-        "explanation" => message
-      })
-
   defp update(context, media, project, attribute, value, message) do
     result =
       Material.update_media_attributes_audited(
         media,
         [attribute],
-        change_params(attribute, value, project, message),
+        Material.generate_attribute_change_params(attribute, value, project, %{
+          "explanation" => message
+        }),
         Helpers.actor_opt(context)
       )
 

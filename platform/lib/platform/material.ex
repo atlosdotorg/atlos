@@ -1668,6 +1668,11 @@ defmodule Platform.Material do
         existing_map \\ %{}
       ) do
     case attribute.schema_field do
+      # The location attribute's changeset reads a "latitude, longitude" string
+      # from "location", not from its schema field.
+      :attr_geolocation ->
+        Map.put(existing_map, "location", value)
+
       :project_attributes ->
         existing = existing_map["project_attributes"] || %{}
 
