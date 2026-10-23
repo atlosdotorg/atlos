@@ -68,6 +68,21 @@ defmodule PlatformWeb.MCPTest do
     assert tool_error(token, "get_project", %{project: other_project.id}) =~ "project not found"
   end
 
+  test "update_incident_attribute sets the location" do
+    project = project_fixture()
+    token = api_token_fixture(%{project_id: project.id, permissions: [:read, :comment, :edit]})
+    media = media_fixture(%{project_id: project.id})
+
+    call_tool!(token, "update_incident_attribute", %{
+      slug: media.slug,
+      attribute: "geolocation",
+      value: "49.84,24.03",
+      message: "Located"
+    })
+
+    assert Material.get_media!(media.id).attr_geolocation.coordinates == {24.03, 49.84}
+  end
+
   test "GET is rejected with 405" do
     project = project_fixture()
     token = api_token_fixture(%{project_id: project.id})

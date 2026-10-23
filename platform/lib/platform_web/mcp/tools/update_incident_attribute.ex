@@ -18,7 +18,8 @@ defmodule PlatformWeb.MCP.Tools.UpdateIncidentAttribute do
     "Set the value of one attribute on an incident. `attribute` is an attribute id from " <>
       "`get_project`: a core attribute's name (e.g. \"status\", \"description\", \"tags\") " <>
       "or a project-defined attribute's UUID. For select attributes pass a string; for " <>
-      "multi-select attributes pass an array of strings; for `assignments` pass an array of " <>
+      "multi-select attributes pass an array of strings; for `geolocation` pass " <>
+      "\"latitude,longitude\"; for `assignments` pass an array of " <>
       "project members' usernames (from get_project), which replaces the current assignees. A `message` explaining the change " <>
       "is required and is recorded on the incident's activity feed alongside the change. " <>
       "Restricted attributes can only be changed by project owners and managers who " <>
@@ -97,14 +98,23 @@ defmodule PlatformWeb.MCP.Tools.UpdateIncidentAttribute do
 
   defp normalize_value(_attribute, _project, value), do: {:ok, value}
 
+  # The location attribute's changeset reads a "latitude, longitude" string
+  # from "location" rather than from its schema field.
+  defp change_params(%Attribute{type: :location}, value, _project, message),
+    do: %{"location" => value, "explanation" => message}
+
+  defp change_params(attribute, value, project, message),
+    do:
+      Material.generate_attribute_change_params(attribute, value, project, %{
+        "explanation" => message
+      })
+
   defp update(context, media, project, attribute, value, message) do
     result =
       Material.update_media_attributes_audited(
         media,
         [attribute],
-        Material.generate_attribute_change_params(attribute, value, project, %{
-          "explanation" => message
-        }),
+        change_params(attribute, value, project, message),
         Helpers.actor_opt(context)
       )
 
