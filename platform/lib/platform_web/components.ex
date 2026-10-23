@@ -1456,6 +1456,290 @@ defmodule PlatformWeb.Components do
     """
   end
 
+  defp project_attribute_filter_summary(%{values: [_ | _] = values}) do
+    first = if hd(values) == "[Unset]", do: "None", else: hd(values)
+    if length(values) > 1, do: "#{first} +#{length(values) - 1}", else: first
+  end
+
+  defp project_attribute_filter_summary(%{text: text}) when is_binary(text),
+    do: "\u201C#{Utils.truncate(text, 20)}\u201D"
+
+  defp project_attribute_filter_summary(%{date_min: min, date_max: max})
+       when is_binary(min) and is_binary(max),
+       do: "#{min} \u2013 #{max}"
+
+  defp project_attribute_filter_summary(%{date_min: min}) when is_binary(min), do: "after #{min}"
+  defp project_attribute_filter_summary(%{date_max: max}) when is_binary(max), do: "before #{max}"
+  defp project_attribute_filter_summary(_), do: nil
+
+  @doc """
+  The custom attributes of the given project that can be filtered on, as {attribute, label} pairs.
+  Decorators are labelled with their parent attribute.
+  """
+  def project_filter_attributes(project) do
+    project
+    |> Platform.Projects.get_project_attributes()
+    |> Enum.filter(&(&1.type in [:select, :multi_select, :text, :date]))
+    |> Enum.map(fn attr ->
+      label =
+        case attr.is_decorator &&
+               Attribute.get_attribute(attr.parent, project: project, exclude_options: true) do
+          %Attribute{label: parent_label} -> "#{parent_label}: #{attr.label}"
+          _ -> attr.label
+        end
+
+      {attr, label}
+    end)
+  end
+
+  defp without_project_attribute_filter(query_params, attribute_id) do
+    query_params
+    |> Map.delete("page")
+    |> Map.update("project_attributes", %{}, fn
+      filters when is_map(filters) -> Map.delete(filters, attribute_id)
+      _ -> %{}
+    end)
+  end
+
+  @doc """
+  The "+ Filter" menu for adding custom attribute filters. Must be rendered inside the
+  Alpine scope that holds the `added` list of attribute IDs.
+  """
+  def project_attribute_filter_picker(assigns) do
+    ~H"""
+    <article
+      class="relative text-left overflow-visible"
+      x-data="{open: false, shift: 0, q: ''}"
+      x-on:click.away="open = false"
+      id="project_attribute_filter_picker"
+    >
+      <button
+        type="button"
+        class="transition-all flex h-8 border border-dashed border-gray-400 shadow-sm rounded-lg py-1 px-2 items-center gap-x-1 text-sm text-gray-700 bg-white hover:bg-neutral-50 whitespace-nowrap"
+        aria-haspopup="true"
+        x-on:click="open = !open; $nextTick(() => { shift = Math.max(0, 8 - ($el.closest('article').getBoundingClientRect().right - $refs.menu.offsetWidth)); if (open) $refs.search.focus() })"
+      >
+        <Heroicons.plus mini class="h-4 w-4" /> Filter
+      </button>
+      <div
+        class="absolute right-0 z-[10000] mt-2 w-80 max-w-[calc(100vw-1rem)] origin-top-right rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5 overflow-hidden"
+        x-ref="menu"
+        x-bind:style="`right: ${-shift}px`"
+        role="menu"
+        x-transition
+        x-show="open"
+        x-cloak
+      >
+        <label class="flex items-center gap-2 px-3 py-2 border-b text-gray-500">
+          <Heroicons.magnifying_glass mini class="h-4 w-4" />
+          <span class="sr-only">Find an attribute</span>
+          <!-- Not a search field: keep its events away from the search form -->
+          <input
+            type="text"
+            x-ref="search"
+            x-model="q"
+            x-on:input.stop
+            x-on:change.stop
+            x-on:keydown.enter.prevent
+            placeholder="Filter by attribute..."
+            class="w-full border-0 p-0 text-sm text-gray-900 placeholder-gray-500 focus:ring-0"
+          />
+        </label>
+        <div class="py-1 max-h-80 overflow-y-auto">
+          <p class="px-3 pt-1 pb-1.5 text-xs font-medium uppercase tracking-wide text-gray-500">
+            <%= @project.code %> attributes
+          </p>
+          <%= for {attr, label} <- @attributes do %>
+            <% applied = Map.has_key?(@active_filters, attr.name) %>
+            <button
+              type="button"
+              class="flex w-full items-center justify-between gap-4 px-3 py-2 text-left text-sm text-gray-900 hover:bg-neutral-100 disabled:text-gray-500 disabled:hover:bg-transparent"
+              x-show={"#{Jason.encode!(String.downcase(label))}.includes(q.toLowerCase())"}
+              disabled={applied}
+              x-bind:disabled={"#{applied} || added.includes('#{attr.name}')"}
+              x-on:click={"added.push('#{attr.name}'); open = false; q = ''; setTimeout(() => $dispatch('atlos-open-attr-filter', '#{attr.name}'), 0)"}
+            >
+              <span class="truncate"><%= label %></span>
+              <span
+                class="flex items-center gap-1 text-xs shrink-0 text-urge-600"
+                x-show={"#{applied} || added.includes('#{attr.name}')"}
+              >
+                <Heroicons.check mini class="h-4 w-4" /> Applied
+              </span>
+              <span
+                class="text-xs shrink-0 text-gray-500"
+                x-show={"!(#{applied} || added.includes('#{attr.name}'))"}
+              >
+                <%= case attr.type do
+                  :select -> "Select"
+                  :multi_select -> "Multi-select"
+                  :text -> "Text"
+                  :date -> "Date range"
+                end %>
+              </span>
+            </button>
+          <% end %>
+          <p
+            class="px-3 py-2 text-sm text-gray-500"
+            x-show={"![#{@attributes |> Enum.map(fn {_, l} -> Jason.encode!(String.downcase(l)) end) |> Enum.join(", ")}].some(l => l.includes(q.toLowerCase()))"}
+          >
+            No matching attributes
+          </p>
+        </div>
+      </div>
+    </article>
+    """
+  end
+
+  def attr_filter(%{attr: %Attribute{schema_field: :project_attributes}} = assigns) do
+    filter =
+      Material.MediaSearch.project_attribute_filter(assigns.form.source, assigns.attr.name) ||
+        %{values: [], text: nil, date_min: nil, date_max: nil}
+
+    assigns =
+      assigns
+      |> assign(:filter, filter)
+      |> assign(:is_active, filter != %{values: [], text: nil, date_min: nil, date_max: nil})
+      |> assign(:summary, project_attribute_filter_summary(filter))
+      |> assign(:input_name, "#{assigns.form.name}[project_attributes][#{assigns.attr.name}]")
+      |> assign_new(:label, fn -> assigns.attr.label end)
+
+    # Inactive custom filters stay hidden until they are added from the "+ Filter" menu
+    # (see `project_attribute_filter_picker/1`), which tracks them in the `added` list.
+    ~H"""
+    <article
+      class="relative text-left overflow-visible"
+      x-data="{open: false, shift: 0}"
+      x-on:click.away="open = false"
+      x-show={"#{@is_active} || added.includes('#{@attr.name}')"}
+      style={if @is_active, do: nil, else: "display: none"}
+      x-on:atlos-open-attr-filter.window={"if ($event.detail === '#{@attr.name}') { open = true; $nextTick(() => { shift = Math.max(0, 8 - ($el.getBoundingClientRect().right - $refs.menu.offsetWidth)) }) }"}
+      id={@id}
+    >
+      <div class={"transition-all flex h-8 border shadow-sm rounded-lg text-sm " <>
+        if @is_active do
+          "text-white bg-urge-500 border-urge-500"
+        else
+          "bg-white text-gray-900"
+        end}>
+        <button
+          type="button"
+          class="flex items-center gap-x-1 py-1 pl-2 pr-1 whitespace-nowrap"
+          aria-haspopup="true"
+          x-on:click="open = !open; $nextTick(() => { shift = Math.max(0, 8 - ($el.closest('article').getBoundingClientRect().right - $refs.menu.offsetWidth)) })"
+        >
+          <span><%= if @is_active, do: "#{@label}:", else: @label %></span>
+          <span :if={@is_active} class="font-medium max-w-[12rem] truncate"><%= @summary %></span>
+          <svg class="h-5 w-5 opacity-75" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path
+              fill-rule="evenodd"
+              d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
+              clip-rule="evenodd"
+            />
+          </svg>
+        </button>
+        <%= if @is_active do %>
+          <a
+            href={@remove_link}
+            data-phx-link="patch"
+            data-phx-link-state="push"
+            class="flex items-center px-1.5 border-l border-white/30 rounded-r-lg hover:bg-urge-600"
+            x-on:click={"added = added.filter(id => id !== '#{@attr.name}')"}
+            data-tooltip={"Remove #{@label} filter"}
+          >
+            <Heroicons.x_mark mini class="h-4 w-4" />
+            <span class="sr-only">Remove <%= @label %> filter</span>
+          </a>
+        <% else %>
+          <button
+            type="button"
+            class="flex items-center px-1.5 border-l rounded-r-lg text-gray-500 hover:bg-neutral-100"
+            x-on:click={"open = false; added = added.filter(id => id !== '#{@attr.name}')"}
+          >
+            <Heroicons.x_mark mini class="h-4 w-4" />
+            <span class="sr-only">Remove <%= @label %> filter</span>
+          </button>
+        <% end %>
+      </div>
+      <div
+        class="absolute right-0 z-[10000] overflow-visible mt-2 w-96 max-w-[calc(100vw-1rem)] origin-top-right rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
+        x-ref="menu"
+        x-bind:style="`right: ${-shift}px`"
+        role="menu"
+        x-transition
+        aria-orientation="vertical"
+        tabindex="-1"
+        x-show="open"
+        x-cloak
+      >
+        <div class="p-2" role="none">
+          <p class="text-xs font-medium uppercase tracking-wide text-gray-500 mb-1">
+            Filter <%= @label %> to...
+          </p>
+          <div>
+            <%= case @attr.type do %>
+              <% x when x == :multi_select or x == :select -> %>
+                <div phx-update="ignore" id={"attr_select_#{@attr.name}"} class="phx-form">
+                  <select
+                    multiple
+                    name={@input_name <> "[values][]"}
+                    id={"attr_select_#{@attr.name}_input"}
+                    data-descriptions={
+                      Jason.encode!(%{"[Unset]" => "No #{String.downcase(@attr.label)} set"})
+                    }
+                  >
+                    <%= options_for_select(
+                      Enum.uniq(Attribute.options(@attr) ++ @filter.values) ++ ["[Unset]"],
+                      @filter.values
+                    ) %>
+                  </select>
+                </div>
+              <% :text -> %>
+                <div class="ts-ignore">
+                  <input
+                    type="text"
+                    name={@input_name <> "[text]"}
+                    id={"attr_text_#{@attr.name}_input"}
+                    value={@filter.text}
+                    placeholder="Contains..."
+                    class="input-base w-full"
+                    phx-debounce="1000"
+                  />
+                </div>
+              <% :date -> %>
+                <div>
+                  <div class="flex gap-2 items-center">
+                    <input
+                      type="date"
+                      name={@input_name <> "[date_min]"}
+                      id={"attr_date_min_#{@attr.name}_input"}
+                      value={@filter.date_min}
+                      class="input-base inline-flex items-center"
+                      phx-debounce="2000"
+                    />
+                    <span class="text-sm text-gray-600">until</span>
+                    <input
+                      type="date"
+                      name={@input_name <> "[date_max]"}
+                      id={"attr_date_max_#{@attr.name}_input"}
+                      value={@filter.date_max}
+                      class="input-base inline-flex items-center"
+                      phx-debounce="2000"
+                    />
+                  </div>
+                  <p class="support text-gray-600 mt-1">
+                    For an open ended range, leave the field blank.
+                  </p>
+                </div>
+              <% _ -> %>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    </article>
+    """
+  end
+
   def attr_filter(assigns) do
     assigns =
       assign(
@@ -1470,7 +1754,7 @@ defmodule PlatformWeb.Components do
     ~H"""
     <article
       class="relative text-left overflow-visible"
-      x-data="{open: false}"
+      x-data="{open: false, shift: 0}"
       x-on:click.away="open = false"
       id={@id}
     >
@@ -1484,7 +1768,7 @@ defmodule PlatformWeb.Components do
               "bg-white"
             end}
           aria-haspopup="true"
-          x-on:click="open = !open"
+          x-on:click="open = !open; $nextTick(() => { shift = Math.max(0, 8 - ($el.closest('article').getBoundingClientRect().right - $refs.menu.offsetWidth)) })"
         >
           <%= @attr.label %>
           <svg
@@ -1502,7 +1786,9 @@ defmodule PlatformWeb.Components do
         </button>
       </div>
       <div
-        class="absolute right-0 z-[10000] overflow-visible mt-2 w-96 origin-top-right rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
+        class="absolute right-0 z-[10000] overflow-visible mt-2 w-96 max-w-[calc(100vw-1rem)] origin-top-right rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
+        x-ref="menu"
+        x-bind:style="`right: ${-shift}px`"
         role="menu"
         x-transition
         aria-orientation="vertical"
@@ -2533,13 +2819,13 @@ defmodule PlatformWeb.Components do
               </div>
             </div>
             <div class={"flex bg-white border rounded sm:border-none sm:rounded-none sm:bg-transparent p-4 sm:p-0 justify-between gap-4 items-center w-full flex-col-reverse sm:flex-row " <> if Enum.member?(@exclude, :pagination) and Enum.member?(@exclude, :filters), do: "hidden", else: ""}>
-              <div class={if Enum.member?(@exclude, :pagination), do: "hidden", else: ""}>
+              <div class={"sm:shrink-0 whitespace-nowrap " <> if Enum.member?(@exclude, :pagination), do: "hidden", else: ""}>
                 <%= if assigns[:pagination] do %>
                   <%= render_slot(@pagination) %>
                 <% end %>
               </div>
-              <div class={if Enum.member?(@exclude, :filters), do: "hidden", else: ""}>
-                <div class="relative flex flex-wrap items-center h-full gap-2">
+              <div class={"min-w-0 " <> if Enum.member?(@exclude, :filters), do: "hidden", else: ""}>
+                <div class="relative flex flex-wrap items-center sm:justify-end h-full gap-2">
                   <.attr_filter id="status_filter" form={f} attr={Attribute.get_attribute(:status)} />
                   <.attr_filter
                     id="geolocation_filter"
@@ -2561,6 +2847,31 @@ defmodule PlatformWeb.Components do
                     form={f}
                     attr={Attribute.get_attribute(:sensitive)}
                   />
+                  <%= if not is_nil(assigns[:active_project]) do %>
+                    <% custom_filters = project_filter_attributes(@active_project) %>
+                    <div :if={custom_filters != []} class="contents" x-data="{added: []}">
+                      <%= for {attr, label} <- custom_filters do %>
+                        <.attr_filter
+                          id={"project_attr_filter_#{attr.name}"}
+                          form={f}
+                          attr={attr}
+                          label={label}
+                          remove_link={
+                            Routes.live_path(
+                              @socket,
+                              PlatformWeb.MediaLive.Index,
+                              without_project_attribute_filter(@query_params, attr.name)
+                            )
+                          }
+                        />
+                      <% end %>
+                      <.project_attribute_filter_picker
+                        project={@active_project}
+                        attributes={custom_filters}
+                        active_filters={Material.MediaSearch.project_attribute_filters(@changeset)}
+                      />
+                    </div>
+                  <% end %>
                   <div
                     class="relative text-left overflow-visible"
                     data-tooltip="Filter to my assignments"

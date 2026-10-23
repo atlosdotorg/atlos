@@ -382,9 +382,18 @@ defmodule PlatformWeb.MediaLive.Index do
 
   def handle_event("save", %{"search" => params}, socket) do
     # Also reset the pagination index, since we're doing a new search
+    current_project_id =
+      if is_nil(socket.assigns.active_project), do: nil, else: socket.assigns.active_project.id
+
     merged_params =
       params
       |> Map.delete("page")
+      # Custom attribute filters are project-specific, so drop them when the project changes
+      |> then(fn p ->
+        if Map.get(p, "project_id", "") == to_string(current_project_id),
+          do: p,
+          else: Map.delete(p, "project_attributes")
+      end)
 
     {:noreply,
      socket

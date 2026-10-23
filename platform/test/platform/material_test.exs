@@ -363,6 +363,120 @@ defmodule Platform.MaterialTest do
                "this is earlier"
     end
 
+    test "query_media/1 filters by project (custom) attributes" do
+      {:ok, project} =
+        Platform.Projects.create_project(%{code: "CSTM", name: "Custom"}, nil,
+          default_attributes: [
+            %Platform.Projects.ProjectAttribute{
+              name: "Kind",
+              type: :select,
+              options: ["Alpha", "Beta"]
+            },
+            %Platform.Projects.ProjectAttribute{
+              name: "Weapons",
+              type: :multi_select,
+              options: ["Rifle", "Drone", "Tank"]
+            },
+            %Platform.Projects.ProjectAttribute{name: "Notes", type: :text},
+            %Platform.Projects.ProjectAttribute{name: "Seen", type: :date}
+          ]
+        )
+
+      attrs = Platform.Projects.get_project_attributes(project)
+
+      [kind, weapons, notes, seen] =
+        Enum.map(["Kind", "Weapons", "Notes", "Seen"], fn label ->
+          Enum.find(attrs, &(&1.label == label))
+        end)
+
+      set = fn media, attr, value ->
+        {:ok, media} =
+          Material.update_media_attribute(media, attr, %{
+            "project_attributes" => %{"0" => %{"id" => attr.name, "value" => value}}
+          })
+
+        media
+      end
+
+      m1 =
+        media_fixture(%{project_id: project.id})
+        |> set.(kind, "Alpha")
+        |> set.(weapons, ["Rifle", "Drone"])
+        |> set.(notes, "Seen near the 100% river_bank")
+        |> set.(seen, "2024-03-05")
+
+      m2 =
+        media_fixture(%{project_id: project.id})
+        |> set.(kind, "Beta")
+        |> set.(weapons, ["Tank"])
+        |> set.(seen, "2024-06-01")
+
+      m3 = media_fixture(%{project_id: project.id})
+
+      search = fn filters ->
+        {query, _} =
+          Material.MediaSearch.search_query(
+            Material.MediaSearch.changeset(%{
+              "project_id" => project.id,
+              "project_attributes" => filters
+            })
+          )
+
+        Material.query_media(query) |> Enum.map(& &1.id) |> Enum.sort()
+      end
+
+      ids = fn media -> media |> Enum.map(& &1.id) |> Enum.sort() end
+
+      assert search.(%{}) == ids.([m1, m2, m3])
+      assert search.(%{kind.name => %{"values" => ["Alpha"]}}) == ids.([m1])
+      assert search.(%{kind.name => %{"values" => ["Alpha", "Beta"]}}) == ids.([m1, m2])
+      assert search.(%{kind.name => %{"values" => ["[Unset]"]}}) == ids.([m3])
+      assert search.(%{kind.name => %{"values" => ["Beta", "[Unset]"]}}) == ids.([m2, m3])
+      assert search.(%{weapons.name => %{"values" => ["Drone"]}}) == ids.([m1])
+      assert search.(%{weapons.name => %{"values" => ["Drone", "Tank"]}}) == ids.([m1, m2])
+      assert search.(%{weapons.name => %{"values" => ["[Unset]"]}}) == ids.([m3])
+      assert search.(%{notes.name => %{"text" => "river"}}) == ids.([m1])
+      assert search.(%{notes.name => %{"text" => "100%"}}) == ids.([m1])
+      assert search.(%{notes.name => %{"text" => "%"}}) == ids.([m1])
+      assert search.(%{notes.name => %{"text" => "the_100"}}) == []
+      assert search.(%{notes.name => %{"text" => "  "}}) == ids.([m1, m2, m3])
+      assert search.(%{seen.name => %{"date_min" => "2024-04-01"}}) == ids.([m2])
+      assert search.(%{seen.name => %{"date_max" => "2024-04-01"}}) == ids.([m1])
+
+      assert search.(%{seen.name => %{"date_min" => "2024-01-01", "date_max" => "2024-12-31"}}) ==
+               ids.([m1, m2])
+
+      # Filters on different attributes are combined
+      assert search.(%{
+               kind.name => %{"values" => ["Alpha", "Beta"]},
+               weapons.name => %{"values" => ["Tank"]}
+             }) == ids.([m2])
+
+      # Invalid filters are ignored
+      assert search.(%{"not-a-uuid" => %{"values" => ["Alpha"]}}) == ids.([m1, m2, m3])
+      assert search.(%{seen.name => %{"date_min" => "garbage"}}) == ids.([m1, m2, m3])
+
+      # Cleared values and missing attribute data count as unset
+      m4 =
+        media_fixture(%{project_id: project.id})
+        |> set.(weapons, ["Tank"])
+        |> set.(weapons, [])
+        |> set.(notes, "")
+
+      m5 = media_fixture(%{project_id: project.id})
+
+      {1, _} =
+        Repo.update_all(from(m in Material.Media, where: m.id == ^m5.id),
+          set: [project_attributes: nil]
+        )
+
+      assert search.(%{weapons.name => %{"values" => ["[Unset]"]}}) == ids.([m3, m4, m5])
+      assert search.(%{notes.name => %{"values" => ["[Unset]"]}}) == ids.([m2, m3, m4, m5])
+      assert search.(%{weapons.name => %{"values" => ["Tank"]}}) == ids.([m2])
+      assert search.(%{notes.name => %{"text" => "river"}}) == ids.([m1])
+      assert search.(%{seen.name => %{"date_min" => "2000-01-01"}}) == ids.([m1, m2])
+    end
+
     test "query_media/1 works with basic text search" do
       assert Enum.empty?(Material.query_media())
 
