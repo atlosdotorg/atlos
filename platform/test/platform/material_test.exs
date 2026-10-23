@@ -455,6 +455,26 @@ defmodule Platform.MaterialTest do
       # Invalid filters are ignored
       assert search.(%{"not-a-uuid" => %{"values" => ["Alpha"]}}) == ids.([m1, m2, m3])
       assert search.(%{seen.name => %{"date_min" => "garbage"}}) == ids.([m1, m2, m3])
+
+      # Cleared values and missing attribute data count as unset
+      m4 =
+        media_fixture(%{project_id: project.id})
+        |> set.(weapons, ["Tank"])
+        |> set.(weapons, [])
+        |> set.(notes, "")
+
+      m5 = media_fixture(%{project_id: project.id})
+
+      {1, _} =
+        Repo.update_all(from(m in Material.Media, where: m.id == ^m5.id),
+          set: [project_attributes: nil]
+        )
+
+      assert search.(%{weapons.name => %{"values" => ["[Unset]"]}}) == ids.([m3, m4, m5])
+      assert search.(%{notes.name => %{"values" => ["[Unset]"]}}) == ids.([m2, m3, m4, m5])
+      assert search.(%{weapons.name => %{"values" => ["Tank"]}}) == ids.([m2])
+      assert search.(%{notes.name => %{"text" => "river"}}) == ids.([m1])
+      assert search.(%{seen.name => %{"date_min" => "2000-01-01"}}) == ids.([m1, m2])
     end
 
     test "query_media/1 works with basic text search" do

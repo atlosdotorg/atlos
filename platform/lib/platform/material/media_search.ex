@@ -262,8 +262,7 @@ defmodule Platform.Material.MediaSearch do
       queryable
       |> apply_project_attribute_values_filter(id, filter.values)
       |> apply_project_attribute_text_filter(id, filter.text)
-      |> apply_project_attribute_date_filter(id, filter.date_min, :min)
-      |> apply_project_attribute_date_filter(id, filter.date_max, :max)
+      |> apply_project_attribute_date_filter(id, filter.date_min, filter.date_max)
     end)
   end
 
@@ -345,6 +344,35 @@ defmodule Platform.Material.MediaSearch do
 
   # Project attribute values are stored in the `project_attributes` JSONB array as
   # objects of the form {"id": attribute_id, "project_id": ..., "value": ...}.
+  #
+  # Text, date and unset filters cannot use the GIN index on `project_attributes`, so
+  # they are evaluated for every incident in the project. They use JSON path queries
+  # (passed as parameters) to reach the one attribute directly; unpacking the whole
+  # array with jsonb_array_elements was 4-5x slower on large projects.
+
+  # The value of the attribute $id
+  @project_attribute_value_path ~s|$[*] ? (@.id == $id).value|
+
+  # JSON path filters use the `@?` operator, rather than jsonb_path_exists(), so Postgres
+  # can estimate how many incidents match from the column statistics; with a fixed guess
+  # it can pick very slow plans for rare matches. The operator does not take variables,
+  # so the (validated) ID and dates are embedded as JSON string literals.
+
+  # Whether the attribute has a non-empty value
+  defp project_attribute_set_path(id) do
+    ~s|$[*] ? (@.id == #{Jason.encode!(id)} && @.value.type() != "null" && !(@.value.type() == "string" && @.value == "") && !(@.value.type() == "array" && @.value.size() == 0))|
+  end
+
+  # Whether the attribute is a date (an ISO 8601 string, so it compares lexicographically)
+  # within the given bounds
+  defp project_attribute_date_path(id, min, max) do
+    bounds =
+      [{">=", min}, {"<=", max}]
+      |> Enum.reject(fn {_, date} -> is_nil(date) end)
+      |> Enum.map(fn {op, date} -> " && @.value #{op} #{Jason.encode!(date)}" end)
+
+    ~s|$[*] ? (@.id == #{Jason.encode!(id)} && @.value.type() == "string" && @.value != ""#{bounds})|
+  end
 
   defp apply_project_attribute_values_filter(queryable, _id, []), do: queryable
 
@@ -353,14 +381,16 @@ defmodule Platform.Material.MediaSearch do
     conditions =
       Enum.reduce(values, dynamic(false), fn
         "[Unset]", acc ->
+          path = project_attribute_set_path(id)
+
           dynamic(
             [m],
             ^acc or
               fragment(
-                "NOT EXISTS (SELECT 1 FROM jsonb_array_elements(CASE WHEN jsonb_typeof(?) = 'array' THEN ? ELSE '[]'::jsonb END) e WHERE e->>'id' = ? AND e->'value' IS NOT NULL AND e->'value' NOT IN ('null'::jsonb, '[]'::jsonb, '\"\"'::jsonb))",
+                "(? IS NULL OR NOT (? @\\? ?::text::jsonpath))",
                 m.project_attributes,
                 m.project_attributes,
-                ^id
+                ^path
               )
           )
 
@@ -383,49 +413,27 @@ defmodule Platform.Material.MediaSearch do
 
   defp apply_project_attribute_text_filter(queryable, id, text) do
     pattern = "%" <> String.replace(text, ~r/([\\%_])/, "\\\\\\1") <> "%"
+    vars = Jason.encode!(%{id: id})
 
     where(
       queryable,
       [m],
       fragment(
-        "EXISTS (SELECT 1 FROM jsonb_array_elements(CASE WHEN jsonb_typeof(?) = 'array' THEN ? ELSE '[]'::jsonb END) e WHERE e->>'id' = ? AND e->>'value' ILIKE ?)",
+        "jsonb_path_query_first(?, ?::text::jsonpath, ?::text::jsonb) #>> '{}' ILIKE ?",
         m.project_attributes,
-        m.project_attributes,
-        ^id,
+        ^@project_attribute_value_path,
+        ^vars,
         ^pattern
       )
     )
   end
 
-  defp apply_project_attribute_date_filter(queryable, _id, nil, _bound), do: queryable
+  defp apply_project_attribute_date_filter(queryable, _id, nil, nil), do: queryable
 
-  # Dates are stored as ISO 8601 strings, so they can be compared lexicographically
-  defp apply_project_attribute_date_filter(queryable, id, date, :min) do
-    where(
-      queryable,
-      [m],
-      fragment(
-        "EXISTS (SELECT 1 FROM jsonb_array_elements(CASE WHEN jsonb_typeof(?) = 'array' THEN ? ELSE '[]'::jsonb END) e WHERE e->>'id' = ? AND jsonb_typeof(e->'value') = 'string' AND e->>'value' >= ?)",
-        m.project_attributes,
-        m.project_attributes,
-        ^id,
-        ^date
-      )
-    )
-  end
+  defp apply_project_attribute_date_filter(queryable, id, min, max) do
+    path = project_attribute_date_path(id, min, max)
 
-  defp apply_project_attribute_date_filter(queryable, id, date, :max) do
-    where(
-      queryable,
-      [m],
-      fragment(
-        "EXISTS (SELECT 1 FROM jsonb_array_elements(CASE WHEN jsonb_typeof(?) = 'array' THEN ? ELSE '[]'::jsonb END) e WHERE e->>'id' = ? AND jsonb_typeof(e->'value') = 'string' AND e->>'value' <> '' AND e->>'value' <= ?)",
-        m.project_attributes,
-        m.project_attributes,
-        ^id,
-        ^date
-      )
-    )
+    where(queryable, [m], fragment("? @\\? ?::text::jsonpath", m.project_attributes, ^path))
   end
 
   defp apply_sort(queryable, changeset) do
